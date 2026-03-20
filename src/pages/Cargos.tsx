@@ -10,21 +10,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCargos } from "@/contexts/CargosContext";
 
 const niveis = ["I", "II", "III", "IV", "V"] as const;
-
-interface Cargo {
-  id: string;
-  nome: string;
-  descricao: string;
-  salario: string;
-  nivel: string;
-}
 
 const emptyForm = { nome: "", descricao: "", salario: "", nivel: "" };
 
 const Cargos = () => {
-  const [cargos, setCargos] = useState<Cargo[]>([]);
+  const { cargos, addCargo, updateCargo, deleteCargo } = useCargos();
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -44,21 +37,16 @@ const Cargos = () => {
     }
 
     if (editingId) {
-      setCargos((prev) =>
-        prev.map((c) => (c.id === editingId ? { ...c, ...form } : c))
-      );
+      updateCargo(editingId, form);
       toast.success("Cargo atualizado com sucesso!");
     } else {
-      setCargos((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), ...form },
-      ]);
+      addCargo(form);
       toast.success("Cargo cadastrado com sucesso!");
     }
     resetForm();
   };
 
-  const handleEdit = (cargo: Cargo) => {
+  const handleEdit = (cargo: typeof cargos[0]) => {
     setEditingId(cargo.id);
     setForm({
       nome: cargo.nome,
@@ -69,7 +57,7 @@ const Cargos = () => {
   };
 
   const handleDelete = (id: string) => {
-    setCargos((prev) => prev.filter((c) => c.id !== id));
+    deleteCargo(id);
     toast.success("Cargo removido.");
     if (editingId === id) resetForm();
   };
@@ -88,7 +76,6 @@ const Cargos = () => {
           </p>
         </div>
 
-        {/* Form */}
         <form
           onSubmit={handleSubmit}
           className="section-card animate-fade-up mb-6"
@@ -151,7 +138,6 @@ const Cargos = () => {
           </div>
         </form>
 
-        {/* List */}
         <div
           className="section-card animate-fade-up"
           style={{ animationDelay: "160ms" }}
@@ -169,11 +155,9 @@ const Cargos = () => {
                   className="flex items-center justify-between py-3 gap-4"
                 >
                   <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
-                    <div>
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {cargo.nome}
-                      </p>
-                    </div>
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {cargo.nome}
+                    </p>
                     <div>
                       {cargo.nivel && (
                         <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
@@ -197,20 +181,10 @@ const Cargos = () => {
                     </div>
                   </div>
                   <div className="flex gap-1 shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(cargo)}
-                      className="text-xs"
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(cargo)} className="text-xs">
                       Editar
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(cargo.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(cargo.id)} className="text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>

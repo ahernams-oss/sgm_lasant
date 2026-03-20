@@ -7,6 +7,14 @@ import RadioGroupCustom from "@/components/RadioGroupCustom";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useCargos } from "@/contexts/CargosContext";
 
 const jornadaOptions = ["Diarista", "Plantão Diurno - PAR", "Plantão Diurno - ÍMPAR", "Plantão Noturno - PAR", "Plantão Noturno - ÍMPAR"];
 const contratacaoOptions = ["Efetivo", "Temporário", "PCD", "Estagiário"];
@@ -16,6 +24,7 @@ const formacaoOptions = ["Ensino Fundamental", "Ensino Médio", "Ensino Superior
 const experienciaOptions = ["Não Necessita", "Até 1 ano", "De 1 a 3 anos", "De 3 a 5 anos", "Acima de 5 anos"];
 
 const RequisicaoForm = () => {
+  const { cargos } = useCargos();
   const [form, setForm] = useState({
     unidade: "",
     cargo: "",
@@ -37,6 +46,7 @@ const RequisicaoForm = () => {
     experiencia: "",
     conhecimentoInformatica: "",
     atividadesCargo: "",
+    salarioVaga: "",
   });
 
   const update = (field: string, value: string | string[]) =>
@@ -69,12 +79,49 @@ const RequisicaoForm = () => {
           </div>
           <div>
             <label className="field-label">Cargo</label>
-            <Input
-              placeholder="Ex: Eletricista de Alta"
-              value={form.cargo}
-              onChange={(e) => update("cargo", e.target.value)}
-            />
+            {cargos.length > 0 ? (
+              <Select
+                value={form.cargo}
+                onValueChange={(cargoId) => {
+                  const selected = cargos.find((c) => c.id === cargoId);
+                  if (selected) {
+                    setForm((prev) => ({
+                      ...prev,
+                      cargo: cargoId,
+                      salarioVaga: selected.salario,
+                    }));
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o cargo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cargos.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.nome}{c.nivel ? ` — Nível ${c.nivel}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                placeholder="Cadastre cargos primeiro"
+                value={form.cargo}
+                onChange={(e) => update("cargo", e.target.value)}
+              />
+            )}
           </div>
+          {form.cargo && cargos.find((c) => c.id === form.cargo)?.salario && (
+            <div>
+              <label className="field-label">Salário do Cargo</label>
+              <Input
+                readOnly
+                value={`R$ ${cargos.find((c) => c.id === form.cargo)?.salario}`}
+                className="bg-muted/50"
+              />
+            </div>
+          )}
         </div>
       </FormSection>
 
@@ -241,7 +288,7 @@ const RequisicaoForm = () => {
           matricula: "", nomeSubstituido: "", cargoSubstituido: "",
           salarioSubstituido: "", dataDesligamento: "",
           formacao: [], formacaoDetalhe: "", experiencia: "",
-          conhecimentoInformatica: "", atividadesCargo: "",
+          conhecimentoInformatica: "", atividadesCargo: "", salarioVaga: "",
         })}>
           Limpar
         </Button>
