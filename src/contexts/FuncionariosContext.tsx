@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 export interface Funcionario {
   id: string;
@@ -20,7 +20,12 @@ interface FuncionariosContextType {
 const FuncionariosContext = createContext<FuncionariosContextType | undefined>(undefined);
 
 export function FuncionariosProvider({ children }: { children: ReactNode }) {
-  const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
+  const [funcionarios, setFuncionarios] = useState<Funcionario[]>(() => {
+    const saved = localStorage.getItem("funcionarios");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => { localStorage.setItem("funcionarios", JSON.stringify(funcionarios)); }, [funcionarios]);
 
   const addFuncionario = (f: Omit<Funcionario, "id">) =>
     setFuncionarios((prev) => [...prev, { id: crypto.randomUUID(), ...f }]);

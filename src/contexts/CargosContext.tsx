@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 export interface Cargo {
   id: string;
@@ -18,7 +18,12 @@ interface CargosContextType {
 const CargosContext = createContext<CargosContextType | undefined>(undefined);
 
 export function CargosProvider({ children }: { children: ReactNode }) {
-  const [cargos, setCargos] = useState<Cargo[]>([]);
+  const [cargos, setCargos] = useState<Cargo[]>(() => {
+    const saved = localStorage.getItem("cargos");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => { localStorage.setItem("cargos", JSON.stringify(cargos)); }, [cargos]);
 
   const addCargo = (cargo: Omit<Cargo, "id">) =>
     setCargos((prev) => [...prev, { id: crypto.randomUUID(), ...cargo }]);
