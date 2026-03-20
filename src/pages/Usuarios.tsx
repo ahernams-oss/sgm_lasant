@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Shield, Trash2, Pencil, Eye, EyeOff } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Shield, Trash2, Pencil, Eye, EyeOff, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -30,6 +30,8 @@ const Usuarios = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showSenha, setShowSenha] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filterCargo, setFilterCargo] = useState<string>("todos");
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -87,6 +89,24 @@ const Usuarios = () => {
 
   const getClientesNomes = (ids: string[]) =>
     ids.map((id) => clientes.find((c) => c.id === id)?.nome).filter(Boolean).join(", ") || "Nenhum";
+
+  const filteredUsuarios = useMemo(() => {
+    let result = usuarios;
+    if (search.trim()) {
+      const term = search.toLowerCase();
+      result = result.filter(
+        (u) =>
+          u.nome.toLowerCase().includes(term) ||
+          u.email.toLowerCase().includes(term) ||
+          u.telefone.toLowerCase().includes(term) ||
+          getCargoNome(u.cargoId).toLowerCase().includes(term)
+      );
+    }
+    if (filterCargo !== "todos") {
+      result = result.filter((u) => u.cargoId === filterCargo);
+    }
+    return result;
+  }, [usuarios, search, filterCargo, cargos]);
 
   return (
     <div className="bg-background">
@@ -203,11 +223,30 @@ const Usuarios = () => {
         )}
 
         <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-border bg-muted/30">
+          <div className="px-6 py-4 border-b border-border bg-muted/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <h2 className="text-sm font-semibold text-foreground">Usuários Cadastrados</h2>
+            <div className="flex items-center gap-2">
+              <Select value={filterCargo} onValueChange={setFilterCargo}>
+                <SelectTrigger className="h-9 w-[150px] text-xs">
+                  <SelectValue placeholder="Cargo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos Cargos</SelectItem>
+                  {cargos.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="relative w-52">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Pesquisar usuários..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+              </div>
+            </div>
           </div>
-          {usuarios.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground text-sm">Nenhum usuário cadastrado.</div>
+          {filteredUsuarios.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground text-sm">
+              {usuarios.length === 0 ? "Nenhum usuário cadastrado." : "Nenhum resultado encontrado."}
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -221,7 +260,7 @@ const Usuarios = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {usuarios.map((u) => (
+                {filteredUsuarios.map((u) => (
                   <TableRow key={u.id}>
                     <TableCell className="font-medium">{u.nome}</TableCell>
                     <TableCell>{getCargoNome(u.cargoId)}</TableCell>

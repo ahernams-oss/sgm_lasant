@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Briefcase, Plus, Trash2 } from "lucide-react";
+import { Briefcase, Plus, Trash2, Search } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,8 @@ const Cargos = () => {
   const { cargos, addCargo, updateCargo, deleteCargo } = useCargos();
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [filterNivel, setFilterNivel] = useState<string>("todos");
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -36,7 +38,6 @@ const Cargos = () => {
       toast.error("Informe o nome do cargo.");
       return;
     }
-
     if (editingId) {
       updateCargo(editingId, form);
       toast.success("Cargo atualizado com sucesso!");
@@ -64,6 +65,23 @@ const Cargos = () => {
     if (editingId === id) resetForm();
   };
 
+  const filteredCargos = useMemo(() => {
+    let result = cargos;
+    if (search.trim()) {
+      const term = search.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.nome.toLowerCase().includes(term) ||
+          c.descricao.toLowerCase().includes(term) ||
+          c.salario.toLowerCase().includes(term)
+      );
+    }
+    if (filterNivel !== "todos") {
+      result = result.filter((c) => c.nivel === filterNivel);
+    }
+    return result;
+  }, [cargos, search, filterNivel]);
+
   return (
     <div className="bg-background">
       <div className="container max-w-4xl mx-auto px-4 py-8">
@@ -89,52 +107,30 @@ const Cargos = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="field-label">Nome do Cargo</label>
-              <Input
-                placeholder="Ex: Eletricista de Alta"
-                value={form.nome}
-                onChange={(e) => update("nome", e.target.value)}
-              />
+              <Input placeholder="Ex: Eletricista de Alta" value={form.nome} onChange={(e) => update("nome", e.target.value)} />
             </div>
             <div>
               <label className="field-label">Nível</label>
               <Select value={form.nivel} onValueChange={(v) => update("nivel", v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   {niveis.map((n) => (
-                    <SelectItem key={n} value={n}>
-                      Nível {n}
-                    </SelectItem>
+                    <SelectItem key={n} value={n}>Nível {n}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <label className="field-label">Salário (R$)</label>
-              <Input
-                placeholder="Ex: 2.511,98"
-                value={form.salario}
-                onChange={(e) => update("salario", e.target.value)}
-              />
+              <Input placeholder="Ex: 2.511,98" value={form.salario} onChange={(e) => update("salario", e.target.value)} />
             </div>
             <div>
               <label className="field-label">Data Base do Salário</label>
-              <Input
-                type="date"
-                value={form.dataBaseSalario}
-                onChange={(e) => update("dataBaseSalario", e.target.value)}
-              />
+              <Input type="date" value={form.dataBaseSalario} onChange={(e) => update("dataBaseSalario", e.target.value)} />
             </div>
             <div className="md:col-span-2">
               <label className="field-label">Descrição</label>
-              <Textarea
-                placeholder="Breve descrição do cargo"
-                value={form.descricao}
-                onChange={(e) => update("descricao", e.target.value)}
-                rows={2}
-                className="min-h-[40px]"
-              />
+              <Textarea placeholder="Breve descrição do cargo" value={form.descricao} onChange={(e) => update("descricao", e.target.value)} rows={2} className="min-h-[40px]" />
             </div>
           </div>
           <div className="flex gap-2 mt-4">
@@ -143,33 +139,42 @@ const Cargos = () => {
               {editingId ? "Salvar Alterações" : "Adicionar Cargo"}
             </Button>
             {editingId && (
-              <Button type="button" variant="outline" onClick={resetForm}>
-                Cancelar
-              </Button>
+              <Button type="button" variant="outline" onClick={resetForm}>Cancelar</Button>
             )}
           </div>
         </form>
 
-        <div
-          className="section-card animate-fade-up"
-          style={{ animationDelay: "160ms" }}
-        >
-          <h2 className="section-title">Cargos Cadastrados</h2>
-          {cargos.length === 0 ? (
+        <div className="section-card animate-fade-up" style={{ animationDelay: "160ms" }}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+            <h2 className="section-title mb-0">Cargos Cadastrados</h2>
+            <div className="flex items-center gap-2">
+              <Select value={filterNivel} onValueChange={setFilterNivel}>
+                <SelectTrigger className="h-9 w-[130px] text-xs">
+                  <SelectValue placeholder="Nível" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos Níveis</SelectItem>
+                  {niveis.map((n) => (
+                    <SelectItem key={n} value={n}>Nível {n}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="relative w-52">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Pesquisar cargos..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+              </div>
+            </div>
+          </div>
+          {filteredCargos.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground py-10">
-              Nenhum cargo cadastrado ainda.
+              {cargos.length === 0 ? "Nenhum cargo cadastrado ainda." : "Nenhum resultado encontrado."}
             </p>
           ) : (
             <div className="divide-y divide-border">
-              {cargos.map((cargo) => (
-                <div
-                  key={cargo.id}
-                  className="flex items-center justify-between py-3 gap-4"
-                >
+              {filteredCargos.map((cargo) => (
+                <div key={cargo.id} className="flex items-center justify-between py-3 gap-4">
                   <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-5 gap-x-4 gap-y-1">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {cargo.nome}
-                    </p>
+                    <p className="text-sm font-medium text-foreground truncate">{cargo.nome}</p>
                     <div>
                       {cargo.nivel && (
                         <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
@@ -179,9 +184,7 @@ const Cargos = () => {
                     </div>
                     <div>
                       {cargo.salario && (
-                        <p className="text-sm text-muted-foreground tabular-nums">
-                          R$ {cargo.salario}
-                        </p>
+                        <p className="text-sm text-muted-foreground tabular-nums">R$ {cargo.salario}</p>
                       )}
                     </div>
                     <div>
@@ -193,16 +196,12 @@ const Cargos = () => {
                     </div>
                     <div>
                       {cargo.descricao && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          {cargo.descricao}
-                        </p>
+                        <p className="text-xs text-muted-foreground truncate">{cargo.descricao}</p>
                       )}
                     </div>
                   </div>
                   <div className="flex gap-1 shrink-0">
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(cargo)} className="text-xs">
-                      Editar
-                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(cargo)} className="text-xs">Editar</Button>
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(cargo.id)} className="text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
