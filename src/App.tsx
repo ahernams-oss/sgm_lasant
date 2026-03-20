@@ -31,6 +31,7 @@ const App = () => (
         </AppLayout>
       </BrowserRouter>
     </TooltipProvider>
+    </RequisicaoProvider>
     </CargosProvider>
   </QueryClientProvider>
 );
