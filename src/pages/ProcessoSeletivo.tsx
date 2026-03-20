@@ -95,7 +95,7 @@ const ProcessoSeletivoPage = () => {
     updateCandidato(processo!.id, candidatoId, { [field]: value });
   };
 
-  const handleAprovarEtapa = (candidato: Candidato, statusField: string, status: "aprovado" | "reprovado") => {
+  const handleAprovarEtapa = (candidato: Candidato, statusField: string, status: "aprovado" | "neutro" | "reprovado") => {
     const updates: Partial<Candidato> = { [statusField]: status };
 
     if (statusField === "statusLiberacao" && status === "aprovado") {
@@ -107,6 +107,9 @@ const ProcessoSeletivoPage = () => {
     if (status === "aprovado") {
       avancarEtapa(processo!.id, candidato.id);
       toast.success(`Candidato ${candidato.nome} aprovado nesta etapa.`);
+    } else if (status === "neutro") {
+      avancarEtapa(processo!.id, candidato.id);
+      toast.info(`Candidato ${candidato.nome} marcado como neutro e avançou para próxima etapa.`);
     } else {
       toast.info(`Candidato ${candidato.nome} reprovado nesta etapa.`);
     }
