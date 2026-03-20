@@ -1,5 +1,8 @@
 import { useRequisicoes, Requisicao } from "@/contexts/RequisicaoContext";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { FileDown } from "lucide-react";
+import { gerarPdfRequisicao } from "@/lib/gerarPdfRequisicao";
 import {
   Select,
   SelectContent,
@@ -52,6 +55,7 @@ const RequisicaoGrid = () => {
               <TableHead>Origem</TableHead>
               <TableHead>Substituído</TableHead>
               <TableHead className="pr-5">Status</TableHead>
+              <TableHead className="pr-5 text-center">PDF</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -83,6 +87,17 @@ const RequisicaoGrid = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </TableCell>
+                <TableCell className="pr-5 text-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
+                    title="Baixar PDF"
+                    onClick={() => gerarPdfRequisicao(req)}
+                  >
+                    <FileDown className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
