@@ -74,6 +74,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       nomeSubstituido: form.nomeSubstituido,
     });
     toast.success("Requisição enviada com sucesso!");
+    onSuccess?.();
     setForm({
       unidade: "", cargo: "", jornada: "", cargaHoraria: "",
       tipoContratacao: [], internoExterno: "", origemVaga: "", motivoOutros: "",
