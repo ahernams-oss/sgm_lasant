@@ -95,6 +95,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
               idade: "",
               estadoCivil: "",
               experienciasAnteriores: "",
+              anexos: candidato.anexos || [],
               parecerPsicologo: "",
               statusPsicologico: "pendente",
               avaliadorTecnico: "",
