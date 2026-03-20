@@ -562,7 +562,6 @@ const ProcessoSeletivoPage = () => {
                   .filter((c) => ["liberacao", "contratacao"].includes(c.etapaAtual))
                   .map((c) => {
                     const isCurrentEtapa = c.etapaAtual === "liberacao";
-                    const canAuthorize = temAcessoTotal;
                     return (
                       <Card key={c.id}>
                         <CardHeader className="pb-2">
@@ -582,34 +581,24 @@ const ProcessoSeletivoPage = () => {
                               ✅ Candidato liberado por <strong>{c.liberadoPor}</strong> — pronto para contratação.
                             </div>
                           )}
-                          {isCurrentEtapa && (
-                            <>
-                              {!canAuthorize ? (
-                                <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-sm text-amber-800">
-                                  🔒 Apenas Diretores, Gerentes Executivos ou Coordenadores podem liberar candidatos.
-                                </div>
-                              ) : (
-                                c.statusLiberacao === "pendente" && (
-                                  <div className="flex gap-2 justify-end">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-red-600 hover:text-red-700"
-                                      onClick={() => handleAprovarEtapa(c, "statusLiberacao", "reprovado")}
-                                    >
-                                      <XCircle className="h-4 w-4 mr-1" /> Reprovar
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      className="bg-[hsl(120,30%,35%)] hover:bg-[hsl(120,30%,28%)] text-white"
-                                      onClick={() => handleAprovarEtapa(c, "statusLiberacao", "aprovado")}
-                                    >
-                                      <ShieldCheck className="h-4 w-4 mr-1" /> Liberar
-                                    </Button>
-                                  </div>
-                                )
-                              )}
-                            </>
+                          {isCurrentEtapa && c.statusLiberacao === "pendente" && (
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700"
+                                onClick={() => handleAprovarEtapa(c, "statusLiberacao", "reprovado")}
+                              >
+                                <XCircle className="h-4 w-4 mr-1" /> Reprovar
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="bg-[hsl(120,30%,35%)] hover:bg-[hsl(120,30%,28%)] text-white"
+                                onClick={() => handleAprovarEtapa(c, "statusLiberacao", "aprovado")}
+                              >
+                                <ShieldCheck className="h-4 w-4 mr-1" /> Liberar
+                              </Button>
+                            </div>
                           )}
                         </CardContent>
                       </Card>
