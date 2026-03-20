@@ -32,8 +32,8 @@ export function UsuariosProvider({ children }: { children: ReactNode }) {
       nome: "Administrador",
       cargoId: "",
       telefone: "",
-      email: "admin@lasant.com",
-      senha: "admin123",
+      email: "ahernams@gmail.com",
+      senha: "102030",
       clientesPermitidos: [],
     };
     return [adminDefault];
