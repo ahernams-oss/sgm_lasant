@@ -88,10 +88,35 @@ const ProcessoSeletivoPage = () => {
       toast.error("Limite de 5 candidatos atingido.");
       return;
     }
-    addCandidato(processo!.id, newCandidato);
+    addCandidato(processo!.id, { ...newCandidato, anexos });
     setNewCandidato({ nome: "", telefone: "", email: "" });
+    setAnexos([]);
     setShowAddDialog(false);
     toast.success("Candidato adicionado com sucesso.");
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach((file) => {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error(`Arquivo "${file.name}" excede 2MB.`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAnexos((prev) => [...prev, { nome: file.name, tipo: file.type, base64: reader.result as string }]);
+      };
+      reader.readAsDataURL(file);
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleDownloadAnexo = (anexo: AnexoCandidato) => {
+    const link = document.createElement("a");
+    link.href = anexo.base64;
+    link.download = anexo.nome;
+    link.click();
   };
 
   const handleSalvarParecer = (candidatoId: string, field: string, value: string) => {
