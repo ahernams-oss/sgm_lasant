@@ -71,7 +71,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
 
   const addCandidato = (
     processoId: string,
-    candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao">
+    candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores">
   ) => {
     setProcessos((prev) =>
       prev.map((p) => {
