@@ -12,6 +12,7 @@ import Funcionarios from "./pages/Funcionarios.tsx";
 import Usuarios from "./pages/Usuarios.tsx";
 import Login from "./pages/Login.tsx";
 import ProcessoSeletivo from "./pages/ProcessoSeletivo.tsx";
+import ProcessosSeletivos from "./pages/ProcessosSeletivos.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
