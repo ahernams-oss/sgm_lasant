@@ -8,6 +8,7 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Clientes from "./pages/Clientes.tsx";
 import Cargos from "./pages/Cargos.tsx";
+import Funcionarios from "./pages/Funcionarios.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/clientes" element={<Clientes />} />
             <Route path="/cargos" element={<Cargos />} />
+            <Route path="/funcionarios" element={<Funcionarios />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
