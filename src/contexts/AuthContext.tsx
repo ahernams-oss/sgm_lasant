@@ -1,17 +1,27 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
 import { useUsuarios, Usuario } from "./UsuariosContext";
+import { useCargos } from "./CargosContext";
+import { useClientes } from "./ClientesContext";
+
+const CARGOS_ACESSO_TOTAL = ["Diretor", "Gerente Executivo", "Coordenador de Departamento"];
 
 interface AuthContextType {
   usuarioLogado: Usuario | null;
   login: (email: string, senha: string) => boolean;
   logout: () => void;
   isAuthenticated: boolean;
+  /** true se o usuário logado tem cargo com acesso total */
+  temAcessoTotal: boolean;
+  /** IDs dos clientes que o usuário logado pode visualizar */
+  clientesPermitidosIds: string[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { usuarios } = useUsuarios();
+  const { cargos } = useCargos();
+  const { clientes } = useClientes();
   const [usuarioLogado, setUsuarioLogado] = useState<Usuario | null>(() => {
     const saved = localStorage.getItem("usuarioLogado");
     return saved ? JSON.parse(saved) : null;
@@ -35,6 +45,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [usuarios]);
 
+  const temAcessoTotal = useMemo(() => {
+    if (!usuarioLogado) return false;
+    const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
+    return cargo ? CARGOS_ACESSO_TOTAL.includes(cargo.nome) : false;
+  }, [usuarioLogado, cargos]);
+
+  const clientesPermitidosIds = useMemo(() => {
+    if (!usuarioLogado) return [];
+    if (temAcessoTotal) return clientes.map((c) => c.id);
+    return usuarioLogado.clientesPermitidos;
+  }, [usuarioLogado, temAcessoTotal, clientes]);
+
   const login = (email: string, senha: string): boolean => {
     const found = usuarios.find(
       (u) => u.email.toLowerCase() === email.toLowerCase() && u.senha === senha
@@ -50,7 +72,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ usuarioLogado, login, logout, isAuthenticated: !!usuarioLogado }}
+      value={{
+        usuarioLogado,
+        login,
+        logout,
+        isAuthenticated: !!usuarioLogado,
+        temAcessoTotal,
+        clientesPermitidosIds,
+      }}
     >
       {children}
     </AuthContext.Provider>
