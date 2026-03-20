@@ -25,7 +25,7 @@ const statusColors: Record<Requisicao["status"], string> = {
 
 const statusOptions: Requisicao["status"][] = ["Pendente", "Em Análise", "Aprovada", "Reprovada"];
 
-const cargosAprovadores = ["Diretor", "Gerente Executivo", "Coordenador de Departamento"];
+
 
 const RequisicaoGrid = () => {
   const { requisicoes, updateStatus } = useRequisicoes();
