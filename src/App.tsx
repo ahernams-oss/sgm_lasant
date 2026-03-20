@@ -9,12 +9,14 @@ import NotFound from "./pages/NotFound.tsx";
 import Clientes from "./pages/Clientes.tsx";
 import Cargos from "./pages/Cargos.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
+import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <CargosProvider>
+    <RequisicaoProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
