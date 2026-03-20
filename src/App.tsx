@@ -20,17 +20,12 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoutes() {
-  const { isAuthenticated } = useAuth();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
+function AppRoutes() {
   return (
     <AppLayout>
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/cargos" element={<Cargos />} />
         <Route path="/funcionarios" element={<Funcionarios />} />
@@ -38,20 +33,6 @@ function ProtectedRoutes() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
-  );
-}
-
-function AppRoutes() {
-  const { isAuthenticated } = useAuth();
-
-  return (
-    <Routes>
-      <Route
-        path="/login"
-        element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
-      />
-      <Route path="/*" element={<ProtectedRoutes />} />
-    </Routes>
   );
 }
 
