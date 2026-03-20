@@ -288,7 +288,7 @@ const RequisicaoForm = () => {
           matricula: "", nomeSubstituido: "", cargoSubstituido: "",
           salarioSubstituido: "", dataDesligamento: "",
           formacao: [], formacaoDetalhe: "", experiencia: "",
-          conhecimentoInformatica: "", atividadesCargo: "",
+          conhecimentoInformatica: "", atividadesCargo: "", salarioVaga: "",
         })}>
           Limpar
         </Button>
