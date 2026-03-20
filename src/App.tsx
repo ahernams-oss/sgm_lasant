@@ -9,10 +9,12 @@ import NotFound from "./pages/NotFound.tsx";
 import Clientes from "./pages/Clientes.tsx";
 import Cargos from "./pages/Cargos.tsx";
 import Funcionarios from "./pages/Funcionarios.tsx";
+import Usuarios from "./pages/Usuarios.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
 import { FuncionariosProvider } from "@/contexts/FuncionariosContext";
+import { UsuariosProvider } from "@/contexts/UsuariosContext";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +23,7 @@ const App = () => (
     <ClientesProvider>
     <CargosProvider>
     <FuncionariosProvider>
+    <UsuariosProvider>
     <RequisicaoProvider>
     <TooltipProvider>
       <Toaster />
@@ -32,12 +35,14 @@ const App = () => (
             <Route path="/clientes" element={<Clientes />} />
             <Route path="/cargos" element={<Cargos />} />
             <Route path="/funcionarios" element={<Funcionarios />} />
+            <Route path="/usuarios" element={<Usuarios />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
       </BrowserRouter>
     </TooltipProvider>
     </RequisicaoProvider>
+    </UsuariosProvider>
     </FuncionariosProvider>
     </CargosProvider>
     </ClientesProvider>

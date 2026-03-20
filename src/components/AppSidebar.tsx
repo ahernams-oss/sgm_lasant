@@ -1,4 +1,4 @@
-import { ClipboardList, Users, Briefcase, UserCheck } from "lucide-react";
+import { ClipboardList, Users, Briefcase, UserCheck, Shield } from "lucide-react";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -12,6 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -78,6 +79,24 @@ export function AppSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <NavLink
+                to="/usuarios"
+                end
+                className="hover:bg-sidebar-accent/50"
+                activeClassName="bg-sidebar-accent text-primary font-medium"
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                {!collapsed && <span>Usuários</span>}
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
