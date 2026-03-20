@@ -1,5 +1,8 @@
 import { useRequisicoes, Requisicao } from "@/contexts/RequisicaoContext";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { FileDown } from "lucide-react";
+import { gerarPdfRequisicao } from "@/lib/gerarPdfRequisicao";
 import {
   Select,
   SelectContent,
