@@ -34,12 +34,14 @@ const etapaLabels: Record<EtapaCandidato, string> = {
 const statusIcons = {
   pendente: <Clock className="h-4 w-4 text-amber-500" />,
   aprovado: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
+  neutro: <MinusCircle className="h-4 w-4 text-blue-500" />,
   reprovado: <XCircle className="h-4 w-4 text-red-500" />,
 };
 
 const statusBadge = {
   pendente: "bg-amber-100 text-amber-800 border-amber-200",
   aprovado: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  neutro: "bg-blue-100 text-blue-800 border-blue-200",
   reprovado: "bg-red-100 text-red-800 border-red-200",
 };
 
