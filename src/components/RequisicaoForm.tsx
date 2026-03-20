@@ -165,65 +165,91 @@ const RequisicaoForm = () => {
 
       {/* Jornada de Trabalho */}
       <FormSection title="Jornada de Trabalho" delay={80}>
-        <RadioGroupCustom
-          options={jornadaOptions}
-          selected={form.jornada}
-          onChange={(v) => update("jornada", v)}
-          columns={3}
-        />
-        {form.jornada === "Diarista" && (
-          <div className="mt-4 max-w-xs">
-            <label className="field-label">Carga Horária</label>
-            <Input
-              placeholder="Ex: 44h semanais"
-              value={form.cargaHoraria}
-              onChange={(e) => update("cargaHoraria", e.target.value)}
-            />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="field-label">Jornada</label>
+            <Select value={form.jornada} onValueChange={(v) => update("jornada", v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a jornada" />
+              </SelectTrigger>
+              <SelectContent>
+                {jornadaOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        )}
+          {form.jornada === "Diarista" && (
+            <div>
+              <label className="field-label">Carga Horária</label>
+              <Input
+                placeholder="Ex: 44h semanais"
+                value={form.cargaHoraria}
+                onChange={(e) => update("cargaHoraria", e.target.value)}
+              />
+            </div>
+          )}
+        </div>
       </FormSection>
 
       {/* Tipo de Contratação */}
       <FormSection title="Tipo de Contratação" delay={160}>
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="field-label">Modalidade</label>
-            <CheckboxGroup
-              options={contratacaoOptions}
-              selected={form.tipoContratacao}
-              onChange={(v) => update("tipoContratacao", v)}
-              columns={4}
-            />
+            <Select value={form.tipoContratacao[0] || ""} onValueChange={(v) => update("tipoContratacao", [v])}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a modalidade" />
+              </SelectTrigger>
+              <SelectContent>
+                {contratacaoOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <label className="field-label">Recrutamento</label>
-            <RadioGroupCustom
-              options={internoExternoOptions}
-              selected={form.internoExterno}
-              onChange={(v) => update("internoExterno", v)}
-              columns={2}
-            />
+            <Select value={form.internoExterno} onValueChange={(v) => update("internoExterno", v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                {internoExternoOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </FormSection>
 
       {/* Origem da Vaga */}
       <FormSection title="Origem da Vaga" delay={240}>
-        <RadioGroupCustom
-          options={origemOptions}
-          selected={form.origemVaga}
-          onChange={(v) => update("origemVaga", v)}
-          columns={5}
-        />
-        {form.origemVaga === "Outros" && (
-          <div className="mt-4">
-            <label className="field-label">Especifique o motivo</label>
-            <Input
-              value={form.motivoOutros}
-              onChange={(e) => update("motivoOutros", e.target.value)}
-            />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="field-label">Origem</label>
+            <Select value={form.origemVaga} onValueChange={(v) => update("origemVaga", v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a origem" />
+              </SelectTrigger>
+              <SelectContent>
+                {origemOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        )}
+          {form.origemVaga === "Outros" && (
+            <div>
+              <label className="field-label">Especifique o motivo</label>
+              <Input
+                value={form.motivoOutros}
+                onChange={(e) => update("motivoOutros", e.target.value)}
+              />
+            </div>
+          )}
+        </div>
       </FormSection>
 
       {/* Colaborador Substituído */}
