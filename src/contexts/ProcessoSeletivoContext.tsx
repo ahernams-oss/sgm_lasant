@@ -8,6 +8,9 @@ export interface Candidato {
   nome: string;
   telefone: string;
   email: string;
+  idade: string;
+  estadoCivil: string;
+  experienciasAnteriores: string;
   etapaAtual: EtapaCandidato;
   // Etapa 1 – Entrevista Psicológica
   parecerPsicologo: string;
@@ -32,7 +35,7 @@ interface ProcessoSeletivoContextType {
   processos: ProcessoSeletivo[];
   criarProcesso: (requisicaoId: string) => ProcessoSeletivo;
   getProcessoByRequisicao: (requisicaoId: string) => ProcessoSeletivo | undefined;
-  addCandidato: (processoId: string, candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao">) => void;
+  addCandidato: (processoId: string, candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores">) => void;
   updateCandidato: (processoId: string, candidatoId: string, data: Partial<Candidato>) => void;
   avancarEtapa: (processoId: string, candidatoId: string) => void;
 }
@@ -68,7 +71,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
 
   const addCandidato = (
     processoId: string,
-    candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao">
+    candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores">
   ) => {
     setProcessos((prev) =>
       prev.map((p) => {
@@ -82,6 +85,9 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
               ...candidato,
               id: crypto.randomUUID(),
               etapaAtual: "entrevista_psicologica",
+              idade: "",
+              estadoCivil: "",
+              experienciasAnteriores: "",
               parecerPsicologo: "",
               statusPsicologico: "pendente",
               avaliadorTecnico: "",

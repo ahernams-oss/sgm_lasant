@@ -214,6 +214,38 @@ const ProcessoSeletivoPage = () => {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <label className="text-xs font-medium text-muted-foreground">Idade</label>
+                            <Input
+                              value={c.idade}
+                              onChange={(e) => handleSalvarParecer(c.id, "idade", e.target.value)}
+                              placeholder="Ex: 28"
+                              className="mt-1"
+                              disabled={!isCurrentEtapa}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-muted-foreground">Estado Civil</label>
+                            <Input
+                              value={c.estadoCivil}
+                              onChange={(e) => handleSalvarParecer(c.id, "estadoCivil", e.target.value)}
+                              placeholder="Ex: Solteiro(a)"
+                              className="mt-1"
+                              disabled={!isCurrentEtapa}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-muted-foreground">Experiências Anteriores</label>
+                            <Input
+                              value={c.experienciasAnteriores}
+                              onChange={(e) => handleSalvarParecer(c.id, "experienciasAnteriores", e.target.value)}
+                              placeholder="Ex: 3 anos na área"
+                              className="mt-1"
+                              disabled={!isCurrentEtapa}
+                            />
+                          </div>
+                        </div>
                         <div>
                           <label className="text-xs font-medium text-muted-foreground">Parecer da Psicóloga</label>
                           <Textarea
