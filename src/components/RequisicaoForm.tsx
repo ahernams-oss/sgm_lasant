@@ -366,6 +366,134 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         />
       </FormSection>
 
+      {/* Indicação de Profissional */}
+      <FormSection title="Indicação de Profissional" delay={540}>
+        <div className="space-y-4">
+          <div>
+            <label className="field-label">Deseja indicar algum profissional?</label>
+            <Select value={form.desejaIndicar} onValueChange={(v) => {
+              update("desejaIndicar", v);
+              if (v === "Não") setIndicados([emptyIndicado()]);
+            }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Sim">Sim</SelectItem>
+                <SelectItem value="Não">Não</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {form.desejaIndicar === "Sim" && (
+            <div className="space-y-4">
+              {indicados.map((ind, idx) => (
+                <div key={idx} className="rounded-lg border border-border/60 bg-muted/30 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Indicado {idx + 1}
+                    </span>
+                    {indicados.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive h-7 px-2"
+                        onClick={() => setIndicados((prev) => prev.filter((_, i) => i !== idx))}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="field-label">Nome</label>
+                      <Input
+                        placeholder="Nome completo"
+                        value={ind.nome}
+                        onChange={(e) => {
+                          const updated = [...indicados];
+                          updated[idx] = { ...updated[idx], nome: e.target.value };
+                          setIndicados(updated);
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="field-label">Telefone</label>
+                      <Input
+                        placeholder="(00) 00000-0000"
+                        value={ind.telefone}
+                        onChange={(e) => {
+                          const updated = [...indicados];
+                          updated[idx] = { ...updated[idx], telefone: e.target.value };
+                          setIndicados(updated);
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="field-label">E-mail</label>
+                      <Input
+                        type="email"
+                        placeholder="email@exemplo.com"
+                        value={ind.email}
+                        onChange={(e) => {
+                          const updated = [...indicados];
+                          updated[idx] = { ...updated[idx], email: e.target.value };
+                          setIndicados(updated);
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="field-label">Currículo</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        ref={(el) => { fileInputRefs.current[idx] = el; }}
+                        type="file"
+                        accept={ACCEPTED_FILE_TYPES}
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          const updated = [...indicados];
+                          updated[idx] = { ...updated[idx], arquivo: file };
+                          setIndicados(updated);
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 text-xs"
+                        onClick={() => fileInputRefs.current[idx]?.click()}
+                      >
+                        <Paperclip className="h-3.5 w-3.5" />
+                        {ind.arquivo ? "Trocar arquivo" : "Anexar currículo"}
+                      </Button>
+                      {ind.arquivo && (
+                        <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                          {ind.arquivo.name}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-1">PDF, Word, JPG ou PNG</p>
+                  </div>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => setIndicados((prev) => [...prev, emptyIndicado()])}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Adicionar outro indicado
+              </Button>
+            </div>
+          )}
+        </div>
+      </FormSection>
+
       {/* Submit */}
       <div
         className="flex justify-end gap-3 animate-fade-up pt-2"
