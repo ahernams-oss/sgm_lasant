@@ -8,11 +8,13 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Clientes from "./pages/Clientes.tsx";
 import Cargos from "./pages/Cargos.tsx";
+import { CargosProvider } from "@/contexts/CargosContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <CargosProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
