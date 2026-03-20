@@ -41,14 +41,9 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary text-primary-foreground shrink-0">
-            <Building2 className="h-4 w-4" />
-          </div>
+          <img src={logoLasant} alt="Lasant Construções" className="h-8 w-auto shrink-0" />
           {!collapsed && (
             <div className="overflow-hidden">
-              <p className="text-sm font-bold leading-tight text-sidebar-foreground truncate">
-                Lasant Construções
-              </p>
               <p className="text-[10px] text-muted-foreground truncate">
                 Sistema de RH
               </p>
