@@ -1,9 +1,5 @@
 import { useRequisicoes, Requisicao } from "@/contexts/RequisicaoContext";
-import { useCargos } from "@/contexts/CargosContext";
-import { useUsuarios } from "@/contexts/UsuariosContext";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Lock } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -29,7 +25,7 @@ const statusColors: Record<Requisicao["status"], string> = {
 
 const statusOptions: Requisicao["status"][] = ["Pendente", "Em Análise", "Aprovada", "Reprovada"];
 
-const cargosAprovadores = ["Diretor", "Gerente Executivo", "Coordenador de Departamento"];
+
 
 const RequisicaoGrid = () => {
   const { requisicoes, updateStatus } = useRequisicoes();
@@ -81,16 +77,10 @@ const RequisicaoGrid = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {statusOptions.map((s) => (
-                        <SelectItem key={s} value={s} disabled={s === "Aprovada"}>
-                          <span className="flex items-center gap-1.5">
-                            {s}
-                            {s === "Aprovada" && <Lock className="h-3 w-3 text-muted-foreground" />}
-                          </span>
+                        <SelectItem key={s} value={s}>
+                          {s}
                         </SelectItem>
                       ))}
-                      <p className="px-2 py-1.5 text-[10px] text-muted-foreground border-t border-border mt-1">
-                        Aprovação restrita a: {cargosAprovadores.join(", ")}
-                      </p>
                     </SelectContent>
                   </Select>
                 </TableCell>
