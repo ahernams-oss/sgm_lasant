@@ -251,6 +251,7 @@ const ProcessoSeletivoPage = () => {
                             </Button>
                             <Button
                               size="sm"
+                              className="bg-[hsl(120,30%,35%)] hover:bg-[hsl(120,30%,28%)] text-white"
                               onClick={() => {
                                 if (!c.parecerPsicologo.trim()) {
                                   toast.error("Preencha o parecer antes de aprovar.");
@@ -330,6 +331,7 @@ const ProcessoSeletivoPage = () => {
                                 </Button>
                                 <Button
                                   size="sm"
+                                  className="bg-[hsl(120,30%,35%)] hover:bg-[hsl(120,30%,28%)] text-white"
                                   onClick={() => {
                                     if (!c.parecerTecnico.trim() || !c.avaliadorTecnico.trim()) {
                                       toast.error("Preencha o avaliador e o parecer antes de aprovar.");
@@ -401,6 +403,7 @@ const ProcessoSeletivoPage = () => {
                                     </Button>
                                     <Button
                                       size="sm"
+                                      className="bg-[hsl(120,30%,35%)] hover:bg-[hsl(120,30%,28%)] text-white"
                                       onClick={() => handleAprovarEtapa(c, "statusLiberacao", "aprovado")}
                                     >
                                       <ShieldCheck className="h-4 w-4 mr-1" /> Liberar
