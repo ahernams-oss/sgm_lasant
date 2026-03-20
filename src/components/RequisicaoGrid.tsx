@@ -4,7 +4,6 @@ import { useUsuarios } from "@/contexts/UsuariosContext";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Lock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
