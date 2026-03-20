@@ -50,7 +50,7 @@ export function AppSidebar() {
 
       <SidebarContent>
         {menuItems.map((group) => (
-          <SidebarGroup key={group.group} defaultOpen>
+          <SidebarGroup key={group.group}>
             <SidebarGroupLabel>{group.group}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
