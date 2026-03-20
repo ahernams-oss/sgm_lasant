@@ -1,8 +1,9 @@
 import { useRequisicoes, Requisicao } from "@/contexts/RequisicaoContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileDown } from "lucide-react";
+import { FileDown, ClipboardCheck } from "lucide-react";
 import { gerarPdfRequisicao } from "@/lib/gerarPdfRequisicao";
+import { useNavigate } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -32,6 +33,7 @@ const statusOptions: Requisicao["status"][] = ["Pendente", "Em Análise", "Aprov
 
 const RequisicaoGrid = () => {
   const { requisicoes, updateStatus } = useRequisicoes();
+  const navigate = useNavigate();
 
   if (requisicoes.length === 0) {
     return (
@@ -55,7 +57,8 @@ const RequisicaoGrid = () => {
               <TableHead>Origem</TableHead>
               <TableHead>Substituído</TableHead>
               <TableHead className="pr-5">Status</TableHead>
-              <TableHead className="pr-5 text-center">PDF</TableHead>
+              <TableHead className="text-center">PDF</TableHead>
+              <TableHead className="pr-5 text-center">Seletivo</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -88,7 +91,7 @@ const RequisicaoGrid = () => {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell className="pr-5 text-center">
+                <TableCell className="text-center">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -98,6 +101,19 @@ const RequisicaoGrid = () => {
                   >
                     <FileDown className="h-4 w-4" />
                   </Button>
+                </TableCell>
+                <TableCell className="pr-5 text-center">
+                  {req.status === "Aprovada" && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
+                      title="Processo Seletivo"
+                      onClick={() => navigate(`/processo-seletivo/${req.id}`)}
+                    >
+                      <ClipboardCheck className="h-4 w-4" />
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
