@@ -29,7 +29,7 @@ export function UsuariosProvider({ children }: { children: ReactNode }) {
     // Usuário admin padrão para primeiro acesso
     const adminDefault: Usuario = {
       id: "admin-default",
-      nome: "Administrador",
+      nome: "Superadmin",
       cargoId: "",
       telefone: "",
       email: "ahernams@gmail.com",
