@@ -8,6 +8,9 @@ export interface Candidato {
   nome: string;
   telefone: string;
   email: string;
+  idade: string;
+  estadoCivil: string;
+  experienciasAnteriores: string;
   etapaAtual: EtapaCandidato;
   // Etapa 1 – Entrevista Psicológica
   parecerPsicologo: string;
