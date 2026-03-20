@@ -213,6 +213,83 @@ const ProcessoSeletivoPage = () => {
           </p>
         </div>
 
+        {/* Workflow Timeline */}
+        {processo.candidatos.length > 0 && (
+          <Card className="mb-6 animate-fade-up">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <CalendarDays className="h-4 w-4 text-primary" />
+                Workflow do Processo
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Candidato</th>
+                      <th className="text-center py-2 px-3 font-medium text-muted-foreground">Ent. Psicológica</th>
+                      <th className="text-center py-2 px-3 font-medium text-muted-foreground">Ent. Técnica</th>
+                      <th className="text-center py-2 px-3 font-medium text-muted-foreground">Liberação</th>
+                      <th className="text-center py-2 pl-3 font-medium text-muted-foreground">Contratação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {processo.candidatos.map((c) => {
+                      const etapaOrder: EtapaCandidato[] = ["entrevista_psicologica", "entrevista_tecnica", "liberacao", "contratacao"];
+                      const currentIdx = etapaOrder.indexOf(c.etapaAtual);
+                      const dates = [
+                        c.dataEntrevistaPsicologica,
+                        c.dataEntrevistaTecnica,
+                        c.dataLiberacao,
+                        c.dataContratacao,
+                      ];
+                      return (
+                        <tr key={c.id} className="border-b last:border-0">
+                          <td className="py-2.5 pr-4 font-medium text-foreground whitespace-nowrap">{c.nome}</td>
+                          {etapaOrder.map((etapa, idx) => {
+                            const isCompleted = idx < currentIdx;
+                            const isCurrent = idx === currentIdx;
+                            const status = getEtapaStatus(c, etapa);
+                            return (
+                              <td key={etapa} className="text-center py-2.5 px-3">
+                                <div className="flex flex-col items-center gap-1">
+                                  <div className={`h-6 w-6 rounded-full flex items-center justify-center ${
+                                    isCompleted
+                                      ? status === "reprovado"
+                                        ? "bg-red-100 text-red-600"
+                                        : "bg-emerald-100 text-emerald-600"
+                                      : isCurrent
+                                        ? "bg-primary/10 text-primary ring-2 ring-primary/30"
+                                        : "bg-muted text-muted-foreground"
+                                  }`}>
+                                    {isCompleted ? (
+                                      status === "reprovado" ? <XCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />
+                                    ) : isCurrent ? (
+                                      <Clock className="h-3.5 w-3.5" />
+                                    ) : (
+                                      <span className="text-[10px] font-medium">{idx + 1}</span>
+                                    )}
+                                  </div>
+                                  {dates[idx] ? (
+                                    <span className="text-[10px] text-muted-foreground">{dates[idx]}</span>
+                                  ) : (
+                                    <span className="text-[10px] text-muted-foreground/40">—</span>
+                                  )}
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="mb-4">
             <TabsTrigger value="candidatos">Candidatos</TabsTrigger>
