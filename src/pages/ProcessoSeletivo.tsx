@@ -19,6 +19,7 @@ import {
   useProcessoSeletivo,
   Candidato,
   EtapaCandidato,
+  AnexoCandidato,
 } from "@/contexts/ProcessoSeletivoContext";
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useAuth } from "@/contexts/AuthContext";
