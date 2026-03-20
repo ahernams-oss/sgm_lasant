@@ -166,7 +166,7 @@ const Cargos = () => {
                   key={cargo.id}
                   className="flex items-center justify-between py-3 gap-4"
                 >
-                  <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
+                  <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-5 gap-x-4 gap-y-1">
                     <p className="text-sm font-medium text-foreground truncate">
                       {cargo.nome}
                     </p>
@@ -181,6 +181,13 @@ const Cargos = () => {
                       {cargo.salario && (
                         <p className="text-sm text-muted-foreground tabular-nums">
                           R$ {cargo.salario}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      {cargo.dataBaseSalario && (
+                        <p className="text-xs text-muted-foreground">
+                          Base: {new Date(cargo.dataBaseSalario + "T00:00:00").toLocaleDateString("pt-BR")}
                         </p>
                       )}
                     </div>
