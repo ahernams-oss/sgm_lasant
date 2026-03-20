@@ -1,7 +1,9 @@
+import { useState, useMemo } from "react";
 import { useRequisicoes, Requisicao } from "@/contexts/RequisicaoContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileDown, ClipboardCheck } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { FileDown, ClipboardCheck, Search } from "lucide-react";
 import { gerarPdfRequisicao } from "@/lib/gerarPdfRequisicao";
 import { useNavigate } from "react-router-dom";
 import {
@@ -29,11 +31,30 @@ const statusColors: Record<Requisicao["status"], string> = {
 
 const statusOptions: Requisicao["status"][] = ["Pendente", "Em Análise", "Aprovada", "Reprovada"];
 
-
-
 const RequisicaoGrid = () => {
   const { requisicoes, updateStatus } = useRequisicoes();
   const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>("todos");
+
+  const filteredRequisicoes = useMemo(() => {
+    let result = requisicoes;
+    if (search.trim()) {
+      const term = search.toLowerCase();
+      result = result.filter(
+        (r) =>
+          r.cargoNome.toLowerCase().includes(term) ||
+          r.unidade.toLowerCase().includes(term) ||
+          (r.nomeSubstituido || "").toLowerCase().includes(term) ||
+          (r.origemVaga || "").toLowerCase().includes(term) ||
+          r.dataCriacao.toLowerCase().includes(term)
+      );
+    }
+    if (filterStatus !== "todos") {
+      result = result.filter((r) => r.status === filterStatus);
+    }
+    return result;
+  }, [requisicoes, search, filterStatus]);
 
   if (requisicoes.length === 0) {
     return (
@@ -45,81 +66,83 @@ const RequisicaoGrid = () => {
 
   return (
     <div className="section-card animate-fade-up overflow-hidden" style={{ animationDelay: "600ms" }}>
-      <h2 className="section-title mb-3">Acompanhamento de Requisições</h2>
-      <div className="overflow-x-auto -mx-5">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="pl-5">Data</TableHead>
-              <TableHead>Unidade</TableHead>
-              <TableHead>Cargo</TableHead>
-              <TableHead>Jornada</TableHead>
-              <TableHead>Origem</TableHead>
-              <TableHead>Substituído</TableHead>
-              <TableHead className="pr-5">Status</TableHead>
-              <TableHead className="text-center">PDF</TableHead>
-              <TableHead className="pr-5 text-center">Seletivo</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {requisicoes.map((req) => (
-              <TableRow key={req.id}>
-                <TableCell className="pl-5 text-xs tabular-nums whitespace-nowrap">
-                  {req.dataCriacao}
-                </TableCell>
-                <TableCell className="text-sm">{req.unidade}</TableCell>
-                <TableCell className="text-sm font-medium">{req.cargoNome}</TableCell>
-                <TableCell className="text-sm">{req.jornada || "—"}</TableCell>
-                <TableCell className="text-sm">{req.origemVaga || "—"}</TableCell>
-                <TableCell className="text-sm">{req.nomeSubstituido || "—"}</TableCell>
-                <TableCell className="pr-5">
-                  <Select
-                    value={req.status}
-                    onValueChange={(v) => updateStatus(req.id, v as Requisicao["status"])}
-                  >
-                    <SelectTrigger className="h-7 w-[130px] text-xs border-0 p-0 focus:ring-0">
-                      <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>
-                        {req.status}
-                      </Badge>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statusOptions.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell className="text-center">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
-                    title="Baixar PDF"
-                    onClick={() => gerarPdfRequisicao(req)}
-                  >
-                    <FileDown className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-                <TableCell className="pr-5 text-center">
-                  {req.status === "Aprovada" && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
-                      title="Processo Seletivo"
-                      onClick={() => navigate(`/processo-seletivo/${req.id}`)}
-                    >
-                      <ClipboardCheck className="h-4 w-4" />
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
+        <h2 className="section-title mb-0">Acompanhamento de Requisições</h2>
+        <div className="flex items-center gap-2">
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="h-9 w-[140px] text-xs">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos Status</SelectItem>
+              {statusOptions.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="relative w-52">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Pesquisar requisições..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+          </div>
+        </div>
       </div>
+      {filteredRequisicoes.length === 0 ? (
+        <p className="text-center text-sm text-muted-foreground py-10">Nenhum resultado encontrado.</p>
+      ) : (
+        <div className="overflow-x-auto -mx-5">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="pl-5">Data</TableHead>
+                <TableHead>Unidade</TableHead>
+                <TableHead>Cargo</TableHead>
+                <TableHead>Jornada</TableHead>
+                <TableHead>Origem</TableHead>
+                <TableHead>Substituído</TableHead>
+                <TableHead className="pr-5">Status</TableHead>
+                <TableHead className="text-center">PDF</TableHead>
+                <TableHead className="pr-5 text-center">Seletivo</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredRequisicoes.map((req) => (
+                <TableRow key={req.id}>
+                  <TableCell className="pl-5 text-xs tabular-nums whitespace-nowrap">{req.dataCriacao}</TableCell>
+                  <TableCell className="text-sm">{req.unidade}</TableCell>
+                  <TableCell className="text-sm font-medium">{req.cargoNome}</TableCell>
+                  <TableCell className="text-sm">{req.jornada || "—"}</TableCell>
+                  <TableCell className="text-sm">{req.origemVaga || "—"}</TableCell>
+                  <TableCell className="text-sm">{req.nomeSubstituido || "—"}</TableCell>
+                  <TableCell className="pr-5">
+                    <Select value={req.status} onValueChange={(v) => updateStatus(req.id, v as Requisicao["status"])}>
+                      <SelectTrigger className="h-7 w-[130px] text-xs border-0 p-0 focus:ring-0">
+                        <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {statusOptions.map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary" title="Baixar PDF" onClick={() => gerarPdfRequisicao(req)}>
+                      <FileDown className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                  <TableCell className="pr-5 text-center">
+                    {req.status === "Aprovada" && (
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary" title="Processo Seletivo" onClick={() => navigate(`/processo-seletivo/${req.id}`)}>
+                        <ClipboardCheck className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 };
