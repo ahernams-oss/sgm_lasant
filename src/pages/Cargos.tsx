@@ -84,8 +84,8 @@ const Cargos = () => {
           <h2 className="section-title">
             {editingId ? "Editar Cargo" : "Novo Cargo"}
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
               <label className="field-label">Nome do Cargo</label>
               <Input
                 placeholder="Ex: Eletricista de Alta"
@@ -116,10 +116,10 @@ const Cargos = () => {
                 onChange={(e) => update("salario", e.target.value)}
               />
             </div>
-            <div>
+            <div className="md:col-span-2">
               <label className="field-label">Descrição</label>
               <Input
-                placeholder="Breve descrição"
+                placeholder="Breve descrição do cargo"
                 value={form.descricao}
                 onChange={(e) => update("descricao", e.target.value)}
               />
