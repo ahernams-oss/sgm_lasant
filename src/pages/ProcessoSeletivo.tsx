@@ -214,7 +214,7 @@ const ProcessoSeletivoPage = () => {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-2 gap-3">
                           <div>
                             <label className="text-xs font-medium text-muted-foreground">Idade</label>
                             <Input
@@ -235,16 +235,17 @@ const ProcessoSeletivoPage = () => {
                               disabled={!isCurrentEtapa}
                             />
                           </div>
-                          <div>
-                            <label className="text-xs font-medium text-muted-foreground">Experiências Anteriores</label>
-                            <Input
-                              value={c.experienciasAnteriores}
-                              onChange={(e) => handleSalvarParecer(c.id, "experienciasAnteriores", e.target.value)}
-                              placeholder="Ex: 3 anos na área"
-                              className="mt-1"
-                              disabled={!isCurrentEtapa}
-                            />
-                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground">Experiências Anteriores</label>
+                          <Textarea
+                            value={c.experienciasAnteriores}
+                            onChange={(e) => handleSalvarParecer(c.id, "experienciasAnteriores", e.target.value)}
+                            placeholder="Descreva as experiências anteriores do candidato..."
+                            className="mt-1"
+                            rows={2}
+                            disabled={!isCurrentEtapa}
+                          />
                         </div>
                         <div>
                           <label className="text-xs font-medium text-muted-foreground">Parecer da Psicóloga</label>
@@ -252,7 +253,7 @@ const ProcessoSeletivoPage = () => {
                             value={c.parecerPsicologo}
                             onChange={(e) => handleSalvarParecer(c.id, "parecerPsicologo", e.target.value)}
                             placeholder="Descreva a avaliação psicológica do candidato..."
-                            className="mt-1"
+                            className="mt-1 min-h-[80px] resize-y"
                             rows={3}
                             disabled={!isCurrentEtapa}
                           />
