@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import { useClientes } from "@/contexts/ClientesContext";
 import { Building2, FileText, Send } from "lucide-react";
 import FormSection from "@/components/FormSection";
 import CheckboxGroup from "@/components/CheckboxGroup";
