@@ -290,12 +290,16 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         <div className="space-y-5">
           <div>
             <label className="field-label">Formação Acadêmica</label>
-            <CheckboxGroup
-              options={formacaoOptions}
-              selected={form.formacao}
-              onChange={(v) => update("formacao", v)}
-              columns={5}
-            />
+            <Select value={form.formacao[0] || ""} onValueChange={(v) => update("formacao", [v])}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a formação" />
+              </SelectTrigger>
+              <SelectContent>
+                {formacaoOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {(form.formacao.includes("Ensino Superior") ||
               form.formacao.includes("Curso Técnico") ||
               form.formacao.includes("Outros")) && (
@@ -312,12 +316,16 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
           <div>
             <label className="field-label">Tempo de Experiência</label>
-            <RadioGroupCustom
-              options={experienciaOptions}
-              selected={form.experiencia}
-              onChange={(v) => update("experiencia", v)}
-              columns={5}
-            />
+            <Select value={form.experiencia} onValueChange={(v) => update("experiencia", v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tempo de experiência" />
+              </SelectTrigger>
+              <SelectContent>
+                {experienciaOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
