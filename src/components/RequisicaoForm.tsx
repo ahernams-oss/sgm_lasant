@@ -26,6 +26,7 @@ const experienciaOptions = ["Não Necessita", "Até 1 ano", "De 1 a 3 anos", "De
 
 const RequisicaoForm = () => {
   const { cargos } = useCargos();
+  const { addRequisicao } = useRequisicoes();
   const [form, setForm] = useState({
     unidade: "",
     cargo: "",
