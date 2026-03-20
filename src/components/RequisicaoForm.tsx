@@ -25,7 +25,7 @@ const origemOptions = ["Afastamento", "Desligamento", "Aumento de Quadro", "Prom
 const formacaoOptions = ["Ensino Fundamental", "Ensino Médio", "Ensino Superior", "Curso Técnico", "Outros"];
 const experienciaOptions = ["Não Necessita", "Até 1 ano", "De 1 a 3 anos", "De 3 a 5 anos", "Acima de 5 anos"];
 
-const RequisicaoForm = () => {
+const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { cargos } = useCargos();
   const { addRequisicao } = useRequisicoes();
   const { clientes } = useClientes();
