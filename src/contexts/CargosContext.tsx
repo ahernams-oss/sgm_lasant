@@ -6,6 +6,7 @@ export interface Cargo {
   descricao: string;
   salario: string;
   nivel: string;
+  dataBaseSalario: string;
 }
 
 interface CargosContextType {
