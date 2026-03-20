@@ -80,13 +80,21 @@
 
 @layer utilities {
   .section-card {
-    @apply bg-card rounded-lg border border-border p-5 shadow-sm;
+    @apply bg-card rounded-xl border border-border/60 p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.04),0_4px_12px_-2px_rgba(0,0,0,0.06)] relative overflow-hidden;
+  }
+  .section-card::before {
+    content: '';
+    @apply absolute top-0 left-0 w-1 h-full bg-primary/70 rounded-l-xl;
   }
   .section-title {
-    @apply text-sm font-semibold uppercase tracking-wider text-primary mb-4;
+    @apply text-[13px] font-bold uppercase tracking-wider text-primary mb-5 pl-3 flex items-center gap-2;
+  }
+  .section-title::after {
+    content: '';
+    @apply flex-1 h-px bg-border/80;
   }
   .field-label {
-    @apply text-xs font-medium text-muted-foreground mb-1.5 block;
+    @apply text-xs font-semibold text-foreground/70 mb-1.5 block tracking-wide;
   }
 }
 

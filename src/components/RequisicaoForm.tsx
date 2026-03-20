@@ -352,10 +352,10 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
       {/* Submit */}
       <div
-        className="flex justify-end gap-3 animate-fade-up"
+        className="flex justify-end gap-3 animate-fade-up pt-2"
         style={{ animationDelay: "560ms" }}
       >
-        <Button type="button" variant="outline" onClick={() => setForm({
+        <Button type="button" variant="outline" size="lg" className="px-6 rounded-lg" onClick={() => setForm({
           unidade: "", cargo: "", jornada: "", cargaHoraria: "",
           tipoContratacao: [], internoExterno: "", origemVaga: "", motivoOutros: "",
           matricula: "", nomeSubstituido: "", cargoSubstituido: "",
@@ -365,7 +365,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         })}>
           Limpar
         </Button>
-        <Button type="submit" className="gap-2">
+        <Button type="submit" size="lg" className="gap-2 px-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
           <Send className="h-4 w-4" />
           Enviar Requisição
         </Button>
