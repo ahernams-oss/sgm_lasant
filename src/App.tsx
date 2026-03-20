@@ -12,6 +12,7 @@ import Funcionarios from "./pages/Funcionarios.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
+import { FuncionariosProvider } from "@/contexts/FuncionariosContext";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ClientesProvider>
     <CargosProvider>
+    <FuncionariosProvider>
     <RequisicaoProvider>
     <TooltipProvider>
       <Toaster />
@@ -36,6 +38,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </RequisicaoProvider>
+    </FuncionariosProvider>
     </CargosProvider>
     </ClientesProvider>
   </QueryClientProvider>
