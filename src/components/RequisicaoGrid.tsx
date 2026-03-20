@@ -77,16 +77,10 @@ const RequisicaoGrid = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {statusOptions.map((s) => (
-                        <SelectItem key={s} value={s} disabled={s === "Aprovada"}>
-                          <span className="flex items-center gap-1.5">
-                            {s}
-                            {s === "Aprovada" && <Lock className="h-3 w-3 text-muted-foreground" />}
-                          </span>
+                        <SelectItem key={s} value={s}>
+                          {s}
                         </SelectItem>
                       ))}
-                      <p className="px-2 py-1.5 text-[10px] text-muted-foreground border-t border-border mt-1">
-                        Aprovação restrita a: {cargosAprovadores.join(", ")}
-                      </p>
                     </SelectContent>
                   </Select>
                 </TableCell>
