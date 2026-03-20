@@ -46,6 +46,7 @@ const RequisicaoForm = () => {
     experiencia: "",
     conhecimentoInformatica: "",
     atividadesCargo: "",
+    salarioVaga: "",
   });
 
   const update = (field: string, value: string | string[]) =>
