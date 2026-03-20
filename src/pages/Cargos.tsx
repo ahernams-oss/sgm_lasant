@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Briefcase, Plus, Trash2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -118,10 +119,12 @@ const Cargos = () => {
             </div>
             <div className="md:col-span-2">
               <label className="field-label">Descrição</label>
-              <Input
+              <Textarea
                 placeholder="Breve descrição do cargo"
                 value={form.descricao}
                 onChange={(e) => update("descricao", e.target.value)}
+                rows={2}
+                className="min-h-[40px]"
               />
             </div>
           </div>
