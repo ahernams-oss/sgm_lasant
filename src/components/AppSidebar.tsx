@@ -1,4 +1,5 @@
-import { ClipboardList, Users, Briefcase, UserCheck, Shield } from "lucide-react";
+import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -37,6 +38,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const { usuarioLogado, logout } = useAuth();
 
   return (
     <Sidebar collapsible="icon">
@@ -96,6 +98,32 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+
+        {usuarioLogado && (
+          <div className="px-3 pb-3 pt-1">
+            <div className="flex items-center gap-2 rounded-lg bg-sidebar-accent/50 px-3 py-2">
+              <div className="flex-1 min-w-0">
+                {!collapsed && (
+                  <>
+                    <p className="text-xs font-medium text-sidebar-foreground truncate">
+                      {usuarioLogado.nome}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {usuarioLogado.email}
+                    </p>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={logout}
+                className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+                title="Sair"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
