@@ -21,7 +21,12 @@ interface RequisicaoContextType {
 const RequisicaoContext = createContext<RequisicaoContextType | undefined>(undefined);
 
 export function RequisicaoProvider({ children }: { children: ReactNode }) {
-  const [requisicoes, setRequisicoes] = useState<Requisicao[]>([]);
+  const [requisicoes, setRequisicoes] = useState<Requisicao[]>(() => {
+    const saved = localStorage.getItem("requisicoes");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => { localStorage.setItem("requisicoes", JSON.stringify(requisicoes)); }, [requisicoes]);
 
   const addRequisicao = (req: Omit<Requisicao, "id" | "dataCriacao" | "status">) => {
     setRequisicoes((prev) => [

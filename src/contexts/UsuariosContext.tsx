@@ -20,7 +20,12 @@ interface UsuariosContextType {
 const UsuariosContext = createContext<UsuariosContextType | undefined>(undefined);
 
 export function UsuariosProvider({ children }: { children: ReactNode }) {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>(() => {
+    const saved = localStorage.getItem("usuarios");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => { localStorage.setItem("usuarios", JSON.stringify(usuarios)); }, [usuarios]);
 
   const addUsuario = (u: Omit<Usuario, "id">) =>
     setUsuarios((prev) => [...prev, { id: crypto.randomUUID(), ...u }]);

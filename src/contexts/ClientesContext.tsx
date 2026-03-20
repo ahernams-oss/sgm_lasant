@@ -20,7 +20,12 @@ interface ClientesContextType {
 const ClientesContext = createContext<ClientesContextType | undefined>(undefined);
 
 export function ClientesProvider({ children }: { children: ReactNode }) {
-  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>(() => {
+    const saved = localStorage.getItem("clientes");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => { localStorage.setItem("clientes", JSON.stringify(clientes)); }, [clientes]);
 
   const addCliente = (cliente: Omit<Cliente, "id">) =>
     setClientes((prev) => [...prev, { id: crypto.randomUUID(), ...cliente }]);
