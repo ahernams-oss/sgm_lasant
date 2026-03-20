@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useRef } from "react";
-import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle, Paperclip, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle, Paperclip, FileText, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
