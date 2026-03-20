@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,12 +34,14 @@ const etapaLabels: Record<EtapaCandidato, string> = {
 const statusIcons = {
   pendente: <Clock className="h-4 w-4 text-amber-500" />,
   aprovado: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
+  neutro: <MinusCircle className="h-4 w-4 text-blue-500" />,
   reprovado: <XCircle className="h-4 w-4 text-red-500" />,
 };
 
 const statusBadge = {
   pendente: "bg-amber-100 text-amber-800 border-amber-200",
   aprovado: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  neutro: "bg-blue-100 text-blue-800 border-blue-200",
   reprovado: "bg-red-100 text-red-800 border-red-200",
 };
 
@@ -93,7 +95,7 @@ const ProcessoSeletivoPage = () => {
     updateCandidato(processo!.id, candidatoId, { [field]: value });
   };
 
-  const handleAprovarEtapa = (candidato: Candidato, statusField: string, status: "aprovado" | "reprovado") => {
+  const handleAprovarEtapa = (candidato: Candidato, statusField: string, status: "aprovado" | "neutro" | "reprovado") => {
     const updates: Partial<Candidato> = { [statusField]: status };
 
     if (statusField === "statusLiberacao" && status === "aprovado") {
@@ -105,6 +107,9 @@ const ProcessoSeletivoPage = () => {
     if (status === "aprovado") {
       avancarEtapa(processo!.id, candidato.id);
       toast.success(`Candidato ${candidato.nome} aprovado nesta etapa.`);
+    } else if (status === "neutro") {
+      avancarEtapa(processo!.id, candidato.id);
+      toast.info(`Candidato ${candidato.nome} marcado como neutro e avançou para próxima etapa.`);
     } else {
       toast.info(`Candidato ${candidato.nome} reprovado nesta etapa.`);
     }
@@ -204,7 +209,7 @@ const ProcessoSeletivoPage = () => {
                         <CardTitle className="text-sm flex items-center justify-between">
                           {c.nome}
                           <Badge variant="outline" className={statusBadge[c.statusPsicologico]}>
-                            {c.statusPsicologico === "pendente" ? "Pendente" : c.statusPsicologico === "aprovado" ? "Aprovado" : "Reprovado"}
+                            {c.statusPsicologico === "pendente" ? "Pendente" : c.statusPsicologico === "aprovado" ? "Aprovado" : c.statusPsicologico === "neutro" ? "Neutro" : "Reprovado"}
                           </Badge>
                         </CardTitle>
                       </CardHeader>
@@ -229,6 +234,20 @@ const ProcessoSeletivoPage = () => {
                               onClick={() => handleAprovarEtapa(c, "statusPsicologico", "reprovado")}
                             >
                               <XCircle className="h-4 w-4 mr-1" /> Reprovar
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-blue-600 hover:text-blue-700"
+                              onClick={() => {
+                                if (!c.parecerPsicologo.trim()) {
+                                  toast.error("Preencha o parecer antes de definir o status.");
+                                  return;
+                                }
+                                handleAprovarEtapa(c, "statusPsicologico", "neutro");
+                              }}
+                            >
+                              <MinusCircle className="h-4 w-4 mr-1" /> Neutro
                             </Button>
                             <Button
                               size="sm"
