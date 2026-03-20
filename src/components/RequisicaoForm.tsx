@@ -78,12 +78,49 @@ const RequisicaoForm = () => {
           </div>
           <div>
             <label className="field-label">Cargo</label>
-            <Input
-              placeholder="Ex: Eletricista de Alta"
-              value={form.cargo}
-              onChange={(e) => update("cargo", e.target.value)}
-            />
+            {cargos.length > 0 ? (
+              <Select
+                value={form.cargo}
+                onValueChange={(cargoId) => {
+                  const selected = cargos.find((c) => c.id === cargoId);
+                  if (selected) {
+                    setForm((prev) => ({
+                      ...prev,
+                      cargo: cargoId,
+                      salarioVaga: selected.salario,
+                    }));
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o cargo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cargos.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.nome}{c.nivel ? ` — Nível ${c.nivel}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                placeholder="Cadastre cargos primeiro"
+                value={form.cargo}
+                onChange={(e) => update("cargo", e.target.value)}
+              />
+            )}
           </div>
+          {form.cargo && cargos.find((c) => c.id === form.cargo)?.salario && (
+            <div>
+              <label className="field-label">Salário do Cargo</label>
+              <Input
+                readOnly
+                value={`R$ ${cargos.find((c) => c.id === form.cargo)?.salario}`}
+                className="bg-muted/50"
+              />
+            </div>
+          )}
         </div>
       </FormSection>
 
