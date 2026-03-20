@@ -19,6 +19,11 @@ export interface Candidato {
   experienciasAnteriores: string;
   anexos: AnexoCandidato[];
   etapaAtual: EtapaCandidato;
+  // Datas do workflow
+  dataEntrevistaPsicologica?: string;
+  dataEntrevistaTecnica?: string;
+  dataLiberacao?: string;
+  dataContratacao?: string;
   // Etapa 1 – Entrevista Psicológica
   parecerPsicologo: string;
   statusPsicologico: StatusCandidato;
