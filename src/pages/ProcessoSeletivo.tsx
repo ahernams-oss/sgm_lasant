@@ -121,6 +121,45 @@ const ProcessoSeletivoPage = () => {
     link.click();
   };
 
+  const openEditDialog = (c: Candidato) => {
+    setEditingCandidato({ ...c });
+  };
+
+  const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || !editingCandidato) return;
+    Array.from(files).forEach((file) => {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error(`Arquivo "${file.name}" excede 2MB.`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setEditingCandidato((prev) =>
+          prev ? { ...prev, anexos: [...(prev.anexos || []), { nome: file.name, tipo: file.type, base64: reader.result as string }] } : prev
+        );
+      };
+      reader.readAsDataURL(file);
+    });
+    if (editFileInputRef.current) editFileInputRef.current.value = "";
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingCandidato) return;
+    if (!editingCandidato.nome.trim()) {
+      toast.error("Informe o nome do candidato.");
+      return;
+    }
+    updateCandidato(processo!.id, editingCandidato.id, {
+      nome: editingCandidato.nome,
+      email: editingCandidato.email,
+      telefone: editingCandidato.telefone,
+      anexos: editingCandidato.anexos,
+    });
+    setEditingCandidato(null);
+    toast.success("Candidato atualizado.");
+  };
+
   const handleSalvarParecer = (candidatoId: string, field: string, value: string) => {
     updateCandidato(processo!.id, candidatoId, { [field]: value });
   };
