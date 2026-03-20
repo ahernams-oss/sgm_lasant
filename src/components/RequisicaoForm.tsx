@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import { useClientes } from "@/contexts/ClientesContext";
 import { Building2, FileText, Send } from "lucide-react";
 import FormSection from "@/components/FormSection";
 import CheckboxGroup from "@/components/CheckboxGroup";
@@ -27,6 +28,7 @@ const experienciaOptions = ["Não Necessita", "Até 1 ano", "De 1 a 3 anos", "De
 const RequisicaoForm = () => {
   const { cargos } = useCargos();
   const { addRequisicao } = useRequisicoes();
+  const { clientes } = useClientes();
   const [form, setForm] = useState({
     unidade: "",
     cargo: "",
@@ -89,11 +91,29 @@ const RequisicaoForm = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="field-label">Unidade</label>
-            <Input
-              placeholder="Ex: Hospital Municipal Álvaro Ramos"
-              value={form.unidade}
-              onChange={(e) => update("unidade", e.target.value)}
-            />
+            {clientes.length > 0 ? (
+              <Select
+                value={form.unidade}
+                onValueChange={(v) => update("unidade", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clientes.map((c) => (
+                    <SelectItem key={c.id} value={c.nome}>
+                      {c.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                placeholder="Cadastre clientes primeiro"
+                value={form.unidade}
+                onChange={(e) => update("unidade", e.target.value)}
+              />
+            )}
           </div>
           <div>
             <label className="field-label">Cargo</label>
