@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
+import { Plus, Trash2, Paperclip, UserPlus } from "lucide-react";
 import { useClientes } from "@/contexts/ClientesContext";
 import { Building2, FileText, Send } from "lucide-react";
 import FormSection from "@/components/FormSection";
