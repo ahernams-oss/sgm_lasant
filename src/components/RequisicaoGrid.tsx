@@ -88,6 +88,17 @@ const RequisicaoGrid = () => {
                     </SelectContent>
                   </Select>
                 </TableCell>
+                <TableCell className="pr-5 text-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
+                    title="Baixar PDF"
+                    onClick={() => gerarPdfRequisicao(req)}
+                  >
+                    <FileDown className="h-4 w-4" />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
