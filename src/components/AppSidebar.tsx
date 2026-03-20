@@ -1,4 +1,5 @@
-import { ClipboardList, Users, Briefcase, UserCheck, Shield } from "lucide-react";
+import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
