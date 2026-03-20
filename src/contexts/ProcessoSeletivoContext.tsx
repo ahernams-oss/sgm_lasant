@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 export type EtapaCandidato = "entrevista_psicologica" | "entrevista_tecnica" | "liberacao" | "contratacao";
-export type StatusCandidato = "pendente" | "aprovado" | "reprovado";
+export type StatusCandidato = "pendente" | "aprovado" | "neutro" | "reprovado";
 
 export interface Candidato {
   id: string;
