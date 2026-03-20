@@ -54,6 +54,7 @@ const Cargos = () => {
       descricao: cargo.descricao,
       salario: cargo.salario,
       nivel: cargo.nivel,
+      dataBaseSalario: cargo.dataBaseSalario || "",
     });
   };
 
