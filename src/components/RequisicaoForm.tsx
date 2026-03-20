@@ -63,7 +63,11 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     conhecimentoInformatica: "",
     atividadesCargo: "",
     salarioVaga: "",
+    desejaIndicar: "",
   });
+
+  const [indicados, setIndicados] = useState<Indicado[]>([emptyIndicado()]);
+  const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const update = (field: string, value: string | string[]) =>
     setForm((prev) => ({ ...prev, [field]: value }));
