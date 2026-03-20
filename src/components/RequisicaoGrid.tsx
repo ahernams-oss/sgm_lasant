@@ -33,6 +33,7 @@ const statusOptions: Requisicao["status"][] = ["Pendente", "Em Análise", "Aprov
 
 const RequisicaoGrid = () => {
   const { requisicoes, updateStatus } = useRequisicoes();
+  const navigate = useNavigate();
 
   if (requisicoes.length === 0) {
     return (
