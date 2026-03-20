@@ -7,6 +7,7 @@ import AppLayout from "@/components/AppLayout";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Clientes from "./pages/Clientes.tsx";
+import Cargos from "./pages/Cargos.tsx";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/clientes" element={<Clientes />} />
+            <Route path="/cargos" element={<Cargos />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
