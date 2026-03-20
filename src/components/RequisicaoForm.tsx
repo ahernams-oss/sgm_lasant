@@ -62,8 +62,24 @@ const RequisicaoForm = () => {
       toast.error("Preencha ao menos a Unidade e o Cargo.");
       return;
     }
+    const cargoObj = cargos.find((c) => c.id === form.cargo);
+    addRequisicao({
+      unidade: form.unidade,
+      cargoNome: cargoObj ? `${cargoObj.nome}${cargoObj.nivel ? ` — Nível ${cargoObj.nivel}` : ""}` : form.cargo,
+      jornada: form.jornada,
+      tipoContratacao: form.tipoContratacao,
+      origemVaga: form.origemVaga,
+      nomeSubstituido: form.nomeSubstituido,
+    });
     toast.success("Requisição enviada com sucesso!");
-    console.log("Requisição:", form);
+    setForm({
+      unidade: "", cargo: "", jornada: "", cargaHoraria: "",
+      tipoContratacao: [], internoExterno: "", origemVaga: "", motivoOutros: "",
+      matricula: "", nomeSubstituido: "", cargoSubstituido: "",
+      salarioSubstituido: "", dataDesligamento: "",
+      formacao: [], formacaoDetalhe: "", experiencia: "",
+      conhecimentoInformatica: "", atividadesCargo: "", salarioVaga: "",
+    });
   };
 
   return (
