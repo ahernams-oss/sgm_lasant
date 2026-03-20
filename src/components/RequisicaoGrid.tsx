@@ -1,9 +1,5 @@
 import { useRequisicoes, Requisicao } from "@/contexts/RequisicaoContext";
-import { useCargos } from "@/contexts/CargosContext";
-import { useUsuarios } from "@/contexts/UsuariosContext";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Lock } from "lucide-react";
 import {
   Select,
   SelectContent,
