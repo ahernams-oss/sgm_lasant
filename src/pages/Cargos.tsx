@@ -3,64 +3,75 @@ import { toast } from "sonner";
 import { Briefcase, Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const niveis = ["I", "II", "III", "IV", "V"] as const;
 
 interface Cargo {
   id: string;
   nome: string;
   descricao: string;
+  salario: string;
+  nivel: string;
 }
+
+const emptyForm = { nome: "", descricao: "", salario: "", nivel: "" };
 
 const Cargos = () => {
   const [cargos, setCargos] = useState<Cargo[]>([]);
-  const [nome, setNome] = useState("");
-  const [descricao, setDescricao] = useState("");
+  const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  const update = (field: string, value: string) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
+
+  const resetForm = () => {
+    setForm(emptyForm);
+    setEditingId(null);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nome.trim()) {
+    if (!form.nome.trim()) {
       toast.error("Informe o nome do cargo.");
       return;
     }
 
     if (editingId) {
       setCargos((prev) =>
-        prev.map((c) => (c.id === editingId ? { ...c, nome, descricao } : c))
+        prev.map((c) => (c.id === editingId ? { ...c, ...form } : c))
       );
       toast.success("Cargo atualizado com sucesso!");
-      setEditingId(null);
     } else {
       setCargos((prev) => [
         ...prev,
-        { id: crypto.randomUUID(), nome, descricao },
+        { id: crypto.randomUUID(), ...form },
       ]);
       toast.success("Cargo cadastrado com sucesso!");
     }
-    setNome("");
-    setDescricao("");
+    resetForm();
   };
 
   const handleEdit = (cargo: Cargo) => {
     setEditingId(cargo.id);
-    setNome(cargo.nome);
-    setDescricao(cargo.descricao);
+    setForm({
+      nome: cargo.nome,
+      descricao: cargo.descricao,
+      salario: cargo.salario,
+      nivel: cargo.nivel,
+    });
   };
 
   const handleDelete = (id: string) => {
     setCargos((prev) => prev.filter((c) => c.id !== id));
     toast.success("Cargo removido.");
-    if (editingId === id) {
-      setEditingId(null);
-      setNome("");
-      setDescricao("");
-    }
-  };
-
-  const handleCancel = () => {
-    setEditingId(null);
-    setNome("");
-    setDescricao("");
+    if (editingId === id) resetForm();
   };
 
   return (
@@ -86,21 +97,44 @@ const Cargos = () => {
           <h2 className="section-title">
             {editingId ? "Editar Cargo" : "Novo Cargo"}
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="field-label">Nome do Cargo</label>
               <Input
                 placeholder="Ex: Eletricista de Alta"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
+                value={form.nome}
+                onChange={(e) => update("nome", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="field-label">Nível</label>
+              <Select value={form.nivel} onValueChange={(v) => update("nivel", v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {niveis.map((n) => (
+                    <SelectItem key={n} value={n}>
+                      Nível {n}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="field-label">Salário (R$)</label>
+              <Input
+                placeholder="Ex: 2.511,98"
+                value={form.salario}
+                onChange={(e) => update("salario", e.target.value)}
               />
             </div>
             <div>
               <label className="field-label">Descrição</label>
               <Input
-                placeholder="Breve descrição do cargo"
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
+                placeholder="Breve descrição"
+                value={form.descricao}
+                onChange={(e) => update("descricao", e.target.value)}
               />
             </div>
           </div>
@@ -110,7 +144,7 @@ const Cargos = () => {
               {editingId ? "Salvar Alterações" : "Adicionar Cargo"}
             </Button>
             {editingId && (
-              <Button type="button" variant="outline" onClick={handleCancel}>
+              <Button type="button" variant="outline" onClick={resetForm}>
                 Cancelar
               </Button>
             )}
@@ -134,15 +168,33 @@ const Cargos = () => {
                   key={cargo.id}
                   className="flex items-center justify-between py-3 gap-4"
                 >
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {cargo.nome}
-                    </p>
-                    {cargo.descricao && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        {cargo.descricao}
+                  <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
+                    <div>
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {cargo.nome}
                       </p>
-                    )}
+                    </div>
+                    <div>
+                      {cargo.nivel && (
+                        <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                          Nível {cargo.nivel}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      {cargo.salario && (
+                        <p className="text-sm text-muted-foreground tabular-nums">
+                          R$ {cargo.salario}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      {cargo.descricao && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {cargo.descricao}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex gap-1 shrink-0">
                     <Button
