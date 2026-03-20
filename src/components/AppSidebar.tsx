@@ -21,6 +21,12 @@ const menuItems = [
       { title: "Requisição de Colaboradores", url: "/", icon: ClipboardList },
     ],
   },
+  {
+    group: "Cadastros",
+    items: [
+      { title: "Clientes", url: "/clientes", icon: Users },
+    ],
+  },
 ];
 
 export function AppSidebar() {
