@@ -24,6 +24,7 @@ const formacaoOptions = ["Ensino Fundamental", "Ensino Médio", "Ensino Superior
 const experienciaOptions = ["Não Necessita", "Até 1 ano", "De 1 a 3 anos", "De 3 a 5 anos", "Acima de 5 anos"];
 
 const RequisicaoForm = () => {
+  const { cargos } = useCargos();
   const [form, setForm] = useState({
     unidade: "",
     cargo: "",
