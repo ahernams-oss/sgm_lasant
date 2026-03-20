@@ -3,6 +3,12 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 export type EtapaCandidato = "entrevista_psicologica" | "entrevista_tecnica" | "liberacao" | "contratacao";
 export type StatusCandidato = "pendente" | "aprovado" | "neutro" | "reprovado";
 
+export interface AnexoCandidato {
+  nome: string;
+  tipo: string;
+  base64: string;
+}
+
 export interface Candidato {
   id: string;
   nome: string;
@@ -11,6 +17,7 @@ export interface Candidato {
   idade: string;
   estadoCivil: string;
   experienciasAnteriores: string;
+  anexos: AnexoCandidato[];
   etapaAtual: EtapaCandidato;
   // Etapa 1 – Entrevista Psicológica
   parecerPsicologo: string;
@@ -35,7 +42,7 @@ interface ProcessoSeletivoContextType {
   processos: ProcessoSeletivo[];
   criarProcesso: (requisicaoId: string) => ProcessoSeletivo;
   getProcessoByRequisicao: (requisicaoId: string) => ProcessoSeletivo | undefined;
-  addCandidato: (processoId: string, candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores">) => void;
+  addCandidato: (processoId: string, candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores" | "anexos"> & { anexos?: AnexoCandidato[] }) => void;
   updateCandidato: (processoId: string, candidatoId: string, data: Partial<Candidato>) => void;
   avancarEtapa: (processoId: string, candidatoId: string) => void;
 }
@@ -71,7 +78,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
 
   const addCandidato = (
     processoId: string,
-    candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores">
+    candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores" | "anexos"> & { anexos?: AnexoCandidato[] }
   ) => {
     setProcessos((prev) =>
       prev.map((p) => {
@@ -88,6 +95,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
               idade: "",
               estadoCivil: "",
               experienciasAnteriores: "",
+              anexos: candidato.anexos || [],
               parecerPsicologo: "",
               statusPsicologico: "pendente",
               avaliadorTecnico: "",

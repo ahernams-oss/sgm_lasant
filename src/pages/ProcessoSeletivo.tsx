@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle } from "lucide-react";
+import { useState, useRef } from "react";
+import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle, Paperclip, FileText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,7 @@ import {
   useProcessoSeletivo,
   Candidato,
   EtapaCandidato,
+  AnexoCandidato,
 } from "@/contexts/ProcessoSeletivoContext";
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -63,6 +64,8 @@ const ProcessoSeletivoPage = () => {
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newCandidato, setNewCandidato] = useState({ nome: "", telefone: "", email: "" });
+  const [anexos, setAnexos] = useState<AnexoCandidato[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedTab, setSelectedTab] = useState<string>("candidatos");
 
   if (!requisicao || !processo) {
@@ -85,10 +88,35 @@ const ProcessoSeletivoPage = () => {
       toast.error("Limite de 5 candidatos atingido.");
       return;
     }
-    addCandidato(processo!.id, newCandidato);
+    addCandidato(processo!.id, { ...newCandidato, anexos });
     setNewCandidato({ nome: "", telefone: "", email: "" });
+    setAnexos([]);
     setShowAddDialog(false);
     toast.success("Candidato adicionado com sucesso.");
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach((file) => {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error(`Arquivo "${file.name}" excede 2MB.`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAnexos((prev) => [...prev, { nome: file.name, tipo: file.type, base64: reader.result as string }]);
+      };
+      reader.readAsDataURL(file);
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleDownloadAnexo = (anexo: AnexoCandidato) => {
+    const link = document.createElement("a");
+    link.href = anexo.base64;
+    link.download = anexo.nome;
+    link.click();
   };
 
   const handleSalvarParecer = (candidatoId: string, field: string, value: string) => {
@@ -173,19 +201,35 @@ const ProcessoSeletivoPage = () => {
               <div className="grid gap-3">
                 {processo.candidatos.map((c) => (
                   <Card key={c.id}>
-                    <CardContent className="py-4 flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-sm">{c.nome}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {c.email} {c.telefone && `· ${c.telefone}`}
-                        </p>
+                    <CardContent className="py-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-sm">{c.nome}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {c.email} {c.telefone && `· ${c.telefone}`}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className={statusBadge[getEtapaStatus(c, c.etapaAtual)]}>
+                            {etapaLabels[c.etapaAtual]}
+                          </Badge>
+                          {statusIcons[getEtapaStatus(c, c.etapaAtual)]}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className={statusBadge[getEtapaStatus(c, c.etapaAtual)]}>
-                          {etapaLabels[c.etapaAtual]}
-                        </Badge>
-                        {statusIcons[getEtapaStatus(c, c.etapaAtual)]}
-                      </div>
+                      {c.anexos && c.anexos.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {c.anexos.map((a, i) => (
+                            <button
+                              key={i}
+                              onClick={() => handleDownloadAnexo(a)}
+                              className="inline-flex items-center gap-1 rounded border px-2 py-1 text-xs text-muted-foreground hover:bg-muted transition-colors"
+                            >
+                              <FileText className="h-3 w-3" />
+                              <span className="truncate max-w-[120px]">{a.nome}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
@@ -485,6 +529,47 @@ const ProcessoSeletivoPage = () => {
                   onChange={(e) => setNewCandidato((p) => ({ ...p, telefone: e.target.value }))}
                   placeholder="+55 (00) 00000-0000"
                 />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Anexos (máx. 2MB cada)</label>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  multiple
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-1 w-full gap-1"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Paperclip className="h-4 w-4" /> Anexar arquivos
+                </Button>
+                {anexos.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {anexos.map((a, i) => (
+                      <div key={i} className="flex items-center justify-between rounded-md border px-2 py-1.5 text-xs">
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <FileText className="h-3.5 w-3.5" />
+                          <span className="truncate max-w-[200px]">{a.nome}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => setAnexos((prev) => prev.filter((_, idx) => idx !== i))}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <DialogFooter>
