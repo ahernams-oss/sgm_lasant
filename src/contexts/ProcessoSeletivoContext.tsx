@@ -3,6 +3,12 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 export type EtapaCandidato = "entrevista_psicologica" | "entrevista_tecnica" | "liberacao" | "contratacao";
 export type StatusCandidato = "pendente" | "aprovado" | "neutro" | "reprovado";
 
+export interface AnexoCandidato {
+  nome: string;
+  tipo: string;
+  base64: string;
+}
+
 export interface Candidato {
   id: string;
   nome: string;
@@ -11,6 +17,7 @@ export interface Candidato {
   idade: string;
   estadoCivil: string;
   experienciasAnteriores: string;
+  anexos: AnexoCandidato[];
   etapaAtual: EtapaCandidato;
   // Etapa 1 – Entrevista Psicológica
   parecerPsicologo: string;
