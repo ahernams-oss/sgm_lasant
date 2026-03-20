@@ -19,6 +19,11 @@ export interface Candidato {
   experienciasAnteriores: string;
   anexos: AnexoCandidato[];
   etapaAtual: EtapaCandidato;
+  // Datas do workflow
+  dataEntrevistaPsicologica?: string;
+  dataEntrevistaTecnica?: string;
+  dataLiberacao?: string;
+  dataContratacao?: string;
   // Etapa 1 – Entrevista Psicológica
   parecerPsicologo: string;
   statusPsicologico: StatusCandidato;
@@ -96,6 +101,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
               estadoCivil: "",
               experienciasAnteriores: "",
               anexos: candidato.anexos || [],
+              dataEntrevistaPsicologica: new Date().toLocaleDateString("pt-BR"),
               parecerPsicologo: "",
               statusPsicologico: "pendente",
               avaliadorTecnico: "",
@@ -135,7 +141,17 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
             if (c.id !== candidatoId) return c;
             const idx = etapas.indexOf(c.etapaAtual);
             if (idx < etapas.length - 1) {
-              return { ...c, etapaAtual: etapas[idx + 1] };
+              const nextEtapa = etapas[idx + 1];
+              const dateNow = new Date().toLocaleDateString("pt-BR");
+              const dateField =
+                nextEtapa === "entrevista_tecnica" ? "dataEntrevistaTecnica" :
+                nextEtapa === "liberacao" ? "dataLiberacao" :
+                nextEtapa === "contratacao" ? "dataContratacao" : undefined;
+              return {
+                ...c,
+                etapaAtual: nextEtapa,
+                ...(dateField ? { [dateField]: dateNow } : {}),
+              };
             }
             return c;
           }),
