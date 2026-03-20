@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useRef } from "react";
-import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle, Paperclip, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle, Paperclip, FileText, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -63,9 +63,11 @@ const ProcessoSeletivoPage = () => {
   }
 
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [editingCandidato, setEditingCandidato] = useState<Candidato | null>(null);
   const [newCandidato, setNewCandidato] = useState({ nome: "", telefone: "", email: "" });
   const [anexos, setAnexos] = useState<AnexoCandidato[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
   const [selectedTab, setSelectedTab] = useState<string>("candidatos");
 
   if (!requisicao || !processo) {
@@ -117,6 +119,45 @@ const ProcessoSeletivoPage = () => {
     link.href = anexo.base64;
     link.download = anexo.nome;
     link.click();
+  };
+
+  const openEditDialog = (c: Candidato) => {
+    setEditingCandidato({ ...c });
+  };
+
+  const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || !editingCandidato) return;
+    Array.from(files).forEach((file) => {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error(`Arquivo "${file.name}" excede 2MB.`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setEditingCandidato((prev) =>
+          prev ? { ...prev, anexos: [...(prev.anexos || []), { nome: file.name, tipo: file.type, base64: reader.result as string }] } : prev
+        );
+      };
+      reader.readAsDataURL(file);
+    });
+    if (editFileInputRef.current) editFileInputRef.current.value = "";
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingCandidato) return;
+    if (!editingCandidato.nome.trim()) {
+      toast.error("Informe o nome do candidato.");
+      return;
+    }
+    updateCandidato(processo!.id, editingCandidato.id, {
+      nome: editingCandidato.nome,
+      email: editingCandidato.email,
+      telefone: editingCandidato.telefone,
+      anexos: editingCandidato.anexos,
+    });
+    setEditingCandidato(null);
+    toast.success("Candidato atualizado.");
   };
 
   const handleSalvarParecer = (candidatoId: string, field: string, value: string) => {
@@ -210,6 +251,9 @@ const ProcessoSeletivoPage = () => {
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => openEditDialog(c)}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
                           <Badge variant="outline" className={statusBadge[getEtapaStatus(c, c.etapaAtual)]}>
                             {etapaLabels[c.etapaAtual]}
                           </Badge>
@@ -577,6 +621,90 @@ const ProcessoSeletivoPage = () => {
                 <Button variant="outline">Cancelar</Button>
               </DialogClose>
               <Button onClick={handleAddCandidato}>Adicionar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog: Editar Candidato */}
+        <Dialog open={!!editingCandidato} onOpenChange={(open) => !open && setEditingCandidato(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Candidato</DialogTitle>
+            </DialogHeader>
+            {editingCandidato && (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Nome *</label>
+                  <Input
+                    value={editingCandidato.nome}
+                    onChange={(e) => setEditingCandidato((p) => p ? { ...p, nome: e.target.value } : p)}
+                    placeholder="Nome completo"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">E-mail</label>
+                  <Input
+                    value={editingCandidato.email}
+                    onChange={(e) => setEditingCandidato((p) => p ? { ...p, email: e.target.value } : p)}
+                    placeholder="email@exemplo.com"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Telefone</label>
+                  <Input
+                    value={editingCandidato.telefone}
+                    onChange={(e) => setEditingCandidato((p) => p ? { ...p, telefone: e.target.value } : p)}
+                    placeholder="+55 (00) 00000-0000"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Anexos</label>
+                  <input
+                    type="file"
+                    ref={editFileInputRef}
+                    onChange={handleEditFileChange}
+                    multiple
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-1 w-full gap-1"
+                    onClick={() => editFileInputRef.current?.click()}
+                  >
+                    <Paperclip className="h-4 w-4" /> Anexar arquivos
+                  </Button>
+                  {editingCandidato.anexos && editingCandidato.anexos.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {editingCandidato.anexos.map((a, i) => (
+                        <div key={i} className="flex items-center justify-between rounded-md border px-2 py-1.5 text-xs">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <FileText className="h-3.5 w-3.5" />
+                            <span className="truncate max-w-[200px]">{a.nome}</span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => setEditingCandidato((p) => p ? { ...p, anexos: p.anexos.filter((_, idx) => idx !== i) } : p)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancelar</Button>
+              </DialogClose>
+              <Button onClick={handleSaveEdit}>Salvar</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
