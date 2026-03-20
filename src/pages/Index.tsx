@@ -1,5 +1,6 @@
 import { FileText } from "lucide-react";
 import RequisicaoForm from "@/components/RequisicaoForm";
+import RequisicaoGrid from "@/components/RequisicaoGrid";
 
 const Index = () => {
   return (
@@ -16,6 +17,9 @@ const Index = () => {
           </p>
         </div>
         <RequisicaoForm />
+        <div className="mt-8">
+          <RequisicaoGrid />
+        </div>
       </div>
     </div>
   );

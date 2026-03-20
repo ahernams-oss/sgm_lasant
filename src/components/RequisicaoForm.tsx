@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCargos } from "@/contexts/CargosContext";
+import { useRequisicoes } from "@/contexts/RequisicaoContext";
 
 const jornadaOptions = ["Diarista", "Plantão Diurno - PAR", "Plantão Diurno - ÍMPAR", "Plantão Noturno - PAR", "Plantão Noturno - ÍMPAR"];
 const contratacaoOptions = ["Efetivo", "Temporário", "PCD", "Estagiário"];
@@ -25,6 +26,7 @@ const experienciaOptions = ["Não Necessita", "Até 1 ano", "De 1 a 3 anos", "De
 
 const RequisicaoForm = () => {
   const { cargos } = useCargos();
+  const { addRequisicao } = useRequisicoes();
   const [form, setForm] = useState({
     unidade: "",
     cargo: "",
@@ -60,8 +62,24 @@ const RequisicaoForm = () => {
       toast.error("Preencha ao menos a Unidade e o Cargo.");
       return;
     }
+    const cargoObj = cargos.find((c) => c.id === form.cargo);
+    addRequisicao({
+      unidade: form.unidade,
+      cargoNome: cargoObj ? `${cargoObj.nome}${cargoObj.nivel ? ` — Nível ${cargoObj.nivel}` : ""}` : form.cargo,
+      jornada: form.jornada,
+      tipoContratacao: form.tipoContratacao,
+      origemVaga: form.origemVaga,
+      nomeSubstituido: form.nomeSubstituido,
+    });
     toast.success("Requisição enviada com sucesso!");
-    console.log("Requisição:", form);
+    setForm({
+      unidade: "", cargo: "", jornada: "", cargaHoraria: "",
+      tipoContratacao: [], internoExterno: "", origemVaga: "", motivoOutros: "",
+      matricula: "", nomeSubstituido: "", cargoSubstituido: "",
+      salarioSubstituido: "", dataDesligamento: "",
+      formacao: [], formacaoDetalhe: "", experiencia: "",
+      conhecimentoInformatica: "", atividadesCargo: "", salarioVaga: "",
+    });
   };
 
   return (
