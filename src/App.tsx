@@ -10,6 +10,7 @@ import Clientes from "./pages/Clientes.tsx";
 import Cargos from "./pages/Cargos.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
+import { ClientesProvider } from "@/contexts/ClientesContext";
 
 const queryClient = new QueryClient();
 
