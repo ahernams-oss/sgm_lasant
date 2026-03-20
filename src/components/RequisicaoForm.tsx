@@ -91,11 +91,29 @@ const RequisicaoForm = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="field-label">Unidade</label>
-            <Input
-              placeholder="Ex: Hospital Municipal Álvaro Ramos"
-              value={form.unidade}
-              onChange={(e) => update("unidade", e.target.value)}
-            />
+            {clientes.length > 0 ? (
+              <Select
+                value={form.unidade}
+                onValueChange={(v) => update("unidade", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clientes.map((c) => (
+                    <SelectItem key={c.id} value={c.nome}>
+                      {c.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                placeholder="Cadastre clientes primeiro"
+                value={form.unidade}
+                onChange={(e) => update("unidade", e.target.value)}
+              />
+            )}
           </div>
           <div>
             <label className="field-label">Cargo</label>
