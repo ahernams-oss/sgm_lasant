@@ -101,6 +101,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
               estadoCivil: "",
               experienciasAnteriores: "",
               anexos: candidato.anexos || [],
+              dataEntrevistaPsicologica: new Date().toLocaleDateString("pt-BR"),
               parecerPsicologo: "",
               statusPsicologico: "pendente",
               avaliadorTecnico: "",
