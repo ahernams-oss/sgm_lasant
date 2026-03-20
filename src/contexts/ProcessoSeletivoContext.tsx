@@ -35,7 +35,7 @@ interface ProcessoSeletivoContextType {
   processos: ProcessoSeletivo[];
   criarProcesso: (requisicaoId: string) => ProcessoSeletivo;
   getProcessoByRequisicao: (requisicaoId: string) => ProcessoSeletivo | undefined;
-  addCandidato: (processoId: string, candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao">) => void;
+  addCandidato: (processoId: string, candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores">) => void;
   updateCandidato: (processoId: string, candidatoId: string, data: Partial<Candidato>) => void;
   avancarEtapa: (processoId: string, candidatoId: string) => void;
 }
