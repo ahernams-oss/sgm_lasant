@@ -25,6 +25,7 @@ const menuItems = [
     group: "Cadastros",
     items: [
       { title: "Clientes", url: "/clientes", icon: Users },
+      { title: "Cargos", url: "/cargos", icon: Briefcase },
     ],
   },
 ];
