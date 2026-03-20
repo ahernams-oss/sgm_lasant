@@ -34,7 +34,7 @@ function AppRoutes() {
         <Route path="/funcionarios" element={<Funcionarios />} />
         <Route path="/usuarios" element={<Usuarios />} />
         <Route path="/processo-seletivo/:requisicaoId" element={<ProcessoSeletivo />} />
-        <Route path="/processos-seletivos" element={<ProcessoSeletivo />} />
+        <Route path="/processos-seletivos" element={<ProcessosSeletivos />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
