@@ -514,6 +514,47 @@ const ProcessoSeletivoPage = () => {
                   placeholder="+55 (00) 00000-0000"
                 />
               </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Anexos (máx. 2MB cada)</label>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  multiple
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-1 w-full gap-1"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Paperclip className="h-4 w-4" /> Anexar arquivos
+                </Button>
+                {anexos.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {anexos.map((a, i) => (
+                      <div key={i} className="flex items-center justify-between rounded-md border px-2 py-1.5 text-xs">
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <FileText className="h-3.5 w-3.5" />
+                          <span className="truncate max-w-[200px]">{a.nome}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => setAnexos((prev) => prev.filter((_, idx) => idx !== i))}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <DialogFooter>
               <DialogClose asChild>
