@@ -15,7 +15,7 @@ import { useCargos } from "@/contexts/CargosContext";
 
 const niveis = ["I", "II", "III", "IV", "V"] as const;
 
-const emptyForm = { nome: "", descricao: "", salario: "", nivel: "" };
+const emptyForm = { nome: "", descricao: "", salario: "", nivel: "", dataBaseSalario: "" };
 
 const Cargos = () => {
   const { cargos, addCargo, updateCargo, deleteCargo } = useCargos();
