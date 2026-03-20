@@ -63,9 +63,11 @@ const ProcessoSeletivoPage = () => {
   }
 
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [editingCandidato, setEditingCandidato] = useState<Candidato | null>(null);
   const [newCandidato, setNewCandidato] = useState({ nome: "", telefone: "", email: "" });
   const [anexos, setAnexos] = useState<AnexoCandidato[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
   const [selectedTab, setSelectedTab] = useState<string>("candidatos");
 
   if (!requisicao || !processo) {
