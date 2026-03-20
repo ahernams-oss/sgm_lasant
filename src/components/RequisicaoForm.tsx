@@ -97,7 +97,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       matricula: "", nomeSubstituido: "", cargoSubstituido: "",
       salarioSubstituido: "", dataDesligamento: "",
       formacao: [], formacaoDetalhe: "", experiencia: "",
-      conhecimentoInformatica: "", atividadesCargo: "", salarioVaga: "",
+      conhecimentoInformatica: "", atividadesCargo: "", salarioVaga: "", desejaIndicar: "",
     });
   };
 
