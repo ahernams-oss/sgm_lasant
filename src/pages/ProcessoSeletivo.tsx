@@ -201,19 +201,35 @@ const ProcessoSeletivoPage = () => {
               <div className="grid gap-3">
                 {processo.candidatos.map((c) => (
                   <Card key={c.id}>
-                    <CardContent className="py-4 flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-sm">{c.nome}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {c.email} {c.telefone && `· ${c.telefone}`}
-                        </p>
+                    <CardContent className="py-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-sm">{c.nome}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {c.email} {c.telefone && `· ${c.telefone}`}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className={statusBadge[getEtapaStatus(c, c.etapaAtual)]}>
+                            {etapaLabels[c.etapaAtual]}
+                          </Badge>
+                          {statusIcons[getEtapaStatus(c, c.etapaAtual)]}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className={statusBadge[getEtapaStatus(c, c.etapaAtual)]}>
-                          {etapaLabels[c.etapaAtual]}
-                        </Badge>
-                        {statusIcons[getEtapaStatus(c, c.etapaAtual)]}
-                      </div>
+                      {c.anexos && c.anexos.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {c.anexos.map((a, i) => (
+                            <button
+                              key={i}
+                              onClick={() => handleDownloadAnexo(a)}
+                              className="inline-flex items-center gap-1 rounded border px-2 py-1 text-xs text-muted-foreground hover:bg-muted transition-colors"
+                            >
+                              <FileText className="h-3 w-3" />
+                              <span className="truncate max-w-[120px]">{a.nome}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
