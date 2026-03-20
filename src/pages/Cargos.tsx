@@ -118,6 +118,14 @@ const Cargos = () => {
                 onChange={(e) => update("salario", e.target.value)}
               />
             </div>
+            <div>
+              <label className="field-label">Data Base do Salário</label>
+              <Input
+                type="date"
+                value={form.dataBaseSalario}
+                onChange={(e) => update("dataBaseSalario", e.target.value)}
+              />
+            </div>
             <div className="md:col-span-2">
               <label className="field-label">Descrição</label>
               <Textarea
