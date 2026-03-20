@@ -22,7 +22,21 @@ const UsuariosContext = createContext<UsuariosContextType | undefined>(undefined
 export function UsuariosProvider({ children }: { children: ReactNode }) {
   const [usuarios, setUsuarios] = useState<Usuario[]>(() => {
     const saved = localStorage.getItem("usuarios");
-    return saved ? JSON.parse(saved) : [];
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.length > 0) return parsed;
+    }
+    // Usuário admin padrão para primeiro acesso
+    const adminDefault: Usuario = {
+      id: "admin-default",
+      nome: "Administrador",
+      cargoId: "",
+      telefone: "",
+      email: "admin@lasant.com",
+      senha: "admin123",
+      clientesPermitidos: [],
+    };
+    return [adminDefault];
   });
 
   useEffect(() => { localStorage.setItem("usuarios", JSON.stringify(usuarios)); }, [usuarios]);
