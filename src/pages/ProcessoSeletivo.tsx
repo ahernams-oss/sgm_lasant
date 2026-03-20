@@ -236,6 +236,20 @@ const ProcessoSeletivoPage = () => {
                               <XCircle className="h-4 w-4 mr-1" /> Reprovar
                             </Button>
                             <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-blue-600 hover:text-blue-700"
+                              onClick={() => {
+                                if (!c.parecerPsicologo.trim()) {
+                                  toast.error("Preencha o parecer antes de definir o status.");
+                                  return;
+                                }
+                                handleAprovarEtapa(c, "statusPsicologico", "neutro");
+                              }}
+                            >
+                              <MinusCircle className="h-4 w-4 mr-1" /> Neutro
+                            </Button>
+                            <Button
                               size="sm"
                               onClick={() => {
                                 if (!c.parecerPsicologo.trim()) {
