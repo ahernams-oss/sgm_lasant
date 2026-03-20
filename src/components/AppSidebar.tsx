@@ -26,6 +26,7 @@ const menuItems = [
     items: [
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "Cargos", url: "/cargos", icon: Briefcase },
+      { title: "Funcionários", url: "/funcionarios", icon: UserCheck },
     ],
   },
 ];
