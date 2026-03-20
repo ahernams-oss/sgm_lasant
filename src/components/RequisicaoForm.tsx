@@ -7,6 +7,14 @@ import RadioGroupCustom from "@/components/RadioGroupCustom";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useCargos } from "@/contexts/CargosContext";
 
 const jornadaOptions = ["Diarista", "Plantão Diurno - PAR", "Plantão Diurno - ÍMPAR", "Plantão Noturno - PAR", "Plantão Noturno - ÍMPAR"];
 const contratacaoOptions = ["Efetivo", "Temporário", "PCD", "Estagiário"];
