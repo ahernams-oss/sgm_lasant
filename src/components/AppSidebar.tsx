@@ -22,6 +22,7 @@ const menuItems = [
     group: "Gestão de Pessoas",
     items: [
       { title: "Requisição de Colaboradores", url: "/", icon: ClipboardList },
+      { title: "Processos Seletivos", url: "/processos-seletivos", icon: ClipboardCheck },
     ],
   },
   {

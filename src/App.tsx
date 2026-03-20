@@ -11,11 +11,13 @@ import Cargos from "./pages/Cargos.tsx";
 import Funcionarios from "./pages/Funcionarios.tsx";
 import Usuarios from "./pages/Usuarios.tsx";
 import Login from "./pages/Login.tsx";
+import ProcessoSeletivo from "./pages/ProcessoSeletivo.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
 import { FuncionariosProvider } from "@/contexts/FuncionariosContext";
 import { UsuariosProvider } from "@/contexts/UsuariosContext";
+import { ProcessoSeletivoProvider } from "@/contexts/ProcessoSeletivoContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -30,6 +32,8 @@ function AppRoutes() {
         <Route path="/cargos" element={<Cargos />} />
         <Route path="/funcionarios" element={<Funcionarios />} />
         <Route path="/usuarios" element={<Usuarios />} />
+        <Route path="/processo-seletivo/:requisicaoId" element={<ProcessoSeletivo />} />
+        <Route path="/processos-seletivos" element={<ProcessoSeletivo />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -43,6 +47,7 @@ const App = () => (
     <FuncionariosProvider>
     <UsuariosProvider>
     <RequisicaoProvider>
+    <ProcessoSeletivoProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
@@ -52,6 +57,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </ProcessoSeletivoProvider>
     </RequisicaoProvider>
     </UsuariosProvider>
     </FuncionariosProvider>
