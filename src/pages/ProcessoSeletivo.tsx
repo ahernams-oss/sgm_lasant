@@ -331,6 +331,7 @@ const ProcessoSeletivoPage = () => {
                                 </Button>
                                 <Button
                                   size="sm"
+                                  className="bg-[hsl(120,30%,35%)] hover:bg-[hsl(120,30%,28%)] text-white"
                                   onClick={() => {
                                     if (!c.parecerTecnico.trim() || !c.avaliadorTecnico.trim()) {
                                       toast.error("Preencha o avaliador e o parecer antes de aprovar.");
