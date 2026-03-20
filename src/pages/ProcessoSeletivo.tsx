@@ -209,7 +209,7 @@ const ProcessoSeletivoPage = () => {
                         <CardTitle className="text-sm flex items-center justify-between">
                           {c.nome}
                           <Badge variant="outline" className={statusBadge[c.statusPsicologico]}>
-                            {c.statusPsicologico === "pendente" ? "Pendente" : c.statusPsicologico === "aprovado" ? "Aprovado" : "Reprovado"}
+                            {c.statusPsicologico === "pendente" ? "Pendente" : c.statusPsicologico === "aprovado" ? "Aprovado" : c.statusPsicologico === "neutro" ? "Neutro" : "Reprovado"}
                           </Badge>
                         </CardTitle>
                       </CardHeader>
