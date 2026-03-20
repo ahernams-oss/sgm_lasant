@@ -35,6 +35,7 @@ const App = () => (
     </TooltipProvider>
     </RequisicaoProvider>
     </CargosProvider>
+    </ClientesProvider>
   </QueryClientProvider>
 );
 
