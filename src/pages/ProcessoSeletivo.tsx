@@ -55,6 +55,7 @@ const ProcessoSeletivoPage = () => {
   const { getProcessoByRequisicao, criarProcesso, addCandidato, updateCandidato, avancarEtapa } =
     useProcessoSeletivo();
   const { temAcessoTotal } = useAuth();
+  const { clientes } = useClientes();
 
   const requisicao = requisicoes.find((r) => r.id === requisicaoId);
 
