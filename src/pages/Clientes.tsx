@@ -46,6 +46,7 @@ const Clientes = () => {
       telefone: cliente.telefone,
       email: cliente.email,
       endereco: cliente.endereco,
+      grupoWhatsapp: cliente.grupoWhatsapp || "",
     });
   };
 
