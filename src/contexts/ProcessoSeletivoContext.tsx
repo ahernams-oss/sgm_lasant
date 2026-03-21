@@ -9,6 +9,41 @@ export interface AnexoCandidato {
   base64: string;
 }
 
+export interface DocumentoContratacao {
+  nome: string;
+  entregue: boolean;
+}
+
+export interface ExameAdmissional {
+  dataExame: string;
+  resultado: "pendente" | "apto" | "inapto";
+  observacoes: string;
+}
+
+export interface DadosBancarios {
+  banco: string;
+  agencia: string;
+  conta: string;
+  tipoConta: string;
+  pisPasep: string;
+}
+
+export const DOCUMENTOS_OBRIGATORIOS = [
+  "RG",
+  "CPF",
+  "CTPS (Carteira de Trabalho)",
+  "Comprovante de Residência",
+  "Certidão de Nascimento/Casamento",
+  "Título de Eleitor",
+  "Certificado de Reservista",
+  "PIS/PASEP",
+  "Foto 3x4",
+  "Comprovante de Escolaridade",
+  "Certidão de Nascimento dos Filhos",
+  "Cartão de Vacina dos Filhos",
+  "Atestado de Antecedentes Criminais",
+];
+
 export interface Candidato {
   id: string;
   nome: string;
@@ -34,6 +69,10 @@ export interface Candidato {
   // Etapa 3 – Liberação
   liberadoPor: string;
   statusLiberacao: StatusCandidato;
+  // Etapa 4 – Contratação
+  documentos: DocumentoContratacao[];
+  exameAdmissional: ExameAdmissional;
+  dadosBancarios: DadosBancarios;
 }
 
 export interface ProcessoSeletivo {
