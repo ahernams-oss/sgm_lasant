@@ -11,6 +11,7 @@ export interface Requisicao {
   origemVaga: string;
   nomeSubstituido: string;
   status: "Pendente" | "Em Análise" | "Aprovada" | "Reprovada";
+  aprovadoPor?: string;
 }
 
 interface RequisicaoContextType {
