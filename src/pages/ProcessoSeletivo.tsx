@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useState, useRef } from "react";
 import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle, Paperclip, FileText, Trash2, Pencil, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
