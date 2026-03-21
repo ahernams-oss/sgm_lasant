@@ -57,6 +57,21 @@ const Clientes = () => {
     if (editingId === id) resetForm();
   };
 
+  const handleEnviarWhatsApp = async (cliente: typeof clientes[0]) => {
+    if (!cliente.telefone.trim()) {
+      toast.error("Cliente sem telefone cadastrado.");
+      return;
+    }
+    const mensagem = `Olá ${cliente.contato || cliente.nome}! Aqui é da equipe de RH. Entramos em contato para informar sobre atualizações do processo seletivo.`;
+    toast.loading("Enviando mensagem...", { id: "whatsapp-send" });
+    const result = await enviarWhatsApp(cliente.telefone, mensagem);
+    if (result.success) {
+      toast.success("Mensagem enviada com sucesso!", { id: "whatsapp-send" });
+    } else {
+      toast.error(`Erro ao enviar: ${result.error}`, { id: "whatsapp-send" });
+    }
+  };
+
   const filteredClientes = useMemo(() => {
     if (!search.trim()) return clientes;
     const term = search.toLowerCase();
