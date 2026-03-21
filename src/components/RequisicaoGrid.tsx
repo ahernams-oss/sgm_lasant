@@ -59,7 +59,6 @@ const RequisicaoGrid = () => {
       }
     }
   };
-  const [filterStatus, setFilterStatus] = useState<string>("todos");
 
   const filteredRequisicoes = useMemo(() => {
     let result = requisicoes;
