@@ -28,6 +28,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { toast } from "sonner";
 
 const etapaLabels: Record<EtapaCandidato, string> = {
