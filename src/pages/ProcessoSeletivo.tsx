@@ -927,6 +927,10 @@ const ProcessoSeletivoPage = () => {
                                 });
 
                                 updateCandidato(processo!.id, c.id, { contratacaoFinalizada: true });
+                                // Atualizar status da requisição para Concluída
+                                if (requisicaoId) {
+                                  updateStatus(requisicaoId, "Concluída");
+                                }
                                 toast.success(`${c.nome} foi cadastrado como funcionário com sucesso!`);
                               }}
                             >
