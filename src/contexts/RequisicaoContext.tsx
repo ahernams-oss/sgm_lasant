@@ -11,12 +11,13 @@ export interface Requisicao {
   origemVaga: string;
   nomeSubstituido: string;
   status: "Pendente" | "Em Análise" | "Aprovada" | "Reprovada";
+  aprovadoPor?: string;
 }
 
 interface RequisicaoContextType {
   requisicoes: Requisicao[];
-  addRequisicao: (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status">) => void;
-  updateStatus: (id: string, status: Requisicao["status"]) => void;
+  addRequisicao: (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor">) => void;
+  updateStatus: (id: string, status: Requisicao["status"], aprovadoPor?: string) => void;
 }
 
 const RequisicaoContext = createContext<RequisicaoContextType | undefined>(undefined);
@@ -58,8 +59,8 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
     ]);
   };
 
-  const updateStatus = (id: string, status: Requisicao["status"]) =>
-    setRequisicoes((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+  const updateStatus = (id: string, status: Requisicao["status"], aprovadoPor?: string) =>
+    setRequisicoes((prev) => prev.map((r) => (r.id === id ? { ...r, status, aprovadoPor: aprovadoPor || r.aprovadoPor } : r)));
 
   return (
     <RequisicaoContext.Provider value={{ requisicoes, addRequisicao, updateStatus }}>

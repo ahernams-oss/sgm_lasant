@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useRequisicoes, Requisicao } from "@/contexts/RequisicaoContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,12 +38,14 @@ const statusOptions: Requisicao["status"][] = ["Pendente", "Em Análise", "Aprov
 const RequisicaoGrid = () => {
   const { requisicoes, updateStatus } = useRequisicoes();
   const { clientes } = useClientes();
+  const { usuarioLogado } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
 
   const handleStatusChange = (req: Requisicao, newStatus: Requisicao["status"]) => {
-    updateStatus(req.id, newStatus);
+    const nomeAprovador = (newStatus === "Aprovada" || newStatus === "Reprovada") ? usuarioLogado?.nome : undefined;
+    updateStatus(req.id, newStatus, nomeAprovador);
 
     // Encontrar o cliente pela unidade e enviar WhatsApp
     const cliente = clientes.find((c) => c.nome === req.unidade);
@@ -123,6 +126,7 @@ const RequisicaoGrid = () => {
                 <TableHead>Jornada</TableHead>
                 <TableHead>Origem</TableHead>
                 <TableHead>Substituído</TableHead>
+                <TableHead>Aprovador</TableHead>
                 <TableHead className="pr-5">Status</TableHead>
                 <TableHead className="text-center">PDF</TableHead>
                 <TableHead className="pr-5 text-center">Seletivo</TableHead>
@@ -138,6 +142,7 @@ const RequisicaoGrid = () => {
                   <TableCell className="text-sm">{req.jornada || "—"}</TableCell>
                   <TableCell className="text-sm">{req.origemVaga || "—"}</TableCell>
                   <TableCell className="text-sm">{req.nomeSubstituido || "—"}</TableCell>
+                  <TableCell className="text-sm">{req.aprovadoPor || "—"}</TableCell>
                   <TableCell className="pr-5">
                     <Select value={req.status} onValueChange={(v) => handleStatusChange(req, v as Requisicao["status"])}>
                       <SelectTrigger className="h-7 w-[130px] text-xs border-0 p-0 focus:ring-0">
