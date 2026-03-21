@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Users, Plus, Trash2, Search } from "lucide-react";
+import { Users, Plus, Trash2, Search, MessageCircle } from "lucide-react";
+import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClientes } from "@/contexts/ClientesContext";
