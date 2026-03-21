@@ -1,11 +1,14 @@
 import { useState, useMemo } from "react";
 import { useRequisicoes, Requisicao } from "@/contexts/RequisicaoContext";
+import { useClientes } from "@/contexts/ClientesContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileDown, ClipboardCheck, Search } from "lucide-react";
 import { gerarPdfRequisicao } from "@/lib/gerarPdfRequisicao";
+import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
