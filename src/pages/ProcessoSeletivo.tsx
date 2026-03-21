@@ -662,11 +662,11 @@ const ProcessoSeletivoPage = () => {
                         {/* Checklist de Documentos */}
                         <div>
                           <h3 className="text-sm font-semibold text-foreground mb-3">📋 Checklist de Documentos</h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div className="grid grid-cols-1 gap-2">
                             {(c.documentos && c.documentos.length > 0 ? c.documentos : DOCUMENTOS_OBRIGATORIOS.map((n) => ({ nome: n, entregue: false }))).map((doc, idx) => (
-                              <label
+                              <div
                                 key={idx}
-                                className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer hover:bg-muted/50 transition-colors"
+                                className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/50 transition-colors"
                               >
                                 <Checkbox
                                   checked={doc.entregue}
@@ -676,8 +676,72 @@ const ProcessoSeletivoPage = () => {
                                     updateCandidato(processo!.id, c.id, { documentos: docs });
                                   }}
                                 />
-                                <span className={doc.entregue ? "line-through text-muted-foreground" : ""}>{doc.nome}</span>
-                              </label>
+                                <span className={`flex-1 ${doc.entregue ? "line-through text-muted-foreground" : ""}`}>{doc.nome}</span>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {doc.anexo ? (
+                                    <>
+                                      <button
+                                        onClick={() => {
+                                          const link = document.createElement("a");
+                                          link.href = doc.anexo!.base64;
+                                          link.download = doc.anexo!.nome;
+                                          link.click();
+                                        }}
+                                        className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-muted transition-colors"
+                                        title={`Baixar ${doc.anexo.nome}`}
+                                      >
+                                        <FileText className="h-3 w-3" />
+                                        <span className="truncate max-w-[80px]">{doc.anexo.nome}</span>
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          const docs = [...(c.documentos && c.documentos.length > 0 ? c.documentos : DOCUMENTOS_OBRIGATORIOS.map((n) => ({ nome: n, entregue: false })))];
+                                          const { anexo, ...rest } = docs[idx];
+                                          docs[idx] = rest as typeof docs[number];
+                                          updateCandidato(processo!.id, c.id, { documentos: docs });
+                                        }}
+                                        className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                                        title="Remover anexo"
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <input
+                                        type="file"
+                                        id={`doc-file-${c.id}-${idx}`}
+                                        className="hidden"
+                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (!file) return;
+                                          if (file.size > 2 * 1024 * 1024) {
+                                            toast.error(`Arquivo "${file.name}" excede 2MB.`);
+                                            return;
+                                          }
+                                          const reader = new FileReader();
+                                          reader.onload = () => {
+                                            const docs = [...(c.documentos && c.documentos.length > 0 ? c.documentos : DOCUMENTOS_OBRIGATORIOS.map((n) => ({ nome: n, entregue: false })))];
+                                            docs[idx] = { ...docs[idx], anexo: { nome: file.name, tipo: file.type, base64: reader.result as string } };
+                                            updateCandidato(processo!.id, c.id, { documentos: docs });
+                                          };
+                                          reader.readAsDataURL(file);
+                                          e.target.value = "";
+                                        }}
+                                      />
+                                      <button
+                                        onClick={() => document.getElementById(`doc-file-${c.id}-${idx}`)?.click()}
+                                        className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-muted transition-colors"
+                                        title="Anexar arquivo"
+                                      >
+                                        <Paperclip className="h-3 w-3" />
+                                        Anexar
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
                             ))}
                           </div>
                           <p className="text-xs text-muted-foreground mt-2">
