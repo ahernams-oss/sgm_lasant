@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { enviarWhatsApp } from "@/lib/whatsapp";
+import { useClientes } from "@/contexts/ClientesContext";
 import { useState, useRef } from "react";
 import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle, Paperclip, FileText, Trash2, Pencil, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ const ProcessoSeletivoPage = () => {
   const { getProcessoByRequisicao, criarProcesso, addCandidato, updateCandidato, avancarEtapa } =
     useProcessoSeletivo();
   const { temAcessoTotal } = useAuth();
+  const { clientes } = useClientes();
 
   const requisicao = requisicoes.find((r) => r.id === requisicaoId);
 
@@ -183,16 +185,19 @@ const ProcessoSeletivoPage = () => {
     const etapaLabel = etapaMap[statusField] || statusField;
     const statusLabel = status === "aprovado" ? "aprovado(a)" : status === "reprovado" ? "reprovado(a)" : "avaliado(a) como neutro";
 
-    // Enviar WhatsApp automático para o candidato
-    if (candidato.telefone?.trim()) {
-      const mensagem = `Olá ${candidato.nome}! Informamos que na etapa "${etapaLabel}" do processo seletivo, você foi ${statusLabel}. Em breve entraremos em contato com mais informações.`;
-      enviarWhatsApp(candidato.telefone, mensagem).then((result) => {
-        if (result.success) {
-          toast.success(`WhatsApp enviado para ${candidato.nome}.`);
-        } else {
-          toast.error(`Falha ao enviar WhatsApp para ${candidato.nome}: ${result.error}`);
-        }
-      });
+    // Enviar WhatsApp para os telefones do cliente (unidade)
+    const cliente = clientes.find((c) => c.nome === requisicao?.unidade);
+    if (cliente && cliente.telefones.length > 0) {
+      const mensagem = `Processo Seletivo - Cargo: ${requisicao?.cargoNome}. Candidato ${candidato.nome} foi ${statusLabel} na etapa "${etapaLabel}".`;
+      for (const tel of cliente.telefones) {
+        enviarWhatsApp(tel, mensagem).then((result) => {
+          if (result.success) {
+            toast.success(`WhatsApp enviado para ${tel}.`);
+          } else {
+            toast.error(`Falha ao enviar WhatsApp para ${tel}: ${result.error}`);
+          }
+        });
+      }
     }
 
     if (status === "aprovado") {
