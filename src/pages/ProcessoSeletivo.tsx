@@ -60,6 +60,7 @@ const ProcessoSeletivoPage = () => {
     useProcessoSeletivo();
   const { temAcessoTotal } = useAuth();
   const { clientes } = useClientes();
+  const { funcionarios, addFuncionario } = useFuncionarios();
 
   const requisicao = requisicoes.find((r) => r.id === requisicaoId);
 
