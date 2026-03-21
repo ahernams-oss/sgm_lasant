@@ -10,7 +10,7 @@ export interface Requisicao {
   tipoContratacao: string[];
   origemVaga: string;
   nomeSubstituido: string;
-  status: "Pendente" | "Em Análise" | "Aprovada" | "Reprovada";
+  status: "Pendente" | "Em Análise" | "Aprovada" | "Reprovada" | "Concluída";
   aprovadoPor?: string;
 }
 

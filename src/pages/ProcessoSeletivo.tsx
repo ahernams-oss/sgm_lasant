@@ -55,7 +55,7 @@ const statusBadge = {
 const ProcessoSeletivoPage = () => {
   const { requisicaoId } = useParams<{ requisicaoId: string }>();
   const navigate = useNavigate();
-  const { requisicoes } = useRequisicoes();
+  const { requisicoes, updateStatus } = useRequisicoes();
   const { getProcessoByRequisicao, criarProcesso, addCandidato, updateCandidato, avancarEtapa } =
     useProcessoSeletivo();
   const { temAcessoTotal } = useAuth();
@@ -927,6 +927,10 @@ const ProcessoSeletivoPage = () => {
                                 });
 
                                 updateCandidato(processo!.id, c.id, { contratacaoFinalizada: true });
+                                // Atualizar status da requisição para Concluída
+                                if (requisicaoId) {
+                                  updateStatus(requisicaoId, "Concluída");
+                                }
                                 toast.success(`${c.nome} foi cadastrado como funcionário com sucesso!`);
                               }}
                             >
