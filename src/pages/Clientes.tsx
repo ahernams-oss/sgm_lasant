@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClientes } from "@/contexts/ClientesContext";
 
-const emptyForm = { nome: "", cnpj: "", contato: "", telefone: "", email: "", endereco: "" };
+const emptyForm = { nome: "", cnpj: "", contato: "", telefone: "", email: "", endereco: "", grupoWhatsapp: "" };
 
 const Clientes = () => {
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
@@ -46,6 +46,7 @@ const Clientes = () => {
       telefone: cliente.telefone,
       email: cliente.email,
       endereco: cliente.endereco,
+      grupoWhatsapp: cliente.grupoWhatsapp || "",
     });
   };
 
@@ -114,6 +115,10 @@ const Clientes = () => {
             <div className="md:col-span-2">
               <label className="field-label">Endereço</label>
               <Input placeholder="Ex: Rua das Flores, 123 - São Paulo/SP" value={form.endereco} onChange={(e) => update("endereco", e.target.value)} />
+            </div>
+            <div className="md:col-span-2">
+              <label className="field-label">Código do Grupo de WhatsApp</label>
+              <Input placeholder="Ex: https://chat.whatsapp.com/AbCdEfGhIjK" value={form.grupoWhatsapp} onChange={(e) => update("grupoWhatsapp", e.target.value)} />
             </div>
           </div>
           <div className="flex gap-2 mt-4">
