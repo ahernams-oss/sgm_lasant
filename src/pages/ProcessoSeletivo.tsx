@@ -325,6 +325,7 @@ const ProcessoSeletivoPage = () => {
             <TabsTrigger value="etapa1">1. Psicológica</TabsTrigger>
             <TabsTrigger value="etapa2">2. Técnica</TabsTrigger>
             <TabsTrigger value="etapa3">3. Liberação</TabsTrigger>
+            <TabsTrigger value="etapa4">4. Contratação</TabsTrigger>
           </TabsList>
 
           {/* TAB: Candidatos */}
