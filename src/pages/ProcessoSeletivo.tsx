@@ -22,7 +22,9 @@ import {
   Candidato,
   EtapaCandidato,
   AnexoCandidato,
+  DOCUMENTOS_OBRIGATORIOS,
 } from "@/contexts/ProcessoSeletivoContext";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
