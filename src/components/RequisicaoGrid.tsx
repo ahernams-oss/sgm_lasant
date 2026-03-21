@@ -47,7 +47,7 @@ const RequisicaoGrid = () => {
     // Encontrar o cliente pela unidade e enviar WhatsApp
     const cliente = clientes.find((c) => c.nome === req.unidade);
     if (cliente && cliente.telefones.length > 0) {
-      const mensagem = `Olá ${cliente.contato || cliente.nome}! A requisição do cargo "${req.cargoNome}" teve o status atualizado para: ${newStatus}.`;
+      const mensagem = `A requisição de contratação do cargo "${req.cargoNome}" para o "${req.unidade}" encontra-se com status de "${newStatus}".`;
       for (const tel of cliente.telefones) {
         enviarWhatsApp(tel, mensagem).then((result) => {
           if (result.success) {
