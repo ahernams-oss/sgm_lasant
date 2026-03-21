@@ -116,7 +116,8 @@ const RequisicaoGrid = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-5">Data</TableHead>
+                <TableHead className="pl-5">Nº</TableHead>
+                <TableHead>Data</TableHead>
                 <TableHead>Unidade</TableHead>
                 <TableHead>Cargo</TableHead>
                 <TableHead>Jornada</TableHead>
