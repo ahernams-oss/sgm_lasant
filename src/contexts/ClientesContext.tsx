@@ -8,6 +8,7 @@ export interface Cliente {
   telefone: string;
   email: string;
   endereco: string;
+  grupoWhatsapp: string;
 }
 
 interface ClientesContextType {
