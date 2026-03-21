@@ -16,8 +16,8 @@ export interface Requisicao {
 
 interface RequisicaoContextType {
   requisicoes: Requisicao[];
-  addRequisicao: (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status">) => void;
-  updateStatus: (id: string, status: Requisicao["status"]) => void;
+  addRequisicao: (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor">) => void;
+  updateStatus: (id: string, status: Requisicao["status"], aprovadoPor?: string) => void;
 }
 
 const RequisicaoContext = createContext<RequisicaoContextType | undefined>(undefined);
