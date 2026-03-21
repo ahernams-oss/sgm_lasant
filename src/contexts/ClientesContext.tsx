@@ -5,7 +5,7 @@ export interface Cliente {
   nome: string;
   cnpj: string;
   contato: string;
-  telefone: string;
+  telefones: string[];
   email: string;
   endereco: string;
   grupoWhatsapp: string;
@@ -23,7 +23,16 @@ const ClientesContext = createContext<ClientesContextType | undefined>(undefined
 export function ClientesProvider({ children }: { children: ReactNode }) {
   const [clientes, setClientes] = useState<Cliente[]>(() => {
     const saved = localStorage.getItem("clientes");
-    return saved ? JSON.parse(saved) : [];
+    if (!saved) return [];
+    // Migra dados antigos: telefone (string) → telefones (string[])
+    return JSON.parse(saved).map((c: any) => ({
+      ...c,
+      telefones: Array.isArray(c.telefones)
+        ? c.telefones
+        : c.telefone
+          ? [c.telefone]
+          : [],
+    }));
   });
 
   useEffect(() => { localStorage.setItem("clientes", JSON.stringify(clientes)); }, [clientes]);
