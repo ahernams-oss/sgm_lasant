@@ -176,6 +176,9 @@ const Clientes = () => {
                     <p className="text-sm text-muted-foreground truncate">{cliente.telefone || "—"}</p>
                   </div>
                   <div className="flex gap-1 shrink-0">
+                    <Button variant="ghost" size="sm" onClick={() => handleEnviarWhatsApp(cliente)} className="text-emerald-600 hover:text-emerald-700" title="Enviar WhatsApp">
+                      <MessageCircle className="h-3.5 w-3.5" />
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(cliente)} className="text-xs">Editar</Button>
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(cliente.id)} className="text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />
