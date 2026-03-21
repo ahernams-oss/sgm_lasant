@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClientes } from "@/contexts/ClientesContext";
 
-const emptyForm = { nome: "", cnpj: "", contato: "", telefone: "", email: "", endereco: "" };
+const emptyForm = { nome: "", cnpj: "", contato: "", telefone: "", email: "", endereco: "", grupoWhatsapp: "" };
 
 const Clientes = () => {
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
