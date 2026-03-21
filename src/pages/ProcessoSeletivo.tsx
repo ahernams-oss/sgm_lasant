@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useState, useRef } from "react";
-import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle, Paperclip, FileText, Trash2, Pencil, CalendarDays } from "lucide-react";
+import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle, Paperclip, FileText, Trash2, Pencil, CalendarDays, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +22,9 @@ import {
   Candidato,
   EtapaCandidato,
   AnexoCandidato,
+  DOCUMENTOS_OBRIGATORIOS,
 } from "@/contexts/ProcessoSeletivoContext";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -323,6 +325,7 @@ const ProcessoSeletivoPage = () => {
             <TabsTrigger value="etapa1">1. Psicológica</TabsTrigger>
             <TabsTrigger value="etapa2">2. Técnica</TabsTrigger>
             <TabsTrigger value="etapa3">3. Liberação</TabsTrigger>
+            <TabsTrigger value="etapa4">4. Contratação</TabsTrigger>
           </TabsList>
 
           {/* TAB: Candidatos */}
@@ -631,6 +634,198 @@ const ProcessoSeletivoPage = () => {
                       </Card>
                     );
                   })}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* TAB: Etapa 4 – Contratação */}
+          <TabsContent value="etapa4">
+            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <FileCheck className="h-5 w-5 text-primary" />
+              Processo de Contratação
+            </h2>
+            {processo.candidatos.filter((c) => c.etapaAtual === "contratacao").length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhum candidato chegou à etapa de contratação.</p>
+            ) : (
+              <div className="grid gap-6">
+                {processo.candidatos
+                  .filter((c) => c.etapaAtual === "contratacao")
+                  .map((c) => (
+                    <Card key={c.id}>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                          {c.nome}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {/* Checklist de Documentos */}
+                        <div>
+                          <h3 className="text-sm font-semibold text-foreground mb-3">📋 Checklist de Documentos</h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {(c.documentos && c.documentos.length > 0 ? c.documentos : DOCUMENTOS_OBRIGATORIOS.map((n) => ({ nome: n, entregue: false }))).map((doc, idx) => (
+                              <label
+                                key={idx}
+                                className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer hover:bg-muted/50 transition-colors"
+                              >
+                                <Checkbox
+                                  checked={doc.entregue}
+                                  onCheckedChange={(checked) => {
+                                    const docs = [...(c.documentos && c.documentos.length > 0 ? c.documentos : DOCUMENTOS_OBRIGATORIOS.map((n) => ({ nome: n, entregue: false })))];
+                                    docs[idx] = { ...docs[idx], entregue: !!checked };
+                                    updateCandidato(processo!.id, c.id, { documentos: docs });
+                                  }}
+                                />
+                                <span className={doc.entregue ? "line-through text-muted-foreground" : ""}>{doc.nome}</span>
+                              </label>
+                            ))}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {(c.documentos || []).filter((d) => d.entregue).length} de {(c.documentos && c.documentos.length > 0 ? c.documentos : DOCUMENTOS_OBRIGATORIOS).length} documentos entregues
+                          </p>
+                        </div>
+
+                        {/* Exame Admissional */}
+                        <div>
+                          <h3 className="text-sm font-semibold text-foreground mb-3">🏥 Exame Admissional</h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground">Data do Exame</label>
+                              <Input
+                                type="date"
+                                value={c.exameAdmissional?.dataExame || ""}
+                                onChange={(e) =>
+                                  updateCandidato(processo!.id, c.id, {
+                                    exameAdmissional: { ...(c.exameAdmissional || { dataExame: "", resultado: "pendente" as const, observacoes: "" }), dataExame: e.target.value },
+                                  })
+                                }
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground">Resultado</label>
+                              <select
+                                value={c.exameAdmissional?.resultado || "pendente"}
+                                onChange={(e) =>
+                                  updateCandidato(processo!.id, c.id, {
+                                    exameAdmissional: {
+                                      ...(c.exameAdmissional || { dataExame: "", resultado: "pendente" as const, observacoes: "" }),
+                                      resultado: e.target.value as "pendente" | "apto" | "inapto",
+                                    },
+                                  })
+                                }
+                                className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              >
+                                <option value="pendente">Pendente</option>
+                                <option value="apto">Apto</option>
+                                <option value="inapto">Inapto</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div className="mt-3">
+                            <label className="text-xs font-medium text-muted-foreground">Observações</label>
+                            <Textarea
+                              value={c.exameAdmissional?.observacoes || ""}
+                              onChange={(e) =>
+                                updateCandidato(processo!.id, c.id, {
+                                  exameAdmissional: { ...(c.exameAdmissional || { dataExame: "", resultado: "pendente" as const, observacoes: "" }), observacoes: e.target.value },
+                                })
+                              }
+                              placeholder="Observações do exame admissional..."
+                              className="mt-1"
+                              rows={2}
+                            />
+                          </div>
+                          {c.exameAdmissional?.resultado === "apto" && (
+                            <div className="mt-2 bg-emerald-50 border border-emerald-200 rounded-md p-2 text-xs text-emerald-800">
+                              ✅ Candidato apto no exame admissional
+                            </div>
+                          )}
+                          {c.exameAdmissional?.resultado === "inapto" && (
+                            <div className="mt-2 bg-red-50 border border-red-200 rounded-md p-2 text-xs text-red-800">
+                              ❌ Candidato inapto no exame admissional
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Dados Bancários */}
+                        <div>
+                          <h3 className="text-sm font-semibold text-foreground mb-3">🏦 Dados Bancários e Cadastrais</h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground">Banco</label>
+                              <Input
+                                value={c.dadosBancarios?.banco || ""}
+                                onChange={(e) =>
+                                  updateCandidato(processo!.id, c.id, {
+                                    dadosBancarios: { ...(c.dadosBancarios || { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" }), banco: e.target.value },
+                                  })
+                                }
+                                placeholder="Ex: Bradesco"
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground">Agência</label>
+                              <Input
+                                value={c.dadosBancarios?.agencia || ""}
+                                onChange={(e) =>
+                                  updateCandidato(processo!.id, c.id, {
+                                    dadosBancarios: { ...(c.dadosBancarios || { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" }), agencia: e.target.value },
+                                  })
+                                }
+                                placeholder="Ex: 1234"
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground">Conta</label>
+                              <Input
+                                value={c.dadosBancarios?.conta || ""}
+                                onChange={(e) =>
+                                  updateCandidato(processo!.id, c.id, {
+                                    dadosBancarios: { ...(c.dadosBancarios || { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" }), conta: e.target.value },
+                                  })
+                                }
+                                placeholder="Ex: 12345-6"
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground">Tipo de Conta</label>
+                              <select
+                                value={c.dadosBancarios?.tipoConta || ""}
+                                onChange={(e) =>
+                                  updateCandidato(processo!.id, c.id, {
+                                    dadosBancarios: { ...(c.dadosBancarios || { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" }), tipoConta: e.target.value },
+                                  })
+                                }
+                                className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              >
+                                <option value="">Selecione...</option>
+                                <option value="corrente">Corrente</option>
+                                <option value="poupanca">Poupança</option>
+                                <option value="salario">Salário</option>
+                              </select>
+                            </div>
+                            <div className="sm:col-span-2">
+                              <label className="text-xs font-medium text-muted-foreground">PIS/PASEP</label>
+                              <Input
+                                value={c.dadosBancarios?.pisPasep || ""}
+                                onChange={(e) =>
+                                  updateCandidato(processo!.id, c.id, {
+                                    dadosBancarios: { ...(c.dadosBancarios || { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" }), pisPasep: e.target.value },
+                                  })
+                                }
+                                placeholder="Número do PIS/PASEP"
+                                className="mt-1"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
               </div>
             )}
           </TabsContent>

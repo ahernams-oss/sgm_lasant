@@ -9,6 +9,41 @@ export interface AnexoCandidato {
   base64: string;
 }
 
+export interface DocumentoContratacao {
+  nome: string;
+  entregue: boolean;
+}
+
+export interface ExameAdmissional {
+  dataExame: string;
+  resultado: "pendente" | "apto" | "inapto";
+  observacoes: string;
+}
+
+export interface DadosBancarios {
+  banco: string;
+  agencia: string;
+  conta: string;
+  tipoConta: string;
+  pisPasep: string;
+}
+
+export const DOCUMENTOS_OBRIGATORIOS = [
+  "RG",
+  "CPF",
+  "CTPS (Carteira de Trabalho)",
+  "Comprovante de Residência",
+  "Certidão de Nascimento/Casamento",
+  "Título de Eleitor",
+  "Certificado de Reservista",
+  "PIS/PASEP",
+  "Foto 3x4",
+  "Comprovante de Escolaridade",
+  "Certidão de Nascimento dos Filhos",
+  "Cartão de Vacina dos Filhos",
+  "Atestado de Antecedentes Criminais",
+];
+
 export interface Candidato {
   id: string;
   nome: string;
@@ -34,6 +69,10 @@ export interface Candidato {
   // Etapa 3 – Liberação
   liberadoPor: string;
   statusLiberacao: StatusCandidato;
+  // Etapa 4 – Contratação
+  documentos: DocumentoContratacao[];
+  exameAdmissional: ExameAdmissional;
+  dadosBancarios: DadosBancarios;
 }
 
 export interface ProcessoSeletivo {
@@ -47,7 +86,7 @@ interface ProcessoSeletivoContextType {
   processos: ProcessoSeletivo[];
   criarProcesso: (requisicaoId: string) => ProcessoSeletivo;
   getProcessoByRequisicao: (requisicaoId: string) => ProcessoSeletivo | undefined;
-  addCandidato: (processoId: string, candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores" | "anexos"> & { anexos?: AnexoCandidato[] }) => void;
+  addCandidato: (processoId: string, candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores" | "anexos" | "documentos" | "exameAdmissional" | "dadosBancarios"> & { anexos?: AnexoCandidato[] }) => void;
   updateCandidato: (processoId: string, candidatoId: string, data: Partial<Candidato>) => void;
   avancarEtapa: (processoId: string, candidatoId: string) => void;
 }
@@ -83,7 +122,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
 
   const addCandidato = (
     processoId: string,
-    candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores" | "anexos"> & { anexos?: AnexoCandidato[] }
+    candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores" | "anexos" | "documentos" | "exameAdmissional" | "dadosBancarios"> & { anexos?: AnexoCandidato[] }
   ) => {
     setProcessos((prev) =>
       prev.map((p) => {
@@ -109,6 +148,9 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
               statusTecnico: "pendente",
               liberadoPor: "",
               statusLiberacao: "pendente",
+              documentos: DOCUMENTOS_OBRIGATORIOS.map((nome) => ({ nome, entregue: false })),
+              exameAdmissional: { dataExame: "", resultado: "pendente", observacoes: "" },
+              dadosBancarios: { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" },
             },
           ],
         };
