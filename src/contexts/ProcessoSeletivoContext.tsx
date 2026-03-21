@@ -148,6 +148,9 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
               statusTecnico: "pendente",
               liberadoPor: "",
               statusLiberacao: "pendente",
+              documentos: DOCUMENTOS_OBRIGATORIOS.map((nome) => ({ nome, entregue: false })),
+              exameAdmissional: { dataExame: "", resultado: "pendente", observacoes: "" },
+              dadosBancarios: { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" },
             },
           ],
         };
