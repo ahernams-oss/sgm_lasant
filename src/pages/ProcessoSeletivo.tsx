@@ -28,6 +28,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { toast } from "sonner";
 
 const etapaLabels: Record<EtapaCandidato, string> = {
@@ -59,6 +60,7 @@ const ProcessoSeletivoPage = () => {
     useProcessoSeletivo();
   const { temAcessoTotal } = useAuth();
   const { clientes } = useClientes();
+  const { funcionarios, addFuncionario } = useFuncionarios();
 
   const requisicao = requisicoes.find((r) => r.id === requisicaoId);
 
@@ -887,6 +889,51 @@ const ProcessoSeletivoPage = () => {
                               />
                             </div>
                           </div>
+                        </div>
+
+                        {/* Finalizar Contratação */}
+                        <div className="pt-4 border-t">
+                          {c.contratacaoFinalizada ? (
+                            <div className="bg-emerald-50 border border-emerald-200 rounded-md p-3 text-sm text-emerald-800 flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4" />
+                              Contratação finalizada — funcionário cadastrado com sucesso.
+                            </div>
+                          ) : (
+                            <Button
+                              className="w-full bg-[hsl(120,30%,35%)] hover:bg-[hsl(120,30%,28%)] text-white"
+                              onClick={() => {
+                                // Validações
+                                const docsEntregues = (c.documentos || []).filter((d) => d.entregue).length;
+                                const totalDocs = (c.documentos && c.documentos.length > 0 ? c.documentos : DOCUMENTOS_OBRIGATORIOS).length;
+                                if (docsEntregues < totalDocs) {
+                                  toast.error("Todos os documentos devem estar marcados como entregues.");
+                                  return;
+                                }
+                                if (c.exameAdmissional?.resultado !== "apto") {
+                                  toast.error("O candidato precisa estar apto no exame admissional.");
+                                  return;
+                                }
+
+                                // Encontra cargoId pelo nome
+                                const cargoId = requisicao?.cargoNome || "";
+
+                                addFuncionario({
+                                  nome: c.nome,
+                                  cargoId,
+                                  telefone: c.telefone || "",
+                                  email: c.email || "",
+                                  senha: "",
+                                  clientesPermitidos: [],
+                                });
+
+                                updateCandidato(processo!.id, c.id, { contratacaoFinalizada: true });
+                                toast.success(`${c.nome} foi cadastrado como funcionário com sucesso!`);
+                              }}
+                            >
+                              <CheckCircle2 className="h-4 w-4 mr-2" />
+                              Finalizar Contratação
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>

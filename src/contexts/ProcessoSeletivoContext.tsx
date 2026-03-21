@@ -74,6 +74,7 @@ export interface Candidato {
   documentos: DocumentoContratacao[];
   exameAdmissional: ExameAdmissional;
   dadosBancarios: DadosBancarios;
+  contratacaoFinalizada?: boolean;
 }
 
 export interface ProcessoSeletivo {
