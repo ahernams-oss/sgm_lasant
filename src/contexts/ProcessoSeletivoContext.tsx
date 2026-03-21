@@ -19,6 +19,7 @@ export interface ExameAdmissional {
   dataExame: string;
   resultado: "pendente" | "apto" | "inapto";
   observacoes: string;
+  anexo?: AnexoCandidato;
 }
 
 export interface DadosBancarios {
