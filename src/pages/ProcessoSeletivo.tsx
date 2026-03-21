@@ -22,6 +22,7 @@ import {
   Candidato,
   EtapaCandidato,
   AnexoCandidato,
+  DocumentoContratacao,
   DOCUMENTOS_OBRIGATORIOS,
 } from "@/contexts/ProcessoSeletivoContext";
 import { Checkbox } from "@/components/ui/checkbox";
