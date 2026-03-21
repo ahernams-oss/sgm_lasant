@@ -59,8 +59,8 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
     ]);
   };
 
-  const updateStatus = (id: string, status: Requisicao["status"]) =>
-    setRequisicoes((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+  const updateStatus = (id: string, status: Requisicao["status"], aprovadoPor?: string) =>
+    setRequisicoes((prev) => prev.map((r) => (r.id === id ? { ...r, status, aprovadoPor: aprovadoPor || r.aprovadoPor } : r)));
 
   return (
     <RequisicaoContext.Provider value={{ requisicoes, addRequisicao, updateStatus }}>
