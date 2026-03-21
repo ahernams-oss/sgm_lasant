@@ -335,7 +335,7 @@ const ProcessoSeletivoPage = () => {
           <TabsContent value="candidatos">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-foreground">Lista de Candidatos</h2>
-              {processo.candidatos.length < 5 && (
+              {processo.candidatos.length < 5 && !processo.candidatos.some((c) => c.etapaAtual === "contratacao" || c.contratacaoFinalizada) && (
                 <Button size="sm" onClick={() => setShowAddDialog(true)} className="gap-1">
                   <Plus className="h-4 w-4" /> Adicionar
                 </Button>
