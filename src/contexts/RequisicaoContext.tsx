@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 
 export interface Requisicao {
   id: string;
+  numero: number;
   dataCriacao: string;
   unidade: string;
   cargoNome: string;
