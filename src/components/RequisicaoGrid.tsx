@@ -36,8 +36,29 @@ const statusOptions: Requisicao["status"][] = ["Pendente", "Em Análise", "Aprov
 
 const RequisicaoGrid = () => {
   const { requisicoes, updateStatus } = useRequisicoes();
+  const { clientes } = useClientes();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>("todos");
+
+  const handleStatusChange = (req: Requisicao, newStatus: Requisicao["status"]) => {
+    updateStatus(req.id, newStatus);
+
+    // Encontrar o cliente pela unidade e enviar WhatsApp
+    const cliente = clientes.find((c) => c.nome === req.unidade);
+    if (cliente && cliente.telefones.length > 0) {
+      const mensagem = `Olá ${cliente.contato || cliente.nome}! A requisição do cargo "${req.cargoNome}" teve o status atualizado para: ${newStatus}.`;
+      for (const tel of cliente.telefones) {
+        enviarWhatsApp(tel, mensagem).then((result) => {
+          if (result.success) {
+            toast.success(`WhatsApp enviado para ${tel}`);
+          } else {
+            toast.error(`Falha ao enviar WhatsApp para ${tel}: ${result.error}`);
+          }
+        });
+      }
+    }
+  };
   const [filterStatus, setFilterStatus] = useState<string>("todos");
 
   const filteredRequisicoes = useMemo(() => {
