@@ -5,7 +5,7 @@ export interface Cliente {
   nome: string;
   cnpj: string;
   contato: string;
-  telefone: string;
+  telefones: string[];
   email: string;
   endereco: string;
   grupoWhatsapp: string;
