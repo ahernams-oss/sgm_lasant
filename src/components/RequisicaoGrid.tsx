@@ -38,12 +38,14 @@ const statusOptions: Requisicao["status"][] = ["Pendente", "Em Análise", "Aprov
 const RequisicaoGrid = () => {
   const { requisicoes, updateStatus } = useRequisicoes();
   const { clientes } = useClientes();
+  const { usuarioLogado } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
 
   const handleStatusChange = (req: Requisicao, newStatus: Requisicao["status"]) => {
-    updateStatus(req.id, newStatus);
+    const nomeAprovador = (newStatus === "Aprovada" || newStatus === "Reprovada") ? usuarioLogado?.nome : undefined;
+    updateStatus(req.id, newStatus, nomeAprovador);
 
     // Encontrar o cliente pela unidade e enviar WhatsApp
     const cliente = clientes.find((c) => c.nome === req.unidade);
