@@ -142,6 +142,7 @@ const RequisicaoGrid = () => {
                   <TableCell className="text-sm">{req.jornada || "—"}</TableCell>
                   <TableCell className="text-sm">{req.origemVaga || "—"}</TableCell>
                   <TableCell className="text-sm">{req.nomeSubstituido || "—"}</TableCell>
+                  <TableCell className="text-sm">{req.aprovadoPor || "—"}</TableCell>
                   <TableCell className="pr-5">
                     <Select value={req.status} onValueChange={(v) => handleStatusChange(req, v as Requisicao["status"])}>
                       <SelectTrigger className="h-7 w-[130px] text-xs border-0 p-0 focus:ring-0">
