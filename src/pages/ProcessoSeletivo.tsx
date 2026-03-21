@@ -813,6 +813,76 @@ const ProcessoSeletivoPage = () => {
                               ❌ Candidato inapto no exame admissional
                             </div>
                           )}
+                          {/* Anexo do Exame */}
+                          <div className="mt-3">
+                            <label className="text-xs font-medium text-muted-foreground">Anexo do Exame</label>
+                            <div className="mt-1 flex items-center gap-2">
+                              {c.exameAdmissional?.anexo ? (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      const link = document.createElement("a");
+                                      link.href = c.exameAdmissional!.anexo!.base64;
+                                      link.download = c.exameAdmissional!.anexo!.nome;
+                                      link.click();
+                                    }}
+                                    className="inline-flex items-center gap-1 rounded border px-2 py-1 text-xs text-muted-foreground hover:bg-muted transition-colors"
+                                  >
+                                    <FileText className="h-3.5 w-3.5" />
+                                    <span className="truncate max-w-[150px]">{c.exameAdmissional.anexo.nome}</span>
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      const exame = { ...(c.exameAdmissional || { dataExame: "", resultado: "pendente" as const, observacoes: "" }) };
+                                      delete (exame as any).anexo;
+                                      updateCandidato(processo!.id, c.id, { exameAdmissional: exame });
+                                    }}
+                                    className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                                    title="Remover anexo"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <input
+                                    type="file"
+                                    id={`exame-file-${c.id}`}
+                                    className="hidden"
+                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (!file) return;
+                                      if (file.size > 2 * 1024 * 1024) {
+                                        toast.error(`Arquivo "${file.name}" excede 2MB.`);
+                                        return;
+                                      }
+                                      const reader = new FileReader();
+                                      reader.onload = () => {
+                                        updateCandidato(processo!.id, c.id, {
+                                          exameAdmissional: {
+                                            ...(c.exameAdmissional || { dataExame: "", resultado: "pendente" as const, observacoes: "" }),
+                                            anexo: { nome: file.name, tipo: file.type, base64: reader.result as string },
+                                          },
+                                        });
+                                      };
+                                      reader.readAsDataURL(file);
+                                      e.target.value = "";
+                                    }}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-1"
+                                    onClick={() => document.getElementById(`exame-file-${c.id}`)?.click()}
+                                  >
+                                    <Paperclip className="h-3.5 w-3.5" /> Anexar exame
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </div>
                         </div>
 
                         {/* Dados Bancários */}
