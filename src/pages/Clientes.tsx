@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Users, Plus, Trash2, Search } from "lucide-react";
+import { Users, Plus, Trash2, Search, MessageCircle } from "lucide-react";
+import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -54,6 +55,21 @@ const Clientes = () => {
     deleteCliente(id);
     toast.success("Cliente removido.");
     if (editingId === id) resetForm();
+  };
+
+  const handleEnviarWhatsApp = async (cliente: typeof clientes[0]) => {
+    if (!cliente.telefone.trim()) {
+      toast.error("Cliente sem telefone cadastrado.");
+      return;
+    }
+    const mensagem = `Olá ${cliente.contato || cliente.nome}! Aqui é da equipe de RH. Entramos em contato para informar sobre atualizações do processo seletivo.`;
+    toast.loading("Enviando mensagem...", { id: "whatsapp-send" });
+    const result = await enviarWhatsApp(cliente.telefone, mensagem);
+    if (result.success) {
+      toast.success("Mensagem enviada com sucesso!", { id: "whatsapp-send" });
+    } else {
+      toast.error(`Erro ao enviar: ${result.error}`, { id: "whatsapp-send" });
+    }
   };
 
   const filteredClientes = useMemo(() => {
@@ -160,6 +176,9 @@ const Clientes = () => {
                     <p className="text-sm text-muted-foreground truncate">{cliente.telefone || "—"}</p>
                   </div>
                   <div className="flex gap-1 shrink-0">
+                    <Button variant="ghost" size="sm" onClick={() => handleEnviarWhatsApp(cliente)} className="text-emerald-600 hover:text-emerald-700" title="Enviar WhatsApp">
+                      <MessageCircle className="h-3.5 w-3.5" />
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(cliente)} className="text-xs">Editar</Button>
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(cliente.id)} className="text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />

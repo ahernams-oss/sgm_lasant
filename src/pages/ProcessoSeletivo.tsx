@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useState, useRef } from "react";
 import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle, Paperclip, FileText, Trash2, Pencil, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -172,6 +173,27 @@ const ProcessoSeletivoPage = () => {
     }
 
     updateCandidato(processo!.id, candidato.id, updates);
+
+    // Mapeamento de etapa para label
+    const etapaMap: Record<string, string> = {
+      statusPsicologico: "Entrevista Psicológica",
+      statusTecnico: "Entrevista Técnica",
+      statusLiberacao: "Liberação",
+    };
+    const etapaLabel = etapaMap[statusField] || statusField;
+    const statusLabel = status === "aprovado" ? "aprovado(a)" : status === "reprovado" ? "reprovado(a)" : "avaliado(a) como neutro";
+
+    // Enviar WhatsApp automático para o candidato
+    if (candidato.telefone?.trim()) {
+      const mensagem = `Olá ${candidato.nome}! Informamos que na etapa "${etapaLabel}" do processo seletivo, você foi ${statusLabel}. Em breve entraremos em contato com mais informações.`;
+      enviarWhatsApp(candidato.telefone, mensagem).then((result) => {
+        if (result.success) {
+          toast.success(`WhatsApp enviado para ${candidato.nome}.`);
+        } else {
+          toast.error(`Falha ao enviar WhatsApp para ${candidato.nome}: ${result.error}`);
+        }
+      });
+    }
 
     if (status === "aprovado") {
       avancarEtapa(processo!.id, candidato.id);
