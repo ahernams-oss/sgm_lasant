@@ -131,7 +131,8 @@ const RequisicaoGrid = () => {
             <TableBody>
               {filteredRequisicoes.map((req) => (
                 <TableRow key={req.id}>
-                  <TableCell className="pl-5 text-xs tabular-nums whitespace-nowrap">{req.dataCriacao}</TableCell>
+                  <TableCell className="pl-5 text-xs font-medium tabular-nums">{req.numero}</TableCell>
+                  <TableCell className="text-xs tabular-nums whitespace-nowrap">{req.dataCriacao}</TableCell>
                   <TableCell className="text-sm">{req.unidade}</TableCell>
                   <TableCell className="text-sm font-medium">{req.cargoNome}</TableCell>
                   <TableCell className="text-sm">{req.jornada || "—"}</TableCell>
