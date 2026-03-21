@@ -55,7 +55,7 @@ const statusBadge = {
 const ProcessoSeletivoPage = () => {
   const { requisicaoId } = useParams<{ requisicaoId: string }>();
   const navigate = useNavigate();
-  const { requisicoes } = useRequisicoes();
+  const { requisicoes, updateStatus } = useRequisicoes();
   const { getProcessoByRequisicao, criarProcesso, addCandidato, updateCandidato, avancarEtapa } =
     useProcessoSeletivo();
   const { temAcessoTotal } = useAuth();
