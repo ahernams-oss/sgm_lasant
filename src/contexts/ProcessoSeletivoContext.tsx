@@ -12,6 +12,7 @@ export interface AnexoCandidato {
 export interface DocumentoContratacao {
   nome: string;
   entregue: boolean;
+  anexo?: AnexoCandidato;
 }
 
 export interface ExameAdmissional {
