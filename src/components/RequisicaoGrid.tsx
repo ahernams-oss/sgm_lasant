@@ -138,7 +138,7 @@ const RequisicaoGrid = () => {
                   <TableCell className="text-sm">{req.origemVaga || "—"}</TableCell>
                   <TableCell className="text-sm">{req.nomeSubstituido || "—"}</TableCell>
                   <TableCell className="pr-5">
-                    <Select value={req.status} onValueChange={(v) => updateStatus(req.id, v as Requisicao["status"])}>
+                    <Select value={req.status} onValueChange={(v) => handleStatusChange(req, v as Requisicao["status"])}>
                       <SelectTrigger className="h-7 w-[130px] text-xs border-0 p-0 focus:ring-0">
                         <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge>
                       </SelectTrigger>
