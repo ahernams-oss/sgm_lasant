@@ -1,11 +1,14 @@
 import { useState, useMemo } from "react";
 import { useRequisicoes, Requisicao } from "@/contexts/RequisicaoContext";
+import { useClientes } from "@/contexts/ClientesContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileDown, ClipboardCheck, Search } from "lucide-react";
 import { gerarPdfRequisicao } from "@/lib/gerarPdfRequisicao";
+import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -33,9 +36,29 @@ const statusOptions: Requisicao["status"][] = ["Pendente", "Em Análise", "Aprov
 
 const RequisicaoGrid = () => {
   const { requisicoes, updateStatus } = useRequisicoes();
+  const { clientes } = useClientes();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
+
+  const handleStatusChange = (req: Requisicao, newStatus: Requisicao["status"]) => {
+    updateStatus(req.id, newStatus);
+
+    // Encontrar o cliente pela unidade e enviar WhatsApp
+    const cliente = clientes.find((c) => c.nome === req.unidade);
+    if (cliente && cliente.telefones.length > 0) {
+      const mensagem = `Olá ${cliente.contato || cliente.nome}! A requisição do cargo "${req.cargoNome}" teve o status atualizado para: ${newStatus}.`;
+      for (const tel of cliente.telefones) {
+        enviarWhatsApp(tel, mensagem).then((result) => {
+          if (result.success) {
+            toast.success(`WhatsApp enviado para ${tel}`);
+          } else {
+            toast.error(`Falha ao enviar WhatsApp para ${tel}: ${result.error}`);
+          }
+        });
+      }
+    }
+  };
 
   const filteredRequisicoes = useMemo(() => {
     let result = requisicoes;
@@ -114,7 +137,7 @@ const RequisicaoGrid = () => {
                   <TableCell className="text-sm">{req.origemVaga || "—"}</TableCell>
                   <TableCell className="text-sm">{req.nomeSubstituido || "—"}</TableCell>
                   <TableCell className="pr-5">
-                    <Select value={req.status} onValueChange={(v) => updateStatus(req.id, v as Requisicao["status"])}>
+                    <Select value={req.status} onValueChange={(v) => handleStatusChange(req, v as Requisicao["status"])}>
                       <SelectTrigger className="h-7 w-[130px] text-xs border-0 p-0 focus:ring-0">
                         <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge>
                       </SelectTrigger>
