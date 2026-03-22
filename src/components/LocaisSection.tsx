@@ -65,6 +65,26 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
     onChange(locais.map((l) => l.id === id ? { ...l, [field]: value } : l));
   };
 
+  const addPavimento = (localId: string) => {
+    const desc = (novoPavimento[localId] || "").trim();
+    if (!desc) { toast.error("Informe o nome do pavimento."); return; }
+    const pav: Pavimento = { id: crypto.randomUUID(), descricao: desc, ativo: true };
+    onChange(locais.map((l) => l.id === localId ? { ...l, pavimentos: [...(l.pavimentos || []), pav] } : l));
+    setNovoPavimento((prev) => ({ ...prev, [localId]: "" }));
+    toast.success("Pavimento adicionado!");
+  };
+
+  const deletePavimento = (localId: string, pavId: string) => {
+    onChange(locais.map((l) => l.id === localId ? { ...l, pavimentos: (l.pavimentos || []).filter((p) => p.id !== pavId) } : l));
+    toast.success("Pavimento removido.");
+  };
+
+  const togglePavimento = (localId: string, pavId: string) => {
+    onChange(locais.map((l) => l.id === localId ? {
+      ...l, pavimentos: (l.pavimentos || []).map((p) => p.id === pavId ? { ...p, ativo: !p.ativo } : p)
+    } : l));
+  };
+
   const renderFields = (
     data: Omit<LocalCliente, "id">,
     onFieldChange: (field: keyof Omit<LocalCliente, "id">, value: string) => void,
