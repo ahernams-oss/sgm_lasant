@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, X, ChevronDown, ChevronUp, Upload } from "lucide-react";
+import { Plus, Trash2, X, ChevronDown, ChevronUp, Upload, Pencil, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -33,6 +33,10 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
   const [novoPavimento, setNovoPavimento] = useState<Record<string, string>>({});
   const [novoSetor, setNovoSetor] = useState<Record<string, string>>({});
   const [expandedPavId, setExpandedPavId] = useState<string | null>(null);
+  const [editingPavId, setEditingPavId] = useState<string | null>(null);
+  const [editingPavDesc, setEditingPavDesc] = useState("");
+  const [editingSetorId, setEditingSetorId] = useState<string | null>(null);
+  const [editingSetorDesc, setEditingSetorDesc] = useState("");
 
   const updateField = (field: keyof Omit<LocalCliente, "id">, value: string) =>
     setNewLocal((prev) => ({ ...prev, [field]: value }));
@@ -109,6 +113,30 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
 
   const toggleSetor = (localId: string, pavId: string, setorId: string) => {
     updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: (p.setores || []).map((s) => s.id === setorId ? { ...s, ativo: !s.ativo } : s) } : p));
+  };
+
+  const startEditPavimento = (pav: Pavimento) => {
+    setEditingPavId(pav.id);
+    setEditingPavDesc(pav.descricao);
+  };
+
+  const confirmEditPavimento = (localId: string, pavId: string) => {
+    if (!editingPavDesc.trim()) { toast.error("Informe o nome do pavimento."); return; }
+    updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, descricao: editingPavDesc.trim() } : p));
+    setEditingPavId(null);
+    toast.success("Pavimento atualizado!");
+  };
+
+  const startEditSetor = (setor: Setor) => {
+    setEditingSetorId(setor.id);
+    setEditingSetorDesc(setor.descricao);
+  };
+
+  const confirmEditSetor = (localId: string, pavId: string, setorId: string) => {
+    if (!editingSetorDesc.trim()) { toast.error("Informe o nome do setor."); return; }
+    updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: (p.setores || []).map((s) => s.id === setorId ? { ...s, descricao: editingSetorDesc.trim() } : s) } : p));
+    setEditingSetorId(null);
+    toast.success("Setor atualizado!");
   };
 
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -309,16 +337,34 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                           <div key={pav.id}>
                             <div className="flex items-center justify-between px-3 py-2">
                               <div className="flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  className="flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors"
-                                  onClick={() => setExpandedPavId(expandedPavId === pav.id ? null : pav.id)}
-                                >
-                                  {expandedPavId === pav.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                                  <span className={pav.ativo ? "text-foreground" : "text-muted-foreground line-through"}>
-                                    {pav.descricao}
-                                  </span>
-                                </button>
+                                {editingPavId === pav.id ? (
+                                  <div className="flex items-center gap-1">
+                                    <Input
+                                      value={editingPavDesc}
+                                      onChange={(e) => setEditingPavDesc(e.target.value)}
+                                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirmEditPavimento(local.id, pav.id); } if (e.key === "Escape") setEditingPavId(null); }}
+                                      className="h-7 text-sm w-48"
+                                      autoFocus
+                                    />
+                                    <Button type="button" variant="ghost" size="sm" onClick={() => confirmEditPavimento(local.id, pav.id)} className="h-7 w-7 p-0 text-emerald-600">
+                                      <Check className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button type="button" variant="ghost" size="sm" onClick={() => setEditingPavId(null)} className="h-7 w-7 p-0">
+                                      <X className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors"
+                                    onClick={() => setExpandedPavId(expandedPavId === pav.id ? null : pav.id)}
+                                  >
+                                    {expandedPavId === pav.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                                    <span className={pav.ativo ? "text-foreground" : "text-muted-foreground line-through"}>
+                                      {pav.descricao}
+                                    </span>
+                                  </button>
+                                )}
                                 <Badge variant={pav.ativo ? "default" : "secondary"} className="text-[10px]">
                                   {pav.ativo ? "Ativo" : "Inativo"}
                                 </Badge>
@@ -329,6 +375,9 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                 )}
                               </div>
                               <div className="flex gap-1">
+                                <Button type="button" variant="ghost" size="sm" onClick={() => startEditPavimento(pav)} className="text-xs" title="Editar pavimento">
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
                                 <Button
                                   type="button" variant="ghost" size="sm"
                                   onClick={() => togglePavimento(local.id, pav.id)}
@@ -386,14 +435,35 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                     {pav.setores.map((setor) => (
                                       <div key={setor.id} className="flex items-center justify-between px-2 py-1.5">
                                         <div className="flex items-center gap-2">
-                                          <span className={`text-xs ${setor.ativo ? "text-foreground" : "text-muted-foreground line-through"}`}>
-                                            {setor.descricao}
-                                          </span>
+                                          {editingSetorId === setor.id ? (
+                                            <div className="flex items-center gap-1">
+                                              <Input
+                                                value={editingSetorDesc}
+                                                onChange={(e) => setEditingSetorDesc(e.target.value)}
+                                                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirmEditSetor(local.id, pav.id, setor.id); } if (e.key === "Escape") setEditingSetorId(null); }}
+                                                className="h-6 text-xs w-40"
+                                                autoFocus
+                                              />
+                                              <Button type="button" variant="ghost" size="sm" onClick={() => confirmEditSetor(local.id, pav.id, setor.id)} className="h-6 w-6 p-0 text-emerald-600">
+                                                <Check className="h-3 w-3" />
+                                              </Button>
+                                              <Button type="button" variant="ghost" size="sm" onClick={() => setEditingSetorId(null)} className="h-6 w-6 p-0">
+                                                <X className="h-3 w-3" />
+                                              </Button>
+                                            </div>
+                                          ) : (
+                                            <span className={`text-xs ${setor.ativo ? "text-foreground" : "text-muted-foreground line-through"}`}>
+                                              {setor.descricao}
+                                            </span>
+                                          )}
                                           <Badge variant={setor.ativo ? "default" : "secondary"} className="text-[9px] px-1.5 py-0">
                                             {setor.ativo ? "Ativo" : "Inativo"}
                                           </Badge>
                                         </div>
                                         <div className="flex gap-1">
+                                          <Button type="button" variant="ghost" size="sm" onClick={() => startEditSetor(setor)} className="h-6" title="Editar setor">
+                                            <Pencil className="h-3 w-3" />
+                                          </Button>
                                           <Button
                                             type="button" variant="ghost" size="sm"
                                             onClick={() => toggleSetor(local.id, pav.id, setor.id)}
