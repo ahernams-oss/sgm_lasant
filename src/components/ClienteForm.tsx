@@ -30,9 +30,10 @@ interface ClienteFormProps {
   initialData?: FormData;
   onSubmit: (data: FormData, editingId: string | null) => void;
   onCancel: () => void;
+  tipoFixo?: "Cliente" | "Fornecedor";
 }
 
-export default function ClienteForm({ editingId, initialData, onSubmit, onCancel }: ClienteFormProps) {
+export default function ClienteForm({ editingId, initialData, onSubmit, onCancel, tipoFixo }: ClienteFormProps) {
   const [form, setForm] = useState<FormData>(initialData || emptyForm);
 
   const update = (field: keyof FormData, value: string) =>
