@@ -121,6 +121,7 @@ export interface Cliente {
   informacoesFinanceiras: InformacaoFinanceira[];
   locais: LocalCliente[];
   locaisEntrega: LocalEntrega[];
+  contratos: Contrato[];
 }
 
 interface ClientesContextType {
