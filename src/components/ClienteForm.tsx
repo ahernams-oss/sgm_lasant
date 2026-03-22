@@ -52,6 +52,28 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
   const removeTelefone = (index: number) =>
     setForm((prev) => ({ ...prev, telefones: prev.telefones.filter((_, i) => i !== index) }));
 
+  const buscarCep = useCallback(async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, "");
+    if (cleanCep.length !== 8) return;
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await res.json();
+      if (data.erro) {
+        toast.error("CEP não encontrado.");
+        return;
+      }
+      setForm((prev) => ({
+        ...prev,
+        logradouro: data.logradouro || prev.logradouro,
+        bairro: data.bairro || prev.bairro,
+        cidade: data.localidade || prev.cidade,
+        uf: data.uf || prev.uf,
+      }));
+    } catch {
+      toast.error("Erro ao buscar CEP.");
+    }
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({ ...form, telefones: form.telefones.filter((t) => t.trim() !== "") }, editingId);
