@@ -61,6 +61,20 @@ export interface LocalEntrega {
   relLinha4: string;
 }
 
+export interface Contrato {
+  id: string;
+  numero: string;
+  descricao: string;
+  dataInicio: string;
+  dataFim: string;
+  bdi: string;
+  valorBase: string;
+  valorBase2: string;
+  valorBase3: string;
+  mesSco: string;
+  anoSco: string;
+}
+
 export interface Cliente {
   id: string;
   tipo: "Cliente" | "Fornecedor";
