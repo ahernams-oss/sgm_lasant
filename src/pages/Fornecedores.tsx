@@ -34,7 +34,7 @@ const Fornecedores = () => {
       addCliente(fullData);
       toast.success("Fornecedor cadastrado com sucesso!");
     }
-    resetForm();
+  const update = (id: string, data: Partial<Omit<Cliente, "id">>) => updateCliente(id, data);
   };
 
   const resetForm = () => {
