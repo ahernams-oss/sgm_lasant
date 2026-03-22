@@ -375,6 +375,9 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                 )}
                               </div>
                               <div className="flex gap-1">
+                                <Button type="button" variant="ghost" size="sm" onClick={() => startEditPavimento(pav)} className="text-xs" title="Editar pavimento">
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
                                 <Button
                                   type="button" variant="ghost" size="sm"
                                   onClick={() => togglePavimento(local.id, pav.id)}
