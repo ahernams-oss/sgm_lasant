@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { toast } from "sonner";
-import { Briefcase, Plus, Trash2, Search, ChevronDown, ChevronUp, Pencil, Check, X } from "lucide-react";
+import { Briefcase, Plus, Trash2, Search, ChevronDown, ChevronUp, Pencil, Check, X, Upload, FileText, ExternalLink } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
