@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Users, Trash2, Search, MessageCircle } from "lucide-react";
+import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
