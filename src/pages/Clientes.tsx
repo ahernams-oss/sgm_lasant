@@ -1,66 +1,48 @@
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Users, Plus, Trash2, Search, MessageCircle, X } from "lucide-react";
+import { Users, Trash2, Search, MessageCircle } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useClientes } from "@/contexts/ClientesContext";
-
-const emptyForm = { nome: "", cnpj: "", contato: "", email: "", endereco: "", grupoWhatsapp: "" };
+import { useClientes, type Cliente } from "@/contexts/ClientesContext";
+import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
 
 const Clientes = () => {
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
-  const [form, setForm] = useState(emptyForm);
-  const [telefones, setTelefones] = useState<string[]>([""]);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
   const [search, setSearch] = useState("");
 
-  const update = (field: string, value: string) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
-
-  const updateTelefone = (index: number, value: string) =>
-    setTelefones((prev) => prev.map((t, i) => (i === index ? value : t)));
-
-  const addTelefone = () => setTelefones((prev) => [...prev, ""]);
-
-  const removeTelefone = (index: number) =>
-    setTelefones((prev) => prev.filter((_, i) => i !== index));
-
-  const resetForm = () => {
-    setForm(emptyForm);
-    setTelefones([""]);
-    setEditingId(null);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.nome.trim()) {
+  const handleSubmit = (data: FormData, id: string | null) => {
+    if (!data.nome.trim()) {
       toast.error("Informe o nome do cliente.");
       return;
     }
-    const telefonesLimpos = telefones.filter((t) => t.trim() !== "");
-    const data = { ...form, telefones: telefonesLimpos };
-    if (editingId) {
-      updateCliente(editingId, data);
+    const fullData = {
+      ...data,
+      informacoesFinanceiras: id ? (clientes.find(c => c.id === id)?.informacoesFinanceiras || []) : [],
+      locais: id ? (clientes.find(c => c.id === id)?.locais || []) : [],
+      locaisEntrega: id ? (clientes.find(c => c.id === id)?.locaisEntrega || []) : [],
+    };
+    if (id) {
+      updateCliente(id, fullData);
       toast.success("Cliente atualizado com sucesso!");
     } else {
-      addCliente(data);
+      addCliente(fullData);
       toast.success("Cliente cadastrado com sucesso!");
     }
     resetForm();
   };
 
-  const handleEdit = (cliente: typeof clientes[0]) => {
+  const resetForm = () => {
+    setEditingId(null);
+    setEditingData(undefined);
+  };
+
+  const handleEdit = (cliente: Cliente) => {
     setEditingId(cliente.id);
-    setForm({
-      nome: cliente.nome,
-      cnpj: cliente.cnpj,
-      contato: cliente.contato,
-      email: cliente.email,
-      endereco: cliente.endereco,
-      grupoWhatsapp: cliente.grupoWhatsapp || "",
-    });
-    setTelefones(cliente.telefones.length > 0 ? cliente.telefones : [""]);
+    const { id, informacoesFinanceiras, locais, locaisEntrega, ...rest } = cliente;
+    setEditingData(rest as FormData);
   };
 
   const handleDelete = (id: string) => {
@@ -69,12 +51,12 @@ const Clientes = () => {
     if (editingId === id) resetForm();
   };
 
-  const handleEnviarWhatsApp = async (cliente: typeof clientes[0]) => {
+  const handleEnviarWhatsApp = async (cliente: Cliente) => {
     if (!cliente.telefones || cliente.telefones.length === 0) {
       toast.error("Cliente sem telefone cadastrado.");
       return;
     }
-    const mensagem = `Olá ${cliente.contato || cliente.nome}! Aqui é da equipe de RH. Entramos em contato para informar sobre atualizações do processo seletivo.`;
+    const mensagem = `Olá ${cliente.contato || cliente.nome}! Aqui é da equipe de RH.`;
     toast.loading("Enviando mensagens...", { id: "whatsapp-send" });
     let successCount = 0;
     for (const tel of cliente.telefones) {
@@ -94,9 +76,11 @@ const Clientes = () => {
     return clientes.filter(
       (c) =>
         c.nome.toLowerCase().includes(term) ||
+        c.nomeFantasia?.toLowerCase().includes(term) ||
         c.cnpj.toLowerCase().includes(term) ||
         c.contato.toLowerCase().includes(term) ||
         c.email.toLowerCase().includes(term) ||
+        c.cidade?.toLowerCase().includes(term) ||
         c.telefones.some((t) => t.toLowerCase().includes(term))
     );
   }, [clientes, search]);
@@ -111,76 +95,17 @@ const Clientes = () => {
           </div>
           <h1 className="text-xl font-bold text-foreground mb-1">Clientes</h1>
           <p className="text-sm text-muted-foreground max-w-lg">
-            Cadastre e gerencie os clientes do sistema.
+            Cadastre e gerencie os clientes e fornecedores do sistema.
           </p>
         </div>
 
-        <form
+        <ClienteForm
+          key={editingId || "new"}
+          editingId={editingId}
+          initialData={editingData}
           onSubmit={handleSubmit}
-          className="section-card animate-fade-up mb-6"
-          style={{ animationDelay: "80ms" }}
-        >
-          <h2 className="section-title">
-            {editingId ? "Editar Cliente" : "Novo Cliente"}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="field-label">Razão Social / Nome</label>
-              <Input placeholder="Ex: Construtora ABC Ltda" value={form.nome} onChange={(e) => update("nome", e.target.value)} />
-            </div>
-            <div>
-              <label className="field-label">CNPJ / CPF</label>
-              <Input placeholder="Ex: 12.345.678/0001-90" value={form.cnpj} onChange={(e) => update("cnpj", e.target.value)} />
-            </div>
-            <div>
-              <label className="field-label">Pessoa de Contato</label>
-              <Input placeholder="Ex: Maria Silva" value={form.contato} onChange={(e) => update("contato", e.target.value)} />
-            </div>
-            <div className="md:col-span-2">
-              <label className="field-label">Telefones</label>
-              <div className="space-y-2">
-                {telefones.map((tel, idx) => (
-                  <div key={idx} className="flex gap-2 items-center">
-                    <Input
-                      placeholder="Ex: (11) 99999-0000"
-                      value={tel}
-                      onChange={(e) => updateTelefone(idx, e.target.value)}
-                    />
-                    {telefones.length > 1 && (
-                      <Button type="button" variant="ghost" size="icon" onClick={() => removeTelefone(idx)} className="shrink-0 text-destructive hover:text-destructive">
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <Button type="button" variant="outline" size="sm" onClick={addTelefone} className="gap-1">
-                  <Plus className="h-3 w-3" /> Adicionar telefone
-                </Button>
-              </div>
-            </div>
-            <div>
-              <label className="field-label">E-mail</label>
-              <Input type="email" placeholder="Ex: contato@empresa.com" value={form.email} onChange={(e) => update("email", e.target.value)} />
-            </div>
-            <div>
-              <label className="field-label">Endereço</label>
-              <Input placeholder="Ex: Rua das Flores, 123 - São Paulo/SP" value={form.endereco} onChange={(e) => update("endereco", e.target.value)} />
-            </div>
-            <div className="md:col-span-2">
-              <label className="field-label">Código do Grupo de WhatsApp</label>
-              <Input placeholder="Ex: https://chat.whatsapp.com/AbCdEfGhIjK" value={form.grupoWhatsapp} onChange={(e) => update("grupoWhatsapp", e.target.value)} />
-            </div>
-          </div>
-          <div className="flex gap-2 mt-4">
-            <Button type="submit" className="gap-2">
-              <Plus className="h-4 w-4" />
-              {editingId ? "Salvar Alterações" : "Adicionar Cliente"}
-            </Button>
-            {editingId && (
-              <Button type="button" variant="outline" onClick={resetForm}>Cancelar</Button>
-            )}
-          </div>
-        </form>
+          onCancel={resetForm}
+        />
 
         <div className="section-card animate-fade-up" style={{ animationDelay: "160ms" }}>
           <div className="flex items-center justify-between mb-4">
@@ -203,11 +128,12 @@ const Clientes = () => {
             <div className="divide-y divide-border">
               {filteredClientes.map((cliente) => (
                 <div key={cliente.id} className="flex items-center justify-between py-3 gap-4">
-                  <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
+                  <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-5 gap-x-4 gap-y-1">
                     <p className="text-sm font-medium text-foreground truncate">{cliente.nome}</p>
+                    <p className="text-xs text-muted-foreground truncate">{cliente.tipo}</p>
                     <p className="text-sm text-muted-foreground truncate tabular-nums">{cliente.cnpj || "—"}</p>
                     <p className="text-sm text-muted-foreground truncate">{cliente.contato || "—"}</p>
-                    <p className="text-sm text-muted-foreground truncate">{cliente.telefones.join(", ") || "—"}</p>
+                    <p className="text-sm text-muted-foreground truncate">{cliente.cidade ? `${cliente.cidade}/${cliente.uf}` : "—"}</p>
                   </div>
                   <div className="flex gap-1 shrink-0">
                     <Button variant="ghost" size="sm" onClick={() => handleEnviarWhatsApp(cliente)} className="text-emerald-600 hover:text-emerald-700" title="Enviar WhatsApp">
