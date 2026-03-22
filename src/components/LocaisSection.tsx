@@ -4,7 +4,8 @@ import { Plus, Trash2, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { LocalCliente } from "@/contexts/ClientesContext";
+import type { LocalCliente, Pavimento } from "@/contexts/ClientesContext";
+import { Badge } from "@/components/ui/badge";
 
 const UF_OPTIONS = [
   "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA",
@@ -15,6 +16,7 @@ const emptyLocal: Omit<LocalCliente, "id"> = {
   descricao: "", cep: "", bairro: "", logradouro: "", numero: "", complemento: "",
   uf: "", cidade: "", latitude: "", longitude: "", areaTotal: "", areaConstruida: "",
   contato: "", telContato: "", relLinha1: "", relLinha2: "", relLinha3: "", relLinha4: "",
+  pavimentos: [],
 };
 
 interface LocaisSectionProps {
