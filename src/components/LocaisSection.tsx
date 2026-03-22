@@ -272,27 +272,92 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                     ) : (
                       <div className="divide-y divide-border rounded-lg border border-border">
                         {local.pavimentos.map((pav) => (
-                          <div key={pav.id} className="flex items-center justify-between px-3 py-2">
-                            <div className="flex items-center gap-2">
-                              <span className={`text-sm ${pav.ativo ? "text-foreground" : "text-muted-foreground line-through"}`}>
-                                {pav.descricao}
-                              </span>
-                              <Badge variant={pav.ativo ? "default" : "secondary"} className="text-[10px]">
-                                {pav.ativo ? "Ativo" : "Inativo"}
-                              </Badge>
+                          <div key={pav.id}>
+                            <div className="flex items-center justify-between px-3 py-2">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  className="flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors"
+                                  onClick={() => setExpandedPavId(expandedPavId === pav.id ? null : pav.id)}
+                                >
+                                  {expandedPavId === pav.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                                  <span className={pav.ativo ? "text-foreground" : "text-muted-foreground line-through"}>
+                                    {pav.descricao}
+                                  </span>
+                                </button>
+                                <Badge variant={pav.ativo ? "default" : "secondary"} className="text-[10px]">
+                                  {pav.ativo ? "Ativo" : "Inativo"}
+                                </Badge>
+                                {(pav.setores?.length || 0) > 0 && (
+                                  <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                    <Layers className="h-3 w-3" /> {pav.setores.length}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex gap-1">
+                                <Button
+                                  type="button" variant="ghost" size="sm"
+                                  onClick={() => togglePavimento(local.id, pav.id)}
+                                  className={pav.ativo ? "text-destructive hover:text-destructive text-xs" : "text-emerald-600 hover:text-emerald-700 text-xs"}
+                                >
+                                  {pav.ativo ? "Desativar" : "Ativar"}
+                                </Button>
+                                <Button type="button" variant="ghost" size="sm" onClick={() => deletePavimento(local.id, pav.id)} className="text-destructive hover:text-destructive">
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex gap-1">
-                              <Button
-                                type="button" variant="ghost" size="sm"
-                                onClick={() => togglePavimento(local.id, pav.id)}
-                                className={pav.ativo ? "text-destructive hover:text-destructive text-xs" : "text-emerald-600 hover:text-emerald-700 text-xs"}
-                              >
-                                {pav.ativo ? "Desativar" : "Ativar"}
-                              </Button>
-                              <Button type="button" variant="ghost" size="sm" onClick={() => deletePavimento(local.id, pav.id)} className="text-destructive hover:text-destructive">
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
+
+                            {/* Setores do pavimento */}
+                            {expandedPavId === pav.id && (
+                              <div className="px-4 pb-3 ml-4 border-l-2 border-muted">
+                                <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
+                                  <Layers className="h-3 w-3" /> Setores
+                                </h5>
+                                <div className="flex gap-2 mb-2">
+                                  <Input
+                                    placeholder="Nome do setor (ex: Recepção, Sala 101)"
+                                    value={novoSetor[pav.id] || ""}
+                                    onChange={(e) => setNovoSetor((prev) => ({ ...prev, [pav.id]: e.target.value }))}
+                                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSetor(local.id, pav.id); } }}
+                                    className="flex-1 h-8 text-sm"
+                                  />
+                                  <Button type="button" size="sm" onClick={() => addSetor(local.id, pav.id)} className="gap-1 shrink-0 h-8 text-xs">
+                                    <Plus className="h-3 w-3" /> Adicionar
+                                  </Button>
+                                </div>
+                                {(!pav.setores || pav.setores.length === 0) ? (
+                                  <p className="text-xs text-muted-foreground text-center py-2">Nenhum setor cadastrado.</p>
+                                ) : (
+                                  <div className="divide-y divide-border rounded border border-border">
+                                    {pav.setores.map((setor) => (
+                                      <div key={setor.id} className="flex items-center justify-between px-2 py-1.5">
+                                        <div className="flex items-center gap-2">
+                                          <span className={`text-xs ${setor.ativo ? "text-foreground" : "text-muted-foreground line-through"}`}>
+                                            {setor.descricao}
+                                          </span>
+                                          <Badge variant={setor.ativo ? "default" : "secondary"} className="text-[9px] px-1.5 py-0">
+                                            {setor.ativo ? "Ativo" : "Inativo"}
+                                          </Badge>
+                                        </div>
+                                        <div className="flex gap-1">
+                                          <Button
+                                            type="button" variant="ghost" size="sm"
+                                            onClick={() => toggleSetor(local.id, pav.id, setor.id)}
+                                            className={`h-6 text-[10px] ${setor.ativo ? "text-destructive hover:text-destructive" : "text-emerald-600 hover:text-emerald-700"}`}
+                                          >
+                                            {setor.ativo ? "Desativar" : "Ativar"}
+                                          </Button>
+                                          <Button type="button" variant="ghost" size="sm" onClick={() => deleteSetor(local.id, pav.id, setor.id)} className="text-destructive hover:text-destructive h-6">
+                                            <Trash2 className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
