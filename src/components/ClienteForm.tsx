@@ -150,7 +150,7 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="field-label">CEP</label>
-          <Input placeholder="Ex: 01001-000" value={form.cep} onChange={(e) => update("cep", e.target.value)} />
+          <Input placeholder="Ex: 01001-000" value={form.cep} onChange={(e) => update("cep", e.target.value)} onBlur={(e) => buscarCep(e.target.value)} />
         </div>
         <div>
           <label className="field-label">Logradouro</label>
