@@ -46,6 +46,9 @@ const migrateCargo = (c: any): Cargo => {
     nivel: c.nivel || "",
     dataBaseSalario: c.dataBaseSalario || "",
     salarios,
+    missao: c.missao || "",
+    responsabilidades: c.responsabilidades || "",
+    perfilCompetencias: c.perfilCompetencias || "",
   };
 };
 
