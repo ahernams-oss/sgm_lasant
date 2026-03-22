@@ -108,6 +108,7 @@ const Clientes = () => {
           initialData={editingData}
           onSubmit={handleSubmit}
           onCancel={resetForm}
+          tipoFixo="Cliente"
         />
 
         <div className="section-card animate-fade-up" style={{ animationDelay: "160ms" }}>
