@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface SalarioDataBase {
   id: string;
@@ -6,18 +7,26 @@ export interface SalarioDataBase {
   dataBase: string;
 }
 
+export interface AnexoCargo {
+  id: string;
+  nome: string;
+  url: string;
+  tipo: string;
+}
+
 export interface Cargo {
   id: string;
   nome: string;
   cbo: string;
   descricao: string;
-  salario: string; // legacy - kept for compat
+  salario: string;
   nivel: string;
-  dataBaseSalario: string; // legacy
+  dataBaseSalario: string;
   salarios: SalarioDataBase[];
   missao: string;
   responsabilidades: string;
   perfilCompetencias: string;
+  anexos: AnexoCargo[];
 }
 
 interface CargosContextType {
@@ -51,6 +60,7 @@ const migrateCargo = (c: any): Cargo => {
     missao: c.missao || "",
     responsabilidades: c.responsabilidades || "",
     perfilCompetencias: c.perfilCompetencias || "",
+    anexos: c.anexos || [],
   };
 };
 
