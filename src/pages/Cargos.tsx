@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCargos, type SalarioDataBase, type AnexoCargo } from "@/contexts/CargosContext";
+import { useCargos, type SalarioDataBase, type AnexoCargo, type NrCargo } from "@/contexts/CargosContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 
