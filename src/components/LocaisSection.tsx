@@ -111,6 +111,39 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
     updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: (p.setores || []).map((s) => s.id === setorId ? { ...s, ativo: !s.ativo } : s) } : p));
   };
 
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const importSetores = (localId: string, pavId: string, file: File) => {
+    const reader = new FileReader();
+    const isExcel = /\.(xlsx?|xls)$/i.test(file.name);
+
+    if (isExcel) {
+      reader.onload = (e) => {
+        try {
+          const wb = XLSX.read(e.target?.result, { type: "array" });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const rows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+          const names = rows.flat().map((v) => String(v || "").trim()).filter(Boolean);
+          if (names.length === 0) { toast.error("Nenhum setor encontrado no arquivo."); return; }
+          const newSetores: Setor[] = names.map((n) => ({ id: crypto.randomUUID(), descricao: n, ativo: true }));
+          updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: [...(p.setores || []), ...newSetores] } : p));
+          toast.success(`${newSetores.length} setor(es) importado(s)!`);
+        } catch { toast.error("Erro ao ler o arquivo Excel."); }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        const names = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        if (names.length === 0) { toast.error("Nenhum setor encontrado no arquivo."); return; }
+        const newSetores: Setor[] = names.map((n) => ({ id: crypto.randomUUID(), descricao: n, ativo: true }));
+        updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: [...(p.setores || []), ...newSetores] } : p));
+        toast.success(`${newSetores.length} setor(es) importado(s)!`);
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const renderFields = (
     data: Omit<LocalCliente, "id">,
     onFieldChange: (field: keyof Omit<LocalCliente, "id">, value: string) => void,
