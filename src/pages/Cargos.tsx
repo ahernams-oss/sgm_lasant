@@ -582,6 +582,25 @@ const Cargos = () => {
                             <Button type="button" size="sm" onClick={() => addNr(cargo.id)} className="gap-1 shrink-0 h-8 text-xs">
                               <Plus className="h-3 w-3" /> Adicionar
                             </Button>
+                            <input
+                              type="file"
+                              accept=".txt,.xlsx,.xls"
+                              className="hidden"
+                              ref={(el) => { nrFileInputRefs.current[cargo.id] = el; }}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) importNrs(cargo.id, file);
+                                e.target.value = "";
+                              }}
+                            />
+                            <Button
+                              type="button" variant="outline" size="sm"
+                              onClick={() => nrFileInputRefs.current[cargo.id]?.click()}
+                              className="gap-1 shrink-0 h-8 text-xs"
+                              title="Importar NRs de arquivo TXT ou Excel (coluna 1: NR, coluna 2: descrição)"
+                            >
+                              <Upload className="h-3 w-3" /> Importar
+                            </Button>
                           </div>
                           {(!cargo.nrs || cargo.nrs.length === 0) ? (
                             <p className="text-xs text-muted-foreground text-center py-2">Nenhuma NR cadastrada.</p>
