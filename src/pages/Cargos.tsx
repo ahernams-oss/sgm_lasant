@@ -35,6 +35,8 @@ const Cargos = () => {
   const [editingSalarioId, setEditingSalarioId] = useState<string | null>(null);
   const [editingSalarioValor, setEditingSalarioValor] = useState("");
   const [editingSalarioData, setEditingSalarioData] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
