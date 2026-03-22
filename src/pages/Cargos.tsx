@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useCargos, type SalarioDataBase, type AnexoCargo, type NrCargo } from "@/contexts/CargosContext";
 import { supabase } from "@/integrations/supabase/client";
+import * as XLSX from "xlsx";
 import { Badge } from "@/components/ui/badge";
 
 const niveis = ["I", "II", "III", "IV", "V"] as const;
