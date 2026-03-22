@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 
 const niveis = ["I", "II", "III", "IV", "V"] as const;
 
-const emptyForm = { nome: "", descricao: "", nivel: "", missao: "", responsabilidades: "", perfilCompetencias: "" };
+const emptyForm = { nome: "", descricao: "", nivel: "", missao: "", responsabilidades: "", perfilCompetencias: "", cbo: "" };
 
 const Cargos = () => {
   const { cargos, addCargo, updateCargo, deleteCargo } = useCargos();
@@ -68,6 +68,7 @@ const Cargos = () => {
       missao: cargo.missao || "",
       responsabilidades: cargo.responsabilidades || "",
       perfilCompetencias: cargo.perfilCompetencias || "",
+      cbo: cargo.cbo || "",
     });
   };
 
@@ -164,9 +165,13 @@ const Cargos = () => {
             {editingId ? "Editar Cargo" : "Novo Cargo"}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
+            <div>
               <label className="field-label">Nome do Cargo</label>
               <Input placeholder="Ex: Eletricista de Alta" value={form.nome} onChange={(e) => update("nome", e.target.value)} />
+            </div>
+            <div>
+              <label className="field-label">CBO</label>
+              <Input placeholder="Ex: 7321-05" value={form.cbo} onChange={(e) => update("cbo", e.target.value)} />
             </div>
             <div>
               <label className="field-label">Nível</label>

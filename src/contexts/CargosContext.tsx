@@ -9,6 +9,7 @@ export interface SalarioDataBase {
 export interface Cargo {
   id: string;
   nome: string;
+  cbo: string;
   descricao: string;
   salario: string; // legacy - kept for compat
   nivel: string;
@@ -40,6 +41,7 @@ const migrateCargo = (c: any): Cargo => {
   }
   return {
     id: c.id,
+    cbo: c.cbo || "",
     nome: c.nome || "",
     descricao: c.descricao || "",
     salario: c.salario || "",
