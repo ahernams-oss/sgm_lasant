@@ -172,6 +172,7 @@ const migrateCliente = (c: any): Cliente => ({
   informacoesFinanceiras: c.informacoesFinanceiras || [],
   locais: (c.locais || []).map((l: any) => ({ ...l, pavimentos: (l.pavimentos || []).map((p: any) => ({ ...p, setores: p.setores || [] })) })),
   locaisEntrega: c.locaisEntrega || [],
+  contratos: c.contratos || [],
 });
 
 export function ClientesProvider({ children }: { children: ReactNode }) {
