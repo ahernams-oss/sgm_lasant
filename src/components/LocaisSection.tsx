@@ -435,14 +435,35 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                     {pav.setores.map((setor) => (
                                       <div key={setor.id} className="flex items-center justify-between px-2 py-1.5">
                                         <div className="flex items-center gap-2">
-                                          <span className={`text-xs ${setor.ativo ? "text-foreground" : "text-muted-foreground line-through"}`}>
-                                            {setor.descricao}
-                                          </span>
+                                          {editingSetorId === setor.id ? (
+                                            <div className="flex items-center gap-1">
+                                              <Input
+                                                value={editingSetorDesc}
+                                                onChange={(e) => setEditingSetorDesc(e.target.value)}
+                                                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirmEditSetor(local.id, pav.id, setor.id); } if (e.key === "Escape") setEditingSetorId(null); }}
+                                                className="h-6 text-xs w-40"
+                                                autoFocus
+                                              />
+                                              <Button type="button" variant="ghost" size="sm" onClick={() => confirmEditSetor(local.id, pav.id, setor.id)} className="h-6 w-6 p-0 text-emerald-600">
+                                                <Check className="h-3 w-3" />
+                                              </Button>
+                                              <Button type="button" variant="ghost" size="sm" onClick={() => setEditingSetorId(null)} className="h-6 w-6 p-0">
+                                                <X className="h-3 w-3" />
+                                              </Button>
+                                            </div>
+                                          ) : (
+                                            <span className={`text-xs ${setor.ativo ? "text-foreground" : "text-muted-foreground line-through"}`}>
+                                              {setor.descricao}
+                                            </span>
+                                          )}
                                           <Badge variant={setor.ativo ? "default" : "secondary"} className="text-[9px] px-1.5 py-0">
                                             {setor.ativo ? "Ativo" : "Inativo"}
                                           </Badge>
                                         </div>
                                         <div className="flex gap-1">
+                                          <Button type="button" variant="ghost" size="sm" onClick={() => startEditSetor(setor)} className="h-6" title="Editar setor">
+                                            <Pencil className="h-3 w-3" />
+                                          </Button>
                                           <Button
                                             type="button" variant="ghost" size="sm"
                                             onClick={() => toggleSetor(local.id, pav.id, setor.id)}
