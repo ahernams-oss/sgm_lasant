@@ -7,18 +7,26 @@ export interface SalarioDataBase {
   dataBase: string;
 }
 
+export interface AnexoCargo {
+  id: string;
+  nome: string;
+  url: string;
+  tipo: string;
+}
+
 export interface Cargo {
   id: string;
   nome: string;
   cbo: string;
   descricao: string;
-  salario: string; // legacy - kept for compat
+  salario: string;
   nivel: string;
-  dataBaseSalario: string; // legacy
+  dataBaseSalario: string;
   salarios: SalarioDataBase[];
   missao: string;
   responsabilidades: string;
   perfilCompetencias: string;
+  anexos: AnexoCargo[];
 }
 
 interface CargosContextType {
