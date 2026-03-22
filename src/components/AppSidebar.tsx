@@ -29,6 +29,7 @@ const menuItems = [
     group: "Cadastros",
     items: [
       { title: "Clientes", url: "/clientes", icon: Users },
+      { title: "Fornecedores", url: "/fornecedores", icon: Truck },
       { title: "Cargos", url: "/cargos", icon: Briefcase },
       { title: "Funcionários", url: "/funcionarios", icon: UserCheck },
     ],

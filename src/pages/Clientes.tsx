@@ -132,9 +132,8 @@ const Clientes = () => {
             <div className="divide-y divide-border">
               {filteredClientes.map((cliente) => (
                 <div key={cliente.id} className="flex items-center justify-between py-3 gap-4">
-                  <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-5 gap-x-4 gap-y-1">
+                  <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
                     <p className="text-sm font-medium text-foreground truncate">{cliente.nome}</p>
-                    <p className="text-xs text-muted-foreground truncate">{cliente.tipo}</p>
                     <p className="text-sm text-muted-foreground truncate tabular-nums">{cliente.cnpj || "—"}</p>
                     <p className="text-sm text-muted-foreground truncate">{cliente.contato || "—"}</p>
                     <p className="text-sm text-muted-foreground truncate">{cliente.cidade ? `${cliente.cidade}/${cliente.uf}` : "—"}</p>
