@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClientes, type Cliente } from "@/contexts/ClientesContext";
 import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
+import LocaisSection from "@/components/LocaisSection";
 
 const Clientes = () => {
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
@@ -110,6 +111,13 @@ const Clientes = () => {
           onCancel={resetForm}
           tipoFixo="Cliente"
         />
+
+        {editingId && (
+          <LocaisSection
+            locais={clientes.find((c) => c.id === editingId)?.locais || []}
+            onChange={(locais) => updateCliente(editingId, { locais })}
+          />
+        )}
 
         <div className="section-card animate-fade-up" style={{ animationDelay: "160ms" }}>
           <div className="flex items-center justify-between mb-4">
