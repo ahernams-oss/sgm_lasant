@@ -337,16 +337,34 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                           <div key={pav.id}>
                             <div className="flex items-center justify-between px-3 py-2">
                               <div className="flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  className="flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors"
-                                  onClick={() => setExpandedPavId(expandedPavId === pav.id ? null : pav.id)}
-                                >
-                                  {expandedPavId === pav.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                                  <span className={pav.ativo ? "text-foreground" : "text-muted-foreground line-through"}>
-                                    {pav.descricao}
-                                  </span>
-                                </button>
+                                {editingPavId === pav.id ? (
+                                  <div className="flex items-center gap-1">
+                                    <Input
+                                      value={editingPavDesc}
+                                      onChange={(e) => setEditingPavDesc(e.target.value)}
+                                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirmEditPavimento(local.id, pav.id); } if (e.key === "Escape") setEditingPavId(null); }}
+                                      className="h-7 text-sm w-48"
+                                      autoFocus
+                                    />
+                                    <Button type="button" variant="ghost" size="sm" onClick={() => confirmEditPavimento(local.id, pav.id)} className="h-7 w-7 p-0 text-emerald-600">
+                                      <Check className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button type="button" variant="ghost" size="sm" onClick={() => setEditingPavId(null)} className="h-7 w-7 p-0">
+                                      <X className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors"
+                                    onClick={() => setExpandedPavId(expandedPavId === pav.id ? null : pav.id)}
+                                  >
+                                    {expandedPavId === pav.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                                    <span className={pav.ativo ? "text-foreground" : "text-muted-foreground line-through"}>
+                                      {pav.descricao}
+                                    </span>
+                                  </button>
+                                )}
                                 <Badge variant={pav.ativo ? "default" : "secondary"} className="text-[10px]">
                                   {pav.ativo ? "Ativo" : "Inativo"}
                                 </Badge>
