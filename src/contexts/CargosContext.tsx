@@ -14,6 +14,12 @@ export interface AnexoCargo {
   tipo: string;
 }
 
+export interface NrCargo {
+  id: string;
+  numero: string;
+  descricao: string;
+}
+
 export interface Cargo {
   id: string;
   nome: string;
@@ -27,6 +33,7 @@ export interface Cargo {
   responsabilidades: string;
   perfilCompetencias: string;
   anexos: AnexoCargo[];
+  nrs: NrCargo[];
 }
 
 interface CargosContextType {
