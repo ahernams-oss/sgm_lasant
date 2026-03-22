@@ -30,9 +30,10 @@ interface ClienteFormProps {
   initialData?: FormData;
   onSubmit: (data: FormData, editingId: string | null) => void;
   onCancel: () => void;
+  tipoFixo?: "Cliente" | "Fornecedor";
 }
 
-export default function ClienteForm({ editingId, initialData, onSubmit, onCancel }: ClienteFormProps) {
+export default function ClienteForm({ editingId, initialData, onSubmit, onCancel, tipoFixo }: ClienteFormProps) {
   const [form, setForm] = useState<FormData>(initialData || emptyForm);
 
   const update = (field: keyof FormData, value: string) =>
@@ -55,21 +56,25 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
     onSubmit({ ...form, telefones: form.telefones.filter((t) => t.trim() !== "") }, editingId);
   };
 
+  const label = tipoFixo || "Cliente";
+
   return (
     <form onSubmit={handleSubmit} className="section-card animate-fade-up mb-6" style={{ animationDelay: "80ms" }}>
-      <h2 className="section-title">{editingId ? "Editar Cliente" : "Novo Cliente"}</h2>
+      <h2 className="section-title">{editingId ? `Editar ${label}` : `Novo ${label}`}</h2>
 
       {/* Tipo */}
-      <div className="mb-4">
-        <label className="field-label">Tipo</label>
-        <Select value={form.tipo} onValueChange={(v) => update("tipo", v)}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Cliente">Cliente</SelectItem>
-            <SelectItem value="Fornecedor">Fornecedor</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {!tipoFixo && (
+        <div className="mb-4">
+          <label className="field-label">Tipo</label>
+          <Select value={form.tipo} onValueChange={(v) => update("tipo", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Cliente">Cliente</SelectItem>
+              <SelectItem value="Fornecedor">Fornecedor</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Dados da Empresa */}
       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 mt-6">Dados da Empresa</h3>
