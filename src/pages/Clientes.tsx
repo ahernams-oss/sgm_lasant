@@ -160,12 +160,20 @@ const Clientes = () => {
                           <MoreVertical className="h-3.5 w-3.5" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setLocaisClienteId(locaisClienteId === cliente.id ? null : cliente.id)}>
-                          <MapPin className="mr-2 h-4 w-4" />
-                          Locais
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setLocaisClienteId(locaisClienteId === cliente.id ? null : cliente.id)}>
+                            <MapPin className="mr-2 h-4 w-4" />
+                            Locais
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            setContratosClienteId(contratosClienteId === cliente.id ? null : cliente.id);
+                            setContratoForm(emptyContrato);
+                            setEditingContratoId(null);
+                          }}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Contratos
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 </div>
