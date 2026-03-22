@@ -88,6 +88,28 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
     } : l));
   };
 
+  const updatePavimentos = (localId: string, updater: (pavs: Pavimento[]) => Pavimento[]) => {
+    onChange(locais.map((l) => l.id === localId ? { ...l, pavimentos: updater(l.pavimentos || []) } : l));
+  };
+
+  const addSetor = (localId: string, pavId: string) => {
+    const desc = (novoSetor[pavId] || "").trim();
+    if (!desc) { toast.error("Informe o nome do setor."); return; }
+    const setor: Setor = { id: crypto.randomUUID(), descricao: desc, ativo: true };
+    updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: [...(p.setores || []), setor] } : p));
+    setNovoSetor((prev) => ({ ...prev, [pavId]: "" }));
+    toast.success("Setor adicionado!");
+  };
+
+  const deleteSetor = (localId: string, pavId: string, setorId: string) => {
+    updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: (p.setores || []).filter((s) => s.id !== setorId) } : p));
+    toast.success("Setor removido.");
+  };
+
+  const toggleSetor = (localId: string, pavId: string, setorId: string) => {
+    updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: (p.setores || []).map((s) => s.id === setorId ? { ...s, ativo: !s.ativo } : s) } : p));
+  };
+
   const renderFields = (
     data: Omit<LocalCliente, "id">,
     onFieldChange: (field: keyof Omit<LocalCliente, "id">, value: string) => void,
