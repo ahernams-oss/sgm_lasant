@@ -171,6 +171,13 @@ const Fornecedores = () => {
             </div>
           )}
         </div>
+
+        {locaisClienteId && (
+          <LocaisSection
+            locais={clientes.find((c) => c.id === locaisClienteId)?.locais || []}
+            onChange={(locais) => updateCliente(locaisClienteId, { locais })}
+          />
+        )}
       </div>
     </div>
   );
