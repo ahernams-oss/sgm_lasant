@@ -1,12 +1,13 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, X, ChevronDown, ChevronUp, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { LocalCliente, Pavimento, Setor } from "@/contexts/ClientesContext";
 import { Badge } from "@/components/ui/badge";
 import { Layers } from "lucide-react";
+import * as XLSX from "xlsx";
 
 const UF_OPTIONS = [
   "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA",
