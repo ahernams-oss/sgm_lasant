@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, X, ChevronDown, ChevronUp, Upload } from "lucide-react";
+import { Plus, Trash2, X, ChevronDown, ChevronUp, Upload, Pencil, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
