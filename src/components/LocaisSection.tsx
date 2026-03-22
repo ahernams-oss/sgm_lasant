@@ -69,7 +69,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
   const addPavimento = (localId: string) => {
     const desc = (novoPavimento[localId] || "").trim();
     if (!desc) { toast.error("Informe o nome do pavimento."); return; }
-    const pav: Pavimento = { id: crypto.randomUUID(), descricao: desc, ativo: true };
+    const pav: Pavimento = { id: crypto.randomUUID(), descricao: desc, ativo: true, setores: [] };
     onChange(locais.map((l) => l.id === localId ? { ...l, pavimentos: [...(l.pavimentos || []), pav] } : l));
     setNovoPavimento((prev) => ({ ...prev, [localId]: "" }));
     toast.success("Pavimento adicionado!");
