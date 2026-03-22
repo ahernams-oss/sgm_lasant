@@ -1,12 +1,13 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, X, ChevronDown, ChevronUp, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { LocalCliente, Pavimento, Setor } from "@/contexts/ClientesContext";
 import { Badge } from "@/components/ui/badge";
 import { Layers } from "lucide-react";
+import * as XLSX from "xlsx";
 
 const UF_OPTIONS = [
   "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA",
@@ -108,6 +109,39 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
 
   const toggleSetor = (localId: string, pavId: string, setorId: string) => {
     updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: (p.setores || []).map((s) => s.id === setorId ? { ...s, ativo: !s.ativo } : s) } : p));
+  };
+
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const importSetores = (localId: string, pavId: string, file: File) => {
+    const reader = new FileReader();
+    const isExcel = /\.(xlsx?|xls)$/i.test(file.name);
+
+    if (isExcel) {
+      reader.onload = (e) => {
+        try {
+          const wb = XLSX.read(e.target?.result, { type: "array" });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const rows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+          const names = rows.flat().map((v) => String(v || "").trim()).filter(Boolean);
+          if (names.length === 0) { toast.error("Nenhum setor encontrado no arquivo."); return; }
+          const newSetores: Setor[] = names.map((n) => ({ id: crypto.randomUUID(), descricao: n, ativo: true }));
+          updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: [...(p.setores || []), ...newSetores] } : p));
+          toast.success(`${newSetores.length} setor(es) importado(s)!`);
+        } catch { toast.error("Erro ao ler o arquivo Excel."); }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        const names = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        if (names.length === 0) { toast.error("Nenhum setor encontrado no arquivo."); return; }
+        const newSetores: Setor[] = names.map((n) => ({ id: crypto.randomUUID(), descricao: n, ativo: true }));
+        updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: [...(p.setores || []), ...newSetores] } : p));
+        toast.success(`${newSetores.length} setor(es) importado(s)!`);
+      };
+      reader.readAsText(file);
+    }
   };
 
   const renderFields = (
@@ -324,6 +358,25 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                   />
                                   <Button type="button" size="sm" onClick={() => addSetor(local.id, pav.id)} className="gap-1 shrink-0 h-8 text-xs">
                                     <Plus className="h-3 w-3" /> Adicionar
+                                  </Button>
+                                  <input
+                                    type="file"
+                                    accept=".txt,.xlsx,.xls"
+                                    className="hidden"
+                                    ref={(el) => { fileInputRefs.current[pav.id] = el; }}
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) importSetores(local.id, pav.id, file);
+                                      e.target.value = "";
+                                    }}
+                                  />
+                                  <Button
+                                    type="button" variant="outline" size="sm"
+                                    onClick={() => fileInputRefs.current[pav.id]?.click()}
+                                    className="gap-1 shrink-0 h-8 text-xs"
+                                    title="Importar setores de arquivo TXT ou Excel"
+                                  >
+                                    <Upload className="h-3 w-3" /> Importar
                                   </Button>
                                 </div>
                                 {(!pav.setores || pav.setores.length === 0) ? (
