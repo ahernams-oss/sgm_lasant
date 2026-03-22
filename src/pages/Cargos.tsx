@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 
 const niveis = ["I", "II", "III", "IV", "V"] as const;
 
-const emptyForm = { nome: "", descricao: "", nivel: "" };
+const emptyForm = { nome: "", descricao: "", nivel: "", missao: "", responsabilidades: "", perfilCompetencias: "" };
 
 const Cargos = () => {
   const { cargos, addCargo, updateCargo, deleteCargo } = useCargos();
@@ -65,6 +65,9 @@ const Cargos = () => {
       nome: cargo.nome,
       descricao: cargo.descricao,
       nivel: cargo.nivel,
+      missao: cargo.missao || "",
+      responsabilidades: cargo.responsabilidades || "",
+      perfilCompetencias: cargo.perfilCompetencias || "",
     });
   };
 
@@ -179,6 +182,18 @@ const Cargos = () => {
             <div className="md:col-span-2">
               <label className="field-label">Descrição</label>
               <Textarea placeholder="Breve descrição do cargo" value={form.descricao} onChange={(e) => update("descricao", e.target.value)} rows={2} className="min-h-[40px]" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="field-label">Missão do Cargo</label>
+              <Textarea placeholder="Descreva a missão do cargo" value={form.missao} onChange={(e) => update("missao", e.target.value)} rows={3} className="min-h-[60px]" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="field-label">Responsabilidades do Cargo</label>
+              <Textarea placeholder="Descreva as responsabilidades do cargo" value={form.responsabilidades} onChange={(e) => update("responsabilidades", e.target.value)} rows={4} className="min-h-[80px]" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="field-label">Perfil de Competências</label>
+              <Textarea placeholder="Descreva o perfil de competências esperado" value={form.perfilCompetencias} onChange={(e) => update("perfilCompetencias", e.target.value)} rows={4} className="min-h-[80px]" />
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-3">

@@ -14,6 +14,9 @@ export interface Cargo {
   nivel: string;
   dataBaseSalario: string; // legacy
   salarios: SalarioDataBase[];
+  missao: string;
+  responsabilidades: string;
+  perfilCompetencias: string;
 }
 
 interface CargosContextType {
@@ -43,6 +46,9 @@ const migrateCargo = (c: any): Cargo => {
     nivel: c.nivel || "",
     dataBaseSalario: c.dataBaseSalario || "",
     salarios,
+    missao: c.missao || "",
+    responsabilidades: c.responsabilidades || "",
+    perfilCompetencias: c.perfilCompetencias || "",
   };
 };
 
