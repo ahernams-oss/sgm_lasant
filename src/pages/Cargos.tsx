@@ -331,145 +331,147 @@ const Cargos = () => {
                       </div>
                     </div>
 
-                    {/* Salários expandidos */}
                     {expandedCargoId === cargo.id && (
-                      <div className="mt-3 ml-4 border-l-2 border-muted pl-4">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                          Histórico de Salários
-                        </h4>
-                        <div className="flex gap-2 mb-3">
-                          <Input
-                            placeholder="Valor (ex: 2.511,98)"
-                            value={novoSalarioValor[cargo.id] || ""}
-                            onChange={(e) => setNovoSalarioValor((prev) => ({ ...prev, [cargo.id]: e.target.value }))}
-                            className="flex-1 h-8 text-sm"
-                          />
-                          <Input
-                            type="date"
-                            value={novoSalarioData[cargo.id] || ""}
-                            onChange={(e) => setNovoSalarioData((prev) => ({ ...prev, [cargo.id]: e.target.value }))}
-                            className="w-40 h-8 text-sm"
-                          />
-                          <Button type="button" size="sm" onClick={() => addSalario(cargo.id)} className="gap-1 shrink-0 h-8 text-xs">
-                            <Plus className="h-3 w-3" /> Adicionar
-                          </Button>
+                      <>
+                        {/* Salários */}
+                        <div className="mt-3 ml-4 border-l-2 border-muted pl-4">
+                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            Histórico de Salários
+                          </h4>
+                          <div className="flex gap-2 mb-3">
+                            <Input
+                              placeholder="Valor (ex: 2.511,98)"
+                              value={novoSalarioValor[cargo.id] || ""}
+                              onChange={(e) => setNovoSalarioValor((prev) => ({ ...prev, [cargo.id]: e.target.value }))}
+                              className="flex-1 h-8 text-sm"
+                            />
+                            <Input
+                              type="date"
+                              value={novoSalarioData[cargo.id] || ""}
+                              onChange={(e) => setNovoSalarioData((prev) => ({ ...prev, [cargo.id]: e.target.value }))}
+                              className="w-40 h-8 text-sm"
+                            />
+                            <Button type="button" size="sm" onClick={() => addSalario(cargo.id)} className="gap-1 shrink-0 h-8 text-xs">
+                              <Plus className="h-3 w-3" /> Adicionar
+                            </Button>
+                          </div>
+
+                          {(!cargo.salarios || cargo.salarios.length === 0) ? (
+                            <p className="text-xs text-muted-foreground text-center py-3">Nenhum salário cadastrado.</p>
+                          ) : (
+                            <div className="divide-y divide-border rounded border border-border">
+                              {[...cargo.salarios].sort((a, b) => (b.dataBase || "").localeCompare(a.dataBase || "")).map((sal) => (
+                                <div key={sal.id} className="flex items-center justify-between px-3 py-2">
+                                  {editingSalarioId === sal.id ? (
+                                    <div className="flex items-center gap-2 flex-1">
+                                      <Input
+                                        value={editingSalarioValor}
+                                        onChange={(e) => setEditingSalarioValor(e.target.value)}
+                                        className="h-7 text-sm flex-1"
+                                        autoFocus
+                                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirmEditSalario(cargo.id, sal.id); } if (e.key === "Escape") setEditingSalarioId(null); }}
+                                      />
+                                      <Input
+                                        type="date"
+                                        value={editingSalarioData}
+                                        onChange={(e) => setEditingSalarioData(e.target.value)}
+                                        className="h-7 text-sm w-40"
+                                      />
+                                      <Button type="button" variant="ghost" size="sm" onClick={() => confirmEditSalario(cargo.id, sal.id)} className="h-7 w-7 p-0 text-emerald-600">
+                                        <Check className="h-3.5 w-3.5" />
+                                      </Button>
+                                      <Button type="button" variant="ghost" size="sm" onClick={() => setEditingSalarioId(null)} className="h-7 w-7 p-0">
+                                        <X className="h-3.5 w-3.5" />
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <>
+                                      <div className="flex items-center gap-3">
+                                        <span className="text-sm font-medium tabular-nums">R$ {sal.valor}</span>
+                                        {sal.dataBase && (
+                                          <Badge variant="outline" className="text-[10px]">
+                                            {new Date(sal.dataBase + "T00:00:00").toLocaleDateString("pt-BR")}
+                                          </Badge>
+                                        )}
+                                        {sal.id === getSalarioAtual(cargo.salarios)?.id && (
+                                          <Badge variant="default" className="text-[9px]">Atual</Badge>
+                                        )}
+                                      </div>
+                                      <div className="flex gap-1">
+                                        <Button type="button" variant="ghost" size="sm" onClick={() => startEditSalario(sal)} className="h-7" title="Editar">
+                                          <Pencil className="h-3 w-3" />
+                                        </Button>
+                                        <Button type="button" variant="ghost" size="sm" onClick={() => deleteSalario(cargo.id, sal.id)} className="text-destructive hover:text-destructive h-7">
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
-                        {(!cargo.salarios || cargo.salarios.length === 0) ? (
-                          <p className="text-xs text-muted-foreground text-center py-3">Nenhum salário cadastrado.</p>
-                        ) : (
-                          <div className="divide-y divide-border rounded border border-border">
-                            {[...cargo.salarios].sort((a, b) => (b.dataBase || "").localeCompare(a.dataBase || "")).map((sal) => (
-                              <div key={sal.id} className="flex items-center justify-between px-3 py-2">
-                                {editingSalarioId === sal.id ? (
-                                  <div className="flex items-center gap-2 flex-1">
-                                    <Input
-                                      value={editingSalarioValor}
-                                      onChange={(e) => setEditingSalarioValor(e.target.value)}
-                                      className="h-7 text-sm flex-1"
-                                      autoFocus
-                                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirmEditSalario(cargo.id, sal.id); } if (e.key === "Escape") setEditingSalarioId(null); }}
-                                    />
-                                    <Input
-                                      type="date"
-                                      value={editingSalarioData}
-                                      onChange={(e) => setEditingSalarioData(e.target.value)}
-                                      className="h-7 text-sm w-40"
-                                    />
-                                    <Button type="button" variant="ghost" size="sm" onClick={() => confirmEditSalario(cargo.id, sal.id)} className="h-7 w-7 p-0 text-emerald-600">
-                                      <Check className="h-3.5 w-3.5" />
+                        {/* Anexos */}
+                        <div className="mt-4 ml-4 border-l-2 border-muted pl-4">
+                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            {`Anexos (${(cargo.anexos || []).length}/${MAX_ANEXOS})`}
+                          </h4>
+                          {(cargo.anexos || []).length < MAX_ANEXOS && (
+                            <div className="mb-3">
+                              <input
+                                type="file"
+                                accept={ACCEPTED_TYPES}
+                                className="hidden"
+                                ref={(el) => { if (expandedCargoId === cargo.id) fileInputRef.current = el; }}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleUploadAnexo(cargo.id, file);
+                                  e.target.value = "";
+                                }}
+                              />
+                              <Button
+                                type="button" variant="outline" size="sm"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={uploading}
+                                className="gap-1 text-xs"
+                              >
+                                <Upload className="h-3 w-3" />
+                                {uploading ? "Enviando..." : "Anexar Documento"}
+                              </Button>
+                              <p className="text-[10px] text-muted-foreground mt-1">
+                                Word, PDF, Excel, JPG ou PNG
+                              </p>
+                            </div>
+                          )}
+                          {(!cargo.anexos || cargo.anexos.length === 0) ? (
+                            <p className="text-xs text-muted-foreground text-center py-2">Nenhum anexo.</p>
+                          ) : (
+                            <div className="divide-y divide-border rounded border border-border">
+                              {cargo.anexos.map((anexo) => (
+                                <div key={anexo.id} className="flex items-center justify-between px-3 py-2">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                    <span className="text-xs truncate">{anexo.nome}</span>
+                                    <Badge variant="outline" className="text-[9px] shrink-0">{anexo.tipo.toUpperCase()}</Badge>
+                                  </div>
+                                  <div className="flex gap-1 shrink-0">
+                                    <Button type="button" variant="ghost" size="sm" asChild className="h-7">
+                                      <a href={anexo.url} target="_blank" rel="noopener noreferrer" title="Abrir">
+                                        <ExternalLink className="h-3 w-3" />
+                                      </a>
                                     </Button>
-                                    <Button type="button" variant="ghost" size="sm" onClick={() => setEditingSalarioId(null)} className="h-7 w-7 p-0">
-                                      <X className="h-3.5 w-3.5" />
+                                    <Button type="button" variant="ghost" size="sm" onClick={() => handleDeleteAnexo(cargo.id, anexo)} className="text-destructive hover:text-destructive h-7">
+                                      <Trash2 className="h-3 w-3" />
                                     </Button>
                                   </div>
-                                ) : (
-                                  <>
-                                    <div className="flex items-center gap-3">
-                                      <span className="text-sm font-medium tabular-nums">R$ {sal.valor}</span>
-                                      {sal.dataBase && (
-                                        <Badge variant="outline" className="text-[10px]">
-                                          {new Date(sal.dataBase + "T00:00:00").toLocaleDateString("pt-BR")}
-                                        </Badge>
-                                      )}
-                                      {sal.id === getSalarioAtual(cargo.salarios)?.id && (
-                                        <Badge variant="default" className="text-[9px]">Atual</Badge>
-                                      )}
-                                    </div>
-                                    <div className="flex gap-1">
-                                      <Button type="button" variant="ghost" size="sm" onClick={() => startEditSalario(sal)} className="h-7" title="Editar">
-                                        <Pencil className="h-3 w-3" />
-                                      </Button>
-                                      <Button type="button" variant="ghost" size="sm" onClick={() => deleteSalario(cargo.id, sal.id)} className="text-destructive hover:text-destructive h-7">
-                                        <Trash2 className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Anexos */}
-                      <div className="mt-4 ml-4 border-l-2 border-muted pl-4">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                          Anexos ({`${(cargo.anexos || []).length}/${MAX_ANEXOS}`})
-                        </h4>
-                        {(cargo.anexos || []).length < MAX_ANEXOS && (
-                          <div className="mb-3">
-                            <input
-                              type="file"
-                              accept={ACCEPTED_TYPES}
-                              className="hidden"
-                              ref={(el) => { if (expandedCargoId === cargo.id) fileInputRef.current = el; }}
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) handleUploadAnexo(cargo.id, file);
-                                e.target.value = "";
-                              }}
-                            />
-                            <Button
-                              type="button" variant="outline" size="sm"
-                              onClick={() => fileInputRef.current?.click()}
-                              disabled={uploading}
-                              className="gap-1 text-xs"
-                            >
-                              <Upload className="h-3 w-3" />
-                              {uploading ? "Enviando..." : "Anexar Documento"}
-                            </Button>
-                            <p className="text-[10px] text-muted-foreground mt-1">
-                              Word, PDF, Excel, JPG ou PNG
-                            </p>
-                          </div>
-                        )}
-                        {(!cargo.anexos || cargo.anexos.length === 0) ? (
-                          <p className="text-xs text-muted-foreground text-center py-2">Nenhum anexo.</p>
-                        ) : (
-                          <div className="divide-y divide-border rounded border border-border">
-                            {cargo.anexos.map((anexo) => (
-                              <div key={anexo.id} className="flex items-center justify-between px-3 py-2">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                                  <span className="text-xs truncate">{anexo.nome}</span>
-                                  <Badge variant="outline" className="text-[9px] shrink-0">{anexo.tipo.toUpperCase()}</Badge>
                                 </div>
-                                <div className="flex gap-1 shrink-0">
-                                  <Button type="button" variant="ghost" size="sm" asChild className="h-7">
-                                    <a href={anexo.url} target="_blank" rel="noopener noreferrer" title="Abrir">
-                                      <ExternalLink className="h-3 w-3" />
-                                    </a>
-                                  </Button>
-                                  <Button type="button" variant="ghost" size="sm" onClick={() => handleDeleteAnexo(cargo.id, anexo)} className="text-destructive hover:text-destructive h-7">
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </>
                     )}
                   </div>
                 );
