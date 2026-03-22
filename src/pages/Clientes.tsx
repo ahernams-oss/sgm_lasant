@@ -126,7 +126,7 @@ const Clientes = () => {
           </div>
           {filteredClientes.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground py-10">
-              {clientes.length === 0 ? "Nenhum cliente cadastrado ainda." : "Nenhum resultado encontrado."}
+              {apenasClientes.length === 0 ? "Nenhum cliente cadastrado ainda." : "Nenhum resultado encontrado."}
             </p>
           ) : (
             <div className="divide-y divide-border">
