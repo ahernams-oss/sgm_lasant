@@ -1,27 +1,55 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
+export interface SalarioDataBase {
+  id: string;
+  valor: string;
+  dataBase: string;
+}
+
 export interface Cargo {
   id: string;
   nome: string;
   descricao: string;
-  salario: string;
+  salario: string; // legacy - kept for compat
   nivel: string;
-  dataBaseSalario: string;
+  dataBaseSalario: string; // legacy
+  salarios: SalarioDataBase[];
 }
 
 interface CargosContextType {
   cargos: Cargo[];
   addCargo: (cargo: Omit<Cargo, "id">) => void;
-  updateCargo: (id: string, cargo: Omit<Cargo, "id">) => void;
+  updateCargo: (id: string, cargo: Partial<Omit<Cargo, "id">>) => void;
   deleteCargo: (id: string) => void;
 }
 
 const CargosContext = createContext<CargosContextType | undefined>(undefined);
 
+const migrateCargo = (c: any): Cargo => {
+  const salarios: SalarioDataBase[] = c.salarios || [];
+  // Migrate legacy single salary into array if empty
+  if (salarios.length === 0 && c.salario) {
+    salarios.push({
+      id: crypto.randomUUID(),
+      valor: c.salario,
+      dataBase: c.dataBaseSalario || "",
+    });
+  }
+  return {
+    id: c.id,
+    nome: c.nome || "",
+    descricao: c.descricao || "",
+    salario: c.salario || "",
+    nivel: c.nivel || "",
+    dataBaseSalario: c.dataBaseSalario || "",
+    salarios,
+  };
+};
+
 export function CargosProvider({ children }: { children: ReactNode }) {
   const [cargos, setCargos] = useState<Cargo[]>(() => {
     const saved = localStorage.getItem("cargos");
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved).map(migrateCargo) : [];
   });
 
   useEffect(() => { localStorage.setItem("cargos", JSON.stringify(cargos)); }, [cargos]);
@@ -29,7 +57,7 @@ export function CargosProvider({ children }: { children: ReactNode }) {
   const addCargo = (cargo: Omit<Cargo, "id">) =>
     setCargos((prev) => [...prev, { id: crypto.randomUUID(), ...cargo }]);
 
-  const updateCargo = (id: string, data: Omit<Cargo, "id">) =>
+  const updateCargo = (id: string, data: Partial<Omit<Cargo, "id">>) =>
     setCargos((prev) => prev.map((c) => (c.id === id ? { ...c, ...data } : c)));
 
   const deleteCargo = (id: string) =>
