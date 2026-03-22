@@ -41,6 +41,7 @@ const migrateCargo = (c: any): Cargo => {
   }
   return {
     id: c.id,
+    cbo: c.cbo || "",
     nome: c.nome || "",
     descricao: c.descricao || "",
     salario: c.salario || "",
