@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCargos, type SalarioDataBase, type AnexoCargo } from "@/contexts/CargosContext";
+import { useCargos, type SalarioDataBase, type AnexoCargo, type NrCargo } from "@/contexts/CargosContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 
@@ -38,6 +38,13 @@ const Cargos = () => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // NRs state
+  const [novoNrNumero, setNovoNrNumero] = useState<Record<string, string>>({});
+  const [novoNrDescricao, setNovoNrDescricao] = useState<Record<string, string>>({});
+  const [editingNrId, setEditingNrId] = useState<string | null>(null);
+  const [editingNrNumero, setEditingNrNumero] = useState("");
+  const [editingNrDescricao, setEditingNrDescricao] = useState("");
+
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -56,7 +63,7 @@ const Cargos = () => {
       updateCargo(editingId, form);
       toast.success("Cargo atualizado com sucesso!");
     } else {
-      addCargo({ ...form, salario: "", dataBaseSalario: "", salarios: [], anexos: [] });
+      addCargo({ ...form, salario: "", dataBaseSalario: "", salarios: [], anexos: [], nrs: [] });
       toast.success("Cargo cadastrado com sucesso!");
     }
     resetForm();
@@ -164,6 +171,44 @@ const Cargos = () => {
     }
     updateCargo(cargoId, { anexos: (cargo.anexos || []).filter((a) => a.id !== anexo.id) });
     toast.success("Anexo removido.");
+  };
+
+  // NRs management
+  const addNr = (cargoId: string) => {
+    const numero = (novoNrNumero[cargoId] || "").trim();
+    const descricao = (novoNrDescricao[cargoId] || "").trim();
+    if (!numero) { toast.error("Informe o número da NR."); return; }
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    const nr: NrCargo = { id: crypto.randomUUID(), numero, descricao };
+    updateCargo(cargoId, { nrs: [...(cargo.nrs || []), nr] });
+    setNovoNrNumero((prev) => ({ ...prev, [cargoId]: "" }));
+    setNovoNrDescricao((prev) => ({ ...prev, [cargoId]: "" }));
+    toast.success("NR adicionada!");
+  };
+
+  const deleteNr = (cargoId: string, nrId: string) => {
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    updateCargo(cargoId, { nrs: (cargo.nrs || []).filter((n) => n.id !== nrId) });
+    toast.success("NR removida.");
+  };
+
+  const startEditNr = (nr: NrCargo) => {
+    setEditingNrId(nr.id);
+    setEditingNrNumero(nr.numero);
+    setEditingNrDescricao(nr.descricao);
+  };
+
+  const confirmEditNr = (cargoId: string, nrId: string) => {
+    if (!editingNrNumero.trim()) { toast.error("Informe o número da NR."); return; }
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    updateCargo(cargoId, {
+      nrs: (cargo.nrs || []).map((n) => n.id === nrId ? { ...n, numero: editingNrNumero.trim(), descricao: editingNrDescricao.trim() } : n),
+    });
+    setEditingNrId(null);
+    toast.success("NR atualizada!");
   };
 
   const filteredCargos = useMemo(() => {
@@ -466,6 +511,79 @@ const Cargos = () => {
                                       <Trash2 className="h-3 w-3" />
                                     </Button>
                                   </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* NRs Necessárias */}
+                        <div className="mt-4 ml-4 border-l-2 border-muted pl-4">
+                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            NRs Necessárias ({(cargo.nrs || []).length})
+                          </h4>
+                          <div className="flex gap-2 mb-3">
+                            <Input
+                              placeholder="NR (ex: NR-10, NR-35)"
+                              value={novoNrNumero[cargo.id] || ""}
+                              onChange={(e) => setNovoNrNumero((prev) => ({ ...prev, [cargo.id]: e.target.value }))}
+                              className="w-32 h-8 text-sm"
+                            />
+                            <Input
+                              placeholder="Descrição / Características"
+                              value={novoNrDescricao[cargo.id] || ""}
+                              onChange={(e) => setNovoNrDescricao((prev) => ({ ...prev, [cargo.id]: e.target.value }))}
+                              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addNr(cargo.id); } }}
+                              className="flex-1 h-8 text-sm"
+                            />
+                            <Button type="button" size="sm" onClick={() => addNr(cargo.id)} className="gap-1 shrink-0 h-8 text-xs">
+                              <Plus className="h-3 w-3" /> Adicionar
+                            </Button>
+                          </div>
+                          {(!cargo.nrs || cargo.nrs.length === 0) ? (
+                            <p className="text-xs text-muted-foreground text-center py-2">Nenhuma NR cadastrada.</p>
+                          ) : (
+                            <div className="divide-y divide-border rounded border border-border">
+                              {cargo.nrs.map((nr) => (
+                                <div key={nr.id} className="flex items-center justify-between px-3 py-2">
+                                  {editingNrId === nr.id ? (
+                                    <div className="flex items-center gap-2 flex-1">
+                                      <Input
+                                        value={editingNrNumero}
+                                        onChange={(e) => setEditingNrNumero(e.target.value)}
+                                        className="h-7 text-sm w-28"
+                                        autoFocus
+                                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirmEditNr(cargo.id, nr.id); } if (e.key === "Escape") setEditingNrId(null); }}
+                                      />
+                                      <Input
+                                        value={editingNrDescricao}
+                                        onChange={(e) => setEditingNrDescricao(e.target.value)}
+                                        className="h-7 text-sm flex-1"
+                                        placeholder="Descrição"
+                                      />
+                                      <Button type="button" variant="ghost" size="sm" onClick={() => confirmEditNr(cargo.id, nr.id)} className="h-7 w-7 p-0 text-emerald-600">
+                                        <Check className="h-3.5 w-3.5" />
+                                      </Button>
+                                      <Button type="button" variant="ghost" size="sm" onClick={() => setEditingNrId(null)} className="h-7 w-7 p-0">
+                                        <X className="h-3.5 w-3.5" />
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <>
+                                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                                        <Badge variant="default" className="text-[10px] shrink-0">{nr.numero}</Badge>
+                                        <span className="text-xs text-muted-foreground truncate">{nr.descricao || "—"}</span>
+                                      </div>
+                                      <div className="flex gap-1 shrink-0">
+                                        <Button type="button" variant="ghost" size="sm" onClick={() => startEditNr(nr)} className="h-7" title="Editar">
+                                          <Pencil className="h-3 w-3" />
+                                        </Button>
+                                        <Button type="button" variant="ghost" size="sm" onClick={() => deleteNr(cargo.id, nr.id)} className="text-destructive hover:text-destructive h-7">
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    </>
+                                  )}
                                 </div>
                               ))}
                             </div>
