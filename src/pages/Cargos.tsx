@@ -128,6 +128,44 @@ const Cargos = () => {
     return [...salarios].sort((a, b) => (b.dataBase || "").localeCompare(a.dataBase || ""))[0];
   };
 
+  const ACCEPTED_TYPES = ".docx,.doc,.pdf,.xlsx,.xls,.jpg,.jpeg,.png";
+  const MAX_ANEXOS = 3;
+
+  const handleUploadAnexo = async (cargoId: string, file: File) => {
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    if ((cargo.anexos || []).length >= MAX_ANEXOS) {
+      toast.error(`Máximo de ${MAX_ANEXOS} anexos por cargo.`);
+      return;
+    }
+    setUploading(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "";
+    const path = `${cargoId}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("cargo-anexos").upload(path, file);
+    if (error) {
+      toast.error("Erro ao enviar arquivo.");
+      setUploading(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("cargo-anexos").getPublicUrl(path);
+    const anexo: AnexoCargo = { id: crypto.randomUUID(), nome: file.name, url: urlData.publicUrl, tipo: ext };
+    updateCargo(cargoId, { anexos: [...(cargo.anexos || []), anexo] });
+    toast.success("Arquivo anexado!");
+    setUploading(false);
+  };
+
+  const handleDeleteAnexo = async (cargoId: string, anexo: AnexoCargo) => {
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    // Extract path from URL
+    const urlParts = anexo.url.split("/cargo-anexos/");
+    if (urlParts[1]) {
+      await supabase.storage.from("cargo-anexos").remove([urlParts[1]]);
+    }
+    updateCargo(cargoId, { anexos: (cargo.anexos || []).filter((a) => a.id !== anexo.id) });
+    toast.success("Anexo removido.");
+  };
+
   const filteredCargos = useMemo(() => {
     let result = cargos;
     if (search.trim()) {
