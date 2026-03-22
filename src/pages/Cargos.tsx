@@ -415,7 +415,7 @@ const Cargos = () => {
                       {/* Anexos */}
                       <div className="mt-4 ml-4 border-l-2 border-muted pl-4">
                         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                          Anexos ({(cargo.anexos || []).length}/{MAX_ANEXOS})
+                          Anexos ({`${(cargo.anexos || []).length}/${MAX_ANEXOS}`})
                         </h4>
                         {(cargo.anexos || []).length < MAX_ANEXOS && (
                           <div className="mb-3">
