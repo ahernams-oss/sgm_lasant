@@ -7,10 +7,17 @@ export interface InformacaoFinanceira {
   conta: string;
 }
 
+export interface Setor {
+  id: string;
+  descricao: string;
+  ativo: boolean;
+}
+
 export interface Pavimento {
   id: string;
   descricao: string;
   ativo: boolean;
+  setores: Setor[];
 }
 
 export interface LocalCliente {
