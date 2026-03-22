@@ -15,7 +15,10 @@ const Clientes = () => {
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
   const [search, setSearch] = useState("");
   const [locaisClienteId, setLocaisClienteId] = useState<string | null>(null);
-
+  const [contratosClienteId, setContratosClienteId] = useState<string | null>(null);
+  const emptyContrato = { numero: "", descricao: "", dataInicio: "", dataFim: "", bdi: "", valorBase: "", valorBase2: "", valorBase3: "", mesSco: "", anoSco: "" };
+  const [contratoForm, setContratoForm] = useState(emptyContrato);
+  const [editingContratoId, setEditingContratoId] = useState<string | null>(null);
   const handleSubmit = (data: FormData, id: string | null) => {
     if (!data.nome.trim()) {
       toast.error("Informe o nome do cliente.");
