@@ -14,6 +14,9 @@ export interface Cargo {
   nivel: string;
   dataBaseSalario: string; // legacy
   salarios: SalarioDataBase[];
+  missao: string;
+  responsabilidades: string;
+  perfilCompetencias: string;
 }
 
 interface CargosContextType {
