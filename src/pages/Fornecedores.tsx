@@ -33,6 +33,7 @@ const Fornecedores = () => {
     } else {
       addCliente(fullData);
       toast.success("Fornecedor cadastrado com sucesso!");
+    }
     resetForm();
   };
 
