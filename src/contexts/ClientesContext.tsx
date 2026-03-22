@@ -155,7 +155,7 @@ const migrateCliente = (c: any): Cliente => ({
   contato: c.contato || "",
   grupoWhatsapp: c.grupoWhatsapp || "",
   informacoesFinanceiras: c.informacoesFinanceiras || [],
-  locais: (c.locais || []).map((l: any) => ({ ...l, pavimentos: l.pavimentos || [] })),
+  locais: (c.locais || []).map((l: any) => ({ ...l, pavimentos: (l.pavimentos || []).map((p: any) => ({ ...p, setores: p.setores || [] })) })),
   locaisEntrega: c.locaisEntrega || [],
 });
 
