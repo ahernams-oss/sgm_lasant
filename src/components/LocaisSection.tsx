@@ -115,6 +115,30 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
     updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: (p.setores || []).map((s) => s.id === setorId ? { ...s, ativo: !s.ativo } : s) } : p));
   };
 
+  const startEditPavimento = (pav: Pavimento) => {
+    setEditingPavId(pav.id);
+    setEditingPavDesc(pav.descricao);
+  };
+
+  const confirmEditPavimento = (localId: string, pavId: string) => {
+    if (!editingPavDesc.trim()) { toast.error("Informe o nome do pavimento."); return; }
+    updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, descricao: editingPavDesc.trim() } : p));
+    setEditingPavId(null);
+    toast.success("Pavimento atualizado!");
+  };
+
+  const startEditSetor = (setor: Setor) => {
+    setEditingSetorId(setor.id);
+    setEditingSetorDesc(setor.descricao);
+  };
+
+  const confirmEditSetor = (localId: string, pavId: string, setorId: string) => {
+    if (!editingSetorDesc.trim()) { toast.error("Informe o nome do setor."); return; }
+    updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: (p.setores || []).map((s) => s.id === setorId ? { ...s, descricao: editingSetorDesc.trim() } : s) } : p));
+    setEditingSetorId(null);
+    toast.success("Setor atualizado!");
+  };
+
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const importSetores = (localId: string, pavId: string, file: File) => {
