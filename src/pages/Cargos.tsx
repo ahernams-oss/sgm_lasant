@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useCargos, type SalarioDataBase, type AnexoCargo, type NrCargo } from "@/contexts/CargosContext";
 import { supabase } from "@/integrations/supabase/client";
+import * as XLSX from "xlsx";
 import { Badge } from "@/components/ui/badge";
 
 const niveis = ["I", "II", "III", "IV", "V"] as const;
@@ -209,6 +210,48 @@ const Cargos = () => {
     });
     setEditingNrId(null);
     toast.success("NR atualizada!");
+  };
+
+  const nrFileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const importNrs = (cargoId: string, file: File) => {
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    const isExcel = /\.(xlsx?|xls)$/i.test(file.name);
+    const reader = new FileReader();
+
+    const processRows = (rows: string[][]) => {
+      const newNrs: NrCargo[] = [];
+      for (const row of rows) {
+        const numero = String(row[0] || "").trim();
+        if (!numero) continue;
+        const descricao = String(row[1] || "").trim();
+        newNrs.push({ id: crypto.randomUUID(), numero, descricao });
+      }
+      if (newNrs.length === 0) { toast.error("Nenhuma NR encontrada no arquivo."); return; }
+      updateCargo(cargoId, { nrs: [...(cargo.nrs || []), ...newNrs] });
+      toast.success(`${newNrs.length} NR(s) importada(s)!`);
+    };
+
+    if (isExcel) {
+      reader.onload = (e) => {
+        try {
+          const wb = XLSX.read(e.target?.result, { type: "array" });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const rows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+          processRows(rows);
+        } catch { toast.error("Erro ao ler o arquivo Excel."); }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        const lines = text.split(/\r?\n/).filter((l) => l.trim());
+        const rows = lines.map((l) => l.includes(";") ? l.split(";") : l.includes("\t") ? l.split("\t") : [l, ""]);
+        processRows(rows);
+      };
+      reader.readAsText(file);
+    }
   };
 
   const filteredCargos = useMemo(() => {
@@ -538,6 +581,25 @@ const Cargos = () => {
                             />
                             <Button type="button" size="sm" onClick={() => addNr(cargo.id)} className="gap-1 shrink-0 h-8 text-xs">
                               <Plus className="h-3 w-3" /> Adicionar
+                            </Button>
+                            <input
+                              type="file"
+                              accept=".txt,.xlsx,.xls"
+                              className="hidden"
+                              ref={(el) => { nrFileInputRefs.current[cargo.id] = el; }}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) importNrs(cargo.id, file);
+                                e.target.value = "";
+                              }}
+                            />
+                            <Button
+                              type="button" variant="outline" size="sm"
+                              onClick={() => nrFileInputRefs.current[cargo.id]?.click()}
+                              className="gap-1 shrink-0 h-8 text-xs"
+                              title="Importar NRs de arquivo TXT ou Excel (coluna 1: NR, coluna 2: descrição)"
+                            >
+                              <Upload className="h-3 w-3" /> Importar
                             </Button>
                           </div>
                           {(!cargo.nrs || cargo.nrs.length === 0) ? (
