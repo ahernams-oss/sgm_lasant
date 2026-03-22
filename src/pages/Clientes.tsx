@@ -20,6 +20,7 @@ const Clientes = () => {
     }
     const fullData = {
       ...data,
+      tipo: "Cliente" as const,
       informacoesFinanceiras: id ? (clientes.find(c => c.id === id)?.informacoesFinanceiras || []) : [],
       locais: id ? (clientes.find(c => c.id === id)?.locais || []) : [],
       locaisEntrega: id ? (clientes.find(c => c.id === id)?.locaisEntrega || []) : [],
