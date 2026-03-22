@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 
 const niveis = ["I", "II", "III", "IV", "V"] as const;
 
-const emptyForm = { nome: "", descricao: "", nivel: "" };
+const emptyForm = { nome: "", descricao: "", nivel: "", missao: "", responsabilidades: "", perfilCompetencias: "" };
 
 const Cargos = () => {
   const { cargos, addCargo, updateCargo, deleteCargo } = useCargos();
