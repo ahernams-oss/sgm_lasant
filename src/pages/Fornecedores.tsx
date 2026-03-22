@@ -158,6 +158,19 @@ const Fornecedores = () => {
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(fornecedor.id)} className="text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreVertical className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setLocaisClienteId(locaisClienteId === fornecedor.id ? null : fornecedor.id)}>
+                          <MapPin className="mr-2 h-4 w-4" />
+                          Locais
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               ))}
