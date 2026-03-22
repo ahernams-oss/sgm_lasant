@@ -4,7 +4,8 @@ import { Plus, Trash2, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { LocalCliente } from "@/contexts/ClientesContext";
+import type { LocalCliente, Pavimento } from "@/contexts/ClientesContext";
+import { Badge } from "@/components/ui/badge";
 
 const UF_OPTIONS = [
   "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA",
@@ -15,6 +16,7 @@ const emptyLocal: Omit<LocalCliente, "id"> = {
   descricao: "", cep: "", bairro: "", logradouro: "", numero: "", complemento: "",
   uf: "", cidade: "", latitude: "", longitude: "", areaTotal: "", areaConstruida: "",
   contato: "", telContato: "", relLinha1: "", relLinha2: "", relLinha3: "", relLinha4: "",
+  pavimentos: [],
 };
 
 interface LocaisSectionProps {
@@ -26,6 +28,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [newLocal, setNewLocal] = useState<Omit<LocalCliente, "id">>(emptyLocal);
+  const [novoPavimento, setNovoPavimento] = useState<Record<string, string>>({});
 
   const updateField = (field: keyof Omit<LocalCliente, "id">, value: string) =>
     setNewLocal((prev) => ({ ...prev, [field]: value }));
@@ -60,6 +63,26 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
 
   const handleUpdateLocal = (id: string, field: keyof Omit<LocalCliente, "id">, value: string) => {
     onChange(locais.map((l) => l.id === id ? { ...l, [field]: value } : l));
+  };
+
+  const addPavimento = (localId: string) => {
+    const desc = (novoPavimento[localId] || "").trim();
+    if (!desc) { toast.error("Informe o nome do pavimento."); return; }
+    const pav: Pavimento = { id: crypto.randomUUID(), descricao: desc, ativo: true };
+    onChange(locais.map((l) => l.id === localId ? { ...l, pavimentos: [...(l.pavimentos || []), pav] } : l));
+    setNovoPavimento((prev) => ({ ...prev, [localId]: "" }));
+    toast.success("Pavimento adicionado!");
+  };
+
+  const deletePavimento = (localId: string, pavId: string) => {
+    onChange(locais.map((l) => l.id === localId ? { ...l, pavimentos: (l.pavimentos || []).filter((p) => p.id !== pavId) } : l));
+    toast.success("Pavimento removido.");
+  };
+
+  const togglePavimento = (localId: string, pavId: string) => {
+    onChange(locais.map((l) => l.id === localId ? {
+      ...l, pavimentos: (l.pavimentos || []).map((p) => p.id === pavId ? { ...p, ativo: !p.ativo } : p)
+    } : l));
   };
 
   const renderFields = (
@@ -195,11 +218,62 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                 </Button>
               </div>
               {expandedId === local.id && (
-                renderFields(
-                  local,
-                  (field, value) => handleUpdateLocal(local.id, field, value),
-                  () => buscarCep(local.cep, (field, value) => handleUpdateLocal(local.id, field as keyof Omit<LocalCliente, "id">, value))
-                )
+                <>
+                  {renderFields(
+                    local,
+                    (field, value) => handleUpdateLocal(local.id, field, value),
+                    () => buscarCep(local.cep, (field, value) => handleUpdateLocal(local.id, field as keyof Omit<LocalCliente, "id">, value))
+                  )}
+
+                  {/* Pavimentos */}
+                  <div className="mt-6 border-t border-border pt-4">
+                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pavimentos</h4>
+                    
+                    <div className="flex gap-2 mb-3">
+                      <Input
+                        placeholder="Nome do pavimento (ex: Térreo, 1º Andar)"
+                        value={novoPavimento[local.id] || ""}
+                        onChange={(e) => setNovoPavimento((prev) => ({ ...prev, [local.id]: e.target.value }))}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addPavimento(local.id); } }}
+                        className="flex-1"
+                      />
+                      <Button type="button" size="sm" onClick={() => addPavimento(local.id)} className="gap-1 shrink-0">
+                        <Plus className="h-3.5 w-3.5" /> Adicionar
+                      </Button>
+                    </div>
+
+                    {(!local.pavimentos || local.pavimentos.length === 0) ? (
+                      <p className="text-xs text-muted-foreground text-center py-3">Nenhum pavimento cadastrado.</p>
+                    ) : (
+                      <div className="divide-y divide-border rounded-lg border border-border">
+                        {local.pavimentos.map((pav) => (
+                          <div key={pav.id} className="flex items-center justify-between px-3 py-2">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-sm ${pav.ativo ? "text-foreground" : "text-muted-foreground line-through"}`}>
+                                {pav.descricao}
+                              </span>
+                              <Badge variant={pav.ativo ? "default" : "secondary"} className="text-[10px]">
+                                {pav.ativo ? "Ativo" : "Inativo"}
+                              </Badge>
+                            </div>
+                            <div className="flex gap-1">
+                              <Button
+                                type="button" variant="ghost" size="sm"
+                                onClick={() => togglePavimento(local.id, pav.id)}
+                                className={pav.ativo ? "text-destructive hover:text-destructive text-xs" : "text-emerald-600 hover:text-emerald-700 text-xs"}
+                              >
+                                {pav.ativo ? "Desativar" : "Ativar"}
+                              </Button>
+                              <Button type="button" variant="ghost" size="sm" onClick={() => deletePavimento(local.id, pav.id)} className="text-destructive hover:text-destructive">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           ))}
