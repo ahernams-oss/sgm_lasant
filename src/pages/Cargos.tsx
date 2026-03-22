@@ -38,6 +38,13 @@ const Cargos = () => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // NRs state
+  const [novoNrNumero, setNovoNrNumero] = useState<Record<string, string>>({});
+  const [novoNrDescricao, setNovoNrDescricao] = useState<Record<string, string>>({});
+  const [editingNrId, setEditingNrId] = useState<string | null>(null);
+  const [editingNrNumero, setEditingNrNumero] = useState("");
+  const [editingNrDescricao, setEditingNrDescricao] = useState("");
+
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
