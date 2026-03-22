@@ -112,6 +112,13 @@ const Clientes = () => {
           tipoFixo="Cliente"
         />
 
+        {editingId && (
+          <LocaisSection
+            locais={clientes.find((c) => c.id === editingId)?.locais || []}
+            onChange={(locais) => updateCliente(editingId, { locais })}
+          />
+        )}
+
         <div className="section-card animate-fade-up" style={{ animationDelay: "160ms" }}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="section-title mb-0">Clientes Cadastrados</h2>
