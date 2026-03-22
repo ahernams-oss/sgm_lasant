@@ -9,6 +9,7 @@ export interface SalarioDataBase {
 export interface Cargo {
   id: string;
   nome: string;
+  cbo: string;
   descricao: string;
   salario: string; // legacy - kept for compat
   nivel: string;

@@ -68,6 +68,7 @@ const Cargos = () => {
       missao: cargo.missao || "",
       responsabilidades: cargo.responsabilidades || "",
       perfilCompetencias: cargo.perfilCompetencias || "",
+      cbo: cargo.cbo || "",
     });
   };
 
