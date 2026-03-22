@@ -212,6 +212,48 @@ const Cargos = () => {
     toast.success("NR atualizada!");
   };
 
+  const nrFileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const importNrs = (cargoId: string, file: File) => {
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    const isExcel = /\.(xlsx?|xls)$/i.test(file.name);
+    const reader = new FileReader();
+
+    const processRows = (rows: string[][]) => {
+      const newNrs: NrCargo[] = [];
+      for (const row of rows) {
+        const numero = String(row[0] || "").trim();
+        if (!numero) continue;
+        const descricao = String(row[1] || "").trim();
+        newNrs.push({ id: crypto.randomUUID(), numero, descricao });
+      }
+      if (newNrs.length === 0) { toast.error("Nenhuma NR encontrada no arquivo."); return; }
+      updateCargo(cargoId, { nrs: [...(cargo.nrs || []), ...newNrs] });
+      toast.success(`${newNrs.length} NR(s) importada(s)!`);
+    };
+
+    if (isExcel) {
+      reader.onload = (e) => {
+        try {
+          const wb = XLSX.read(e.target?.result, { type: "array" });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const rows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+          processRows(rows);
+        } catch { toast.error("Erro ao ler o arquivo Excel."); }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        const lines = text.split(/\r?\n/).filter((l) => l.trim());
+        const rows = lines.map((l) => l.includes(";") ? l.split(";") : l.includes("\t") ? l.split("\t") : [l, ""]);
+        processRows(rows);
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const filteredCargos = useMemo(() => {
     let result = cargos;
     if (search.trim()) {
