@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Briefcase, Plus, Trash2, Search } from "lucide-react";
+import { Briefcase, Plus, Trash2, Search, ChevronDown, ChevronUp, Pencil, Check, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,11 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCargos } from "@/contexts/CargosContext";
+import { useCargos, type SalarioDataBase } from "@/contexts/CargosContext";
+import { Badge } from "@/components/ui/badge";
 
 const niveis = ["I", "II", "III", "IV", "V"] as const;
 
-const emptyForm = { nome: "", descricao: "", salario: "", nivel: "", dataBaseSalario: "" };
+const emptyForm = { nome: "", descricao: "", nivel: "" };
 
 const Cargos = () => {
   const { cargos, addCargo, updateCargo, deleteCargo } = useCargos();
@@ -23,6 +24,16 @@ const Cargos = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterNivel, setFilterNivel] = useState<string>("todos");
+  const [expandedCargoId, setExpandedCargoId] = useState<string | null>(null);
+
+  // Salário form state
+  const [novoSalarioValor, setNovoSalarioValor] = useState<Record<string, string>>({});
+  const [novoSalarioData, setNovoSalarioData] = useState<Record<string, string>>({});
+
+  // Editing salário
+  const [editingSalarioId, setEditingSalarioId] = useState<string | null>(null);
+  const [editingSalarioValor, setEditingSalarioValor] = useState("");
+  const [editingSalarioData, setEditingSalarioData] = useState("");
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -42,7 +53,7 @@ const Cargos = () => {
       updateCargo(editingId, form);
       toast.success("Cargo atualizado com sucesso!");
     } else {
-      addCargo(form);
+      addCargo({ ...form, salario: "", dataBaseSalario: "", salarios: [] });
       toast.success("Cargo cadastrado com sucesso!");
     }
     resetForm();
@@ -53,9 +64,7 @@ const Cargos = () => {
     setForm({
       nome: cargo.nome,
       descricao: cargo.descricao,
-      salario: cargo.salario,
       nivel: cargo.nivel,
-      dataBaseSalario: cargo.dataBaseSalario || "",
     });
   };
 
@@ -63,6 +72,53 @@ const Cargos = () => {
     deleteCargo(id);
     toast.success("Cargo removido.");
     if (editingId === id) resetForm();
+  };
+
+  // Salários management
+  const addSalario = (cargoId: string) => {
+    const valor = (novoSalarioValor[cargoId] || "").trim();
+    const dataBase = (novoSalarioData[cargoId] || "").trim();
+    if (!valor) { toast.error("Informe o valor do salário."); return; }
+    if (!dataBase) { toast.error("Informe a data base."); return; }
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    const novo: SalarioDataBase = { id: crypto.randomUUID(), valor, dataBase };
+    updateCargo(cargoId, { salarios: [...(cargo.salarios || []), novo] });
+    setNovoSalarioValor((prev) => ({ ...prev, [cargoId]: "" }));
+    setNovoSalarioData((prev) => ({ ...prev, [cargoId]: "" }));
+    toast.success("Salário adicionado!");
+  };
+
+  const deleteSalario = (cargoId: string, salarioId: string) => {
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    updateCargo(cargoId, { salarios: cargo.salarios.filter((s) => s.id !== salarioId) });
+    toast.success("Salário removido.");
+  };
+
+  const startEditSalario = (sal: SalarioDataBase) => {
+    setEditingSalarioId(sal.id);
+    setEditingSalarioValor(sal.valor);
+    setEditingSalarioData(sal.dataBase);
+  };
+
+  const confirmEditSalario = (cargoId: string, salarioId: string) => {
+    if (!editingSalarioValor.trim()) { toast.error("Informe o valor."); return; }
+    if (!editingSalarioData.trim()) { toast.error("Informe a data base."); return; }
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    updateCargo(cargoId, {
+      salarios: cargo.salarios.map((s) =>
+        s.id === salarioId ? { ...s, valor: editingSalarioValor.trim(), dataBase: editingSalarioData.trim() } : s
+      ),
+    });
+    setEditingSalarioId(null);
+    toast.success("Salário atualizado!");
+  };
+
+  const getSalarioAtual = (salarios: SalarioDataBase[]) => {
+    if (!salarios || salarios.length === 0) return null;
+    return [...salarios].sort((a, b) => (b.dataBase || "").localeCompare(a.dataBase || ""))[0];
   };
 
   const filteredCargos = useMemo(() => {
@@ -73,7 +129,7 @@ const Cargos = () => {
         (c) =>
           c.nome.toLowerCase().includes(term) ||
           c.descricao.toLowerCase().includes(term) ||
-          c.salario.toLowerCase().includes(term)
+          c.salarios?.some((s) => s.valor.toLowerCase().includes(term))
       );
     }
     if (filterNivel !== "todos") {
@@ -120,19 +176,14 @@ const Cargos = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <label className="field-label">Salário (R$)</label>
-              <Input placeholder="Ex: 2.511,98" value={form.salario} onChange={(e) => update("salario", e.target.value)} />
-            </div>
-            <div>
-              <label className="field-label">Data Base do Salário</label>
-              <Input type="date" value={form.dataBaseSalario} onChange={(e) => update("dataBaseSalario", e.target.value)} />
-            </div>
             <div className="md:col-span-2">
               <label className="field-label">Descrição</label>
               <Textarea placeholder="Breve descrição do cargo" value={form.descricao} onChange={(e) => update("descricao", e.target.value)} rows={2} className="min-h-[40px]" />
             </div>
           </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            💡 Os salários são gerenciados na listagem abaixo, vinculados à data base.
+          </p>
           <div className="flex gap-2 mt-4">
             <Button type="submit" className="gap-2">
               <Plus className="h-4 w-4" />
@@ -171,43 +222,138 @@ const Cargos = () => {
             </p>
           ) : (
             <div className="divide-y divide-border">
-              {filteredCargos.map((cargo) => (
-                <div key={cargo.id} className="flex items-center justify-between py-3 gap-4">
-                  <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-5 gap-x-4 gap-y-1">
-                    <p className="text-sm font-medium text-foreground truncate">{cargo.nome}</p>
-                    <div>
-                      {cargo.nivel && (
-                        <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                          Nível {cargo.nivel}
-                        </span>
-                      )}
+              {filteredCargos.map((cargo) => {
+                const salarioAtual = getSalarioAtual(cargo.salarios);
+                return (
+                  <div key={cargo.id} className="py-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
+                        <p className="text-sm font-medium text-foreground truncate">{cargo.nome}</p>
+                        <div>
+                          {cargo.nivel && (
+                            <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                              Nível {cargo.nivel}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          {salarioAtual ? (
+                            <p className="text-sm text-muted-foreground tabular-nums">R$ {salarioAtual.valor}</p>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">—</p>
+                          )}
+                        </div>
+                        <div>
+                          {salarioAtual?.dataBase ? (
+                            <p className="text-xs text-muted-foreground">
+                              Base: {new Date(salarioAtual.dataBase + "T00:00:00").toLocaleDateString("pt-BR")}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">—</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <Button
+                          variant="ghost" size="sm"
+                          onClick={() => setExpandedCargoId(expandedCargoId === cargo.id ? null : cargo.id)}
+                          title="Histórico de salários"
+                          className="text-xs gap-1"
+                        >
+                          {expandedCargoId === cargo.id ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                          Salários
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(cargo)} className="text-xs">Editar</Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(cargo.id)} className="text-destructive hover:text-destructive">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
-                    <div>
-                      {cargo.salario && (
-                        <p className="text-sm text-muted-foreground tabular-nums">R$ {cargo.salario}</p>
-                      )}
-                    </div>
-                    <div>
-                      {cargo.dataBaseSalario && (
-                        <p className="text-xs text-muted-foreground">
-                          Base: {new Date(cargo.dataBaseSalario + "T00:00:00").toLocaleDateString("pt-BR")}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      {cargo.descricao && (
-                        <p className="text-xs text-muted-foreground truncate">{cargo.descricao}</p>
-                      )}
-                    </div>
+
+                    {/* Salários expandidos */}
+                    {expandedCargoId === cargo.id && (
+                      <div className="mt-3 ml-4 border-l-2 border-muted pl-4">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                          Histórico de Salários
+                        </h4>
+                        <div className="flex gap-2 mb-3">
+                          <Input
+                            placeholder="Valor (ex: 2.511,98)"
+                            value={novoSalarioValor[cargo.id] || ""}
+                            onChange={(e) => setNovoSalarioValor((prev) => ({ ...prev, [cargo.id]: e.target.value }))}
+                            className="flex-1 h-8 text-sm"
+                          />
+                          <Input
+                            type="date"
+                            value={novoSalarioData[cargo.id] || ""}
+                            onChange={(e) => setNovoSalarioData((prev) => ({ ...prev, [cargo.id]: e.target.value }))}
+                            className="w-40 h-8 text-sm"
+                          />
+                          <Button type="button" size="sm" onClick={() => addSalario(cargo.id)} className="gap-1 shrink-0 h-8 text-xs">
+                            <Plus className="h-3 w-3" /> Adicionar
+                          </Button>
+                        </div>
+
+                        {(!cargo.salarios || cargo.salarios.length === 0) ? (
+                          <p className="text-xs text-muted-foreground text-center py-3">Nenhum salário cadastrado.</p>
+                        ) : (
+                          <div className="divide-y divide-border rounded border border-border">
+                            {[...cargo.salarios].sort((a, b) => (b.dataBase || "").localeCompare(a.dataBase || "")).map((sal) => (
+                              <div key={sal.id} className="flex items-center justify-between px-3 py-2">
+                                {editingSalarioId === sal.id ? (
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <Input
+                                      value={editingSalarioValor}
+                                      onChange={(e) => setEditingSalarioValor(e.target.value)}
+                                      className="h-7 text-sm flex-1"
+                                      autoFocus
+                                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirmEditSalario(cargo.id, sal.id); } if (e.key === "Escape") setEditingSalarioId(null); }}
+                                    />
+                                    <Input
+                                      type="date"
+                                      value={editingSalarioData}
+                                      onChange={(e) => setEditingSalarioData(e.target.value)}
+                                      className="h-7 text-sm w-40"
+                                    />
+                                    <Button type="button" variant="ghost" size="sm" onClick={() => confirmEditSalario(cargo.id, sal.id)} className="h-7 w-7 p-0 text-emerald-600">
+                                      <Check className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button type="button" variant="ghost" size="sm" onClick={() => setEditingSalarioId(null)} className="h-7 w-7 p-0">
+                                      <X className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="flex items-center gap-3">
+                                      <span className="text-sm font-medium tabular-nums">R$ {sal.valor}</span>
+                                      {sal.dataBase && (
+                                        <Badge variant="outline" className="text-[10px]">
+                                          {new Date(sal.dataBase + "T00:00:00").toLocaleDateString("pt-BR")}
+                                        </Badge>
+                                      )}
+                                      {sal.id === getSalarioAtual(cargo.salarios)?.id && (
+                                        <Badge variant="default" className="text-[9px]">Atual</Badge>
+                                      )}
+                                    </div>
+                                    <div className="flex gap-1">
+                                      <Button type="button" variant="ghost" size="sm" onClick={() => startEditSalario(sal)} className="h-7" title="Editar">
+                                        <Pencil className="h-3 w-3" />
+                                      </Button>
+                                      <Button type="button" variant="ghost" size="sm" onClick={() => deleteSalario(cargo.id, sal.id)} className="text-destructive hover:text-destructive h-7">
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex gap-1 shrink-0">
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(cargo)} className="text-xs">Editar</Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(cargo.id)} className="text-destructive hover:text-destructive">
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
