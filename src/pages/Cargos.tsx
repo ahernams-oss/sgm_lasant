@@ -56,7 +56,7 @@ const Cargos = () => {
       updateCargo(editingId, form);
       toast.success("Cargo atualizado com sucesso!");
     } else {
-      addCargo({ ...form, salario: "", dataBaseSalario: "", salarios: [], anexos: [] });
+      addCargo({ ...form, salario: "", dataBaseSalario: "", salarios: [], anexos: [], nrs: [] });
       toast.success("Cargo cadastrado com sucesso!");
     }
     resetForm();
