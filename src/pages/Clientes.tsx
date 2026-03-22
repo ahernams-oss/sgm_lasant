@@ -114,10 +114,10 @@ const Clientes = () => {
           tipoFixo="Cliente"
         />
 
-        {editingId && (
+        {locaisClienteId && (
           <LocaisSection
-            locais={clientes.find((c) => c.id === editingId)?.locais || []}
-            onChange={(locais) => updateCliente(editingId, { locais })}
+            locais={clientes.find((c) => c.id === locaisClienteId)?.locais || []}
+            onChange={(locais) => updateCliente(locaisClienteId, { locais })}
           />
         )}
 
