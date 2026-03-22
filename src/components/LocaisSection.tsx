@@ -218,11 +218,62 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                 </Button>
               </div>
               {expandedId === local.id && (
-                renderFields(
-                  local,
-                  (field, value) => handleUpdateLocal(local.id, field, value),
-                  () => buscarCep(local.cep, (field, value) => handleUpdateLocal(local.id, field as keyof Omit<LocalCliente, "id">, value))
-                )
+                <>
+                  {renderFields(
+                    local,
+                    (field, value) => handleUpdateLocal(local.id, field, value),
+                    () => buscarCep(local.cep, (field, value) => handleUpdateLocal(local.id, field as keyof Omit<LocalCliente, "id">, value))
+                  )}
+
+                  {/* Pavimentos */}
+                  <div className="mt-6 border-t border-border pt-4">
+                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pavimentos</h4>
+                    
+                    <div className="flex gap-2 mb-3">
+                      <Input
+                        placeholder="Nome do pavimento (ex: Térreo, 1º Andar)"
+                        value={novoPavimento[local.id] || ""}
+                        onChange={(e) => setNovoPavimento((prev) => ({ ...prev, [local.id]: e.target.value }))}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addPavimento(local.id); } }}
+                        className="flex-1"
+                      />
+                      <Button type="button" size="sm" onClick={() => addPavimento(local.id)} className="gap-1 shrink-0">
+                        <Plus className="h-3.5 w-3.5" /> Adicionar
+                      </Button>
+                    </div>
+
+                    {(!local.pavimentos || local.pavimentos.length === 0) ? (
+                      <p className="text-xs text-muted-foreground text-center py-3">Nenhum pavimento cadastrado.</p>
+                    ) : (
+                      <div className="divide-y divide-border rounded-lg border border-border">
+                        {local.pavimentos.map((pav) => (
+                          <div key={pav.id} className="flex items-center justify-between px-3 py-2">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-sm ${pav.ativo ? "text-foreground" : "text-muted-foreground line-through"}`}>
+                                {pav.descricao}
+                              </span>
+                              <Badge variant={pav.ativo ? "default" : "secondary"} className="text-[10px]">
+                                {pav.ativo ? "Ativo" : "Inativo"}
+                              </Badge>
+                            </div>
+                            <div className="flex gap-1">
+                              <Button
+                                type="button" variant="ghost" size="sm"
+                                onClick={() => togglePavimento(local.id, pav.id)}
+                                className={pav.ativo ? "text-destructive hover:text-destructive text-xs" : "text-emerald-600 hover:text-emerald-700 text-xs"}
+                              >
+                                {pav.ativo ? "Desativar" : "Ativar"}
+                              </Button>
+                              <Button type="button" variant="ghost" size="sm" onClick={() => deletePavimento(local.id, pav.id)} className="text-destructive hover:text-destructive">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           ))}
