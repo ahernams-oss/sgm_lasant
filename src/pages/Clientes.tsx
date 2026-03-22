@@ -14,6 +14,7 @@ const Clientes = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
   const [search, setSearch] = useState("");
+  const [locaisClienteId, setLocaisClienteId] = useState<string | null>(null);
 
   const handleSubmit = (data: FormData, id: string | null) => {
     if (!data.nome.trim()) {
