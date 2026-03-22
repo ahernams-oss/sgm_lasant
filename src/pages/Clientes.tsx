@@ -70,10 +70,12 @@ const Clientes = () => {
     }
   };
 
+  const apenasClientes = useMemo(() => clientes.filter((c) => c.tipo === "Cliente"), [clientes]);
+
   const filteredClientes = useMemo(() => {
-    if (!search.trim()) return clientes;
+    if (!search.trim()) return apenasClientes;
     const term = search.toLowerCase();
-    return clientes.filter(
+    return apenasClientes.filter(
       (c) =>
         c.nome.toLowerCase().includes(term) ||
         c.nomeFantasia?.toLowerCase().includes(term) ||
@@ -83,7 +85,7 @@ const Clientes = () => {
         c.cidade?.toLowerCase().includes(term) ||
         c.telefones.some((t) => t.toLowerCase().includes(term))
     );
-  }, [clientes, search]);
+  }, [apenasClientes, search]);
 
   return (
     <div className="bg-background">
