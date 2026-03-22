@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus, X } from "lucide-react";
@@ -50,6 +51,28 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
   const addTelefone = () => setForm((prev) => ({ ...prev, telefones: [...prev.telefones, ""] }));
   const removeTelefone = (index: number) =>
     setForm((prev) => ({ ...prev, telefones: prev.telefones.filter((_, i) => i !== index) }));
+
+  const buscarCep = useCallback(async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, "");
+    if (cleanCep.length !== 8) return;
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await res.json();
+      if (data.erro) {
+        toast.error("CEP não encontrado.");
+        return;
+      }
+      setForm((prev) => ({
+        ...prev,
+        logradouro: data.logradouro || prev.logradouro,
+        bairro: data.bairro || prev.bairro,
+        cidade: data.localidade || prev.cidade,
+        uf: data.uf || prev.uf,
+      }));
+    } catch {
+      toast.error("Erro ao buscar CEP.");
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,7 +150,7 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="field-label">CEP</label>
-          <Input placeholder="Ex: 01001-000" value={form.cep} onChange={(e) => update("cep", e.target.value)} />
+          <Input placeholder="Ex: 01001-000" value={form.cep} onChange={(e) => update("cep", e.target.value)} onBlur={(e) => buscarCep(e.target.value)} />
         </div>
         <div>
           <label className="field-label">Logradouro</label>
