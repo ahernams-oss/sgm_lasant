@@ -408,6 +408,8 @@ const Cargos = () => {
                                 )}
                               </div>
                             ))}
+                          </div>
+                        )}
                       </div>
 
                       {/* Anexos */}
@@ -468,8 +470,6 @@ const Cargos = () => {
                           </div>
                         )}
                       </div>
-                    )}
-                  </div>
                     )}
                   </div>
                 );
