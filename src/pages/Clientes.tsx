@@ -1,18 +1,20 @@
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Users, Trash2, Search, MessageCircle } from "lucide-react";
+import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClientes, type Cliente } from "@/contexts/ClientesContext";
 import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
 import LocaisSection from "@/components/LocaisSection";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const Clientes = () => {
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
   const [search, setSearch] = useState("");
+  const [locaisClienteId, setLocaisClienteId] = useState<string | null>(null);
 
   const handleSubmit = (data: FormData, id: string | null) => {
     if (!data.nome.trim()) {
@@ -112,10 +114,10 @@ const Clientes = () => {
           tipoFixo="Cliente"
         />
 
-        {editingId && (
+        {locaisClienteId && (
           <LocaisSection
-            locais={clientes.find((c) => c.id === editingId)?.locais || []}
-            onChange={(locais) => updateCliente(editingId, { locais })}
+            locais={clientes.find((c) => c.id === locaisClienteId)?.locais || []}
+            onChange={(locais) => updateCliente(locaisClienteId, { locais })}
           />
         )}
 
@@ -154,6 +156,19 @@ const Clientes = () => {
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(cliente.id)} className="text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreVertical className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setLocaisClienteId(locaisClienteId === cliente.id ? null : cliente.id)}>
+                          <MapPin className="mr-2 h-4 w-4" />
+                          Locais
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               ))}
