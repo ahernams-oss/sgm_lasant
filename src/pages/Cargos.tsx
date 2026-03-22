@@ -408,9 +408,68 @@ const Cargos = () => {
                                 )}
                               </div>
                             ))}
+                      </div>
+
+                      {/* Anexos */}
+                      <div className="mt-4 ml-4 border-l-2 border-muted pl-4">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                          Anexos ({(cargo.anexos || []).length}/{MAX_ANEXOS})
+                        </h4>
+                        {(cargo.anexos || []).length < MAX_ANEXOS && (
+                          <div className="mb-3">
+                            <input
+                              type="file"
+                              accept={ACCEPTED_TYPES}
+                              className="hidden"
+                              ref={(el) => { if (expandedCargoId === cargo.id) fileInputRef.current = el; }}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleUploadAnexo(cargo.id, file);
+                                e.target.value = "";
+                              }}
+                            />
+                            <Button
+                              type="button" variant="outline" size="sm"
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={uploading}
+                              className="gap-1 text-xs"
+                            >
+                              <Upload className="h-3 w-3" />
+                              {uploading ? "Enviando..." : "Anexar Documento"}
+                            </Button>
+                            <p className="text-[10px] text-muted-foreground mt-1">
+                              Word, PDF, Excel, JPG ou PNG
+                            </p>
+                          </div>
+                        )}
+                        {(!cargo.anexos || cargo.anexos.length === 0) ? (
+                          <p className="text-xs text-muted-foreground text-center py-2">Nenhum anexo.</p>
+                        ) : (
+                          <div className="divide-y divide-border rounded border border-border">
+                            {cargo.anexos.map((anexo) => (
+                              <div key={anexo.id} className="flex items-center justify-between px-3 py-2">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                  <span className="text-xs truncate">{anexo.nome}</span>
+                                  <Badge variant="outline" className="text-[9px] shrink-0">{anexo.tipo.toUpperCase()}</Badge>
+                                </div>
+                                <div className="flex gap-1 shrink-0">
+                                  <Button type="button" variant="ghost" size="sm" asChild className="h-7">
+                                    <a href={anexo.url} target="_blank" rel="noopener noreferrer" title="Abrir">
+                                      <ExternalLink className="h-3 w-3" />
+                                    </a>
+                                  </Button>
+                                  <Button type="button" variant="ghost" size="sm" onClick={() => handleDeleteAnexo(cargo.id, anexo)} className="text-destructive hover:text-destructive h-7">
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
+                    )}
+                  </div>
                     )}
                   </div>
                 );
