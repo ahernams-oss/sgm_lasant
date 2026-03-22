@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClientes, type Cliente } from "@/contexts/ClientesContext";
 import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
+import LocaisSection from "@/components/LocaisSection";
 
 const Clientes = () => {
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
