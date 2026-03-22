@@ -14,7 +14,7 @@ const UF_OPTIONS = [
 
 const ESFERA_OPTIONS = ["Federal", "Estadual", "Municipal", "Privada"];
 
-type FormData = Omit<Cliente, "id" | "informacoesFinanceiras" | "locais" | "locaisEntrega">;
+type FormData = Omit<Cliente, "id" | "informacoesFinanceiras" | "locais" | "locaisEntrega" | "contratos">;
 
 const emptyForm: FormData = {
   tipo: "Cliente", nome: "", nomeFantasia: "", cnpj: "", inscricaoEstadual: "",
