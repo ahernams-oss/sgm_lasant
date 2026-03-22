@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin } from "lucide-react";
+import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin, FileText, Plus } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useClientes, type Cliente } from "@/contexts/ClientesContext";
+import { useClientes, type Cliente, type Contrato } from "@/contexts/ClientesContext";
 import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
 import LocaisSection from "@/components/LocaisSection";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
