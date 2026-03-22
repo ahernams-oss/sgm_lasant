@@ -359,6 +359,25 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                   <Button type="button" size="sm" onClick={() => addSetor(local.id, pav.id)} className="gap-1 shrink-0 h-8 text-xs">
                                     <Plus className="h-3 w-3" /> Adicionar
                                   </Button>
+                                  <input
+                                    type="file"
+                                    accept=".txt,.xlsx,.xls"
+                                    className="hidden"
+                                    ref={(el) => { fileInputRefs.current[pav.id] = el; }}
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) importSetores(local.id, pav.id, file);
+                                      e.target.value = "";
+                                    }}
+                                  />
+                                  <Button
+                                    type="button" variant="outline" size="sm"
+                                    onClick={() => fileInputRefs.current[pav.id]?.click()}
+                                    className="gap-1 shrink-0 h-8 text-xs"
+                                    title="Importar setores de arquivo TXT ou Excel"
+                                  >
+                                    <Upload className="h-3 w-3" /> Importar
+                                  </Button>
                                 </div>
                                 {(!pav.setores || pav.setores.length === 0) ? (
                                   <p className="text-xs text-muted-foreground text-center py-2">Nenhum setor cadastrado.</p>
