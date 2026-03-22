@@ -164,8 +164,8 @@ const Cargos = () => {
           <h2 className="section-title">
             {editingId ? "Editar Cargo" : "Novo Cargo"}
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-3">
               <label className="field-label">Nome do Cargo</label>
               <Input placeholder="Ex: Eletricista de Alta" value={form.nome} onChange={(e) => update("nome", e.target.value)} />
             </div>
@@ -184,19 +184,19 @@ const Cargos = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-2">
+            <div className="md:col-span-4">
               <label className="field-label">Descrição</label>
               <Textarea placeholder="Breve descrição do cargo" value={form.descricao} onChange={(e) => update("descricao", e.target.value)} rows={2} className="min-h-[40px]" />
             </div>
-            <div className="md:col-span-2">
+            <div className="md:col-span-4">
               <label className="field-label">Missão do Cargo</label>
               <Textarea placeholder="Descreva a missão do cargo" value={form.missao} onChange={(e) => update("missao", e.target.value)} rows={3} className="min-h-[60px]" />
             </div>
-            <div className="md:col-span-2">
+            <div className="md:col-span-4">
               <label className="field-label">Responsabilidades do Cargo</label>
               <Textarea placeholder="Descreva as responsabilidades do cargo" value={form.responsabilidades} onChange={(e) => update("responsabilidades", e.target.value)} rows={4} className="min-h-[80px]" />
             </div>
-            <div className="md:col-span-2">
+            <div className="md:col-span-4">
               <label className="field-label">Perfil de Competências</label>
               <Textarea placeholder="Descreva o perfil de competências esperado" value={form.perfilCompetencias} onChange={(e) => update("perfilCompetencias", e.target.value)} rows={4} className="min-h-[80px]" />
             </div>
