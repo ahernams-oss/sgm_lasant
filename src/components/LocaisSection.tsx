@@ -300,9 +300,14 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                   {local.descricao}
                   {local.cidade && <span className="text-muted-foreground font-normal text-xs">— {local.cidade}/{local.uf}</span>}
                 </button>
-                <Button type="button" variant="ghost" size="sm" onClick={() => handleDelete(local.id)} className="text-destructive hover:text-destructive">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setExpandedId(expandedId === local.id ? null : local.id)} title="Editar local">
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => handleDelete(local.id)} className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
               {expandedId === local.id && (
                 <>
