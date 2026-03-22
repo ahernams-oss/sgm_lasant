@@ -1,0 +1,266 @@
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Plus, X } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import type { Cliente } from "@/contexts/ClientesContext";
+
+const UF_OPTIONS = [
+  "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA",
+  "PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO",
+];
+
+const ESFERA_OPTIONS = ["Federal", "Estadual", "Municipal", "Privada"];
+
+type FormData = Omit<Cliente, "id" | "informacoesFinanceiras" | "locais" | "locaisEntrega">;
+
+const emptyForm: FormData = {
+  tipo: "Cliente", nome: "", nomeFantasia: "", cnpj: "", inscricaoEstadual: "",
+  inscricaoMunicipal: "", esfera: "", descricao: "", email: "", emailEngenharia: "",
+  emailOsCc: "", emailOsBcc: "", emailSsCc: "", emailSsBcc: "", emailCompras: "",
+  telefones: [""], telefoneCelular: "", celulares: "", telefonesWhatsapp: "",
+  cep: "", bairro: "", logradouro: "", numero: "", complemento: "", uf: "", cidade: "",
+  endereco: "", dataInicioContrato: "", relLinha1: "", relLinha2: "", relLinha3: "",
+  relLinha4: "", contato: "", grupoWhatsapp: "",
+};
+
+interface ClienteFormProps {
+  editingId: string | null;
+  initialData?: FormData;
+  onSubmit: (data: FormData, editingId: string | null) => void;
+  onCancel: () => void;
+}
+
+export default function ClienteForm({ editingId, initialData, onSubmit, onCancel }: ClienteFormProps) {
+  const [form, setForm] = useState<FormData>(initialData || emptyForm);
+
+  const update = (field: keyof FormData, value: string) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
+
+  const telefones = form.telefones.length > 0 ? form.telefones : [""];
+
+  const updateTelefone = (index: number, value: string) => {
+    const updated = [...telefones];
+    updated[index] = value;
+    setForm((prev) => ({ ...prev, telefones: updated }));
+  };
+
+  const addTelefone = () => setForm((prev) => ({ ...prev, telefones: [...prev.telefones, ""] }));
+  const removeTelefone = (index: number) =>
+    setForm((prev) => ({ ...prev, telefones: prev.telefones.filter((_, i) => i !== index) }));
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({ ...form, telefones: form.telefones.filter((t) => t.trim() !== "") }, editingId);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="section-card animate-fade-up mb-6" style={{ animationDelay: "80ms" }}>
+      <h2 className="section-title">{editingId ? "Editar Cliente" : "Novo Cliente"}</h2>
+
+      {/* Tipo */}
+      <div className="mb-4">
+        <label className="field-label">Tipo</label>
+        <Select value={form.tipo} onValueChange={(v) => update("tipo", v)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Cliente">Cliente</SelectItem>
+            <SelectItem value="Fornecedor">Fornecedor</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Dados da Empresa */}
+      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 mt-6">Dados da Empresa</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="md:col-span-2">
+          <label className="field-label">Razão Social / Nome Empresa</label>
+          <Input placeholder="Ex: Construtora ABC Ltda" value={form.nome} onChange={(e) => update("nome", e.target.value)} />
+        </div>
+        <div className="md:col-span-2">
+          <label className="field-label">Nome Fantasia</label>
+          <Input placeholder="Nome Fantasia" value={form.nomeFantasia} onChange={(e) => update("nomeFantasia", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">CNPJ / CPF</label>
+          <Input placeholder="Ex: 12.345.678/0001-90" value={form.cnpj} onChange={(e) => update("cnpj", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Inscrição Estadual</label>
+          <Input placeholder="Inscrição Estadual" value={form.inscricaoEstadual} onChange={(e) => update("inscricaoEstadual", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Inscrição Municipal</label>
+          <Input placeholder="Inscrição Municipal" value={form.inscricaoMunicipal} onChange={(e) => update("inscricaoMunicipal", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Esfera</label>
+          <Select value={form.esfera} onValueChange={(v) => update("esfera", v)}>
+            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>
+              {ESFERA_OPTIONS.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="md:col-span-2">
+          <label className="field-label">Descrição</label>
+          <Textarea placeholder="Descrição do cliente" value={form.descricao} onChange={(e) => update("descricao", e.target.value)} rows={3} />
+        </div>
+        <div>
+          <label className="field-label">Pessoa de Contato</label>
+          <Input placeholder="Ex: Maria Silva" value={form.contato} onChange={(e) => update("contato", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Data de Início do Contrato</label>
+          <Input type="date" value={form.dataInicioContrato} onChange={(e) => update("dataInicioContrato", e.target.value)} />
+        </div>
+      </div>
+
+      {/* Endereço */}
+      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 mt-6">Endereço</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="field-label">CEP</label>
+          <Input placeholder="Ex: 01001-000" value={form.cep} onChange={(e) => update("cep", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Logradouro</label>
+          <Input placeholder="Rua, Av, etc." value={form.logradouro} onChange={(e) => update("logradouro", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Nº</label>
+          <Input placeholder="Nº" value={form.numero} onChange={(e) => update("numero", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Complemento</label>
+          <Input placeholder="Sala, Andar, etc." value={form.complemento} onChange={(e) => update("complemento", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Bairro</label>
+          <Input placeholder="Bairro" value={form.bairro} onChange={(e) => update("bairro", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Cidade</label>
+          <Input placeholder="Cidade" value={form.cidade} onChange={(e) => update("cidade", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">UF</label>
+          <Select value={form.uf} onValueChange={(v) => update("uf", v)}>
+            <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+            <SelectContent>
+              {UF_OPTIONS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Telefones */}
+      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 mt-6">Telefones</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="md:col-span-2">
+          <label className="field-label">Telefones Fixos</label>
+          <div className="space-y-2">
+            {telefones.map((tel, idx) => (
+              <div key={idx} className="flex gap-2 items-center">
+                <Input placeholder="Ex: (11) 3333-4444" value={tel} onChange={(e) => updateTelefone(idx, e.target.value)} />
+                {telefones.length > 1 && (
+                  <Button type="button" variant="ghost" size="icon" onClick={() => removeTelefone(idx)} className="shrink-0 text-destructive hover:text-destructive">
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button type="button" variant="outline" size="sm" onClick={addTelefone} className="gap-1">
+              <Plus className="h-3 w-3" /> Adicionar telefone
+            </Button>
+          </div>
+        </div>
+        <div>
+          <label className="field-label">Telefone Celular</label>
+          <Input placeholder="Ex: (11) 99999-0000" value={form.telefoneCelular} onChange={(e) => update("telefoneCelular", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Celulares (outros)</label>
+          <Input placeholder="Celulares adicionais" value={form.celulares} onChange={(e) => update("celulares", e.target.value)} />
+        </div>
+        <div className="md:col-span-2">
+          <label className="field-label">Telefones WhatsApp</label>
+          <Input placeholder="Formato: DD999999999,DD999999999" value={form.telefonesWhatsapp} onChange={(e) => update("telefonesWhatsapp", e.target.value)} />
+        </div>
+        <div className="md:col-span-2">
+          <label className="field-label">Código do Grupo de WhatsApp</label>
+          <Input placeholder="Ex: https://chat.whatsapp.com/AbCdEfGhIjK" value={form.grupoWhatsapp} onChange={(e) => update("grupoWhatsapp", e.target.value)} />
+        </div>
+      </div>
+
+      {/* E-mails */}
+      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 mt-6">E-mails</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="field-label">E-mail Principal</label>
+          <Input type="email" placeholder="contato@empresa.com" value={form.email} onChange={(e) => update("email", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">E-mail Engenharia</label>
+          <Input type="email" placeholder="engenharia@empresa.com" value={form.emailEngenharia} onChange={(e) => update("emailEngenharia", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">E-mail OS CC</label>
+          <Input type="email" placeholder="os-cc@empresa.com" value={form.emailOsCc} onChange={(e) => update("emailOsCc", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">E-mail OS BCC</label>
+          <Input type="email" placeholder="os-bcc@empresa.com" value={form.emailOsBcc} onChange={(e) => update("emailOsBcc", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">E-mail SS CC</label>
+          <Input type="email" placeholder="ss-cc@empresa.com" value={form.emailSsCc} onChange={(e) => update("emailSsCc", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">E-mail SS BCC</label>
+          <Input type="email" placeholder="ss-bcc@empresa.com" value={form.emailSsBcc} onChange={(e) => update("emailSsBcc", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">E-mail Compras</label>
+          <Input type="email" placeholder="compras@empresa.com" value={form.emailCompras} onChange={(e) => update("emailCompras", e.target.value)} />
+        </div>
+      </div>
+
+      {/* Impressão OS */}
+      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 mt-6">Impressão de OS - Cabeçalho</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="field-label">Linha 1</label>
+          <Input value={form.relLinha1} onChange={(e) => update("relLinha1", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Linha 2</label>
+          <Input value={form.relLinha2} onChange={(e) => update("relLinha2", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Linha 3</label>
+          <Input value={form.relLinha3} onChange={(e) => update("relLinha3", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Linha 4</label>
+          <Input value={form.relLinha4} onChange={(e) => update("relLinha4", e.target.value)} />
+        </div>
+      </div>
+
+      {/* Buttons */}
+      <div className="flex gap-2 mt-6">
+        <Button type="submit" className="gap-2">
+          <Plus className="h-4 w-4" />
+          {editingId ? "Salvar Alterações" : "Adicionar Cliente"}
+        </Button>
+        {editingId && (
+          <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
+        )}
+      </div>
+    </form>
+  );
+}
+
+export { emptyForm };
+export type { FormData };
