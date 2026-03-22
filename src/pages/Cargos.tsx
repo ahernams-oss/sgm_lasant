@@ -173,6 +173,44 @@ const Cargos = () => {
     toast.success("Anexo removido.");
   };
 
+  // NRs management
+  const addNr = (cargoId: string) => {
+    const numero = (novoNrNumero[cargoId] || "").trim();
+    const descricao = (novoNrDescricao[cargoId] || "").trim();
+    if (!numero) { toast.error("Informe o número da NR."); return; }
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    const nr: NrCargo = { id: crypto.randomUUID(), numero, descricao };
+    updateCargo(cargoId, { nrs: [...(cargo.nrs || []), nr] });
+    setNovoNrNumero((prev) => ({ ...prev, [cargoId]: "" }));
+    setNovoNrDescricao((prev) => ({ ...prev, [cargoId]: "" }));
+    toast.success("NR adicionada!");
+  };
+
+  const deleteNr = (cargoId: string, nrId: string) => {
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    updateCargo(cargoId, { nrs: (cargo.nrs || []).filter((n) => n.id !== nrId) });
+    toast.success("NR removida.");
+  };
+
+  const startEditNr = (nr: NrCargo) => {
+    setEditingNrId(nr.id);
+    setEditingNrNumero(nr.numero);
+    setEditingNrDescricao(nr.descricao);
+  };
+
+  const confirmEditNr = (cargoId: string, nrId: string) => {
+    if (!editingNrNumero.trim()) { toast.error("Informe o número da NR."); return; }
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    updateCargo(cargoId, {
+      nrs: (cargo.nrs || []).map((n) => n.id === nrId ? { ...n, numero: editingNrNumero.trim(), descricao: editingNrDescricao.trim() } : n),
+    });
+    setEditingNrId(null);
+    toast.success("NR atualizada!");
+  };
+
   const filteredCargos = useMemo(() => {
     let result = cargos;
     if (search.trim()) {
