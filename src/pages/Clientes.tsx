@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin } from "lucide-react";
+import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin, FileText, Plus } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useClientes, type Cliente } from "@/contexts/ClientesContext";
+import { useClientes, type Cliente, type Contrato } from "@/contexts/ClientesContext";
 import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
 import LocaisSection from "@/components/LocaisSection";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -15,7 +15,10 @@ const Clientes = () => {
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
   const [search, setSearch] = useState("");
   const [locaisClienteId, setLocaisClienteId] = useState<string | null>(null);
-
+  const [contratosClienteId, setContratosClienteId] = useState<string | null>(null);
+  const emptyContrato = { numero: "", descricao: "", dataInicio: "", dataFim: "", bdi: "", valorBase: "", valorBase2: "", valorBase3: "", mesSco: "", anoSco: "" };
+  const [contratoForm, setContratoForm] = useState(emptyContrato);
+  const [editingContratoId, setEditingContratoId] = useState<string | null>(null);
   const handleSubmit = (data: FormData, id: string | null) => {
     if (!data.nome.trim()) {
       toast.error("Informe o nome do cliente.");
@@ -27,6 +30,7 @@ const Clientes = () => {
       informacoesFinanceiras: id ? (clientes.find(c => c.id === id)?.informacoesFinanceiras || []) : [],
       locais: id ? (clientes.find(c => c.id === id)?.locais || []) : [],
       locaisEntrega: id ? (clientes.find(c => c.id === id)?.locaisEntrega || []) : [],
+      contratos: id ? (clientes.find(c => c.id === id)?.contratos || []) : [],
     };
     if (id) {
       updateCliente(id, fullData);
@@ -156,12 +160,20 @@ const Clientes = () => {
                           <MoreVertical className="h-3.5 w-3.5" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setLocaisClienteId(locaisClienteId === cliente.id ? null : cliente.id)}>
-                          <MapPin className="mr-2 h-4 w-4" />
-                          Locais
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setLocaisClienteId(locaisClienteId === cliente.id ? null : cliente.id)}>
+                            <MapPin className="mr-2 h-4 w-4" />
+                            Locais
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            setContratosClienteId(contratosClienteId === cliente.id ? null : cliente.id);
+                            setContratoForm(emptyContrato);
+                            setEditingContratoId(null);
+                          }}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Contratos
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 </div>
@@ -175,7 +187,99 @@ const Clientes = () => {
             locais={clientes.find((c) => c.id === locaisClienteId)?.locais || []}
             onChange={(locais) => updateCliente(locaisClienteId, { locais })}
           />
-        )}
+         )}
+
+        {contratosClienteId && (() => {
+          const cliente = clientes.find(c => c.id === contratosClienteId);
+          if (!cliente) return null;
+          const contratos = cliente.contratos || [];
+
+          const handleSaveContrato = () => {
+            if (!contratoForm.numero.trim()) { toast.error("Informe o número do contrato."); return; }
+            if (editingContratoId) {
+              const updated = contratos.map(ct => ct.id === editingContratoId ? { ...ct, ...contratoForm } : ct);
+              updateCliente(contratosClienteId, { contratos: updated });
+              toast.success("Contrato atualizado!");
+            } else {
+              const novo: Contrato = { id: crypto.randomUUID(), ...contratoForm };
+              updateCliente(contratosClienteId, { contratos: [...contratos, novo] });
+              toast.success("Contrato adicionado!");
+            }
+            setContratoForm(emptyContrato);
+            setEditingContratoId(null);
+          };
+
+          const handleEditContrato = (ct: Contrato) => {
+            setEditingContratoId(ct.id);
+            const { id, ...rest } = ct;
+            setContratoForm(rest);
+          };
+
+          const handleDeleteContrato = (ctId: string) => {
+            updateCliente(contratosClienteId, { contratos: contratos.filter(ct => ct.id !== ctId) });
+            toast.success("Contrato removido.");
+            if (editingContratoId === ctId) { setContratoForm(emptyContrato); setEditingContratoId(null); }
+          };
+
+          return (
+            <div className="section-card animate-fade-up mt-6">
+              <h2 className="section-title mb-4">Contratos — {cliente.nome}</h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                <Input placeholder="Número *" value={contratoForm.numero} onChange={e => setContratoForm(p => ({ ...p, numero: e.target.value }))} />
+                <Input placeholder="Descrição" value={contratoForm.descricao} onChange={e => setContratoForm(p => ({ ...p, descricao: e.target.value }))} className="sm:col-span-2" />
+                <Input type="date" placeholder="Data Início" value={contratoForm.dataInicio} onChange={e => setContratoForm(p => ({ ...p, dataInicio: e.target.value }))} />
+                <Input type="date" placeholder="Data Fim" value={contratoForm.dataFim} onChange={e => setContratoForm(p => ({ ...p, dataFim: e.target.value }))} />
+                <Input placeholder="BDI" value={contratoForm.bdi} onChange={e => setContratoForm(p => ({ ...p, bdi: e.target.value }))} />
+                <Input placeholder="Valor Base" value={contratoForm.valorBase} onChange={e => setContratoForm(p => ({ ...p, valorBase: e.target.value }))} />
+                <Input placeholder="Valor Base 2" value={contratoForm.valorBase2} onChange={e => setContratoForm(p => ({ ...p, valorBase2: e.target.value }))} />
+                <Input placeholder="Valor Base 3" value={contratoForm.valorBase3} onChange={e => setContratoForm(p => ({ ...p, valorBase3: e.target.value }))} />
+                <Input placeholder="Mês SCO" value={contratoForm.mesSco} onChange={e => setContratoForm(p => ({ ...p, mesSco: e.target.value }))} />
+                <Input placeholder="Ano SCO" value={contratoForm.anoSco} onChange={e => setContratoForm(p => ({ ...p, anoSco: e.target.value }))} />
+              </div>
+
+              <div className="flex gap-2 mb-4">
+                <Button size="sm" onClick={handleSaveContrato}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  {editingContratoId ? "Salvar Alterações" : "Adicionar Contrato"}
+                </Button>
+                {editingContratoId && (
+                  <Button size="sm" variant="outline" onClick={() => { setContratoForm(emptyContrato); setEditingContratoId(null); }}>
+                    Cancelar
+                  </Button>
+                )}
+              </div>
+
+              {contratos.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">Nenhum contrato cadastrado.</p>
+              ) : (
+                <div className="divide-y divide-border">
+                  {contratos.map(ct => (
+                    <div key={ct.id} className="py-3 flex items-start justify-between gap-4">
+                      <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-sm">
+                        <p className="font-medium text-foreground">{ct.numero}</p>
+                        <p className="text-muted-foreground truncate sm:col-span-2">{ct.descricao || "—"}</p>
+                        <p className="text-muted-foreground tabular-nums">
+                          {ct.dataInicio ? new Date(ct.dataInicio + "T00:00:00").toLocaleDateString("pt-BR") : "—"} a {ct.dataFim ? new Date(ct.dataFim + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
+                        </p>
+                        <p className="text-muted-foreground">BDI: {ct.bdi || "—"}</p>
+                        <p className="text-muted-foreground">Base: {ct.valorBase || "—"}</p>
+                        <p className="text-muted-foreground">Base 2: {ct.valorBase2 || "—"}</p>
+                        <p className="text-muted-foreground">Base 3: {ct.valorBase3 || "—"}</p>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditContrato(ct)} className="text-xs">Editar</Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteContrato(ct.id)} className="text-destructive hover:text-destructive">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

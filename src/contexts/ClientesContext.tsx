@@ -61,6 +61,20 @@ export interface LocalEntrega {
   relLinha4: string;
 }
 
+export interface Contrato {
+  id: string;
+  numero: string;
+  descricao: string;
+  dataInicio: string;
+  dataFim: string;
+  bdi: string;
+  valorBase: string;
+  valorBase2: string;
+  valorBase3: string;
+  mesSco: string;
+  anoSco: string;
+}
+
 export interface Cliente {
   id: string;
   tipo: "Cliente" | "Fornecedor";
@@ -107,6 +121,7 @@ export interface Cliente {
   informacoesFinanceiras: InformacaoFinanceira[];
   locais: LocalCliente[];
   locaisEntrega: LocalEntrega[];
+  contratos: Contrato[];
 }
 
 interface ClientesContextType {
@@ -157,6 +172,7 @@ const migrateCliente = (c: any): Cliente => ({
   informacoesFinanceiras: c.informacoesFinanceiras || [],
   locais: (c.locais || []).map((l: any) => ({ ...l, pavimentos: (l.pavimentos || []).map((p: any) => ({ ...p, setores: p.setores || [] })) })),
   locaisEntrega: c.locaisEntrega || [],
+  contratos: c.contratos || [],
 });
 
 export function ClientesProvider({ children }: { children: ReactNode }) {
