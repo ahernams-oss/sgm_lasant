@@ -33,6 +33,10 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
   const [novoPavimento, setNovoPavimento] = useState<Record<string, string>>({});
   const [novoSetor, setNovoSetor] = useState<Record<string, string>>({});
   const [expandedPavId, setExpandedPavId] = useState<string | null>(null);
+  const [editingPavId, setEditingPavId] = useState<string | null>(null);
+  const [editingPavDesc, setEditingPavDesc] = useState("");
+  const [editingSetorId, setEditingSetorId] = useState<string | null>(null);
+  const [editingSetorDesc, setEditingSetorDesc] = useState("");
 
   const updateField = (field: keyof Omit<LocalCliente, "id">, value: string) =>
     setNewLocal((prev) => ({ ...prev, [field]: value }));
