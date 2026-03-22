@@ -60,6 +60,7 @@ const migrateCargo = (c: any): Cargo => {
     missao: c.missao || "",
     responsabilidades: c.responsabilidades || "",
     perfilCompetencias: c.perfilCompetencias || "",
+    anexos: c.anexos || [],
   };
 };
 
