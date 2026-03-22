@@ -7,10 +7,17 @@ export interface InformacaoFinanceira {
   conta: string;
 }
 
+export interface Setor {
+  id: string;
+  descricao: string;
+  ativo: boolean;
+}
+
 export interface Pavimento {
   id: string;
   descricao: string;
   ativo: boolean;
+  setores: Setor[];
 }
 
 export interface LocalCliente {
@@ -148,7 +155,7 @@ const migrateCliente = (c: any): Cliente => ({
   contato: c.contato || "",
   grupoWhatsapp: c.grupoWhatsapp || "",
   informacoesFinanceiras: c.informacoesFinanceiras || [],
-  locais: (c.locais || []).map((l: any) => ({ ...l, pavimentos: l.pavimentos || [] })),
+  locais: (c.locais || []).map((l: any) => ({ ...l, pavimentos: (l.pavimentos || []).map((p: any) => ({ ...p, setores: p.setores || [] })) })),
   locaisEntrega: c.locaisEntrega || [],
 });
 
