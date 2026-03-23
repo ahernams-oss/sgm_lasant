@@ -119,20 +119,19 @@ export default function MateriaisServicosPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Código</TableHead>
+              <TableHead>Categoria</TableHead>
               <TableHead>Descrição</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Unidade</TableHead>
-              <TableHead>Categoria</TableHead>
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum item cadastrado</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum item cadastrado</TableCell></TableRow>
             ) : filtered.map(m => (
               <TableRow key={m.id}>
-                <TableCell className="font-mono">{m.codigo}</TableCell>
+                <TableCell>{catNome(m.categoriaId)}</TableCell>
                 <TableCell>{m.descricao}</TableCell>
                 <TableCell>{m.tipo}</TableCell>
                 <TableCell>{m.unidadeMedida}</TableCell>
