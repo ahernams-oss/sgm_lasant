@@ -19,7 +19,7 @@ export default function MateriaisServicosPage() {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ descricao: "", tipo: "Material" as "Material" | "Serviço", unidadeMedida: "UN", categoriaId: "" });
+  const [form, setForm] = useState({ codigo: "", descricao: "", tipo: "Material" as "Material" | "Serviço", unidadeMedida: "UN", categoriaId: "" });
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("Todos");
 
@@ -28,13 +28,13 @@ export default function MateriaisServicosPage() {
     if (filterTipo !== "Todos") list = list.filter(m => m.tipo === filterTipo);
     if (search) {
       const s = search.toLowerCase();
-      list = list.filter(m => m.descricao.toLowerCase().includes(s));
+      list = list.filter(m => m.codigo.toLowerCase().includes(s) || m.descricao.toLowerCase().includes(s));
     }
     return list;
   }, [materiais, search, filterTipo]);
 
-  const openNew = () => { setForm({ descricao: "", tipo: "Material", unidadeMedida: "UN", categoriaId: "" }); setEditingId(null); setDialogOpen(true); };
-  const openEdit = (m: MaterialServico) => { setForm({ descricao: m.descricao, tipo: m.tipo, unidadeMedida: m.unidadeMedida, categoriaId: m.categoriaId }); setEditingId(m.id); setDialogOpen(true); };
+  const openNew = () => { setForm({ codigo: "", descricao: "", tipo: "Material", unidadeMedida: "UN", categoriaId: "" }); setEditingId(null); setDialogOpen(true); };
+  const openEdit = (m: MaterialServico) => { setForm({ codigo: m.codigo, descricao: m.descricao, tipo: m.tipo, unidadeMedida: m.unidadeMedida, categoriaId: m.categoriaId }); setEditingId(m.id); setDialogOpen(true); };
 
   const handleSave = () => {
     if (!form.descricao.trim()) { toast({ title: "Descrição é obrigatória", variant: "destructive" }); return; }
@@ -59,8 +59,8 @@ export default function MateriaisServicosPage() {
         for (const line of lines) {
           const cols = line.split(/[;\t,]/).map(c => c.trim());
           if (cols[0]?.toLowerCase().includes("cod")) continue;
-          if (cols.length >= 1) {
-            addMaterial({ descricao: cols[0] || "", tipo: (cols[1] === "Serviço" ? "Serviço" : "Material"), unidadeMedida: cols[2] || "UN", categoriaId: cols[3] || "" });
+          if (cols.length >= 2) {
+            addMaterial({ codigo: cols[0] || "", descricao: cols[1] || "", tipo: (cols[2] === "Serviço" ? "Serviço" : "Material"), unidadeMedida: cols[3] || "UN", categoriaId: cols[4] || "" });
             count++;
           }
         }
@@ -76,8 +76,8 @@ export default function MateriaisServicosPage() {
         let count = 0;
         for (const row of rows) {
           if (String(row[0] || "").toLowerCase().includes("cod")) continue;
-          if (row.length >= 1) {
-            addMaterial({ descricao: String(row[0] || ""), tipo: (String(row[1] || "") === "Serviço" ? "Serviço" : "Material"), unidadeMedida: String(row[2] || "UN"), categoriaId: String(row[3] || "") });
+          if (row.length >= 2) {
+            addMaterial({ codigo: String(row[0] || ""), descricao: String(row[1] || ""), tipo: (String(row[2] || "") === "Serviço" ? "Serviço" : "Material"), unidadeMedida: String(row[3] || "UN"), categoriaId: String(row[4] || "") });
             count++;
           }
         }
@@ -119,22 +119,24 @@ export default function MateriaisServicosPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Categoria</TableHead>
+              <TableHead>Código</TableHead>
               <TableHead>Descrição</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Unidade</TableHead>
+              <TableHead>Categoria</TableHead>
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum item cadastrado</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum item cadastrado</TableCell></TableRow>
             ) : filtered.map(m => (
               <TableRow key={m.id}>
-                <TableCell>{catNome(m.categoriaId)}</TableCell>
+                <TableCell className="font-mono">{m.codigo}</TableCell>
                 <TableCell>{m.descricao}</TableCell>
                 <TableCell>{m.tipo}</TableCell>
                 <TableCell>{m.unidadeMedida}</TableCell>
+                <TableCell>{catNome(m.categoriaId)}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(m)}><Pencil className="h-4 w-4" /></Button>
@@ -151,14 +153,7 @@ export default function MateriaisServicosPage() {
         <DialogContent>
           <DialogHeader><DialogTitle>{editingId ? "Editar" : "Novo"} Material/Serviço</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div><Label>Categoria</Label>
-              <Select value={form.categoriaId} onValueChange={v => setForm(f => ({ ...f, categoriaId: v }))}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {classes.map(c => <SelectItem key={c.id} value={c.id}>{getDescricaoCompleta(c.id)}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            <div><Label>Código</Label><Input value={form.codigo} onChange={e => setForm(f => ({ ...f, codigo: e.target.value }))} /></div>
             <div><Label>Descrição *</Label><Input value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} /></div>
             <div><Label>Tipo</Label>
               <Select value={form.tipo} onValueChange={v => setForm(f => ({ ...f, tipo: v as any }))}>
@@ -170,6 +165,14 @@ export default function MateriaisServicosPage() {
               <Select value={form.unidadeMedida} onValueChange={v => setForm(f => ({ ...f, unidadeMedida: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{UNIDADES.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Categoria</Label>
+              <Select value={form.categoriaId} onValueChange={v => setForm(f => ({ ...f, categoriaId: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  {classes.map(c => <SelectItem key={c.id} value={c.id}>{getDescricaoCompleta(c.id)}</SelectItem>)}
+                </SelectContent>
               </Select>
             </div>
           </div>
