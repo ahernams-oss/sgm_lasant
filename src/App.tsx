@@ -23,7 +23,9 @@ import { FuncionariosProvider } from "@/contexts/FuncionariosContext";
 import { LancamentosProvider } from "@/contexts/LancamentosContext";
 import { UsuariosProvider } from "@/contexts/UsuariosContext";
 import { ProcessoSeletivoProvider } from "@/contexts/ProcessoSeletivoContext";
+import { ScoProvider } from "@/contexts/ScoContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import Sco from "./pages/Sco.tsx";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +44,7 @@ function AppRoutes() {
         <Route path="/usuarios" element={<Usuarios />} />
         <Route path="/processo-seletivo/:requisicaoId" element={<ProcessoSeletivo />} />
         <Route path="/processos-seletivos" element={<ProcessosSeletivos />} />
+        <Route path="/sco" element={<Sco />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -57,6 +60,7 @@ const App = () => (
     <UsuariosProvider>
     <RequisicaoProvider>
     <ProcessoSeletivoProvider>
+    <ScoProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
@@ -66,6 +70,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </ScoProvider>
     </ProcessoSeletivoProvider>
     </RequisicaoProvider>
     </UsuariosProvider>

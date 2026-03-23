@@ -1,4 +1,4 @@
-import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock } from "lucide-react";
+import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock, FileSpreadsheet } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import { NavLink } from "@/components/NavLink";
@@ -34,6 +34,7 @@ const menuItems = [
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "Fornecedores", url: "/fornecedores", icon: Truck },
       { title: "Cargos", url: "/cargos", icon: Briefcase },
+      { title: "SCO", url: "/sco", icon: FileSpreadsheet },
     ],
   },
 ];
