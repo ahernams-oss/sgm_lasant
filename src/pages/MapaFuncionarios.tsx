@@ -18,6 +18,7 @@ import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
 import { gerarPdfMapaFuncionarios } from "@/lib/gerarPdfMapa";
+import { exportarExcelMapa } from "@/lib/gerarExcelMapa";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
