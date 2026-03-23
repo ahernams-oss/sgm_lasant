@@ -110,15 +110,29 @@ const Clientes = () => {
           </p>
         </div>
 
-        <ClienteForm
-          key={editingId || "new"}
-          editingId={editingId}
-          initialData={editingData}
-          onSubmit={handleSubmit}
-          onCancel={resetForm}
-          tipoFixo="Cliente"
-        />
-
+        <div className="section-card animate-fade-up mb-6" style={{ animationDelay: "80ms" }}>
+          <button
+            type="button"
+            onClick={() => setFormOpen(!formOpen)}
+            className="flex items-center justify-between w-full"
+          >
+            <h2 className="section-title mb-0">{editingId ? "Editar Cliente" : "Novo Cliente"}</h2>
+            {formOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          </button>
+          {formOpen && (
+            <div className="mt-4">
+              <ClienteForm
+                key={editingId || "new"}
+                editingId={editingId}
+                initialData={editingData}
+                onSubmit={handleSubmit}
+                onCancel={resetForm}
+                tipoFixo="Cliente"
+                embedded
+              />
+            </div>
+          )}
+        </div>
 
         <div className="section-card animate-fade-up" style={{ animationDelay: "160ms" }}>
           <div className="flex items-center justify-between mb-4">
