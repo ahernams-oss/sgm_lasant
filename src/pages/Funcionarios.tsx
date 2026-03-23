@@ -34,22 +34,22 @@ const Field = ({ label, children, required }: { label: string; children: React.R
 );
 
 const PassagemTab = ({ passagens, onChange }: { passagens: PassagemDiaria[]; onChange: (p: PassagemDiaria[]) => void }) => {
-  const [novaPassagem, setNovaPassagem] = useState({ data: "", itinerario: "", valorPassagem: "", quantidade: 1 });
+  const [novaPassagem, setNovaPassagem] = useState({ tipoTransporte: "" as string, itinerario: "", valorPassagem: "", quantidade: 1 });
 
   const addPassagem = () => {
-    if (!novaPassagem.data || !novaPassagem.itinerario || !novaPassagem.valorPassagem) return;
+    if (!novaPassagem.tipoTransporte || !novaPassagem.itinerario || !novaPassagem.valorPassagem) return;
     const valor = parseFloat(novaPassagem.valorPassagem.replace(",", ".")) || 0;
     const total = valor * novaPassagem.quantidade;
     const nova: PassagemDiaria = {
       id: crypto.randomUUID(),
-      data: novaPassagem.data,
+      tipoTransporte: novaPassagem.tipoTransporte as any,
       itinerario: novaPassagem.itinerario,
       valorPassagem: novaPassagem.valorPassagem,
       quantidade: novaPassagem.quantidade,
       total,
     };
     onChange([...passagens, nova]);
-    setNovaPassagem({ data: "", itinerario: "", valorPassagem: "", quantidade: 1 });
+    setNovaPassagem({ tipoTransporte: "", itinerario: "", valorPassagem: "", quantidade: 1 });
   };
 
   const removePassagem = (id: string) => onChange(passagens.filter((p) => p.id !== id));
