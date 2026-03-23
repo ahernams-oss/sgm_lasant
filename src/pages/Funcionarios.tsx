@@ -13,7 +13,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria } from "@/contexts/FuncionariosContext";
+import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, tiposTransporte } from "@/contexts/FuncionariosContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
@@ -34,41 +34,49 @@ const Field = ({ label, children, required }: { label: string; children: React.R
 );
 
 const PassagemTab = ({ passagens, onChange }: { passagens: PassagemDiaria[]; onChange: (p: PassagemDiaria[]) => void }) => {
-  const [novaPassagem, setNovaPassagem] = useState({ data: "", itinerario: "", valorPassagem: "", quantidade: 1 });
+  const [novaPassagem, setNovaPassagem] = useState({ tipoTransporte: "" as string, itinerario: "", valorPassagem: "", quantidade: 1 });
 
   const addPassagem = () => {
-    if (!novaPassagem.data || !novaPassagem.itinerario || !novaPassagem.valorPassagem) return;
+    if (!novaPassagem.tipoTransporte || !novaPassagem.itinerario || !novaPassagem.valorPassagem) return;
     const valor = parseFloat(novaPassagem.valorPassagem.replace(",", ".")) || 0;
     const total = valor * novaPassagem.quantidade;
     const nova: PassagemDiaria = {
       id: crypto.randomUUID(),
-      data: novaPassagem.data,
+      tipoTransporte: novaPassagem.tipoTransporte as any,
       itinerario: novaPassagem.itinerario,
       valorPassagem: novaPassagem.valorPassagem,
       quantidade: novaPassagem.quantidade,
       total,
     };
     onChange([...passagens, nova]);
-    setNovaPassagem({ data: "", itinerario: "", valorPassagem: "", quantidade: 1 });
+    setNovaPassagem({ tipoTransporte: "", itinerario: "", valorPassagem: "", quantidade: 1 });
   };
 
   const removePassagem = (id: string) => onChange(passagens.filter((p) => p.id !== id));
 
   const totalGeral = passagens.reduce((acc, p) => acc + p.total, 0);
 
-  // Agrupar por data
-  const porData = passagens.reduce<Record<string, { passagens: PassagemDiaria[]; total: number }>>((acc, p) => {
-    if (!acc[p.data]) acc[p.data] = { passagens: [], total: 0 };
-    acc[p.data].passagens.push(p);
-    acc[p.data].total += p.total;
+  // Agrupar por tipo de transporte
+  const porTipo = passagens.reduce<Record<string, { passagens: PassagemDiaria[]; total: number }>>((acc, p) => {
+    const key = p.tipoTransporte || "Outros";
+    if (!acc[key]) acc[key] = { passagens: [], total: 0 };
+    acc[key].passagens.push(p);
+    acc[key].total += p.total;
     return acc;
   }, {});
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-        <Field label="Data">
-          <Input type="date" value={novaPassagem.data} onChange={(e) => setNovaPassagem((p) => ({ ...p, data: e.target.value }))} />
+        <Field label="Tipo de Transporte">
+          <Select value={novaPassagem.tipoTransporte} onValueChange={(v) => setNovaPassagem((p) => ({ ...p, tipoTransporte: v }))}>
+            <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+            <SelectContent>
+              {tiposTransporte.map((t) => (
+                <SelectItem key={t} value={t}>{t}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
         <Field label="Itinerário">
           <Input value={novaPassagem.itinerario} onChange={(e) => setNovaPassagem((p) => ({ ...p, itinerario: e.target.value }))} placeholder="Ex: Casa → Trabalho" />
@@ -89,7 +97,7 @@ const PassagemTab = ({ passagens, onChange }: { passagens: PassagemDiaria[]; onC
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Data</TableHead>
+                <TableHead>Tipo Transporte</TableHead>
                 <TableHead>Itinerário</TableHead>
                 <TableHead>Valor Unit.</TableHead>
                 <TableHead>Qtd</TableHead>
@@ -98,13 +106,13 @@ const PassagemTab = ({ passagens, onChange }: { passagens: PassagemDiaria[]; onC
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Object.entries(porData)
+              {Object.entries(porTipo)
                 .sort(([a], [b]) => a.localeCompare(b))
-                .map(([data, grupo]) => (
-                  <React.Fragment key={data}>
+                .map(([tipo, grupo]) => (
+                  <React.Fragment key={tipo}>
                     {grupo.passagens.map((p) => (
                       <TableRow key={p.id}>
-                        <TableCell>{new Date(p.data + "T00:00:00").toLocaleDateString("pt-BR")}</TableCell>
+                        <TableCell>{p.tipoTransporte}</TableCell>
                         <TableCell>{p.itinerario}</TableCell>
                         <TableCell>R$ {parseFloat(p.valorPassagem.replace(",", ".")).toFixed(2).replace(".", ",")}</TableCell>
                         <TableCell>{p.quantidade}</TableCell>
@@ -117,7 +125,7 @@ const PassagemTab = ({ passagens, onChange }: { passagens: PassagemDiaria[]; onC
                       </TableRow>
                     ))}
                     <TableRow className="bg-muted/30">
-                      <TableCell colSpan={4} className="text-xs font-semibold text-right">Subtotal do dia ({new Date(data + "T00:00:00").toLocaleDateString("pt-BR")}):</TableCell>
+                      <TableCell colSpan={4} className="text-xs font-semibold text-right">Subtotal ({tipo}):</TableCell>
                       <TableCell className="font-bold text-sm">R$ {grupo.total.toFixed(2).replace(".", ",")}</TableCell>
                       <TableCell />
                     </TableRow>
