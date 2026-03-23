@@ -53,6 +53,7 @@ const RequisicaoGrid = () => {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [editingReq, setEditingReq] = useState<Requisicao | null>(null);
+  const [historicoReq, setHistoricoReq] = useState<Requisicao | null>(null);
   const [editForm, setEditForm] = useState({
     unidade: "", cargoId: "", jornada: "", cargaHoraria: "",
     tipoContratacao: [] as string[], internoExterno: "", origemVaga: "", motivoOutros: "",
