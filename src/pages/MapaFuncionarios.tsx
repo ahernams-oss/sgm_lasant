@@ -114,6 +114,7 @@ const MapaFuncionarios = () => {
       setActiveTab("faltas");
       setTipoFalta(l.tipoFalta || "injustificada");
       setDiasFalta(String(l.diasFalta || 1));
+      setAnexos(l.anexos || []);
     } else {
       setActiveTab("horas_extras");
       setHorasExtras(String(l.horasExtras || ""));
