@@ -50,7 +50,7 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="overflow-hidden">
               <p className="text-[10px] text-muted-foreground truncate">
-                Sistema de RH
+                SGM
               </p>
             </div>
           )}
