@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 
 export interface MaterialServico {
   id: string;
-  codigo: string;
   descricao: string;
   tipo: "Material" | "Serviço";
   unidadeMedida: string;
