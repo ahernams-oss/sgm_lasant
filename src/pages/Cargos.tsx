@@ -356,6 +356,8 @@ const Cargos = () => {
             )}
           </div>
         </form>
+          )}
+        </div>
 
         <div className="section-card animate-fade-up" style={{ animationDelay: "160ms" }}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
