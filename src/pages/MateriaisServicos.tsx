@@ -15,7 +15,7 @@ const UNIDADES = ["UN", "M", "M²", "M³", "KG", "L", "CX", "PCT", "SC", "GL", "
 
 export default function MateriaisServicosPage() {
   const { materiais, addMaterial, updateMaterial, deleteMaterial } = useMateriaisServicos();
-  const { categorias } = useCategoriasCompras();
+  const { classes, getDescricaoCompleta } = useCategoriasCompras();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -87,7 +87,7 @@ export default function MateriaisServicosPage() {
     }
   };
 
-  const catNome = (id: string) => categorias.find(c => c.id === id)?.nome || "-";
+  const catNome = (id: string) => id ? getDescricaoCompleta(id) || "-" : "-";
 
   return (
     <div className="space-y-6">
@@ -171,7 +171,7 @@ export default function MateriaisServicosPage() {
               <Select value={form.categoriaId} onValueChange={v => setForm(f => ({ ...f, categoriaId: v }))}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  {categorias.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                  {classes.map(c => <SelectItem key={c.id} value={c.id}>{getDescricaoCompleta(c.id)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
