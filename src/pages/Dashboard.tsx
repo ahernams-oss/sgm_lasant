@@ -45,8 +45,12 @@ function parseDataCriacao(dateStr: string): Date | null {
 const Dashboard = () => {
   const { requisicoes } = useRequisicoes();
   const { clientes } = useClientes();
+  const { toast } = useToast();
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [showSendDialog, setShowSendDialog] = useState(false);
+  const [selectedPhones, setSelectedPhones] = useState<string[]>([]);
+  const [sending, setSending] = useState(false);
 
   const filteredReqs = useMemo(() => {
     if (!dateFrom && !dateTo) return requisicoes;
