@@ -51,6 +51,7 @@ const Fornecedores = () => {
     setEditingId(fornecedor.id);
     const { id, informacoesFinanceiras, locais, locaisEntrega, ...rest } = fornecedor;
     setEditingData(rest as FormData);
+    setFormOpen(true);
   };
 
   const handleDelete = (id: string) => {
