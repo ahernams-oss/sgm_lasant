@@ -545,6 +545,11 @@ const Funcionarios = () => {
                 <PassagemTab passagens={form.passagens || []} onChange={(p) => update("passagens", p as any)} />
               </TabsContent>
 
+              {/* DEPENDENTES */}
+              <TabsContent value="dependentes">
+                <DependentesTab dependentes={form.dependentes || []} onChange={(d) => update("dependentes", d as any)} />
+              </TabsContent>
+
               {/* OBSERVAÇÕES */}
               <TabsContent value="observacoes">
                 <Field label="Observações">
