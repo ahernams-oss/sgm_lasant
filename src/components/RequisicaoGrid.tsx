@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileDown, ClipboardCheck, Search, Pencil } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { gerarPdfRequisicao } from "@/lib/gerarPdfRequisicao";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useNavigate } from "react-router-dom";
