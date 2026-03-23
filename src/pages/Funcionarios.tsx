@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users } from "lucide-react";
+import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,7 @@ import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, Dependente, Anex
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
+import { gerarPdfFuncionario } from "@/lib/gerarPdfFuncionario";
 
 const UF_OPTIONS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const STATUS_OPTIONS = ["Ativo", "Inativo", "Afastado", "Férias"] as const;
@@ -708,6 +709,9 @@ const Funcionarios = () => {
                       <TableCell>{statusBadge(f.status || "Ativo")}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
+                          <Button size="icon" variant="ghost" onClick={() => gerarPdfFuncionario(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })} className="h-8 w-8" title="Baixar PDF">
+                            <FileDown className="h-3.5 w-3.5" />
+                          </Button>
                           <Button size="icon" variant="ghost" onClick={() => handleEdit(f)} className="h-8 w-8">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
