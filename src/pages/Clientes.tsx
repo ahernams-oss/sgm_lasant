@@ -52,6 +52,7 @@ const Clientes = () => {
     setEditingId(cliente.id);
     const { id, informacoesFinanceiras, locais, locaisEntrega, ...rest } = cliente;
     setEditingData(rest as FormData);
+    setFormOpen(true);
   };
 
   const handleDelete = (id: string) => {
