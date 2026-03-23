@@ -1,5 +1,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
+export interface PassagemDiaria {
+  id: string;
+  data: string;
+  itinerario: string;
+  valorPassagem: string;
+  quantidade: number;
+  total: number;
+}
+
 export interface Funcionario {
   id: string;
   // Dados pessoais
@@ -57,6 +66,8 @@ export interface Funcionario {
   tamanhoCalcado: string;
   peso: string;
   altura: string;
+  // Passagem
+  passagens: PassagemDiaria[];
   // Observações
   observacoes: string;
   // Status
@@ -74,6 +85,7 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   tituloEleitor: "", zonaEleitoral: "", secaoEleitoral: "",
   cnh: "", categoriaCnh: "", validadeCnh: "", certificadoReservista: "",
   tamanhoCamisa: "", tamanhoCalca: "", tamanhoCalcado: "", peso: "", altura: "",
+  passagens: [],
   observacoes: "", status: "Ativo",
 };
 
