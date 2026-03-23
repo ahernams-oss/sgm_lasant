@@ -139,10 +139,14 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                 onValueChange={(cargoId) => {
                   const selected = cargos.find((c) => c.id === cargoId);
                   if (selected) {
+                    // Pegar o salário da data base vigente (mais recente)
+                    const salarioVigente = selected.salarios?.length
+                      ? [...selected.salarios].sort((a, b) => (b.dataBase || "").localeCompare(a.dataBase || ""))[0]
+                      : null;
                     setForm((prev) => ({
                       ...prev,
                       cargo: cargoId,
-                      salarioVaga: selected.salario,
+                      salarioVaga: salarioVigente?.valor || selected.salario || "",
                     }));
                   }
                 }}
@@ -166,16 +170,24 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
               />
             )}
           </div>
-          {form.cargo && cargos.find((c) => c.id === form.cargo)?.salario && (
-            <div>
-              <label className="field-label">Salário do Cargo</label>
-              <Input
-                readOnly
-                value={`R$ ${cargos.find((c) => c.id === form.cargo)?.salario}`}
-                className="bg-muted/50"
-              />
-            </div>
-          )}
+          {form.cargo && (() => {
+            const cargoSel = cargos.find((c) => c.id === form.cargo);
+            const salarioVigente = cargoSel?.salarios?.length
+              ? [...cargoSel.salarios].sort((a, b) => (b.dataBase || "").localeCompare(a.dataBase || ""))[0]
+              : null;
+            const valor = salarioVigente?.valor || cargoSel?.salario;
+            const dataBase = salarioVigente?.dataBase;
+            return valor ? (
+              <div>
+                <label className="field-label">Salário do Cargo {dataBase ? `(Data Base: ${dataBase})` : ""}</label>
+                <Input
+                  readOnly
+                  value={`R$ ${valor}`}
+                  className="bg-muted/50"
+                />
+              </div>
+            ) : null;
+          })()}
         </div>
       </FormSection>
 
