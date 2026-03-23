@@ -6,7 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileDown, ClipboardCheck, Search, Pencil, History } from "lucide-react";
+import { FileDown, ClipboardCheck, Search, Pencil, History, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { gerarPdfRequisicao } from "@/lib/gerarPdfRequisicao";
 import { enviarWhatsApp } from "@/lib/whatsapp";
@@ -211,10 +212,7 @@ const RequisicaoGrid = () => {
                 <TableHead>Substituído</TableHead>
                 <TableHead>Aprovador</TableHead>
                 <TableHead className="pr-5">Status</TableHead>
-                <TableHead className="text-center">PDF</TableHead>
-                <TableHead className="text-center">Editar</TableHead>
-                <TableHead className="text-center">Histórico</TableHead>
-                <TableHead className="pr-5 text-center">Seletivo</TableHead>
+                <TableHead className="pr-5 text-center">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -228,9 +226,9 @@ const RequisicaoGrid = () => {
                   <TableCell className="text-sm">{req.origemVaga || "—"}</TableCell>
                   <TableCell className="text-sm">{req.nomeSubstituido || "—"}</TableCell>
                   <TableCell className="text-sm">{req.aprovadoPor || "—"}</TableCell>
-                  <TableCell className="pr-5">
+                  <TableCell>
                     <Select value={req.status} onValueChange={(v) => handleStatusChange(req, v as Requisicao["status"])}>
-                      <SelectTrigger className="h-7 w-[130px] text-xs border-0 p-0 focus:ring-0">
+                      <SelectTrigger className="h-7 w-[120px] text-xs border-0 p-0 focus:ring-0">
                         <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge>
                       </SelectTrigger>
                       <SelectContent>
@@ -240,29 +238,32 @@ const RequisicaoGrid = () => {
                       </SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell className="text-center">
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary" title="Baixar PDF" onClick={() => gerarPdfRequisicao(req)}>
-                      <FileDown className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {canEdit(req) && (
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary" title="Editar Requisição" onClick={() => openEdit(req)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary" title="Histórico de Status" onClick={() => setHistoricoReq(req)}>
-                      <History className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
                   <TableCell className="pr-5 text-center">
-                    {req.status === "Aprovada" && (
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary" title="Processo Seletivo" onClick={() => navigate(`/processo-seletivo/${req.id}`)}>
-                        <ClipboardCheck className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => gerarPdfRequisicao(req)}>
+                          <FileDown className="mr-2 h-4 w-4" /> Baixar PDF
+                        </DropdownMenuItem>
+                        {canEdit(req) && (
+                          <DropdownMenuItem onClick={() => openEdit(req)}>
+                            <Pencil className="mr-2 h-4 w-4" /> Editar
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem onClick={() => setHistoricoReq(req)}>
+                          <History className="mr-2 h-4 w-4" /> Histórico
+                        </DropdownMenuItem>
+                        {req.status === "Aprovada" && (
+                          <DropdownMenuItem onClick={() => navigate(`/processo-seletivo/${req.id}`)}>
+                            <ClipboardCheck className="mr-2 h-4 w-4" /> Processo Seletivo
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
