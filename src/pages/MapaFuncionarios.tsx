@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter } from "lucide-react";
+import { useState, useMemo, useRef } from "react";
+import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
-import { useLancamentos, TipoFalta } from "@/contexts/LancamentosContext";
+import { useLancamentos, TipoFalta, AnexoFalta } from "@/contexts/LancamentosContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
@@ -47,6 +47,8 @@ const MapaFuncionarios = () => {
   const [horasExtras, setHorasExtras] = useState("");
   const [percentual, setPercentual] = useState("50");
   const [observacao, setObservacao] = useState("");
+  const [anexos, setAnexos] = useState<AnexoFalta[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Filters
   const [search, setSearch] = useState("");
@@ -65,6 +67,7 @@ const MapaFuncionarios = () => {
     setHorasExtras("");
     setPercentual("50");
     setObservacao("");
+    setAnexos([]);
     setEditingId(null);
     setShowForm(false);
   };
@@ -77,7 +80,7 @@ const MapaFuncionarios = () => {
     if (activeTab === "faltas") {
       const payload = {
         funcionarioId, tipo: "falta" as const, data,
-        tipoFalta, diasFalta: Number(diasFalta) || 1, observacao,
+        tipoFalta, diasFalta: Number(diasFalta) || 1, anexos, observacao,
       };
       if (editingId) {
         updateLancamento(editingId, payload);
@@ -111,6 +114,7 @@ const MapaFuncionarios = () => {
       setActiveTab("faltas");
       setTipoFalta(l.tipoFalta || "injustificada");
       setDiasFalta(String(l.diasFalta || 1));
+      setAnexos(l.anexos || []);
     } else {
       setActiveTab("horas_extras");
       setHorasExtras(String(l.horasExtras || ""));
@@ -119,6 +123,35 @@ const MapaFuncionarios = () => {
     setEditingId(l.id);
     setShowForm(true);
   };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach((file) => {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error(`Arquivo "${file.name}" excede 2MB.`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAnexos((prev) => [...prev, { nome: file.name, tipo: file.type, base64: reader.result as string }]);
+      };
+      reader.readAsDataURL(file);
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleDownloadAnexo = (anexo: AnexoFalta) => {
+    const link = document.createElement("a");
+    link.href = anexo.base64;
+    link.download = anexo.nome;
+    link.click();
+  };
+
+  const handleRemoveAnexo = (index: number) => {
+    setAnexos((prev) => prev.filter((_, i) => i !== index));
+  };
+
 
   const handleDelete = (id: string) => {
     deleteLancamento(id);
@@ -283,6 +316,39 @@ const MapaFuncionarios = () => {
                       <Input type="number" min="1" value={diasFalta} onChange={(e) => setDiasFalta(e.target.value)} />
                     </div>
                   </div>
+                  {/* Anexos */}
+                  <div className="mt-4 space-y-2">
+                    <Label className="text-xs font-semibold text-foreground/80">Documentos Comprobatórios</Label>
+                    <div className="flex items-center gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="gap-1.5">
+                        <Paperclip className="h-3.5 w-3.5" /> Anexar Arquivo
+                      </Button>
+                      <span className="text-xs text-muted-foreground">PDF, DOC, JPG, PNG (máx. 2MB)</span>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        multiple
+                        className="hidden"
+                        onChange={handleFileUpload}
+                      />
+                    </div>
+                    {anexos.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {anexos.map((a, i) => (
+                          <div key={i} className="flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2.5 py-1.5 text-xs">
+                            <Paperclip className="h-3 w-3 text-muted-foreground" />
+                            <button type="button" onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline truncate max-w-[150px]">
+                              {a.nome}
+                            </button>
+                            <button type="button" onClick={() => handleRemoveAnexo(i)} className="text-muted-foreground hover:text-destructive ml-1">
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="horas_extras" className="mt-0 p-0">
@@ -379,6 +445,7 @@ const MapaFuncionarios = () => {
                       <>
                         <TableHead>Tipo</TableHead>
                         <TableHead>Dias</TableHead>
+                        <TableHead>Anexos</TableHead>
                       </>
                     ) : (
                       <>
@@ -405,6 +472,20 @@ const MapaFuncionarios = () => {
                             </Badge>
                           </TableCell>
                           <TableCell>{l.diasFalta || 1}</TableCell>
+                          <TableCell>
+                            {l.anexos && l.anexos.length > 0 ? (
+                              <div className="flex items-center gap-1">
+                                {l.anexos.map((a, i) => (
+                                  <button key={i} onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline text-xs flex items-center gap-0.5" title={a.nome}>
+                                    <Paperclip className="h-3 w-3" />
+                                  </button>
+                                ))}
+                                <span className="text-xs text-muted-foreground">({l.anexos.length})</span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
                         </>
                       ) : (
                         <>
