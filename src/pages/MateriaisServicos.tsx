@@ -59,8 +59,8 @@ export default function MateriaisServicosPage() {
         for (const line of lines) {
           const cols = line.split(/[;\t,]/).map(c => c.trim());
           if (cols[0]?.toLowerCase().includes("cod")) continue;
-          if (cols.length >= 2) {
-            addMaterial({ codigo: cols[0] || "", descricao: cols[1] || "", tipo: (cols[2] === "Serviço" ? "Serviço" : "Material"), unidadeMedida: cols[3] || "UN", categoriaId: cols[4] || "" });
+          if (cols.length >= 1) {
+            addMaterial({ descricao: cols[0] || "", tipo: (cols[1] === "Serviço" ? "Serviço" : "Material"), unidadeMedida: cols[2] || "UN", categoriaId: cols[3] || "" });
             count++;
           }
         }
