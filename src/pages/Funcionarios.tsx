@@ -68,8 +68,15 @@ const PassagemTab = ({ passagens, onChange }: { passagens: PassagemDiaria[]; onC
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-        <Field label="Data">
-          <Input type="date" value={novaPassagem.data} onChange={(e) => setNovaPassagem((p) => ({ ...p, data: e.target.value }))} />
+        <Field label="Tipo de Transporte">
+          <Select value={novaPassagem.tipoTransporte} onValueChange={(v) => setNovaPassagem((p) => ({ ...p, tipoTransporte: v }))}>
+            <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+            <SelectContent>
+              {tiposTransporte.map((t) => (
+                <SelectItem key={t} value={t}>{t}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
         <Field label="Itinerário">
           <Input value={novaPassagem.itinerario} onChange={(e) => setNovaPassagem((p) => ({ ...p, itinerario: e.target.value }))} placeholder="Ex: Casa → Trabalho" />
