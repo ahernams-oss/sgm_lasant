@@ -233,6 +233,34 @@ const Dashboard = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Timeline Chart */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold">Evolução Temporal das Requisições</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {timelineData.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-10">Nenhuma requisição no período.</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={280}>
+                  <AreaChart data={timelineData} margin={{ left: 0, right: 20, top: 10, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(217, 91%, 50%)" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="hsl(217, 91%, 50%)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="period" tick={{ fontSize: 11 }} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Area type="monotone" dataKey="total" name="Requisições" stroke="hsl(217, 91%, 50%)" fill="url(#colorTotal)" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
