@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 const Fornecedores = () => {
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
+  const [formOpen, setFormOpen] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
   const [search, setSearch] = useState("");
