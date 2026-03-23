@@ -106,13 +106,13 @@ const PassagemTab = ({ passagens, onChange }: { passagens: PassagemDiaria[]; onC
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Object.entries(porData)
+              {Object.entries(porTipo)
                 .sort(([a], [b]) => a.localeCompare(b))
-                .map(([data, grupo]) => (
-                  <React.Fragment key={data}>
+                .map(([tipo, grupo]) => (
+                  <React.Fragment key={tipo}>
                     {grupo.passagens.map((p) => (
                       <TableRow key={p.id}>
-                        <TableCell>{new Date(p.data + "T00:00:00").toLocaleDateString("pt-BR")}</TableCell>
+                        <TableCell>{p.tipoTransporte}</TableCell>
                         <TableCell>{p.itinerario}</TableCell>
                         <TableCell>R$ {parseFloat(p.valorPassagem.replace(",", ".")).toFixed(2).replace(".", ",")}</TableCell>
                         <TableCell>{p.quantidade}</TableCell>
