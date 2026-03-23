@@ -282,18 +282,62 @@ const MapaFuncionarios = () => {
               </TabsList>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-foreground/80">Funcionário *</Label>
-                  <Select value={funcionarioId} onValueChange={setFuncionarioId}>
-                    <SelectTrigger><SelectValue placeholder="Selecione o funcionário" /></SelectTrigger>
-                    <SelectContent>
-                      {funcionariosAtivos.map((f) => (
-                        <SelectItem key={f.id} value={f.id}>
-                          {f.nome} — {cargos.find((c) => c.id === f.cargoId)?.nome || ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-1.5 lg:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground/80">
+                      Funcionário(s) * {!editingId && <span className="font-normal text-muted-foreground ml-1">(selecione um ou mais)</span>}
+                    </Label>
+                    {!editingId && funcionariosAtivos.length > 0 && (
+                      <div className="flex gap-2">
+                        <button type="button" className="text-xs text-primary hover:underline" onClick={() => setFuncionarioIds(funcionariosAtivos.map((f) => f.id))}>
+                          Selecionar todos
+                        </button>
+                        <button type="button" className="text-xs text-muted-foreground hover:underline" onClick={() => setFuncionarioIds([])}>
+                          Limpar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  {editingId ? (
+                    <Select value={funcionarioId} onValueChange={(v) => { setFuncionarioId(v); setFuncionarioIds([v]); }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o funcionário" /></SelectTrigger>
+                      <SelectContent>
+                        {funcionariosAtivos.map((f) => (
+                          <SelectItem key={f.id} value={f.id}>
+                            {f.nome} — {cargos.find((c) => c.id === f.cargoId)?.nome || ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-48 overflow-y-auto rounded-md border border-input p-3">
+                      {funcionariosAtivos.length === 0 ? (
+                        <p className="text-xs text-muted-foreground col-span-full">Nenhum funcionário ativo cadastrado.</p>
+                      ) : (
+                        funcionariosAtivos.map((f) => {
+                          const checked = funcionarioIds.includes(f.id);
+                          return (
+                            <label key={f.id} className={`flex items-center gap-2 rounded-md px-2 py-1.5 cursor-pointer transition-all text-xs ${checked ? "bg-primary/10 text-foreground" : "hover:bg-muted/50 text-foreground/80"}`}>
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={() =>
+                                  setFuncionarioIds((prev) =>
+                                    prev.includes(f.id) ? prev.filter((id) => id !== f.id) : [...prev, f.id]
+                                  )
+                                }
+                                className="h-3.5 w-3.5"
+                              />
+                              <span className="truncate">{f.nome}</span>
+                              <span className="text-muted-foreground ml-auto truncate">{cargos.find((c) => c.id === f.cargoId)?.nome || ""}</span>
+                            </label>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+                  {!editingId && funcionarioIds.length > 0 && (
+                    <p className="text-xs text-muted-foreground">{funcionarioIds.length} funcionário(s) selecionado(s)</p>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-foreground/80">Data *</Label>
