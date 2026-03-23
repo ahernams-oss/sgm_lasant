@@ -80,7 +80,7 @@ const ProcessoSeletivoPage = () => {
 
   if (!requisicao || !processo) {
     return (
-      <div className="container max-w-4xl mx-auto px-4 py-8">
+      <div className="container max-w-full mx-auto px-4 py-8">
         <p className="text-muted-foreground">Requisição não encontrada ou não aprovada.</p>
         <Button variant="ghost" className="mt-4" onClick={() => navigate("/")}>
           <ArrowLeft className="h-4 w-4 mr-2" /> Voltar

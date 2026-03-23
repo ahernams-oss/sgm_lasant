@@ -96,7 +96,7 @@ const Fornecedores = () => {
 
   return (
     <div className="bg-background">
-      <div className="container max-w-4xl mx-auto px-4 py-8">
+      <div className="container max-w-full mx-auto px-4 py-8">
         <div className="mb-8 animate-fade-up">
           <div className="flex items-center gap-2 text-primary mb-1">
             <Truck className="h-4 w-4" />
