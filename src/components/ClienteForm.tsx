@@ -32,9 +32,10 @@ interface ClienteFormProps {
   onSubmit: (data: FormData, editingId: string | null) => void;
   onCancel: () => void;
   tipoFixo?: "Cliente" | "Fornecedor";
+  embedded?: boolean;
 }
 
-export default function ClienteForm({ editingId, initialData, onSubmit, onCancel, tipoFixo }: ClienteFormProps) {
+export default function ClienteForm({ editingId, initialData, onSubmit, onCancel, tipoFixo, embedded }: ClienteFormProps) {
   const [form, setForm] = useState<FormData>(initialData || emptyForm);
 
   const update = (field: keyof FormData, value: string) =>
@@ -82,8 +83,8 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
   const label = tipoFixo || "Cliente";
 
   return (
-    <form onSubmit={handleSubmit} className="section-card animate-fade-up mb-6" style={{ animationDelay: "80ms" }}>
-      <h2 className="section-title">{editingId ? `Editar ${label}` : `Novo ${label}`}</h2>
+    <form onSubmit={handleSubmit} className={embedded ? "" : "section-card animate-fade-up mb-6"} style={embedded ? undefined : { animationDelay: "80ms" }}>
+      {!embedded && <h2 className="section-title">{editingId ? `Editar ${label}` : `Novo ${label}`}</h2>}
 
       {/* Tipo */}
       {!tipoFixo && (
