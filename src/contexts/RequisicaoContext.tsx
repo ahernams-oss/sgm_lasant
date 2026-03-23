@@ -65,7 +65,7 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
       experiencia: r.experiencia || "",
       conhecimentoInformatica: r.conhecimentoInformatica || "",
       atividadesCargo: r.atividadesCargo || "",
-      salarioVaga: r.salarioVaga || "",
+      historicoStatus: r.historicoStatus || [],
       ...r,
     }));
   });
