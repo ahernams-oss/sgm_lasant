@@ -64,6 +64,7 @@ const App = () => (
     <RequisicaoProvider>
     <ProcessoSeletivoProvider>
     <ScoProvider>
+    <I0Provider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
