@@ -3,6 +3,12 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 export type TipoLancamento = "falta" | "hora_extra";
 export type TipoFalta = "justificada" | "injustificada" | "atestado" | "suspensao";
 
+export interface AnexoFalta {
+  nome: string;
+  tipo: string;
+  base64: string;
+}
+
 export interface Lancamento {
   id: string;
   funcionarioId: string;
@@ -11,9 +17,10 @@ export interface Lancamento {
   // Faltas
   tipoFalta?: TipoFalta;
   diasFalta?: number;
+  anexos?: AnexoFalta[];
   // Horas extras
-  horasExtras?: number; // em horas decimais
-  percentual?: number; // 50, 100, etc
+  horasExtras?: number;
+  percentual?: number;
   // Comum
   observacao: string;
   criadoEm: string;

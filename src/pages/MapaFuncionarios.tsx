@@ -13,7 +13,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
-import { useLancamentos, TipoFalta } from "@/contexts/LancamentosContext";
+import { useLancamentos, TipoFalta, AnexoFalta } from "@/contexts/LancamentosContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
