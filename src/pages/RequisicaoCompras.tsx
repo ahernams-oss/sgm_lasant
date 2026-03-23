@@ -267,7 +267,7 @@ export default function RequisicaoComprasPage() {
                       <Label>Material/Serviço cadastrado</Label>
                       <Select value={itemMaterialId} onValueChange={handleMaterialSelect}>
                         <SelectTrigger><SelectValue placeholder="Selecionar (opcional)..." /></SelectTrigger>
-                        <SelectContent>{materiais.map(m => <SelectItem key={m.id} value={m.id}>{m.codigo ? `${m.codigo} - ` : ""}{m.descricao}</SelectItem>)}</SelectContent>
+                        <SelectContent>{materiais.map(m => <SelectItem key={m.id} value={m.id}>{m.descricao}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div>
