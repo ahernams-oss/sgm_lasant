@@ -105,9 +105,19 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
       return { ...r, ...data };
     }));
 
-  const updateStatus = (id: string, status: Requisicao["status"], aprovadoPor?: string) =>
-    setRequisicoes((prev) => prev.map((r) => (r.id === id ? { ...r, status, aprovadoPor: aprovadoPor || r.aprovadoPor } : r)));
-
+  const updateStatus = (id: string, status: Requisicao["status"], aprovadoPor?: string) => {
+    const agora = new Date().toLocaleString("pt-BR");
+    setRequisicoes((prev) => prev.map((r) => {
+      if (r.id !== id) return r;
+      const historico: StatusHistorico = { status, dataHora: agora, usuario: aprovadoPor };
+      return {
+        ...r,
+        status,
+        aprovadoPor: aprovadoPor || r.aprovadoPor,
+        historicoStatus: [...(r.historicoStatus || []), historico],
+      };
+    }));
+  };
   return (
     <RequisicaoContext.Provider value={{ requisicoes, addRequisicao, updateRequisicao, updateStatus }}>
       {children}
