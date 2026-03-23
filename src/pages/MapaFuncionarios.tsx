@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -41,6 +42,7 @@ const MapaFuncionarios = () => {
 
   // Form state
   const [funcionarioId, setFuncionarioId] = useState("");
+  const [funcionarioIds, setFuncionarioIds] = useState<string[]>([]);
   const [data, setData] = useState("");
   const [tipoFalta, setTipoFalta] = useState<TipoFalta>("injustificada");
   const [diasFalta, setDiasFalta] = useState("1");
@@ -61,6 +63,7 @@ const MapaFuncionarios = () => {
 
   const resetForm = () => {
     setFuncionarioId("");
+    setFuncionarioIds([]);
     setData("");
     setTipoFalta("injustificada");
     setDiasFalta("1");
@@ -74,33 +77,32 @@ const MapaFuncionarios = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!funcionarioId) { toast.error("Selecione o funcionário."); return; }
+    const isEditing = !!editingId;
+    const targetIds = isEditing ? [funcionarioId] : funcionarioIds;
+
+    if (targetIds.length === 0) { toast.error("Selecione ao menos um funcionário."); return; }
     if (!data) { toast.error("Informe a data."); return; }
 
     if (activeTab === "faltas") {
-      const payload = {
-        funcionarioId, tipo: "falta" as const, data,
-        tipoFalta, diasFalta: Number(diasFalta) || 1, anexos, observacao,
-      };
-      if (editingId) {
-        updateLancamento(editingId, payload);
+      if (isEditing) {
+        updateLancamento(editingId!, { funcionarioId, tipo: "falta", data, tipoFalta, diasFalta: Number(diasFalta) || 1, anexos, observacao });
         toast.success("Falta atualizada.");
       } else {
-        addLancamento(payload);
-        toast.success("Falta registrada.");
+        targetIds.forEach((fId) => {
+          addLancamento({ funcionarioId: fId, tipo: "falta", data, tipoFalta, diasFalta: Number(diasFalta) || 1, anexos, observacao });
+        });
+        toast.success(`Falta registrada para ${targetIds.length} funcionário(s).`);
       }
     } else {
       if (!horasExtras || Number(horasExtras) <= 0) { toast.error("Informe as horas extras."); return; }
-      const payload = {
-        funcionarioId, tipo: "hora_extra" as const, data,
-        horasExtras: Number(horasExtras), percentual: Number(percentual), observacao,
-      };
-      if (editingId) {
-        updateLancamento(editingId, payload);
+      if (isEditing) {
+        updateLancamento(editingId!, { funcionarioId, tipo: "hora_extra", data, horasExtras: Number(horasExtras), percentual: Number(percentual), observacao });
         toast.success("Hora extra atualizada.");
       } else {
-        addLancamento(payload);
-        toast.success("Hora extra registrada.");
+        targetIds.forEach((fId) => {
+          addLancamento({ funcionarioId: fId, tipo: "hora_extra", data, horasExtras: Number(horasExtras), percentual: Number(percentual), observacao });
+        });
+        toast.success(`Hora extra registrada para ${targetIds.length} funcionário(s).`);
       }
     }
     resetForm();
@@ -108,6 +110,7 @@ const MapaFuncionarios = () => {
 
   const handleEdit = (l: typeof lancamentos[0]) => {
     setFuncionarioId(l.funcionarioId);
+    setFuncionarioIds([l.funcionarioId]);
     setData(l.data);
     setObservacao(l.observacao);
     if (l.tipo === "falta") {
@@ -280,18 +283,62 @@ const MapaFuncionarios = () => {
               </TabsList>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-foreground/80">Funcionário *</Label>
-                  <Select value={funcionarioId} onValueChange={setFuncionarioId}>
-                    <SelectTrigger><SelectValue placeholder="Selecione o funcionário" /></SelectTrigger>
-                    <SelectContent>
-                      {funcionariosAtivos.map((f) => (
-                        <SelectItem key={f.id} value={f.id}>
-                          {f.nome} — {cargos.find((c) => c.id === f.cargoId)?.nome || ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-1.5 lg:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground/80">
+                      Funcionário(s) * {!editingId && <span className="font-normal text-muted-foreground ml-1">(selecione um ou mais)</span>}
+                    </Label>
+                    {!editingId && funcionariosAtivos.length > 0 && (
+                      <div className="flex gap-2">
+                        <button type="button" className="text-xs text-primary hover:underline" onClick={() => setFuncionarioIds(funcionariosAtivos.map((f) => f.id))}>
+                          Selecionar todos
+                        </button>
+                        <button type="button" className="text-xs text-muted-foreground hover:underline" onClick={() => setFuncionarioIds([])}>
+                          Limpar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  {editingId ? (
+                    <Select value={funcionarioId} onValueChange={(v) => { setFuncionarioId(v); setFuncionarioIds([v]); }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o funcionário" /></SelectTrigger>
+                      <SelectContent>
+                        {funcionariosAtivos.map((f) => (
+                          <SelectItem key={f.id} value={f.id}>
+                            {f.nome} — {cargos.find((c) => c.id === f.cargoId)?.nome || ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-48 overflow-y-auto rounded-md border border-input p-3">
+                      {funcionariosAtivos.length === 0 ? (
+                        <p className="text-xs text-muted-foreground col-span-full">Nenhum funcionário ativo cadastrado.</p>
+                      ) : (
+                        funcionariosAtivos.map((f) => {
+                          const checked = funcionarioIds.includes(f.id);
+                          return (
+                            <label key={f.id} className={`flex items-center gap-2 rounded-md px-2 py-1.5 cursor-pointer transition-all text-xs ${checked ? "bg-primary/10 text-foreground" : "hover:bg-muted/50 text-foreground/80"}`}>
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={() =>
+                                  setFuncionarioIds((prev) =>
+                                    prev.includes(f.id) ? prev.filter((id) => id !== f.id) : [...prev, f.id]
+                                  )
+                                }
+                                className="h-3.5 w-3.5"
+                              />
+                              <span className="truncate">{f.nome}</span>
+                              <span className="text-muted-foreground ml-auto truncate">{cargos.find((c) => c.id === f.cargoId)?.nome || ""}</span>
+                            </label>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+                  {!editingId && funcionarioIds.length > 0 && (
+                    <p className="text-xs text-muted-foreground">{funcionarioIds.length} funcionário(s) selecionado(s)</p>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-foreground/80">Data *</Label>
