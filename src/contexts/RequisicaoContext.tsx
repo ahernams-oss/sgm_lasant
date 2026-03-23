@@ -17,6 +17,7 @@ export interface Requisicao {
 interface RequisicaoContextType {
   requisicoes: Requisicao[];
   addRequisicao: (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor">) => void;
+  updateRequisicao: (id: string, data: Partial<Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor">>) => void;
   updateStatus: (id: string, status: Requisicao["status"], aprovadoPor?: string) => void;
 }
 
@@ -59,11 +60,19 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
     ]);
   };
 
+  const updateRequisicao = (id: string, data: Partial<Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor">>) =>
+    setRequisicoes((prev) => prev.map((r) => {
+      if (r.id !== id) return r;
+      // Só permite editar se não estiver aprovada/reprovada/concluída
+      if (r.status === "Aprovada" || r.status === "Reprovada" || r.status === "Concluída") return r;
+      return { ...r, ...data };
+    }));
+
   const updateStatus = (id: string, status: Requisicao["status"], aprovadoPor?: string) =>
     setRequisicoes((prev) => prev.map((r) => (r.id === id ? { ...r, status, aprovadoPor: aprovadoPor || r.aprovadoPor } : r)));
 
   return (
-    <RequisicaoContext.Provider value={{ requisicoes, addRequisicao, updateStatus }}>
+    <RequisicaoContext.Provider value={{ requisicoes, addRequisicao, updateRequisicao, updateStatus }}>
       {children}
     </RequisicaoContext.Provider>
   );

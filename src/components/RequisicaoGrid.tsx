@@ -1,15 +1,22 @@
 import { useState, useMemo } from "react";
 import { useRequisicoes, Requisicao } from "@/contexts/RequisicaoContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { useCargos } from "@/contexts/CargosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileDown, ClipboardCheck, Search } from "lucide-react";
+import { FileDown, ClipboardCheck, Search, Pencil } from "lucide-react";
 import { gerarPdfRequisicao } from "@/lib/gerarPdfRequisicao";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -37,12 +44,43 @@ const statusColors: Record<Requisicao["status"], string> = {
 const statusOptions: Requisicao["status"][] = ["Pendente", "Em Análise", "Aprovada", "Reprovada"];
 
 const RequisicaoGrid = () => {
-  const { requisicoes, updateStatus } = useRequisicoes();
+  const { requisicoes, updateStatus, updateRequisicao } = useRequisicoes();
   const { clientes } = useClientes();
+  const { cargos } = useCargos();
   const { usuarioLogado } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
+  const [editingReq, setEditingReq] = useState<Requisicao | null>(null);
+  const [editForm, setEditForm] = useState({ unidade: "", cargoId: "", jornada: "", origemVaga: "", nomeSubstituido: "" });
+
+  const canEdit = (req: Requisicao) => req.status !== "Aprovada" && req.status !== "Reprovada" && req.status !== "Concluída";
+
+  const openEdit = (req: Requisicao) => {
+    const cargoMatch = cargos.find(c => req.cargoNome.startsWith(c.nome));
+    setEditForm({
+      unidade: req.unidade,
+      cargoId: cargoMatch?.id || "",
+      jornada: req.jornada || "",
+      origemVaga: req.origemVaga || "",
+      nomeSubstituido: req.nomeSubstituido || "",
+    });
+    setEditingReq(req);
+  };
+
+  const saveEdit = () => {
+    if (!editingReq) return;
+    const cargoObj = cargos.find(c => c.id === editForm.cargoId);
+    updateRequisicao(editingReq.id, {
+      unidade: editForm.unidade,
+      cargoNome: cargoObj ? `${cargoObj.nome}${cargoObj.nivel ? ` — Nível ${cargoObj.nivel}` : ""}` : editingReq.cargoNome,
+      jornada: editForm.jornada,
+      origemVaga: editForm.origemVaga,
+      nomeSubstituido: editForm.nomeSubstituido,
+    });
+    toast.success("Requisição atualizada!");
+    setEditingReq(null);
+  };
 
   const handleStatusChange = (req: Requisicao, newStatus: Requisicao["status"]) => {
     const nomeAprovador = (newStatus === "Aprovada" || newStatus === "Reprovada") ? usuarioLogado?.nome : undefined;
@@ -130,6 +168,7 @@ const RequisicaoGrid = () => {
                 <TableHead>Aprovador</TableHead>
                 <TableHead className="pr-5">Status</TableHead>
                 <TableHead className="text-center">PDF</TableHead>
+                <TableHead className="text-center">Editar</TableHead>
                 <TableHead className="pr-5 text-center">Seletivo</TableHead>
               </TableRow>
             </TableHeader>
@@ -161,6 +200,13 @@ const RequisicaoGrid = () => {
                       <FileDown className="h-4 w-4" />
                     </Button>
                   </TableCell>
+                  <TableCell className="text-center">
+                    {canEdit(req) && (
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary" title="Editar Requisição" onClick={() => openEdit(req)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </TableCell>
                   <TableCell className="pr-5 text-center">
                     {req.status === "Aprovada" && (
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary" title="Processo Seletivo" onClick={() => navigate(`/processo-seletivo/${req.id}`)}>
@@ -174,6 +220,58 @@ const RequisicaoGrid = () => {
           </Table>
         </div>
       )}
+
+      <Dialog open={!!editingReq} onOpenChange={(open) => !open && setEditingReq(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Editar Requisição #{editingReq?.numero}</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 gap-4 py-4">
+            <div>
+              <label className="field-label">Unidade</label>
+              {clientes.length > 0 ? (
+                <Select value={editForm.unidade} onValueChange={(v) => setEditForm(p => ({ ...p, unidade: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {clientes.map(c => <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input value={editForm.unidade} onChange={e => setEditForm(p => ({ ...p, unidade: e.target.value }))} />
+              )}
+            </div>
+            <div>
+              <label className="field-label">Cargo</label>
+              {cargos.length > 0 ? (
+                <Select value={editForm.cargoId} onValueChange={(v) => setEditForm(p => ({ ...p, cargoId: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {cargos.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}{c.nivel ? ` — Nível ${c.nivel}` : ""}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input value={editForm.cargoId} onChange={e => setEditForm(p => ({ ...p, cargoId: e.target.value }))} />
+              )}
+            </div>
+            <div>
+              <label className="field-label">Jornada</label>
+              <Input value={editForm.jornada} onChange={e => setEditForm(p => ({ ...p, jornada: e.target.value }))} />
+            </div>
+            <div>
+              <label className="field-label">Origem da Vaga</label>
+              <Input value={editForm.origemVaga} onChange={e => setEditForm(p => ({ ...p, origemVaga: e.target.value }))} />
+            </div>
+            <div>
+              <label className="field-label">Nome do Substituído</label>
+              <Input value={editForm.nomeSubstituido} onChange={e => setEditForm(p => ({ ...p, nomeSubstituido: e.target.value }))} />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setEditingReq(null)}>Cancelar</Button>
+              <Button onClick={saveEdit}>Salvar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
