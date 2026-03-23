@@ -148,6 +148,10 @@ const MapaFuncionarios = () => {
     if (filterMes) {
       result = result.filter((l) => l.data.startsWith(filterMes));
     }
+    if (filterCliente !== "todos") {
+      const funcIds = new Set(funcionarios.filter((f) => f.clienteId === filterCliente).map((f) => f.id));
+      result = result.filter((l) => funcIds.has(l.funcionarioId));
+    }
     if (filterFuncionario !== "todos") {
       result = result.filter((l) => l.funcionarioId === filterFuncionario);
     }
@@ -159,7 +163,7 @@ const MapaFuncionarios = () => {
       );
     }
     return result.sort((a, b) => b.data.localeCompare(a.data));
-  }, [lancamentos, activeTab, filterMes, filterFuncionario, search, funcionarios]);
+  }, [lancamentos, activeTab, filterMes, filterCliente, filterFuncionario, search, funcionarios]);
 
   // Resumo do mês
   const resumoMes = useMemo(() => {
