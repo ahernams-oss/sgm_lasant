@@ -62,6 +62,7 @@ const MapaFuncionarios = () => {
 
   const resetForm = () => {
     setFuncionarioId("");
+    setFuncionarioIds([]);
     setData("");
     setTipoFalta("injustificada");
     setDiasFalta("1");
