@@ -472,6 +472,20 @@ const MapaFuncionarios = () => {
                             </Badge>
                           </TableCell>
                           <TableCell>{l.diasFalta || 1}</TableCell>
+                          <TableCell>
+                            {l.anexos && l.anexos.length > 0 ? (
+                              <div className="flex items-center gap-1">
+                                {l.anexos.map((a, i) => (
+                                  <button key={i} onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline text-xs flex items-center gap-0.5" title={a.nome}>
+                                    <Paperclip className="h-3 w-3" />
+                                  </button>
+                                ))}
+                                <span className="text-xs text-muted-foreground">({l.anexos.length})</span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
                         </>
                       ) : (
                         <>
