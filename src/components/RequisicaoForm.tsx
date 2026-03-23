@@ -82,11 +82,25 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     const cargoObj = cargos.find((c) => c.id === form.cargo);
     addRequisicao({
       unidade: form.unidade,
+      cargoId: form.cargo,
       cargoNome: cargoObj ? `${cargoObj.nome}${cargoObj.nivel ? ` — Nível ${cargoObj.nivel}` : ""}` : form.cargo,
       jornada: form.jornada,
+      cargaHoraria: form.cargaHoraria,
       tipoContratacao: form.tipoContratacao,
+      internoExterno: form.internoExterno,
       origemVaga: form.origemVaga,
+      motivoOutros: form.motivoOutros,
+      matricula: form.matricula,
       nomeSubstituido: form.nomeSubstituido,
+      cargoSubstituido: form.cargoSubstituido,
+      salarioSubstituido: form.salarioSubstituido,
+      dataDesligamento: form.dataDesligamento,
+      formacao: form.formacao,
+      formacaoDetalhe: form.formacaoDetalhe,
+      experiencia: form.experiencia,
+      conhecimentoInformatica: form.conhecimentoInformatica,
+      atividadesCargo: form.atividadesCargo,
+      salarioVaga: form.salarioVaga,
     });
     toast.success("Requisição enviada com sucesso!");
     onSuccess?.();
