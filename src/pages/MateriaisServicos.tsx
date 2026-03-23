@@ -76,8 +76,8 @@ export default function MateriaisServicosPage() {
         let count = 0;
         for (const row of rows) {
           if (String(row[0] || "").toLowerCase().includes("cod")) continue;
-          if (row.length >= 2) {
-            addMaterial({ codigo: String(row[0] || ""), descricao: String(row[1] || ""), tipo: (String(row[2] || "") === "Serviço" ? "Serviço" : "Material"), unidadeMedida: String(row[3] || "UN"), categoriaId: String(row[4] || "") });
+          if (row.length >= 1) {
+            addMaterial({ descricao: String(row[0] || ""), tipo: (String(row[1] || "") === "Serviço" ? "Serviço" : "Material"), unidadeMedida: String(row[2] || "UN"), categoriaId: String(row[3] || "") });
             count++;
           }
         }
