@@ -53,18 +53,38 @@ const RequisicaoGrid = () => {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [editingReq, setEditingReq] = useState<Requisicao | null>(null);
-  const [editForm, setEditForm] = useState({ unidade: "", cargoId: "", jornada: "", origemVaga: "", nomeSubstituido: "" });
+  const [editForm, setEditForm] = useState({
+    unidade: "", cargoId: "", jornada: "", cargaHoraria: "",
+    tipoContratacao: [] as string[], internoExterno: "", origemVaga: "", motivoOutros: "",
+    matricula: "", nomeSubstituido: "", cargoSubstituido: "",
+    salarioSubstituido: "", dataDesligamento: "",
+    formacao: [] as string[], formacaoDetalhe: "", experiencia: "",
+    conhecimentoInformatica: "", atividadesCargo: "", salarioVaga: "",
+  });
 
   const canEdit = (req: Requisicao) => req.status !== "Aprovada" && req.status !== "Reprovada" && req.status !== "Concluída";
 
   const openEdit = (req: Requisicao) => {
-    const cargoMatch = cargos.find(c => req.cargoNome.startsWith(c.nome));
     setEditForm({
-      unidade: req.unidade,
-      cargoId: cargoMatch?.id || "",
+      unidade: req.unidade || "",
+      cargoId: req.cargoId || "",
       jornada: req.jornada || "",
+      cargaHoraria: req.cargaHoraria || "",
+      tipoContratacao: req.tipoContratacao || [],
+      internoExterno: req.internoExterno || "",
       origemVaga: req.origemVaga || "",
+      motivoOutros: req.motivoOutros || "",
+      matricula: req.matricula || "",
       nomeSubstituido: req.nomeSubstituido || "",
+      cargoSubstituido: req.cargoSubstituido || "",
+      salarioSubstituido: req.salarioSubstituido || "",
+      dataDesligamento: req.dataDesligamento || "",
+      formacao: req.formacao || [],
+      formacaoDetalhe: req.formacaoDetalhe || "",
+      experiencia: req.experiencia || "",
+      conhecimentoInformatica: req.conhecimentoInformatica || "",
+      atividadesCargo: req.atividadesCargo || "",
+      salarioVaga: req.salarioVaga || "",
     });
     setEditingReq(req);
   };
@@ -74,14 +94,36 @@ const RequisicaoGrid = () => {
     const cargoObj = cargos.find(c => c.id === editForm.cargoId);
     updateRequisicao(editingReq.id, {
       unidade: editForm.unidade,
+      cargoId: editForm.cargoId,
       cargoNome: cargoObj ? `${cargoObj.nome}${cargoObj.nivel ? ` — Nível ${cargoObj.nivel}` : ""}` : editingReq.cargoNome,
       jornada: editForm.jornada,
+      cargaHoraria: editForm.cargaHoraria,
+      tipoContratacao: editForm.tipoContratacao,
+      internoExterno: editForm.internoExterno,
       origemVaga: editForm.origemVaga,
+      motivoOutros: editForm.motivoOutros,
+      matricula: editForm.matricula,
       nomeSubstituido: editForm.nomeSubstituido,
+      cargoSubstituido: editForm.cargoSubstituido,
+      salarioSubstituido: editForm.salarioSubstituido,
+      dataDesligamento: editForm.dataDesligamento,
+      formacao: editForm.formacao,
+      formacaoDetalhe: editForm.formacaoDetalhe,
+      experiencia: editForm.experiencia,
+      conhecimentoInformatica: editForm.conhecimentoInformatica,
+      atividadesCargo: editForm.atividadesCargo,
+      salarioVaga: editForm.salarioVaga,
     });
     toast.success("Requisição atualizada!");
     setEditingReq(null);
   };
+
+  const jornadaOptions = ["Diarista", "Plantão Diurno - PAR", "Plantão Diurno - ÍMPAR", "Plantão Noturno - PAR", "Plantão Noturno - ÍMPAR"];
+  const contratacaoOptions = ["Efetivo", "Temporário", "PCD", "Estagiário"];
+  const internoExternoOptions = ["Interno", "Externo"];
+  const origemOptions = ["Afastamento", "Desligamento", "Aumento de Quadro", "Promoção", "Outros"];
+  const formacaoOptions = ["Ensino Fundamental", "Ensino Médio", "Ensino Superior", "Curso Técnico", "Outros"];
+  const experienciaOptions = ["Não Necessita", "Até 1 ano", "De 1 a 3 anos", "De 3 a 5 anos", "Acima de 5 anos"];
 
   const handleStatusChange = (req: Requisicao, newStatus: Requisicao["status"]) => {
     const nomeAprovador = (newStatus === "Aprovada" || newStatus === "Reprovada") ? usuarioLogado?.nome : undefined;
