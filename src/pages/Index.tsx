@@ -9,7 +9,7 @@ const Index = () => {
 
   return (
     <div className="bg-background">
-      <div className="container max-w-4xl mx-auto px-4 py-8">
+      <div className="container max-w-full mx-auto px-4 py-8">
         <div className="mb-8 animate-fade-up flex items-end justify-between">
           <div>
             <div className="flex items-center gap-2 text-primary mb-1">
