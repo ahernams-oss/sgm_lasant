@@ -24,8 +24,10 @@ import { LancamentosProvider } from "@/contexts/LancamentosContext";
 import { UsuariosProvider } from "@/contexts/UsuariosContext";
 import { ProcessoSeletivoProvider } from "@/contexts/ProcessoSeletivoContext";
 import { ScoProvider } from "@/contexts/ScoContext";
+import { I0Provider } from "@/contexts/I0Context";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Sco from "./pages/Sco.tsx";
+import I0Page from "./pages/I0.tsx";
 
 const queryClient = new QueryClient();
 
