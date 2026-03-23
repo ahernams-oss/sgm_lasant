@@ -11,7 +11,7 @@ export interface MaterialServico {
 
 interface MateriaisServicosContextType {
   materiais: MaterialServico[];
-  addMaterial: (m: Omit<MaterialServico, "id">) => void;
+  addMaterial: (m: Omit<MaterialServico, "id" | "codigo">) => void;
   updateMaterial: (id: string, data: Partial<Omit<MaterialServico, "id">>) => void;
   deleteMaterial: (id: string) => void;
 }
