@@ -41,6 +41,7 @@ const MapaFuncionarios = () => {
 
   // Form state
   const [funcionarioId, setFuncionarioId] = useState("");
+  const [funcionarioIds, setFuncionarioIds] = useState<string[]>([]);
   const [data, setData] = useState("");
   const [tipoFalta, setTipoFalta] = useState<TipoFalta>("injustificada");
   const [diasFalta, setDiasFalta] = useState("1");
