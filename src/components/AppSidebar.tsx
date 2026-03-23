@@ -35,6 +35,7 @@ const menuItems = [
       { title: "Fornecedores", url: "/fornecedores", icon: Truck },
       { title: "Cargos", url: "/cargos", icon: Briefcase },
       { title: "SCO", url: "/sco", icon: FileSpreadsheet },
+      { title: "I0", url: "/i0", icon: DollarSign },
     ],
   },
 ];

@@ -74,6 +74,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </I0Provider>
     </ScoProvider>
     </ProcessoSeletivoProvider>
     </RequisicaoProvider>
