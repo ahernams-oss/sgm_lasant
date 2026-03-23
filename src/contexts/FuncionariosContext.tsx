@@ -92,6 +92,8 @@ export interface Funcionario {
   altura: string;
   // Passagem
   passagens: PassagemDiaria[];
+  // Dependentes
+  dependentes: Dependente[];
   // Observações
   observacoes: string;
   // Status
