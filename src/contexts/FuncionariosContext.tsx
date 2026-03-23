@@ -51,6 +51,12 @@ export interface Funcionario {
   categoriaCnh: string;
   validadeCnh: string;
   certificadoReservista: string;
+  // Uniforme
+  tamanhoCamisa: string;
+  tamanhoCalca: string;
+  tamanhoCalcado: string;
+  peso: string;
+  altura: string;
   // Observações
   observacoes: string;
   // Status
@@ -67,6 +73,7 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   banco: "", agencia: "", conta: "", tipoConta: "Corrente", chavePix: "",
   tituloEleitor: "", zonaEleitoral: "", secaoEleitoral: "",
   cnh: "", categoriaCnh: "", validadeCnh: "", certificadoReservista: "",
+  tamanhoCamisa: "", tamanhoCalca: "", tamanhoCalcado: "", peso: "", altura: "",
   observacoes: "", status: "Ativo",
 };
 
