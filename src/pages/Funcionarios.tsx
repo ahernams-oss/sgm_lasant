@@ -394,7 +394,16 @@ const Funcionarios = () => {
               <TabsContent value="profissional">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <Field label="Cargo" required>
-                    <Select value={form.cargoId} onValueChange={(v) => update("cargoId", v)}>
+                    <Select value={form.cargoId} onValueChange={(v) => {
+                      update("cargoId", v);
+                      const cargo = cargos.find((c) => c.id === v);
+                      if (cargo) {
+                        const salarioAtual = cargo.salarios?.length
+                          ? [...cargo.salarios].sort((a, b) => (b.dataBase || "").localeCompare(a.dataBase || ""))[0].valor
+                          : cargo.salario || "";
+                        if (salarioAtual) update("salario", salarioAtual);
+                      }
+                    }}>
                       <SelectTrigger><SelectValue placeholder="Selecione o cargo" /></SelectTrigger>
                       <SelectContent>
                         {cargos.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
