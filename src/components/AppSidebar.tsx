@@ -34,6 +34,7 @@ const menuItems = [
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "Fornecedores", url: "/fornecedores", icon: Truck },
       { title: "Cargos", url: "/cargos", icon: Briefcase },
+      { title: "SCO", url: "/sco", icon: FileSpreadsheet },
     ],
   },
 ];
