@@ -51,6 +51,7 @@ const MapaFuncionarios = () => {
   // Filters
   const [search, setSearch] = useState("");
   const [filterFuncionario, setFilterFuncionario] = useState("todos");
+  const [filterCliente, setFilterCliente] = useState("todos");
   const [filterMes, setFilterMes] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
