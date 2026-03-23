@@ -51,6 +51,12 @@ export interface Funcionario {
   categoriaCnh: string;
   validadeCnh: string;
   certificadoReservista: string;
+  // Uniforme
+  tamanhoCamisa: string;
+  tamanhoCalca: string;
+  tamanhoCalcado: string;
+  peso: string;
+  altura: string;
   // Observações
   observacoes: string;
   // Status
