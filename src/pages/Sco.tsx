@@ -125,9 +125,25 @@ export default function Sco() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-foreground">SCO / SINAPI / EMOP</h1>
-        <Button onClick={openNew}>
-          <Plus className="mr-2 h-4 w-4" /> Novo Item
-        </Button>
+        <div className="flex gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv,.txt"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleImport(f);
+              e.target.value = "";
+            }}
+          />
+          <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+            <Upload className="mr-2 h-4 w-4" /> Importar
+          </Button>
+          <Button onClick={openNew}>
+            <Plus className="mr-2 h-4 w-4" /> Novo Item
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
