@@ -1,12 +1,12 @@
 import { useState, useMemo } from "react";
-import { useRequisicoes, Requisicao } from "@/contexts/RequisicaoContext";
+import { useRequisicoes, Requisicao, StatusHistorico } from "@/contexts/RequisicaoContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileDown, ClipboardCheck, Search, Pencil } from "lucide-react";
+import { FileDown, ClipboardCheck, Search, Pencil, History } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { gerarPdfRequisicao } from "@/lib/gerarPdfRequisicao";
 import { enviarWhatsApp } from "@/lib/whatsapp";
@@ -53,6 +53,7 @@ const RequisicaoGrid = () => {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [editingReq, setEditingReq] = useState<Requisicao | null>(null);
+  const [historicoReq, setHistoricoReq] = useState<Requisicao | null>(null);
   const [editForm, setEditForm] = useState({
     unidade: "", cargoId: "", jornada: "", cargaHoraria: "",
     tipoContratacao: [] as string[], internoExterno: "", origemVaga: "", motivoOutros: "",
@@ -212,6 +213,7 @@ const RequisicaoGrid = () => {
                 <TableHead className="pr-5">Status</TableHead>
                 <TableHead className="text-center">PDF</TableHead>
                 <TableHead className="text-center">Editar</TableHead>
+                <TableHead className="text-center">Histórico</TableHead>
                 <TableHead className="pr-5 text-center">Seletivo</TableHead>
               </TableRow>
             </TableHeader>
@@ -249,6 +251,11 @@ const RequisicaoGrid = () => {
                         <Pencil className="h-4 w-4" />
                       </Button>
                     )}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary" title="Histórico de Status" onClick={() => setHistoricoReq(req)}>
+                      <History className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                   <TableCell className="pr-5 text-center">
                     {req.status === "Aprovada" && (
@@ -458,6 +465,35 @@ const RequisicaoGrid = () => {
               <Button variant="outline" onClick={() => setEditingReq(null)}>Cancelar</Button>
               <Button onClick={saveEdit}>Salvar Alterações</Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!historicoReq} onOpenChange={(open) => !open && setHistoricoReq(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Histórico — Requisição #{historicoReq?.numero}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {(!historicoReq?.historicoStatus || historicoReq.historicoStatus.length === 0) ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhum registro de histórico.</p>
+            ) : (
+              <div className="relative pl-6 space-y-4">
+                <div className="absolute left-2.5 top-1 bottom-1 w-px bg-border" />
+                {historicoReq.historicoStatus.map((h, idx) => (
+                  <div key={idx} className="relative">
+                    <div className="absolute -left-[18px] top-1 h-3 w-3 rounded-full border-2 border-primary bg-background" />
+                    <div>
+                      <Badge variant="outline" className="text-xs font-medium mb-1">
+                        {h.status}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground tabular-nums">{h.dataHora}</p>
+                      {h.usuario && <p className="text-xs text-muted-foreground">por {h.usuario}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

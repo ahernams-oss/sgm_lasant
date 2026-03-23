@@ -1,5 +1,11 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
+export interface StatusHistorico {
+  status: string;
+  dataHora: string;
+  usuario?: string;
+}
+
 export interface Requisicao {
   id: string;
   numero: number;
@@ -26,12 +32,13 @@ export interface Requisicao {
   salarioVaga: string;
   status: "Pendente" | "Em Análise" | "Aprovada" | "Reprovada" | "Concluída";
   aprovadoPor?: string;
+  historicoStatus: StatusHistorico[];
 }
 
 interface RequisicaoContextType {
   requisicoes: Requisicao[];
-  addRequisicao: (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor">) => void;
-  updateRequisicao: (id: string, data: Partial<Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor">>) => void;
+  addRequisicao: (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor" | "historicoStatus">) => void;
+  updateRequisicao: (id: string, data: Partial<Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor" | "historicoStatus">>) => void;
   updateStatus: (id: string, status: Requisicao["status"], aprovadoPor?: string) => void;
 }
 
@@ -58,7 +65,7 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
       experiencia: r.experiencia || "",
       conhecimentoInformatica: r.conhecimentoInformatica || "",
       atividadesCargo: r.atividadesCargo || "",
-      salarioVaga: r.salarioVaga || "",
+      historicoStatus: r.historicoStatus || [],
       ...r,
     }));
   });
@@ -73,8 +80,9 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { localStorage.setItem("requisicoes", JSON.stringify(requisicoes)); }, [requisicoes]);
 
-  const addRequisicao = (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status">) => {
+  const addRequisicao = (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "historicoStatus">) => {
     const numero = nextNumero;
+    const agora = new Date().toLocaleString("pt-BR");
     setNextNumero((n) => n + 1);
     setRequisicoes((prev) => [
       {
@@ -82,13 +90,14 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
         numero,
         dataCriacao: new Date().toLocaleDateString("pt-BR"),
         status: "Pendente",
+        historicoStatus: [{ status: "Pendente", dataHora: agora }],
         ...req,
       },
       ...prev,
     ]);
   };
 
-  const updateRequisicao = (id: string, data: Partial<Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor">>) =>
+  const updateRequisicao = (id: string, data: Partial<Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor" | "historicoStatus">>) =>
     setRequisicoes((prev) => prev.map((r) => {
       if (r.id !== id) return r;
       // Só permite editar se não estiver aprovada/reprovada/concluída
@@ -96,9 +105,19 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
       return { ...r, ...data };
     }));
 
-  const updateStatus = (id: string, status: Requisicao["status"], aprovadoPor?: string) =>
-    setRequisicoes((prev) => prev.map((r) => (r.id === id ? { ...r, status, aprovadoPor: aprovadoPor || r.aprovadoPor } : r)));
-
+  const updateStatus = (id: string, status: Requisicao["status"], aprovadoPor?: string) => {
+    const agora = new Date().toLocaleString("pt-BR");
+    setRequisicoes((prev) => prev.map((r) => {
+      if (r.id !== id) return r;
+      const historico: StatusHistorico = { status, dataHora: agora, usuario: aprovadoPor };
+      return {
+        ...r,
+        status,
+        aprovadoPor: aprovadoPor || r.aprovadoPor,
+        historicoStatus: [...(r.historicoStatus || []), historico],
+      };
+    }));
+  };
   return (
     <RequisicaoContext.Provider value={{ requisicoes, addRequisicao, updateRequisicao, updateStatus }}>
       {children}
