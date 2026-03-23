@@ -23,6 +23,7 @@ const emptyForm = { nome: "", descricao: "", nivel: "", missao: "", responsabili
 const Cargos = () => {
   const { cargos, addCargo, updateCargo, deleteCargo } = useCargos();
   const [form, setForm] = useState(emptyForm);
+  const [formOpen, setFormOpen] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterNivel, setFilterNivel] = useState<string>("todos");
