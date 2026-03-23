@@ -44,12 +44,43 @@ const statusColors: Record<Requisicao["status"], string> = {
 const statusOptions: Requisicao["status"][] = ["Pendente", "Em Análise", "Aprovada", "Reprovada"];
 
 const RequisicaoGrid = () => {
-  const { requisicoes, updateStatus } = useRequisicoes();
+  const { requisicoes, updateStatus, updateRequisicao } = useRequisicoes();
   const { clientes } = useClientes();
+  const { cargos } = useCargos();
   const { usuarioLogado } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
+  const [editingReq, setEditingReq] = useState<Requisicao | null>(null);
+  const [editForm, setEditForm] = useState({ unidade: "", cargoId: "", jornada: "", origemVaga: "", nomeSubstituido: "" });
+
+  const canEdit = (req: Requisicao) => req.status !== "Aprovada" && req.status !== "Reprovada" && req.status !== "Concluída";
+
+  const openEdit = (req: Requisicao) => {
+    const cargoMatch = cargos.find(c => req.cargoNome.startsWith(c.nome));
+    setEditForm({
+      unidade: req.unidade,
+      cargoId: cargoMatch?.id || "",
+      jornada: req.jornada || "",
+      origemVaga: req.origemVaga || "",
+      nomeSubstituido: req.nomeSubstituido || "",
+    });
+    setEditingReq(req);
+  };
+
+  const saveEdit = () => {
+    if (!editingReq) return;
+    const cargoObj = cargos.find(c => c.id === editForm.cargoId);
+    updateRequisicao(editingReq.id, {
+      unidade: editForm.unidade,
+      cargoNome: cargoObj ? `${cargoObj.nome}${cargoObj.nivel ? ` — Nível ${cargoObj.nivel}` : ""}` : editingReq.cargoNome,
+      jornada: editForm.jornada,
+      origemVaga: editForm.origemVaga,
+      nomeSubstituido: editForm.nomeSubstituido,
+    });
+    toast.success("Requisição atualizada!");
+    setEditingReq(null);
+  };
 
   const handleStatusChange = (req: Requisicao, newStatus: Requisicao["status"]) => {
     const nomeAprovador = (newStatus === "Aprovada" || newStatus === "Reprovada") ? usuarioLogado?.nome : undefined;
