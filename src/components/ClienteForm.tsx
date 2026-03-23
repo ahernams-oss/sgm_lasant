@@ -82,15 +82,9 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
 
   const label = tipoFixo || "Cliente";
 
-  const Wrapper = embedded ? 'div' : 'form';
-  const wrapperProps = embedded
-    ? { className: "" }
-    : { className: "section-card animate-fade-up mb-6", style: { animationDelay: "80ms" } as React.CSSProperties, onSubmit: handleSubmit };
-
   return (
-    <Wrapper {...(wrapperProps as any)}>
+    <form onSubmit={handleSubmit} className={embedded ? "" : "section-card animate-fade-up mb-6"} style={embedded ? undefined : { animationDelay: "80ms" }}>
       {!embedded && <h2 className="section-title">{editingId ? `Editar ${label}` : `Novo ${label}`}</h2>}
-      {embedded ? <form onSubmit={handleSubmit}>
 
       {/* Tipo */}
       {!tipoFixo && (
