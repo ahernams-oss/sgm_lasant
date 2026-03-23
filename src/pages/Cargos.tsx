@@ -82,6 +82,7 @@ const Cargos = () => {
       perfilCompetencias: cargo.perfilCompetencias || "",
       cbo: cargo.cbo || "",
     });
+    setFormOpen(true);
   };
 
   const handleDelete = (id: string) => {
