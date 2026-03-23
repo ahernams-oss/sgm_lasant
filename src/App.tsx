@@ -21,6 +21,7 @@ import I0Page from "./pages/I0.tsx";
 import CategoriasCompras from "./pages/CategoriasCompras.tsx";
 import MateriaisServicos from "./pages/MateriaisServicos.tsx";
 import RequisicaoComprasPage from "./pages/RequisicaoCompras.tsx";
+import DashboardCompras from "./pages/DashboardCompras.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
@@ -57,6 +58,7 @@ function AppRoutes() {
         <Route path="/compras/categorias" element={<CategoriasCompras />} />
         <Route path="/compras/materiais" element={<MateriaisServicos />} />
         <Route path="/compras/requisicoes" element={<RequisicaoComprasPage />} />
+        <Route path="/compras/dashboard" element={<DashboardCompras />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

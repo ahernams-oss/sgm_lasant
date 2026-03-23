@@ -1,4 +1,4 @@
-import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock, FileSpreadsheet, DollarSign, ShoppingCart, Tags, Package } from "lucide-react";
+import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock, FileSpreadsheet, DollarSign, ShoppingCart, Tags, Package, BarChart3 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import { NavLink } from "@/components/NavLink";
@@ -31,6 +31,7 @@ const menuItems = [
   {
     group: "Compras e Suprimentos",
     items: [
+      { title: "Dashboard Compras", url: "/compras/dashboard", icon: BarChart3 },
       { title: "Requisições de Compras", url: "/compras/requisicoes", icon: ShoppingCart },
       { title: "Categorias de Compras", url: "/compras/categorias", icon: Tags },
       { title: "Materiais e Serviços", url: "/compras/materiais", icon: Package },
