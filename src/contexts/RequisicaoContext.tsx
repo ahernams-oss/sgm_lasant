@@ -80,8 +80,9 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { localStorage.setItem("requisicoes", JSON.stringify(requisicoes)); }, [requisicoes]);
 
-  const addRequisicao = (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status">) => {
+  const addRequisicao = (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "historicoStatus">) => {
     const numero = nextNumero;
+    const agora = new Date().toLocaleString("pt-BR");
     setNextNumero((n) => n + 1);
     setRequisicoes((prev) => [
       {
@@ -89,13 +90,14 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
         numero,
         dataCriacao: new Date().toLocaleDateString("pt-BR"),
         status: "Pendente",
+        historicoStatus: [{ status: "Pendente", dataHora: agora }],
         ...req,
       },
       ...prev,
     ]);
   };
 
-  const updateRequisicao = (id: string, data: Partial<Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor">>) =>
+  const updateRequisicao = (id: string, data: Partial<Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor" | "historicoStatus">>) =>
     setRequisicoes((prev) => prev.map((r) => {
       if (r.id !== id) return r;
       // Só permite editar se não estiver aprovada/reprovada/concluída
