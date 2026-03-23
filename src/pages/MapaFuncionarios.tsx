@@ -338,6 +338,15 @@ const MapaFuncionarios = () => {
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <Input type="month" value={filterMes} onChange={(e) => setFilterMes(e.target.value)} className="h-9 w-[160px] text-xs" />
+                <Select value={filterCliente} onValueChange={setFilterCliente}>
+                  <SelectTrigger className="h-9 w-[160px] text-xs"><SelectValue placeholder="Cliente" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos Clientes</SelectItem>
+                    {clientes.filter((c) => c.tipo === "Cliente").map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Select value={filterFuncionario} onValueChange={setFilterFuncionario}>
                   <SelectTrigger className="h-9 w-[180px] text-xs"><SelectValue placeholder="Funcionário" /></SelectTrigger>
                   <SelectContent>
