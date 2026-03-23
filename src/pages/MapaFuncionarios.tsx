@@ -153,6 +153,7 @@ const MapaFuncionarios = () => {
   };
 
 
+  const handleDelete = (id: string) => {
     deleteLancamento(id);
     if (editingId === id) resetForm();
     toast.success("Lançamento removido.");
