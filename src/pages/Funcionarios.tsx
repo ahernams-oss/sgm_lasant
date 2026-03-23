@@ -13,7 +13,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, tiposTransporte } from "@/contexts/FuncionariosContext";
+import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, Dependente, AnexoDependente, tiposTransporte, grausParentesco } from "@/contexts/FuncionariosContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
