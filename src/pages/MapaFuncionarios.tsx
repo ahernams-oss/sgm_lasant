@@ -124,7 +124,35 @@ const MapaFuncionarios = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach((file) => {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error(`Arquivo "${file.name}" excede 2MB.`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAnexos((prev) => [...prev, { nome: file.name, tipo: file.type, base64: reader.result as string }]);
+      };
+      reader.readAsDataURL(file);
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleDownloadAnexo = (anexo: AnexoFalta) => {
+    const link = document.createElement("a");
+    link.href = anexo.base64;
+    link.download = anexo.nome;
+    link.click();
+  };
+
+  const handleRemoveAnexo = (index: number) => {
+    setAnexos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+
     deleteLancamento(id);
     if (editingId === id) resetForm();
     toast.success("Lançamento removido.");
