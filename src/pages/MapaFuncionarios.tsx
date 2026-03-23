@@ -238,9 +238,26 @@ const MapaFuncionarios = () => {
               </p>
             </div>
             {!showForm && (
-              <Button onClick={() => setShowForm(true)} className="shadow-md">
-                <Plus className="h-4 w-4 mr-1" /> Novo Lançamento
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => gerarPdfMapaFuncionarios({
+                    lancamentos: filteredLancamentos,
+                    funcionarios,
+                    cargos,
+                    clientes,
+                    filterMes,
+                    filterCliente,
+                    filterFuncionario,
+                  })}
+                  className="shadow-sm gap-1.5"
+                >
+                  <FileDown className="h-4 w-4" /> Exportar PDF
+                </Button>
+                <Button onClick={() => setShowForm(true)} className="shadow-md">
+                  <Plus className="h-4 w-4 mr-1" /> Novo Lançamento
+                </Button>
+              </div>
             )}
           </div>
         </div>
