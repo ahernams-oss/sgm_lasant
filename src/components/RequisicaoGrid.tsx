@@ -265,52 +265,198 @@ const RequisicaoGrid = () => {
       )}
 
       <Dialog open={!!editingReq} onOpenChange={(open) => !open && setEditingReq(null)}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Requisição #{editingReq?.numero}</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-1 gap-4 py-4">
+          <div className="space-y-6 py-4">
+            {/* Especificação da Vaga */}
             <div>
-              <label className="field-label">Unidade</label>
-              {clientes.length > 0 ? (
-                <Select value={editForm.unidade} onValueChange={(v) => setEditForm(p => ({ ...p, unidade: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    {clientes.map(c => <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input value={editForm.unidade} onChange={e => setEditForm(p => ({ ...p, unidade: e.target.value }))} />
-              )}
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Especificação da Vaga</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="field-label">Unidade</label>
+                  {clientes.length > 0 ? (
+                    <Select value={editForm.unidade} onValueChange={(v) => setEditForm(p => ({ ...p, unidade: v }))}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {clientes.map(c => <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input value={editForm.unidade} onChange={e => setEditForm(p => ({ ...p, unidade: e.target.value }))} />
+                  )}
+                </div>
+                <div>
+                  <label className="field-label">Cargo</label>
+                  {cargos.length > 0 ? (
+                    <Select value={editForm.cargoId} onValueChange={(v) => {
+                      const selected = cargos.find(c => c.id === v);
+                      const salarioVigente = selected?.salarios?.length
+                        ? [...selected.salarios].sort((a, b) => (b.dataBase || "").localeCompare(a.dataBase || ""))[0]
+                        : null;
+                      setEditForm(p => ({ ...p, cargoId: v, salarioVaga: salarioVigente?.valor || selected?.salario || p.salarioVaga }));
+                    }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {cargos.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}{c.nivel ? ` — Nível ${c.nivel}` : ""}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input value={editForm.cargoId} onChange={e => setEditForm(p => ({ ...p, cargoId: e.target.value }))} />
+                  )}
+                </div>
+                {editForm.salarioVaga && (
+                  <div>
+                    <label className="field-label">Salário da Vaga</label>
+                    <Input readOnly value={`R$ ${editForm.salarioVaga}`} className="bg-muted/50" />
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* Jornada */}
             <div>
-              <label className="field-label">Cargo</label>
-              {cargos.length > 0 ? (
-                <Select value={editForm.cargoId} onValueChange={(v) => setEditForm(p => ({ ...p, cargoId: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    {cargos.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}{c.nivel ? ` — Nível ${c.nivel}` : ""}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input value={editForm.cargoId} onChange={e => setEditForm(p => ({ ...p, cargoId: e.target.value }))} />
-              )}
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Jornada de Trabalho</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="field-label">Jornada</label>
+                  <Select value={editForm.jornada} onValueChange={(v) => setEditForm(p => ({ ...p, jornada: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {jornadaOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {editForm.jornada === "Diarista" && (
+                  <div>
+                    <label className="field-label">Carga Horária</label>
+                    <Input value={editForm.cargaHoraria} onChange={e => setEditForm(p => ({ ...p, cargaHoraria: e.target.value }))} placeholder="Ex: 44h semanais" />
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* Tipo de Contratação */}
             <div>
-              <label className="field-label">Jornada</label>
-              <Input value={editForm.jornada} onChange={e => setEditForm(p => ({ ...p, jornada: e.target.value }))} />
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Tipo de Contratação</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="field-label">Modalidade</label>
+                  <Select value={editForm.tipoContratacao[0] || ""} onValueChange={(v) => setEditForm(p => ({ ...p, tipoContratacao: [v] }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {contratacaoOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="field-label">Recrutamento</label>
+                  <Select value={editForm.internoExterno} onValueChange={(v) => setEditForm(p => ({ ...p, internoExterno: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {internoExternoOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
+
+            {/* Origem da Vaga */}
             <div>
-              <label className="field-label">Origem da Vaga</label>
-              <Input value={editForm.origemVaga} onChange={e => setEditForm(p => ({ ...p, origemVaga: e.target.value }))} />
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Origem da Vaga</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="field-label">Origem</label>
+                  <Select value={editForm.origemVaga} onValueChange={(v) => setEditForm(p => ({ ...p, origemVaga: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {origemOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {editForm.origemVaga === "Outros" && (
+                  <div>
+                    <label className="field-label">Especifique o motivo</label>
+                    <Input value={editForm.motivoOutros} onChange={e => setEditForm(p => ({ ...p, motivoOutros: e.target.value }))} />
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* Colaborador Substituído */}
+            {editForm.origemVaga !== "Aumento de Quadro" && (
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Colaborador Substituído</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="field-label">Matrícula</label>
+                    <Input value={editForm.matricula} onChange={e => setEditForm(p => ({ ...p, matricula: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="field-label">Nome</label>
+                    <Input value={editForm.nomeSubstituido} onChange={e => setEditForm(p => ({ ...p, nomeSubstituido: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="field-label">Cargo</label>
+                    <Input value={editForm.cargoSubstituido} onChange={e => setEditForm(p => ({ ...p, cargoSubstituido: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="field-label">Salário (R$)</label>
+                    <Input value={editForm.salarioSubstituido} onChange={e => setEditForm(p => ({ ...p, salarioSubstituido: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="field-label">Data de Desligamento</label>
+                    <Input type="date" value={editForm.dataDesligamento} onChange={e => setEditForm(p => ({ ...p, dataDesligamento: e.target.value }))} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Qualificação */}
             <div>
-              <label className="field-label">Nome do Substituído</label>
-              <Input value={editForm.nomeSubstituido} onChange={e => setEditForm(p => ({ ...p, nomeSubstituido: e.target.value }))} />
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Qualificação da Vaga</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="field-label">Formação Acadêmica</label>
+                  <Select value={editForm.formacao[0] || ""} onValueChange={(v) => setEditForm(p => ({ ...p, formacao: [v] }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {formacaoOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  {(editForm.formacao.includes("Ensino Superior") || editForm.formacao.includes("Curso Técnico") || editForm.formacao.includes("Outros")) && (
+                    <div className="mt-3">
+                      <label className="field-label">Especifique</label>
+                      <Input value={editForm.formacaoDetalhe} onChange={e => setEditForm(p => ({ ...p, formacaoDetalhe: e.target.value }))} placeholder="Qual formação?" />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="field-label">Tempo de Experiência</label>
+                  <Select value={editForm.experiencia} onValueChange={(v) => setEditForm(p => ({ ...p, experiencia: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {experienciaOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="field-label">Conhecimento em Informática</label>
+                  <Input value={editForm.conhecimentoInformatica} onChange={e => setEditForm(p => ({ ...p, conhecimentoInformatica: e.target.value }))} />
+                </div>
+              </div>
             </div>
-            <div className="flex gap-2 justify-end">
+
+            {/* Atividades */}
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Atividades do Cargo</h3>
+              <Textarea rows={4} value={editForm.atividadesCargo} onChange={e => setEditForm(p => ({ ...p, atividadesCargo: e.target.value }))} className="resize-none" />
+            </div>
+
+            <div className="flex gap-2 justify-end pt-2">
               <Button variant="outline" onClick={() => setEditingReq(null)}>Cancelar</Button>
-              <Button onClick={saveEdit}>Salvar</Button>
+              <Button onClick={saveEdit}>Salvar Alterações</Button>
             </div>
           </div>
         </DialogContent>
