@@ -31,6 +31,7 @@ const menuItems = [
   {
     group: "Compras e Suprimentos",
     items: [
+      { title: "Dashboard Compras", url: "/compras/dashboard", icon: BarChart3 },
       { title: "Requisições de Compras", url: "/compras/requisicoes", icon: ShoppingCart },
       { title: "Categorias de Compras", url: "/compras/categorias", icon: Tags },
       { title: "Materiais e Serviços", url: "/compras/materiais", icon: Package },

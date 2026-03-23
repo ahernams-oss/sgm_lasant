@@ -58,6 +58,7 @@ function AppRoutes() {
         <Route path="/compras/categorias" element={<CategoriasCompras />} />
         <Route path="/compras/materiais" element={<MateriaisServicos />} />
         <Route path="/compras/requisicoes" element={<RequisicaoComprasPage />} />
+        <Route path="/compras/dashboard" element={<DashboardCompras />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
