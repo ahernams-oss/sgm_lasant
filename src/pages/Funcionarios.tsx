@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,13 @@ const ESTADO_CIVIL_OPTIONS = ["Solteiro(a)", "Casado(a)", "Divorciado(a)", "Viú
 const TIPO_CONTRATO_OPTIONS = ["CLT", "PJ", "Temporário", "Estágio", "Jovem Aprendiz"];
 const TIPO_CONTA_OPTIONS = ["Corrente", "Poupança", "Salário"];
 const CATEGORIA_CNH_OPTIONS = ["A", "B", "AB", "C", "D", "E", "ACC"];
+
+const Field = ({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) => (
+  <div className="space-y-1.5">
+    <Label className="text-xs font-semibold text-foreground/80">{label}{required && " *"}</Label>
+    {children}
+  </div>
+);
 
 const Funcionarios = () => {
   const { funcionarios, addFuncionario, updateFuncionario, deleteFuncionario } = useFuncionarios();
@@ -127,12 +134,6 @@ const Funcionarios = () => {
     return <Badge className={`${map[status] || ""} text-xs font-medium`}>{status}</Badge>;
   };
 
-  const Field = ({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) => (
-    <div className="space-y-1.5">
-      <Label className="text-xs font-semibold text-foreground/80">{label}{required && " *"}</Label>
-      {children}
-    </div>
-  );
 
   return (
     <div className="bg-background">
