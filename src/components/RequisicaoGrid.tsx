@@ -467,6 +467,33 @@ const RequisicaoGrid = () => {
             </div>
           </div>
         </DialogContent>
+      <Dialog open={!!historicoReq} onOpenChange={(open) => !open && setHistoricoReq(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Histórico — Requisição #{historicoReq?.numero}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {(!historicoReq?.historicoStatus || historicoReq.historicoStatus.length === 0) ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhum registro de histórico.</p>
+            ) : (
+              <div className="relative pl-6 space-y-4">
+                <div className="absolute left-2.5 top-1 bottom-1 w-px bg-border" />
+                {historicoReq.historicoStatus.map((h, idx) => (
+                  <div key={idx} className="relative">
+                    <div className="absolute -left-[18px] top-1 h-3 w-3 rounded-full border-2 border-primary bg-background" />
+                    <div>
+                      <Badge variant="outline" className="text-xs font-medium mb-1">
+                        {h.status}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground tabular-nums">{h.dataHora}</p>
+                      {h.usuario && <p className="text-xs text-muted-foreground">por {h.usuario}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
       </Dialog>
     </div>
   );
