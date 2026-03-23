@@ -1,4 +1,4 @@
-import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard } from "lucide-react";
+import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import { NavLink } from "@/components/NavLink";
@@ -25,6 +25,7 @@ const menuItems = [
       { title: "Requisição de Colaboradores", url: "/", icon: ClipboardList },
       { title: "Processos Seletivos", url: "/processos-seletivos", icon: ClipboardCheck },
       { title: "Funcionários", url: "/funcionarios", icon: UserCheck },
+      { title: "Mapa de Funcionários", url: "/mapa-funcionarios", icon: CalendarClock },
     ],
   },
   {

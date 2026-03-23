@@ -11,6 +11,7 @@ import Clientes from "./pages/Clientes.tsx";
 import Fornecedores from "./pages/Fornecedores.tsx";
 import Cargos from "./pages/Cargos.tsx";
 import Funcionarios from "./pages/Funcionarios.tsx";
+import MapaFuncionarios from "./pages/MapaFuncionarios.tsx";
 import Usuarios from "./pages/Usuarios.tsx";
 import Login from "./pages/Login.tsx";
 import ProcessoSeletivo from "./pages/ProcessoSeletivo.tsx";
@@ -19,6 +20,7 @@ import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
 import { FuncionariosProvider } from "@/contexts/FuncionariosContext";
+import { LancamentosProvider } from "@/contexts/LancamentosContext";
 import { UsuariosProvider } from "@/contexts/UsuariosContext";
 import { ProcessoSeletivoProvider } from "@/contexts/ProcessoSeletivoContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -36,6 +38,7 @@ function AppRoutes() {
         <Route path="/fornecedores" element={<Fornecedores />} />
         <Route path="/cargos" element={<Cargos />} />
         <Route path="/funcionarios" element={<Funcionarios />} />
+        <Route path="/mapa-funcionarios" element={<MapaFuncionarios />} />
         <Route path="/usuarios" element={<Usuarios />} />
         <Route path="/processo-seletivo/:requisicaoId" element={<ProcessoSeletivo />} />
         <Route path="/processos-seletivos" element={<ProcessosSeletivos />} />
@@ -50,6 +53,7 @@ const App = () => (
     <ClientesProvider>
     <CargosProvider>
     <FuncionariosProvider>
+    <LancamentosProvider>
     <UsuariosProvider>
     <RequisicaoProvider>
     <ProcessoSeletivoProvider>
@@ -65,6 +69,7 @@ const App = () => (
     </ProcessoSeletivoProvider>
     </RequisicaoProvider>
     </UsuariosProvider>
+    </LancamentosProvider>
     </FuncionariosProvider>
     </CargosProvider>
     </ClientesProvider>
