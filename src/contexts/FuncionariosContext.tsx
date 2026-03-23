@@ -13,6 +13,26 @@ export interface PassagemDiaria {
   total: number;
 }
 
+export interface AnexoDependente {
+  id: string;
+  nome: string;
+  base64: string;
+  tipo: string;
+}
+
+export interface Dependente {
+  id: string;
+  nome: string;
+  cpf: string;
+  dataNascimento: string;
+  grauParentesco: string;
+  anexos: AnexoDependente[];
+}
+
+export const grausParentesco = [
+  "Cônjuge", "Filho(a)", "Pai", "Mãe", "Irmão(ã)", "Avô(ó)", "Neto(a)", "Enteado(a)", "Tutelado(a)", "Outro"
+];
+
 export interface Funcionario {
   id: string;
   // Dados pessoais
