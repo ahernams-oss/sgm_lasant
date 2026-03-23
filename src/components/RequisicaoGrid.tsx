@@ -220,6 +220,58 @@ const RequisicaoGrid = () => {
           </Table>
         </div>
       )}
+
+      <Dialog open={!!editingReq} onOpenChange={(open) => !open && setEditingReq(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Editar Requisição #{editingReq?.numero}</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 gap-4 py-4">
+            <div>
+              <label className="field-label">Unidade</label>
+              {clientes.length > 0 ? (
+                <Select value={editForm.unidade} onValueChange={(v) => setEditForm(p => ({ ...p, unidade: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {clientes.map(c => <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input value={editForm.unidade} onChange={e => setEditForm(p => ({ ...p, unidade: e.target.value }))} />
+              )}
+            </div>
+            <div>
+              <label className="field-label">Cargo</label>
+              {cargos.length > 0 ? (
+                <Select value={editForm.cargoId} onValueChange={(v) => setEditForm(p => ({ ...p, cargoId: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {cargos.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}{c.nivel ? ` — Nível ${c.nivel}` : ""}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input value={editForm.cargoId} onChange={e => setEditForm(p => ({ ...p, cargoId: e.target.value }))} />
+              )}
+            </div>
+            <div>
+              <label className="field-label">Jornada</label>
+              <Input value={editForm.jornada} onChange={e => setEditForm(p => ({ ...p, jornada: e.target.value }))} />
+            </div>
+            <div>
+              <label className="field-label">Origem da Vaga</label>
+              <Input value={editForm.origemVaga} onChange={e => setEditForm(p => ({ ...p, origemVaga: e.target.value }))} />
+            </div>
+            <div>
+              <label className="field-label">Nome do Substituído</label>
+              <Input value={editForm.nomeSubstituido} onChange={e => setEditForm(p => ({ ...p, nomeSubstituido: e.target.value }))} />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setEditingReq(null)}>Cancelar</Button>
+              <Button onClick={saveEdit}>Salvar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
