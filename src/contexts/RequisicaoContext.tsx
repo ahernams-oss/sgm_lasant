@@ -6,10 +6,24 @@ export interface Requisicao {
   dataCriacao: string;
   unidade: string;
   cargoNome: string;
+  cargoId: string;
   jornada: string;
+  cargaHoraria: string;
   tipoContratacao: string[];
+  internoExterno: string;
   origemVaga: string;
+  motivoOutros: string;
+  matricula: string;
   nomeSubstituido: string;
+  cargoSubstituido: string;
+  salarioSubstituido: string;
+  dataDesligamento: string;
+  formacao: string[];
+  formacaoDetalhe: string;
+  experiencia: string;
+  conhecimentoInformatica: string;
+  atividadesCargo: string;
+  salarioVaga: string;
   status: "Pendente" | "Em Análise" | "Aprovada" | "Reprovada" | "Concluída";
   aprovadoPor?: string;
 }
@@ -27,11 +41,25 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
   const [requisicoes, setRequisicoes] = useState<Requisicao[]>(() => {
     const saved = localStorage.getItem("requisicoes");
     if (!saved) return [];
-    // Migra dados antigos sem número
+    // Migra dados antigos
     const parsed = JSON.parse(saved);
     return parsed.map((r: any, idx: number) => ({
-      ...r,
       numero: r.numero ?? parsed.length - idx,
+      cargoId: r.cargoId || "",
+      cargaHoraria: r.cargaHoraria || "",
+      internoExterno: r.internoExterno || "",
+      motivoOutros: r.motivoOutros || "",
+      matricula: r.matricula || "",
+      cargoSubstituido: r.cargoSubstituido || "",
+      salarioSubstituido: r.salarioSubstituido || "",
+      dataDesligamento: r.dataDesligamento || "",
+      formacao: r.formacao || [],
+      formacaoDetalhe: r.formacaoDetalhe || "",
+      experiencia: r.experiencia || "",
+      conhecimentoInformatica: r.conhecimentoInformatica || "",
+      atividadesCargo: r.atividadesCargo || "",
+      salarioVaga: r.salarioVaga || "",
+      ...r,
     }));
   });
 
