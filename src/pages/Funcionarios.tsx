@@ -127,12 +127,6 @@ const Funcionarios = () => {
     return <Badge className={`${map[status] || ""} text-xs font-medium`}>{status}</Badge>;
   };
 
-  const Field = ({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) => (
-    <div className="space-y-1.5">
-      <Label className="text-xs font-semibold text-foreground/80">{label}{required && " *"}</Label>
-      {children}
-    </div>
-  );
 
   return (
     <div className="bg-background">
