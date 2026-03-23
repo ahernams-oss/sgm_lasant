@@ -16,11 +16,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { gerarPdfRequisicao } from "@/lib/gerarPdfRequisicao";
-import { enviarWhatsApp } from "@/lib/whatsapp";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import {
   Select,
   SelectContent,
