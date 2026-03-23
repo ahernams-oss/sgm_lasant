@@ -227,7 +227,7 @@ const ProcessoSeletivoPage = () => {
 
   return (
     <div className="bg-background">
-      <div className="container max-w-5xl mx-auto px-4 py-8">
+      <div className="container max-w-full mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6 animate-fade-up">
           <Button variant="ghost" size="sm" className="mb-3 -ml-2" onClick={() => navigate("/")}>
