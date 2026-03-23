@@ -38,6 +38,7 @@ function AppRoutes() {
         <Route path="/fornecedores" element={<Fornecedores />} />
         <Route path="/cargos" element={<Cargos />} />
         <Route path="/funcionarios" element={<Funcionarios />} />
+        <Route path="/mapa-funcionarios" element={<MapaFuncionarios />} />
         <Route path="/usuarios" element={<Usuarios />} />
         <Route path="/processo-seletivo/:requisicaoId" element={<ProcessoSeletivo />} />
         <Route path="/processos-seletivos" element={<ProcessosSeletivos />} />
