@@ -15,7 +15,7 @@ const UNIDADES = ["UN", "M", "M²", "M³", "KG", "L", "CX", "PCT", "SC", "GL", "
 
 export default function MateriaisServicosPage() {
   const { materiais, addMaterial, updateMaterial, deleteMaterial } = useMateriaisServicos();
-  const { categorias } = useCategoriasCompras();
+  const { classes, getDescricaoCompleta } = useCategoriasCompras();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
