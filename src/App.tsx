@@ -53,6 +53,7 @@ const App = () => (
     <ClientesProvider>
     <CargosProvider>
     <FuncionariosProvider>
+    <LancamentosProvider>
     <UsuariosProvider>
     <RequisicaoProvider>
     <ProcessoSeletivoProvider>
