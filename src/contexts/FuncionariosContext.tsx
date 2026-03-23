@@ -57,6 +57,8 @@ export interface Funcionario {
   tamanhoCalcado: string;
   peso: string;
   altura: string;
+  // Passagem
+  passagens: PassagemDiaria[];
   // Observações
   observacoes: string;
   // Status
