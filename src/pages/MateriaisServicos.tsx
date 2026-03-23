@@ -19,7 +19,7 @@ export default function MateriaisServicosPage() {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ codigo: "", descricao: "", tipo: "Material" as "Material" | "Serviço", unidadeMedida: "UN", categoriaId: "" });
+  const [form, setForm] = useState({ descricao: "", tipo: "Material" as "Material" | "Serviço", unidadeMedida: "UN", categoriaId: "" });
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("Todos");
 
@@ -33,8 +33,8 @@ export default function MateriaisServicosPage() {
     return list;
   }, [materiais, search, filterTipo]);
 
-  const openNew = () => { setForm({ codigo: "", descricao: "", tipo: "Material", unidadeMedida: "UN", categoriaId: "" }); setEditingId(null); setDialogOpen(true); };
-  const openEdit = (m: MaterialServico) => { setForm({ codigo: m.codigo, descricao: m.descricao, tipo: m.tipo, unidadeMedida: m.unidadeMedida, categoriaId: m.categoriaId }); setEditingId(m.id); setDialogOpen(true); };
+  const openNew = () => { setForm({ descricao: "", tipo: "Material", unidadeMedida: "UN", categoriaId: "" }); setEditingId(null); setDialogOpen(true); };
+  const openEdit = (m: MaterialServico) => { setForm({ descricao: m.descricao, tipo: m.tipo, unidadeMedida: m.unidadeMedida, categoriaId: m.categoriaId }); setEditingId(m.id); setDialogOpen(true); };
 
   const handleSave = () => {
     if (!form.descricao.trim()) { toast({ title: "Descrição é obrigatória", variant: "destructive" }); return; }
@@ -60,7 +60,7 @@ export default function MateriaisServicosPage() {
           const cols = line.split(/[;\t,]/).map(c => c.trim());
           if (cols[0]?.toLowerCase().includes("cod")) continue;
           if (cols.length >= 2) {
-            addMaterial({ codigo: cols[0] || "", descricao: cols[1] || "", tipo: (cols[2] === "Serviço" ? "Serviço" : "Material"), unidadeMedida: cols[3] || "UN", categoriaId: cols[4] || "" });
+            addMaterial({ descricao: cols[1] || cols[0] || "", tipo: (cols[2] === "Serviço" ? "Serviço" : "Material"), unidadeMedida: cols[3] || "UN", categoriaId: cols[4] || "" });
             count++;
           }
         }
@@ -77,7 +77,7 @@ export default function MateriaisServicosPage() {
         for (const row of rows) {
           if (String(row[0] || "").toLowerCase().includes("cod")) continue;
           if (row.length >= 2) {
-            addMaterial({ codigo: String(row[0] || ""), descricao: String(row[1] || ""), tipo: (String(row[2] || "") === "Serviço" ? "Serviço" : "Material"), unidadeMedida: String(row[3] || "UN"), categoriaId: String(row[4] || "") });
+            addMaterial({ descricao: String(row[1] || row[0] || ""), tipo: (String(row[2] || "") === "Serviço" ? "Serviço" : "Material"), unidadeMedida: String(row[3] || "UN"), categoriaId: String(row[4] || "") });
             count++;
           }
         }
@@ -153,8 +153,7 @@ export default function MateriaisServicosPage() {
         <DialogContent>
           <DialogHeader><DialogTitle>{editingId ? "Editar" : "Novo"} Material/Serviço</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div><Label>Código</Label><Input value={form.codigo} onChange={e => setForm(f => ({ ...f, codigo: e.target.value }))} /></div>
-            <div><Label>Descrição *</Label><Input value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} /></div>
+            <div><Label>Descrição *</Label><Input value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} placeholder="Descrição obrigatória" /></div>
             <div><Label>Tipo</Label>
               <Select value={form.tipo} onValueChange={v => setForm(f => ({ ...f, tipo: v as any }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
