@@ -6,10 +6,24 @@ export interface Requisicao {
   dataCriacao: string;
   unidade: string;
   cargoNome: string;
+  cargoId: string;
   jornada: string;
+  cargaHoraria: string;
   tipoContratacao: string[];
+  internoExterno: string;
   origemVaga: string;
+  motivoOutros: string;
+  matricula: string;
   nomeSubstituido: string;
+  cargoSubstituido: string;
+  salarioSubstituido: string;
+  dataDesligamento: string;
+  formacao: string[];
+  formacaoDetalhe: string;
+  experiencia: string;
+  conhecimentoInformatica: string;
+  atividadesCargo: string;
+  salarioVaga: string;
   status: "Pendente" | "Em Análise" | "Aprovada" | "Reprovada" | "Concluída";
   aprovadoPor?: string;
 }
