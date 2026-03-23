@@ -445,6 +445,7 @@ const MapaFuncionarios = () => {
                       <>
                         <TableHead>Tipo</TableHead>
                         <TableHead>Dias</TableHead>
+                        <TableHead>Anexos</TableHead>
                       </>
                     ) : (
                       <>
