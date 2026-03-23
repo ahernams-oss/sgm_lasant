@@ -24,6 +24,60 @@ export default function Sco() {
   const [form, setForm] = useState(emptyScoForm);
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("todos");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImport = (file: File) => {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    const reader = new FileReader();
+
+    if (ext === "txt" || ext === "csv") {
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        if (!text) return;
+        const separator = ext === "csv" ? /[;,]/ : /\t/;
+        const lines = text.split(/\r?\n/).filter((l) => l.trim());
+        let imported = 0;
+        for (let i = 0; i < lines.length; i++) {
+          const cols = lines[i].split(separator).map((c) => c.trim());
+          if (i === 0 && /c[oó]d/i.test(cols[0])) continue; // skip header
+          if (cols.length < 2) continue;
+          const tipo = (cols[3]?.toUpperCase() || "SCO") as TipoSco;
+          addSco({
+            codSco: cols[0] || "",
+            descricaoSco: cols[1] || "",
+            unidade: cols[2] || "",
+            tipo: tiposSco.includes(tipo) ? tipo : "SCO",
+          });
+          imported++;
+        }
+        toast({ title: `${imported} item(ns) importado(s) com sucesso` });
+      };
+      reader.readAsText(file);
+    } else {
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const wb = XLSX.read(data, { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        let imported = 0;
+        for (let i = 0; i < rows.length; i++) {
+          const cols = rows[i];
+          if (!cols || cols.length < 2) continue;
+          if (i === 0 && /c[oó]d/i.test(String(cols[0]))) continue;
+          const tipo = (String(cols[3] || "SCO").toUpperCase()) as TipoSco;
+          addSco({
+            codSco: String(cols[0] || ""),
+            descricaoSco: String(cols[1] || ""),
+            unidade: String(cols[2] || ""),
+            tipo: tiposSco.includes(tipo) ? tipo : "SCO",
+          });
+          imported++;
+        }
+        toast({ title: `${imported} item(ns) importado(s) com sucesso` });
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  };
 
   const filtered = useMemo(() => {
     return scos.filter((s) => {
