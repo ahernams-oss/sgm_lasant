@@ -1,5 +1,11 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
+export interface StatusHistorico {
+  status: string;
+  dataHora: string;
+  usuario?: string;
+}
+
 export interface Requisicao {
   id: string;
   numero: number;
@@ -26,6 +32,7 @@ export interface Requisicao {
   salarioVaga: string;
   status: "Pendente" | "Em Análise" | "Aprovada" | "Reprovada" | "Concluída";
   aprovadoPor?: string;
+  historicoStatus: StatusHistorico[];
 }
 
 interface RequisicaoContextType {
