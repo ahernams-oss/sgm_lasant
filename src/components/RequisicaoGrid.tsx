@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useRequisicoes, Requisicao } from "@/contexts/RequisicaoContext";
+import { useRequisicoes, Requisicao, StatusHistorico } from "@/contexts/RequisicaoContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useAuth } from "@/contexts/AuthContext";
