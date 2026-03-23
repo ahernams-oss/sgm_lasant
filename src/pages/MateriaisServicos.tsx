@@ -87,7 +87,7 @@ export default function MateriaisServicosPage() {
     }
   };
 
-  const catNome = (id: string) => categorias.find(c => c.id === id)?.nome || "-";
+  const catNome = (id: string) => id ? getDescricaoCompleta(id) || "-" : "-";
 
   return (
     <div className="space-y-6">
