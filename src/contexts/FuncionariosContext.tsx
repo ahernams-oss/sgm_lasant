@@ -85,6 +85,7 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   tituloEleitor: "", zonaEleitoral: "", secaoEleitoral: "",
   cnh: "", categoriaCnh: "", validadeCnh: "", certificadoReservista: "",
   tamanhoCamisa: "", tamanhoCalca: "", tamanhoCalcado: "", peso: "", altura: "",
+  passagens: [],
   observacoes: "", status: "Ativo",
 };
 
