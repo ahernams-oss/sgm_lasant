@@ -23,6 +23,7 @@ const emptyForm = { nome: "", descricao: "", nivel: "", missao: "", responsabili
 const Cargos = () => {
   const { cargos, addCargo, updateCargo, deleteCargo } = useCargos();
   const [form, setForm] = useState(emptyForm);
+  const [formOpen, setFormOpen] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterNivel, setFilterNivel] = useState<string>("todos");
@@ -81,6 +82,7 @@ const Cargos = () => {
       perfilCompetencias: cargo.perfilCompetencias || "",
       cbo: cargo.cbo || "",
     });
+    setFormOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -285,14 +287,25 @@ const Cargos = () => {
           </p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
+        <div
           className="section-card animate-fade-up mb-6"
           style={{ animationDelay: "80ms" }}
         >
-          <h2 className="section-title">
-            {editingId ? "Editar Cargo" : "Novo Cargo"}
-          </h2>
+          <button
+            type="button"
+            onClick={() => setFormOpen(!formOpen)}
+            className="flex items-center justify-between w-full"
+          >
+            <h2 className="section-title mb-0">
+              {editingId ? "Editar Cargo" : "Novo Cargo"}
+            </h2>
+            {formOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          </button>
+          {formOpen && (
+        <form
+          onSubmit={handleSubmit}
+          className="mt-4"
+        >
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-3">
               <label className="field-label">Nome do Cargo</label>
@@ -343,6 +356,8 @@ const Cargos = () => {
             )}
           </div>
         </form>
+          )}
+        </div>
 
         <div className="section-card animate-fade-up" style={{ animationDelay: "160ms" }}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Truck, Trash2, Search, MessageCircle, MoreVertical, MapPin } from "lucide-react";
+import { Truck, Trash2, Search, MessageCircle, MoreVertical, MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 const Fornecedores = () => {
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
+  const [formOpen, setFormOpen] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
   const [search, setSearch] = useState("");
@@ -50,6 +51,7 @@ const Fornecedores = () => {
     setEditingId(fornecedor.id);
     const { id, informacoesFinanceiras, locais, locaisEntrega, ...rest } = fornecedor;
     setEditingData(rest as FormData);
+    setFormOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -108,14 +110,29 @@ const Fornecedores = () => {
           </p>
         </div>
 
-        <ClienteForm
-          key={editingId || "new"}
-          editingId={editingId}
-          initialData={editingData || defaultData}
-          onSubmit={handleSubmit}
-          onCancel={resetForm}
-          tipoFixo="Fornecedor"
-        />
+        <div className="section-card animate-fade-up mb-6" style={{ animationDelay: "80ms" }}>
+          <button
+            type="button"
+            onClick={() => setFormOpen(!formOpen)}
+            className="flex items-center justify-between w-full"
+          >
+            <h2 className="section-title mb-0">{editingId ? "Editar Fornecedor" : "Novo Fornecedor"}</h2>
+            {formOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          </button>
+          {formOpen && (
+            <div className="mt-4">
+              <ClienteForm
+                key={editingId || "new"}
+                editingId={editingId}
+                initialData={editingData || defaultData}
+                onSubmit={handleSubmit}
+                onCancel={resetForm}
+                tipoFixo="Fornecedor"
+                embedded
+              />
+            </div>
+          )}
+        </div>
 
 
         <div className="section-card animate-fade-up" style={{ animationDelay: "160ms" }}>
