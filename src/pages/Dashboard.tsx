@@ -104,7 +104,67 @@ const Dashboard = () => {
       .map(([period, total]) => ({ period, total }));
   }, [filteredReqs]);
 
-  const totalReqs = filteredReqs.length;
+  // Collect all WhatsApp phones from clients
+  const allPhones = useMemo(() => {
+    const phones: { label: string; phone: string }[] = [];
+    clientes.filter(c => c.tipo === "Cliente").forEach((c) => {
+      if (c.telefonesWhatsapp) {
+        c.telefonesWhatsapp.split(/[,;]/).map(t => t.trim()).filter(Boolean).forEach((t) => {
+          phones.push({ label: `${c.nomeFantasia || c.nome} — ${t}`, phone: t });
+        });
+      }
+    });
+    return phones;
+  }, [clientes]);
+
+  const handleDownloadPdf = () => {
+    downloadPdfDashboard({
+      requisicoes: filteredReqs,
+      dateFrom: dateFrom ? format(dateFrom, "dd/MM/yyyy") : undefined,
+      dateTo: dateTo ? format(dateTo, "dd/MM/yyyy") : undefined,
+    });
+    toast({ title: "PDF gerado com sucesso!" });
+  };
+
+  const handleOpenSendDialog = () => {
+    setSelectedPhones(allPhones.map(p => p.phone));
+    setShowSendDialog(true);
+  };
+
+  const togglePhone = (phone: string) => {
+    setSelectedPhones((prev) =>
+      prev.includes(phone) ? prev.filter(p => p !== phone) : [...prev, phone]
+    );
+  };
+
+  const handleSendWhatsApp = async () => {
+    if (selectedPhones.length === 0) {
+      toast({ title: "Selecione ao menos um destinatário", variant: "destructive" });
+      return;
+    }
+    setSending(true);
+    const mensagem = gerarTextoDashboard(
+      filteredReqs,
+      dateFrom ? format(dateFrom, "dd/MM/yyyy") : undefined,
+      dateTo ? format(dateTo, "dd/MM/yyyy") : undefined,
+    );
+    let successCount = 0;
+    let errorCount = 0;
+    for (const phone of selectedPhones) {
+      const result = await enviarWhatsApp(phone, mensagem);
+      if (result.success) successCount++;
+      else errorCount++;
+    }
+    setSending(false);
+    setShowSendDialog(false);
+    toast({
+      title: `Relatório enviado`,
+      description: `${successCount} enviado(s)${errorCount > 0 ? `, ${errorCount} erro(s)` : ""}`,
+      variant: errorCount > 0 ? "destructive" : "default",
+    });
+  };
+
+
   const hasFilter = dateFrom || dateTo;
 
   return (
