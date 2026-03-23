@@ -17,6 +17,7 @@ export interface Requisicao {
 interface RequisicaoContextType {
   requisicoes: Requisicao[];
   addRequisicao: (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor">) => void;
+  updateRequisicao: (id: string, data: Partial<Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor">>) => void;
   updateStatus: (id: string, status: Requisicao["status"], aprovadoPor?: string) => void;
 }
 
