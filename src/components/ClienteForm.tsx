@@ -32,6 +32,7 @@ interface ClienteFormProps {
   onSubmit: (data: FormData, editingId: string | null) => void;
   onCancel: () => void;
   tipoFixo?: "Cliente" | "Fornecedor";
+  embedded?: boolean;
 }
 
 export default function ClienteForm({ editingId, initialData, onSubmit, onCancel, tipoFixo }: ClienteFormProps) {
