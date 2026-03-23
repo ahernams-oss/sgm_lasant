@@ -12,6 +12,7 @@ import { useClientes } from "@/contexts/ClientesContext";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  LineChart, Line, Area, AreaChart,
 } from "recharts";
 
 const STATUS_COLORS: Record<string, string> = {
