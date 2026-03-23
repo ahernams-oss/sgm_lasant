@@ -35,7 +35,7 @@ interface ClienteFormProps {
   embedded?: boolean;
 }
 
-export default function ClienteForm({ editingId, initialData, onSubmit, onCancel, tipoFixo }: ClienteFormProps) {
+export default function ClienteForm({ editingId, initialData, onSubmit, onCancel, tipoFixo, embedded }: ClienteFormProps) {
   const [form, setForm] = useState<FormData>(initialData || emptyForm);
 
   const update = (field: keyof FormData, value: string) =>
