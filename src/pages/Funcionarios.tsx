@@ -33,6 +33,109 @@ const Field = ({ label, children, required }: { label: string; children: React.R
   </div>
 );
 
+const PassagemTab = ({ passagens, onChange }: { passagens: PassagemDiaria[]; onChange: (p: PassagemDiaria[]) => void }) => {
+  const [novaPassagem, setNovaPassagem] = useState({ data: "", itinerario: "", valorPassagem: "", quantidade: 1 });
+
+  const addPassagem = () => {
+    if (!novaPassagem.data || !novaPassagem.itinerario || !novaPassagem.valorPassagem) return;
+    const valor = parseFloat(novaPassagem.valorPassagem.replace(",", ".")) || 0;
+    const total = valor * novaPassagem.quantidade;
+    const nova: PassagemDiaria = {
+      id: crypto.randomUUID(),
+      data: novaPassagem.data,
+      itinerario: novaPassagem.itinerario,
+      valorPassagem: novaPassagem.valorPassagem,
+      quantidade: novaPassagem.quantidade,
+      total,
+    };
+    onChange([...passagens, nova]);
+    setNovaPassagem({ data: "", itinerario: "", valorPassagem: "", quantidade: 1 });
+  };
+
+  const removePassagem = (id: string) => onChange(passagens.filter((p) => p.id !== id));
+
+  const totalGeral = passagens.reduce((acc, p) => acc + p.total, 0);
+
+  // Agrupar por data
+  const porData = passagens.reduce<Record<string, { passagens: PassagemDiaria[]; total: number }>>((acc, p) => {
+    if (!acc[p.data]) acc[p.data] = { passagens: [], total: 0 };
+    acc[p.data].passagens.push(p);
+    acc[p.data].total += p.total;
+    return acc;
+  }, {});
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+        <Field label="Data">
+          <Input type="date" value={novaPassagem.data} onChange={(e) => setNovaPassagem((p) => ({ ...p, data: e.target.value }))} />
+        </Field>
+        <Field label="Itinerário">
+          <Input value={novaPassagem.itinerario} onChange={(e) => setNovaPassagem((p) => ({ ...p, itinerario: e.target.value }))} placeholder="Ex: Casa → Trabalho" />
+        </Field>
+        <Field label="Valor da Passagem (R$)">
+          <Input value={novaPassagem.valorPassagem} onChange={(e) => setNovaPassagem((p) => ({ ...p, valorPassagem: e.target.value }))} placeholder="Ex: 4,50" />
+        </Field>
+        <Field label="Quantidade">
+          <Input type="number" min={1} value={novaPassagem.quantidade} onChange={(e) => setNovaPassagem((p) => ({ ...p, quantidade: parseInt(e.target.value) || 1 }))} />
+        </Field>
+        <Button type="button" onClick={addPassagem} className="shadow-md">
+          <Plus className="h-4 w-4 mr-1" /> Adicionar
+        </Button>
+      </div>
+
+      {passagens.length > 0 && (
+        <div className="rounded-lg border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Data</TableHead>
+                <TableHead>Itinerário</TableHead>
+                <TableHead>Valor Unit.</TableHead>
+                <TableHead>Qtd</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead className="w-16"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Object.entries(porData)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([data, grupo]) => (
+                  <React.Fragment key={data}>
+                    {grupo.passagens.map((p) => (
+                      <TableRow key={p.id}>
+                        <TableCell>{new Date(p.data + "T00:00:00").toLocaleDateString("pt-BR")}</TableCell>
+                        <TableCell>{p.itinerario}</TableCell>
+                        <TableCell>R$ {parseFloat(p.valorPassagem.replace(",", ".")).toFixed(2).replace(".", ",")}</TableCell>
+                        <TableCell>{p.quantidade}</TableCell>
+                        <TableCell className="font-medium">R$ {p.total.toFixed(2).replace(".", ",")}</TableCell>
+                        <TableCell>
+                          <Button size="icon" variant="ghost" type="button" onClick={() => removePassagem(p.id)} className="h-7 w-7 text-destructive hover:text-destructive">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="bg-muted/30">
+                      <TableCell colSpan={4} className="text-xs font-semibold text-right">Subtotal do dia ({new Date(data + "T00:00:00").toLocaleDateString("pt-BR")}):</TableCell>
+                      <TableCell className="font-bold text-sm">R$ {grupo.total.toFixed(2).replace(".", ",")}</TableCell>
+                      <TableCell />
+                    </TableRow>
+                  </React.Fragment>
+                ))}
+              <TableRow className="bg-primary/5">
+                <TableCell colSpan={4} className="text-sm font-bold text-right">Total Geral:</TableCell>
+                <TableCell className="font-bold text-base text-primary">R$ {totalGeral.toFixed(2).replace(".", ",")}</TableCell>
+                <TableCell />
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Funcionarios = () => {
   const { funcionarios, addFuncionario, updateFuncionario, deleteFuncionario } = useFuncionarios();
   const { cargos } = useCargos();
