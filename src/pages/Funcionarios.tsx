@@ -144,7 +144,94 @@ const PassagemTab = ({ passagens, onChange }: { passagens: PassagemDiaria[]; onC
   );
 };
 
-const Funcionarios = () => {
+const DependentesTab = ({ dependentes, onChange }: { dependentes: Dependente[]; onChange: (d: Dependente[]) => void }) => {
+  const [novo, setNovo] = useState({ nome: "", cpf: "", dataNascimento: "", grauParentesco: "" });
+
+  const addDependente = () => {
+    if (!novo.nome.trim() || !novo.grauParentesco) { toast.error("Informe nome e grau de parentesco."); return; }
+    onChange([...dependentes, { id: crypto.randomUUID(), ...novo, anexos: [] }]);
+    setNovo({ nome: "", cpf: "", dataNascimento: "", grauParentesco: "" });
+  };
+
+  const removeDependente = (id: string) => onChange(dependentes.filter((d) => d.id !== id));
+
+  const handleAnexo = (depId: string, file: File) => {
+    if (file.size > 5 * 1024 * 1024) { toast.error("Arquivo muito grande (máx 5MB)."); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const anexo: AnexoDependente = { id: crypto.randomUUID(), nome: file.name, base64: reader.result as string, tipo: file.type };
+      onChange(dependentes.map((d) => d.id === depId ? { ...d, anexos: [...d.anexos, anexo] } : d));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeAnexo = (depId: string, anexoId: string) =>
+    onChange(dependentes.map((d) => d.id === depId ? { ...d, anexos: d.anexos.filter((a) => a.id !== anexoId) } : d));
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+        <Field label="Nome do Dependente">
+          <Input value={novo.nome} onChange={(e) => setNovo({ ...novo, nome: e.target.value })} placeholder="Nome completo" />
+        </Field>
+        <Field label="CPF">
+          <Input value={novo.cpf} onChange={(e) => setNovo({ ...novo, cpf: e.target.value })} placeholder="000.000.000-00" />
+        </Field>
+        <Field label="Data de Nascimento">
+          <Input type="date" value={novo.dataNascimento} onChange={(e) => setNovo({ ...novo, dataNascimento: e.target.value })} />
+        </Field>
+        <Field label="Grau de Parentesco">
+          <Select value={novo.grauParentesco} onValueChange={(v) => setNovo({ ...novo, grauParentesco: v })}>
+            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>
+              {grausParentesco.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Button type="button" onClick={addDependente} size="sm" className="h-10">
+          <Plus className="h-4 w-4 mr-1" /> Adicionar
+        </Button>
+      </div>
+
+      {dependentes.length > 0 && (
+        <div className="space-y-3">
+          {dependentes.map((dep) => (
+            <div key={dep.id} className="border border-border rounded-lg p-4 bg-muted/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <span className="font-semibold text-foreground">{dep.nome}</span>
+                  {dep.cpf && <span className="text-muted-foreground">CPF: {dep.cpf}</span>}
+                  {dep.dataNascimento && <span className="text-muted-foreground">Nasc: {dep.dataNascimento.split("-").reverse().join("/")}</span>}
+                  <Badge variant="secondary">{dep.grauParentesco}</Badge>
+                </div>
+                <Button type="button" variant="ghost" size="icon" className="text-destructive" onClick={() => removeDependente(dep.id)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-3 flex-wrap">
+                <label className="cursor-pointer inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                  <Paperclip className="h-3.5 w-3.5" />
+                  Anexar documento
+                  <input type="file" className="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => { if (e.target.files?.[0]) handleAnexo(dep.id, e.target.files[0]); e.target.value = ""; }} />
+                </label>
+                {dep.anexos.map((a) => (
+                  <div key={a.id} className="flex items-center gap-1 bg-background border border-border rounded px-2 py-1 text-xs">
+                    <a href={a.base64} download={a.nome} className="text-primary hover:underline truncate max-w-[150px]">{a.nome}</a>
+                    <button type="button" onClick={() => removeAnexo(dep.id, a.id)} className="text-destructive hover:text-destructive/80">
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+
   const { funcionarios, addFuncionario, updateFuncionario, deleteFuncionario } = useFuncionarios();
   const { cargos } = useCargos();
   const { clientes } = useClientes();
