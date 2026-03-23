@@ -51,6 +51,7 @@ const MapaFuncionarios = () => {
   // Filters
   const [search, setSearch] = useState("");
   const [filterFuncionario, setFilterFuncionario] = useState("todos");
+  const [filterCliente, setFilterCliente] = useState("todos");
   const [filterMes, setFilterMes] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -147,6 +148,10 @@ const MapaFuncionarios = () => {
     if (filterMes) {
       result = result.filter((l) => l.data.startsWith(filterMes));
     }
+    if (filterCliente !== "todos") {
+      const funcIds = new Set(funcionarios.filter((f) => f.clienteId === filterCliente).map((f) => f.id));
+      result = result.filter((l) => funcIds.has(l.funcionarioId));
+    }
     if (filterFuncionario !== "todos") {
       result = result.filter((l) => l.funcionarioId === filterFuncionario);
     }
@@ -158,7 +163,7 @@ const MapaFuncionarios = () => {
       );
     }
     return result.sort((a, b) => b.data.localeCompare(a.data));
-  }, [lancamentos, activeTab, filterMes, filterFuncionario, search, funcionarios]);
+  }, [lancamentos, activeTab, filterMes, filterCliente, filterFuncionario, search, funcionarios]);
 
   // Resumo do mês
   const resumoMes = useMemo(() => {
@@ -333,6 +338,15 @@ const MapaFuncionarios = () => {
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <Input type="month" value={filterMes} onChange={(e) => setFilterMes(e.target.value)} className="h-9 w-[160px] text-xs" />
+                <Select value={filterCliente} onValueChange={setFilterCliente}>
+                  <SelectTrigger className="h-9 w-[160px] text-xs"><SelectValue placeholder="Cliente" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos Clientes</SelectItem>
+                    {clientes.filter((c) => c.tipo === "Cliente").map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Select value={filterFuncionario} onValueChange={setFilterFuncionario}>
                   <SelectTrigger className="h-9 w-[180px] text-xs"><SelectValue placeholder="Funcionário" /></SelectTrigger>
                   <SelectContent>
