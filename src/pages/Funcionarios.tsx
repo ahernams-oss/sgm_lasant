@@ -26,6 +26,13 @@ const TIPO_CONTRATO_OPTIONS = ["CLT", "PJ", "Temporário", "Estágio", "Jovem Ap
 const TIPO_CONTA_OPTIONS = ["Corrente", "Poupança", "Salário"];
 const CATEGORIA_CNH_OPTIONS = ["A", "B", "AB", "C", "D", "E", "ACC"];
 
+const Field = ({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) => (
+  <div className="space-y-1.5">
+    <Label className="text-xs font-semibold text-foreground/80">{label}{required && " *"}</Label>
+    {children}
+  </div>
+);
+
 const Funcionarios = () => {
   const { funcionarios, addFuncionario, updateFuncionario, deleteFuncionario } = useFuncionarios();
   const { cargos } = useCargos();
