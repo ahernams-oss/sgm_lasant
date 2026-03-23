@@ -125,7 +125,7 @@ const PassagemTab = ({ passagens, onChange }: { passagens: PassagemDiaria[]; onC
                       </TableRow>
                     ))}
                     <TableRow className="bg-muted/30">
-                      <TableCell colSpan={4} className="text-xs font-semibold text-right">Subtotal do dia ({new Date(data + "T00:00:00").toLocaleDateString("pt-BR")}):</TableCell>
+                      <TableCell colSpan={4} className="text-xs font-semibold text-right">Subtotal ({tipo}):</TableCell>
                       <TableCell className="font-bold text-sm">R$ {grupo.total.toFixed(2).replace(".", ",")}</TableCell>
                       <TableCell />
                     </TableRow>

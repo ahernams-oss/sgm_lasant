@@ -1,8 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
+export type TipoTransporte = "Ônibus" | "Trem" | "Metrô" | "VLT" | "Barca" | "Catamarã";
+
+export const tiposTransporte: TipoTransporte[] = ["Ônibus", "Trem", "Metrô", "VLT", "Barca", "Catamarã"];
+
 export interface PassagemDiaria {
   id: string;
-  data: string;
+  tipoTransporte: TipoTransporte;
   itinerario: string;
   valorPassagem: string;
   quantidade: number;
