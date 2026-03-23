@@ -16,6 +16,11 @@ import Usuarios from "./pages/Usuarios.tsx";
 import Login from "./pages/Login.tsx";
 import ProcessoSeletivo from "./pages/ProcessoSeletivo.tsx";
 import ProcessosSeletivos from "./pages/ProcessosSeletivos.tsx";
+import Sco from "./pages/Sco.tsx";
+import I0Page from "./pages/I0.tsx";
+import CategoriasCompras from "./pages/CategoriasCompras.tsx";
+import MateriaisServicos from "./pages/MateriaisServicos.tsx";
+import RequisicaoComprasPage from "./pages/RequisicaoCompras.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
@@ -26,8 +31,9 @@ import { ProcessoSeletivoProvider } from "@/contexts/ProcessoSeletivoContext";
 import { ScoProvider } from "@/contexts/ScoContext";
 import { I0Provider } from "@/contexts/I0Context";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import Sco from "./pages/Sco.tsx";
-import I0Page from "./pages/I0.tsx";
+import { CategoriasComprasProvider } from "@/contexts/CategoriasComprasContext";
+import { MateriaisServicosProvider } from "@/contexts/MateriaisServicosContext";
+import { RequisicaoComprasProvider } from "@/contexts/RequisicaoComprasContext";
 
 const queryClient = new QueryClient();
 
@@ -35,8 +41,8 @@ function AppRoutes() {
   return (
     <AppLayout>
       <Routes>
-         <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/" element={<Index />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/fornecedores" element={<Fornecedores />} />
@@ -48,6 +54,9 @@ function AppRoutes() {
         <Route path="/processos-seletivos" element={<ProcessosSeletivos />} />
         <Route path="/sco" element={<Sco />} />
         <Route path="/i0" element={<I0Page />} />
+        <Route path="/compras/categorias" element={<CategoriasCompras />} />
+        <Route path="/compras/materiais" element={<MateriaisServicos />} />
+        <Route path="/compras/requisicoes" element={<RequisicaoComprasPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -65,6 +74,9 @@ const App = () => (
     <ProcessoSeletivoProvider>
     <ScoProvider>
     <I0Provider>
+    <CategoriasComprasProvider>
+    <MateriaisServicosProvider>
+    <RequisicaoComprasProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
@@ -74,6 +86,9 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </RequisicaoComprasProvider>
+    </MateriaisServicosProvider>
+    </CategoriasComprasProvider>
     </I0Provider>
     </ScoProvider>
     </ProcessoSeletivoProvider>
