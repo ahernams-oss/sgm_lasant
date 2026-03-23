@@ -1,95 +1,352 @@
 import { useState, useMemo } from "react";
-import { useCategoriasCompras, CategoriaCompras } from "@/contexts/CategoriasComprasContext";
+import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function CategoriasCompras() {
-  const { categorias, addCategoria, updateCategoria, deleteCategoria } = useCategoriasCompras();
+  const {
+    grupos, subGrupos, classes,
+    addGrupo, updateGrupo, deleteGrupo,
+    addSubGrupo, updateSubGrupo, deleteSubGrupo,
+    addClasse, updateClasse, deleteClasse,
+    getCodigoCompleto,
+  } = useCategoriasCompras();
   const { toast } = useToast();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ nome: "", descricao: "" });
+
+  const [activeTab, setActiveTab] = useState("grupos");
   const [search, setSearch] = useState("");
 
-  const filtered = useMemo(() =>
-    categorias.filter(c => c.nome.toLowerCase().includes(search.toLowerCase()) || c.descricao.toLowerCase().includes(search.toLowerCase())),
-    [categorias, search]
-  );
+  // Grupo dialog
+  const [grupoDialog, setGrupoDialog] = useState(false);
+  const [editGrupoId, setEditGrupoId] = useState<string | null>(null);
+  const [grupoForm, setGrupoForm] = useState({ codigo: "", nome: "" });
 
-  const openNew = () => { setForm({ nome: "", descricao: "" }); setEditingId(null); setDialogOpen(true); };
-  const openEdit = (c: CategoriaCompras) => { setForm({ nome: c.nome, descricao: c.descricao }); setEditingId(c.id); setDialogOpen(true); };
+  // SubGrupo dialog
+  const [subDialog, setSubDialog] = useState(false);
+  const [editSubId, setEditSubId] = useState<string | null>(null);
+  const [subForm, setSubForm] = useState({ grupoId: "", codigo: "", nome: "" });
 
-  const handleSave = () => {
-    if (!form.nome.trim()) { toast({ title: "Nome é obrigatório", variant: "destructive" }); return; }
-    if (editingId) {
-      updateCategoria(editingId, form);
-      toast({ title: "Categoria atualizada" });
-    } else {
-      addCategoria(form);
-      toast({ title: "Categoria criada" });
+  // Classe dialog
+  const [classeDialog, setClasseDialog] = useState(false);
+  const [editClasseId, setEditClasseId] = useState<string | null>(null);
+  const [classeForm, setClasseForm] = useState({ subGrupoId: "", codigo: "", nome: "" });
+
+  // Filter
+  const [filterGrupoId, setFilterGrupoId] = useState<string>("all");
+  const [filterSubGrupoId, setFilterSubGrupoId] = useState<string>("all");
+
+  // === GRUPO ===
+  const filteredGrupos = useMemo(() => {
+    if (!search) return grupos;
+    const s = search.toLowerCase();
+    return grupos.filter(g => g.codigo.toLowerCase().includes(s) || g.nome.toLowerCase().includes(s));
+  }, [grupos, search]);
+
+  const openNewGrupo = () => { setGrupoForm({ codigo: "", nome: "" }); setEditGrupoId(null); setGrupoDialog(true); };
+  const openEditGrupo = (g: typeof grupos[0]) => { setGrupoForm({ codigo: g.codigo, nome: g.nome }); setEditGrupoId(g.id); setGrupoDialog(true); };
+  const saveGrupo = () => {
+    if (!grupoForm.codigo.trim() || !grupoForm.nome.trim()) { toast({ title: "Código e Nome são obrigatórios", variant: "destructive" }); return; }
+    if (editGrupoId) { updateGrupo(editGrupoId, grupoForm); toast({ title: "Grupo atualizado" }); }
+    else { addGrupo(grupoForm); toast({ title: "Grupo criado" }); }
+    setGrupoDialog(false);
+  };
+
+  // === SUBGRUPO ===
+  const filteredSubs = useMemo(() => {
+    let list = subGrupos;
+    if (filterGrupoId !== "all") list = list.filter(s => s.grupoId === filterGrupoId);
+    if (search) {
+      const s = search.toLowerCase();
+      list = list.filter(sg => sg.codigo.toLowerCase().includes(s) || sg.nome.toLowerCase().includes(s));
     }
-    setDialogOpen(false);
+    return list;
+  }, [subGrupos, search, filterGrupoId]);
+
+  const openNewSub = () => { setSubForm({ grupoId: grupos[0]?.id || "", codigo: "", nome: "" }); setEditSubId(null); setSubDialog(true); };
+  const openEditSub = (s: typeof subGrupos[0]) => { setSubForm({ grupoId: s.grupoId, codigo: s.codigo, nome: s.nome }); setEditSubId(s.id); setSubDialog(true); };
+  const saveSub = () => {
+    if (!subForm.grupoId || !subForm.codigo.trim() || !subForm.nome.trim()) { toast({ title: "Grupo, Código e Nome são obrigatórios", variant: "destructive" }); return; }
+    if (editSubId) { updateSubGrupo(editSubId, subForm); toast({ title: "SubGrupo atualizado" }); }
+    else { addSubGrupo(subForm); toast({ title: "SubGrupo criado" }); }
+    setSubDialog(false);
   };
 
-  const handleDelete = (id: string) => {
-    deleteCategoria(id);
-    toast({ title: "Categoria excluída" });
+  // === CLASSE ===
+  const filteredClasses = useMemo(() => {
+    let list = classes;
+    if (filterSubGrupoId !== "all") list = list.filter(c => c.subGrupoId === filterSubGrupoId);
+    else if (filterGrupoId !== "all") {
+      const subIds = subGrupos.filter(s => s.grupoId === filterGrupoId).map(s => s.id);
+      list = list.filter(c => subIds.includes(c.subGrupoId));
+    }
+    if (search) {
+      const s = search.toLowerCase();
+      list = list.filter(cl => cl.codigo.toLowerCase().includes(s) || cl.nome.toLowerCase().includes(s));
+    }
+    return list;
+  }, [classes, subGrupos, search, filterGrupoId, filterSubGrupoId]);
+
+  const openNewClasse = () => { setClasseForm({ subGrupoId: subGrupos[0]?.id || "", codigo: "", nome: "" }); setEditClasseId(null); setClasseDialog(true); };
+  const openEditClasse = (c: typeof classes[0]) => { setClasseForm({ subGrupoId: c.subGrupoId, codigo: c.codigo, nome: c.nome }); setEditClasseId(c.id); setClasseDialog(true); };
+  const saveClasse = () => {
+    if (!classeForm.subGrupoId || !classeForm.codigo.trim() || !classeForm.nome.trim()) { toast({ title: "SubGrupo, Código e Nome são obrigatórios", variant: "destructive" }); return; }
+    if (editClasseId) { updateClasse(editClasseId, classeForm); toast({ title: "Classe atualizada" }); }
+    else { addClasse(classeForm); toast({ title: "Classe criada" }); }
+    setClasseDialog(false);
   };
+
+  const getGrupoNome = (id: string) => grupos.find(g => g.id === id)?.nome || "-";
+  const getGrupoCodigo = (id: string) => grupos.find(g => g.id === id)?.codigo || "";
+  const getSubNome = (id: string) => subGrupos.find(s => s.id === id)?.nome || "-";
+  const getSubCodigo = (id: string) => subGrupos.find(s => s.id === id)?.codigo || "";
+  const getSubGrupoId = (id: string) => subGrupos.find(s => s.id === id)?.grupoId || "";
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Categorias de Compras</h1>
-        <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova Categoria</Button>
-      </div>
+      <h1 className="text-2xl font-bold text-foreground">Categorias de Compras</h1>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="grupos">Grupos</TabsTrigger>
+          <TabsTrigger value="subgrupos">SubGrupos</TabsTrigger>
+          <TabsTrigger value="classes">Classes</TabsTrigger>
+          <TabsTrigger value="arvore">Visão Geral</TabsTrigger>
+        </TabsList>
 
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead className="w-24">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">Nenhuma categoria cadastrada</TableCell></TableRow>
-            ) : filtered.map(c => (
-              <TableRow key={c.id}>
-                <TableCell className="font-medium">{c.nome}</TableCell>
-                <TableCell>{c.descricao}</TableCell>
-                <TableCell>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(c)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+        {/* Search bar */}
+        <div className="relative max-w-sm mt-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+        </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>{editingId ? "Editar" : "Nova"} Categoria</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div><Label>Nome *</Label><Input value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} /></div>
-            <div><Label>Descrição</Label><Textarea value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} /></div>
+        {/* === GRUPOS === */}
+        <TabsContent value="grupos" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={openNewGrupo}><Plus className="mr-2 h-4 w-4" />Novo Grupo</Button>
           </div>
-          <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-28">Código</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead className="w-20">SubGrupos</TableHead>
+                  <TableHead className="w-24">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredGrupos.length === 0 ? (
+                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum grupo cadastrado</TableCell></TableRow>
+                ) : filteredGrupos.map(g => (
+                  <TableRow key={g.id}>
+                    <TableCell><Badge variant="outline" className="font-mono">{g.codigo}</Badge></TableCell>
+                    <TableCell className="font-medium">{g.nome}</TableCell>
+                    <TableCell className="text-center">{subGrupos.filter(s => s.grupoId === g.id).length}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => openEditGrupo(g)}><Pencil className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => { deleteGrupo(g.id); toast({ title: "Grupo excluído" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+
+        {/* === SUBGRUPOS === */}
+        <TabsContent value="subgrupos" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Select value={filterGrupoId} onValueChange={setFilterGrupoId}>
+              <SelectTrigger className="w-56"><SelectValue placeholder="Filtrar por Grupo" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Grupos</SelectItem>
+                {grupos.map(g => <SelectItem key={g.id} value={g.id}>{g.codigo} - {g.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button onClick={openNewSub}><Plus className="mr-2 h-4 w-4" />Novo SubGrupo</Button>
+          </div>
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-28">Código</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Grupo</TableHead>
+                  <TableHead className="w-20">Classes</TableHead>
+                  <TableHead className="w-24">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredSubs.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum subgrupo cadastrado</TableCell></TableRow>
+                ) : filteredSubs.map(s => (
+                  <TableRow key={s.id}>
+                    <TableCell><Badge variant="outline" className="font-mono">{s.codigo}</Badge></TableCell>
+                    <TableCell className="font-medium">{s.nome}</TableCell>
+                    <TableCell>{getGrupoCodigo(s.grupoId)} - {getGrupoNome(s.grupoId)}</TableCell>
+                    <TableCell className="text-center">{classes.filter(c => c.subGrupoId === s.id).length}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => openEditSub(s)}><Pencil className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => { deleteSubGrupo(s.id); toast({ title: "SubGrupo excluído" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+
+        {/* === CLASSES === */}
+        <TabsContent value="classes" className="space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex gap-2">
+              <Select value={filterGrupoId} onValueChange={v => { setFilterGrupoId(v); setFilterSubGrupoId("all"); }}>
+                <SelectTrigger className="w-48"><SelectValue placeholder="Grupo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Grupos</SelectItem>
+                  {grupos.map(g => <SelectItem key={g.id} value={g.id}>{g.codigo} - {g.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={filterSubGrupoId} onValueChange={setFilterSubGrupoId}>
+                <SelectTrigger className="w-48"><SelectValue placeholder="SubGrupo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os SubGrupos</SelectItem>
+                  {subGrupos
+                    .filter(s => filterGrupoId === "all" || s.grupoId === filterGrupoId)
+                    .map(s => <SelectItem key={s.id} value={s.id}>{s.codigo} - {s.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={openNewClasse}><Plus className="mr-2 h-4 w-4" />Nova Classe</Button>
+          </div>
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-36">Código Completo</TableHead>
+                  <TableHead className="w-20">Código</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>SubGrupo</TableHead>
+                  <TableHead>Grupo</TableHead>
+                  <TableHead className="w-24">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredClasses.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma classe cadastrada</TableCell></TableRow>
+                ) : filteredClasses.map(c => (
+                  <TableRow key={c.id}>
+                    <TableCell><Badge variant="secondary" className="font-mono">{getCodigoCompleto(c.id)}</Badge></TableCell>
+                    <TableCell><Badge variant="outline" className="font-mono">{c.codigo}</Badge></TableCell>
+                    <TableCell className="font-medium">{c.nome}</TableCell>
+                    <TableCell>{getSubCodigo(c.subGrupoId)} - {getSubNome(c.subGrupoId)}</TableCell>
+                    <TableCell>{getGrupoCodigo(getSubGrupoId(c.subGrupoId))} - {getGrupoNome(getSubGrupoId(c.subGrupoId))}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => openEditClasse(c)}><Pencil className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => { deleteClasse(c.id); toast({ title: "Classe excluída" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+
+        {/* === VISÃO GERAL (ÁRVORE) === */}
+        <TabsContent value="arvore" className="space-y-4">
+          {grupos.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">Nenhum grupo cadastrado</p>
+          ) : grupos.map(g => (
+            <div key={g.id} className="border rounded-lg p-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <Badge className="font-mono">{g.codigo}</Badge>
+                <span className="font-semibold text-foreground">{g.nome}</span>
+              </div>
+              {subGrupos.filter(s => s.grupoId === g.id).map(s => (
+                <div key={s.id} className="ml-6 space-y-1">
+                  <div className="flex items-center gap-2 text-sm">
+                    <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                    <Badge variant="outline" className="font-mono">{s.codigo}</Badge>
+                    <span className="text-foreground">{s.nome}</span>
+                  </div>
+                  {classes.filter(c => c.subGrupoId === s.id).map(c => (
+                    <div key={c.id} className="ml-8 flex items-center gap-2 text-sm">
+                      <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="font-mono text-xs">{getCodigoCompleto(c.id)}</Badge>
+                      <span className="text-muted-foreground">{c.nome}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))}
+        </TabsContent>
+      </Tabs>
+
+      {/* Grupo Dialog */}
+      <Dialog open={grupoDialog} onOpenChange={setGrupoDialog}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{editGrupoId ? "Editar" : "Novo"} Grupo</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div><Label>Código *</Label><Input placeholder="Ex: 01" value={grupoForm.codigo} onChange={e => setGrupoForm(f => ({ ...f, codigo: e.target.value }))} /></div>
+            <div><Label>Nome *</Label><Input placeholder="Ex: Elétrica" value={grupoForm.nome} onChange={e => setGrupoForm(f => ({ ...f, nome: e.target.value }))} /></div>
+          </div>
+          <DialogFooter><Button onClick={saveGrupo}>Salvar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* SubGrupo Dialog */}
+      <Dialog open={subDialog} onOpenChange={setSubDialog}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{editSubId ? "Editar" : "Novo"} SubGrupo</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div><Label>Grupo *</Label>
+              <Select value={subForm.grupoId} onValueChange={v => setSubForm(f => ({ ...f, grupoId: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione o grupo" /></SelectTrigger>
+                <SelectContent>{grupos.map(g => <SelectItem key={g.id} value={g.id}>{g.codigo} - {g.nome}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Código *</Label><Input placeholder="Ex: 001" value={subForm.codigo} onChange={e => setSubForm(f => ({ ...f, codigo: e.target.value }))} /></div>
+            <div><Label>Nome *</Label><Input placeholder="Ex: Fios" value={subForm.nome} onChange={e => setSubForm(f => ({ ...f, nome: e.target.value }))} /></div>
+          </div>
+          <DialogFooter><Button onClick={saveSub}>Salvar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Classe Dialog */}
+      <Dialog open={classeDialog} onOpenChange={setClasseDialog}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{editClasseId ? "Editar" : "Nova"} Classe</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div><Label>SubGrupo *</Label>
+              <Select value={classeForm.subGrupoId} onValueChange={v => setClasseForm(f => ({ ...f, subGrupoId: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione o subgrupo" /></SelectTrigger>
+                <SelectContent>
+                  {subGrupos.map(s => {
+                    const g = grupos.find(g => g.id === s.grupoId);
+                    return <SelectItem key={s.id} value={s.id}>{g?.codigo}.{s.codigo} - {s.nome}</SelectItem>;
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+            <div><Label>Código *</Label><Input placeholder="Ex: 002" value={classeForm.codigo} onChange={e => setClasseForm(f => ({ ...f, codigo: e.target.value }))} /></div>
+            <div><Label>Nome *</Label><Input placeholder="Ex: Fio Cabinho" value={classeForm.nome} onChange={e => setClasseForm(f => ({ ...f, nome: e.target.value }))} /></div>
+          </div>
+          <DialogFooter><Button onClick={saveClasse}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
