@@ -1,14 +1,19 @@
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { LayoutDashboard, CalendarIcon, X } from "lucide-react";
+import { LayoutDashboard, CalendarIcon, X, FileDown, Send, MessageSquare, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { downloadPdfDashboard, gerarTextoDashboard } from "@/lib/gerarPdfDashboard";
+import { enviarWhatsApp } from "@/lib/whatsapp";
+import { useToast } from "@/hooks/use-toast";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
@@ -40,8 +45,12 @@ function parseDataCriacao(dateStr: string): Date | null {
 const Dashboard = () => {
   const { requisicoes } = useRequisicoes();
   const { clientes } = useClientes();
+  const { toast } = useToast();
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [showSendDialog, setShowSendDialog] = useState(false);
+  const [selectedPhones, setSelectedPhones] = useState<string[]>([]);
+  const [sending, setSending] = useState(false);
 
   const filteredReqs = useMemo(() => {
     if (!dateFrom && !dateTo) return requisicoes;
@@ -95,6 +104,66 @@ const Dashboard = () => {
       .map(([period, total]) => ({ period, total }));
   }, [filteredReqs]);
 
+  // Collect all WhatsApp phones from clients
+  const allPhones = useMemo(() => {
+    const phones: { label: string; phone: string }[] = [];
+    clientes.filter(c => c.tipo === "Cliente").forEach((c) => {
+      if (c.telefonesWhatsapp) {
+        c.telefonesWhatsapp.split(/[,;]/).map(t => t.trim()).filter(Boolean).forEach((t) => {
+          phones.push({ label: `${c.nomeFantasia || c.nome} — ${t}`, phone: t });
+        });
+      }
+    });
+    return phones;
+  }, [clientes]);
+
+  const handleDownloadPdf = () => {
+    downloadPdfDashboard({
+      requisicoes: filteredReqs,
+      dateFrom: dateFrom ? format(dateFrom, "dd/MM/yyyy") : undefined,
+      dateTo: dateTo ? format(dateTo, "dd/MM/yyyy") : undefined,
+    });
+    toast({ title: "PDF gerado com sucesso!" });
+  };
+
+  const handleOpenSendDialog = () => {
+    setSelectedPhones(allPhones.map(p => p.phone));
+    setShowSendDialog(true);
+  };
+
+  const togglePhone = (phone: string) => {
+    setSelectedPhones((prev) =>
+      prev.includes(phone) ? prev.filter(p => p !== phone) : [...prev, phone]
+    );
+  };
+
+  const handleSendWhatsApp = async () => {
+    if (selectedPhones.length === 0) {
+      toast({ title: "Selecione ao menos um destinatário", variant: "destructive" });
+      return;
+    }
+    setSending(true);
+    const mensagem = gerarTextoDashboard(
+      filteredReqs,
+      dateFrom ? format(dateFrom, "dd/MM/yyyy") : undefined,
+      dateTo ? format(dateTo, "dd/MM/yyyy") : undefined,
+    );
+    let successCount = 0;
+    let errorCount = 0;
+    for (const phone of selectedPhones) {
+      const result = await enviarWhatsApp(phone, mensagem);
+      if (result.success) successCount++;
+      else errorCount++;
+    }
+    setSending(false);
+    setShowSendDialog(false);
+    toast({
+      title: `Relatório enviado`,
+      description: `${successCount} enviado(s)${errorCount > 0 ? `, ${errorCount} erro(s)` : ""}`,
+      variant: errorCount > 0 ? "destructive" : "default",
+    });
+  };
+
   const totalReqs = filteredReqs.length;
   const hasFilter = dateFrom || dateTo;
 
@@ -140,6 +209,13 @@ const Dashboard = () => {
                   <X className="h-3.5 w-3.5" /> Limpar
                 </Button>
               )}
+              <div className="border-l border-border h-6 mx-1 hidden sm:block" />
+              <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={handleDownloadPdf}>
+                <FileDown className="h-3.5 w-3.5" /> PDF
+              </Button>
+              <Button variant="default" size="sm" className="h-9 text-xs gap-1.5" onClick={handleOpenSendDialog} disabled={allPhones.length === 0}>
+                <Send className="h-3.5 w-3.5" /> Enviar WhatsApp
+              </Button>
             </div>
           </div>
         </div>
@@ -262,6 +338,45 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Send WhatsApp Dialog */}
+        <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-primary" />
+                Enviar Relatório via WhatsApp
+              </DialogTitle>
+              <DialogDescription>
+                Selecione os destinatários para envio do resumo das requisições.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-60 overflow-y-auto space-y-2 py-2">
+              {allPhones.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Nenhum telefone WhatsApp cadastrado nos clientes.
+                </p>
+              ) : (
+                allPhones.map((p) => (
+                  <label key={p.phone} className="flex items-center gap-3 px-2 py-1.5 rounded-md hover:bg-muted/50 cursor-pointer">
+                    <Checkbox
+                      checked={selectedPhones.includes(p.phone)}
+                      onCheckedChange={() => togglePhone(p.phone)}
+                    />
+                    <span className="text-sm">{p.label}</span>
+                  </label>
+                ))
+              )}
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" size="sm" onClick={() => setShowSendDialog(false)}>Cancelar</Button>
+              <Button size="sm" onClick={handleSendWhatsApp} disabled={sending || selectedPhones.length === 0} className="gap-1.5">
+                {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                {sending ? "Enviando..." : `Enviar (${selectedPhones.length})`}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
