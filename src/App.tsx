@@ -69,6 +69,7 @@ const App = () => (
     </ProcessoSeletivoProvider>
     </RequisicaoProvider>
     </UsuariosProvider>
+    </LancamentosProvider>
     </FuncionariosProvider>
     </CargosProvider>
     </ClientesProvider>

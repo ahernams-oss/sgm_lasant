@@ -25,6 +25,7 @@ const menuItems = [
       { title: "Requisição de Colaboradores", url: "/", icon: ClipboardList },
       { title: "Processos Seletivos", url: "/processos-seletivos", icon: ClipboardCheck },
       { title: "Funcionários", url: "/funcionarios", icon: UserCheck },
+      { title: "Mapa de Funcionários", url: "/mapa-funcionarios", icon: CalendarClock },
     ],
   },
   {
