@@ -76,6 +76,25 @@ const Dashboard = () => {
     return Object.entries(counts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [filteredReqs]);
 
+  const timelineData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    filteredReqs.forEach((r) => {
+      // dataCriacao is dd/mm/yyyy — group by mm/yyyy
+      const parts = r.dataCriacao.split("/");
+      if (parts.length === 3) {
+        const key = `${parts[1]}/${parts[2]}`; // mm/yyyy
+        counts[key] = (counts[key] || 0) + 1;
+      }
+    });
+    return Object.entries(counts)
+      .sort(([a], [b]) => {
+        const [ma, ya] = a.split("/").map(Number);
+        const [mb, yb] = b.split("/").map(Number);
+        return ya !== yb ? ya - yb : ma - mb;
+      })
+      .map(([period, total]) => ({ period, total }));
+  }, [filteredReqs]);
+
   const totalReqs = filteredReqs.length;
   const hasFilter = dateFrom || dateTo;
 
