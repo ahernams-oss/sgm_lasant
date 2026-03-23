@@ -76,33 +76,32 @@ const MapaFuncionarios = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!funcionarioId) { toast.error("Selecione o funcionário."); return; }
+    const isEditing = !!editingId;
+    const targetIds = isEditing ? [funcionarioId] : funcionarioIds;
+
+    if (targetIds.length === 0) { toast.error("Selecione ao menos um funcionário."); return; }
     if (!data) { toast.error("Informe a data."); return; }
 
     if (activeTab === "faltas") {
-      const payload = {
-        funcionarioId, tipo: "falta" as const, data,
-        tipoFalta, diasFalta: Number(diasFalta) || 1, anexos, observacao,
-      };
-      if (editingId) {
-        updateLancamento(editingId, payload);
+      if (isEditing) {
+        updateLancamento(editingId!, { funcionarioId, tipo: "falta", data, tipoFalta, diasFalta: Number(diasFalta) || 1, anexos, observacao });
         toast.success("Falta atualizada.");
       } else {
-        addLancamento(payload);
-        toast.success("Falta registrada.");
+        targetIds.forEach((fId) => {
+          addLancamento({ funcionarioId: fId, tipo: "falta", data, tipoFalta, diasFalta: Number(diasFalta) || 1, anexos, observacao });
+        });
+        toast.success(`Falta registrada para ${targetIds.length} funcionário(s).`);
       }
     } else {
       if (!horasExtras || Number(horasExtras) <= 0) { toast.error("Informe as horas extras."); return; }
-      const payload = {
-        funcionarioId, tipo: "hora_extra" as const, data,
-        horasExtras: Number(horasExtras), percentual: Number(percentual), observacao,
-      };
-      if (editingId) {
-        updateLancamento(editingId, payload);
+      if (isEditing) {
+        updateLancamento(editingId!, { funcionarioId, tipo: "hora_extra", data, horasExtras: Number(horasExtras), percentual: Number(percentual), observacao });
         toast.success("Hora extra atualizada.");
       } else {
-        addLancamento(payload);
-        toast.success("Hora extra registrada.");
+        targetIds.forEach((fId) => {
+          addLancamento({ funcionarioId: fId, tipo: "hora_extra", data, horasExtras: Number(horasExtras), percentual: Number(percentual), observacao });
+        });
+        toast.success(`Hora extra registrada para ${targetIds.length} funcionário(s).`);
       }
     }
     resetForm();
