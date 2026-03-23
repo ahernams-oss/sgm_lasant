@@ -231,7 +231,7 @@ const DependentesTab = ({ dependentes, onChange }: { dependentes: Dependente[]; 
   );
 };
 
-
+const Funcionarios = () => {
   const { funcionarios, addFuncionario, updateFuncionario, deleteFuncionario } = useFuncionarios();
   const { cargos } = useCargos();
   const { clientes } = useClientes();
