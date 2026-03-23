@@ -397,6 +397,27 @@ const Funcionarios = () => {
                 </div>
               </TabsContent>
 
+              {/* UNIFORME */}
+              <TabsContent value="uniforme">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Field label="Tamanho da Camisa">
+                    <Input value={form.tamanhoCamisa} onChange={(e) => update("tamanhoCamisa", e.target.value)} placeholder="Ex: P, M, G, GG" />
+                  </Field>
+                  <Field label="Tamanho da Calça">
+                    <Input value={form.tamanhoCalca} onChange={(e) => update("tamanhoCalca", e.target.value)} placeholder="Ex: 38, 40, 42" />
+                  </Field>
+                  <Field label="Tamanho do Calçado">
+                    <Input value={form.tamanhoCalcado} onChange={(e) => update("tamanhoCalcado", e.target.value)} placeholder="Ex: 39, 40, 41" />
+                  </Field>
+                  <Field label="Peso (kg)">
+                    <Input value={form.peso} onChange={(e) => update("peso", e.target.value)} placeholder="Ex: 75" />
+                  </Field>
+                  <Field label="Altura (cm)">
+                    <Input value={form.altura} onChange={(e) => update("altura", e.target.value)} placeholder="Ex: 175" />
+                  </Field>
+                </div>
+              </TabsContent>
+
               {/* OBSERVAÇÕES */}
               <TabsContent value="observacoes">
                 <Field label="Observações">
