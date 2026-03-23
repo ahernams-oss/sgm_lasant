@@ -26,8 +26,13 @@ export function MateriaisServicosProvider({ children }: { children: ReactNode })
 
   useEffect(() => { localStorage.setItem("materiais_servicos", JSON.stringify(materiais)); }, [materiais]);
 
-  const addMaterial = (m: Omit<MaterialServico, "id">) =>
-    setMateriais(prev => [...prev, { id: crypto.randomUUID(), ...m }]);
+  const nextCodigo = () => {
+    const nums = materiais.map(m => parseInt(m.codigo, 10)).filter(n => !isNaN(n));
+    return String((nums.length > 0 ? Math.max(...nums) : 0) + 1).padStart(6, "0");
+  };
+
+  const addMaterial = (m: Omit<MaterialServico, "id" | "codigo">) =>
+    setMateriais(prev => [...prev, { id: crypto.randomUUID(), codigo: nextCodigo(), ...m }]);
 
   const updateMaterial = (id: string, data: Partial<Omit<MaterialServico, "id">>) =>
     setMateriais(prev => prev.map(m => m.id === id ? { ...m, ...data } : m));
