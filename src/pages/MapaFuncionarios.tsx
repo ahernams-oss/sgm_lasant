@@ -80,7 +80,7 @@ const MapaFuncionarios = () => {
     if (activeTab === "faltas") {
       const payload = {
         funcionarioId, tipo: "falta" as const, data,
-        tipoFalta, diasFalta: Number(diasFalta) || 1, observacao,
+        tipoFalta, diasFalta: Number(diasFalta) || 1, anexos, observacao,
       };
       if (editingId) {
         updateLancamento(editingId, payload);
