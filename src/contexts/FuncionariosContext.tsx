@@ -1,5 +1,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
+export interface PassagemDiaria {
+  id: string;
+  data: string;
+  itinerario: string;
+  valorPassagem: string;
+  quantidade: number;
+  total: number;
+}
+
 export interface Funcionario {
   id: string;
   // Dados pessoais
