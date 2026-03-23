@@ -156,7 +156,7 @@ const Funcionarios = () => {
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [filterCliente, setFilterCliente] = useState<string>("todos");
 
-  const update = (field: string, value: string | boolean | PassagemDiaria[]) =>
+  const update = (field: string, value: string | boolean | PassagemDiaria[] | Dependente[]) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const resetForm = () => {
