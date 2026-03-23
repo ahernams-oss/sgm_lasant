@@ -23,7 +23,9 @@ import { FuncionariosProvider } from "@/contexts/FuncionariosContext";
 import { LancamentosProvider } from "@/contexts/LancamentosContext";
 import { UsuariosProvider } from "@/contexts/UsuariosContext";
 import { ProcessoSeletivoProvider } from "@/contexts/ProcessoSeletivoContext";
+import { ScoProvider } from "@/contexts/ScoContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import Sco from "./pages/Sco.tsx";
 
 const queryClient = new QueryClient();
 
