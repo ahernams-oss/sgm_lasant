@@ -135,7 +135,6 @@ export default function MateriaisServicosPage() {
                 <TableCell>{m.descricao}</TableCell>
                 <TableCell>{m.tipo}</TableCell>
                 <TableCell>{m.unidadeMedida}</TableCell>
-                <TableCell>{catNome(m.categoriaId)}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(m)}><Pencil className="h-4 w-4" /></Button>
