@@ -56,11 +56,12 @@ const PassagemTab = ({ passagens, onChange }: { passagens: PassagemDiaria[]; onC
 
   const totalGeral = passagens.reduce((acc, p) => acc + p.total, 0);
 
-  // Agrupar por data
-  const porData = passagens.reduce<Record<string, { passagens: PassagemDiaria[]; total: number }>>((acc, p) => {
-    if (!acc[p.data]) acc[p.data] = { passagens: [], total: 0 };
-    acc[p.data].passagens.push(p);
-    acc[p.data].total += p.total;
+  // Agrupar por tipo de transporte
+  const porTipo = passagens.reduce<Record<string, { passagens: PassagemDiaria[]; total: number }>>((acc, p) => {
+    const key = p.tipoTransporte || "Outros";
+    if (!acc[key]) acc[key] = { passagens: [], total: 0 };
+    acc[key].passagens.push(p);
+    acc[key].total += p.total;
     return acc;
   }, {});
 
