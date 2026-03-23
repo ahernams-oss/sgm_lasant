@@ -280,6 +280,7 @@ const Funcionarios = () => {
                 <TabsTrigger value="documentos">Documentos</TabsTrigger>
                 <TabsTrigger value="uniforme">Uniforme</TabsTrigger>
                 <TabsTrigger value="passagem">Passagem</TabsTrigger>
+                <TabsTrigger value="dependentes">Dependentes</TabsTrigger>
                 <TabsTrigger value="observacoes">Observações</TabsTrigger>
               </TabsList>
 
