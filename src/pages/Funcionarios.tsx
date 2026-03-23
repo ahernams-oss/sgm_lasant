@@ -97,7 +97,7 @@ const PassagemTab = ({ passagens, onChange }: { passagens: PassagemDiaria[]; onC
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Data</TableHead>
+                <TableHead>Tipo Transporte</TableHead>
                 <TableHead>Itinerário</TableHead>
                 <TableHead>Valor Unit.</TableHead>
                 <TableHead>Qtd</TableHead>
