@@ -338,6 +338,45 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Send WhatsApp Dialog */}
+        <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-primary" />
+                Enviar Relatório via WhatsApp
+              </DialogTitle>
+              <DialogDescription>
+                Selecione os destinatários para envio do resumo das requisições.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-60 overflow-y-auto space-y-2 py-2">
+              {allPhones.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Nenhum telefone WhatsApp cadastrado nos clientes.
+                </p>
+              ) : (
+                allPhones.map((p) => (
+                  <label key={p.phone} className="flex items-center gap-3 px-2 py-1.5 rounded-md hover:bg-muted/50 cursor-pointer">
+                    <Checkbox
+                      checked={selectedPhones.includes(p.phone)}
+                      onCheckedChange={() => togglePhone(p.phone)}
+                    />
+                    <span className="text-sm">{p.label}</span>
+                  </label>
+                ))
+              )}
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" size="sm" onClick={() => setShowSendDialog(false)}>Cancelar</Button>
+              <Button size="sm" onClick={handleSendWhatsApp} disabled={sending || selectedPhones.length === 0} className="gap-1.5">
+                {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                {sending ? "Enviando..." : `Enviar (${selectedPhones.length})`}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
