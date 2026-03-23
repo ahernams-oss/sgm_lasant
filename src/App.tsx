@@ -20,6 +20,7 @@ import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
 import { FuncionariosProvider } from "@/contexts/FuncionariosContext";
+import { LancamentosProvider } from "@/contexts/LancamentosContext";
 import { UsuariosProvider } from "@/contexts/UsuariosContext";
 import { ProcessoSeletivoProvider } from "@/contexts/ProcessoSeletivoContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
