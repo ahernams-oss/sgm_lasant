@@ -213,6 +213,7 @@ const RequisicaoGrid = () => {
                 <TableHead className="pr-5">Status</TableHead>
                 <TableHead className="text-center">PDF</TableHead>
                 <TableHead className="text-center">Editar</TableHead>
+                <TableHead className="text-center">Histórico</TableHead>
                 <TableHead className="pr-5 text-center">Seletivo</TableHead>
               </TableRow>
             </TableHeader>
