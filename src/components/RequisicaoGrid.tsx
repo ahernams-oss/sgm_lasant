@@ -467,6 +467,8 @@ const RequisicaoGrid = () => {
             </div>
           </div>
         </DialogContent>
+      </Dialog>
+
       <Dialog open={!!historicoReq} onOpenChange={(open) => !open && setHistoricoReq(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
