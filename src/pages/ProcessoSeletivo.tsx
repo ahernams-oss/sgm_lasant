@@ -988,12 +988,24 @@ const ProcessoSeletivoPage = () => {
                                 const cargoId = requisicao?.cargoNome || "";
 
                                 addFuncionario({
+                                  ...({} as any),
                                   nome: c.nome,
                                   cargoId,
                                   telefone: c.telefone || "",
                                   email: c.email || "",
-                                  senha: "",
-                                  clientesPermitidos: [],
+                                  cpf: "", rg: "", orgaoEmissor: "", dataNascimento: "", sexo: "",
+                                  estadoCivil: "", nacionalidade: "Brasileira", naturalidade: "",
+                                  nomeMae: "", nomePai: "", pcd: false, tipoPcd: "",
+                                  cep: "", logradouro: "", numero: "", complemento: "",
+                                  bairro: "", cidade: "", uf: "",
+                                  clienteId: requisicao?.unidade || "", dataAdmissao: new Date().toISOString().slice(0, 10),
+                                  dataDemissao: "", tipoContrato: "CLT", salario: "",
+                                  jornadaTrabalho: "", ctps: "", serieCtps: "", pis: "",
+                                  banco: c.dadosBancarios?.banco || "", agencia: c.dadosBancarios?.agencia || "",
+                                  conta: c.dadosBancarios?.conta || "", tipoConta: "Corrente", chavePix: "",
+                                  tituloEleitor: "", zonaEleitoral: "", secaoEleitoral: "",
+                                  cnh: "", categoriaCnh: "", validadeCnh: "", certificadoReservista: "",
+                                  observacoes: "", status: "Ativo" as const,
                                 });
 
                                 updateCandidato(processo!.id, c.id, { contratacaoFinalizada: true });
