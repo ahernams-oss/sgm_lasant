@@ -10,6 +10,7 @@ import LocaisSection from "@/components/LocaisSection";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const Clientes = () => {
+  const [formOpen, setFormOpen] = useState(true);
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
