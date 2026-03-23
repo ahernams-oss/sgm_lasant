@@ -109,6 +109,7 @@ const MapaFuncionarios = () => {
 
   const handleEdit = (l: typeof lancamentos[0]) => {
     setFuncionarioId(l.funcionarioId);
+    setFuncionarioIds([l.funcionarioId]);
     setData(l.data);
     setObservacao(l.observacao);
     if (l.tipo === "falta") {
