@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from "react";
-import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown } from "lucide-react";
+import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
 import { gerarPdfMapaFuncionarios } from "@/lib/gerarPdfMapa";
+import { exportarExcelMapa } from "@/lib/gerarExcelMapa";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -252,7 +253,20 @@ const MapaFuncionarios = () => {
                   })}
                   className="shadow-sm gap-1.5"
                 >
-                  <FileDown className="h-4 w-4" /> Exportar PDF
+                  <FileDown className="h-4 w-4" /> PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => exportarExcelMapa({
+                    lancamentos: filteredLancamentos,
+                    funcionarios,
+                    cargos,
+                    clientes,
+                    filterMes,
+                  })}
+                  className="shadow-sm gap-1.5"
+                >
+                  <FileSpreadsheet className="h-4 w-4" /> Excel
                 </Button>
                 <Button onClick={() => setShowForm(true)} className="shadow-md">
                   <Plus className="h-4 w-4 mr-1" /> Novo Lançamento
