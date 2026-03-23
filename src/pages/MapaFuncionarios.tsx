@@ -253,7 +253,20 @@ const MapaFuncionarios = () => {
                   })}
                   className="shadow-sm gap-1.5"
                 >
-                  <FileDown className="h-4 w-4" /> Exportar PDF
+                  <FileDown className="h-4 w-4" /> PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => exportarExcelMapa({
+                    lancamentos: filteredLancamentos,
+                    funcionarios,
+                    cargos,
+                    clientes,
+                    filterMes,
+                  })}
+                  className="shadow-sm gap-1.5"
+                >
+                  <FileSpreadsheet className="h-4 w-4" /> Excel
                 </Button>
                 <Button onClick={() => setShowForm(true)} className="shadow-md">
                   <Plus className="h-4 w-4 mr-1" /> Novo Lançamento
