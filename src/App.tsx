@@ -11,6 +11,7 @@ import Clientes from "./pages/Clientes.tsx";
 import Fornecedores from "./pages/Fornecedores.tsx";
 import Cargos from "./pages/Cargos.tsx";
 import Funcionarios from "./pages/Funcionarios.tsx";
+import MapaFuncionarios from "./pages/MapaFuncionarios.tsx";
 import Usuarios from "./pages/Usuarios.tsx";
 import Login from "./pages/Login.tsx";
 import ProcessoSeletivo from "./pages/ProcessoSeletivo.tsx";
