@@ -47,6 +47,7 @@ function AppRoutes() {
         <Route path="/processo-seletivo/:requisicaoId" element={<ProcessoSeletivo />} />
         <Route path="/processos-seletivos" element={<ProcessosSeletivos />} />
         <Route path="/sco" element={<Sco />} />
+        <Route path="/i0" element={<I0Page />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
