@@ -67,6 +67,7 @@ const MapaFuncionarios = () => {
     setHorasExtras("");
     setPercentual("50");
     setObservacao("");
+    setAnexos([]);
     setEditingId(null);
     setShowForm(false);
   };
