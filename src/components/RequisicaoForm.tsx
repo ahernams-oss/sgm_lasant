@@ -179,7 +179,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             const dataBase = salarioVigente?.dataBase;
             return valor ? (
               <div>
-                <label className="field-label">Salário do Cargo {dataBase ? `(Data Base: ${dataBase})` : ""}</label>
+                <label className="field-label">Salário do Cargo {dataBase ? `(Data Base: ${dataBase.split("-").reverse().join("/")})`  : ""}</label>
                 <Input
                   readOnly
                   value={`R$ ${valor}`}
