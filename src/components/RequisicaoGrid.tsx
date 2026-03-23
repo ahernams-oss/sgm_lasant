@@ -200,6 +200,13 @@ const RequisicaoGrid = () => {
                       <FileDown className="h-4 w-4" />
                     </Button>
                   </TableCell>
+                  <TableCell className="text-center">
+                    {canEdit(req) && (
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary" title="Editar Requisição" onClick={() => openEdit(req)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </TableCell>
                   <TableCell className="pr-5 text-center">
                     {req.status === "Aprovada" && (
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-primary" title="Processo Seletivo" onClick={() => navigate(`/processo-seletivo/${req.id}`)}>
