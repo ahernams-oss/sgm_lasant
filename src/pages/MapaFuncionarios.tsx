@@ -47,6 +47,8 @@ const MapaFuncionarios = () => {
   const [horasExtras, setHorasExtras] = useState("");
   const [percentual, setPercentual] = useState("50");
   const [observacao, setObservacao] = useState("");
+  const [anexos, setAnexos] = useState<AnexoFalta[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Filters
   const [search, setSearch] = useState("");
