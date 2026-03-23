@@ -209,6 +209,13 @@ const Dashboard = () => {
                   <X className="h-3.5 w-3.5" /> Limpar
                 </Button>
               )}
+              <div className="border-l border-border h-6 mx-1 hidden sm:block" />
+              <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={handleDownloadPdf}>
+                <FileDown className="h-3.5 w-3.5" /> PDF
+              </Button>
+              <Button variant="default" size="sm" className="h-9 text-xs gap-1.5" onClick={handleOpenSendDialog} disabled={allPhones.length === 0}>
+                <Send className="h-3.5 w-3.5" /> Enviar WhatsApp
+              </Button>
             </div>
           </div>
         </div>
