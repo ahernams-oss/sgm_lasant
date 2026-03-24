@@ -31,7 +31,9 @@ interface Props {
 
 export function NRsFuncionarioTab({ nrs, onChange }: Props) {
   const [novaNr, setNovaNr] = useState({ numero: "", descricao: "", dataEntrega: "" });
+  const [pendingFile, setPendingFile] = useState<{ base64: string; nome: string; tipo: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formFileRef = useRef<HTMLInputElement>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   const addNr = () => {
@@ -44,10 +46,28 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
       numero: novaNr.numero,
       descricao: novaNr.descricao,
       dataEntrega: novaNr.dataEntrega,
+      ...(pendingFile ? { anexoBase64: pendingFile.base64, anexoNome: pendingFile.nome, anexoTipo: pendingFile.tipo } : {}),
     };
     onChange([...nrs, nova]);
     setNovaNr({ numero: "", descricao: "", dataEntrega: "" });
+    setPendingFile(null);
+    if (formFileRef.current) formFileRef.current.value = "";
     toast.success("NR adicionada!");
+  };
+
+  const handleFormFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Arquivo muito grande (máx. 2MB).");
+      e.target.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPendingFile({ base64: reader.result as string, nome: file.name, tipo: file.type });
+    };
+    reader.readAsDataURL(file);
   };
 
   const removeNr = (id: string) => {
