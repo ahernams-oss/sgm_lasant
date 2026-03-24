@@ -4,10 +4,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { NrFuncionario } from "@/contexts/FuncionariosContext";
 import { toast } from "sonner";
+
+const NR_OPTIONS = Array.from({ length: 38 }, (_, i) => {
+  const num = String(i + 1).padStart(2, "0");
+  return `NR-${num}`;
+});
 
 const Field = ({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) => (
   <div className="space-y-1.5">
@@ -103,11 +111,14 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
         <Field label="Número da NR" required>
-          <Input
-            value={novaNr.numero}
-            onChange={(e) => setNovaNr((p) => ({ ...p, numero: e.target.value }))}
-            placeholder="Ex: NR-06"
-          />
+          <Select value={novaNr.numero} onValueChange={(v) => setNovaNr((p) => ({ ...p, numero: v }))}>
+            <SelectTrigger><SelectValue placeholder="Selecione a NR" /></SelectTrigger>
+            <SelectContent>
+              {NR_OPTIONS.map((nr) => (
+                <SelectItem key={nr} value={nr}>{nr}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
         <Field label="Descrição" required>
           <Input
