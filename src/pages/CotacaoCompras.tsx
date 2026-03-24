@@ -678,7 +678,7 @@ export default function CotacaoComprasPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPropostaDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAddProposta}>Salvar Proposta</Button>
+            <Button onClick={handleAddProposta}>{editingPropostaId ? "Atualizar Proposta" : "Salvar Proposta"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
