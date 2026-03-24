@@ -724,6 +724,21 @@ const Funcionarios = () => {
                 />
               </TabsContent>
 
+              {/* PROMOÇÕES */}
+              <TabsContent value="promocoes">
+                <PromocoesTab
+                  funcionarioId={editingId || ""}
+                  cargoAtualId={form.cargoId}
+                  salarioAtual={form.salario}
+                  clienteAtualId={form.clienteId}
+                  onPromover={(dados) => {
+                    update("cargoId", dados.cargoId);
+                    update("salario", dados.salario);
+                    update("clienteId", dados.clienteId);
+                  }}
+                />
+              </TabsContent>
+
               {/* OBSERVAÇÕES */}
               <TabsContent value="observacoes">
                 <Field label="Observações">
