@@ -19,6 +19,7 @@ const rowToMaterial = (r: any): MaterialServico => ({
   id: r.id, codigo: r.codigo ?? "", descricao: r.descricao ?? "",
   tipo: r.tipo ?? "Material", unidadeMedida: r.unidade_medida ?? "",
   categoriaId: r.categoria_id ?? "", fabricanteId: r.fabricante_id ?? "",
+  estoqueMinimo: Number(r.estoque_minimo ?? 0),
 });
 
 export function MateriaisServicosProvider({ children }: { children: ReactNode }) {
