@@ -105,6 +105,20 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const submeterAprovacao = (cotacaoId: string) => {
+    setCotacoes(prev => prev.map(c => {
+      if (c.id !== cotacaoId || c.status !== "Em Andamento") return c;
+      return { ...c, status: "Aguardando Aprovação" as StatusCotacao };
+    }));
+  };
+
+  const aprovarCotacao = (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => {
+    setCotacoes(prev => prev.map(c => {
+      if (c.id !== cotacaoId) return c;
+      return { ...c, status: "Finalizada" as StatusCotacao, fornecedorVencedorId, justificativaEscolha: justificativa, itensVencedores: itensVencedores || [] };
+    }));
+  };
+
   const finalizarCotacao = (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => {
     setCotacoes(prev => prev.map(c => {
       if (c.id !== cotacaoId) return c;
