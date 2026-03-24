@@ -160,6 +160,186 @@ export type Database = {
         }
         Relationships: []
       }
+      funcionarios: {
+        Row: {
+          agencia: string | null
+          altura: string | null
+          bairro: string | null
+          banco: string | null
+          cargo_id: string | null
+          categoria_cnh: string | null
+          cep: string | null
+          certificado_reservista: string | null
+          chave_pix: string | null
+          cidade: string | null
+          cliente_id: string | null
+          cnh: string | null
+          complemento: string | null
+          conta: string | null
+          cpf: string
+          created_at: string | null
+          ctps: string | null
+          data_admissao: string | null
+          data_demissao: string | null
+          data_nascimento: string | null
+          dependentes: Json | null
+          email: string | null
+          epis: Json | null
+          estado_civil: string | null
+          id: string
+          jornada_trabalho: string | null
+          logradouro: string | null
+          nacionalidade: string | null
+          naturalidade: string | null
+          nome: string
+          nome_mae: string | null
+          nome_pai: string | null
+          nrs: Json | null
+          numero: string | null
+          observacoes: string | null
+          orgao_emissor: string | null
+          passagens: Json | null
+          pcd: boolean | null
+          peso: string | null
+          pis: string | null
+          rg: string | null
+          salario: string | null
+          secao_eleitoral: string | null
+          serie_ctps: string | null
+          sexo: string | null
+          status: string | null
+          tamanho_calca: string | null
+          tamanho_calcado: string | null
+          tamanho_camisa: string | null
+          telefone: string | null
+          tipo_conta: string | null
+          tipo_contrato: string | null
+          tipo_pcd: string | null
+          titulo_eleitor: string | null
+          uf: string | null
+          validade_cnh: string | null
+          zona_eleitoral: string | null
+        }
+        Insert: {
+          agencia?: string | null
+          altura?: string | null
+          bairro?: string | null
+          banco?: string | null
+          cargo_id?: string | null
+          categoria_cnh?: string | null
+          cep?: string | null
+          certificado_reservista?: string | null
+          chave_pix?: string | null
+          cidade?: string | null
+          cliente_id?: string | null
+          cnh?: string | null
+          complemento?: string | null
+          conta?: string | null
+          cpf: string
+          created_at?: string | null
+          ctps?: string | null
+          data_admissao?: string | null
+          data_demissao?: string | null
+          data_nascimento?: string | null
+          dependentes?: Json | null
+          email?: string | null
+          epis?: Json | null
+          estado_civil?: string | null
+          id?: string
+          jornada_trabalho?: string | null
+          logradouro?: string | null
+          nacionalidade?: string | null
+          naturalidade?: string | null
+          nome: string
+          nome_mae?: string | null
+          nome_pai?: string | null
+          nrs?: Json | null
+          numero?: string | null
+          observacoes?: string | null
+          orgao_emissor?: string | null
+          passagens?: Json | null
+          pcd?: boolean | null
+          peso?: string | null
+          pis?: string | null
+          rg?: string | null
+          salario?: string | null
+          secao_eleitoral?: string | null
+          serie_ctps?: string | null
+          sexo?: string | null
+          status?: string | null
+          tamanho_calca?: string | null
+          tamanho_calcado?: string | null
+          tamanho_camisa?: string | null
+          telefone?: string | null
+          tipo_conta?: string | null
+          tipo_contrato?: string | null
+          tipo_pcd?: string | null
+          titulo_eleitor?: string | null
+          uf?: string | null
+          validade_cnh?: string | null
+          zona_eleitoral?: string | null
+        }
+        Update: {
+          agencia?: string | null
+          altura?: string | null
+          bairro?: string | null
+          banco?: string | null
+          cargo_id?: string | null
+          categoria_cnh?: string | null
+          cep?: string | null
+          certificado_reservista?: string | null
+          chave_pix?: string | null
+          cidade?: string | null
+          cliente_id?: string | null
+          cnh?: string | null
+          complemento?: string | null
+          conta?: string | null
+          cpf?: string
+          created_at?: string | null
+          ctps?: string | null
+          data_admissao?: string | null
+          data_demissao?: string | null
+          data_nascimento?: string | null
+          dependentes?: Json | null
+          email?: string | null
+          epis?: Json | null
+          estado_civil?: string | null
+          id?: string
+          jornada_trabalho?: string | null
+          logradouro?: string | null
+          nacionalidade?: string | null
+          naturalidade?: string | null
+          nome?: string
+          nome_mae?: string | null
+          nome_pai?: string | null
+          nrs?: Json | null
+          numero?: string | null
+          observacoes?: string | null
+          orgao_emissor?: string | null
+          passagens?: Json | null
+          pcd?: boolean | null
+          peso?: string | null
+          pis?: string | null
+          rg?: string | null
+          salario?: string | null
+          secao_eleitoral?: string | null
+          serie_ctps?: string | null
+          sexo?: string | null
+          status?: string | null
+          tamanho_calca?: string | null
+          tamanho_calcado?: string | null
+          tamanho_camisa?: string | null
+          telefone?: string | null
+          tipo_conta?: string | null
+          tipo_contrato?: string | null
+          tipo_pcd?: string | null
+          titulo_eleitor?: string | null
+          uf?: string | null
+          validade_cnh?: string | null
+          zona_eleitoral?: string | null
+        }
+        Relationships: []
+      }
       promocoes: {
         Row: {
           cargo_anterior_id: string | null
