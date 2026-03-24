@@ -160,6 +160,63 @@ export type Database = {
         }
         Relationships: []
       }
+      promocoes: {
+        Row: {
+          cargo_anterior_id: string | null
+          cargo_anterior_nome: string | null
+          cargo_novo_id: string
+          cargo_novo_nome: string
+          cliente_anterior_id: string | null
+          cliente_anterior_nome: string | null
+          cliente_novo_id: string | null
+          cliente_novo_nome: string | null
+          created_at: string
+          data_promocao: string
+          funcionario_id: string
+          id: string
+          motivo: string | null
+          observacoes: string | null
+          salario_anterior: string | null
+          salario_novo: string | null
+        }
+        Insert: {
+          cargo_anterior_id?: string | null
+          cargo_anterior_nome?: string | null
+          cargo_novo_id: string
+          cargo_novo_nome: string
+          cliente_anterior_id?: string | null
+          cliente_anterior_nome?: string | null
+          cliente_novo_id?: string | null
+          cliente_novo_nome?: string | null
+          created_at?: string
+          data_promocao?: string
+          funcionario_id: string
+          id?: string
+          motivo?: string | null
+          observacoes?: string | null
+          salario_anterior?: string | null
+          salario_novo?: string | null
+        }
+        Update: {
+          cargo_anterior_id?: string | null
+          cargo_anterior_nome?: string | null
+          cargo_novo_id?: string
+          cargo_novo_nome?: string
+          cliente_anterior_id?: string | null
+          cliente_anterior_nome?: string | null
+          cliente_novo_id?: string | null
+          cliente_novo_nome?: string | null
+          created_at?: string
+          data_promocao?: string
+          funcionario_id?: string
+          id?: string
+          motivo?: string | null
+          observacoes?: string | null
+          salario_anterior?: string | null
+          salario_novo?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
