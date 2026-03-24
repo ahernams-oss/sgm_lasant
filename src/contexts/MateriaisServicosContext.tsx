@@ -52,7 +52,7 @@ export function MateriaisServicosProvider({ children }: { children: ReactNode })
     await updateRow("materiais_servicos", id, {
       codigo: merged.codigo, descricao: merged.descricao, tipo: merged.tipo,
       unidade_medida: merged.unidadeMedida, categoria_id: merged.categoriaId,
-      fabricante_id: merged.fabricanteId,
+      fabricante_id: merged.fabricanteId, estoque_minimo: merged.estoqueMinimo,
     });
     await load();
   };
