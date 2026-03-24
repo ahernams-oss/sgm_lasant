@@ -241,7 +241,7 @@ export default function RequisicaoComprasPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Centro de Custo (Cliente) *</Label>
-                  <Select value={centroCusto} onValueChange={setCentroCusto}>
+                  <Select value={centroCusto} onValueChange={v => { setCentroCusto(v); setLocalEntrega(""); }}>
                     <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                     <SelectContent>{clientesLista.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
                   </Select>
