@@ -36,6 +36,7 @@ const menuItems = [
       { title: "Cotações", url: "/compras/cotacoes", icon: Scale },
       { title: "Pedidos de Compra", url: "/compras/pedidos", icon: FileCheck },
       { title: "Recebimento", url: "/compras/recebimento", icon: PackageCheck },
+      { title: "Estoque", url: "/compras/estoque", icon: Warehouse },
       { title: "Categorias de Compras", url: "/compras/categorias", icon: Tags },
       { title: "Materiais e Serviços", url: "/compras/materiais", icon: Package },
       { title: "Fabricantes", url: "/compras/fabricantes", icon: Factory },
