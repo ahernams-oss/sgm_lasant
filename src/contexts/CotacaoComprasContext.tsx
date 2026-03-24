@@ -81,15 +81,23 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
 
   const addProposta = async (cotacaoId: string, proposta: Omit<PropostaFornecedor, "id" | "valorTotal">) => {
     const c = cotacoes.find(c => c.id === cotacaoId);
-    if (!c || c.status !== "Em Andamento") return;
+    if (!c || c.status === "Finalizada" || c.status === "Cancelada") return;
     const valorTotal = proposta.itens.reduce((sum, i) => sum + i.precoUnitario * i.quantidade, 0);
     const updated = { ...c, propostas: [...c.propostas, { ...proposta, id: crypto.randomUUID(), valorTotal }] };
     await saveAndReload(cotacaoId, updated);
   };
 
+  const updateProposta = async (cotacaoId: string, propostaId: string, proposta: Omit<PropostaFornecedor, "id" | "valorTotal">) => {
+    const c = cotacoes.find(c => c.id === cotacaoId);
+    if (!c || c.status === "Finalizada" || c.status === "Cancelada") return;
+    const valorTotal = proposta.itens.reduce((sum, i) => sum + i.precoUnitario * i.quantidade, 0);
+    const updated = { ...c, propostas: c.propostas.map(p => p.id === propostaId ? { ...proposta, id: propostaId, valorTotal } : p) };
+    await saveAndReload(cotacaoId, updated);
+  };
+
   const removeProposta = async (cotacaoId: string, propostaId: string) => {
     const c = cotacoes.find(c => c.id === cotacaoId);
-    if (!c || c.status !== "Em Andamento") return;
+    if (!c || c.status === "Finalizada" || c.status === "Cancelada") return;
     await saveAndReload(cotacaoId, { ...c, propostas: c.propostas.filter(p => p.id !== propostaId) });
   };
 
