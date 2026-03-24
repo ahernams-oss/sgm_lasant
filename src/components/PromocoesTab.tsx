@@ -92,11 +92,8 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
   useEffect(() => {
     if (form.cargo_novo_id) {
       const cargo = cargos.find((c) => c.id === form.cargo_novo_id);
-      if (cargo) {
-        const salarioAtualCargo = cargo.historico?.find((h: any) => h.atual)?.salario || "";
-        if (salarioAtualCargo) {
-          setForm((prev) => ({ ...prev, salario_novo: salarioAtualCargo }));
-        }
+      if (cargo?.salario) {
+        setForm((prev) => ({ ...prev, salario_novo: cargo.salario }));
       }
     }
   }, [form.cargo_novo_id, cargos]);
