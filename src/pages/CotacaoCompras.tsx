@@ -67,6 +67,7 @@ export default function CotacaoComprasPage() {
   const [viewCotacao, setViewCotacao] = useState<CotacaoCompras | null>(null);
   const [propostaDialogOpen, setPropostaDialogOpen] = useState(false);
   const [propostaCotacaoId, setPropostaCotacaoId] = useState("");
+  const [editingPropostaId, setEditingPropostaId] = useState<string | null>(null);
   const [finalizarDialogOpen, setFinalizarDialogOpen] = useState(false);
   const [finalizarCotacaoId, setFinalizarCotacaoId] = useState("");
   const [aprovarDialogOpen, setAprovarDialogOpen] = useState(false);
