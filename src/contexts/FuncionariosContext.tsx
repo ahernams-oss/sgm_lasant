@@ -102,6 +102,8 @@ export interface Funcionario {
   passagens: PassagemDiaria[];
   // Dependentes
   dependentes: Dependente[];
+  // EPIs
+  epis: EpiItem[];
   // Observações
   observacoes: string;
   // Status
