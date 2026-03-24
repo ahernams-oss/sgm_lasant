@@ -85,6 +85,8 @@ const App = () => (
     <CategoriasComprasProvider>
     <MateriaisServicosProvider>
     <RequisicaoComprasProvider>
+    <CotacaoComprasProvider>
+    <PedidoCompraProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
