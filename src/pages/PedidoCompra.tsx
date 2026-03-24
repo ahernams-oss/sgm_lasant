@@ -280,7 +280,7 @@ export default function PedidoCompraPage() {
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Atualizar Status do Pedido</DialogTitle>
+            <DialogTitle>Atualizar Status {statusPedidoIds.length > 1 ? `(${statusPedidoIds.length} pedidos)` : "do Pedido"}</DialogTitle>
             <DialogDescription>Selecione o novo status e adicione observações se necessário.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -289,7 +289,7 @@ export default function PedidoCompraPage() {
               <Select value={newStatus} onValueChange={v => setNewStatus(v as StatusPedido)}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  {getNextStatuses(pedidos.find(p => p.id === statusPedidoId)?.status || "Emitido").map(s => (
+                  {commonNextStatuses.map(s => (
                     <SelectItem key={s} value={s}>{s}</SelectItem>
                   ))}
                 </SelectContent>
