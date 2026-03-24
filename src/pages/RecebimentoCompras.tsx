@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { usePedidoCompra, PedidoCompra } from "@/contexts/PedidoCompraContext";
-import { useRecebimento, Recebimento, ItemRecebimento } from "@/contexts/RecebimentoContext";
+import { useRecebimento, Recebimento, ItemRecebimento, AnexoNF } from "@/contexts/RecebimentoContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
