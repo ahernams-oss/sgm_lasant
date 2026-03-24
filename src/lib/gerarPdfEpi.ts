@@ -186,7 +186,7 @@ function drawTermoAndLegal(doc: jsPDF, pw: number, startY: number, dataEntrega?:
   y += 3.5;
 
   const nr06 = [
-    "a) usar o fornecido pela organização, observado o disposto no item 6.5.2;",
+    "a) usar o fornecido pela organização, observado o disposto no item 6.5.2",
     "b) usá-lo apenas para a finalidade a que se destina;",
     "c) responsabilizar-se pela sua limpeza, guarda e conservação;",
     "d) comunicar à organização quando extraviado, danificado ou qualquer alteração que o torne impróprio para uso, e",
