@@ -712,6 +712,16 @@ const Funcionarios = () => {
                 <EpiTab epis={form.epis || []} onChange={(e) => update("epis", e as any)} />
               </TabsContent>
 
+              {/* EXAMES PERIÓDICOS */}
+              <TabsContent value="exames">
+                <ExamesPeriodicosTab
+                  funcionarioId={editingId || ""}
+                  funcionarioNome={form.nome}
+                  funcionarioTelefone={form.telefone}
+                  funcionarioEmail={form.email}
+                />
+              </TabsContent>
+
               {/* OBSERVAÇÕES */}
               <TabsContent value="observacoes">
                 <Field label="Observações">
