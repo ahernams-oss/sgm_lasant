@@ -176,26 +176,16 @@ const Fornecedores = () => {
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(fornecedor.id)} className="text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-3.5 w-3.5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
-
-        {locaisClienteId && (
-          <LocaisSection
-            locais={clientes.find((c) => c.id === locaisClienteId)?.locais || []}
-            onChange={(locais) => updateCliente(locaisClienteId, { locais })}
-          />
-        )}
+      </div>
+    </div>
+  );
+};
       </div>
     </div>
   );
