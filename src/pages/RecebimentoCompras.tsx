@@ -310,7 +310,7 @@ export default function RecebimentoComprasPage() {
                         <TableHead className="w-24 text-right">Já Recebido</TableHead>
                         <TableHead className="w-24 text-right">Restante</TableHead>
                         <TableHead className="w-32">Recebendo</TableHead>
-                        <TableHead className="w-40">Obs. Item</TableHead>
+                        <TableHead className="min-w-[200px]">Obs. Item</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
