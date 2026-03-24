@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { useCotacaoCompras, CotacaoCompras, PropostaFornecedor, ItemCotacaoFornecedor } from "@/contexts/CotacaoComprasContext";
+import { useCotacaoCompras, CotacaoCompras, PropostaFornecedor, ItemCotacaoFornecedor, ItemVencedor } from "@/contexts/CotacaoComprasContext";
 import { useRequisicaoCompras, RequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -17,7 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw } from "lucide-react";
+import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { format, subDays, isAfter } from "date-fns";
 
 const statusColors: Record<string, string> = {
@@ -81,6 +82,8 @@ export default function CotacaoComprasPage() {
   // Finalizar form
   const [finVencedorId, setFinVencedorId] = useState("");
   const [finJustificativa, setFinJustificativa] = useState("");
+  const [finItensVencedores, setFinItensVencedores] = useState<Record<string, string>>({});
+  const [finModoItemizado, setFinModoItemizado] = useState(false);
 
   // Enviar para fornecedor
   const [enviarDialogOpen, setEnviarDialogOpen] = useState(false);
@@ -157,37 +160,91 @@ export default function CotacaoComprasPage() {
   const openFinalizarDialog = (cotacaoId: string) => {
     setFinalizarCotacaoId(cotacaoId);
     setFinVencedorId(""); setFinJustificativa("");
+    setFinItensVencedores({});
+    setFinModoItemizado(false);
     setFinalizarDialogOpen(true);
   };
 
   const handleFinalizar = () => {
-    if (!finVencedorId) { toast({ title: "Selecione o fornecedor vencedor", variant: "destructive" }); return; }
     if (!finJustificativa.trim()) { toast({ title: "Justificativa é obrigatória", variant: "destructive" }); return; }
     const cot = cotacoes.find(c => c.id === finalizarCotacaoId);
     if (!cot) return;
-    finalizarCotacao(finalizarCotacaoId, finVencedorId, finJustificativa);
+    const req = requisicoes.find(r => r.id === cot.requisicaoId);
+    if (!req) return;
 
-    // Auto-create pedido
-    const propVencedora = cot.propostas.find(p => p.fornecedorId === finVencedorId);
-    if (propVencedora) {
-      const req = requisicoes.find(r => r.id === cot.requisicaoId);
-      addPedido({
-        cotacaoId: cot.id,
-        requisicaoId: cot.requisicaoId,
-        requisicaoNumero: cot.requisicaoNumero,
-        comprador: usuarioLogado?.nome || "Comprador",
-        fornecedorId: propVencedora.fornecedorId,
-        fornecedorNome: propVencedora.fornecedorNome,
-        itens: propVencedora.itens.map(i => ({ itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario, valorTotal: i.precoUnitario * i.quantidade })),
-        condicaoPagamento: propVencedora.condicaoPagamento,
-        prazoEntrega: propVencedora.prazoEntrega,
-        localEntrega: req?.localEntrega || "",
-        observacoes: "",
+    if (finModoItemizado) {
+      // Item-level authorization
+      const allAssigned = req.itens.every(i => finItensVencedores[i.id]);
+      if (!allAssigned) { toast({ title: "Selecione um fornecedor para cada item", variant: "destructive" }); return; }
+
+      const itensVencedores: ItemVencedor[] = req.itens.map(i => {
+        const fornId = finItensVencedores[i.id];
+        const prop = cot.propostas.find(p => p.fornecedorId === fornId);
+        return { itemId: i.id, fornecedorId: fornId, fornecedorNome: prop?.fornecedorNome || "" };
       });
-      updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Comprador", "Pedido gerado automaticamente após cotação");
+
+      // Group items by supplier
+      const fornecedorIds = [...new Set(itensVencedores.map(iv => iv.fornecedorId))];
+      const principalFornecedorId = fornecedorIds[0];
+
+      finalizarCotacao(finalizarCotacaoId, principalFornecedorId, finJustificativa, itensVencedores);
+
+      // Create one pedido per supplier
+      for (const fornId of fornecedorIds) {
+        const prop = cot.propostas.find(p => p.fornecedorId === fornId);
+        if (!prop) continue;
+        const itemIds = itensVencedores.filter(iv => iv.fornecedorId === fornId).map(iv => iv.itemId);
+        const itensPedido = prop.itens
+          .filter(i => itemIds.includes(i.itemId))
+          .map(i => ({ itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario, valorTotal: i.precoUnitario * i.quantidade }));
+
+        addPedido({
+          cotacaoId: cot.id,
+          requisicaoId: cot.requisicaoId,
+          requisicaoNumero: cot.requisicaoNumero,
+          comprador: usuarioLogado?.nome || "Comprador",
+          fornecedorId: prop.fornecedorId,
+          fornecedorNome: prop.fornecedorNome,
+          itens: itensPedido,
+          condicaoPagamento: prop.condicaoPagamento,
+          prazoEntrega: prop.prazoEntrega,
+          localEntrega: req.localEntrega || "",
+          observacoes: "",
+        });
+      }
+
+      updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Comprador",
+        fornecedorIds.length > 1
+          ? `${fornecedorIds.length} pedidos gerados (autorização por item)`
+          : "Pedido gerado automaticamente após cotação"
+      );
+
+      toast({ title: `Cotação finalizada! ${fornecedorIds.length} pedido(s) emitido(s).` });
+    } else {
+      // Single supplier mode (original)
+      if (!finVencedorId) { toast({ title: "Selecione o fornecedor vencedor", variant: "destructive" }); return; }
+      finalizarCotacao(finalizarCotacaoId, finVencedorId, finJustificativa);
+
+      const propVencedora = cot.propostas.find(p => p.fornecedorId === finVencedorId);
+      if (propVencedora) {
+        addPedido({
+          cotacaoId: cot.id,
+          requisicaoId: cot.requisicaoId,
+          requisicaoNumero: cot.requisicaoNumero,
+          comprador: usuarioLogado?.nome || "Comprador",
+          fornecedorId: propVencedora.fornecedorId,
+          fornecedorNome: propVencedora.fornecedorNome,
+          itens: propVencedora.itens.map(i => ({ itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario, valorTotal: i.precoUnitario * i.quantidade })),
+          condicaoPagamento: propVencedora.condicaoPagamento,
+          prazoEntrega: propVencedora.prazoEntrega,
+          localEntrega: req.localEntrega || "",
+          observacoes: "",
+        });
+        updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Comprador", "Pedido gerado automaticamente após cotação");
+      }
+      toast({ title: "Cotação finalizada e pedido emitido!" });
     }
 
-    toast({ title: "Cotação finalizada e pedido emitido!" });
     setFinalizarDialogOpen(false);
   };
 
@@ -568,31 +625,157 @@ export default function CotacaoComprasPage() {
 
       {/* Dialog Finalizar Cotação */}
       <Dialog open={finalizarDialogOpen} onOpenChange={setFinalizarDialogOpen}>
-        <DialogContent>
+        <DialogContent className={finModoItemizado ? "max-w-3xl max-h-[85vh] overflow-y-auto" : ""}>
           <DialogHeader>
             <DialogTitle>Finalizar Cotação</DialogTitle>
-            <DialogDescription>Selecione o fornecedor vencedor e justifique a escolha. Um Pedido de Compra será gerado automaticamente.</DialogDescription>
+            <DialogDescription>
+              {finModoItemizado
+                ? "Escolha o fornecedor para cada item individualmente. Pedidos separados serão gerados por fornecedor."
+                : "Selecione o fornecedor vencedor e justifique a escolha. Um Pedido de Compra será gerado automaticamente."
+              }
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label>Fornecedor Vencedor *</Label>
-              <Select value={finVencedorId} onValueChange={setFinVencedorId}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {cotacoes.find(c => c.id === finalizarCotacaoId)?.propostas.map(p => (
-                    <SelectItem key={p.fornecedorId} value={p.fornecedorId}>{p.fornecedorNome} — {formatCurrency(p.valorTotal)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium">Autorizar por item</Label>
+                <p className="text-xs text-muted-foreground">
+                  Permite escolher fornecedores diferentes para cada item
+                </p>
+              </div>
+              <Switch
+                checked={finModoItemizado}
+                onCheckedChange={(checked) => {
+                  setFinModoItemizado(checked);
+                  if (checked) setFinVencedorId("");
+                  else setFinItensVencedores({});
+                }}
+              />
             </div>
+
+            {!finModoItemizado && (
+              <div>
+                <Label>Fornecedor Vencedor *</Label>
+                <Select value={finVencedorId} onValueChange={setFinVencedorId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    {cotacoes.find(c => c.id === finalizarCotacaoId)?.propostas.map(p => (
+                      <SelectItem key={p.fornecedorId} value={p.fornecedorId}>{p.fornecedorNome} — {formatCurrency(p.valorTotal)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {finModoItemizado && (() => {
+              const cot = cotacoes.find(c => c.id === finalizarCotacaoId);
+              const req = cot ? requisicoes.find(r => r.id === cot.requisicaoId) : null;
+              if (!cot || !req) return null;
+              const propostas = cot.propostas;
+
+              return (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                      Selecione o fornecedor para cada item
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Item</TableHead>
+                          <TableHead className="w-16">Qtd</TableHead>
+                          <TableHead className="w-[220px]">Fornecedor</TableHead>
+                          <TableHead className="w-28 text-right">Preço Unit.</TableHead>
+                          <TableHead className="w-28 text-right">Total</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {req.itens.map(item => {
+                          const selectedFornId = finItensVencedores[item.id] || "";
+                          const selectedProp = propostas.find(p => p.fornecedorId === selectedFornId);
+                          const selectedItemProp = selectedProp?.itens.find(i => i.itemId === item.id);
+
+                          return (
+                            <TableRow key={item.id}>
+                              <TableCell className="text-sm font-medium">{item.descricao}</TableCell>
+                              <TableCell className="text-sm">{item.quantidade} {item.unidadeMedida}</TableCell>
+                              <TableCell>
+                                <Select
+                                  value={selectedFornId}
+                                  onValueChange={v => setFinItensVencedores(prev => ({ ...prev, [item.id]: v }))}
+                                >
+                                  <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue placeholder="Selecione..." />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {propostas.map(p => {
+                                      const pi = p.itens.find(i => i.itemId === item.id);
+                                      return (
+                                        <SelectItem key={p.fornecedorId} value={p.fornecedorId}>
+                                          {p.fornecedorNome} {pi ? `— ${formatCurrency(pi.precoUnitario)}` : ""}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell className="text-right text-sm">
+                                {selectedItemProp ? formatCurrency(selectedItemProp.precoUnitario) : "-"}
+                              </TableCell>
+                              <TableCell className="text-right text-sm font-medium">
+                                {selectedItemProp ? formatCurrency(selectedItemProp.precoUnitario * selectedItemProp.quantidade) : "-"}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+
+                    {/* Summary by supplier */}
+                    {Object.keys(finItensVencedores).length > 0 && (() => {
+                      const groups: Record<string, { nome: string; total: number; count: number }> = {};
+                      for (const [itemId, fornId] of Object.entries(finItensVencedores)) {
+                        const prop = propostas.find(p => p.fornecedorId === fornId);
+                        const pi = prop?.itens.find(i => i.itemId === itemId);
+                        if (!prop || !pi) continue;
+                        if (!groups[fornId]) groups[fornId] = { nome: prop.fornecedorNome, total: 0, count: 0 };
+                        groups[fornId].total += pi.precoUnitario * pi.quantidade;
+                        groups[fornId].count++;
+                      }
+                      return (
+                        <div className="mt-3 space-y-1 border-t pt-3">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Resumo por fornecedor:</p>
+                          {Object.entries(groups).map(([id, g]) => (
+                            <div key={id} className="flex justify-between text-sm">
+                              <span>{g.nome} <span className="text-muted-foreground">({g.count} {g.count === 1 ? "item" : "itens"})</span></span>
+                              <span className="font-medium">{formatCurrency(g.total)}</span>
+                            </div>
+                          ))}
+                          <div className="flex justify-between text-sm font-bold border-t pt-1 mt-1">
+                            <span>Total Geral</span>
+                            <span>{formatCurrency(Object.values(groups).reduce((s, g) => s + g.total, 0))}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+              );
+            })()}
+
             <div>
               <Label>Justificativa da Escolha *</Label>
-              <Textarea value={finJustificativa} onChange={e => setFinJustificativa(e.target.value)} placeholder="Justifique a escolha do fornecedor..." rows={3} />
+              <Textarea value={finJustificativa} onChange={e => setFinJustificativa(e.target.value)} placeholder="Justifique a escolha do(s) fornecedor(es)..." rows={3} />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setFinalizarDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleFinalizar}>Finalizar e Emitir Pedido</Button>
+            <Button onClick={handleFinalizar}>
+              {finModoItemizado ? "Finalizar e Emitir Pedidos" : "Finalizar e Emitir Pedido"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

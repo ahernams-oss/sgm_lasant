@@ -24,6 +24,12 @@ export interface PropostaFornecedor {
   valorTotal: number;
 }
 
+export interface ItemVencedor {
+  itemId: string;
+  fornecedorId: string;
+  fornecedorNome: string;
+}
+
 export interface CotacaoCompras {
   id: string;
   requisicaoId: string;
@@ -35,14 +41,15 @@ export interface CotacaoCompras {
   propostas: PropostaFornecedor[];
   fornecedorVencedorId: string;
   justificativaEscolha: string;
+  itensVencedores: ItemVencedor[];
 }
 
 interface CotacaoComprasContextType {
   cotacoes: CotacaoCompras[];
-  addCotacao: (data: Omit<CotacaoCompras, "id" | "numero" | "dataCriacao" | "status" | "propostas" | "fornecedorVencedorId" | "justificativaEscolha">) => CotacaoCompras;
+  addCotacao: (data: Omit<CotacaoCompras, "id" | "numero" | "dataCriacao" | "status" | "propostas" | "fornecedorVencedorId" | "justificativaEscolha" | "itensVencedores">) => CotacaoCompras;
   addProposta: (cotacaoId: string, proposta: Omit<PropostaFornecedor, "id" | "valorTotal">) => void;
   removeProposta: (cotacaoId: string, propostaId: string) => void;
-  finalizarCotacao: (cotacaoId: string, fornecedorVencedorId: string, justificativa: string) => void;
+  finalizarCotacao: (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => void;
   cancelarCotacao: (cotacaoId: string) => void;
   getCotacaoByRequisicao: (requisicaoId: string) => CotacaoCompras | undefined;
 }
@@ -64,7 +71,7 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { localStorage.setItem("cotacoes_compras", JSON.stringify(cotacoes)); }, [cotacoes]);
 
-  const addCotacao = (data: Omit<CotacaoCompras, "id" | "numero" | "dataCriacao" | "status" | "propostas" | "fornecedorVencedorId" | "justificativaEscolha">) => {
+  const addCotacao = (data: Omit<CotacaoCompras, "id" | "numero" | "dataCriacao" | "status" | "propostas" | "fornecedorVencedorId" | "justificativaEscolha" | "itensVencedores">) => {
     const cot: CotacaoCompras = {
       ...data,
       id: crypto.randomUUID(),
@@ -74,6 +81,7 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
       propostas: [],
       fornecedorVencedorId: "",
       justificativaEscolha: "",
+      itensVencedores: [],
     };
     setCotacoes(prev => [...prev, cot]);
     setNextNumero(n => n + 1);
@@ -95,10 +103,10 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const finalizarCotacao = (cotacaoId: string, fornecedorVencedorId: string, justificativa: string) => {
+  const finalizarCotacao = (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => {
     setCotacoes(prev => prev.map(c => {
       if (c.id !== cotacaoId) return c;
-      return { ...c, status: "Finalizada" as StatusCotacao, fornecedorVencedorId, justificativaEscolha: justificativa };
+      return { ...c, status: "Finalizada" as StatusCotacao, fornecedorVencedorId, justificativaEscolha: justificativa, itensVencedores: itensVencedores || [] };
     }));
   };
 
