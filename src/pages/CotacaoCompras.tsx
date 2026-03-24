@@ -38,6 +38,8 @@ export default function CotacaoComprasPage() {
 
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("Todos");
+  const [filterPeriodo, setFilterPeriodo] = useState("Todos");
+  const [filterComprador, setFilterComprador] = useState("Todos");
 
   // Dialog states
   const [novaDialogOpen, setNovaDialogOpen] = useState(false);
@@ -79,15 +81,30 @@ export default function CotacaoComprasPage() {
   const [finVencedorId, setFinVencedorId] = useState("");
   const [finJustificativa, setFinJustificativa] = useState("");
 
+  const compradores = useMemo(() => {
+    const set = new Set(cotacoes.map(c => c.comprador));
+    return Array.from(set).sort();
+  }, [cotacoes]);
+
+  const hasActiveFilters = filterStatus !== "Todos" || filterPeriodo !== "Todos" || filterComprador !== "Todos" || search !== "";
+
+  const clearFilters = () => { setSearch(""); setFilterStatus("Todos"); setFilterPeriodo("Todos"); setFilterComprador("Todos"); };
+
   const filtered = useMemo(() => {
     let list = cotacoes;
     if (filterStatus !== "Todos") list = list.filter(c => c.status === filterStatus);
+    if (filterComprador !== "Todos") list = list.filter(c => c.comprador === filterComprador);
+    if (filterPeriodo !== "Todos") {
+      const dias = Number(filterPeriodo);
+      const dataLimite = subDays(new Date(), dias);
+      list = list.filter(c => isAfter(new Date(c.dataCriacao), dataLimite));
+    }
     if (search) {
       const s = search.toLowerCase();
       list = list.filter(c => String(c.numero).includes(s) || c.comprador.toLowerCase().includes(s) || String(c.requisicaoNumero).includes(s));
     }
     return list.sort((a, b) => b.numero - a.numero);
-  }, [cotacoes, search, filterStatus]);
+  }, [cotacoes, search, filterStatus, filterPeriodo, filterComprador]);
 
   const handleCriarCotacao = () => {
     if (!selectedReqId) { toast({ title: "Selecione uma requisição", variant: "destructive" }); return; }
