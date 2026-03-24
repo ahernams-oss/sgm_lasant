@@ -13,7 +13,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, Dependente, AnexoDependente, EpiItem, tiposTransporte, grausParentesco } from "@/contexts/FuncionariosContext";
+import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, Dependente, AnexoDependente, EpiItem, NrFuncionario, tiposTransporte, grausParentesco } from "@/contexts/FuncionariosContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ import { gerarPdfFuncionario } from "@/lib/gerarPdfFuncionario";
 import { gerarPdfEpi } from "@/lib/gerarPdfEpi";
 import { ExamesPeriodicosTab } from "@/components/ExamesPeriodicosTab";
 import { PromocoesTab } from "@/components/PromocoesTab";
+import { NRsFuncionarioTab } from "@/components/NRsFuncionarioTab";
 
 const UF_OPTIONS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const STATUS_OPTIONS = ["Ativo", "Inativo", "Afastado", "Férias"] as const;
@@ -312,7 +313,7 @@ const Funcionarios = () => {
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [filterCliente, setFilterCliente] = useState<string>("todos");
 
-  const update = (field: string, value: string | boolean | PassagemDiaria[] | Dependente[]) =>
+  const update = (field: string, value: string | boolean | PassagemDiaria[] | Dependente[] | EpiItem[] | NrFuncionario[]) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const resetForm = () => {
@@ -438,6 +439,7 @@ const Funcionarios = () => {
                 <TabsTrigger value="passagem">Passagem</TabsTrigger>
                 <TabsTrigger value="dependentes">Dependentes</TabsTrigger>
                 <TabsTrigger value="epis">EPIs</TabsTrigger>
+                <TabsTrigger value="nrs">NRs</TabsTrigger>
                 <TabsTrigger value="exames">Exames Periódicos</TabsTrigger>
                 <TabsTrigger value="promocoes">Promoções</TabsTrigger>
                 <TabsTrigger value="observacoes">Observações</TabsTrigger>
@@ -712,6 +714,14 @@ const Funcionarios = () => {
               {/* EPIs */}
               <TabsContent value="epis">
                 <EpiTab epis={form.epis || []} onChange={(e) => update("epis", e as any)} />
+              </TabsContent>
+
+              {/* NRs */}
+              <TabsContent value="nrs">
+                <NRsFuncionarioTab
+                  nrs={form.nrs || []}
+                  onChange={(nrs) => update("nrs", nrs)}
+                />
               </TabsContent>
 
               {/* EXAMES PERIÓDICOS */}

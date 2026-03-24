@@ -29,6 +29,16 @@ export interface Dependente {
   anexos: AnexoDependente[];
 }
 
+export interface NrFuncionario {
+  id: string;
+  numero: string;
+  descricao: string;
+  dataEntrega: string;
+  anexoBase64?: string;
+  anexoNome?: string;
+  anexoTipo?: string;
+}
+
 export interface EpiItem {
   id: string;
   quantidade: number;
@@ -104,6 +114,8 @@ export interface Funcionario {
   dependentes: Dependente[];
   // EPIs
   epis: EpiItem[];
+  // NRs
+  nrs: NrFuncionario[];
   // Observações
   observacoes: string;
   // Status
@@ -124,6 +136,7 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   passagens: [],
   dependentes: [],
   epis: [],
+  nrs: [],
   observacoes: "", status: "Ativo",
 };
 
