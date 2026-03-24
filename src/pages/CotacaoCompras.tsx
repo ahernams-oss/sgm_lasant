@@ -453,6 +453,7 @@ export default function CotacaoComprasPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Nº Cotação</TableHead>
+              <TableHead>Centro de Custo</TableHead>
               <TableHead>RC Vinculada</TableHead>
               <TableHead>Data</TableHead>
               <TableHead>Comprador</TableHead>
@@ -463,11 +464,13 @@ export default function CotacaoComprasPage() {
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhuma cotação encontrada</TableCell></TableRow>
-            ) : filtered.map(c => (
+              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma cotação encontrada</TableCell></TableRow>
+            ) : filtered.map(c => {
+              const rcVinculada = requisicoes.find(r => r.id === c.requisicaoId);
+              return (
               <TableRow key={c.id}>
                 <TableCell className="font-mono font-bold">COT-{String(c.numero).padStart(4, "0")}</TableCell>
-                <TableCell className="font-mono">RC-{String(c.requisicaoNumero).padStart(4, "0")}</TableCell>
+                <TableCell className="text-sm">{rcVinculada?.centroCustoNome || "-"}</TableCell>
                 <TableCell>{format(new Date(c.dataCriacao), "dd/MM/yyyy")}</TableCell>
                 <TableCell>{c.comprador}</TableCell>
                 <TableCell><Badge variant="secondary">{c.propostas.length}</Badge></TableCell>
