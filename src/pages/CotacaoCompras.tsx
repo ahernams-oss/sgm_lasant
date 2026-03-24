@@ -162,21 +162,39 @@ export default function CotacaoComprasPage() {
 
   const openFinalizarDialog = (cotacaoId: string) => {
     setFinalizarCotacaoId(cotacaoId);
-    setFinVencedorId(""); setFinJustificativa("");
-    setFinItensVencedores({});
-    setFinModoItemizado(false);
     setFinalizarDialogOpen(true);
   };
 
   const handleFinalizar = () => {
-    if (!finJustificativa.trim()) { toast({ title: "Justificativa é obrigatória", variant: "destructive" }); return; }
     const cot = cotacoes.find(c => c.id === finalizarCotacaoId);
+    if (!cot) return;
+    if (cot.propostas.length < 1) {
+      toast({ title: "É necessário ao menos 1 proposta para finalizar", variant: "destructive" });
+      return;
+    }
+    submeterAprovacao(finalizarCotacaoId);
+    updateStatus(cot.requisicaoId, "Em Cotação", usuarioLogado?.nome || "Comprador", "Cotação submetida para aprovação");
+    toast({ title: "Cotação finalizada e enviada para aprovação!" });
+    setFinalizarDialogOpen(false);
+  };
+
+  // === Aprovar Cotação ===
+  const openAprovarDialog = (cotacaoId: string) => {
+    setAprovarCotacaoId(cotacaoId);
+    setFinVencedorId(""); setFinJustificativa("");
+    setFinItensVencedores({});
+    setFinModoItemizado(false);
+    setAprovarDialogOpen(true);
+  };
+
+  const handleAprovar = () => {
+    if (!finJustificativa.trim()) { toast({ title: "Justificativa é obrigatória", variant: "destructive" }); return; }
+    const cot = cotacoes.find(c => c.id === aprovarCotacaoId);
     if (!cot) return;
     const req = requisicoes.find(r => r.id === cot.requisicaoId);
     if (!req) return;
 
     if (finModoItemizado) {
-      // Item-level authorization
       const allAssigned = req.itens.every(i => finItensVencedores[i.id]);
       if (!allAssigned) { toast({ title: "Selecione um fornecedor para cada item", variant: "destructive" }); return; }
 
@@ -186,13 +204,11 @@ export default function CotacaoComprasPage() {
         return { itemId: i.id, fornecedorId: fornId, fornecedorNome: prop?.fornecedorNome || "" };
       });
 
-      // Group items by supplier
       const fornecedorIds = [...new Set(itensVencedores.map(iv => iv.fornecedorId))];
       const principalFornecedorId = fornecedorIds[0];
 
-      finalizarCotacao(finalizarCotacaoId, principalFornecedorId, finJustificativa, itensVencedores);
+      aprovarCotacao(aprovarCotacaoId, principalFornecedorId, finJustificativa, itensVencedores);
 
-      // Create one pedido per supplier
       for (const fornId of fornecedorIds) {
         const prop = cot.propostas.find(p => p.fornecedorId === fornId);
         if (!prop) continue;
@@ -216,17 +232,16 @@ export default function CotacaoComprasPage() {
         });
       }
 
-      updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Comprador",
+      updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador",
         fornecedorIds.length > 1
-          ? `${fornecedorIds.length} pedidos gerados (autorização por item)`
-          : "Pedido gerado automaticamente após cotação"
+          ? `${fornecedorIds.length} pedidos gerados (aprovação por item)`
+          : "Pedido gerado após aprovação"
       );
 
-      toast({ title: `Cotação finalizada! ${fornecedorIds.length} pedido(s) emitido(s).` });
+      toast({ title: `Cotação aprovada! ${fornecedorIds.length} pedido(s) emitido(s).` });
     } else {
-      // Single supplier mode (original)
       if (!finVencedorId) { toast({ title: "Selecione o fornecedor vencedor", variant: "destructive" }); return; }
-      finalizarCotacao(finalizarCotacaoId, finVencedorId, finJustificativa);
+      aprovarCotacao(aprovarCotacaoId, finVencedorId, finJustificativa);
 
       const propVencedora = cot.propostas.find(p => p.fornecedorId === finVencedorId);
       if (propVencedora) {
@@ -243,12 +258,12 @@ export default function CotacaoComprasPage() {
           localEntrega: req.localEntrega || "",
           observacoes: "",
         });
-        updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Comprador", "Pedido gerado automaticamente após cotação");
+        updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador", "Pedido gerado após aprovação");
       }
-      toast({ title: "Cotação finalizada e pedido emitido!" });
+      toast({ title: "Cotação aprovada e pedido emitido!" });
     }
 
-    setFinalizarDialogOpen(false);
+    setAprovarDialogOpen(false);
   };
 
   const openMapa = (cot: CotacaoCompras) => { setMapaCotacao(cot); setMapaDialogOpen(true); };
