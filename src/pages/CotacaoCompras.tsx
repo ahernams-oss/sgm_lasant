@@ -188,7 +188,6 @@ export default function CotacaoComprasPage() {
   };
 
   const handleAprovar = () => {
-    if (!finJustificativa.trim()) { toast({ title: "Justificativa é obrigatória", variant: "destructive" }); return; }
     const cot = cotacoes.find(c => c.id === aprovarCotacaoId);
     if (!cot) return;
     const req = requisicoes.find(r => r.id === cot.requisicaoId);
@@ -914,7 +913,7 @@ export default function CotacaoComprasPage() {
             })()}
 
             <div>
-              <Label>Justificativa da Aprovação *</Label>
+              <Label>Justificativa da Aprovação</Label>
               <Textarea value={finJustificativa} onChange={e => setFinJustificativa(e.target.value)} placeholder="Justifique a aprovação e escolha do(s) fornecedor(es)..." rows={3} />
             </div>
           </div>
