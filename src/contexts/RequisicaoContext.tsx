@@ -4,7 +4,9 @@ import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 export interface StatusHistorico { status: string; dataHora: string; usuario?: string; }
 
 export interface Requisicao {
-  id: string; numero: number; dataCriacao: string; unidade: string;
+  id: string; numero: number; dataCriacao: string;
+  headcount: string; orcamento: string; tipoVaga: string;
+  unidade: string;
   cargoNome: string; cargoId: string; jornada: string; cargaHoraria: string;
   tipoContratacao: string[]; internoExterno: string; origemVaga: string;
   motivoOutros: string; matricula: string; nomeSubstituido: string;
@@ -26,6 +28,7 @@ const RequisicaoContext = createContext<RequisicaoContextType | undefined>(undef
 
 const rowToReq = (r: any): Requisicao => ({
   id: r.id, numero: r.numero ?? 0, dataCriacao: r.data_criacao ?? "",
+  headcount: r.headcount ?? "", orcamento: r.orcamento ?? "", tipoVaga: r.tipo_vaga ?? "",
   unidade: r.unidade ?? "", cargoNome: r.cargo_nome ?? "", cargoId: r.cargo_id ?? "",
   jornada: r.jornada ?? "", cargaHoraria: r.carga_horaria ?? "",
   tipoContratacao: r.tipo_contratacao ?? [], internoExterno: r.interno_externo ?? "",
@@ -41,7 +44,9 @@ const rowToReq = (r: any): Requisicao => ({
 });
 
 const reqToRow = (r: Requisicao) => ({
-  numero: r.numero, data_criacao: r.dataCriacao, unidade: r.unidade,
+  numero: r.numero, data_criacao: r.dataCriacao,
+  headcount: r.headcount, orcamento: r.orcamento, tipo_vaga: r.tipoVaga,
+  unidade: r.unidade,
   cargo_nome: r.cargoNome, cargo_id: r.cargoId, jornada: r.jornada,
   carga_horaria: r.cargaHoraria, tipo_contratacao: r.tipoContratacao as any,
   interno_externo: r.internoExterno, origem_vaga: r.origemVaga,

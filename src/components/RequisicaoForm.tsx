@@ -41,6 +41,9 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { addRequisicao } = useRequisicoes();
   const { clientes } = useClientes();
   const [form, setForm] = useState({
+    headcount: "",
+    orcamento: "",
+    tipoVaga: "",
     unidade: "",
     cargo: "",
     jornada: "",
@@ -81,6 +84,9 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     }
     const cargoObj = cargos.find((c) => c.id === form.cargo);
     addRequisicao({
+      headcount: form.headcount,
+      orcamento: form.orcamento,
+      tipoVaga: form.tipoVaga,
       unidade: form.unidade,
       cargoId: form.cargo,
       cargoNome: cargoObj ? `${cargoObj.nome}${cargoObj.nivel ? ` — Nível ${cargoObj.nivel}` : ""}` : form.cargo,
@@ -105,6 +111,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     toast.success("Requisição enviada com sucesso!");
     onSuccess?.();
     setForm({
+      headcount: "", orcamento: "", tipoVaga: "",
       unidade: "", cargo: "", jornada: "", cargaHoraria: "",
       tipoContratacao: [], internoExterno: "", origemVaga: "", motivoOutros: "",
       matricula: "", nomeSubstituido: "", cargoSubstituido: "",
@@ -114,10 +121,59 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     });
   };
 
+  const headcountOptions = ["Previsto", "Não Previsto"];
+  const orcamentoOptions = ["Previsto", "Não Previsto"];
+  const tipoVagaOptions = ["Aumento de Quadro", "Substituição", "Complemento de Quadro / Jornada"];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Classificação da Vaga */}
+      <FormSection title="Classificação da Vaga" delay={0}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="field-label">Headcount</label>
+            <Select value={form.headcount} onValueChange={(v) => update("headcount", v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {headcountOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="field-label">Orçamento</label>
+            <Select value={form.orcamento} onValueChange={(v) => update("orcamento", v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {orcamentoOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="field-label">Tipo</label>
+            <Select value={form.tipoVaga} onValueChange={(v) => update("tipoVaga", v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                {tipoVagaOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </FormSection>
+
       {/* Especificação da Vaga */}
-      <FormSection title="Especificação da Vaga" delay={0}>
+      <FormSection title="Especificação da Vaga" delay={80}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="field-label">Unidade</label>
@@ -525,6 +581,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         style={{ animationDelay: "560ms" }}
       >
         <Button type="button" variant="outline" size="lg" className="px-6 rounded-lg" onClick={() => setForm({
+          headcount: "", orcamento: "", tipoVaga: "",
           unidade: "", cargo: "", jornada: "", cargaHoraria: "",
           tipoContratacao: [], internoExterno: "", origemVaga: "", motivoOutros: "",
           matricula: "", nomeSubstituido: "", cargoSubstituido: "",

@@ -1051,6 +1051,7 @@ export type Database = {
           experiencia: string | null
           formacao: Json | null
           formacao_detalhe: string | null
+          headcount: string | null
           historico_status: Json | null
           id: string
           interno_externo: string | null
@@ -1059,11 +1060,13 @@ export type Database = {
           motivo_outros: string | null
           nome_substituido: string | null
           numero: number
+          orcamento: string | null
           origem_vaga: string | null
           salario_substituido: string | null
           salario_vaga: string | null
           status: string | null
           tipo_contratacao: Json | null
+          tipo_vaga: string | null
           unidade: string | null
         }
         Insert: {
@@ -1080,6 +1083,7 @@ export type Database = {
           experiencia?: string | null
           formacao?: Json | null
           formacao_detalhe?: string | null
+          headcount?: string | null
           historico_status?: Json | null
           id?: string
           interno_externo?: string | null
@@ -1088,11 +1092,13 @@ export type Database = {
           motivo_outros?: string | null
           nome_substituido?: string | null
           numero?: number
+          orcamento?: string | null
           origem_vaga?: string | null
           salario_substituido?: string | null
           salario_vaga?: string | null
           status?: string | null
           tipo_contratacao?: Json | null
+          tipo_vaga?: string | null
           unidade?: string | null
         }
         Update: {
@@ -1109,6 +1115,7 @@ export type Database = {
           experiencia?: string | null
           formacao?: Json | null
           formacao_detalhe?: string | null
+          headcount?: string | null
           historico_status?: Json | null
           id?: string
           interno_externo?: string | null
@@ -1117,11 +1124,13 @@ export type Database = {
           motivo_outros?: string | null
           nome_substituido?: string | null
           numero?: number
+          orcamento?: string | null
           origem_vaga?: string | null
           salario_substituido?: string | null
           salario_vaga?: string | null
           status?: string | null
           tipo_contratacao?: Json | null
+          tipo_vaga?: string | null
           unidade?: string | null
         }
         Relationships: []
