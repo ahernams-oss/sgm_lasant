@@ -92,6 +92,7 @@ export default function RecebimentoComprasPage() {
     );
     setRecNotaFiscal("");
     setRecObservacao("");
+    setRecAnexos([]);
     setRecDialogOpen(true);
   };
 
