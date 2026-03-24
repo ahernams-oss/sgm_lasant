@@ -112,11 +112,14 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
         <Field label="Número da NR" required>
-          <Input
-            value={novaNr.numero}
-            onChange={(e) => setNovaNr((p) => ({ ...p, numero: e.target.value }))}
-            placeholder="Ex: NR-06"
-          />
+          <Select value={novaNr.numero} onValueChange={(v) => setNovaNr((p) => ({ ...p, numero: v }))}>
+            <SelectTrigger><SelectValue placeholder="Selecione a NR" /></SelectTrigger>
+            <SelectContent>
+              {NR_OPTIONS.map((nr) => (
+                <SelectItem key={nr} value={nr}>{nr}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
         <Field label="Descrição" required>
           <Input
