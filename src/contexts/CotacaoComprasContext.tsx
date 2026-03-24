@@ -49,6 +49,8 @@ interface CotacaoComprasContextType {
   addCotacao: (data: Omit<CotacaoCompras, "id" | "numero" | "dataCriacao" | "status" | "propostas" | "fornecedorVencedorId" | "justificativaEscolha" | "itensVencedores">) => CotacaoCompras;
   addProposta: (cotacaoId: string, proposta: Omit<PropostaFornecedor, "id" | "valorTotal">) => void;
   removeProposta: (cotacaoId: string, propostaId: string) => void;
+  submeterAprovacao: (cotacaoId: string) => void;
+  aprovarCotacao: (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => void;
   finalizarCotacao: (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => void;
   cancelarCotacao: (cotacaoId: string) => void;
   getCotacaoByRequisicao: (requisicaoId: string) => CotacaoCompras | undefined;
