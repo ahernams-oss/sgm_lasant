@@ -708,6 +708,73 @@ export default function CotacaoComprasPage() {
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Enviar para Fornecedor */}
+      <Dialog open={enviarDialogOpen} onOpenChange={v => { setEnviarDialogOpen(v); if (!v) setLinkGerado(""); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Enviar Cotação para Fornecedor</DialogTitle>
+            <DialogDescription>Selecione o fornecedor e gere o link do formulário de preços.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Fornecedor *</Label>
+              <Select value={enviarFornecedorId} onValueChange={handleSelectFornecedorEnviar}>
+                <SelectTrigger><SelectValue placeholder="Selecione um fornecedor..." /></SelectTrigger>
+                <SelectContent>
+                  {fornecedores.map(f => (
+                    <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>E-mail do Fornecedor</Label>
+              <Input
+                type="email"
+                value={enviarEmail}
+                onChange={e => setEnviarEmail(e.target.value)}
+                placeholder="email@fornecedor.com"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente do cadastro. Ajuste se necessário.</p>
+            </div>
+
+            {!linkGerado && (
+              <Button onClick={handleGerarLink} disabled={enviarLoading || !enviarFornecedorId} className="w-full">
+                <Link2 className="mr-2 h-4 w-4" />
+                {enviarLoading ? "Gerando..." : "Gerar Link do Formulário"}
+              </Button>
+            )}
+
+            {linkGerado && (
+              <div className="space-y-3">
+                <div className="bg-muted p-3 rounded-lg">
+                  <Label className="text-xs text-muted-foreground">Link gerado:</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input value={linkGerado} readOnly className="text-xs font-mono" />
+                    <Button variant="outline" size="icon" onClick={handleCopyLink} title="Copiar link">
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  O fornecedor pode acessar este link para preencher seus preços. 
+                  Quando ele enviar a proposta, ela aparecerá automaticamente aqui.
+                </p>
+                {enviarEmail && (
+                  <p className="text-xs text-muted-foreground">
+                    📧 Para enviar por e-mail, configure um domínio de e-mail nas configurações do sistema.
+                    Enquanto isso, copie o link e envie manualmente.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setEnviarDialogOpen(false); setLinkGerado(""); }}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
