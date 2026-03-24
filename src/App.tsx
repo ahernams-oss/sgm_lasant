@@ -104,6 +104,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </RecebimentoProvider>
     </PedidoCompraProvider>
     </CotacaoComprasProvider>
     </RequisicaoComprasProvider>
