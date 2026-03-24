@@ -103,6 +103,63 @@ export type Database = {
           },
         ]
       }
+      exames_periodicos: {
+        Row: {
+          anexo_aso_url: string | null
+          clinica: string | null
+          created_at: string
+          data_realizacao: string | null
+          data_vencimento: string
+          funcionario_email: string | null
+          funcionario_id: string
+          funcionario_nome: string
+          funcionario_telefone: string | null
+          id: string
+          notificado_10d: boolean
+          notificado_20d: boolean
+          notificado_30d: boolean
+          observacoes: string | null
+          resultado: string | null
+          tipo_exame: string
+        }
+        Insert: {
+          anexo_aso_url?: string | null
+          clinica?: string | null
+          created_at?: string
+          data_realizacao?: string | null
+          data_vencimento: string
+          funcionario_email?: string | null
+          funcionario_id: string
+          funcionario_nome: string
+          funcionario_telefone?: string | null
+          id?: string
+          notificado_10d?: boolean
+          notificado_20d?: boolean
+          notificado_30d?: boolean
+          observacoes?: string | null
+          resultado?: string | null
+          tipo_exame: string
+        }
+        Update: {
+          anexo_aso_url?: string | null
+          clinica?: string | null
+          created_at?: string
+          data_realizacao?: string | null
+          data_vencimento?: string
+          funcionario_email?: string | null
+          funcionario_id?: string
+          funcionario_nome?: string
+          funcionario_telefone?: string | null
+          id?: string
+          notificado_10d?: boolean
+          notificado_20d?: boolean
+          notificado_30d?: boolean
+          observacoes?: string | null
+          resultado?: string | null
+          tipo_exame?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
