@@ -45,9 +45,10 @@ export default function PedidoCompraPage() {
   const [viewPedido, setViewPedido] = useState<PedidoCompra | null>(null);
   const [historicoPedido, setHistoricoPedido] = useState<PedidoCompra | null>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [statusPedidoId, setStatusPedidoId] = useState("");
+  const [statusPedidoIds, setStatusPedidoIds] = useState<string[]>([]);
   const [newStatus, setNewStatus] = useState<StatusPedido | "">("");
   const [statusObs, setStatusObs] = useState("");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const filtered = useMemo(() => {
     let list = pedidos;
