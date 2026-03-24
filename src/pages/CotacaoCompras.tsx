@@ -140,6 +140,19 @@ export default function CotacaoComprasPage() {
     if (!req) return;
     setPropItens(req.itens.map(i => ({ itemId: i.id, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida, precoUnitario: 0, prazoEntrega: "", observacao: "" })));
     setPropFornecedorId(""); setPropCondicao(""); setPropPrazo(""); setPropValidade(""); setPropObs("");
+    setEditingPropostaId(null);
+    setPropostaCotacaoId(cotacaoId);
+    setPropostaDialogOpen(true);
+  };
+
+  const openEditPropostaDialog = (cotacaoId: string, proposta: PropostaFornecedor) => {
+    setPropFornecedorId(proposta.fornecedorId);
+    setPropCondicao(proposta.condicaoPagamento);
+    setPropPrazo(proposta.prazoEntrega);
+    setPropValidade(proposta.validadeProposta);
+    setPropObs(proposta.observacao);
+    setPropItens(proposta.itens.map(i => ({ ...i })));
+    setEditingPropostaId(proposta.id);
     setPropostaCotacaoId(cotacaoId);
     setPropostaDialogOpen(true);
   };
@@ -148,7 +161,7 @@ export default function CotacaoComprasPage() {
     if (!propFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
     if (propItens.some(i => i.precoUnitario <= 0)) { toast({ title: "Preencha todos os preços unitários", variant: "destructive" }); return; }
     const forn = fornecedores.find(f => f.id === propFornecedorId);
-    addProposta(propostaCotacaoId, {
+    const propostaData = {
       fornecedorId: propFornecedorId,
       fornecedorNome: forn?.nome || "",
       condicaoPagamento: propCondicao,
@@ -156,8 +169,14 @@ export default function CotacaoComprasPage() {
       validadeProposta: propValidade,
       observacao: propObs,
       itens: propItens,
-    });
-    toast({ title: "Proposta adicionada!" });
+    };
+    if (editingPropostaId) {
+      updateProposta(propostaCotacaoId, editingPropostaId, propostaData);
+      toast({ title: "Proposta atualizada!" });
+    } else {
+      addProposta(propostaCotacaoId, propostaData);
+      toast({ title: "Proposta adicionada!" });
+    }
     setPropostaDialogOpen(false);
   };
 
