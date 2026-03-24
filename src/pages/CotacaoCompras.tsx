@@ -195,6 +195,125 @@ export default function CotacaoComprasPage() {
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+  // === Enviar link para fornecedor ===
+  const openEnviarDialog = (cotacaoId: string) => {
+    setEnviarCotacaoId(cotacaoId);
+    setEnviarFornecedorId("");
+    setEnviarEmail("");
+    setLinkGerado("");
+    setEnviarDialogOpen(true);
+  };
+
+  const handleSelectFornecedorEnviar = (fornId: string) => {
+    setEnviarFornecedorId(fornId);
+    const forn = fornecedores.find(f => f.id === fornId);
+    setEnviarEmail(forn?.emailCompras || forn?.email || "");
+    setLinkGerado("");
+  };
+
+  const handleGerarLink = async () => {
+    if (!enviarFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
+    setEnviarLoading(true);
+    try {
+      const cot = cotacoes.find(c => c.id === enviarCotacaoId);
+      const req = requisicoes.find(r => r.id === cot?.requisicaoId);
+      const forn = fornecedores.find(f => f.id === enviarFornecedorId);
+      if (!cot || !req || !forn) throw new Error("Dados não encontrados");
+
+      const itensConvite = req.itens.map(i => ({
+        itemId: i.id,
+        descricao: i.descricao,
+        quantidade: i.quantidade,
+        unidadeMedida: i.unidadeMedida,
+      }));
+
+      const { data, error } = await supabase.from("cotacao_convites").insert({
+        cotacao_id: cot.id,
+        cotacao_numero: cot.numero,
+        fornecedor_id: forn.id,
+        fornecedor_nome: forn.nome,
+        fornecedor_email: enviarEmail,
+        comprador: usuarioLogado?.nome || "Comprador",
+        itens: itensConvite,
+      }).select("token").single();
+
+      if (error) throw error;
+
+      const link = `${window.location.origin}/cotacao/proposta/${data.token}`;
+      setLinkGerado(link);
+      toast({ title: "Link gerado com sucesso!" });
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Erro ao gerar link", description: e.message, variant: "destructive" });
+    } finally {
+      setEnviarLoading(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(linkGerado);
+    toast({ title: "Link copiado!" });
+  };
+
+  // === Sincronizar propostas externas ===
+  const syncPropostasExternas = useCallback(async () => {
+    try {
+      const cotacaoIds = cotacoes.filter(c => c.status === "Em Andamento").map(c => c.id);
+      if (cotacaoIds.length === 0) return;
+
+      const { data: convites } = await supabase
+        .from("cotacao_convites")
+        .select("*, cotacao_propostas_externas(*)")
+        .in("cotacao_id", cotacaoIds)
+        .eq("status", "respondido");
+
+      if (!convites || convites.length === 0) return;
+
+      for (const convite of convites) {
+        const propostas = (convite as any).cotacao_propostas_externas;
+        if (!propostas || propostas.length === 0) continue;
+
+        const cot = cotacoes.find(c => c.id === convite.cotacao_id);
+        if (!cot) continue;
+
+        for (const propExt of propostas) {
+          // Check if already imported (by fornecedor)
+          const alreadyExists = cot.propostas.some(p => p.fornecedorId === convite.fornecedor_id);
+          if (alreadyExists) continue;
+
+          addProposta(convite.cotacao_id, {
+            fornecedorId: convite.fornecedor_id,
+            fornecedorNome: convite.fornecedor_nome,
+            condicaoPagamento: propExt.condicao_pagamento || "",
+            prazoEntrega: propExt.prazo_entrega || "",
+            validadeProposta: propExt.validade_proposta || "",
+            observacao: propExt.observacao || "",
+            itens: (propExt.itens as any[]).map((i: any) => ({
+              itemId: i.itemId,
+              descricao: i.descricao,
+              quantidade: i.quantidade,
+              unidadeMedida: i.unidadeMedida,
+              precoUnitario: i.precoUnitario,
+              prazoEntrega: "",
+              observacao: "",
+            })),
+          });
+
+          toast({ title: `Proposta recebida de ${convite.fornecedor_nome}!` });
+        }
+      }
+    } catch (e) {
+      console.error("Erro ao sincronizar propostas:", e);
+    }
+  }, [cotacoes, addProposta, toast]);
+
+  // Sync on mount and periodically
+  useEffect(() => {
+    syncPropostasExternas();
+    const interval = setInterval(syncPropostasExternas, 30000); // every 30s
+    return () => clearInterval(interval);
+  }, [syncPropostasExternas]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
