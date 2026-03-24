@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useMateriaisServicos, MaterialServico } from "@/contexts/MateriaisServicosContext";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
-import { useFabricantes } from "@/contexts/FabricantesContext";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
