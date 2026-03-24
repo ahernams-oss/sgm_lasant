@@ -153,7 +153,7 @@ function drawTermoAndLegal(doc: jsPDF, pw: number, startY: number, dataEntrega?:
   y += 4;
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
-  doc.text("1.4.2 Cabe ao trabalhador:", margin, y);
+  doc.text("1.4.2 Cabe ao trabalhador :", margin, y);
   y += 3.5;
 
   const nr01 = [
