@@ -133,7 +133,7 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
   const getCotacaoByRequisicao = (requisicaoId: string) => cotacoes.find(c => c.requisicaoId === requisicaoId);
 
   return (
-    <CotacaoComprasContext.Provider value={{ cotacoes, addCotacao, addProposta, removeProposta, finalizarCotacao, cancelarCotacao, getCotacaoByRequisicao }}>
+    <CotacaoComprasContext.Provider value={{ cotacoes, addCotacao, addProposta, removeProposta, submeterAprovacao, aprovarCotacao, finalizarCotacao, cancelarCotacao, getCotacaoByRequisicao }}>
       {children}
     </CotacaoComprasContext.Provider>
   );
