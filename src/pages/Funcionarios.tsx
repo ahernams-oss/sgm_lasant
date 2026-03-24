@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown, HardHat, Stethoscope } from "lucide-react";
+import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown, HardHat, Stethoscope, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { gerarPdfFuncionario } from "@/lib/gerarPdfFuncionario";
 import { gerarPdfEpi } from "@/lib/gerarPdfEpi";
 import { ExamesPeriodicosTab } from "@/components/ExamesPeriodicosTab";
+import { PromocoesTab } from "@/components/PromocoesTab";
 
 const UF_OPTIONS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const STATUS_OPTIONS = ["Ativo", "Inativo", "Afastado", "Férias"] as const;
@@ -438,6 +439,7 @@ const Funcionarios = () => {
                 <TabsTrigger value="dependentes">Dependentes</TabsTrigger>
                 <TabsTrigger value="epis">EPIs</TabsTrigger>
                 <TabsTrigger value="exames">Exames Periódicos</TabsTrigger>
+                <TabsTrigger value="promocoes">Promoções</TabsTrigger>
                 <TabsTrigger value="observacoes">Observações</TabsTrigger>
               </TabsList>
 
@@ -719,6 +721,21 @@ const Funcionarios = () => {
                   funcionarioNome={form.nome}
                   funcionarioTelefone={form.telefone}
                   funcionarioEmail={form.email}
+                />
+              </TabsContent>
+
+              {/* PROMOÇÕES */}
+              <TabsContent value="promocoes">
+                <PromocoesTab
+                  funcionarioId={editingId || ""}
+                  cargoAtualId={form.cargoId}
+                  salarioAtual={form.salario}
+                  clienteAtualId={form.clienteId}
+                  onPromover={(dados) => {
+                    update("cargoId", dados.cargoId);
+                    update("salario", dados.salario);
+                    update("clienteId", dados.clienteId);
+                  }}
                 />
               </TabsContent>
 
