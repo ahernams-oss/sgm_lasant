@@ -146,7 +146,7 @@ export default function PedidoCompraPage() {
           return;
         }
         // First download PDF so user can share, then send WhatsApp message
-        downloadPdfOrdemCompra(pdfData);
+        await downloadPdfOrdemCompra(pdfData);
 
         const pcNum = `PC-${String(sendPedido.numero).padStart(4, "0")}`;
         const mensagem = `*Ordem de Compra ${pcNum}*\n\n` +
