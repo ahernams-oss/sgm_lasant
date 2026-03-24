@@ -274,7 +274,6 @@ export async function gerarPdfEpi(func: Funcionario, opts: EpiPdfOptions = {}) {
   y = drawTermoAndLegal(doc, pw, y, primeiraDataEntrega);
 
   // EPI Table starts on same page
-  const epis = func.epis || [];
   const epiRows = epis.map((e) => [
     String(e.quantidade).padStart(2, "0"),
     e.descricao,
