@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef } from "react";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras, GrauUrgencia, ItemRequisicaoCompras, AnexoRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
+import { useFabricantes } from "@/contexts/FabricantesContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ const URGENCIAS: GrauUrgencia[] = ["Baixa", "Normal", "Alta", "Urgente"];
 export default function RequisicaoComprasPage() {
   const { requisicoes, addRequisicao, cancelarRequisicao } = useRequisicaoCompras();
   const { materiais } = useMateriaisServicos();
+  const { fabricantes } = useFabricantes();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
@@ -64,6 +66,7 @@ export default function RequisicaoComprasPage() {
   const [itemObs, setItemObs] = useState("");
   const [itemQtd, setItemQtd] = useState("");
   const [itemUnidade, setItemUnidade] = useState("UN");
+  const [itemFabricanteId, setItemFabricanteId] = useState("");
 
   const clientesLista = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
 
@@ -89,7 +92,7 @@ export default function RequisicaoComprasPage() {
   };
 
   const resetItemForm = () => {
-    setItemMaterialId(""); setItemDescricao(""); setItemEspec(""); setItemObs(""); setItemQtd(""); setItemUnidade("UN");
+    setItemMaterialId(""); setItemDescricao(""); setItemEspec(""); setItemObs(""); setItemQtd(""); setItemUnidade("UN"); setItemFabricanteId("");
   };
 
   const addItem = () => {
@@ -146,6 +149,7 @@ export default function RequisicaoComprasPage() {
     if (mat) {
       setItemDescricao(mat.descricao);
       setItemUnidade(mat.unidadeMedida);
+      if (mat.fabricanteId) setItemFabricanteId(mat.fabricanteId);
     }
   };
 
@@ -279,9 +283,18 @@ export default function RequisicaoComprasPage() {
                     <Label>Especificação Técnica</Label>
                     <Textarea value={itemEspec} onChange={e => setItemEspec(e.target.value)} rows={2} />
                   </div>
-                  <div>
-                    <Label>Observação</Label>
-                    <Input value={itemObs} onChange={e => setItemObs(e.target.value)} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Observação</Label>
+                      <Input value={itemObs} onChange={e => setItemObs(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label>Fabricante</Label>
+                      <Select value={itemFabricanteId} onValueChange={setItemFabricanteId}>
+                        <SelectTrigger><SelectValue placeholder="Selecionar (opcional)..." /></SelectTrigger>
+                        <SelectContent>{fabricantes.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
