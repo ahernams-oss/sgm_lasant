@@ -593,7 +593,14 @@ export default function CotacaoComprasPage() {
                 <Label>Fornecedor *</Label>
                 <Select value={propFornecedorId} onValueChange={setPropFornecedorId}>
                   <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                  <SelectContent>{fornecedores.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}</SelectContent>
+                  <SelectContent>{(() => {
+                    const cotAtual = cotacoes.find(c => c.id === propostaCotacaoId);
+                    const idsJaComProposta = cotAtual?.propostas.map(p => p.fornecedorId) || [];
+                    const disponiveis = fornecedores.filter(f => !idsJaComProposta.includes(f.id));
+                    return disponiveis.length > 0
+                      ? disponiveis.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)
+                      : <div className="px-2 py-4 text-sm text-muted-foreground text-center">Todos os fornecedores já possuem proposta</div>;
+                  })()}</SelectContent>
                 </Select>
               </div>
               <div>
