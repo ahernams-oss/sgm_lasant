@@ -705,6 +705,11 @@ const Funcionarios = () => {
                 <DependentesTab dependentes={form.dependentes || []} onChange={(d) => update("dependentes", d as any)} />
               </TabsContent>
 
+              {/* EPIs */}
+              <TabsContent value="epis">
+                <EpiTab epis={form.epis || []} onChange={(e) => update("epis", e as any)} />
+              </TabsContent>
+
               {/* OBSERVAÇÕES */}
               <TabsContent value="observacoes">
                 <Field label="Observações">
