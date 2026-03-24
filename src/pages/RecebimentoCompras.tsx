@@ -310,7 +310,7 @@ export default function RecebimentoComprasPage() {
                         <TableHead className="w-24 text-right">Já Recebido</TableHead>
                         <TableHead className="w-24 text-right">Restante</TableHead>
                         <TableHead className="w-32">Recebendo</TableHead>
-                        <TableHead className="w-40">Obs. Item</TableHead>
+                        <TableHead className="min-w-[200px]">Obs. Item</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -345,11 +345,12 @@ export default function RecebimentoComprasPage() {
                             </TableCell>
                             <TableCell>
                               {!isCompleto && (
-                                <Input
+                                <Textarea
                                   value={item.observacao}
                                   onChange={e => setRecItens(prev => prev.map((it, i) => i === idx ? { ...it, observacao: e.target.value } : it))}
                                   placeholder="Divergência..."
-                                  className="h-8 text-xs"
+                                  className="text-xs min-h-[32px] resize-y"
+                                  rows={1}
                                 />
                               )}
                             </TableCell>
