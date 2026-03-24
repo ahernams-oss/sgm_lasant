@@ -25,6 +25,7 @@ import DashboardCompras from "./pages/DashboardCompras.tsx";
 import CotacaoComprasPage from "./pages/CotacaoCompras.tsx";
 import PedidoCompraPage from "./pages/PedidoCompra.tsx";
 import PropostaFornecedorPage from "./pages/PropostaFornecedor.tsx";
+import RecebimentoComprasPage from "./pages/RecebimentoCompras.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
