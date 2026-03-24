@@ -235,16 +235,20 @@ const RequisicaoGrid = () => {
                   <TableCell className="text-sm">{req.nomeSubstituido || "—"}</TableCell>
                   <TableCell className="text-sm">{req.aprovadoPor || "—"}</TableCell>
                   <TableCell>
-                    <Select value={req.status} onValueChange={(v) => handleStatusChange(req, v as Requisicao["status"])}>
-                      <SelectTrigger className="h-7 w-[120px] text-xs border-0 p-0 focus:ring-0">
-                        <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statusOptions.map((s) => (
-                          <SelectItem key={s} value={s}>{s}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {isProcessoLiberado(req.id) || req.status === "Concluída" ? (
+                      <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge>
+                    ) : (
+                      <Select value={req.status} onValueChange={(v) => handleStatusChange(req, v as Requisicao["status"])}>
+                        <SelectTrigger className="h-7 w-[120px] text-xs border-0 p-0 focus:ring-0">
+                          <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statusOptions.map((s) => (
+                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </TableCell>
                   <TableCell className="pr-5 text-center">
                     <DropdownMenu>
