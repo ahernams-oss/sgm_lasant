@@ -45,7 +45,7 @@ export default function MateriaisServicosPage() {
       updateMaterial(editingId, { ...form, fabricanteId: "" });
       toast({ title: "Material/Serviço atualizado" });
     } else {
-      addMaterial({ ...form, fabricanteId: "" });
+      addMaterial({ ...form, fabricanteId: "", estoqueMinimo: form.estoqueMinimo });
       toast({ title: "Material/Serviço criado" });
     }
     setDialogOpen(false);
