@@ -52,6 +52,7 @@ const RequisicaoGrid = () => {
   const { cargos } = useCargos();
   const { usuarioLogado } = useAuth();
   const navigate = useNavigate();
+  const { processos } = useProcessoSeletivo();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [editingReq, setEditingReq] = useState<Requisicao | null>(null);
