@@ -495,7 +495,19 @@ export default function CotacaoComprasPage() {
                             <Plus className="mr-2 h-4 w-4" />Adicionar Proposta Manual
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openFinalizarDialog(c.id)} disabled={c.propostas.length < 1}>
-                            <Trophy className="mr-2 h-4 w-4" />Finalizar Cotação
+                            <Lock className="mr-2 h-4 w-4" />Finalizar Cotação
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => { cancelarCotacao(c.id); toast({ title: "Cotação cancelada" }); }}>
+                            <XCircle className="mr-2 h-4 w-4" />Cancelar
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      {c.status === "Aguardando Aprovação" && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => openAprovarDialog(c.id)}>
+                            <ShieldCheck className="mr-2 h-4 w-4" />Aprovar Cotação
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive" onClick={() => { cancelarCotacao(c.id); toast({ title: "Cotação cancelada" }); }}>
