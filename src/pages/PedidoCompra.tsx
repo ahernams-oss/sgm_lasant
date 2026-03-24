@@ -16,14 +16,14 @@ import { format } from "date-fns";
 
 const statusColors: Record<StatusPedido, string> = {
   Emitido: "bg-blue-100 text-blue-800",
-  Confirmado: "bg-indigo-100 text-indigo-800",
+  Comprado: "bg-indigo-100 text-indigo-800",
   "Em Entrega": "bg-purple-100 text-purple-800",
   "Entregue Parcial": "bg-amber-100 text-amber-800",
   Entregue: "bg-green-100 text-green-800",
   Cancelado: "bg-red-200 text-red-900",
 };
 
-const statusFlow: StatusPedido[] = ["Emitido", "Confirmado", "Em Entrega", "Entregue Parcial", "Entregue"];
+const statusFlow: StatusPedido[] = ["Emitido", "Comprado", "Em Entrega", "Entregue Parcial", "Entregue"];
 
 function getNextStatuses(current: StatusPedido): StatusPedido[] {
   if (current === "Cancelado" || current === "Entregue") return [];

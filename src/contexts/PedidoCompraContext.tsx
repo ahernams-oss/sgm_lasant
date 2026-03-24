@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 
-export type StatusPedido = "Emitido" | "Confirmado" | "Em Entrega" | "Entregue Parcial" | "Entregue" | "Cancelado";
+export type StatusPedido = "Emitido" | "Comprado" | "Em Entrega" | "Entregue Parcial" | "Entregue" | "Cancelado";
 
 export interface ItemPedidoCompra {
   itemId: string; descricao: string; quantidade: number; unidadeMedida: string;
