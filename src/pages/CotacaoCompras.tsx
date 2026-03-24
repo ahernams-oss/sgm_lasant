@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useCotacaoCompras, CotacaoCompras, PropostaFornecedor, ItemCotacaoFornecedor } from "@/contexts/CotacaoComprasContext";
 import { useRequisicaoCompras, RequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX } from "lucide-react";
+import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw } from "lucide-react";
 import { format, subDays, isAfter } from "date-fns";
 
 const statusColors: Record<string, string> = {
@@ -80,6 +81,14 @@ export default function CotacaoComprasPage() {
   // Finalizar form
   const [finVencedorId, setFinVencedorId] = useState("");
   const [finJustificativa, setFinJustificativa] = useState("");
+
+  // Enviar para fornecedor
+  const [enviarDialogOpen, setEnviarDialogOpen] = useState(false);
+  const [enviarCotacaoId, setEnviarCotacaoId] = useState("");
+  const [enviarFornecedorId, setEnviarFornecedorId] = useState("");
+  const [enviarEmail, setEnviarEmail] = useState("");
+  const [enviarLoading, setEnviarLoading] = useState(false);
+  const [linkGerado, setLinkGerado] = useState("");
 
   const compradores = useMemo(() => {
     const set = new Set(cotacoes.map(c => c.comprador));
@@ -186,11 +195,135 @@ export default function CotacaoComprasPage() {
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+  // === Enviar link para fornecedor ===
+  const openEnviarDialog = (cotacaoId: string) => {
+    setEnviarCotacaoId(cotacaoId);
+    setEnviarFornecedorId("");
+    setEnviarEmail("");
+    setLinkGerado("");
+    setEnviarDialogOpen(true);
+  };
+
+  const handleSelectFornecedorEnviar = (fornId: string) => {
+    setEnviarFornecedorId(fornId);
+    const forn = fornecedores.find(f => f.id === fornId);
+    setEnviarEmail(forn?.emailCompras || forn?.email || "");
+    setLinkGerado("");
+  };
+
+  const handleGerarLink = async () => {
+    if (!enviarFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
+    setEnviarLoading(true);
+    try {
+      const cot = cotacoes.find(c => c.id === enviarCotacaoId);
+      const req = requisicoes.find(r => r.id === cot?.requisicaoId);
+      const forn = fornecedores.find(f => f.id === enviarFornecedorId);
+      if (!cot || !req || !forn) throw new Error("Dados não encontrados");
+
+      const itensConvite = req.itens.map(i => ({
+        itemId: i.id,
+        descricao: i.descricao,
+        quantidade: i.quantidade,
+        unidadeMedida: i.unidadeMedida,
+      }));
+
+      const { data, error } = await supabase.from("cotacao_convites").insert({
+        cotacao_id: cot.id,
+        cotacao_numero: cot.numero,
+        fornecedor_id: forn.id,
+        fornecedor_nome: forn.nome,
+        fornecedor_email: enviarEmail,
+        comprador: usuarioLogado?.nome || "Comprador",
+        itens: itensConvite,
+      }).select("token").single();
+
+      if (error) throw error;
+
+      const link = `${window.location.origin}/cotacao/proposta/${data.token}`;
+      setLinkGerado(link);
+      toast({ title: "Link gerado com sucesso!" });
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Erro ao gerar link", description: e.message, variant: "destructive" });
+    } finally {
+      setEnviarLoading(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(linkGerado);
+    toast({ title: "Link copiado!" });
+  };
+
+  // === Sincronizar propostas externas ===
+  const syncPropostasExternas = useCallback(async () => {
+    try {
+      const cotacaoIds = cotacoes.filter(c => c.status === "Em Andamento").map(c => c.id);
+      if (cotacaoIds.length === 0) return;
+
+      const { data: convites } = await supabase
+        .from("cotacao_convites")
+        .select("*, cotacao_propostas_externas(*)")
+        .in("cotacao_id", cotacaoIds)
+        .eq("status", "respondido");
+
+      if (!convites || convites.length === 0) return;
+
+      for (const convite of convites) {
+        const propostas = (convite as any).cotacao_propostas_externas;
+        if (!propostas || propostas.length === 0) continue;
+
+        const cot = cotacoes.find(c => c.id === convite.cotacao_id);
+        if (!cot) continue;
+
+        for (const propExt of propostas) {
+          // Check if already imported (by fornecedor)
+          const alreadyExists = cot.propostas.some(p => p.fornecedorId === convite.fornecedor_id);
+          if (alreadyExists) continue;
+
+          addProposta(convite.cotacao_id, {
+            fornecedorId: convite.fornecedor_id,
+            fornecedorNome: convite.fornecedor_nome,
+            condicaoPagamento: propExt.condicao_pagamento || "",
+            prazoEntrega: propExt.prazo_entrega || "",
+            validadeProposta: propExt.validade_proposta || "",
+            observacao: propExt.observacao || "",
+            itens: (propExt.itens as any[]).map((i: any) => ({
+              itemId: i.itemId,
+              descricao: i.descricao,
+              quantidade: i.quantidade,
+              unidadeMedida: i.unidadeMedida,
+              precoUnitario: i.precoUnitario,
+              prazoEntrega: "",
+              observacao: "",
+            })),
+          });
+
+          toast({ title: `Proposta recebida de ${convite.fornecedor_nome}!` });
+        }
+      }
+    } catch (e) {
+      console.error("Erro ao sincronizar propostas:", e);
+    }
+  }, [cotacoes, addProposta, toast]);
+
+  // Sync on mount and periodically
+  useEffect(() => {
+    syncPropostasExternas();
+    const interval = setInterval(syncPropostasExternas, 30000); // every 30s
+    return () => clearInterval(interval);
+  }, [syncPropostasExternas]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Cotações de Compras</h1>
-        <Button onClick={() => { setReqSearch(""); setReqFilterUrgencia("Todas"); setSelectedReqId(""); setNovaDialogOpen(true); }} disabled={reqDisponiveisParaCotacao.length === 0}><Plus className="mr-2 h-4 w-4" />Nova Cotação</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={syncPropostasExternas} title="Sincronizar propostas externas">
+            <RefreshCw className="mr-2 h-4 w-4" />Sincronizar
+          </Button>
+          <Button onClick={() => { setReqSearch(""); setReqFilterUrgencia("Todas"); setSelectedReqId(""); setNovaDialogOpen(true); }} disabled={reqDisponiveisParaCotacao.length === 0}><Plus className="mr-2 h-4 w-4" />Nova Cotação</Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3 items-end">
@@ -279,8 +412,11 @@ export default function CotacaoComprasPage() {
                       {c.status === "Em Andamento" && (
                         <>
                           <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => openEnviarDialog(c.id)}>
+                            <Send className="mr-2 h-4 w-4" />Enviar para Fornecedor
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openPropostaDialog(c.id)}>
-                            <Plus className="mr-2 h-4 w-4" />Adicionar Proposta
+                            <Plus className="mr-2 h-4 w-4" />Adicionar Proposta Manual
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openFinalizarDialog(c.id)} disabled={c.propostas.length < 1}>
                             <Trophy className="mr-2 h-4 w-4" />Finalizar Cotação
@@ -575,6 +711,73 @@ export default function CotacaoComprasPage() {
               </div>
             );
           })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Enviar para Fornecedor */}
+      <Dialog open={enviarDialogOpen} onOpenChange={v => { setEnviarDialogOpen(v); if (!v) setLinkGerado(""); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Enviar Cotação para Fornecedor</DialogTitle>
+            <DialogDescription>Selecione o fornecedor e gere o link do formulário de preços.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Fornecedor *</Label>
+              <Select value={enviarFornecedorId} onValueChange={handleSelectFornecedorEnviar}>
+                <SelectTrigger><SelectValue placeholder="Selecione um fornecedor..." /></SelectTrigger>
+                <SelectContent>
+                  {fornecedores.map(f => (
+                    <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>E-mail do Fornecedor</Label>
+              <Input
+                type="email"
+                value={enviarEmail}
+                onChange={e => setEnviarEmail(e.target.value)}
+                placeholder="email@fornecedor.com"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente do cadastro. Ajuste se necessário.</p>
+            </div>
+
+            {!linkGerado && (
+              <Button onClick={handleGerarLink} disabled={enviarLoading || !enviarFornecedorId} className="w-full">
+                <Link2 className="mr-2 h-4 w-4" />
+                {enviarLoading ? "Gerando..." : "Gerar Link do Formulário"}
+              </Button>
+            )}
+
+            {linkGerado && (
+              <div className="space-y-3">
+                <div className="bg-muted p-3 rounded-lg">
+                  <Label className="text-xs text-muted-foreground">Link gerado:</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input value={linkGerado} readOnly className="text-xs font-mono" />
+                    <Button variant="outline" size="icon" onClick={handleCopyLink} title="Copiar link">
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  O fornecedor pode acessar este link para preencher seus preços. 
+                  Quando ele enviar a proposta, ela aparecerá automaticamente aqui.
+                </p>
+                {enviarEmail && (
+                  <p className="text-xs text-muted-foreground">
+                    📧 Para enviar por e-mail, configure um domínio de e-mail nas configurações do sistema.
+                    Enquanto isso, copie o link e envie manualmente.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setEnviarDialogOpen(false); setLinkGerado(""); }}>Fechar</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -14,7 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cotacao_convites: {
+        Row: {
+          comprador: string
+          cotacao_id: string
+          cotacao_numero: number
+          created_at: string | null
+          expires_at: string | null
+          fornecedor_email: string
+          fornecedor_id: string
+          fornecedor_nome: string
+          id: string
+          itens: Json
+          status: string
+          token: string
+        }
+        Insert: {
+          comprador: string
+          cotacao_id: string
+          cotacao_numero: number
+          created_at?: string | null
+          expires_at?: string | null
+          fornecedor_email?: string
+          fornecedor_id: string
+          fornecedor_nome: string
+          id?: string
+          itens?: Json
+          status?: string
+          token?: string
+        }
+        Update: {
+          comprador?: string
+          cotacao_id?: string
+          cotacao_numero?: number
+          created_at?: string | null
+          expires_at?: string | null
+          fornecedor_email?: string
+          fornecedor_id?: string
+          fornecedor_nome?: string
+          id?: string
+          itens?: Json
+          status?: string
+          token?: string
+        }
+        Relationships: []
+      }
+      cotacao_propostas_externas: {
+        Row: {
+          condicao_pagamento: string | null
+          convite_id: string
+          created_at: string | null
+          id: string
+          itens: Json
+          observacao: string | null
+          prazo_entrega: string | null
+          validade_proposta: string | null
+          valor_total: number
+        }
+        Insert: {
+          condicao_pagamento?: string | null
+          convite_id: string
+          created_at?: string | null
+          id?: string
+          itens?: Json
+          observacao?: string | null
+          prazo_entrega?: string | null
+          validade_proposta?: string | null
+          valor_total?: number
+        }
+        Update: {
+          condicao_pagamento?: string | null
+          convite_id?: string
+          created_at?: string | null
+          id?: string
+          itens?: Json
+          observacao?: string | null
+          prazo_entrega?: string | null
+          validade_proposta?: string | null
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotacao_propostas_externas_convite_id_fkey"
+            columns: ["convite_id"]
+            isOneToOne: false
+            referencedRelation: "cotacao_convites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

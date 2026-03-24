@@ -1,0 +1,310 @@
+import { useState, useEffect, useMemo } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, AlertCircle, Clock, FileText } from "lucide-react";
+
+interface ConviteItem {
+  itemId: string;
+  descricao: string;
+  quantidade: number;
+  unidadeMedida: string;
+}
+
+interface Convite {
+  id: string;
+  token: string;
+  cotacao_numero: number;
+  fornecedor_nome: string;
+  comprador: string;
+  itens: ConviteItem[];
+  status: string;
+  expires_at: string;
+}
+
+interface ItemProposta extends ConviteItem {
+  precoUnitario: number;
+}
+
+export default function PropostaFornecedorPage() {
+  const { token } = useParams<{ token: string }>();
+  const [convite, setConvite] = useState<Convite | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Form state
+  const [itens, setItens] = useState<ItemProposta[]>([]);
+  const [condicaoPagamento, setCondicaoPagamento] = useState("");
+  const [prazoEntrega, setPrazoEntrega] = useState("");
+  const [validadeProposta, setValidadeProposta] = useState("");
+  const [observacao, setObservacao] = useState("");
+
+  useEffect(() => {
+    if (!token) return;
+    loadConvite();
+  }, [token]);
+
+  const loadConvite = async () => {
+    setLoading(true);
+    const { data, error: err } = await supabase
+      .from("cotacao_convites")
+      .select("*")
+      .eq("token", token)
+      .maybeSingle();
+
+    if (err || !data) {
+      setError("Convite não encontrado ou inválido.");
+      setLoading(false);
+      return;
+    }
+
+    if (data.status === "respondido") {
+      setSubmitted(true);
+      setConvite(data as unknown as Convite);
+      setLoading(false);
+      return;
+    }
+
+    if (new Date(data.expires_at) < new Date()) {
+      setError("Este convite expirou.");
+      setLoading(false);
+      return;
+    }
+
+    const conviteData = data as unknown as Convite;
+    setConvite(conviteData);
+    const parsedItens = (Array.isArray(conviteData.itens) ? conviteData.itens : JSON.parse(conviteData.itens as unknown as string)) as ConviteItem[];
+    setItens(parsedItens.map(i => ({ ...i, precoUnitario: 0 })));
+    setLoading(false);
+  };
+
+  const valorTotal = useMemo(() => itens.reduce((s, i) => s + i.precoUnitario * i.quantidade, 0), [itens]);
+
+  const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  const handleSubmit = async () => {
+    if (itens.some(i => i.precoUnitario <= 0)) {
+      setError("Preencha todos os preços unitários.");
+      return;
+    }
+    setError("");
+    setSubmitting(true);
+
+    try {
+      // Insert proposal
+      const { error: insertErr } = await supabase.from("cotacao_propostas_externas").insert({
+        convite_id: convite!.id,
+        condicao_pagamento: condicaoPagamento,
+        prazo_entrega: prazoEntrega,
+        validade_proposta: validadeProposta,
+        observacao,
+        itens: itens.map(i => ({
+          itemId: i.itemId,
+          descricao: i.descricao,
+          quantidade: i.quantidade,
+          unidadeMedida: i.unidadeMedida,
+          precoUnitario: i.precoUnitario,
+        })),
+        valor_total: valorTotal,
+      });
+
+      if (insertErr) throw insertErr;
+
+      // Update convite status
+      await supabase.from("cotacao_convites").update({ status: "respondido" }).eq("id", convite!.id);
+
+      setSubmitted(true);
+    } catch (e: any) {
+      setError("Erro ao enviar proposta. Tente novamente.");
+      console.error(e);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30">
+        <div className="flex items-center gap-3 text-muted-foreground">
+          <Clock className="h-5 w-5 animate-spin" />
+          <span>Carregando...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !convite) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30">
+        <Card className="max-w-md w-full mx-4">
+          <CardContent className="pt-6 text-center space-y-3">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
+            <h2 className="text-lg font-semibold text-foreground">Link Inválido</h2>
+            <p className="text-muted-foreground">{error}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30">
+        <Card className="max-w-md w-full mx-4">
+          <CardContent className="pt-6 text-center space-y-3">
+            <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
+            <h2 className="text-lg font-semibold text-foreground">Proposta Enviada!</h2>
+            <p className="text-muted-foreground">
+              Sua proposta para a cotação COT-{String(convite?.cotacao_numero).padStart(4, "0")} foi recebida com sucesso.
+              O comprador será notificado automaticamente.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-muted/30 py-8 px-4">
+      <div className="max-w-3xl mx-auto space-y-6">
+        {/* Header */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <FileText className="h-8 w-8 text-primary" />
+              <div>
+                <CardTitle className="text-xl">
+                  Cotação COT-{String(convite?.cotacao_numero).padStart(4, "0")}
+                </CardTitle>
+                <CardDescription>
+                  Prezado(a) <strong>{convite?.fornecedor_nome}</strong>, preencha seus preços para esta cotação.
+                  <br />
+                  <span className="text-xs">Comprador: {convite?.comprador}</span>
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Itens e Preços */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Itens e Preços Unitários</CardTitle>
+            <CardDescription>Informe o preço unitário para cada item solicitado.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="border rounded-lg overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead className="w-20 text-center">Qtd</TableHead>
+                    <TableHead className="w-16 text-center">Un</TableHead>
+                    <TableHead className="w-40">Preço Unitário *</TableHead>
+                    <TableHead className="w-32 text-right">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {itens.map((item, idx) => (
+                    <TableRow key={item.itemId}>
+                      <TableCell className="text-sm font-medium">{item.descricao}</TableCell>
+                      <TableCell className="text-center">{item.quantidade}</TableCell>
+                      <TableCell className="text-center">{item.unidadeMedida}</TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0,00"
+                          value={item.precoUnitario || ""}
+                          onChange={e => {
+                            const val = Number(e.target.value);
+                            setItens(prev => prev.map((it, i) => i === idx ? { ...it, precoUnitario: val } : it));
+                          }}
+                          className="h-9"
+                        />
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {formatCurrency(item.precoUnitario * item.quantidade)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="text-right mt-3">
+              <Badge variant="secondary" className="text-lg px-4 py-1">
+                Total: {formatCurrency(valorTotal)}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Dados Complementares */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Dados Complementares</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Condição de Pagamento</Label>
+                <Input
+                  value={condicaoPagamento}
+                  onChange={e => setCondicaoPagamento(e.target.value)}
+                  placeholder="Ex: 30/60/90 dias"
+                />
+              </div>
+              <div>
+                <Label>Prazo de Entrega</Label>
+                <Input
+                  value={prazoEntrega}
+                  onChange={e => setPrazoEntrega(e.target.value)}
+                  placeholder="Ex: 15 dias úteis"
+                />
+              </div>
+              <div>
+                <Label>Validade da Proposta</Label>
+                <Input
+                  type="date"
+                  value={validadeProposta}
+                  onChange={e => setValidadeProposta(e.target.value)}
+                />
+              </div>
+            </div>
+            <div>
+              <Label>Observações</Label>
+              <Textarea
+                value={observacao}
+                onChange={e => setObservacao(e.target.value)}
+                placeholder="Informações adicionais sobre sua proposta..."
+                rows={3}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {error && (
+          <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            {error}
+          </div>
+        )}
+
+        <div className="flex justify-end">
+          <Button size="lg" onClick={handleSubmit} disabled={submitting}>
+            {submitting ? "Enviando..." : "Enviar Proposta"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
