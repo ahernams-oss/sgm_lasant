@@ -14,17 +14,19 @@ import {
 import { useUsuarios } from "@/contexts/UsuariosContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { usePerfisAcesso } from "@/contexts/PerfisAcessoContext";
 import { toast } from "sonner";
 
 const emptyForm = {
   nome: "", cargoId: "", telefone: "+55 ", email: "", senha: "",
-  clientesPermitidos: [] as string[],
+  clientesPermitidos: [] as string[], perfilAcessoId: "",
 };
 
 const Usuarios = () => {
   const { usuarios, addUsuario, updateUsuario, deleteUsuario } = useUsuarios();
   const { cargos } = useCargos();
   const { clientes } = useClientes();
+  const { perfis } = usePerfisAcesso();
 
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -73,6 +75,7 @@ const Usuarios = () => {
     setForm({
       nome: u.nome, cargoId: u.cargoId, telefone: u.telefone,
       email: u.email, senha: "", clientesPermitidos: [...u.clientesPermitidos],
+      perfilAcessoId: u.perfilAcessoId,
     });
     setEditingId(u.id);
     setShowForm(true);
@@ -86,6 +89,9 @@ const Usuarios = () => {
 
   const getCargoNome = (cargoId: string) =>
     cargos.find((c) => c.id === cargoId)?.nome ?? "—";
+
+  const getPerfilNome = (perfilId: string) =>
+    perfis.find((p) => p.id === perfilId)?.nome ?? "—";
 
   const getClientesNomes = (ids: string[]) =>
     ids.map((id) => clientes.find((c) => c.id === id)?.nome).filter(Boolean).join(", ") || "Nenhum";
@@ -184,6 +190,16 @@ const Usuarios = () => {
                         {showSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-foreground/80">Perfil de Acesso</Label>
+                    <Select value={form.perfilAcessoId} onValueChange={(v) => update("perfilAcessoId", v)}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o perfil" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Nenhum</SelectItem>
+                        {perfis.map((p) => (<SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </TabsContent>
@@ -286,6 +302,7 @@ const Usuarios = () => {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Cargo</TableHead>
+                  <TableHead>Perfil de Acesso</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead>E-mail</TableHead>
                   <TableHead>Clientes com Acesso</TableHead>
@@ -297,6 +314,11 @@ const Usuarios = () => {
                   <TableRow key={u.id}>
                     <TableCell className="font-medium">{u.nome}</TableCell>
                     <TableCell>{getCargoNome(u.cargoId)}</TableCell>
+                    <TableCell>
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${u.perfilAcessoId ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                        {getPerfilNome(u.perfilAcessoId)}
+                      </span>
+                    </TableCell>
                     <TableCell>{u.telefone}</TableCell>
                     <TableCell>{u.email}</TableCell>
                     <TableCell className="max-w-[200px] truncate">{getClientesNomes(u.clientesPermitidos)}</TableCell>

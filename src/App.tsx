@@ -27,6 +27,7 @@ import PedidoCompraPage from "./pages/PedidoCompra.tsx";
 import PropostaFornecedorPage from "./pages/PropostaFornecedor.tsx";
 import RecebimentoComprasPage from "./pages/RecebimentoCompras.tsx";
 import EstoquePage from "./pages/Estoque.tsx";
+import PerfisAcessoPage from "./pages/PerfisAcesso.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
@@ -45,6 +46,7 @@ import { PedidoCompraProvider } from "@/contexts/PedidoCompraContext";
 import { RecebimentoProvider } from "@/contexts/RecebimentoContext";
 import { EstoqueProvider } from "@/contexts/EstoqueContext";
 import { FabricantesProvider } from "@/contexts/FabricantesContext";
+import { PerfisAcessoProvider } from "@/contexts/PerfisAcessoContext";
 import FabricantesPage from "./pages/Fabricantes.tsx";
 
 const queryClient = new QueryClient();
@@ -62,6 +64,7 @@ function AppRoutes() {
         <Route path="/funcionarios" element={<Funcionarios />} />
         <Route path="/mapa-funcionarios" element={<MapaFuncionarios />} />
         <Route path="/usuarios" element={<Usuarios />} />
+        <Route path="/perfis-acesso" element={<PerfisAcessoPage />} />
         <Route path="/processo-seletivo/:requisicaoId" element={<ProcessoSeletivo />} />
         <Route path="/processos-seletivos" element={<ProcessosSeletivos />} />
         <Route path="/sco" element={<Sco />} />
@@ -100,6 +103,7 @@ const App = () => (
     <EstoqueProvider>
     <RecebimentoProvider>
     <FabricantesProvider>
+    <PerfisAcessoProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
@@ -112,6 +116,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </PerfisAcessoProvider>
     </FabricantesProvider>
     </RecebimentoProvider>
     </EstoqueProvider>

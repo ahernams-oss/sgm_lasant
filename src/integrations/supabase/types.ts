@@ -901,6 +901,30 @@ export type Database = {
         }
         Relationships: []
       }
+      perfis_acesso: {
+        Row: {
+          created_at: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          permissoes: Json
+        }
+        Insert: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          permissoes?: Json
+        }
+        Update: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          permissoes?: Json
+        }
+        Relationships: []
+      }
       processos_seletivos: {
         Row: {
           candidatos: Json | null
@@ -1224,6 +1248,7 @@ export type Database = {
           email: string
           id: string
           nome: string
+          perfil_acesso_id: string | null
           senha: string
           telefone: string | null
         }
@@ -1234,6 +1259,7 @@ export type Database = {
           email?: string
           id?: string
           nome?: string
+          perfil_acesso_id?: string | null
           senha?: string
           telefone?: string | null
         }
@@ -1244,6 +1270,7 @@ export type Database = {
           email?: string
           id?: string
           nome?: string
+          perfil_acesso_id?: string | null
           senha?: string
           telefone?: string | null
         }
