@@ -283,9 +283,18 @@ export default function RequisicaoComprasPage() {
                     <Label>Especificação Técnica</Label>
                     <Textarea value={itemEspec} onChange={e => setItemEspec(e.target.value)} rows={2} />
                   </div>
-                  <div>
-                    <Label>Observação</Label>
-                    <Input value={itemObs} onChange={e => setItemObs(e.target.value)} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Observação</Label>
+                      <Input value={itemObs} onChange={e => setItemObs(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label>Fabricante</Label>
+                      <Select value={itemFabricanteId} onValueChange={setItemFabricanteId}>
+                        <SelectTrigger><SelectValue placeholder="Selecionar (opcional)..." /></SelectTrigger>
+                        <SelectContent>{fabricantes.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
