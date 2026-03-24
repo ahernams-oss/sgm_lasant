@@ -38,6 +38,7 @@ const URGENCIAS: GrauUrgencia[] = ["Baixa", "Normal", "Alta", "Urgente"];
 export default function RequisicaoComprasPage() {
   const { requisicoes, addRequisicao, cancelarRequisicao } = useRequisicaoCompras();
   const { materiais } = useMateriaisServicos();
+  const { fabricantes } = useFabricantes();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
