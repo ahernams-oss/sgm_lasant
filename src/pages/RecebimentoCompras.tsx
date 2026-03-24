@@ -26,7 +26,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function RecebimentoComprasPage() {
-  const { pedidos } = usePedidoCompra();
+  const { pedidos, updateStatus: updatePedidoStatus } = usePedidoCompra();
   const { recebimentos, registrarRecebimento, getRecebimentosByPedido, getTotalRecebidoPorItem } = useRecebimento();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
