@@ -80,7 +80,7 @@ export default function MateriaisServicosPage() {
         for (const row of rows) {
           if (String(row[0] || "").toLowerCase().includes("cod")) continue;
           if (row.length >= 2) {
-            addMaterial({ descricao: String(row[1] || row[0] || ""), tipo: (String(row[2] || "") === "Serviço" ? "Serviço" : "Material"), unidadeMedida: String(row[3] || "UN"), categoriaId: String(row[4] || "") });
+            addMaterial({ descricao: String(row[1] || row[0] || ""), tipo: (String(row[2] || "") === "Serviço" ? "Serviço" : "Material"), unidadeMedida: String(row[3] || "UN"), categoriaId: String(row[4] || ""), fabricanteId: String(row[5] || "") });
             count++;
           }
         }
