@@ -979,13 +979,25 @@ export default function CotacaoComprasPage() {
                 )}
               </div>
               <h3 className="font-semibold mt-4">Propostas ({viewCotacao.propostas.length})</h3>
-              {viewCotacao.propostas.map(p => (
+              {viewCotacao.propostas.map(p => {
+                const isEditable = viewCotacao.status === "Em Andamento" || viewCotacao.status === "Aguardando Aprovação";
+                return (
                 <Card key={p.id} className={p.fornecedorId === viewCotacao.fornecedorVencedorId ? "border-green-500 border-2" : ""}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm flex items-center gap-2">
                       {p.fornecedorNome}
                       {p.fornecedorId === viewCotacao.fornecedorVencedorId && <Badge className="bg-green-100 text-green-800">Vencedor</Badge>}
                       <span className="ml-auto font-bold">{formatCurrency(p.valorTotal)}</span>
+                      {isEditable && (
+                        <div className="flex gap-1 ml-2">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setViewCotacao(null); openEditPropostaDialog(viewCotacao.id, p); }}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { removeProposta(viewCotacao.id, p.id); toast({ title: "Proposta removida" }); setViewCotacao({ ...viewCotacao, propostas: viewCotacao.propostas.filter(pr => pr.id !== p.id) }); }}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      )}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="text-xs text-muted-foreground space-y-1">
@@ -993,7 +1005,8 @@ export default function CotacaoComprasPage() {
                     {p.observacao && <p>Obs: {p.observacao}</p>}
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
             </div>
           )}
         </DialogContent>
