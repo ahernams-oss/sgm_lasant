@@ -29,8 +29,8 @@ function getNextStatuses(current: StatusPedido): StatusPedido[] {
   if (current === "Cancelado" || current === "Entregue") return [];
   const idx = statusFlow.indexOf(current);
   if (idx < 0) return [];
-  const next = statusFlow.slice(idx + 1);
-  return [...next, "Cancelado"];
+  const next = statusFlow.slice(idx + 1).filter(s => s !== "Entregue Parcial");
+  return next;
 }
 
 export default function PedidoCompraPage() {
