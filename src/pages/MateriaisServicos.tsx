@@ -91,7 +91,6 @@ export default function MateriaisServicosPage() {
   };
 
   const catNome = (id: string) => id ? getDescricaoCompleta(id) || "-" : "-";
-  const fabNome = (id: string) => { const f = fabricantes.find(f => f.id === id); return f ? f.nome : "-"; };
 
   return (
     <div className="space-y-6">
