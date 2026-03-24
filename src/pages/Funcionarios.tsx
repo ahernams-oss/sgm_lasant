@@ -233,6 +233,71 @@ const DependentesTab = ({ dependentes, onChange }: { dependentes: Dependente[]; 
   );
 };
 
+const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) => void }) => {
+  const [novo, setNovo] = useState({ quantidade: 1, descricao: "", ca: "", dataEntrega: "" });
+
+  const addEpi = () => {
+    if (!novo.descricao.trim()) { toast.error("Informe a descrição do EPI."); return; }
+    onChange([...epis, { id: crypto.randomUUID(), ...novo }]);
+    setNovo({ quantidade: 1, descricao: "", ca: "", dataEntrega: "" });
+  };
+
+  const removeEpi = (id: string) => onChange(epis.filter((e) => e.id !== id));
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+        <Field label="Quantidade">
+          <Input type="number" min={1} value={novo.quantidade} onChange={(e) => setNovo({ ...novo, quantidade: parseInt(e.target.value) || 1 })} />
+        </Field>
+        <Field label="E.P.I" required>
+          <Input value={novo.descricao} onChange={(e) => setNovo({ ...novo, descricao: e.target.value })} placeholder="Descrição do EPI" />
+        </Field>
+        <Field label="CA">
+          <Input value={novo.ca} onChange={(e) => setNovo({ ...novo, ca: e.target.value })} placeholder="Nº do CA" />
+        </Field>
+        <Field label="Data de Entrega">
+          <Input type="date" value={novo.dataEntrega} onChange={(e) => setNovo({ ...novo, dataEntrega: e.target.value })} />
+        </Field>
+        <Button type="button" onClick={addEpi} size="sm" className="h-10">
+          <Plus className="h-4 w-4 mr-1" /> Adicionar
+        </Button>
+      </div>
+
+      {epis.length > 0 && (
+        <div className="rounded-lg border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-20">Quant.</TableHead>
+                <TableHead>E.P.I</TableHead>
+                <TableHead className="w-24">CA</TableHead>
+                <TableHead className="w-32">Data Entrega</TableHead>
+                <TableHead className="w-16"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {epis.map((epi) => (
+                <TableRow key={epi.id}>
+                  <TableCell className="text-center">{String(epi.quantidade).padStart(2, "0")}</TableCell>
+                  <TableCell>{epi.descricao}</TableCell>
+                  <TableCell className="text-center">{epi.ca || "—"}</TableCell>
+                  <TableCell className="text-center">{epi.dataEntrega ? epi.dataEntrega.split("-").reverse().join("/") : "—"}</TableCell>
+                  <TableCell>
+                    <Button size="icon" variant="ghost" type="button" onClick={() => removeEpi(epi.id)} className="h-7 w-7 text-destructive hover:text-destructive">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Funcionarios = () => {
   const { funcionarios, addFuncionario, updateFuncionario, deleteFuncionario } = useFuncionarios();
   const { cargos } = useCargos();
