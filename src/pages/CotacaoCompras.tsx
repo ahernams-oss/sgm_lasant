@@ -188,7 +188,6 @@ export default function CotacaoComprasPage() {
   };
 
   const handleAprovar = () => {
-    if (!finJustificativa.trim()) { toast({ title: "Justificativa é obrigatória", variant: "destructive" }); return; }
     const cot = cotacoes.find(c => c.id === aprovarCotacaoId);
     if (!cot) return;
     const req = requisicoes.find(r => r.id === cot.requisicaoId);
