@@ -26,6 +26,7 @@ const Usuarios = () => {
   const { usuarios, addUsuario, updateUsuario, deleteUsuario } = useUsuarios();
   const { cargos } = useCargos();
   const { clientes } = useClientes();
+  const { perfis } = usePerfisAcesso();
 
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
