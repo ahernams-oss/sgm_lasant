@@ -4,7 +4,9 @@ import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 export interface StatusHistorico { status: string; dataHora: string; usuario?: string; }
 
 export interface Requisicao {
-  id: string; numero: number; dataCriacao: string; unidade: string;
+  id: string; numero: number; dataCriacao: string;
+  headcount: string; orcamento: string; tipoVaga: string;
+  unidade: string;
   cargoNome: string; cargoId: string; jornada: string; cargaHoraria: string;
   tipoContratacao: string[]; internoExterno: string; origemVaga: string;
   motivoOutros: string; matricula: string; nomeSubstituido: string;
