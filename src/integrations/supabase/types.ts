@@ -14,6 +14,255 @@ export type Database = {
   }
   public: {
     Tables: {
+      cargos: {
+        Row: {
+          anexos: Json | null
+          cbo: string | null
+          created_at: string | null
+          data_base_salario: string | null
+          descricao: string | null
+          id: string
+          missao: string | null
+          nivel: string | null
+          nome: string
+          nrs: Json | null
+          perfil_competencias: string | null
+          responsabilidades: string | null
+          salario: string | null
+          salarios: Json | null
+        }
+        Insert: {
+          anexos?: Json | null
+          cbo?: string | null
+          created_at?: string | null
+          data_base_salario?: string | null
+          descricao?: string | null
+          id?: string
+          missao?: string | null
+          nivel?: string | null
+          nome?: string
+          nrs?: Json | null
+          perfil_competencias?: string | null
+          responsabilidades?: string | null
+          salario?: string | null
+          salarios?: Json | null
+        }
+        Update: {
+          anexos?: Json | null
+          cbo?: string | null
+          created_at?: string | null
+          data_base_salario?: string | null
+          descricao?: string | null
+          id?: string
+          missao?: string | null
+          nivel?: string | null
+          nome?: string
+          nrs?: Json | null
+          perfil_competencias?: string | null
+          responsabilidades?: string | null
+          salario?: string | null
+          salarios?: Json | null
+        }
+        Relationships: []
+      }
+      categorias_compras_classes: {
+        Row: {
+          codigo: string | null
+          created_at: string | null
+          id: string
+          nome: string
+          sub_grupo_id: string
+        }
+        Insert: {
+          codigo?: string | null
+          created_at?: string | null
+          id?: string
+          nome?: string
+          sub_grupo_id?: string
+        }
+        Update: {
+          codigo?: string | null
+          created_at?: string | null
+          id?: string
+          nome?: string
+          sub_grupo_id?: string
+        }
+        Relationships: []
+      }
+      categorias_compras_grupos: {
+        Row: {
+          codigo: string | null
+          created_at: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          codigo?: string | null
+          created_at?: string | null
+          id?: string
+          nome?: string
+        }
+        Update: {
+          codigo?: string | null
+          created_at?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      categorias_compras_subgrupos: {
+        Row: {
+          codigo: string | null
+          created_at: string | null
+          grupo_id: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          codigo?: string | null
+          created_at?: string | null
+          grupo_id?: string
+          id?: string
+          nome?: string
+        }
+        Update: {
+          codigo?: string | null
+          created_at?: string | null
+          grupo_id?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      clientes: {
+        Row: {
+          bairro: string | null
+          celulares: string | null
+          cep: string | null
+          cidade: string | null
+          cnpj: string | null
+          complemento: string | null
+          contato: string | null
+          contratos: Json | null
+          created_at: string | null
+          data_inicio_contrato: string | null
+          descricao: string | null
+          email: string | null
+          email_compras: string | null
+          email_engenharia: string | null
+          email_os_bcc: string | null
+          email_os_cc: string | null
+          email_ss_bcc: string | null
+          email_ss_cc: string | null
+          endereco: string | null
+          esfera: string | null
+          grupo_whatsapp: string | null
+          id: string
+          informacoes_financeiras: Json | null
+          inscricao_estadual: string | null
+          inscricao_municipal: string | null
+          locais: Json | null
+          locais_entrega: Json | null
+          logradouro: string | null
+          nome: string
+          nome_fantasia: string | null
+          numero: string | null
+          rel_linha1: string | null
+          rel_linha2: string | null
+          rel_linha3: string | null
+          rel_linha4: string | null
+          telefone_celular: string | null
+          telefones: Json | null
+          telefones_whatsapp: string | null
+          tipo: string | null
+          uf: string | null
+        }
+        Insert: {
+          bairro?: string | null
+          celulares?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          complemento?: string | null
+          contato?: string | null
+          contratos?: Json | null
+          created_at?: string | null
+          data_inicio_contrato?: string | null
+          descricao?: string | null
+          email?: string | null
+          email_compras?: string | null
+          email_engenharia?: string | null
+          email_os_bcc?: string | null
+          email_os_cc?: string | null
+          email_ss_bcc?: string | null
+          email_ss_cc?: string | null
+          endereco?: string | null
+          esfera?: string | null
+          grupo_whatsapp?: string | null
+          id?: string
+          informacoes_financeiras?: Json | null
+          inscricao_estadual?: string | null
+          inscricao_municipal?: string | null
+          locais?: Json | null
+          locais_entrega?: Json | null
+          logradouro?: string | null
+          nome?: string
+          nome_fantasia?: string | null
+          numero?: string | null
+          rel_linha1?: string | null
+          rel_linha2?: string | null
+          rel_linha3?: string | null
+          rel_linha4?: string | null
+          telefone_celular?: string | null
+          telefones?: Json | null
+          telefones_whatsapp?: string | null
+          tipo?: string | null
+          uf?: string | null
+        }
+        Update: {
+          bairro?: string | null
+          celulares?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          complemento?: string | null
+          contato?: string | null
+          contratos?: Json | null
+          created_at?: string | null
+          data_inicio_contrato?: string | null
+          descricao?: string | null
+          email?: string | null
+          email_compras?: string | null
+          email_engenharia?: string | null
+          email_os_bcc?: string | null
+          email_os_cc?: string | null
+          email_ss_bcc?: string | null
+          email_ss_cc?: string | null
+          endereco?: string | null
+          esfera?: string | null
+          grupo_whatsapp?: string | null
+          id?: string
+          informacoes_financeiras?: Json | null
+          inscricao_estadual?: string | null
+          inscricao_municipal?: string | null
+          locais?: Json | null
+          locais_entrega?: Json | null
+          logradouro?: string | null
+          nome?: string
+          nome_fantasia?: string | null
+          numero?: string | null
+          rel_linha1?: string | null
+          rel_linha2?: string | null
+          rel_linha3?: string | null
+          rel_linha4?: string | null
+          telefone_celular?: string | null
+          telefones?: Json | null
+          telefones_whatsapp?: string | null
+          tipo?: string | null
+          uf?: string | null
+        }
+        Relationships: []
+      }
       cotacao_convites: {
         Row: {
           comprador: string
@@ -103,6 +352,51 @@ export type Database = {
           },
         ]
       }
+      cotacoes_compras: {
+        Row: {
+          comprador: string | null
+          created_at: string | null
+          data_criacao: string | null
+          fornecedor_vencedor_id: string | null
+          id: string
+          itens_vencedores: Json | null
+          justificativa_escolha: string | null
+          numero: number
+          propostas: Json | null
+          requisicao_id: string | null
+          requisicao_numero: number | null
+          status: string | null
+        }
+        Insert: {
+          comprador?: string | null
+          created_at?: string | null
+          data_criacao?: string | null
+          fornecedor_vencedor_id?: string | null
+          id?: string
+          itens_vencedores?: Json | null
+          justificativa_escolha?: string | null
+          numero?: number
+          propostas?: Json | null
+          requisicao_id?: string | null
+          requisicao_numero?: number | null
+          status?: string | null
+        }
+        Update: {
+          comprador?: string | null
+          created_at?: string | null
+          data_criacao?: string | null
+          fornecedor_vencedor_id?: string | null
+          id?: string
+          itens_vencedores?: Json | null
+          justificativa_escolha?: string | null
+          numero?: number
+          propostas?: Json | null
+          requisicao_id?: string | null
+          requisicao_numero?: number | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       exames_periodicos: {
         Row: {
           anexo_aso_url: string | null
@@ -157,6 +451,24 @@ export type Database = {
           observacoes?: string | null
           resultado?: string | null
           tipo_exame?: string
+        }
+        Relationships: []
+      }
+      fabricantes: {
+        Row: {
+          created_at: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          nome?: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          nome?: string
         }
         Relationships: []
       }
@@ -340,6 +652,198 @@ export type Database = {
         }
         Relationships: []
       }
+      i0_items: {
+        Row: {
+          ano: number
+          cod_sco: string | null
+          created_at: string | null
+          id: string
+          mes: number
+          valor: number | null
+        }
+        Insert: {
+          ano?: number
+          cod_sco?: string | null
+          created_at?: string | null
+          id?: string
+          mes?: number
+          valor?: number | null
+        }
+        Update: {
+          ano?: number
+          cod_sco?: string | null
+          created_at?: string | null
+          id?: string
+          mes?: number
+          valor?: number | null
+        }
+        Relationships: []
+      }
+      lancamentos: {
+        Row: {
+          anexos: Json | null
+          created_at: string | null
+          criado_em: string | null
+          data: string | null
+          dias_falta: number | null
+          funcionario_id: string
+          horas_extras: number | null
+          id: string
+          observacao: string | null
+          percentual: number | null
+          tipo: string | null
+          tipo_falta: string | null
+        }
+        Insert: {
+          anexos?: Json | null
+          created_at?: string | null
+          criado_em?: string | null
+          data?: string | null
+          dias_falta?: number | null
+          funcionario_id?: string
+          horas_extras?: number | null
+          id?: string
+          observacao?: string | null
+          percentual?: number | null
+          tipo?: string | null
+          tipo_falta?: string | null
+        }
+        Update: {
+          anexos?: Json | null
+          created_at?: string | null
+          criado_em?: string | null
+          data?: string | null
+          dias_falta?: number | null
+          funcionario_id?: string
+          horas_extras?: number | null
+          id?: string
+          observacao?: string | null
+          percentual?: number | null
+          tipo?: string | null
+          tipo_falta?: string | null
+        }
+        Relationships: []
+      }
+      materiais_servicos: {
+        Row: {
+          categoria_id: string | null
+          codigo: string | null
+          created_at: string | null
+          descricao: string | null
+          fabricante_id: string | null
+          id: string
+          tipo: string | null
+          unidade_medida: string | null
+        }
+        Insert: {
+          categoria_id?: string | null
+          codigo?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          fabricante_id?: string | null
+          id?: string
+          tipo?: string | null
+          unidade_medida?: string | null
+        }
+        Update: {
+          categoria_id?: string | null
+          codigo?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          fabricante_id?: string | null
+          id?: string
+          tipo?: string | null
+          unidade_medida?: string | null
+        }
+        Relationships: []
+      }
+      pedidos_compra: {
+        Row: {
+          comprador: string | null
+          condicao_pagamento: string | null
+          cotacao_id: string | null
+          created_at: string | null
+          data_criacao: string | null
+          fornecedor_id: string | null
+          fornecedor_nome: string | null
+          historico_status: Json | null
+          id: string
+          itens: Json | null
+          local_entrega: string | null
+          numero: number
+          observacoes: string | null
+          prazo_entrega: string | null
+          requisicao_id: string | null
+          requisicao_numero: number | null
+          status: string | null
+          valor_total: number | null
+        }
+        Insert: {
+          comprador?: string | null
+          condicao_pagamento?: string | null
+          cotacao_id?: string | null
+          created_at?: string | null
+          data_criacao?: string | null
+          fornecedor_id?: string | null
+          fornecedor_nome?: string | null
+          historico_status?: Json | null
+          id?: string
+          itens?: Json | null
+          local_entrega?: string | null
+          numero?: number
+          observacoes?: string | null
+          prazo_entrega?: string | null
+          requisicao_id?: string | null
+          requisicao_numero?: number | null
+          status?: string | null
+          valor_total?: number | null
+        }
+        Update: {
+          comprador?: string | null
+          condicao_pagamento?: string | null
+          cotacao_id?: string | null
+          created_at?: string | null
+          data_criacao?: string | null
+          fornecedor_id?: string | null
+          fornecedor_nome?: string | null
+          historico_status?: Json | null
+          id?: string
+          itens?: Json | null
+          local_entrega?: string | null
+          numero?: number
+          observacoes?: string | null
+          prazo_entrega?: string | null
+          requisicao_id?: string | null
+          requisicao_numero?: number | null
+          status?: string | null
+          valor_total?: number | null
+        }
+        Relationships: []
+      }
+      processos_seletivos: {
+        Row: {
+          candidatos: Json | null
+          created_at: string | null
+          data_criacao: string | null
+          id: string
+          requisicao_id: string
+        }
+        Insert: {
+          candidatos?: Json | null
+          created_at?: string | null
+          data_criacao?: string | null
+          id?: string
+          requisicao_id?: string
+        }
+        Update: {
+          candidatos?: Json | null
+          created_at?: string | null
+          data_criacao?: string | null
+          id?: string
+          requisicao_id?: string
+        }
+        Relationships: []
+      }
       promocoes: {
         Row: {
           cargo_anterior_id: string | null
@@ -394,6 +898,264 @@ export type Database = {
           observacoes?: string | null
           salario_anterior?: string | null
           salario_novo?: string | null
+        }
+        Relationships: []
+      }
+      recebimentos: {
+        Row: {
+          anexos_nf: Json | null
+          created_at: string | null
+          data_recebimento: string | null
+          fornecedor_nome: string | null
+          id: string
+          itens: Json | null
+          local_entrega: string | null
+          nota_fiscal: string | null
+          observacao_geral: string | null
+          pedido_id: string | null
+          pedido_numero: number | null
+          requisicao_id: string | null
+          requisicao_numero: number | null
+          tipo: string | null
+          usuario: string | null
+        }
+        Insert: {
+          anexos_nf?: Json | null
+          created_at?: string | null
+          data_recebimento?: string | null
+          fornecedor_nome?: string | null
+          id?: string
+          itens?: Json | null
+          local_entrega?: string | null
+          nota_fiscal?: string | null
+          observacao_geral?: string | null
+          pedido_id?: string | null
+          pedido_numero?: number | null
+          requisicao_id?: string | null
+          requisicao_numero?: number | null
+          tipo?: string | null
+          usuario?: string | null
+        }
+        Update: {
+          anexos_nf?: Json | null
+          created_at?: string | null
+          data_recebimento?: string | null
+          fornecedor_nome?: string | null
+          id?: string
+          itens?: Json | null
+          local_entrega?: string | null
+          nota_fiscal?: string | null
+          observacao_geral?: string | null
+          pedido_id?: string | null
+          pedido_numero?: number | null
+          requisicao_id?: string | null
+          requisicao_numero?: number | null
+          tipo?: string | null
+          usuario?: string | null
+        }
+        Relationships: []
+      }
+      requisicoes: {
+        Row: {
+          aprovado_por: string | null
+          atividades_cargo: string | null
+          carga_horaria: string | null
+          cargo_id: string | null
+          cargo_nome: string | null
+          cargo_substituido: string | null
+          conhecimento_informatica: string | null
+          created_at: string | null
+          data_criacao: string | null
+          data_desligamento: string | null
+          experiencia: string | null
+          formacao: Json | null
+          formacao_detalhe: string | null
+          historico_status: Json | null
+          id: string
+          interno_externo: string | null
+          jornada: string | null
+          matricula: string | null
+          motivo_outros: string | null
+          nome_substituido: string | null
+          numero: number
+          origem_vaga: string | null
+          salario_substituido: string | null
+          salario_vaga: string | null
+          status: string | null
+          tipo_contratacao: Json | null
+          unidade: string | null
+        }
+        Insert: {
+          aprovado_por?: string | null
+          atividades_cargo?: string | null
+          carga_horaria?: string | null
+          cargo_id?: string | null
+          cargo_nome?: string | null
+          cargo_substituido?: string | null
+          conhecimento_informatica?: string | null
+          created_at?: string | null
+          data_criacao?: string | null
+          data_desligamento?: string | null
+          experiencia?: string | null
+          formacao?: Json | null
+          formacao_detalhe?: string | null
+          historico_status?: Json | null
+          id?: string
+          interno_externo?: string | null
+          jornada?: string | null
+          matricula?: string | null
+          motivo_outros?: string | null
+          nome_substituido?: string | null
+          numero?: number
+          origem_vaga?: string | null
+          salario_substituido?: string | null
+          salario_vaga?: string | null
+          status?: string | null
+          tipo_contratacao?: Json | null
+          unidade?: string | null
+        }
+        Update: {
+          aprovado_por?: string | null
+          atividades_cargo?: string | null
+          carga_horaria?: string | null
+          cargo_id?: string | null
+          cargo_nome?: string | null
+          cargo_substituido?: string | null
+          conhecimento_informatica?: string | null
+          created_at?: string | null
+          data_criacao?: string | null
+          data_desligamento?: string | null
+          experiencia?: string | null
+          formacao?: Json | null
+          formacao_detalhe?: string | null
+          historico_status?: Json | null
+          id?: string
+          interno_externo?: string | null
+          jornada?: string | null
+          matricula?: string | null
+          motivo_outros?: string | null
+          nome_substituido?: string | null
+          numero?: number
+          origem_vaga?: string | null
+          salario_substituido?: string | null
+          salario_vaga?: string | null
+          status?: string | null
+          tipo_contratacao?: Json | null
+          unidade?: string | null
+        }
+        Relationships: []
+      }
+      requisicoes_compras: {
+        Row: {
+          anexos: Json | null
+          centro_custo: string | null
+          centro_custo_nome: string | null
+          created_at: string | null
+          data_criacao: string | null
+          historico_status: Json | null
+          id: string
+          itens: Json | null
+          justificativa: string | null
+          local_entrega: string | null
+          numero: number
+          prazo_desejado: string | null
+          solicitante: string | null
+          status: string | null
+          urgencia: string | null
+        }
+        Insert: {
+          anexos?: Json | null
+          centro_custo?: string | null
+          centro_custo_nome?: string | null
+          created_at?: string | null
+          data_criacao?: string | null
+          historico_status?: Json | null
+          id?: string
+          itens?: Json | null
+          justificativa?: string | null
+          local_entrega?: string | null
+          numero?: number
+          prazo_desejado?: string | null
+          solicitante?: string | null
+          status?: string | null
+          urgencia?: string | null
+        }
+        Update: {
+          anexos?: Json | null
+          centro_custo?: string | null
+          centro_custo_nome?: string | null
+          created_at?: string | null
+          data_criacao?: string | null
+          historico_status?: Json | null
+          id?: string
+          itens?: Json | null
+          justificativa?: string | null
+          local_entrega?: string | null
+          numero?: number
+          prazo_desejado?: string | null
+          solicitante?: string | null
+          status?: string | null
+          urgencia?: string | null
+        }
+        Relationships: []
+      }
+      scos: {
+        Row: {
+          cod_sco: string | null
+          created_at: string | null
+          descricao_sco: string | null
+          id: string
+          tipo: string | null
+          unidade: string | null
+        }
+        Insert: {
+          cod_sco?: string | null
+          created_at?: string | null
+          descricao_sco?: string | null
+          id?: string
+          tipo?: string | null
+          unidade?: string | null
+        }
+        Update: {
+          cod_sco?: string | null
+          created_at?: string | null
+          descricao_sco?: string | null
+          id?: string
+          tipo?: string | null
+          unidade?: string | null
+        }
+        Relationships: []
+      }
+      usuarios: {
+        Row: {
+          cargo_id: string | null
+          clientes_permitidos: Json | null
+          created_at: string | null
+          email: string
+          id: string
+          nome: string
+          senha: string
+          telefone: string | null
+        }
+        Insert: {
+          cargo_id?: string | null
+          clientes_permitidos?: Json | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          nome?: string
+          senha?: string
+          telefone?: string | null
+        }
+        Update: {
+          cargo_id?: string | null
+          clientes_permitidos?: Json | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          nome?: string
+          senha?: string
+          telefone?: string | null
         }
         Relationships: []
       }

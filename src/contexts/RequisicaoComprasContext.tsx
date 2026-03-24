@@ -1,60 +1,26 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 
 export type StatusRequisicaoCompras =
-  | "Rascunho"
-  | "Enviada"
-  | "Em Cotação"
-  | "Aguardando Aprovação"
-  | "Aprovada"
-  | "Reprovada"
-  | "Pedido Emitido"
-  | "Em Entrega"
-  | "Recebida Parcial"
-  | "Recebida"
-  | "Concluída"
-  | "Cancelada";
+  | "Rascunho" | "Enviada" | "Em Cotação" | "Aguardando Aprovação"
+  | "Aprovada" | "Reprovada" | "Pedido Emitido" | "Em Entrega"
+  | "Recebida Parcial" | "Recebida" | "Concluída" | "Cancelada";
 
 export type GrauUrgencia = "Baixa" | "Normal" | "Alta" | "Urgente";
 
 export interface ItemRequisicaoCompras {
-  id: string;
-  materialId: string;
-  descricao: string;
-  especificacaoTecnica: string;
-  observacao: string;
-  quantidade: number;
-  unidadeMedida: string;
+  id: string; materialId: string; descricao: string; especificacaoTecnica: string;
+  observacao: string; quantidade: number; unidadeMedida: string;
 }
-
-export interface HistoricoStatusCompras {
-  status: StatusRequisicaoCompras;
-  dataHora: string;
-  usuario: string;
-  observacao: string;
-}
-
-export interface AnexoRequisicaoCompras {
-  id: string;
-  nome: string;
-  tipo: string;
-  base64: string;
-}
+export interface HistoricoStatusCompras { status: StatusRequisicaoCompras; dataHora: string; usuario: string; observacao: string; }
+export interface AnexoRequisicaoCompras { id: string; nome: string; tipo: string; base64: string; }
 
 export interface RequisicaoCompras {
-  id: string;
-  numero: number;
-  dataCriacao: string;
-  solicitante: string;
-  centroCusto: string;
-  centroCustoNome: string;
-  localEntrega: string;
-  justificativa: string;
-  urgencia: GrauUrgencia;
-  prazoDesejado: string;
-  status: StatusRequisicaoCompras;
-  itens: ItemRequisicaoCompras[];
-  anexos: AnexoRequisicaoCompras[];
-  historicoStatus: HistoricoStatusCompras[];
+  id: string; numero: number; dataCriacao: string; solicitante: string;
+  centroCusto: string; centroCustoNome: string; localEntrega: string;
+  justificativa: string; urgencia: GrauUrgencia; prazoDesejado: string;
+  status: StatusRequisicaoCompras; itens: ItemRequisicaoCompras[];
+  anexos: AnexoRequisicaoCompras[]; historicoStatus: HistoricoStatusCompras[];
 }
 
 interface RequisicaoComprasContextType {
@@ -67,52 +33,61 @@ interface RequisicaoComprasContextType {
 
 const RequisicaoComprasContext = createContext<RequisicaoComprasContextType | undefined>(undefined);
 
+const rowToReq = (r: any): RequisicaoCompras => ({
+  id: r.id, numero: r.numero ?? 0, dataCriacao: r.data_criacao ?? "",
+  solicitante: r.solicitante ?? "", centroCusto: r.centro_custo ?? "",
+  centroCustoNome: r.centro_custo_nome ?? "", localEntrega: r.local_entrega ?? "",
+  justificativa: r.justificativa ?? "", urgencia: r.urgencia ?? "Normal",
+  prazoDesejado: r.prazo_desejado ?? "", status: r.status ?? "Enviada",
+  itens: r.itens ?? [], anexos: r.anexos ?? [], historicoStatus: r.historico_status ?? [],
+});
+
+const reqToRow = (r: RequisicaoCompras) => ({
+  numero: r.numero, data_criacao: r.dataCriacao, solicitante: r.solicitante,
+  centro_custo: r.centroCusto, centro_custo_nome: r.centroCustoNome,
+  local_entrega: r.localEntrega, justificativa: r.justificativa,
+  urgencia: r.urgencia, prazo_desejado: r.prazoDesejado, status: r.status,
+  itens: r.itens as any, anexos: r.anexos as any, historico_status: r.historicoStatus as any,
+});
+
 export function RequisicaoComprasProvider({ children }: { children: ReactNode }) {
-  const [requisicoes, setRequisicoes] = useState<RequisicaoCompras[]>(() => {
-    const saved = localStorage.getItem("requisicoes_compras");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [requisicoes, setRequisicoes] = useState<RequisicaoCompras[]>([]);
 
-  const [nextNumero, setNextNumero] = useState(() => {
-    const saved = localStorage.getItem("requisicoes_compras");
-    if (!saved) return 1;
-    const list: RequisicaoCompras[] = JSON.parse(saved);
-    return list.length > 0 ? Math.max(...list.map(r => r.numero)) + 1 : 1;
-  });
+  const load = useCallback(async () => {
+    const data = await fetchAll("requisicoes_compras", "created_at");
+    setRequisicoes(data.map(rowToReq));
+  }, []);
 
-  useEffect(() => { localStorage.setItem("requisicoes_compras", JSON.stringify(requisicoes)); }, [requisicoes]);
+  useEffect(() => { load(); }, [load]);
 
-  const addRequisicao = (data: Omit<RequisicaoCompras, "id" | "numero" | "dataCriacao" | "status" | "historicoStatus">) => {
+  const addRequisicao = async (data: Omit<RequisicaoCompras, "id" | "numero" | "dataCriacao" | "status" | "historicoStatus">) => {
     const now = new Date().toISOString();
+    const maxNum = requisicoes.length > 0 ? Math.max(...requisicoes.map(r => r.numero)) : 0;
     const req: RequisicaoCompras = {
-      ...data,
-      id: crypto.randomUUID(),
-      numero: nextNumero,
-      dataCriacao: now,
-      status: "Enviada",
+      ...data, id: "", numero: maxNum + 1, dataCriacao: now, status: "Enviada",
       historicoStatus: [{ status: "Enviada", dataHora: now, usuario: data.solicitante, observacao: "Solicitação criada" }],
     };
-    setRequisicoes(prev => [...prev, req]);
-    setNextNumero(n => n + 1);
+    await insertRow("requisicoes_compras", reqToRow(req));
+    await load();
   };
 
-  const updateRequisicao = (id: string, data: Partial<Omit<RequisicaoCompras, "id" | "numero" | "dataCriacao">>) => {
-    setRequisicoes(prev => prev.map(r => {
-      if (r.id !== id) return r;
-      if (!["Rascunho", "Enviada"].includes(r.status)) return r;
-      return { ...r, ...data };
-    }));
+  const updateRequisicao = async (id: string, data: Partial<Omit<RequisicaoCompras, "id" | "numero" | "dataCriacao">>) => {
+    const current = requisicoes.find(r => r.id === id);
+    if (!current || !["Rascunho", "Enviada"].includes(current.status)) return;
+    const merged = { ...current, ...data };
+    await updateRow("requisicoes_compras", id, reqToRow(merged));
+    await load();
   };
 
-  const updateStatus = (id: string, status: StatusRequisicaoCompras, usuario: string, observacao = "") => {
-    setRequisicoes(prev => prev.map(r => {
-      if (r.id !== id) return r;
-      return {
-        ...r,
-        status,
-        historicoStatus: [...r.historicoStatus, { status, dataHora: new Date().toISOString(), usuario, observacao }],
-      };
-    }));
+  const updateStatus = async (id: string, status: StatusRequisicaoCompras, usuario: string, observacao = "") => {
+    const current = requisicoes.find(r => r.id === id);
+    if (!current) return;
+    const updated = {
+      ...current, status,
+      historicoStatus: [...current.historicoStatus, { status, dataHora: new Date().toISOString(), usuario, observacao }],
+    };
+    await updateRow("requisicoes_compras", id, reqToRow(updated));
+    await load();
   };
 
   const cancelarRequisicao = (id: string, usuario: string, motivo: string) => {

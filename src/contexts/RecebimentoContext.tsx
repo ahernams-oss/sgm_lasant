@@ -1,37 +1,20 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
+import { fetchAll, insertRow } from "@/lib/supabaseHelper";
 
 export interface ItemRecebimento {
-  itemId: string;
-  descricao: string;
-  quantidadePedida: number;
-  quantidadeRecebida: number;
-  unidadeMedida: string;
-  observacao: string;
+  itemId: string; descricao: string; quantidadePedida: number;
+  quantidadeRecebida: number; unidadeMedida: string; observacao: string;
 }
-
-export interface AnexoNF {
-  nome: string;
-  tipo: string;
-  dados: string; // base64
-}
+export interface AnexoNF { nome: string; tipo: string; dados: string; }
 
 export interface Recebimento {
-  id: string;
-  pedidoId: string;
-  pedidoNumero: number;
-  requisicaoId: string;
-  requisicaoNumero: number;
-  fornecedorNome: string;
-  localEntrega: string;
-  dataRecebimento: string;
-  usuario: string;
-  itens: ItemRecebimento[];
-  observacaoGeral: string;
-  tipo: "Total" | "Parcial";
-  notaFiscal: string;
-  anexosNF: AnexoNF[];
+  id: string; pedidoId: string; pedidoNumero: number;
+  requisicaoId: string; requisicaoNumero: number; fornecedorNome: string;
+  localEntrega: string; dataRecebimento: string; usuario: string;
+  itens: ItemRecebimento[]; observacaoGeral: string;
+  tipo: "Total" | "Parcial"; notaFiscal: string; anexosNF: AnexoNF[];
 }
 
 interface RecebimentoContextType {
@@ -43,18 +26,36 @@ interface RecebimentoContextType {
 
 const RecebimentoContext = createContext<RecebimentoContextType | undefined>(undefined);
 
+const rowToRecebimento = (r: any): Recebimento => ({
+  id: r.id, pedidoId: r.pedido_id ?? "", pedidoNumero: r.pedido_numero ?? 0,
+  requisicaoId: r.requisicao_id ?? "", requisicaoNumero: r.requisicao_numero ?? 0,
+  fornecedorNome: r.fornecedor_nome ?? "", localEntrega: r.local_entrega ?? "",
+  dataRecebimento: r.data_recebimento ?? "", usuario: r.usuario ?? "",
+  itens: r.itens ?? [], observacaoGeral: r.observacao_geral ?? "",
+  tipo: r.tipo ?? "Total", notaFiscal: r.nota_fiscal ?? "", anexosNF: r.anexos_nf ?? [],
+});
+
+const recebimentoToRow = (r: Recebimento) => ({
+  pedido_id: r.pedidoId, pedido_numero: r.pedidoNumero,
+  requisicao_id: r.requisicaoId, requisicao_numero: r.requisicaoNumero,
+  fornecedor_nome: r.fornecedorNome, local_entrega: r.localEntrega,
+  data_recebimento: r.dataRecebimento, usuario: r.usuario,
+  itens: r.itens as any, observacao_geral: r.observacaoGeral,
+  tipo: r.tipo, nota_fiscal: r.notaFiscal, anexos_nf: r.anexosNF as any,
+});
+
 export function RecebimentoProvider({ children }: { children: ReactNode }) {
   const { pedidos, updateStatus: updatePedidoStatus } = usePedidoCompra();
   const { requisicoes, updateStatus: updateReqStatus } = useRequisicaoCompras();
 
-  const [recebimentos, setRecebimentos] = useState<Recebimento[]>(() => {
-    const saved = localStorage.getItem("recebimentos_compras");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [recebimentos, setRecebimentos] = useState<Recebimento[]>([]);
 
-  useEffect(() => {
-    localStorage.setItem("recebimentos_compras", JSON.stringify(recebimentos));
-  }, [recebimentos]);
+  const load = useCallback(async () => {
+    const data = await fetchAll("recebimentos", "created_at");
+    setRecebimentos(data.map(rowToRecebimento));
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   const getRecebimentosByPedido = (pedidoId: string) =>
     recebimentos.filter(r => r.pedidoId === pedidoId);
@@ -68,11 +69,10 @@ export function RecebimentoProvider({ children }: { children: ReactNode }) {
       }, 0);
   };
 
-  const registrarRecebimento = (data: Omit<Recebimento, "id" | "dataRecebimento" | "tipo">) => {
+  const registrarRecebimento = async (data: Omit<Recebimento, "id" | "dataRecebimento" | "tipo">) => {
     const pedido = pedidos.find(p => p.id === data.pedidoId);
     if (!pedido) return;
 
-    // Calculate if THIS pedido is fully received after this receipt
     const allFullyReceived = pedido.itens.every(pi => {
       const jaRecebido = getTotalRecebidoPorItem(pedido.id, pi.itemId);
       const recebendoAgora = data.itens.find(i => i.itemId === pi.itemId)?.quantidadeRecebida || 0;
@@ -82,59 +82,45 @@ export function RecebimentoProvider({ children }: { children: ReactNode }) {
     const tipo = allFullyReceived ? "Total" : "Parcial";
 
     const recebimento: Recebimento = {
-      ...data,
-      id: crypto.randomUUID(),
-      dataRecebimento: new Date().toISOString(),
-      tipo,
+      ...data, id: crypto.randomUUID(),
+      dataRecebimento: new Date().toISOString(), tipo,
     };
 
-    setRecebimentos(prev => {
-      const updatedRecebimentos = [...prev, recebimento];
+    await insertRow("recebimentos", recebimentoToRow(recebimento));
 
-      // Update ONLY this pedido's status — never touch other pedidos
-      if (allFullyReceived) {
-        updatePedidoStatus(pedido.id, "Entregue", data.usuario, `Recebimento total - NF: ${data.notaFiscal || "N/A"}`);
-      } else {
-        if (pedido.status !== "Entregue Parcial") {
-          updatePedidoStatus(pedido.id, "Entregue Parcial", data.usuario, `Recebimento parcial - NF: ${data.notaFiscal || "N/A"}`);
-        }
-      }
+    if (allFullyReceived) {
+      updatePedidoStatus(pedido.id, "Entregue", data.usuario, `Recebimento total - NF: ${data.notaFiscal || "N/A"}`);
+    } else if (pedido.status !== "Entregue Parcial") {
+      updatePedidoStatus(pedido.id, "Entregue Parcial", data.usuario, `Recebimento parcial - NF: ${data.notaFiscal || "N/A"}`);
+    }
 
-      // Update RC status based on ACTUAL receipts across ALL pedidos of this RC
-      const pedidosRC = pedidos.filter(p => p.requisicaoId === pedido.requisicaoId && p.status !== "Cancelado");
+    const updatedRecebimentos = [...recebimentos, recebimento];
+    const pedidosRC = pedidos.filter(p => p.requisicaoId === pedido.requisicaoId && p.status !== "Cancelado");
 
-      // Check each PO: is it fully received based on actual recebimentos?
-      const pedidoStatusMap = pedidosRC.map(p => {
-        const isCurrentPedido = p.id === pedido.id;
-        const fullyReceived = p.itens.every(pi => {
-          const jaRecebido = updatedRecebimentos
-            .filter(r => r.pedidoId === p.id)
-            .reduce((sum, r) => {
-              const item = r.itens.find(i => i.itemId === pi.itemId);
-              return sum + (item?.quantidadeRecebida || 0);
-            }, 0);
-          return jaRecebido >= pi.quantidade;
-        });
-
-        const hasAnyReceipt = updatedRecebimentos.some(r => r.pedidoId === p.id);
-
-        return { pedidoId: p.id, fullyReceived, hasAnyReceipt };
+    const allPedidosFullyReceived = pedidosRC.every(p => {
+      return p.itens.every(pi => {
+        const jaRecebido = updatedRecebimentos
+          .filter(r => r.pedidoId === p.id)
+          .reduce((sum, r) => {
+            const item = r.itens.find(i => i.itemId === pi.itemId);
+            return sum + (item?.quantidadeRecebida || 0);
+          }, 0);
+        return jaRecebido >= pi.quantidade;
       });
-
-      const allPedidosFullyReceived = pedidoStatusMap.every(s => s.fullyReceived);
-      const anyPedidoHasReceipt = pedidoStatusMap.some(s => s.hasAnyReceipt);
-
-      if (allPedidosFullyReceived) {
-        updateReqStatus(pedido.requisicaoId, "Recebida", data.usuario, "Todos os pedidos de todos os fornecedores recebidos");
-      } else if (anyPedidoHasReceipt) {
-        const req = requisicoes.find(r => r.id === pedido.requisicaoId);
-        if (req && req.status !== "Recebida") {
-          updateReqStatus(pedido.requisicaoId, "Recebida Parcial", data.usuario, "Recebimento parcial - nem todos os fornecedores entregaram");
-        }
-      }
-
-      return updatedRecebimentos;
     });
+
+    const anyPedidoHasReceipt = pedidosRC.some(p => updatedRecebimentos.some(r => r.pedidoId === p.id));
+
+    if (allPedidosFullyReceived) {
+      updateReqStatus(pedido.requisicaoId, "Recebida", data.usuario, "Todos os pedidos recebidos");
+    } else if (anyPedidoHasReceipt) {
+      const req = requisicoes.find(r => r.id === pedido.requisicaoId);
+      if (req && req.status !== "Recebida") {
+        updateReqStatus(pedido.requisicaoId, "Recebida Parcial", data.usuario, "Recebimento parcial");
+      }
+    }
+
+    await load();
   };
 
   return (

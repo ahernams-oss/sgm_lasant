@@ -10,9 +10,7 @@ interface AuthContextType {
   login: (email: string, senha: string) => boolean;
   logout: () => void;
   isAuthenticated: boolean;
-  /** true se o usuário logado tem cargo com acesso total */
   temAcessoTotal: boolean;
-  /** IDs dos clientes que o usuário logado pode visualizar */
   clientesPermitidosIds: string[];
 }
 
@@ -61,26 +59,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const found = usuarios.find(
       (u) => u.email.toLowerCase() === email.toLowerCase() && u.senha === senha
     );
-    if (found) {
-      setUsuarioLogado(found);
-      return true;
-    }
+    if (found) { setUsuarioLogado(found); return true; }
     return false;
   };
 
   const logout = () => setUsuarioLogado(null);
 
   return (
-    <AuthContext.Provider
-      value={{
-        usuarioLogado,
-        login,
-        logout,
-        isAuthenticated: !!usuarioLogado,
-        temAcessoTotal,
-        clientesPermitidosIds,
-      }}
-    >
+    <AuthContext.Provider value={{ usuarioLogado, login, logout, isAuthenticated: !!usuarioLogado, temAcessoTotal, clientesPermitidosIds }}>
       {children}
     </AuthContext.Provider>
   );

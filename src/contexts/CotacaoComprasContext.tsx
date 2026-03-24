@@ -1,47 +1,24 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 
 export type StatusCotacao = "Em Andamento" | "Aguardando Aprovação" | "Finalizada" | "Cancelada";
 
 export interface ItemCotacaoFornecedor {
-  itemId: string;
-  descricao: string;
-  quantidade: number;
-  unidadeMedida: string;
-  precoUnitario: number;
-  prazoEntrega: string;
-  observacao: string;
+  itemId: string; descricao: string; quantidade: number; unidadeMedida: string;
+  precoUnitario: number; prazoEntrega: string; observacao: string;
 }
-
 export interface PropostaFornecedor {
-  id: string;
-  fornecedorId: string;
-  fornecedorNome: string;
-  condicaoPagamento: string;
-  prazoEntrega: string;
-  validadeProposta: string;
-  observacao: string;
-  itens: ItemCotacaoFornecedor[];
-  valorTotal: number;
+  id: string; fornecedorId: string; fornecedorNome: string;
+  condicaoPagamento: string; prazoEntrega: string; validadeProposta: string;
+  observacao: string; itens: ItemCotacaoFornecedor[]; valorTotal: number;
 }
-
-export interface ItemVencedor {
-  itemId: string;
-  fornecedorId: string;
-  fornecedorNome: string;
-}
+export interface ItemVencedor { itemId: string; fornecedorId: string; fornecedorNome: string; }
 
 export interface CotacaoCompras {
-  id: string;
-  requisicaoId: string;
-  requisicaoNumero: number;
-  numero: number;
-  dataCriacao: string;
-  comprador: string;
-  status: StatusCotacao;
-  propostas: PropostaFornecedor[];
-  fornecedorVencedorId: string;
-  justificativaEscolha: string;
-  itensVencedores: ItemVencedor[];
+  id: string; requisicaoId: string; requisicaoNumero: number; numero: number;
+  dataCriacao: string; comprador: string; status: StatusCotacao;
+  propostas: PropostaFornecedor[]; fornecedorVencedorId: string;
+  justificativaEscolha: string; itensVencedores: ItemVencedor[];
 }
 
 interface CotacaoComprasContextType {
@@ -58,76 +35,83 @@ interface CotacaoComprasContextType {
 
 const CotacaoComprasContext = createContext<CotacaoComprasContextType | undefined>(undefined);
 
+const rowToCotacao = (r: any): CotacaoCompras => ({
+  id: r.id, requisicaoId: r.requisicao_id ?? "", requisicaoNumero: r.requisicao_numero ?? 0,
+  numero: r.numero ?? 0, dataCriacao: r.data_criacao ?? "", comprador: r.comprador ?? "",
+  status: r.status ?? "Em Andamento", propostas: r.propostas ?? [],
+  fornecedorVencedorId: r.fornecedor_vencedor_id ?? "",
+  justificativaEscolha: r.justificativa_escolha ?? "", itensVencedores: r.itens_vencedores ?? [],
+});
+
+const cotacaoToRow = (c: CotacaoCompras) => ({
+  requisicao_id: c.requisicaoId, requisicao_numero: c.requisicaoNumero,
+  numero: c.numero, data_criacao: c.dataCriacao, comprador: c.comprador,
+  status: c.status, propostas: c.propostas as any,
+  fornecedor_vencedor_id: c.fornecedorVencedorId,
+  justificativa_escolha: c.justificativaEscolha, itens_vencedores: c.itensVencedores as any,
+});
+
 export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
-  const [cotacoes, setCotacoes] = useState<CotacaoCompras[]>(() => {
-    const saved = localStorage.getItem("cotacoes_compras");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [cotacoes, setCotacoes] = useState<CotacaoCompras[]>([]);
 
-  const [nextNumero, setNextNumero] = useState(() => {
-    const saved = localStorage.getItem("cotacoes_compras");
-    if (!saved) return 1;
-    const list: CotacaoCompras[] = JSON.parse(saved);
-    return list.length > 0 ? Math.max(...list.map(c => c.numero)) + 1 : 1;
-  });
+  const load = useCallback(async () => {
+    const data = await fetchAll("cotacoes_compras", "created_at");
+    setCotacoes(data.map(rowToCotacao));
+  }, []);
 
-  useEffect(() => { localStorage.setItem("cotacoes_compras", JSON.stringify(cotacoes)); }, [cotacoes]);
+  useEffect(() => { load(); }, [load]);
+
+  const saveAndReload = async (id: string, updated: CotacaoCompras) => {
+    await updateRow("cotacoes_compras", id, cotacaoToRow(updated));
+    await load();
+  };
 
   const addCotacao = (data: Omit<CotacaoCompras, "id" | "numero" | "dataCriacao" | "status" | "propostas" | "fornecedorVencedorId" | "justificativaEscolha" | "itensVencedores">) => {
+    const maxNum = cotacoes.length > 0 ? Math.max(...cotacoes.map(c => c.numero)) : 0;
     const cot: CotacaoCompras = {
-      ...data,
-      id: crypto.randomUUID(),
-      numero: nextNumero,
-      dataCriacao: new Date().toISOString(),
-      status: "Em Andamento",
-      propostas: [],
-      fornecedorVencedorId: "",
-      justificativaEscolha: "",
-      itensVencedores: [],
+      ...data, id: crypto.randomUUID(), numero: maxNum + 1,
+      dataCriacao: new Date().toISOString(), status: "Em Andamento",
+      propostas: [], fornecedorVencedorId: "", justificativaEscolha: "", itensVencedores: [],
     };
-    setCotacoes(prev => [...prev, cot]);
-    setNextNumero(n => n + 1);
+    // Fire and forget insert
+    insertRow("cotacoes_compras", cotacaoToRow(cot)).then(() => load());
     return cot;
   };
 
-  const addProposta = (cotacaoId: string, proposta: Omit<PropostaFornecedor, "id" | "valorTotal">) => {
-    setCotacoes(prev => prev.map(c => {
-      if (c.id !== cotacaoId || c.status !== "Em Andamento") return c;
-      const valorTotal = proposta.itens.reduce((sum, i) => sum + i.precoUnitario * i.quantidade, 0);
-      return { ...c, propostas: [...c.propostas, { ...proposta, id: crypto.randomUUID(), valorTotal }] };
-    }));
+  const addProposta = async (cotacaoId: string, proposta: Omit<PropostaFornecedor, "id" | "valorTotal">) => {
+    const c = cotacoes.find(c => c.id === cotacaoId);
+    if (!c || c.status !== "Em Andamento") return;
+    const valorTotal = proposta.itens.reduce((sum, i) => sum + i.precoUnitario * i.quantidade, 0);
+    const updated = { ...c, propostas: [...c.propostas, { ...proposta, id: crypto.randomUUID(), valorTotal }] };
+    await saveAndReload(cotacaoId, updated);
   };
 
-  const removeProposta = (cotacaoId: string, propostaId: string) => {
-    setCotacoes(prev => prev.map(c => {
-      if (c.id !== cotacaoId || c.status !== "Em Andamento") return c;
-      return { ...c, propostas: c.propostas.filter(p => p.id !== propostaId) };
-    }));
+  const removeProposta = async (cotacaoId: string, propostaId: string) => {
+    const c = cotacoes.find(c => c.id === cotacaoId);
+    if (!c || c.status !== "Em Andamento") return;
+    await saveAndReload(cotacaoId, { ...c, propostas: c.propostas.filter(p => p.id !== propostaId) });
   };
 
-  const submeterAprovacao = (cotacaoId: string) => {
-    setCotacoes(prev => prev.map(c => {
-      if (c.id !== cotacaoId || c.status !== "Em Andamento") return c;
-      return { ...c, status: "Aguardando Aprovação" as StatusCotacao };
-    }));
+  const submeterAprovacao = async (cotacaoId: string) => {
+    const c = cotacoes.find(c => c.id === cotacaoId);
+    if (!c || c.status !== "Em Andamento") return;
+    await saveAndReload(cotacaoId, { ...c, status: "Aguardando Aprovação" });
   };
 
-  const aprovarCotacao = (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => {
-    setCotacoes(prev => prev.map(c => {
-      if (c.id !== cotacaoId) return c;
-      return { ...c, status: "Finalizada" as StatusCotacao, fornecedorVencedorId, justificativaEscolha: justificativa, itensVencedores: itensVencedores || [] };
-    }));
+  const aprovarCotacao = async (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => {
+    const c = cotacoes.find(c => c.id === cotacaoId);
+    if (!c) return;
+    await saveAndReload(cotacaoId, { ...c, status: "Finalizada", fornecedorVencedorId, justificativaEscolha: justificativa, itensVencedores: itensVencedores || [] });
   };
 
-  const finalizarCotacao = (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => {
-    setCotacoes(prev => prev.map(c => {
-      if (c.id !== cotacaoId) return c;
-      return { ...c, status: "Finalizada" as StatusCotacao, fornecedorVencedorId, justificativaEscolha: justificativa, itensVencedores: itensVencedores || [] };
-    }));
+  const finalizarCotacao = async (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => {
+    await aprovarCotacao(cotacaoId, fornecedorVencedorId, justificativa, itensVencedores);
   };
 
-  const cancelarCotacao = (cotacaoId: string) => {
-    setCotacoes(prev => prev.map(c => c.id === cotacaoId ? { ...c, status: "Cancelada" as StatusCotacao } : c));
+  const cancelarCotacao = async (cotacaoId: string) => {
+    const c = cotacoes.find(c => c.id === cotacaoId);
+    if (!c) return;
+    await saveAndReload(cotacaoId, { ...c, status: "Cancelada" });
   };
 
   const getCotacaoByRequisicao = (requisicaoId: string) => cotacoes.find(c => c.requisicaoId === requisicaoId);
