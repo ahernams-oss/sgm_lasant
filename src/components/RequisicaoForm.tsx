@@ -84,6 +84,9 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     }
     const cargoObj = cargos.find((c) => c.id === form.cargo);
     addRequisicao({
+      headcount: form.headcount,
+      orcamento: form.orcamento,
+      tipoVaga: form.tipoVaga,
       unidade: form.unidade,
       cargoId: form.cargo,
       cargoNome: cargoObj ? `${cargoObj.nome}${cargoObj.nivel ? ` — Nível ${cargoObj.nivel}` : ""}` : form.cargo,
