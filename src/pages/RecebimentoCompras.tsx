@@ -26,7 +26,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function RecebimentoComprasPage() {
-  const { pedidos } = usePedidoCompra();
+  const { pedidos, updateStatus: updatePedidoStatus } = usePedidoCompra();
   const { recebimentos, registrarRecebimento, getRecebimentosByPedido, getTotalRecebidoPorItem } = useRecebimento();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
@@ -266,13 +266,21 @@ export default function RecebimentoComprasPage() {
                             <History className="mr-2 h-4 w-4" />Histórico de Recebimentos
                           </DropdownMenuItem>
                         )}
-                        {["Confirmado", "Em Entrega", "Entregue Parcial"].includes(p.status) && (
+                        {(["Confirmado", "Em Entrega", "Entregue Parcial"].includes(p.status) || (p.status === "Entregue" && pedidoTemItensPendentes(p))) && (
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => openRecebimentoDialog(p)}>
                               <PackageCheck className="mr-2 h-4 w-4" />Registrar Recebimento
                             </DropdownMenuItem>
                           </>
+                        )}
+                        {p.status === "Entregue" && pedidoTemItensPendentes(p) && (
+                          <DropdownMenuItem onClick={() => {
+                            updatePedidoStatus(p.id, "Entregue Parcial", usuarioLogado?.nome || "Sistema", "Status corrigido - itens pendentes de recebimento");
+                            toast({ title: "Status corrigido para 'Entregue Parcial'" });
+                          }}>
+                            <ClipboardList className="mr-2 h-4 w-4" />Corrigir Status (Entregue Parcial)
+                          </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
