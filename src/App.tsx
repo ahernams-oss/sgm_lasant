@@ -114,6 +114,7 @@ const App = () => (
     </AuthProvider>
     </FabricantesProvider>
     </RecebimentoProvider>
+    </EstoqueProvider>
     </PedidoCompraProvider>
     </CotacaoComprasProvider>
     </RequisicaoComprasProvider>
