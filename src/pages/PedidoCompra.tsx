@@ -78,8 +78,8 @@ export default function PedidoCompraPage() {
   const getEmpresa = () => clientes.find(c => c.tipo === "Cliente") || null;
   const getFornecedor = (fornecedorId: string) => clientes.find(c => c.id === fornecedorId) || null;
 
-  const handleDownloadPdf = (pedido: PedidoCompra) => {
-    downloadPdfOrdemCompra({
+  const handleDownloadPdf = async (pedido: PedidoCompra) => {
+    await downloadPdfOrdemCompra({
       pedido,
       empresa: getEmpresa(),
       fornecedor: getFornecedor(pedido.fornecedorId),
