@@ -35,6 +35,7 @@ function getNextStatuses(current: StatusPedido): StatusPedido[] {
 
 export default function PedidoCompraPage() {
   const { pedidos, updateStatus, cancelarPedido } = usePedidoCompra();
+  const { requisicoes } = useRequisicaoCompras();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
 
