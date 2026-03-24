@@ -29,7 +29,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function CotacaoComprasPage() {
-  const { cotacoes, addCotacao, addProposta, removeProposta, finalizarCotacao, cancelarCotacao } = useCotacaoCompras();
+  const { cotacoes, addCotacao, addProposta, removeProposta, submeterAprovacao, aprovarCotacao, finalizarCotacao, cancelarCotacao } = useCotacaoCompras();
   const { requisicoes, updateStatus } = useRequisicaoCompras();
   const { addPedido } = usePedidoCompra();
   const { clientes } = useClientes();
