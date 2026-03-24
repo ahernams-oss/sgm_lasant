@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { usePedidoCompra, PedidoCompra, StatusPedido } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
+import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +13,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Eye, Clock, ArrowRight, CheckSquare } from "lucide-react";
+import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send } from "lucide-react";
 import { format } from "date-fns";
+import { downloadPdfOrdemCompra, getPdfOrdemCompraBase64 } from "@/lib/gerarPdfOrdemCompra";
+import { enviarWhatsApp } from "@/lib/whatsapp";
+import { supabase } from "@/integrations/supabase/client";
 
 const statusColors: Record<StatusPedido, string> = {
   Emitido: "bg-blue-100 text-blue-800",
@@ -30,13 +34,13 @@ function getNextStatuses(current: StatusPedido): StatusPedido[] {
   if (current === "Cancelado" || current === "Entregue") return [];
   const idx = statusFlow.indexOf(current);
   if (idx < 0) return [];
-  const next = statusFlow.slice(idx + 1).filter(s => s !== "Entregue Parcial");
-  return next;
+  return statusFlow.slice(idx + 1).filter(s => s !== "Entregue Parcial");
 }
 
 export default function PedidoCompraPage() {
   const { pedidos, updateStatus, cancelarPedido } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
+  const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
 
@@ -50,6 +54,14 @@ export default function PedidoCompraPage() {
   const [statusObs, setStatusObs] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
+  // Send dialog state
+  const [sendDialogOpen, setSendDialogOpen] = useState(false);
+  const [sendPedido, setSendPedido] = useState<PedidoCompra | null>(null);
+  const [sendMethod, setSendMethod] = useState<"email" | "whatsapp" | "">("");
+  const [sendEmail, setSendEmail] = useState("");
+  const [sendPhone, setSendPhone] = useState("");
+  const [sending, setSending] = useState(false);
+
   const filtered = useMemo(() => {
     let list = pedidos;
     if (filterStatus !== "Todos") list = list.filter(p => p.status === filterStatus);
@@ -62,6 +74,101 @@ export default function PedidoCompraPage() {
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+  // Get empresa (first client of type "Cliente") and fornecedor for PDF
+  const getEmpresa = () => clientes.find(c => c.tipo === "Cliente") || null;
+  const getFornecedor = (fornecedorId: string) => clientes.find(c => c.id === fornecedorId) || null;
+
+  const handleDownloadPdf = (pedido: PedidoCompra) => {
+    downloadPdfOrdemCompra({
+      pedido,
+      empresa: getEmpresa(),
+      fornecedor: getFornecedor(pedido.fornecedorId),
+      autorizadoPor: usuarioLogado?.nome || "Usuário",
+    });
+    toast({ title: "PDF da Ordem de Compra baixado com sucesso" });
+  };
+
+  const openSendDialog = (pedido: PedidoCompra) => {
+    const fornecedor = getFornecedor(pedido.fornecedorId);
+    setSendPedido(pedido);
+    setSendEmail(fornecedor?.email || fornecedor?.emailCompras || "");
+    setSendPhone(fornecedor?.telefoneCelular || fornecedor?.telefonesWhatsapp || "");
+    setSendMethod("");
+    setSendDialogOpen(true);
+  };
+
+  const handleSend = async () => {
+    if (!sendPedido) return;
+    setSending(true);
+
+    const pdfData = {
+      pedido: sendPedido,
+      empresa: getEmpresa(),
+      fornecedor: getFornecedor(sendPedido.fornecedorId),
+      autorizadoPor: usuarioLogado?.nome || "Usuário",
+    };
+
+    try {
+      if (sendMethod === "email") {
+        if (!sendEmail.trim()) {
+          toast({ title: "Informe o e-mail do fornecedor", variant: "destructive" });
+          setSending(false);
+          return;
+        }
+        const pdfBase64 = getPdfOrdemCompraBase64(pdfData);
+        const pcNum = `PC-${String(sendPedido.numero).padStart(4, "0")}`;
+        const { data, error } = await supabase.functions.invoke("send-email-ordem", {
+          body: {
+            to: sendEmail,
+            subject: `Ordem de Compra ${pcNum} - ${sendPedido.fornecedorNome}`,
+            htmlBody: `
+              <h2>Ordem de Compra ${pcNum}</h2>
+              <p>Prezado(a),</p>
+              <p>Segue em anexo a Ordem de Compra <strong>${pcNum}</strong> referente ao pedido de compra.</p>
+              <p><strong>Fornecedor:</strong> ${sendPedido.fornecedorNome}</p>
+              <p><strong>Valor Total:</strong> ${formatCurrency(sendPedido.valorTotal)}</p>
+              <p><strong>Prazo de Entrega:</strong> ${sendPedido.prazoEntrega || "A combinar"}</p>
+              <p><strong>Condição de Pagamento:</strong> ${sendPedido.condicaoPagamento || "A vista"}</p>
+              <br>
+              <p>Atenciosamente,<br>${usuarioLogado?.nome || "Departamento de Compras"}</p>
+            `,
+            pdfBase64,
+            pdfFilename: `Ordem_Compra_${pcNum}.pdf`,
+          },
+        });
+
+        if (error) throw new Error(error.message);
+        toast({ title: `Ordem de compra enviada por e-mail para ${sendEmail}` });
+      } else if (sendMethod === "whatsapp") {
+        if (!sendPhone.trim()) {
+          toast({ title: "Informe o telefone do fornecedor", variant: "destructive" });
+          setSending(false);
+          return;
+        }
+        // First download PDF so user can share, then send WhatsApp message
+        downloadPdfOrdemCompra(pdfData);
+
+        const pcNum = `PC-${String(sendPedido.numero).padStart(4, "0")}`;
+        const mensagem = `*Ordem de Compra ${pcNum}*\n\n` +
+          `Fornecedor: ${sendPedido.fornecedorNome}\n` +
+          `Valor Total: ${formatCurrency(sendPedido.valorTotal)}\n` +
+          `Prazo de Entrega: ${sendPedido.prazoEntrega || "A combinar"}\n` +
+          `Condição de Pagamento: ${sendPedido.condicaoPagamento || "A vista"}\n` +
+          `\nO PDF da Ordem de Compra foi gerado. Por favor, envie o arquivo baixado junto a esta mensagem.`;
+
+        const result = await enviarWhatsApp(sendPhone, mensagem);
+        if (!result.success) throw new Error(result.error || "Erro ao enviar WhatsApp");
+        toast({ title: `Mensagem enviada via WhatsApp para ${sendPhone}` });
+      }
+      setSendDialogOpen(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      toast({ title: `Erro ao enviar: ${msg}`, variant: "destructive" });
+    } finally {
+      setSending(false);
+    }
+  };
+
   const openStatusDialog = (pedidoOrIds: PedidoCompra | string[]) => {
     const ids = Array.isArray(pedidoOrIds) ? pedidoOrIds : [pedidoOrIds.id];
     setStatusPedidoIds(ids);
@@ -70,7 +177,6 @@ export default function PedidoCompraPage() {
     setStatusDialogOpen(true);
   };
 
-  // Compute common next statuses for all selected pedidos
   const commonNextStatuses = useMemo(() => {
     if (statusPedidoIds.length === 0) return [];
     const sets = statusPedidoIds.map(id => {
@@ -105,11 +211,8 @@ export default function PedidoCompraPage() {
   const selectableFiltered = filtered.filter(p => getNextStatuses(p.status).length > 0);
   const allSelectableSelected = selectableFiltered.length > 0 && selectableFiltered.every(p => selectedIds.includes(p.id));
   const toggleSelectAll = () => {
-    if (allSelectableSelected) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(selectableFiltered.map(p => p.id));
-    }
+    if (allSelectableSelected) setSelectedIds([]);
+    else setSelectedIds(selectableFiltered.map(p => p.id));
   };
 
   return (
@@ -145,7 +248,7 @@ export default function PedidoCompraPage() {
 
       <div className="border rounded-lg">
         <Table>
-           <TableHeader>
+          <TableHeader>
             <TableRow>
               <TableHead className="w-10">
                 <Checkbox checked={allSelectableSelected && selectableFiltered.length > 0} onCheckedChange={toggleSelectAll} />
@@ -158,7 +261,7 @@ export default function PedidoCompraPage() {
               <TableHead>Valor Total</TableHead>
               <TableHead>Prazo</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-36">Ações</TableHead>
+              <TableHead className="w-48">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -168,30 +271,32 @@ export default function PedidoCompraPage() {
               const rcVinculada = requisicoes.find(r => r.id === p.requisicaoId);
               const canUpdate = getNextStatuses(p.status).length > 0;
               return (
-              <TableRow key={p.id} className={selectedIds.includes(p.id) ? "bg-primary/5" : ""}>
-                <TableCell>
-                  {canUpdate ? (
-                    <Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggleSelect(p.id)} />
-                  ) : <div className="w-4" />}
-                </TableCell>
-                <TableCell className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</TableCell>
-                <TableCell className="text-sm">{rcVinculada?.centroCustoNome || "-"}</TableCell>
-                <TableCell className="font-mono">RC-{String(p.requisicaoNumero).padStart(4, "0")}</TableCell>
-                <TableCell>{format(new Date(p.dataCriacao), "dd/MM/yyyy")}</TableCell>
-                <TableCell>{p.fornecedorNome}</TableCell>
-                <TableCell className="font-medium">{formatCurrency(p.valorTotal)}</TableCell>
-                <TableCell>{p.prazoEntrega || "-"}</TableCell>
-                <TableCell><Badge className={statusColors[p.status]}>{p.status}</Badge></TableCell>
-                <TableCell>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" title="Detalhes" onClick={() => setViewPedido(p)}><Eye className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" title="Histórico" onClick={() => setHistoricoPedido(p)}><Clock className="h-4 w-4" /></Button>
-                    {getNextStatuses(p.status).length > 0 && (
-                      <Button variant="ghost" size="icon" title="Atualizar Status" onClick={() => openStatusDialog(p)}><ArrowRight className="h-4 w-4" /></Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
+                <TableRow key={p.id} className={selectedIds.includes(p.id) ? "bg-primary/5" : ""}>
+                  <TableCell>
+                    {canUpdate ? (
+                      <Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggleSelect(p.id)} />
+                    ) : <div className="w-4" />}
+                  </TableCell>
+                  <TableCell className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</TableCell>
+                  <TableCell className="text-sm">{rcVinculada?.centroCustoNome || "-"}</TableCell>
+                  <TableCell className="font-mono">RC-{String(p.requisicaoNumero).padStart(4, "0")}</TableCell>
+                  <TableCell>{format(new Date(p.dataCriacao), "dd/MM/yyyy")}</TableCell>
+                  <TableCell>{p.fornecedorNome}</TableCell>
+                  <TableCell className="font-medium">{formatCurrency(p.valorTotal)}</TableCell>
+                  <TableCell>{p.prazoEntrega || "-"}</TableCell>
+                  <TableCell><Badge className={statusColors[p.status]}>{p.status}</Badge></TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" title="Detalhes" onClick={() => setViewPedido(p)}><Eye className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" title="Histórico" onClick={() => setHistoricoPedido(p)}><Clock className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" title="Baixar PDF" onClick={() => handleDownloadPdf(p)}><FileDown className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" title="Enviar ao Fornecedor" onClick={() => openSendDialog(p)}><Send className="h-4 w-4" /></Button>
+                      {canUpdate && (
+                        <Button variant="ghost" size="icon" title="Atualizar Status" onClick={() => openStatusDialog(p)}><ArrowRight className="h-4 w-4" /></Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
               );
             })}
           </TableBody>
@@ -244,6 +349,15 @@ export default function PedidoCompraPage() {
               <div className="text-right font-bold text-lg">Total: {formatCurrency(viewPedido.valorTotal)}</div>
 
               {viewPedido.observacoes && <div><span className="text-muted-foreground text-sm">Observações:</span><p className="text-sm">{viewPedido.observacoes}</p></div>}
+
+              <div className="flex gap-2 pt-4 border-t">
+                <Button onClick={() => handleDownloadPdf(viewPedido)} variant="outline">
+                  <FileDown className="h-4 w-4 mr-2" /> Baixar PDF
+                </Button>
+                <Button onClick={() => { setViewPedido(null); openSendDialog(viewPedido); }}>
+                  <Send className="h-4 w-4 mr-2" /> Enviar ao Fornecedor
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
@@ -303,6 +417,73 @@ export default function PedidoCompraPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleUpdateStatus}>Confirmar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Enviar Ordem de Compra */}
+      <Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enviar Ordem de Compra</DialogTitle>
+            <DialogDescription>
+              {sendPedido && `PC-${String(sendPedido.numero).padStart(4, "0")} — ${sendPedido.fornecedorNome}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Método de Envio *</Label>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                <Button
+                  variant={sendMethod === "email" ? "default" : "outline"}
+                  className="h-20 flex flex-col gap-2"
+                  onClick={() => setSendMethod("email")}
+                >
+                  <Mail className="h-6 w-6" />
+                  <span>E-mail</span>
+                </Button>
+                <Button
+                  variant={sendMethod === "whatsapp" ? "default" : "outline"}
+                  className="h-20 flex flex-col gap-2"
+                  onClick={() => setSendMethod("whatsapp")}
+                >
+                  <MessageCircle className="h-6 w-6" />
+                  <span>WhatsApp</span>
+                </Button>
+              </div>
+            </div>
+
+            {sendMethod === "email" && (
+              <div>
+                <Label>E-mail do Fornecedor *</Label>
+                <Input
+                  type="email"
+                  value={sendEmail}
+                  onChange={e => setSendEmail(e.target.value)}
+                  placeholder="fornecedor@email.com"
+                />
+              </div>
+            )}
+
+            {sendMethod === "whatsapp" && (
+              <div>
+                <Label>Telefone WhatsApp do Fornecedor *</Label>
+                <Input
+                  value={sendPhone}
+                  onChange={e => setSendPhone(e.target.value)}
+                  placeholder="+55 21 99999-9999"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  O PDF será baixado automaticamente para você anexar na conversa.
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSendDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSend} disabled={!sendMethod || sending}>
+              {sending ? "Enviando..." : "Enviar"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
