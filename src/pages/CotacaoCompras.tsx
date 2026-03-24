@@ -17,18 +17,19 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { format, subDays, isAfter } from "date-fns";
 
 const statusColors: Record<string, string> = {
   "Em Andamento": "bg-yellow-100 text-yellow-800",
+  "Aguardando Aprovação": "bg-blue-100 text-blue-800",
   Finalizada: "bg-green-100 text-green-800",
   Cancelada: "bg-red-200 text-red-900",
 };
 
 export default function CotacaoComprasPage() {
-  const { cotacoes, addCotacao, addProposta, removeProposta, finalizarCotacao, cancelarCotacao } = useCotacaoCompras();
+  const { cotacoes, addCotacao, addProposta, removeProposta, submeterAprovacao, aprovarCotacao, finalizarCotacao, cancelarCotacao } = useCotacaoCompras();
   const { requisicoes, updateStatus } = useRequisicaoCompras();
   const { addPedido } = usePedidoCompra();
   const { clientes } = useClientes();
@@ -68,6 +69,8 @@ export default function CotacaoComprasPage() {
   const [propostaCotacaoId, setPropostaCotacaoId] = useState("");
   const [finalizarDialogOpen, setFinalizarDialogOpen] = useState(false);
   const [finalizarCotacaoId, setFinalizarCotacaoId] = useState("");
+  const [aprovarDialogOpen, setAprovarDialogOpen] = useState(false);
+  const [aprovarCotacaoId, setAprovarCotacaoId] = useState("");
   const [mapaDialogOpen, setMapaDialogOpen] = useState(false);
   const [mapaCotacao, setMapaCotacao] = useState<CotacaoCompras | null>(null);
 
@@ -159,21 +162,39 @@ export default function CotacaoComprasPage() {
 
   const openFinalizarDialog = (cotacaoId: string) => {
     setFinalizarCotacaoId(cotacaoId);
-    setFinVencedorId(""); setFinJustificativa("");
-    setFinItensVencedores({});
-    setFinModoItemizado(false);
     setFinalizarDialogOpen(true);
   };
 
   const handleFinalizar = () => {
-    if (!finJustificativa.trim()) { toast({ title: "Justificativa é obrigatória", variant: "destructive" }); return; }
     const cot = cotacoes.find(c => c.id === finalizarCotacaoId);
+    if (!cot) return;
+    if (cot.propostas.length < 1) {
+      toast({ title: "É necessário ao menos 1 proposta para finalizar", variant: "destructive" });
+      return;
+    }
+    submeterAprovacao(finalizarCotacaoId);
+    updateStatus(cot.requisicaoId, "Em Cotação", usuarioLogado?.nome || "Comprador", "Cotação submetida para aprovação");
+    toast({ title: "Cotação finalizada e enviada para aprovação!" });
+    setFinalizarDialogOpen(false);
+  };
+
+  // === Aprovar Cotação ===
+  const openAprovarDialog = (cotacaoId: string) => {
+    setAprovarCotacaoId(cotacaoId);
+    setFinVencedorId(""); setFinJustificativa("");
+    setFinItensVencedores({});
+    setFinModoItemizado(false);
+    setAprovarDialogOpen(true);
+  };
+
+  const handleAprovar = () => {
+    if (!finJustificativa.trim()) { toast({ title: "Justificativa é obrigatória", variant: "destructive" }); return; }
+    const cot = cotacoes.find(c => c.id === aprovarCotacaoId);
     if (!cot) return;
     const req = requisicoes.find(r => r.id === cot.requisicaoId);
     if (!req) return;
 
     if (finModoItemizado) {
-      // Item-level authorization
       const allAssigned = req.itens.every(i => finItensVencedores[i.id]);
       if (!allAssigned) { toast({ title: "Selecione um fornecedor para cada item", variant: "destructive" }); return; }
 
@@ -183,13 +204,11 @@ export default function CotacaoComprasPage() {
         return { itemId: i.id, fornecedorId: fornId, fornecedorNome: prop?.fornecedorNome || "" };
       });
 
-      // Group items by supplier
       const fornecedorIds = [...new Set(itensVencedores.map(iv => iv.fornecedorId))];
       const principalFornecedorId = fornecedorIds[0];
 
-      finalizarCotacao(finalizarCotacaoId, principalFornecedorId, finJustificativa, itensVencedores);
+      aprovarCotacao(aprovarCotacaoId, principalFornecedorId, finJustificativa, itensVencedores);
 
-      // Create one pedido per supplier
       for (const fornId of fornecedorIds) {
         const prop = cot.propostas.find(p => p.fornecedorId === fornId);
         if (!prop) continue;
@@ -213,17 +232,16 @@ export default function CotacaoComprasPage() {
         });
       }
 
-      updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Comprador",
+      updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador",
         fornecedorIds.length > 1
-          ? `${fornecedorIds.length} pedidos gerados (autorização por item)`
-          : "Pedido gerado automaticamente após cotação"
+          ? `${fornecedorIds.length} pedidos gerados (aprovação por item)`
+          : "Pedido gerado após aprovação"
       );
 
-      toast({ title: `Cotação finalizada! ${fornecedorIds.length} pedido(s) emitido(s).` });
+      toast({ title: `Cotação aprovada! ${fornecedorIds.length} pedido(s) emitido(s).` });
     } else {
-      // Single supplier mode (original)
       if (!finVencedorId) { toast({ title: "Selecione o fornecedor vencedor", variant: "destructive" }); return; }
-      finalizarCotacao(finalizarCotacaoId, finVencedorId, finJustificativa);
+      aprovarCotacao(aprovarCotacaoId, finVencedorId, finJustificativa);
 
       const propVencedora = cot.propostas.find(p => p.fornecedorId === finVencedorId);
       if (propVencedora) {
@@ -240,12 +258,12 @@ export default function CotacaoComprasPage() {
           localEntrega: req.localEntrega || "",
           observacoes: "",
         });
-        updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Comprador", "Pedido gerado automaticamente após cotação");
+        updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador", "Pedido gerado após aprovação");
       }
-      toast({ title: "Cotação finalizada e pedido emitido!" });
+      toast({ title: "Cotação aprovada e pedido emitido!" });
     }
 
-    setFinalizarDialogOpen(false);
+    setAprovarDialogOpen(false);
   };
 
   const openMapa = (cot: CotacaoCompras) => { setMapaCotacao(cot); setMapaDialogOpen(true); };
@@ -393,6 +411,7 @@ export default function CotacaoComprasPage() {
           <SelectContent>
             <SelectItem value="Todos">Todos os Status</SelectItem>
             <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+            <SelectItem value="Aguardando Aprovação">Aguardando Aprovação</SelectItem>
             <SelectItem value="Finalizada">Finalizada</SelectItem>
             <SelectItem value="Cancelada">Cancelada</SelectItem>
           </SelectContent>
@@ -476,7 +495,19 @@ export default function CotacaoComprasPage() {
                             <Plus className="mr-2 h-4 w-4" />Adicionar Proposta Manual
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openFinalizarDialog(c.id)} disabled={c.propostas.length < 1}>
-                            <Trophy className="mr-2 h-4 w-4" />Finalizar Cotação
+                            <Lock className="mr-2 h-4 w-4" />Finalizar Cotação
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => { cancelarCotacao(c.id); toast({ title: "Cotação cancelada" }); }}>
+                            <XCircle className="mr-2 h-4 w-4" />Cancelar
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      {c.status === "Aguardando Aprovação" && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => openAprovarDialog(c.id)}>
+                            <ShieldCheck className="mr-2 h-4 w-4" />Aprovar Cotação
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive" onClick={() => { cancelarCotacao(c.id); toast({ title: "Cotação cancelada" }); }}>
@@ -623,11 +654,50 @@ export default function CotacaoComprasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog Finalizar Cotação */}
+      {/* Dialog Finalizar Cotação (travar valores) */}
       <Dialog open={finalizarDialogOpen} onOpenChange={setFinalizarDialogOpen}>
-        <DialogContent className={finModoItemizado ? "max-w-3xl max-h-[85vh] overflow-y-auto" : ""}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Finalizar Cotação</DialogTitle>
+            <DialogDescription>
+              Ao finalizar, os valores das propostas serão travados e a cotação será enviada para aprovação do usuário autorizador.
+            </DialogDescription>
+          </DialogHeader>
+          {(() => {
+            const cot = cotacoes.find(c => c.id === finalizarCotacaoId);
+            if (!cot) return null;
+            return (
+              <div className="space-y-3">
+                <div className="text-sm space-y-1">
+                  <p><span className="text-muted-foreground">Cotação:</span> COT-{String(cot.numero).padStart(4, "0")}</p>
+                  <p><span className="text-muted-foreground">Propostas recebidas:</span> {cot.propostas.length}</p>
+                </div>
+                <div className="rounded-lg border p-3 bg-muted/30">
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-primary" />
+                    Os valores das propostas serão travados
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Nenhuma proposta poderá ser adicionada ou removida após a finalização. O aprovador poderá autorizar por pedido completo ou por item individual.
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFinalizarDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleFinalizar}>
+              <Lock className="mr-2 h-4 w-4" />Finalizar e Enviar para Aprovação
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Aprovar Cotação */}
+      <Dialog open={aprovarDialogOpen} onOpenChange={setAprovarDialogOpen}>
+        <DialogContent className={finModoItemizado ? "max-w-3xl max-h-[85vh] overflow-y-auto" : ""}>
+          <DialogHeader>
+            <DialogTitle>Aprovar Cotação</DialogTitle>
             <DialogDescription>
               {finModoItemizado
                 ? "Escolha o fornecedor para cada item individualmente. Pedidos separados serão gerados por fornecedor."
@@ -638,7 +708,7 @@ export default function CotacaoComprasPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
               <div className="space-y-0.5">
-                <Label className="text-sm font-medium">Autorizar por item</Label>
+                <Label className="text-sm font-medium">Aprovar por item</Label>
                 <p className="text-xs text-muted-foreground">
                   Permite escolher fornecedores diferentes para cada item
                 </p>
@@ -659,7 +729,7 @@ export default function CotacaoComprasPage() {
                 <Select value={finVencedorId} onValueChange={setFinVencedorId}>
                   <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    {cotacoes.find(c => c.id === finalizarCotacaoId)?.propostas.map(p => (
+                    {cotacoes.find(c => c.id === aprovarCotacaoId)?.propostas.map(p => (
                       <SelectItem key={p.fornecedorId} value={p.fornecedorId}>{p.fornecedorNome} — {formatCurrency(p.valorTotal)}</SelectItem>
                     ))}
                   </SelectContent>
@@ -668,7 +738,7 @@ export default function CotacaoComprasPage() {
             )}
 
             {finModoItemizado && (() => {
-              const cot = cotacoes.find(c => c.id === finalizarCotacaoId);
+              const cot = cotacoes.find(c => c.id === aprovarCotacaoId);
               const req = cot ? requisicoes.find(r => r.id === cot.requisicaoId) : null;
               if (!cot || !req) return null;
               const propostas = cot.propostas;
@@ -734,7 +804,6 @@ export default function CotacaoComprasPage() {
                       </TableBody>
                     </Table>
 
-                    {/* Summary by supplier */}
                     {Object.keys(finItensVencedores).length > 0 && (() => {
                       const groups: Record<string, { nome: string; total: number; count: number }> = {};
                       for (const [itemId, fornId] of Object.entries(finItensVencedores)) {
@@ -767,14 +836,15 @@ export default function CotacaoComprasPage() {
             })()}
 
             <div>
-              <Label>Justificativa da Escolha *</Label>
-              <Textarea value={finJustificativa} onChange={e => setFinJustificativa(e.target.value)} placeholder="Justifique a escolha do(s) fornecedor(es)..." rows={3} />
+              <Label>Justificativa da Aprovação *</Label>
+              <Textarea value={finJustificativa} onChange={e => setFinJustificativa(e.target.value)} placeholder="Justifique a aprovação e escolha do(s) fornecedor(es)..." rows={3} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setFinalizarDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleFinalizar}>
-              {finModoItemizado ? "Finalizar e Emitir Pedidos" : "Finalizar e Emitir Pedido"}
+            <Button variant="outline" onClick={() => setAprovarDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAprovar}>
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              {finModoItemizado ? "Aprovar e Emitir Pedidos" : "Aprovar e Emitir Pedido"}
             </Button>
           </DialogFooter>
         </DialogContent>

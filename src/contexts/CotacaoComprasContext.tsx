@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-export type StatusCotacao = "Em Andamento" | "Finalizada" | "Cancelada";
+export type StatusCotacao = "Em Andamento" | "Aguardando Aprovação" | "Finalizada" | "Cancelada";
 
 export interface ItemCotacaoFornecedor {
   itemId: string;
@@ -49,6 +49,8 @@ interface CotacaoComprasContextType {
   addCotacao: (data: Omit<CotacaoCompras, "id" | "numero" | "dataCriacao" | "status" | "propostas" | "fornecedorVencedorId" | "justificativaEscolha" | "itensVencedores">) => CotacaoCompras;
   addProposta: (cotacaoId: string, proposta: Omit<PropostaFornecedor, "id" | "valorTotal">) => void;
   removeProposta: (cotacaoId: string, propostaId: string) => void;
+  submeterAprovacao: (cotacaoId: string) => void;
+  aprovarCotacao: (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => void;
   finalizarCotacao: (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => void;
   cancelarCotacao: (cotacaoId: string) => void;
   getCotacaoByRequisicao: (requisicaoId: string) => CotacaoCompras | undefined;
@@ -103,6 +105,20 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const submeterAprovacao = (cotacaoId: string) => {
+    setCotacoes(prev => prev.map(c => {
+      if (c.id !== cotacaoId || c.status !== "Em Andamento") return c;
+      return { ...c, status: "Aguardando Aprovação" as StatusCotacao };
+    }));
+  };
+
+  const aprovarCotacao = (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => {
+    setCotacoes(prev => prev.map(c => {
+      if (c.id !== cotacaoId) return c;
+      return { ...c, status: "Finalizada" as StatusCotacao, fornecedorVencedorId, justificativaEscolha: justificativa, itensVencedores: itensVencedores || [] };
+    }));
+  };
+
   const finalizarCotacao = (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => {
     setCotacoes(prev => prev.map(c => {
       if (c.id !== cotacaoId) return c;
@@ -117,7 +133,7 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
   const getCotacaoByRequisicao = (requisicaoId: string) => cotacoes.find(c => c.requisicaoId === requisicaoId);
 
   return (
-    <CotacaoComprasContext.Provider value={{ cotacoes, addCotacao, addProposta, removeProposta, finalizarCotacao, cancelarCotacao, getCotacaoByRequisicao }}>
+    <CotacaoComprasContext.Provider value={{ cotacoes, addCotacao, addProposta, removeProposta, submeterAprovacao, aprovarCotacao, finalizarCotacao, cancelarCotacao, getCotacaoByRequisicao }}>
       {children}
     </CotacaoComprasContext.Provider>
   );
