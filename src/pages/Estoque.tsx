@@ -3,6 +3,8 @@ import { useEstoque, MovimentacaoEstoque, SaldoEstoque } from "@/contexts/Estoqu
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
+import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +22,8 @@ export default function EstoquePage() {
   const { materiais } = useMateriaisServicos();
   const { usuarioLogado } = useAuth();
   const { clientes } = useClientes();
+  const { pedidos } = usePedidoCompra();
+  const { requisicoes } = useRequisicaoCompras();
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
@@ -56,6 +60,25 @@ export default function EstoquePage() {
     return Array.from(locs).sort();
   }, [clientes, movimentacoes]);
 
+  // Centro de custo lookup: pedidoNumero → centroCustoNome
+  const centroCustoMap = useMemo(() => {
+    const map = new Map<number, string>();
+    pedidos.forEach(p => {
+      const rc = requisicoes.find(r => r.id === p.requisicaoId);
+      if (rc?.centroCustoNome) map.set(p.numero, rc.centroCustoNome);
+    });
+    return map;
+  }, [pedidos, requisicoes]);
+
+  const getCentroCustoFromDocRef = (docRef: string): string => {
+    const match = docRef.match(/Pedido\s+(\d+)/i);
+    if (match) {
+      const num = parseInt(match[1]);
+      return centroCustoMap.get(num) || "-";
+    }
+    return "-";
+  };
+
   // === SALDOS ===
   const saldos = useMemo(() => {
     const all = getSaldos();
@@ -63,6 +86,19 @@ export default function EstoquePage() {
     const s = search.toLowerCase();
     return all.filter(sl => sl.materialCodigo.toLowerCase().includes(s) || sl.materialDescricao.toLowerCase().includes(s) || sl.local.toLowerCase().includes(s));
   }, [getSaldos, search]);
+
+  // Map saldo (material+local) → centro de custo from most recent movement
+  const saldoCentroCusto = useMemo(() => {
+    const map = new Map<string, string>();
+    // Process movements in order so latest wins
+    movimentacoes.forEach(m => {
+      const cc = getCentroCustoFromDocRef(m.documentoRef);
+      if (cc !== "-") {
+        map.set(`${m.materialId}|${m.local}`, cc);
+      }
+    });
+    return map;
+  }, [movimentacoes, centroCustoMap]);
 
   // === ALERTAS ===
   const alertas = useMemo(() => {
@@ -219,21 +255,23 @@ export default function EstoquePage() {
         <TabsContent value="saldos">
           <div className="border rounded-lg">
             <Table>
-              <TableHeader>
+             <TableHeader>
                 <TableRow>
                   <TableHead>Código</TableHead>
                   <TableHead>Material/Serviço</TableHead>
+                  <TableHead>Centro de Custo</TableHead>
                   <TableHead>Local</TableHead>
                   <TableHead className="text-right">Quantidade</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {saldos.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum saldo registrado</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum saldo registrado</TableCell></TableRow>
                 ) : saldos.map((s, i) => (
                   <TableRow key={i}>
                     <TableCell className="font-mono">{s.materialCodigo}</TableCell>
                     <TableCell>{s.materialDescricao}</TableCell>
+                    <TableCell>{saldoCentroCusto.get(`${s.materialId}|${s.local}`) || "-"}</TableCell>
                     <TableCell>{s.local}</TableCell>
                     <TableCell className="text-right font-semibold">{s.quantidade.toLocaleString("pt-BR")}</TableCell>
                   </TableRow>
@@ -253,6 +291,7 @@ export default function EstoquePage() {
                   <TableHead>Tipo</TableHead>
                   <TableHead>Código</TableHead>
                   <TableHead>Material</TableHead>
+                  <TableHead>Centro de Custo</TableHead>
                   <TableHead>Local</TableHead>
                   <TableHead className="text-right">Qtd</TableHead>
                   <TableHead>Documento</TableHead>
@@ -261,13 +300,14 @@ export default function EstoquePage() {
               </TableHeader>
               <TableBody>
                 {movFiltered.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma movimentação</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma movimentação</TableCell></TableRow>
                 ) : movFiltered.slice(0, 100).map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="text-xs">{m.dataMovimentacao ? new Date(m.dataMovimentacao).toLocaleDateString("pt-BR") : "-"}</TableCell>
                     <TableCell><Badge className={tipoColor(m.tipo)}>{m.tipo === "entrada" ? "Entrada" : m.tipo === "saida" ? "Saída" : "Ajuste"}</Badge></TableCell>
                     <TableCell className="font-mono">{m.materialCodigo}</TableCell>
                     <TableCell>{m.materialDescricao}</TableCell>
+                    <TableCell>{getCentroCustoFromDocRef(m.documentoRef)}</TableCell>
                     <TableCell>{m.local}</TableCell>
                     <TableCell className="text-right font-semibold">{m.quantidade.toLocaleString("pt-BR")}</TableCell>
                     <TableCell className="text-xs">{m.documentoRef || "-"}</TableCell>
