@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-export type StatusCotacao = "Em Andamento" | "Finalizada" | "Cancelada";
+export type StatusCotacao = "Em Andamento" | "Aguardando Aprovação" | "Finalizada" | "Cancelada";
 
 export interface ItemCotacaoFornecedor {
   itemId: string;
