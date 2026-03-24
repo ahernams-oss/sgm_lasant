@@ -269,7 +269,9 @@ export async function gerarPdfEpi(func: Funcionario, opts: EpiPdfOptions = {}) {
   // Page 1 - Header + Employee Data + Termo + EPI Table start
   await drawHeader(doc, pw, logoLasant, logoSeg);
   let y = drawEmployeeData(doc, func, opts, pw);
-  y = drawTermoAndLegal(doc, pw, y);
+  const epis = func.epis || [];
+  const primeiraDataEntrega = epis.length > 0 ? epis[0].dataEntrega : "";
+  y = drawTermoAndLegal(doc, pw, y, primeiraDataEntrega);
 
   // EPI Table starts on same page
   const epis = func.epis || [];
