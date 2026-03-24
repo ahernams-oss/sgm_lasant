@@ -28,6 +28,7 @@ const RequisicaoContext = createContext<RequisicaoContextType | undefined>(undef
 
 const rowToReq = (r: any): Requisicao => ({
   id: r.id, numero: r.numero ?? 0, dataCriacao: r.data_criacao ?? "",
+  headcount: r.headcount ?? "", orcamento: r.orcamento ?? "", tipoVaga: r.tipo_vaga ?? "",
   unidade: r.unidade ?? "", cargoNome: r.cargo_nome ?? "", cargoId: r.cargo_id ?? "",
   jornada: r.jornada ?? "", cargaHoraria: r.carga_horaria ?? "",
   tipoContratacao: r.tipo_contratacao ?? [], internoExterno: r.interno_externo ?? "",
