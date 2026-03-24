@@ -103,10 +103,10 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const finalizarCotacao = (cotacaoId: string, fornecedorVencedorId: string, justificativa: string) => {
+  const finalizarCotacao = (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => {
     setCotacoes(prev => prev.map(c => {
       if (c.id !== cotacaoId) return c;
-      return { ...c, status: "Finalizada" as StatusCotacao, fornecedorVencedorId, justificativaEscolha: justificativa };
+      return { ...c, status: "Finalizada" as StatusCotacao, fornecedorVencedorId, justificativaEscolha: justificativa, itensVencedores: itensVencedores || [] };
     }));
   };
 
