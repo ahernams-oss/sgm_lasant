@@ -41,6 +41,7 @@ import { MateriaisServicosProvider } from "@/contexts/MateriaisServicosContext";
 import { RequisicaoComprasProvider } from "@/contexts/RequisicaoComprasContext";
 import { CotacaoComprasProvider } from "@/contexts/CotacaoComprasContext";
 import { PedidoCompraProvider } from "@/contexts/PedidoCompraContext";
+import { RecebimentoProvider } from "@/contexts/RecebimentoContext";
 
 const queryClient = new QueryClient();
 
