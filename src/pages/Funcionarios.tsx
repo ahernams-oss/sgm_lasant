@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown, HardHat } from "lucide-react";
+import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown, HardHat, Stethoscope } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,7 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
 import { gerarPdfFuncionario } from "@/lib/gerarPdfFuncionario";
 import { gerarPdfEpi } from "@/lib/gerarPdfEpi";
+import { ExamesPeriodicosTab } from "@/components/ExamesPeriodicosTab";
 
 const UF_OPTIONS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const STATUS_OPTIONS = ["Ativo", "Inativo", "Afastado", "Férias"] as const;
@@ -436,6 +437,7 @@ const Funcionarios = () => {
                 <TabsTrigger value="passagem">Passagem</TabsTrigger>
                 <TabsTrigger value="dependentes">Dependentes</TabsTrigger>
                 <TabsTrigger value="epis">EPIs</TabsTrigger>
+                <TabsTrigger value="exames">Exames Periódicos</TabsTrigger>
                 <TabsTrigger value="observacoes">Observações</TabsTrigger>
               </TabsList>
 
@@ -708,6 +710,16 @@ const Funcionarios = () => {
               {/* EPIs */}
               <TabsContent value="epis">
                 <EpiTab epis={form.epis || []} onChange={(e) => update("epis", e as any)} />
+              </TabsContent>
+
+              {/* EXAMES PERIÓDICOS */}
+              <TabsContent value="exames">
+                <ExamesPeriodicosTab
+                  funcionarioId={editingId || ""}
+                  funcionarioNome={form.nome}
+                  funcionarioTelefone={form.telefone}
+                  funcionarioEmail={form.email}
+                />
               </TabsContent>
 
               {/* OBSERVAÇÕES */}
