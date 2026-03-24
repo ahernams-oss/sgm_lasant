@@ -190,26 +190,59 @@ const Usuarios = () => {
 
               <TabsContent value="acessos">
                 <p className="text-sm text-muted-foreground mb-4">
-                  Selecione os clientes que este usuário poderá acessar. Ele só verá requisições e funcionários dos clientes marcados.
+                  Selecione os clientes e fornecedores que este usuário poderá acessar. Ele só verá requisições e funcionários dos clientes marcados.
                 </p>
                 {clientes.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground text-sm">
-                    Nenhum cliente cadastrado. Cadastre clientes primeiro.
+                    Nenhum cliente ou fornecedor cadastrado.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {clientes.map((c) => {
-                      const checked = form.clientesPermitidos.includes(c.id);
-                      return (
-                        <label key={c.id} className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-all ${checked ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-muted-foreground/30"}`}>
-                          <Checkbox checked={checked} onCheckedChange={() => toggleCliente(c.id)} className="mt-0.5" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">{c.nome}</p>
-                            {c.cnpj && <p className="text-xs text-muted-foreground">{c.cnpj}</p>}
-                          </div>
-                        </label>
-                      );
-                    })}
+                  <div className="space-y-6">
+                    {/* Clientes */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground mb-3">Clientes</h3>
+                      {clientes.filter(c => c.tipo !== "Fornecedor").length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Nenhum cliente cadastrado.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {clientes.filter(c => c.tipo !== "Fornecedor").map((c) => {
+                            const checked = form.clientesPermitidos.includes(c.id);
+                            return (
+                              <label key={c.id} className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-all ${checked ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-muted-foreground/30"}`}>
+                                <Checkbox checked={checked} onCheckedChange={() => toggleCliente(c.id)} className="mt-0.5" />
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium text-foreground truncate">{c.nome}</p>
+                                  {c.cnpj && <p className="text-xs text-muted-foreground">{c.cnpj}</p>}
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Fornecedores */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground mb-3">Fornecedores</h3>
+                      {clientes.filter(c => c.tipo === "Fornecedor").length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Nenhum fornecedor cadastrado.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {clientes.filter(c => c.tipo === "Fornecedor").map((c) => {
+                            const checked = form.clientesPermitidos.includes(c.id);
+                            return (
+                              <label key={c.id} className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-all ${checked ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-muted-foreground/30"}`}>
+                                <Checkbox checked={checked} onCheckedChange={() => toggleCliente(c.id)} className="mt-0.5" />
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium text-foreground truncate">{c.nome}</p>
+                                  {c.cnpj && <p className="text-xs text-muted-foreground">{c.cnpj}</p>}
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </TabsContent>
