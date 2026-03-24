@@ -23,6 +23,7 @@ import { format, subDays, isAfter } from "date-fns";
 
 const statusColors: Record<string, string> = {
   "Em Andamento": "bg-yellow-100 text-yellow-800",
+  "Aguardando Aprovação": "bg-blue-100 text-blue-800",
   Finalizada: "bg-green-100 text-green-800",
   Cancelada: "bg-red-200 text-red-900",
 };
