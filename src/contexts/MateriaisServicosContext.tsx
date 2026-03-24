@@ -1,13 +1,9 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface MaterialServico {
-  id: string;
-  codigo: string;
-  descricao: string;
-  tipo: "Material" | "Serviço";
-  unidadeMedida: string;
-  categoriaId: string;
-  fabricanteId: string;
+  id: string; codigo: string; descricao: string; tipo: "Material" | "Serviço";
+  unidadeMedida: string; categoriaId: string; fabricanteId: string;
 }
 
 interface MateriaisServicosContextType {
@@ -19,27 +15,48 @@ interface MateriaisServicosContextType {
 
 const MateriaisServicosContext = createContext<MateriaisServicosContextType | undefined>(undefined);
 
-export function MateriaisServicosProvider({ children }: { children: ReactNode }) {
-  const [materiais, setMateriais] = useState<MaterialServico[]>(() => {
-    const saved = localStorage.getItem("materiais_servicos");
-    return saved ? JSON.parse(saved) : [];
-  });
+const rowToMaterial = (r: any): MaterialServico => ({
+  id: r.id, codigo: r.codigo ?? "", descricao: r.descricao ?? "",
+  tipo: r.tipo ?? "Material", unidadeMedida: r.unidade_medida ?? "",
+  categoriaId: r.categoria_id ?? "", fabricanteId: r.fabricante_id ?? "",
+});
 
-  useEffect(() => { localStorage.setItem("materiais_servicos", JSON.stringify(materiais)); }, [materiais]);
+export function MateriaisServicosProvider({ children }: { children: ReactNode }) {
+  const [materiais, setMateriais] = useState<MaterialServico[]>([]);
+
+  const load = useCallback(async () => {
+    const data = await fetchAll("materiais_servicos", "codigo");
+    setMateriais(data.map(rowToMaterial));
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   const nextCodigo = () => {
     const nums = materiais.map(m => parseInt(m.codigo, 10)).filter(n => !isNaN(n));
     return String((nums.length > 0 ? Math.max(...nums) : 0) + 1).padStart(6, "0");
   };
 
-  const addMaterial = (m: Omit<MaterialServico, "id" | "codigo">) =>
-    setMateriais(prev => [...prev, { id: crypto.randomUUID(), codigo: nextCodigo(), ...m }]);
+  const addMaterial = async (m: Omit<MaterialServico, "id" | "codigo">) => {
+    await insertRow("materiais_servicos", {
+      codigo: nextCodigo(), descricao: m.descricao, tipo: m.tipo,
+      unidade_medida: m.unidadeMedida, categoria_id: m.categoriaId, fabricante_id: m.fabricanteId,
+    });
+    await load();
+  };
 
-  const updateMaterial = (id: string, data: Partial<Omit<MaterialServico, "id">>) =>
-    setMateriais(prev => prev.map(m => m.id === id ? { ...m, ...data } : m));
+  const updateMaterial = async (id: string, data: Partial<Omit<MaterialServico, "id">>) => {
+    const current = materiais.find(m => m.id === id);
+    if (!current) return;
+    const merged = { ...current, ...data };
+    await updateRow("materiais_servicos", id, {
+      codigo: merged.codigo, descricao: merged.descricao, tipo: merged.tipo,
+      unidade_medida: merged.unidadeMedida, categoria_id: merged.categoriaId,
+      fabricante_id: merged.fabricanteId,
+    });
+    await load();
+  };
 
-  const deleteMaterial = (id: string) =>
-    setMateriais(prev => prev.filter(m => m.id !== id));
+  const deleteMaterial = async (id: string) => { await deleteRow("materiais_servicos", id); await load(); };
 
   return (
     <MateriaisServicosContext.Provider value={{ materiais, addMaterial, updateMaterial, deleteMaterial }}>

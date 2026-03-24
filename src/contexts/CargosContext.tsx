@@ -1,93 +1,67 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
-export interface SalarioDataBase {
-  id: string;
-  valor: string;
-  dataBase: string;
-}
-
-export interface AnexoCargo {
-  id: string;
-  nome: string;
-  url: string;
-  tipo: string;
-}
-
-export interface NrCargo {
-  id: string;
-  numero: string;
-  descricao: string;
-}
+export interface SalarioDataBase { id: string; valor: string; dataBase: string; }
+export interface AnexoCargo { id: string; nome: string; url: string; tipo: string; }
+export interface NrCargo { id: string; numero: string; descricao: string; }
 
 export interface Cargo {
-  id: string;
-  nome: string;
-  cbo: string;
-  descricao: string;
-  salario: string;
-  nivel: string;
-  dataBaseSalario: string;
-  salarios: SalarioDataBase[];
-  missao: string;
-  responsabilidades: string;
-  perfilCompetencias: string;
-  anexos: AnexoCargo[];
-  nrs: NrCargo[];
+  id: string; nome: string; cbo: string; descricao: string; salario: string;
+  nivel: string; dataBaseSalario: string; salarios: SalarioDataBase[];
+  missao: string; responsabilidades: string; perfilCompetencias: string;
+  anexos: AnexoCargo[]; nrs: NrCargo[];
 }
 
 interface CargosContextType {
-  cargos: Cargo[];
-  addCargo: (cargo: Omit<Cargo, "id">) => void;
+  cargos: Cargo[]; addCargo: (cargo: Omit<Cargo, "id">) => void;
   updateCargo: (id: string, cargo: Partial<Omit<Cargo, "id">>) => void;
   deleteCargo: (id: string) => void;
 }
 
 const CargosContext = createContext<CargosContextType | undefined>(undefined);
 
-const migrateCargo = (c: any): Cargo => {
-  const salarios: SalarioDataBase[] = c.salarios || [];
-  // Migrate legacy single salary into array if empty
-  if (salarios.length === 0 && c.salario) {
-    salarios.push({
-      id: crypto.randomUUID(),
-      valor: c.salario,
-      dataBase: c.dataBaseSalario || "",
-    });
-  }
-  return {
-    id: c.id,
-    cbo: c.cbo || "",
-    nome: c.nome || "",
-    descricao: c.descricao || "",
-    salario: c.salario || "",
-    nivel: c.nivel || "",
-    dataBaseSalario: c.dataBaseSalario || "",
-    salarios,
-    missao: c.missao || "",
-    responsabilidades: c.responsabilidades || "",
-    perfilCompetencias: c.perfilCompetencias || "",
-    anexos: c.anexos || [],
-    nrs: c.nrs || [],
-  };
-};
+const rowToCargo = (r: any): Cargo => ({
+  id: r.id, nome: r.nome ?? "", cbo: r.cbo ?? "", descricao: r.descricao ?? "",
+  salario: r.salario ?? "", nivel: r.nivel ?? "", dataBaseSalario: r.data_base_salario ?? "",
+  salarios: r.salarios ?? [], missao: r.missao ?? "", responsabilidades: r.responsabilidades ?? "",
+  perfilCompetencias: r.perfil_competencias ?? "", anexos: r.anexos ?? [], nrs: r.nrs ?? [],
+});
+
+const cargoToRow = (c: Omit<Cargo, "id">) => ({
+  nome: c.nome, cbo: c.cbo, descricao: c.descricao, salario: c.salario,
+  nivel: c.nivel, data_base_salario: c.dataBaseSalario, salarios: c.salarios as any,
+  missao: c.missao, responsabilidades: c.responsabilidades,
+  perfil_competencias: c.perfilCompetencias, anexos: c.anexos as any, nrs: c.nrs as any,
+});
 
 export function CargosProvider({ children }: { children: ReactNode }) {
-  const [cargos, setCargos] = useState<Cargo[]>(() => {
-    const saved = localStorage.getItem("cargos");
-    return saved ? JSON.parse(saved).map(migrateCargo) : [];
-  });
+  const [cargos, setCargos] = useState<Cargo[]>([]);
 
-  useEffect(() => { localStorage.setItem("cargos", JSON.stringify(cargos)); }, [cargos]);
+  const load = useCallback(async () => {
+    const data = await fetchAll("cargos", "nome");
+    setCargos(data.map(rowToCargo));
+  }, []);
 
-  const addCargo = (cargo: Omit<Cargo, "id">) =>
-    setCargos((prev) => [...prev, { id: crypto.randomUUID(), ...cargo }]);
+  useEffect(() => { load(); }, [load]);
 
-  const updateCargo = (id: string, data: Partial<Omit<Cargo, "id">>) =>
-    setCargos((prev) => prev.map((c) => (c.id === id ? { ...c, ...data } : c)));
+  const addCargo = async (cargo: Omit<Cargo, "id">) => {
+    await insertRow("cargos", cargoToRow(cargo));
+    await load();
+  };
 
-  const deleteCargo = (id: string) =>
-    setCargos((prev) => prev.filter((c) => c.id !== id));
+  const updateCargo = async (id: string, data: Partial<Omit<Cargo, "id">>) => {
+    const current = cargos.find(c => c.id === id);
+    if (!current) return;
+    const merged = { ...current, ...data };
+    const { id: _, ...rest } = merged;
+    await updateRow("cargos", id, cargoToRow(rest));
+    await load();
+  };
+
+  const deleteCargo = async (id: string) => {
+    await deleteRow("cargos", id);
+    await load();
+  };
 
   return (
     <CargosContext.Provider value={{ cargos, addCargo, updateCargo, deleteCargo }}>

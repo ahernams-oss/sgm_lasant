@@ -1,35 +1,13 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
-export interface GrupoCompras {
-  id: string;
-  codigo: string; // e.g. "01"
-  nome: string;
-}
-
-export interface SubGrupoCompras {
-  id: string;
-  grupoId: string;
-  codigo: string; // e.g. "001"
-  nome: string;
-}
-
-export interface ClasseCompras {
-  id: string;
-  subGrupoId: string;
-  codigo: string; // e.g. "001"
-  nome: string;
-}
-
-export interface CategoriasComprasData {
-  grupos: GrupoCompras[];
-  subGrupos: SubGrupoCompras[];
-  classes: ClasseCompras[];
-}
+export interface GrupoCompras { id: string; codigo: string; nome: string; }
+export interface SubGrupoCompras { id: string; grupoId: string; codigo: string; nome: string; }
+export interface ClasseCompras { id: string; subGrupoId: string; codigo: string; nome: string; }
+export interface CategoriasComprasData { grupos: GrupoCompras[]; subGrupos: SubGrupoCompras[]; classes: ClasseCompras[]; }
 
 interface CategoriasComprasContextType {
-  grupos: GrupoCompras[];
-  subGrupos: SubGrupoCompras[];
-  classes: ClasseCompras[];
+  grupos: GrupoCompras[]; subGrupos: SubGrupoCompras[]; classes: ClasseCompras[];
   addGrupo: (g: Omit<GrupoCompras, "id">) => void;
   updateGrupo: (id: string, data: Partial<Omit<GrupoCompras, "id">>) => void;
   deleteGrupo: (id: string) => void;
@@ -46,49 +24,80 @@ interface CategoriasComprasContextType {
 const CategoriasComprasContext = createContext<CategoriasComprasContextType | undefined>(undefined);
 
 export function CategoriasComprasProvider({ children }: { children: ReactNode }) {
-  const [grupos, setGrupos] = useState<GrupoCompras[]>(() => {
-    const saved = localStorage.getItem("categorias_compras_grupos");
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [subGrupos, setSubGrupos] = useState<SubGrupoCompras[]>(() => {
-    const saved = localStorage.getItem("categorias_compras_subgrupos");
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [classes, setClasses] = useState<ClasseCompras[]>(() => {
-    const saved = localStorage.getItem("categorias_compras_classes");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [grupos, setGrupos] = useState<GrupoCompras[]>([]);
+  const [subGrupos, setSubGrupos] = useState<SubGrupoCompras[]>([]);
+  const [classes, setClasses] = useState<ClasseCompras[]>([]);
 
-  useEffect(() => { localStorage.setItem("categorias_compras_grupos", JSON.stringify(grupos)); }, [grupos]);
-  useEffect(() => { localStorage.setItem("categorias_compras_subgrupos", JSON.stringify(subGrupos)); }, [subGrupos]);
-  useEffect(() => { localStorage.setItem("categorias_compras_classes", JSON.stringify(classes)); }, [classes]);
+  const loadAll = useCallback(async () => {
+    const [g, s, c] = await Promise.all([
+      fetchAll("categorias_compras_grupos", "codigo"),
+      fetchAll("categorias_compras_subgrupos", "codigo"),
+      fetchAll("categorias_compras_classes", "codigo"),
+    ]);
+    setGrupos(g.map((r: any) => ({ id: r.id, codigo: r.codigo ?? "", nome: r.nome ?? "" })));
+    setSubGrupos(s.map((r: any) => ({ id: r.id, grupoId: r.grupo_id ?? "", codigo: r.codigo ?? "", nome: r.nome ?? "" })));
+    setClasses(c.map((r: any) => ({ id: r.id, subGrupoId: r.sub_grupo_id ?? "", codigo: r.codigo ?? "", nome: r.nome ?? "" })));
+  }, []);
 
-  const addGrupo = (g: Omit<GrupoCompras, "id">) =>
-    setGrupos(prev => [...prev, { id: crypto.randomUUID(), ...g }]);
-  const updateGrupo = (id: string, data: Partial<Omit<GrupoCompras, "id">>) =>
-    setGrupos(prev => prev.map(g => g.id === id ? { ...g, ...data } : g));
-  const deleteGrupo = (id: string) => {
+  useEffect(() => { loadAll(); }, [loadAll]);
+
+  const addGrupo = async (g: Omit<GrupoCompras, "id">) => {
+    await insertRow("categorias_compras_grupos", { codigo: g.codigo, nome: g.nome });
+    await loadAll();
+  };
+  const updateGrupo = async (id: string, data: Partial<Omit<GrupoCompras, "id">>) => {
+    await updateRow("categorias_compras_grupos", id, data);
+    await loadAll();
+  };
+  const deleteGrupo = async (id: string) => {
+    // Delete children
     const subIds = subGrupos.filter(s => s.grupoId === id).map(s => s.id);
-    setClasses(prev => prev.filter(c => !subIds.includes(c.subGrupoId)));
-    setSubGrupos(prev => prev.filter(s => s.grupoId !== id));
-    setGrupos(prev => prev.filter(g => g.id !== id));
+    for (const cid of classes.filter(c => subIds.includes(c.subGrupoId)).map(c => c.id)) {
+      await deleteRow("categorias_compras_classes", cid);
+    }
+    for (const sid of subIds) {
+      await deleteRow("categorias_compras_subgrupos", sid);
+    }
+    await deleteRow("categorias_compras_grupos", id);
+    await loadAll();
   };
 
-  const addSubGrupo = (s: Omit<SubGrupoCompras, "id">) =>
-    setSubGrupos(prev => [...prev, { id: crypto.randomUUID(), ...s }]);
-  const updateSubGrupo = (id: string, data: Partial<Omit<SubGrupoCompras, "id">>) =>
-    setSubGrupos(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
-  const deleteSubGrupo = (id: string) => {
-    setClasses(prev => prev.filter(c => c.subGrupoId !== id));
-    setSubGrupos(prev => prev.filter(s => s.id !== id));
+  const addSubGrupo = async (s: Omit<SubGrupoCompras, "id">) => {
+    await insertRow("categorias_compras_subgrupos", { grupo_id: s.grupoId, codigo: s.codigo, nome: s.nome });
+    await loadAll();
+  };
+  const updateSubGrupo = async (id: string, data: Partial<Omit<SubGrupoCompras, "id">>) => {
+    const row: any = {};
+    if (data.grupoId !== undefined) row.grupo_id = data.grupoId;
+    if (data.codigo !== undefined) row.codigo = data.codigo;
+    if (data.nome !== undefined) row.nome = data.nome;
+    await updateRow("categorias_compras_subgrupos", id, row);
+    await loadAll();
+  };
+  const deleteSubGrupo = async (id: string) => {
+    for (const cid of classes.filter(c => c.subGrupoId === id).map(c => c.id)) {
+      await deleteRow("categorias_compras_classes", cid);
+    }
+    await deleteRow("categorias_compras_subgrupos", id);
+    await loadAll();
   };
 
-  const addClasse = (c: Omit<ClasseCompras, "id">) =>
-    setClasses(prev => [...prev, { id: crypto.randomUUID(), ...c }]);
-  const updateClasse = (id: string, data: Partial<Omit<ClasseCompras, "id">>) =>
-    setClasses(prev => prev.map(c => c.id === id ? { ...c, ...data } : c));
-  const deleteClasse = (id: string) =>
-    setClasses(prev => prev.filter(c => c.id !== id));
+  const addClasse = async (c: Omit<ClasseCompras, "id">) => {
+    await insertRow("categorias_compras_classes", { sub_grupo_id: c.subGrupoId, codigo: c.codigo, nome: c.nome });
+    await loadAll();
+  };
+  const updateClasse = async (id: string, data: Partial<Omit<ClasseCompras, "id">>) => {
+    const row: any = {};
+    if (data.subGrupoId !== undefined) row.sub_grupo_id = data.subGrupoId;
+    if (data.codigo !== undefined) row.codigo = data.codigo;
+    if (data.nome !== undefined) row.nome = data.nome;
+    await updateRow("categorias_compras_classes", id, row);
+    await loadAll();
+  };
+  const deleteClasse = async (id: string) => {
+    await deleteRow("categorias_compras_classes", id);
+    await loadAll();
+  };
 
   const getCodigoCompleto = (classeId: string): string => {
     const classe = classes.find(c => c.id === classeId);
@@ -103,8 +112,7 @@ export function CategoriasComprasProvider({ children }: { children: ReactNode })
   const getDescricaoCompleta = (classeId: string): string => {
     const classe = classes.find(c => c.id === classeId);
     if (!classe) return "";
-    const codigo = getCodigoCompleto(classeId);
-    return `${codigo} - ${classe.nome}`;
+    return `${getCodigoCompleto(classeId)} - ${classe.nome}`;
   };
 
   return (

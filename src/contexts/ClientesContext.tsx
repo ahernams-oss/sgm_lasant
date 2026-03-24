@@ -1,123 +1,39 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
-export interface InformacaoFinanceira {
-  id: string;
-  banco: string;
-  agencia: string;
-  conta: string;
-}
-
-export interface Setor {
-  id: string;
-  descricao: string;
-  ativo: boolean;
-}
-
-export interface Pavimento {
-  id: string;
-  descricao: string;
-  ativo: boolean;
-  setores: Setor[];
-}
-
+export interface InformacaoFinanceira { id: string; banco: string; agencia: string; conta: string; }
+export interface Setor { id: string; descricao: string; ativo: boolean; }
+export interface Pavimento { id: string; descricao: string; ativo: boolean; setores: Setor[]; }
 export interface LocalCliente {
-  id: string;
-  descricao: string;
-  cep: string;
-  bairro: string;
-  logradouro: string;
-  numero: string;
-  complemento: string;
-  uf: string;
-  cidade: string;
-  latitude: string;
-  longitude: string;
-  areaTotal: string;
-  areaConstruida: string;
-  contato: string;
-  telContato: string;
-  relLinha1: string;
-  relLinha2: string;
-  relLinha3: string;
-  relLinha4: string;
+  id: string; descricao: string; cep: string; bairro: string; logradouro: string;
+  numero: string; complemento: string; uf: string; cidade: string;
+  latitude: string; longitude: string; areaTotal: string; areaConstruida: string;
+  contato: string; telContato: string;
+  relLinha1: string; relLinha2: string; relLinha3: string; relLinha4: string;
   pavimentos: Pavimento[];
 }
-
 export interface LocalEntrega {
-  id: string;
-  local: string;
-  cep: string;
-  bairro: string;
-  logradouro: string;
-  numero: string;
-  complemento: string;
-  uf: string;
-  cidade: string;
-  contato: string;
-  telContato: string;
-  relLinha1: string;
-  relLinha2: string;
-  relLinha3: string;
-  relLinha4: string;
+  id: string; local: string; cep: string; bairro: string; logradouro: string;
+  numero: string; complemento: string; uf: string; cidade: string;
+  contato: string; telContato: string;
+  relLinha1: string; relLinha2: string; relLinha3: string; relLinha4: string;
 }
-
 export interface Contrato {
-  id: string;
-  numero: string;
-  descricao: string;
-  dataInicio: string;
-  dataFim: string;
-  bdi: string;
-  valorBase: string;
-  valorBase2: string;
-  valorBase3: string;
-  mesSco: string;
-  anoSco: string;
+  id: string; numero: string; descricao: string; dataInicio: string; dataFim: string;
+  bdi: string; valorBase: string; valorBase2: string; valorBase3: string;
+  mesSco: string; anoSco: string;
 }
-
 export interface Cliente {
-  id: string;
-  tipo: "Cliente" | "Fornecedor";
-  nome: string; // Nome Empresa / Razão Social
-  nomeFantasia: string;
-  cnpj: string;
-  inscricaoEstadual: string;
-  inscricaoMunicipal: string;
-  esfera: string;
-  descricao: string;
-  // E-mails
-  email: string;
-  emailEngenharia: string;
-  emailOsCc: string;
-  emailOsBcc: string;
-  emailSsCc: string;
-  emailSsBcc: string;
-  emailCompras: string;
-  // Telefones
-  telefones: string[];
-  telefoneCelular: string;
-  celulares: string;
-  telefonesWhatsapp: string;
-  // Endereço
-  cep: string;
-  bairro: string;
-  logradouro: string;
-  numero: string;
-  complemento: string;
-  uf: string;
-  cidade: string;
-  endereco: string; // legacy compat
-  // Contrato
+  id: string; tipo: "Cliente" | "Fornecedor"; nome: string; nomeFantasia: string;
+  cnpj: string; inscricaoEstadual: string; inscricaoMunicipal: string; esfera: string; descricao: string;
+  email: string; emailEngenharia: string; emailOsCc: string; emailOsBcc: string;
+  emailSsCc: string; emailSsBcc: string; emailCompras: string;
+  telefones: string[]; telefoneCelular: string; celulares: string; telefonesWhatsapp: string;
+  cep: string; bairro: string; logradouro: string; numero: string; complemento: string;
+  uf: string; cidade: string; endereco: string;
   dataInicioContrato: string;
-  // Impressão
-  relLinha1: string;
-  relLinha2: string;
-  relLinha3: string;
-  relLinha4: string;
-  // Contato
-  contato: string;
-  grupoWhatsapp: string;
-  // Sub-entidades
+  relLinha1: string; relLinha2: string; relLinha3: string; relLinha4: string;
+  contato: string; grupoWhatsapp: string;
   informacoesFinanceiras: InformacaoFinanceira[];
   locais: LocalCliente[];
   locaisEntrega: LocalEntrega[];
@@ -125,73 +41,78 @@ export interface Cliente {
 }
 
 interface ClientesContextType {
-  clientes: Cliente[];
-  addCliente: (cliente: Omit<Cliente, "id">) => void;
-  updateCliente: (id: string, cliente: Partial<Omit<Cliente, "id">>) => void;
+  clientes: Cliente[]; addCliente: (c: Omit<Cliente, "id">) => void;
+  updateCliente: (id: string, c: Partial<Omit<Cliente, "id">>) => void;
   deleteCliente: (id: string) => void;
 }
 
 const ClientesContext = createContext<ClientesContextType | undefined>(undefined);
 
-const migrateCliente = (c: any): Cliente => ({
-  id: c.id,
-  tipo: c.tipo || "Cliente",
-  nome: c.nome || c.nome_empresa || "",
-  nomeFantasia: c.nomeFantasia || "",
-  cnpj: c.cnpj || "",
-  inscricaoEstadual: c.inscricaoEstadual || "",
-  inscricaoMunicipal: c.inscricaoMunicipal || "",
-  esfera: c.esfera || "",
-  descricao: c.descricao || "",
-  email: c.email || "",
-  emailEngenharia: c.emailEngenharia || "",
-  emailOsCc: c.emailOsCc || "",
-  emailOsBcc: c.emailOsBcc || "",
-  emailSsCc: c.emailSsCc || "",
-  emailSsBcc: c.emailSsBcc || "",
-  emailCompras: c.emailCompras || "",
-  telefones: Array.isArray(c.telefones) ? c.telefones : c.telefone ? [c.telefone] : [],
-  telefoneCelular: c.telefoneCelular || "",
-  celulares: c.celulares || "",
-  telefonesWhatsapp: c.telefonesWhatsapp || "",
-  cep: c.cep || "",
-  bairro: c.bairro || "",
-  logradouro: c.logradouro || "",
-  numero: c.numero || "",
-  complemento: c.complemento || "",
-  uf: c.uf || "",
-  cidade: c.cidade || "",
-  endereco: c.endereco || "",
-  dataInicioContrato: c.dataInicioContrato || "",
-  relLinha1: c.relLinha1 || "",
-  relLinha2: c.relLinha2 || "",
-  relLinha3: c.relLinha3 || "",
-  relLinha4: c.relLinha4 || "",
-  contato: c.contato || "",
-  grupoWhatsapp: c.grupoWhatsapp || "",
-  informacoesFinanceiras: c.informacoesFinanceiras || [],
-  locais: (c.locais || []).map((l: any) => ({ ...l, pavimentos: (l.pavimentos || []).map((p: any) => ({ ...p, setores: p.setores || [] })) })),
-  locaisEntrega: c.locaisEntrega || [],
-  contratos: c.contratos || [],
+const rowToCliente = (r: any): Cliente => ({
+  id: r.id, tipo: r.tipo || "Cliente", nome: r.nome ?? "", nomeFantasia: r.nome_fantasia ?? "",
+  cnpj: r.cnpj ?? "", inscricaoEstadual: r.inscricao_estadual ?? "",
+  inscricaoMunicipal: r.inscricao_municipal ?? "", esfera: r.esfera ?? "", descricao: r.descricao ?? "",
+  email: r.email ?? "", emailEngenharia: r.email_engenharia ?? "",
+  emailOsCc: r.email_os_cc ?? "", emailOsBcc: r.email_os_bcc ?? "",
+  emailSsCc: r.email_ss_cc ?? "", emailSsBcc: r.email_ss_bcc ?? "", emailCompras: r.email_compras ?? "",
+  telefones: r.telefones ?? [], telefoneCelular: r.telefone_celular ?? "",
+  celulares: r.celulares ?? "", telefonesWhatsapp: r.telefones_whatsapp ?? "",
+  cep: r.cep ?? "", bairro: r.bairro ?? "", logradouro: r.logradouro ?? "",
+  numero: r.numero ?? "", complemento: r.complemento ?? "", uf: r.uf ?? "", cidade: r.cidade ?? "",
+  endereco: r.endereco ?? "", dataInicioContrato: r.data_inicio_contrato ?? "",
+  relLinha1: r.rel_linha1 ?? "", relLinha2: r.rel_linha2 ?? "",
+  relLinha3: r.rel_linha3 ?? "", relLinha4: r.rel_linha4 ?? "",
+  contato: r.contato ?? "", grupoWhatsapp: r.grupo_whatsapp ?? "",
+  informacoesFinanceiras: r.informacoes_financeiras ?? [],
+  locais: r.locais ?? [], locaisEntrega: r.locais_entrega ?? [], contratos: r.contratos ?? [],
+});
+
+const clienteToRow = (c: Omit<Cliente, "id">) => ({
+  tipo: c.tipo, nome: c.nome, nome_fantasia: c.nomeFantasia,
+  cnpj: c.cnpj, inscricao_estadual: c.inscricaoEstadual,
+  inscricao_municipal: c.inscricaoMunicipal, esfera: c.esfera, descricao: c.descricao,
+  email: c.email, email_engenharia: c.emailEngenharia,
+  email_os_cc: c.emailOsCc, email_os_bcc: c.emailOsBcc,
+  email_ss_cc: c.emailSsCc, email_ss_bcc: c.emailSsBcc, email_compras: c.emailCompras,
+  telefones: c.telefones as any, telefone_celular: c.telefoneCelular,
+  celulares: c.celulares, telefones_whatsapp: c.telefonesWhatsapp,
+  cep: c.cep, bairro: c.bairro, logradouro: c.logradouro,
+  numero: c.numero, complemento: c.complemento, uf: c.uf, cidade: c.cidade,
+  endereco: c.endereco, data_inicio_contrato: c.dataInicioContrato,
+  rel_linha1: c.relLinha1, rel_linha2: c.relLinha2, rel_linha3: c.relLinha3, rel_linha4: c.relLinha4,
+  contato: c.contato, grupo_whatsapp: c.grupoWhatsapp,
+  informacoes_financeiras: c.informacoesFinanceiras as any,
+  locais: c.locais as any, locais_entrega: c.locaisEntrega as any, contratos: c.contratos as any,
 });
 
 export function ClientesProvider({ children }: { children: ReactNode }) {
-  const [clientes, setClientes] = useState<Cliente[]>(() => {
-    const saved = localStorage.getItem("clientes");
-    if (!saved) return [];
-    return JSON.parse(saved).map(migrateCliente);
-  });
+  const [clientes, setClientes] = useState<Cliente[]>([]);
 
-  useEffect(() => { localStorage.setItem("clientes", JSON.stringify(clientes)); }, [clientes]);
+  const load = useCallback(async () => {
+    const data = await fetchAll("clientes", "nome");
+    setClientes(data.map(rowToCliente));
+  }, []);
 
-  const addCliente = (cliente: Omit<Cliente, "id">) =>
-    setClientes((prev) => [...prev, { id: crypto.randomUUID(), ...cliente } as Cliente]);
+  useEffect(() => { load(); }, [load]);
 
-  const updateCliente = (id: string, data: Partial<Omit<Cliente, "id">>) =>
-    setClientes((prev) => prev.map((c) => (c.id === id ? { ...c, ...data } : c)));
+  const addCliente = async (c: Omit<Cliente, "id">) => {
+    await insertRow("clientes", clienteToRow(c));
+    await load();
+  };
 
-  const deleteCliente = (id: string) =>
-    setClientes((prev) => prev.filter((c) => c.id !== id));
+  const updateCliente = async (id: string, data: Partial<Omit<Cliente, "id">>) => {
+    const current = clientes.find(c => c.id === id);
+    if (!current) return;
+    const merged = { ...current, ...data };
+    const { id: _, ...rest } = merged;
+    await updateRow("clientes", id, clienteToRow(rest));
+    await load();
+  };
+
+  const deleteCliente = async (id: string) => {
+    await deleteRow("clientes", id);
+    await load();
+  };
 
   return (
     <ClientesContext.Provider value={{ clientes, addCliente, updateCliente, deleteCliente }}>
