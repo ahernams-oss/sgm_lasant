@@ -3,6 +3,7 @@ import { useRequisicoes, Requisicao, StatusHistorico } from "@/contexts/Requisic
 import { useClientes } from "@/contexts/ClientesContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProcessoSeletivo } from "@/contexts/ProcessoSeletivoContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
