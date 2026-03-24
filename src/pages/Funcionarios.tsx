@@ -781,8 +781,11 @@ const Funcionarios = () => {
                       <TableCell>{statusBadge(f.status || "Ativo")}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Button size="icon" variant="ghost" onClick={() => gerarPdfFuncionario(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })} className="h-8 w-8" title="Baixar PDF">
+                          <Button size="icon" variant="ghost" onClick={() => gerarPdfFuncionario(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })} className="h-8 w-8" title="Baixar PDF Ficha">
                             <FileDown className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={() => gerarPdfEpi(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })} className="h-8 w-8" title="Baixar PDF EPI">
+                            <HardHat className="h-3.5 w-3.5" />
                           </Button>
                           <Button size="icon" variant="ghost" onClick={() => handleEdit(f)} className="h-8 w-8">
                             <Pencil className="h-3.5 w-3.5" />
