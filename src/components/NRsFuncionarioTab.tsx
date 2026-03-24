@@ -160,6 +160,7 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
         <div className="space-y-1.5">
           <Label className="text-xs font-semibold text-foreground/80">Anexo</Label>
           <Input
+            ref={formFileRef}
             type="file"
             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
             onChange={handleFormFileChange}
