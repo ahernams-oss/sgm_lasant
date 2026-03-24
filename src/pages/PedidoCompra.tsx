@@ -62,23 +62,54 @@ export default function PedidoCompraPage() {
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-  const openStatusDialog = (pedido: PedidoCompra) => {
-    setStatusPedidoId(pedido.id);
+  const openStatusDialog = (pedidoOrIds: PedidoCompra | string[]) => {
+    const ids = Array.isArray(pedidoOrIds) ? pedidoOrIds : [pedidoOrIds.id];
+    setStatusPedidoIds(ids);
     setNewStatus("");
     setStatusObs("");
     setStatusDialogOpen(true);
   };
 
+  // Compute common next statuses for all selected pedidos
+  const commonNextStatuses = useMemo(() => {
+    if (statusPedidoIds.length === 0) return [];
+    const sets = statusPedidoIds.map(id => {
+      const p = pedidos.find(x => x.id === id);
+      return p ? getNextStatuses(p.status) : [];
+    });
+    const first = new Set(sets[0] || []);
+    for (let i = 1; i < sets.length; i++) {
+      const s = new Set(sets[i]);
+      first.forEach(v => { if (!s.has(v)) first.delete(v); });
+    }
+    return Array.from(first);
+  }, [statusPedidoIds, pedidos]);
+
   const handleUpdateStatus = () => {
     if (!newStatus) { toast({ title: "Selecione um status", variant: "destructive" }); return; }
     if (newStatus === "Cancelado") {
       if (!statusObs.trim()) { toast({ title: "Motivo é obrigatório para cancelamento", variant: "destructive" }); return; }
-      cancelarPedido(statusPedidoId, usuarioLogado?.nome || "Usuário", statusObs);
+      statusPedidoIds.forEach(id => cancelarPedido(id, usuarioLogado?.nome || "Usuário", statusObs));
     } else {
-      updateStatus(statusPedidoId, newStatus, usuarioLogado?.nome || "Usuário", statusObs);
+      statusPedidoIds.forEach(id => updateStatus(id, newStatus, usuarioLogado?.nome || "Usuário", statusObs));
     }
-    toast({ title: `Status atualizado para: ${newStatus}` });
+    toast({ title: `Status atualizado para: ${newStatus} (${statusPedidoIds.length} pedido${statusPedidoIds.length > 1 ? "s" : ""})` });
     setStatusDialogOpen(false);
+    setSelectedIds([]);
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const selectableFiltered = filtered.filter(p => getNextStatuses(p.status).length > 0);
+  const allSelectableSelected = selectableFiltered.length > 0 && selectableFiltered.every(p => selectedIds.includes(p.id));
+  const toggleSelectAll = () => {
+    if (allSelectableSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(selectableFiltered.map(p => p.id));
+    }
   };
 
   return (
