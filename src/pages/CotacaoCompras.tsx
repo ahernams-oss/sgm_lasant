@@ -239,21 +239,49 @@ export default function CotacaoComprasPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Nova Cotação</DialogTitle>
-            <DialogDescription>Selecione a requisição de compras para iniciar a cotação.</DialogDescription>
+          <DialogDescription>Selecione a requisição de compras para iniciar a cotação.</DialogDescription>
           </DialogHeader>
-          <div>
-            <Label>Requisição de Compras *</Label>
-            <Select value={selectedReqId} onValueChange={setSelectedReqId}>
-              <SelectTrigger><SelectValue placeholder="Selecione uma RC..." /></SelectTrigger>
-              <SelectContent>
-                {reqDisponiveisParaCotacao.map(r => (
-                  <SelectItem key={r.id} value={r.id}>RC-{String(r.numero).padStart(4, "0")} — {r.centroCustoNome} ({r.itens.length} itens)</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nº, centro de custo, solicitante, item..."
+                  value={reqSearch}
+                  onChange={e => setReqSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={reqFilterUrgencia} onValueChange={setReqFilterUrgencia}>
+                <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todas">Todas Urgências</SelectItem>
+                  <SelectItem value="Baixa">Baixa</SelectItem>
+                  <SelectItem value="Normal">Normal</SelectItem>
+                  <SelectItem value="Alta">Alta</SelectItem>
+                  <SelectItem value="Urgente">Urgente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Requisição de Compras *</Label>
+              <Select value={selectedReqId} onValueChange={setSelectedReqId}>
+                <SelectTrigger><SelectValue placeholder="Selecione uma RC..." /></SelectTrigger>
+                <SelectContent>
+                  {reqFiltradas.map(r => (
+                    <SelectItem key={r.id} value={r.id}>
+                      RC-{String(r.numero).padStart(4, "0")} — {r.centroCustoNome} ({r.itens.length} itens) [{r.urgencia}]
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {reqFiltradas.length === 0 && (
+                <p className="text-sm text-muted-foreground mt-1">Nenhuma requisição encontrada com os filtros aplicados.</p>
+              )}
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setNovaDialogOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => { setNovaDialogOpen(false); setReqSearch(""); setReqFilterUrgencia("Todas"); }}>Cancelar</Button>
             <Button onClick={handleCriarCotacao}>Criar Cotação</Button>
           </DialogFooter>
         </DialogContent>
