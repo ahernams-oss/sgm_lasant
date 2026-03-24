@@ -122,7 +122,7 @@ function drawEmployeeData(doc: jsPDF, func: Funcionario, opts: EpiPdfOptions, pw
   return 64;
 }
 
-function drawTermoAndLegal(doc: jsPDF, pw: number, startY: number): number {
+function drawTermoAndLegal(doc: jsPDF, pw: number, startY: number, dataEntrega?: string): number {
   let y = startY;
   const margin = 12;
   const contentW = pw - margin * 2;
@@ -153,7 +153,7 @@ function drawTermoAndLegal(doc: jsPDF, pw: number, startY: number): number {
   y += 4;
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
-  doc.text("1.4.2 Cabe ao trabalhador:", margin, y);
+  doc.text("1.4.2 Cabe ao trabalhador :", margin, y);
   y += 3.5;
 
   const nr01 = [
@@ -186,7 +186,7 @@ function drawTermoAndLegal(doc: jsPDF, pw: number, startY: number): number {
   y += 3.5;
 
   const nr06 = [
-    "a) usar o fornecido pela organização, observado o disposto no item 6.5.2;",
+    "a) usar o fornecido pela organização, observado o disposto no item 6.5.2",
     "b) usá-lo apenas para a finalidade a que se destina;",
     "c) responsabilizar-se pela sua limpeza, guarda e conservação;",
     "d) comunicar à organização quando extraviado, danificado ou qualquer alteração que o torne impróprio para uso, e",
@@ -238,10 +238,13 @@ function drawTermoAndLegal(doc: jsPDF, pw: number, startY: number): number {
   // Signature
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
-  doc.text("Data do documento:", margin, y);
+  doc.text("Data:", margin, y);
+  doc.setFont("helvetica", "normal");
+  doc.text(dataEntrega ? formatDate(dataEntrega) : "", margin + doc.getTextWidth("Data: ") + 2, y);
   doc.line(130, y, pw - 12, y);
   y += 4;
   doc.setFontSize(7);
+  doc.setFont("helvetica", "bold");
   doc.text("Assinatura do Empregado", pw - 12, y, { align: "right" });
   y += 4;
 
@@ -266,10 +269,11 @@ export async function gerarPdfEpi(func: Funcionario, opts: EpiPdfOptions = {}) {
   // Page 1 - Header + Employee Data + Termo + EPI Table start
   await drawHeader(doc, pw, logoLasant, logoSeg);
   let y = drawEmployeeData(doc, func, opts, pw);
-  y = drawTermoAndLegal(doc, pw, y);
+  const epis = func.epis || [];
+  const primeiraDataEntrega = epis.length > 0 ? epis[0].dataEntrega : "";
+  y = drawTermoAndLegal(doc, pw, y, primeiraDataEntrega);
 
   // EPI Table starts on same page
-  const epis = func.epis || [];
   const epiRows = epis.map((e) => [
     String(e.quantidade).padStart(2, "0"),
     e.descricao,
