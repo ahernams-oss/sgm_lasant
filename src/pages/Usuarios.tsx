@@ -193,7 +193,7 @@ const Usuarios = () => {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-foreground/80">Perfil de Acesso</Label>
-                    <Select value={form.perfilAcessoId} onValueChange={(v) => update("perfilAcessoId", v)}>
+                    <Select value={form.perfilAcessoId || "nenhum"} onValueChange={(v) => update("perfilAcessoId", v === "nenhum" ? "" : v)}>
                       <SelectTrigger><SelectValue placeholder="Selecione o perfil" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="nenhum">Nenhum</SelectItem>
