@@ -1,12 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-/**
- * Generic helper to create a Supabase-backed CRUD context.
- * Handles fetch, add, update, delete with error toasts.
- */
-export async function fetchAll<T>(table: string, orderBy = "created_at"): Promise<T[]> {
-  const { data, error } = await supabase
+export async function fetchAll(table: string, orderBy = "created_at"): Promise<any[]> {
+  const { data, error } = await (supabase as any)
     .from(table)
     .select("*")
     .order(orderBy, { ascending: true });
@@ -15,11 +11,11 @@ export async function fetchAll<T>(table: string, orderBy = "created_at"): Promis
     toast.error(`Erro ao carregar dados.`);
     return [];
   }
-  return (data || []) as T[];
+  return data || [];
 }
 
 export async function insertRow(table: string, row: any): Promise<any> {
-  const { data, error } = await supabase.from(table).insert(row).select().single();
+  const { data, error } = await (supabase as any).from(table).insert(row).select().single();
   if (error) {
     console.error(`Erro ao inserir em ${table}:`, error);
     toast.error(`Erro ao salvar dados.`);
@@ -29,7 +25,7 @@ export async function insertRow(table: string, row: any): Promise<any> {
 }
 
 export async function updateRow(table: string, id: string, row: any): Promise<boolean> {
-  const { error } = await supabase.from(table).update(row).eq("id", id);
+  const { error } = await (supabase as any).from(table).update(row).eq("id", id);
   if (error) {
     console.error(`Erro ao atualizar ${table}:`, error);
     toast.error(`Erro ao atualizar dados.`);
@@ -39,7 +35,7 @@ export async function updateRow(table: string, id: string, row: any): Promise<bo
 }
 
 export async function deleteRow(table: string, id: string): Promise<boolean> {
-  const { error } = await supabase.from(table).delete().eq("id", id);
+  const { error } = await (supabase as any).from(table).delete().eq("id", id);
   if (error) {
     console.error(`Erro ao remover de ${table}:`, error);
     toast.error(`Erro ao remover dados.`);
