@@ -361,6 +361,52 @@ export default function RecebimentoComprasPage() {
                 </CardContent>
               </Card>
 
+              {/* Anexo NF */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2"><Paperclip className="h-4 w-4" />Anexar Nota Fiscal (PDF, Imagem)</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp"
+                    multiple
+                    className="flex-1"
+                    onChange={e => {
+                      const files = e.target.files;
+                      if (!files) return;
+                      Array.from(files).forEach(file => {
+                        if (file.size > 2 * 1024 * 1024) {
+                          toast({ title: `Arquivo "${file.name}" excede 2MB`, variant: "destructive" });
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          setRecAnexos(prev => [...prev, {
+                            nome: file.name,
+                            tipo: file.type,
+                            dados: reader.result as string,
+                          }]);
+                        };
+                        reader.readAsDataURL(file);
+                      });
+                      e.target.value = "";
+                    }}
+                  />
+                </div>
+                {recAnexos.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {recAnexos.map((a, i) => (
+                      <Badge key={i} variant="secondary" className="flex items-center gap-1 py-1 px-2">
+                        <FileText className="h-3 w-3" />
+                        <span className="text-xs max-w-[150px] truncate">{a.nome}</span>
+                        <button onClick={() => setRecAnexos(prev => prev.filter((_, j) => j !== i))} className="ml-1 hover:text-destructive">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div>
                 <Label>Observação Geral</Label>
                 <Textarea value={recObservacao} onChange={e => setRecObservacao(e.target.value)} placeholder="Observações sobre o recebimento..." rows={2} />
