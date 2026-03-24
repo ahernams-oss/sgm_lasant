@@ -6,8 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClientes, type Cliente } from "@/contexts/ClientesContext";
 import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
-import LocaisSection from "@/components/LocaisSection";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ImportClientesFornecedores from "@/components/ImportClientesFornecedores";
 
 const Fornecedores = () => {
