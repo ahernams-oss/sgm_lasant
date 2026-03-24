@@ -407,8 +407,11 @@ export default function CotacaoComprasPage() {
                       {c.status === "Em Andamento" && (
                         <>
                           <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => openEnviarDialog(c.id)}>
+                            <Send className="mr-2 h-4 w-4" />Enviar para Fornecedor
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openPropostaDialog(c.id)}>
-                            <Plus className="mr-2 h-4 w-4" />Adicionar Proposta
+                            <Plus className="mr-2 h-4 w-4" />Adicionar Proposta Manual
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openFinalizarDialog(c.id)} disabled={c.propostas.length < 1}>
                             <Trophy className="mr-2 h-4 w-4" />Finalizar Cotação
