@@ -197,7 +197,13 @@ const Clientes = () => {
                             <FileText className="mr-2 h-4 w-4" />
                             Contratos
                           </DropdownMenuItem>
-                        </DropdownMenuContent>
+                           <DropdownMenuItem onClick={() => {
+                             setLocaisEntregaClienteId(locaisEntregaClienteId === cliente.id ? null : cliente.id);
+                           }}>
+                             <Truck className="mr-2 h-4 w-4" />
+                             Locais de Entrega
+                           </DropdownMenuItem>
+                         </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 </div>
