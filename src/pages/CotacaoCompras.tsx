@@ -11,12 +11,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2 } from "lucide-react";
-import { format } from "date-fns";
+import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX } from "lucide-react";
+import { format, subDays, isAfter } from "date-fns";
 
 const statusColors: Record<string, string> = {
   "Em Andamento": "bg-yellow-100 text-yellow-800",
@@ -37,6 +38,8 @@ export default function CotacaoComprasPage() {
 
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("Todos");
+  const [filterPeriodo, setFilterPeriodo] = useState("Todos");
+  const [filterComprador, setFilterComprador] = useState("Todos");
 
   // Dialog states
   const [novaDialogOpen, setNovaDialogOpen] = useState(false);
@@ -78,15 +81,30 @@ export default function CotacaoComprasPage() {
   const [finVencedorId, setFinVencedorId] = useState("");
   const [finJustificativa, setFinJustificativa] = useState("");
 
+  const compradores = useMemo(() => {
+    const set = new Set(cotacoes.map(c => c.comprador));
+    return Array.from(set).sort();
+  }, [cotacoes]);
+
+  const hasActiveFilters = filterStatus !== "Todos" || filterPeriodo !== "Todos" || filterComprador !== "Todos" || search !== "";
+
+  const clearFilters = () => { setSearch(""); setFilterStatus("Todos"); setFilterPeriodo("Todos"); setFilterComprador("Todos"); };
+
   const filtered = useMemo(() => {
     let list = cotacoes;
     if (filterStatus !== "Todos") list = list.filter(c => c.status === filterStatus);
+    if (filterComprador !== "Todos") list = list.filter(c => c.comprador === filterComprador);
+    if (filterPeriodo !== "Todos") {
+      const dias = Number(filterPeriodo);
+      const dataLimite = subDays(new Date(), dias);
+      list = list.filter(c => isAfter(new Date(c.dataCriacao), dataLimite));
+    }
     if (search) {
       const s = search.toLowerCase();
       list = list.filter(c => String(c.numero).includes(s) || c.comprador.toLowerCase().includes(s) || String(c.requisicaoNumero).includes(s));
     }
     return list.sort((a, b) => b.numero - a.numero);
-  }, [cotacoes, search, filterStatus]);
+  }, [cotacoes, search, filterStatus, filterPeriodo, filterComprador]);
 
   const handleCriarCotacao = () => {
     if (!selectedReqId) { toast({ title: "Selecione uma requisição", variant: "destructive" }); return; }
@@ -175,13 +193,13 @@ export default function CotacaoComprasPage() {
         <Button onClick={() => { setReqSearch(""); setReqFilterUrgencia("Todas"); setSelectedReqId(""); setNovaDialogOpen(true); }} disabled={reqDisponiveisParaCotacao.length === 0}><Plus className="mr-2 h-4 w-4" />Nova Cotação</Button>
       </div>
 
-      <div className="flex gap-4">
-        <div className="relative max-w-sm flex-1">
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar por nº, comprador, requisição..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar nº cotação, RC, comprador..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="Todos">Todos os Status</SelectItem>
             <SelectItem value="Em Andamento">Em Andamento</SelectItem>
@@ -189,6 +207,37 @@ export default function CotacaoComprasPage() {
             <SelectItem value="Cancelada">Cancelada</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={filterPeriodo} onValueChange={setFilterPeriodo}>
+          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Todos">Todo Período</SelectItem>
+            <SelectItem value="7">Últimos 7 dias</SelectItem>
+            <SelectItem value="30">Últimos 30 dias</SelectItem>
+            <SelectItem value="90">Últimos 90 dias</SelectItem>
+            <SelectItem value="365">Último ano</SelectItem>
+          </SelectContent>
+        </Select>
+        {compradores.length > 1 && (
+          <Select value={filterComprador} onValueChange={setFilterComprador}>
+            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos Compradores</SelectItem>
+              {compradores.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+            <FilterX className="mr-1 h-4 w-4" />Limpar
+          </Button>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {filtered.length} cotação{filtered.length !== 1 ? "ões" : ""} encontrada{filtered.length !== 1 ? "s" : ""}
+          {hasActiveFilters && ` (de ${cotacoes.length} total)`}
+        </p>
       </div>
 
       <div className="border rounded-lg">
@@ -201,7 +250,7 @@ export default function CotacaoComprasPage() {
               <TableHead>Comprador</TableHead>
               <TableHead>Propostas</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-40">Ações</TableHead>
+              <TableHead className="w-16 text-center">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -215,18 +264,35 @@ export default function CotacaoComprasPage() {
                 <TableCell>{c.comprador}</TableCell>
                 <TableCell><Badge variant="secondary">{c.propostas.length}</Badge></TableCell>
                 <TableCell><Badge className={statusColors[c.status] || ""}>{c.status}</Badge></TableCell>
-                <TableCell>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" title="Detalhes" onClick={() => setViewCotacao(c)}><Eye className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" title="Mapa Comparativo" onClick={() => openMapa(c)} disabled={c.propostas.length === 0}><BarChart3 className="h-4 w-4" /></Button>
-                    {c.status === "Em Andamento" && (
-                      <>
-                        <Button variant="ghost" size="icon" title="Adicionar Proposta" onClick={() => openPropostaDialog(c.id)}><Plus className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" title="Finalizar" onClick={() => openFinalizarDialog(c.id)} disabled={c.propostas.length < 1}><Trophy className="h-4 w-4 text-amber-600" /></Button>
-                        <Button variant="ghost" size="icon" title="Cancelar" onClick={() => { cancelarCotacao(c.id); toast({ title: "Cotação cancelada" }); }}><XCircle className="h-4 w-4 text-destructive" /></Button>
-                      </>
-                    )}
-                  </div>
+                <TableCell className="text-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setViewCotacao(c)}>
+                        <Eye className="mr-2 h-4 w-4" />Detalhes
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openMapa(c)} disabled={c.propostas.length === 0}>
+                        <BarChart3 className="mr-2 h-4 w-4" />Mapa Comparativo
+                      </DropdownMenuItem>
+                      {c.status === "Em Andamento" && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => openPropostaDialog(c.id)}>
+                            <Plus className="mr-2 h-4 w-4" />Adicionar Proposta
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openFinalizarDialog(c.id)} disabled={c.propostas.length < 1}>
+                            <Trophy className="mr-2 h-4 w-4" />Finalizar Cotação
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => { cancelarCotacao(c.id); toast({ title: "Cotação cancelada" }); }}>
+                            <XCircle className="mr-2 h-4 w-4" />Cancelar
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
