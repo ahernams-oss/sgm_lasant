@@ -109,8 +109,9 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
         onChange={handleFileChange}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-        <Field label="Número da NR" required>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-foreground/80">Número da NR *</Label>
           <Select value={novaNr.numero} onValueChange={(v) => setNovaNr((p) => ({ ...p, numero: v }))}>
             <SelectTrigger><SelectValue placeholder="Selecione a NR" /></SelectTrigger>
             <SelectContent>
@@ -119,21 +120,32 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
               ))}
             </SelectContent>
           </Select>
-        </Field>
-        <Field label="Descrição" required>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-foreground/80">Descrição *</Label>
           <Input
             value={novaNr.descricao}
             onChange={(e) => setNovaNr((p) => ({ ...p, descricao: e.target.value }))}
             placeholder="Ex: Equipamentos de Proteção Individual"
           />
-        </Field>
-        <Field label="Data de Entrega">
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-foreground/80">Data de Entrega</Label>
           <Input
             type="date"
             value={novaNr.dataEntrega}
             onChange={(e) => setNovaNr((p) => ({ ...p, dataEntrega: e.target.value }))}
           />
-        </Field>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-foreground/80">Anexo</Label>
+          <Input
+            type="file"
+            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+            onChange={handleFormFileChange}
+            className="text-xs"
+          />
+        </div>
         <Button type="button" onClick={addNr} className="shadow-md">
           <Plus className="h-4 w-4 mr-1" /> Adicionar NR
         </Button>
