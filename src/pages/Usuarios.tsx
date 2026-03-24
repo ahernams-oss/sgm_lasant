@@ -191,6 +191,16 @@ const Usuarios = () => {
                       </button>
                     </div>
                   </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-foreground/80">Perfil de Acesso</Label>
+                    <Select value={form.perfilAcessoId} onValueChange={(v) => update("perfilAcessoId", v)}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o perfil" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Nenhum</SelectItem>
+                        {perfis.map((p) => (<SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </TabsContent>
 
