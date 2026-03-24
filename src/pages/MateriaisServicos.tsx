@@ -42,10 +42,10 @@ export default function MateriaisServicosPage() {
   const handleSave = () => {
     if (!form.descricao.trim()) { toast({ title: "Descrição é obrigatória", variant: "destructive" }); return; }
     if (editingId) {
-      updateMaterial(editingId, form);
+      updateMaterial(editingId, { ...form, fabricanteId: "" });
       toast({ title: "Material/Serviço atualizado" });
     } else {
-      addMaterial(form);
+      addMaterial({ ...form, fabricanteId: "" });
       toast({ title: "Material/Serviço criado" });
     }
     setDialogOpen(false);
