@@ -115,7 +115,7 @@ export default function PedidoCompraPage() {
           setSending(false);
           return;
         }
-        const pdfBase64 = getPdfOrdemCompraBase64(pdfData);
+        const pdfBase64 = await getPdfOrdemCompraBase64(pdfData);
         const pcNum = `PC-${String(sendPedido.numero).padStart(4, "0")}`;
         const { data, error } = await supabase.functions.invoke("send-email-ordem", {
           body: {
