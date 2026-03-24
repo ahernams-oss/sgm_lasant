@@ -765,6 +765,23 @@ export default function CotacaoComprasPage() {
                 }
               };
 
+              const handleSelecionarMelhorPreco = () => {
+                const next: Record<string, string> = {};
+                req.itens.forEach(item => {
+                  let bestFornId = "";
+                  let bestPrice = Infinity;
+                  propostas.forEach(p => {
+                    const pi = p.itens.find(i => i.itemId === item.id);
+                    if (pi && pi.precoUnitario > 0 && pi.precoUnitario < bestPrice) {
+                      bestPrice = pi.precoUnitario;
+                      bestFornId = p.fornecedorId;
+                    }
+                  });
+                  if (bestFornId) next[item.id] = bestFornId;
+                });
+                setFinItensVencedores(next);
+              };
+
               return (
                 <div className="overflow-x-auto border rounded-lg">
                   <Table>
