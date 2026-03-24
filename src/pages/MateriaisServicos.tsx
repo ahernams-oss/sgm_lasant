@@ -36,8 +36,8 @@ export default function MateriaisServicosPage() {
     return list;
   }, [materiais, search, filterTipo]);
 
-  const openNew = () => { setForm({ descricao: "", tipo: "Material", unidadeMedida: "UN", categoriaId: "", fabricanteId: "" }); setEditingId(null); setDialogOpen(true); };
-  const openEdit = (m: MaterialServico) => { setForm({ descricao: m.descricao, tipo: m.tipo, unidadeMedida: m.unidadeMedida, categoriaId: m.categoriaId, fabricanteId: m.fabricanteId || "" }); setEditingId(m.id); setDialogOpen(true); };
+  const openNew = () => { setForm({ descricao: "", tipo: "Material", unidadeMedida: "UN", categoriaId: "" }); setEditingId(null); setDialogOpen(true); };
+  const openEdit = (m: MaterialServico) => { setForm({ descricao: m.descricao, tipo: m.tipo, unidadeMedida: m.unidadeMedida, categoriaId: m.categoriaId }); setEditingId(m.id); setDialogOpen(true); };
 
   const handleSave = () => {
     if (!form.descricao.trim()) { toast({ title: "Descrição é obrigatória", variant: "destructive" }); return; }
