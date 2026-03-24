@@ -21,6 +21,7 @@ import { gerarPdfFuncionario } from "@/lib/gerarPdfFuncionario";
 import { gerarPdfEpi } from "@/lib/gerarPdfEpi";
 import { ExamesPeriodicosTab } from "@/components/ExamesPeriodicosTab";
 import { PromocoesTab } from "@/components/PromocoesTab";
+import { NRsFuncionarioTab } from "@/components/NRsFuncionarioTab";
 
 const UF_OPTIONS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const STATUS_OPTIONS = ["Ativo", "Inativo", "Afastado", "Férias"] as const;
