@@ -68,6 +68,12 @@ const RequisicaoGrid = () => {
 
   const canEdit = (req: Requisicao) => req.status !== "Aprovada" && req.status !== "Reprovada" && req.status !== "Concluída";
 
+  const isProcessoLiberado = (reqId: string) => {
+    const processo = processos.find(p => p.requisicaoId === reqId);
+    if (!processo) return false;
+    return processo.candidatos.some(c => c.statusLiberacao === "aprovado");
+  };
+
   const openEdit = (req: Requisicao) => {
     setEditForm({
       unidade: req.unidade || "",
