@@ -14,7 +14,7 @@ const Fornecedores = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
   const [search, setSearch] = useState("");
-  const [locaisClienteId, setLocaisClienteId] = useState<string | null>(null);
+  
 
   const fornecedores = useMemo(() => clientes.filter((c) => c.tipo === "Fornecedor"), [clientes]);
 
