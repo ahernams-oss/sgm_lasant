@@ -22,6 +22,8 @@ import CategoriasCompras from "./pages/CategoriasCompras.tsx";
 import MateriaisServicos from "./pages/MateriaisServicos.tsx";
 import RequisicaoComprasPage from "./pages/RequisicaoCompras.tsx";
 import DashboardCompras from "./pages/DashboardCompras.tsx";
+import CotacaoComprasPage from "./pages/CotacaoCompras.tsx";
+import PedidoCompraPage from "./pages/PedidoCompra.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
@@ -35,6 +37,8 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { CategoriasComprasProvider } from "@/contexts/CategoriasComprasContext";
 import { MateriaisServicosProvider } from "@/contexts/MateriaisServicosContext";
 import { RequisicaoComprasProvider } from "@/contexts/RequisicaoComprasContext";
+import { CotacaoComprasProvider } from "@/contexts/CotacaoComprasContext";
+import { PedidoCompraProvider } from "@/contexts/PedidoCompraContext";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +62,8 @@ function AppRoutes() {
         <Route path="/compras/categorias" element={<CategoriasCompras />} />
         <Route path="/compras/materiais" element={<MateriaisServicos />} />
         <Route path="/compras/requisicoes" element={<RequisicaoComprasPage />} />
+        <Route path="/compras/cotacoes" element={<CotacaoComprasPage />} />
+        <Route path="/compras/pedidos" element={<PedidoCompraPage />} />
         <Route path="/compras/dashboard" element={<DashboardCompras />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -79,6 +85,8 @@ const App = () => (
     <CategoriasComprasProvider>
     <MateriaisServicosProvider>
     <RequisicaoComprasProvider>
+    <CotacaoComprasProvider>
+    <PedidoCompraProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
@@ -88,6 +96,8 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </PedidoCompraProvider>
+    </CotacaoComprasProvider>
     </RequisicaoComprasProvider>
     </MateriaisServicosProvider>
     </CategoriasComprasProvider>
