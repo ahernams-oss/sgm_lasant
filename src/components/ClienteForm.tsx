@@ -78,6 +78,9 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({ ...form, telefones: form.telefones.filter((t) => t.trim() !== "") }, editingId);
+    if (!editingId) {
+      setForm(tipoFixo ? { ...emptyForm, tipo: tipoFixo } : emptyForm);
+    }
   };
 
   const label = tipoFixo || "Cliente";
