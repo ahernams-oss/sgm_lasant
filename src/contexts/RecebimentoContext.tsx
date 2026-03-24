@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
+import { useEstoque } from "@/contexts/EstoqueContext";
 import { fetchAll, insertRow } from "@/lib/supabaseHelper";
 
 export interface ItemRecebimento {
