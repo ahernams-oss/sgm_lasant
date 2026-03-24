@@ -4,9 +4,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { NrFuncionario } from "@/contexts/FuncionariosContext";
+import { toast } from "sonner";
+
+const NR_OPTIONS = Array.from({ length: 38 }, (_, i) => {
+  const num = String(i + 1).padStart(2, "0");
+  return `NR-${num}`;
+});
 import { toast } from "sonner";
 
 const Field = ({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) => (
