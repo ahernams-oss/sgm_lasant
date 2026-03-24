@@ -37,6 +37,8 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { CategoriasComprasProvider } from "@/contexts/CategoriasComprasContext";
 import { MateriaisServicosProvider } from "@/contexts/MateriaisServicosContext";
 import { RequisicaoComprasProvider } from "@/contexts/RequisicaoComprasContext";
+import { CotacaoComprasProvider } from "@/contexts/CotacaoComprasContext";
+import { PedidoCompraProvider } from "@/contexts/PedidoCompraContext";
 
 const queryClient = new QueryClient();
 
