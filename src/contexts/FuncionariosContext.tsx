@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export type TipoTransporte = "Ônibus" | "Trem" | "Metrô" | "VLT" | "Barca" | "Catamarã";
 
@@ -53,7 +55,6 @@ export const grausParentesco = [
 
 export interface Funcionario {
   id: string;
-  // Dados pessoais
   nome: string;
   cpf: string;
   rg: string;
@@ -69,7 +70,6 @@ export interface Funcionario {
   email: string;
   pcd: boolean;
   tipoPcd: string;
-  // Endereço
   cep: string;
   logradouro: string;
   numero: string;
@@ -77,7 +77,6 @@ export interface Funcionario {
   bairro: string;
   cidade: string;
   uf: string;
-  // Dados profissionais
   cargoId: string;
   clienteId: string;
   dataAdmissao: string;
@@ -88,13 +87,11 @@ export interface Funcionario {
   ctps: string;
   serieCtps: string;
   pis: string;
-  // Dados bancários
   banco: string;
   agencia: string;
   conta: string;
   tipoConta: string;
   chavePix: string;
-  // Documentos adicionais
   tituloEleitor: string;
   zonaEleitoral: string;
   secaoEleitoral: string;
@@ -102,23 +99,16 @@ export interface Funcionario {
   categoriaCnh: string;
   validadeCnh: string;
   certificadoReservista: string;
-  // Uniforme
   tamanhoCamisa: string;
   tamanhoCalca: string;
   tamanhoCalcado: string;
   peso: string;
   altura: string;
-  // Passagem
   passagens: PassagemDiaria[];
-  // Dependentes
   dependentes: Dependente[];
-  // EPIs
   epis: EpiItem[];
-  // NRs
   nrs: NrFuncionario[];
-  // Observações
   observacoes: string;
-  // Status
   status: "Ativo" | "Inativo" | "Afastado" | "Férias";
 }
 
@@ -140,6 +130,129 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   observacoes: "", status: "Ativo",
 };
 
+// Helper to convert DB row to Funcionario
+function rowToFuncionario(row: any): Funcionario {
+  return {
+    id: row.id,
+    nome: row.nome ?? "",
+    cpf: row.cpf ?? "",
+    rg: row.rg ?? "",
+    orgaoEmissor: row.orgao_emissor ?? "",
+    dataNascimento: row.data_nascimento ?? "",
+    sexo: row.sexo ?? "",
+    estadoCivil: row.estado_civil ?? "",
+    nacionalidade: row.nacionalidade ?? "Brasileira",
+    naturalidade: row.naturalidade ?? "",
+    nomeMae: row.nome_mae ?? "",
+    nomePai: row.nome_pai ?? "",
+    telefone: row.telefone ?? "+55 ",
+    email: row.email ?? "",
+    pcd: row.pcd ?? false,
+    tipoPcd: row.tipo_pcd ?? "",
+    cep: row.cep ?? "",
+    logradouro: row.logradouro ?? "",
+    numero: row.numero ?? "",
+    complemento: row.complemento ?? "",
+    bairro: row.bairro ?? "",
+    cidade: row.cidade ?? "",
+    uf: row.uf ?? "",
+    cargoId: row.cargo_id ?? "",
+    clienteId: row.cliente_id ?? "",
+    dataAdmissao: row.data_admissao ?? "",
+    dataDemissao: row.data_demissao ?? "",
+    tipoContrato: row.tipo_contrato ?? "CLT",
+    salario: row.salario ?? "",
+    jornadaTrabalho: row.jornada_trabalho ?? "",
+    ctps: row.ctps ?? "",
+    serieCtps: row.serie_ctps ?? "",
+    pis: row.pis ?? "",
+    banco: row.banco ?? "",
+    agencia: row.agencia ?? "",
+    conta: row.conta ?? "",
+    tipoConta: row.tipo_conta ?? "Corrente",
+    chavePix: row.chave_pix ?? "",
+    tituloEleitor: row.titulo_eleitor ?? "",
+    zonaEleitoral: row.zona_eleitoral ?? "",
+    secaoEleitoral: row.secao_eleitoral ?? "",
+    cnh: row.cnh ?? "",
+    categoriaCnh: row.categoria_cnh ?? "",
+    validadeCnh: row.validade_cnh ?? "",
+    certificadoReservista: row.certificado_reservista ?? "",
+    tamanhoCamisa: row.tamanho_camisa ?? "",
+    tamanhoCalca: row.tamanho_calca ?? "",
+    tamanhoCalcado: row.tamanho_calcado ?? "",
+    peso: row.peso ?? "",
+    altura: row.altura ?? "",
+    passagens: (row.passagens as PassagemDiaria[]) ?? [],
+    dependentes: (row.dependentes as Dependente[]) ?? [],
+    epis: (row.epis as EpiItem[]) ?? [],
+    nrs: (row.nrs as NrFuncionario[]) ?? [],
+    observacoes: row.observacoes ?? "",
+    status: row.status ?? "Ativo",
+  };
+}
+
+// Helper to convert Funcionario to DB row
+function funcionarioToRow(f: Omit<Funcionario, "id">) {
+  return {
+    nome: f.nome,
+    cpf: f.cpf,
+    rg: f.rg,
+    orgao_emissor: f.orgaoEmissor,
+    data_nascimento: f.dataNascimento,
+    sexo: f.sexo,
+    estado_civil: f.estadoCivil,
+    nacionalidade: f.nacionalidade,
+    naturalidade: f.naturalidade,
+    nome_mae: f.nomeMae,
+    nome_pai: f.nomePai,
+    telefone: f.telefone,
+    email: f.email,
+    pcd: f.pcd,
+    tipo_pcd: f.tipoPcd,
+    cep: f.cep,
+    logradouro: f.logradouro,
+    numero: f.numero,
+    complemento: f.complemento,
+    bairro: f.bairro,
+    cidade: f.cidade,
+    uf: f.uf,
+    cargo_id: f.cargoId,
+    cliente_id: f.clienteId,
+    data_admissao: f.dataAdmissao,
+    data_demissao: f.dataDemissao,
+    tipo_contrato: f.tipoContrato,
+    salario: f.salario,
+    jornada_trabalho: f.jornadaTrabalho,
+    ctps: f.ctps,
+    serie_ctps: f.serieCtps,
+    pis: f.pis,
+    banco: f.banco,
+    agencia: f.agencia,
+    conta: f.conta,
+    tipo_conta: f.tipoConta,
+    chave_pix: f.chavePix,
+    titulo_eleitor: f.tituloEleitor,
+    zona_eleitoral: f.zonaEleitoral,
+    secao_eleitoral: f.secaoEleitoral,
+    cnh: f.cnh,
+    categoria_cnh: f.categoriaCnh,
+    validade_cnh: f.validadeCnh,
+    certificado_reservista: f.certificadoReservista,
+    tamanho_camisa: f.tamanhoCamisa,
+    tamanho_calca: f.tamanhoCalca,
+    tamanho_calcado: f.tamanhoCalcado,
+    peso: f.peso,
+    altura: f.altura,
+    passagens: f.passagens as any,
+    dependentes: f.dependentes as any,
+    epis: f.epis as any,
+    nrs: f.nrs as any,
+    observacoes: f.observacoes,
+    status: f.status,
+  };
+}
+
 interface FuncionariosContextType {
   funcionarios: Funcionario[];
   addFuncionario: (f: Omit<Funcionario, "id">) => void;
@@ -150,21 +263,65 @@ interface FuncionariosContextType {
 const FuncionariosContext = createContext<FuncionariosContextType | undefined>(undefined);
 
 export function FuncionariosProvider({ children }: { children: ReactNode }) {
-  const [funcionarios, setFuncionarios] = useState<Funcionario[]>(() => {
-    const saved = localStorage.getItem("funcionarios");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
 
-  useEffect(() => { localStorage.setItem("funcionarios", JSON.stringify(funcionarios)); }, [funcionarios]);
+  const fetchFuncionarios = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("funcionarios")
+      .select("*")
+      .order("nome");
+    if (error) {
+      console.error("Erro ao carregar funcionários:", error);
+      toast.error("Erro ao carregar funcionários.");
+      return;
+    }
+    setFuncionarios((data || []).map(rowToFuncionario));
+  }, []);
 
-  const addFuncionario = (f: Omit<Funcionario, "id">) =>
-    setFuncionarios((prev) => [...prev, { id: crypto.randomUUID(), ...f }]);
+  useEffect(() => {
+    fetchFuncionarios();
+  }, [fetchFuncionarios]);
 
-  const updateFuncionario = (id: string, data: Partial<Omit<Funcionario, "id">>) =>
-    setFuncionarios((prev) => prev.map((f) => (f.id === id ? { ...f, ...data } : f)));
+  const addFuncionario = async (f: Omit<Funcionario, "id">) => {
+    const { error } = await supabase
+      .from("funcionarios")
+      .insert(funcionarioToRow(f));
+    if (error) {
+      console.error("Erro ao cadastrar funcionário:", error);
+      toast.error("Erro ao cadastrar funcionário.");
+      return;
+    }
+    await fetchFuncionarios();
+  };
 
-  const deleteFuncionario = (id: string) =>
-    setFuncionarios((prev) => prev.filter((f) => f.id !== id));
+  const updateFuncionario = async (id: string, data: Partial<Omit<Funcionario, "id">>) => {
+    // Build partial row with only provided fields
+    const fullData = { ...emptyFuncionarioForm, ...funcionarios.find(f => f.id === id), ...data };
+    const { id: _id, ...rest } = fullData as Funcionario;
+    const { error } = await supabase
+      .from("funcionarios")
+      .update(funcionarioToRow(rest))
+      .eq("id", id);
+    if (error) {
+      console.error("Erro ao atualizar funcionário:", error);
+      toast.error("Erro ao atualizar funcionário.");
+      return;
+    }
+    await fetchFuncionarios();
+  };
+
+  const deleteFuncionario = async (id: string) => {
+    const { error } = await supabase
+      .from("funcionarios")
+      .delete()
+      .eq("id", id);
+    if (error) {
+      console.error("Erro ao remover funcionário:", error);
+      toast.error("Erro ao remover funcionário.");
+      return;
+    }
+    await fetchFuncionarios();
+  };
 
   return (
     <FuncionariosContext.Provider value={{ funcionarios, addFuncionario, updateFuncionario, deleteFuncionario }}>
