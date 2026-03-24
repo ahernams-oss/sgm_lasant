@@ -122,7 +122,7 @@ function drawEmployeeData(doc: jsPDF, func: Funcionario, opts: EpiPdfOptions, pw
   return 64;
 }
 
-function drawTermoAndLegal(doc: jsPDF, pw: number, startY: number): number {
+function drawTermoAndLegal(doc: jsPDF, pw: number, startY: number, dataEntrega?: string): number {
   let y = startY;
   const margin = 12;
   const contentW = pw - margin * 2;
