@@ -44,7 +44,9 @@ const rowToReq = (r: any): Requisicao => ({
 });
 
 const reqToRow = (r: Requisicao) => ({
-  numero: r.numero, data_criacao: r.dataCriacao, unidade: r.unidade,
+  numero: r.numero, data_criacao: r.dataCriacao,
+  headcount: r.headcount, orcamento: r.orcamento, tipo_vaga: r.tipoVaga,
+  unidade: r.unidade,
   cargo_nome: r.cargoNome, cargo_id: r.cargoId, jornada: r.jornada,
   carga_horaria: r.cargaHoraria, tipo_contratacao: r.tipoContratacao as any,
   interno_externo: r.internoExterno, origem_vaga: r.origemVaga,

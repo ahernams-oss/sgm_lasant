@@ -581,6 +581,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         style={{ animationDelay: "560ms" }}
       >
         <Button type="button" variant="outline" size="lg" className="px-6 rounded-lg" onClick={() => setForm({
+          headcount: "", orcamento: "", tipoVaga: "",
           unidade: "", cargo: "", jornada: "", cargaHoraria: "",
           tipoContratacao: [], internoExterno: "", origemVaga: "", motivoOutros: "",
           matricula: "", nomeSubstituido: "", cargoSubstituido: "",
