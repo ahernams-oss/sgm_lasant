@@ -163,11 +163,17 @@ export default function PedidoCompraPage() {
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
+              <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
             ) : filtered.map(p => {
               const rcVinculada = requisicoes.find(r => r.id === p.requisicaoId);
+              const canUpdate = getNextStatuses(p.status).length > 0;
               return (
-              <TableRow key={p.id}>
+              <TableRow key={p.id} className={selectedIds.includes(p.id) ? "bg-primary/5" : ""}>
+                <TableCell>
+                  {canUpdate ? (
+                    <Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggleSelect(p.id)} />
+                  ) : <div className="w-4" />}
+                </TableCell>
                 <TableCell className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</TableCell>
                 <TableCell className="text-sm">{rcVinculada?.centroCustoNome || "-"}</TableCell>
                 <TableCell className="font-mono">RC-{String(p.requisicaoNumero).padStart(4, "0")}</TableCell>
