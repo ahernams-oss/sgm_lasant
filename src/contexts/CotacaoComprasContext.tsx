@@ -46,10 +46,10 @@ export interface CotacaoCompras {
 
 interface CotacaoComprasContextType {
   cotacoes: CotacaoCompras[];
-  addCotacao: (data: Omit<CotacaoCompras, "id" | "numero" | "dataCriacao" | "status" | "propostas" | "fornecedorVencedorId" | "justificativaEscolha">) => CotacaoCompras;
+  addCotacao: (data: Omit<CotacaoCompras, "id" | "numero" | "dataCriacao" | "status" | "propostas" | "fornecedorVencedorId" | "justificativaEscolha" | "itensVencedores">) => CotacaoCompras;
   addProposta: (cotacaoId: string, proposta: Omit<PropostaFornecedor, "id" | "valorTotal">) => void;
   removeProposta: (cotacaoId: string, propostaId: string) => void;
-  finalizarCotacao: (cotacaoId: string, fornecedorVencedorId: string, justificativa: string) => void;
+  finalizarCotacao: (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => void;
   cancelarCotacao: (cotacaoId: string) => void;
   getCotacaoByRequisicao: (requisicaoId: string) => CotacaoCompras | undefined;
 }
