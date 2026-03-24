@@ -114,6 +114,8 @@ export interface Funcionario {
   dependentes: Dependente[];
   // EPIs
   epis: EpiItem[];
+  // NRs
+  nrs: NrFuncionario[];
   // Observações
   observacoes: string;
   // Status
