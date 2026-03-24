@@ -186,9 +186,5 @@ const Fornecedores = () => {
     </div>
   );
 };
-      </div>
-    </div>
-  );
-};
 
 export default Fornecedores;
