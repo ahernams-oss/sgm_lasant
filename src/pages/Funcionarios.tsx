@@ -716,6 +716,14 @@ const Funcionarios = () => {
                 <EpiTab epis={form.epis || []} onChange={(e) => update("epis", e as any)} />
               </TabsContent>
 
+              {/* NRs */}
+              <TabsContent value="nrs">
+                <NRsFuncionarioTab
+                  nrs={form.nrs || []}
+                  onChange={(nrs) => update("nrs", nrs)}
+                />
+              </TabsContent>
+
               {/* EXAMES PERIÓDICOS */}
               <TabsContent value="exames">
                 <ExamesPeriodicosTab
