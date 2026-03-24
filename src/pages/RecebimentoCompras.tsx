@@ -65,9 +65,9 @@ export default function RecebimentoComprasPage() {
 
   const filtered = useMemo(() => {
     let list = filterStatus === "Pendentes"
-      ? pedidos.filter(p => ["Confirmado", "Em Entrega", "Entregue Parcial"].includes(p.status))
+      ? pedidos.filter(p => ["Confirmado", "Em Entrega", "Entregue Parcial"].includes(p.status) || (p.status === "Entregue" && pedidoTemItensPendentes(p)))
       : filterStatus === "Recebidos"
-        ? pedidos.filter(p => p.status === "Entregue")
+        ? pedidos.filter(p => p.status === "Entregue" && !pedidoTemItensPendentes(p))
         : pedidos.filter(p => p.status !== "Cancelado");
 
     if (search) {
