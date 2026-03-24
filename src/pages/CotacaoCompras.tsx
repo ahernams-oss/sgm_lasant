@@ -318,7 +318,12 @@ export default function CotacaoComprasPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Cotações de Compras</h1>
-        <Button onClick={() => { setReqSearch(""); setReqFilterUrgencia("Todas"); setSelectedReqId(""); setNovaDialogOpen(true); }} disabled={reqDisponiveisParaCotacao.length === 0}><Plus className="mr-2 h-4 w-4" />Nova Cotação</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={syncPropostasExternas} title="Sincronizar propostas externas">
+            <RefreshCw className="mr-2 h-4 w-4" />Sincronizar
+          </Button>
+          <Button onClick={() => { setReqSearch(""); setReqFilterUrgencia("Todas"); setSelectedReqId(""); setNovaDialogOpen(true); }} disabled={reqDisponiveisParaCotacao.length === 0}><Plus className="mr-2 h-4 w-4" />Nova Cotação</Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3 items-end">
