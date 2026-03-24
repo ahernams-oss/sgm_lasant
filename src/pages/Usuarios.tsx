@@ -19,7 +19,7 @@ import { toast } from "sonner";
 
 const emptyForm = {
   nome: "", cargoId: "", telefone: "+55 ", email: "", senha: "",
-  clientesPermitidos: [] as string[],
+  clientesPermitidos: [] as string[], perfilAcessoId: "",
 };
 
 const Usuarios = () => {
