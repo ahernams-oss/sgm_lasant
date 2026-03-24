@@ -124,6 +124,7 @@ export default function RecebimentoComprasPage() {
       itens: recItens.filter(i => i.quantidadeRecebida > 0),
       observacaoGeral: recObservacao,
       notaFiscal: recNotaFiscal,
+      anexosNF: recAnexos,
     });
 
     toast({ title: "Recebimento registrado com sucesso!" });
