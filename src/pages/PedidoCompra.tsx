@@ -104,6 +104,7 @@ export default function PedidoCompraPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Nº Pedido</TableHead>
+              <TableHead>Centro de Custo</TableHead>
               <TableHead>RC</TableHead>
               <TableHead>Data</TableHead>
               <TableHead>Fornecedor</TableHead>
@@ -115,10 +116,13 @@ export default function PedidoCompraPage() {
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
-            ) : filtered.map(p => (
+              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
+            ) : filtered.map(p => {
+              const rcVinculada = requisicoes.find(r => r.id === p.requisicaoId);
+              return (
               <TableRow key={p.id}>
                 <TableCell className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</TableCell>
+                <TableCell className="text-sm">{rcVinculada?.centroCustoNome || "-"}</TableCell>
                 <TableCell className="font-mono">RC-{String(p.requisicaoNumero).padStart(4, "0")}</TableCell>
                 <TableCell>{format(new Date(p.dataCriacao), "dd/MM/yyyy")}</TableCell>
                 <TableCell>{p.fornecedorNome}</TableCell>
