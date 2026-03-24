@@ -130,6 +130,7 @@ export default function MateriaisServicosPage() {
               <TableHead>Tipo</TableHead>
               <TableHead>Unidade</TableHead>
               <TableHead>Categoria</TableHead>
+              <TableHead>Fabricante</TableHead>
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
           </TableHeader>
