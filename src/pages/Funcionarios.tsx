@@ -19,6 +19,7 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
 import { gerarPdfFuncionario } from "@/lib/gerarPdfFuncionario";
 import { gerarPdfEpi } from "@/lib/gerarPdfEpi";
+import { ExamesPeriodicosTab } from "@/components/ExamesPeriodicosTab";
 
 const UF_OPTIONS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const STATUS_OPTIONS = ["Ativo", "Inativo", "Afastado", "Férias"] as const;
