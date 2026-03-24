@@ -81,6 +81,8 @@ export default function CotacaoComprasPage() {
   // Finalizar form
   const [finVencedorId, setFinVencedorId] = useState("");
   const [finJustificativa, setFinJustificativa] = useState("");
+  const [finItensVencedores, setFinItensVencedores] = useState<Record<string, string>>({});
+  const [finModoItemizado, setFinModoItemizado] = useState(false);
 
   // Enviar para fornecedor
   const [enviarDialogOpen, setEnviarDialogOpen] = useState(false);
