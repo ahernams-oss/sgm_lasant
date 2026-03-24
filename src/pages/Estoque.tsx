@@ -3,6 +3,8 @@ import { useEstoque, MovimentacaoEstoque, SaldoEstoque } from "@/contexts/Estoqu
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
+import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
