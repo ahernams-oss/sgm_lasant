@@ -159,37 +159,91 @@ export default function CotacaoComprasPage() {
   const openFinalizarDialog = (cotacaoId: string) => {
     setFinalizarCotacaoId(cotacaoId);
     setFinVencedorId(""); setFinJustificativa("");
+    setFinItensVencedores({});
+    setFinModoItemizado(false);
     setFinalizarDialogOpen(true);
   };
 
   const handleFinalizar = () => {
-    if (!finVencedorId) { toast({ title: "Selecione o fornecedor vencedor", variant: "destructive" }); return; }
     if (!finJustificativa.trim()) { toast({ title: "Justificativa é obrigatória", variant: "destructive" }); return; }
     const cot = cotacoes.find(c => c.id === finalizarCotacaoId);
     if (!cot) return;
-    finalizarCotacao(finalizarCotacaoId, finVencedorId, finJustificativa);
+    const req = requisicoes.find(r => r.id === cot.requisicaoId);
+    if (!req) return;
 
-    // Auto-create pedido
-    const propVencedora = cot.propostas.find(p => p.fornecedorId === finVencedorId);
-    if (propVencedora) {
-      const req = requisicoes.find(r => r.id === cot.requisicaoId);
-      addPedido({
-        cotacaoId: cot.id,
-        requisicaoId: cot.requisicaoId,
-        requisicaoNumero: cot.requisicaoNumero,
-        comprador: usuarioLogado?.nome || "Comprador",
-        fornecedorId: propVencedora.fornecedorId,
-        fornecedorNome: propVencedora.fornecedorNome,
-        itens: propVencedora.itens.map(i => ({ itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario, valorTotal: i.precoUnitario * i.quantidade })),
-        condicaoPagamento: propVencedora.condicaoPagamento,
-        prazoEntrega: propVencedora.prazoEntrega,
-        localEntrega: req?.localEntrega || "",
-        observacoes: "",
+    if (finModoItemizado) {
+      // Item-level authorization
+      const allAssigned = req.itens.every(i => finItensVencedores[i.id]);
+      if (!allAssigned) { toast({ title: "Selecione um fornecedor para cada item", variant: "destructive" }); return; }
+
+      const itensVencedores: ItemVencedor[] = req.itens.map(i => {
+        const fornId = finItensVencedores[i.id];
+        const prop = cot.propostas.find(p => p.fornecedorId === fornId);
+        return { itemId: i.id, fornecedorId: fornId, fornecedorNome: prop?.fornecedorNome || "" };
       });
-      updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Comprador", "Pedido gerado automaticamente após cotação");
+
+      // Group items by supplier
+      const fornecedorIds = [...new Set(itensVencedores.map(iv => iv.fornecedorId))];
+      const principalFornecedorId = fornecedorIds[0];
+
+      finalizarCotacao(finalizarCotacaoId, principalFornecedorId, finJustificativa, itensVencedores);
+
+      // Create one pedido per supplier
+      for (const fornId of fornecedorIds) {
+        const prop = cot.propostas.find(p => p.fornecedorId === fornId);
+        if (!prop) continue;
+        const itemIds = itensVencedores.filter(iv => iv.fornecedorId === fornId).map(iv => iv.itemId);
+        const itensPedido = prop.itens
+          .filter(i => itemIds.includes(i.itemId))
+          .map(i => ({ itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario, valorTotal: i.precoUnitario * i.quantidade }));
+
+        addPedido({
+          cotacaoId: cot.id,
+          requisicaoId: cot.requisicaoId,
+          requisicaoNumero: cot.requisicaoNumero,
+          comprador: usuarioLogado?.nome || "Comprador",
+          fornecedorId: prop.fornecedorId,
+          fornecedorNome: prop.fornecedorNome,
+          itens: itensPedido,
+          condicaoPagamento: prop.condicaoPagamento,
+          prazoEntrega: prop.prazoEntrega,
+          localEntrega: req.localEntrega || "",
+          observacoes: "",
+        });
+      }
+
+      updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Comprador",
+        fornecedorIds.length > 1
+          ? `${fornecedorIds.length} pedidos gerados (autorização por item)`
+          : "Pedido gerado automaticamente após cotação"
+      );
+
+      toast({ title: `Cotação finalizada! ${fornecedorIds.length} pedido(s) emitido(s).` });
+    } else {
+      // Single supplier mode (original)
+      if (!finVencedorId) { toast({ title: "Selecione o fornecedor vencedor", variant: "destructive" }); return; }
+      finalizarCotacao(finalizarCotacaoId, finVencedorId, finJustificativa);
+
+      const propVencedora = cot.propostas.find(p => p.fornecedorId === finVencedorId);
+      if (propVencedora) {
+        addPedido({
+          cotacaoId: cot.id,
+          requisicaoId: cot.requisicaoId,
+          requisicaoNumero: cot.requisicaoNumero,
+          comprador: usuarioLogado?.nome || "Comprador",
+          fornecedorId: propVencedora.fornecedorId,
+          fornecedorNome: propVencedora.fornecedorNome,
+          itens: propVencedora.itens.map(i => ({ itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario, valorTotal: i.precoUnitario * i.quantidade })),
+          condicaoPagamento: propVencedora.condicaoPagamento,
+          prazoEntrega: propVencedora.prazoEntrega,
+          localEntrega: req.localEntrega || "",
+          observacoes: "",
+        });
+        updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Comprador", "Pedido gerado automaticamente após cotação");
+      }
+      toast({ title: "Cotação finalizada e pedido emitido!" });
     }
 
-    toast({ title: "Cotação finalizada e pedido emitido!" });
     setFinalizarDialogOpen(false);
   };
 
