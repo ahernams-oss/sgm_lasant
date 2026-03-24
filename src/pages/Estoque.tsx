@@ -435,7 +435,7 @@ export default function EstoquePage() {
               <Select value={movLocal} onValueChange={setMovLocal}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  {locais.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                  {(movTipo === "saida" ? locaisClientes : locais).map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
