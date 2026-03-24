@@ -843,7 +843,7 @@ export default function CotacaoComprasPage() {
                                         onChange={() => handleToggleItem(item.id, p.fornecedorId)}
                                         className="rounded border-input"
                                       />
-                                      <span className={`text-xs ${isCheapest ? "text-destructive font-bold" : ""}`}>
+                                      <span className={`text-xs ${isCheapest ? "font-bold" : ""}`} style={isCheapest ? { color: "#4169E1" } : undefined}>
                                         {formatCurrency(pi.precoUnitario)} | {formatCurrency(pi.precoUnitario * pi.quantidade)}
                                       </span>
                                     </label>
