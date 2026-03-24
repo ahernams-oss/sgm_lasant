@@ -182,6 +182,14 @@ export default function MateriaisServicosPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div><Label>Fabricante</Label>
+              <Select value={form.fabricanteId} onValueChange={v => setForm(f => ({ ...f, fabricanteId: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  {fabricantes.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
         </DialogContent>

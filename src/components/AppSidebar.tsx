@@ -38,6 +38,7 @@ const menuItems = [
       { title: "Recebimento", url: "/compras/recebimento", icon: PackageCheck },
       { title: "Categorias de Compras", url: "/compras/categorias", icon: Tags },
       { title: "Materiais e Serviços", url: "/compras/materiais", icon: Package },
+      { title: "Fabricantes", url: "/compras/fabricantes", icon: Factory },
     ],
   },
   {

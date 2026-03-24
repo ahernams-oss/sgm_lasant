@@ -7,6 +7,7 @@ export interface MaterialServico {
   tipo: "Material" | "Serviço";
   unidadeMedida: string;
   categoriaId: string;
+  fabricanteId: string;
 }
 
 interface MateriaisServicosContextType {
