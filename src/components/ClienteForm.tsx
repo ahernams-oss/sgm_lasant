@@ -263,26 +263,30 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
         </div>
       </div>
 
-      {/* Impressão OS */}
-      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 mt-6">Impressão de OS - Cabeçalho</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="field-label">Linha 1</label>
-          <Input value={form.relLinha1} onChange={(e) => update("relLinha1", e.target.value)} />
-        </div>
-        <div>
-          <label className="field-label">Linha 2</label>
-          <Input value={form.relLinha2} onChange={(e) => update("relLinha2", e.target.value)} />
-        </div>
-        <div>
-          <label className="field-label">Linha 3</label>
-          <Input value={form.relLinha3} onChange={(e) => update("relLinha3", e.target.value)} />
-        </div>
-        <div>
-          <label className="field-label">Linha 4</label>
-          <Input value={form.relLinha4} onChange={(e) => update("relLinha4", e.target.value)} />
-        </div>
-      </div>
+      {/* Impressão OS - apenas para Clientes */}
+      {tipoFixo !== "Fornecedor" && (
+        <>
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 mt-6">Impressão de OS - Cabeçalho</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="field-label">Linha 1</label>
+              <Input value={form.relLinha1} onChange={(e) => update("relLinha1", e.target.value)} />
+            </div>
+            <div>
+              <label className="field-label">Linha 2</label>
+              <Input value={form.relLinha2} onChange={(e) => update("relLinha2", e.target.value)} />
+            </div>
+            <div>
+              <label className="field-label">Linha 3</label>
+              <Input value={form.relLinha3} onChange={(e) => update("relLinha3", e.target.value)} />
+            </div>
+            <div>
+              <label className="field-label">Linha 4</label>
+              <Input value={form.relLinha4} onChange={(e) => update("relLinha4", e.target.value)} />
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Buttons */}
       <div className="flex gap-2 mt-6">
