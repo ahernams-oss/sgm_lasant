@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck } from "lucide-react";
+import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { format, subDays, isAfter } from "date-fns";
 
@@ -29,7 +29,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function CotacaoComprasPage() {
-  const { cotacoes, addCotacao, addProposta, removeProposta, submeterAprovacao, aprovarCotacao, finalizarCotacao, cancelarCotacao } = useCotacaoCompras();
+  const { cotacoes, addCotacao, addProposta, updateProposta, removeProposta, submeterAprovacao, aprovarCotacao, finalizarCotacao, cancelarCotacao } = useCotacaoCompras();
   const { requisicoes, updateStatus } = useRequisicaoCompras();
   const { addPedido } = usePedidoCompra();
   const { clientes } = useClientes();
@@ -67,6 +67,7 @@ export default function CotacaoComprasPage() {
   const [viewCotacao, setViewCotacao] = useState<CotacaoCompras | null>(null);
   const [propostaDialogOpen, setPropostaDialogOpen] = useState(false);
   const [propostaCotacaoId, setPropostaCotacaoId] = useState("");
+  const [editingPropostaId, setEditingPropostaId] = useState<string | null>(null);
   const [finalizarDialogOpen, setFinalizarDialogOpen] = useState(false);
   const [finalizarCotacaoId, setFinalizarCotacaoId] = useState("");
   const [aprovarDialogOpen, setAprovarDialogOpen] = useState(false);
@@ -139,6 +140,19 @@ export default function CotacaoComprasPage() {
     if (!req) return;
     setPropItens(req.itens.map(i => ({ itemId: i.id, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida, precoUnitario: 0, prazoEntrega: "", observacao: "" })));
     setPropFornecedorId(""); setPropCondicao(""); setPropPrazo(""); setPropValidade(""); setPropObs("");
+    setEditingPropostaId(null);
+    setPropostaCotacaoId(cotacaoId);
+    setPropostaDialogOpen(true);
+  };
+
+  const openEditPropostaDialog = (cotacaoId: string, proposta: PropostaFornecedor) => {
+    setPropFornecedorId(proposta.fornecedorId);
+    setPropCondicao(proposta.condicaoPagamento);
+    setPropPrazo(proposta.prazoEntrega);
+    setPropValidade(proposta.validadeProposta);
+    setPropObs(proposta.observacao);
+    setPropItens(proposta.itens.map(i => ({ ...i })));
+    setEditingPropostaId(proposta.id);
     setPropostaCotacaoId(cotacaoId);
     setPropostaDialogOpen(true);
   };
@@ -147,7 +161,7 @@ export default function CotacaoComprasPage() {
     if (!propFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
     if (propItens.some(i => i.precoUnitario <= 0)) { toast({ title: "Preencha todos os preços unitários", variant: "destructive" }); return; }
     const forn = fornecedores.find(f => f.id === propFornecedorId);
-    addProposta(propostaCotacaoId, {
+    const propostaData = {
       fornecedorId: propFornecedorId,
       fornecedorNome: forn?.nome || "",
       condicaoPagamento: propCondicao,
@@ -155,8 +169,14 @@ export default function CotacaoComprasPage() {
       validadeProposta: propValidade,
       observacao: propObs,
       itens: propItens,
-    });
-    toast({ title: "Proposta adicionada!" });
+    };
+    if (editingPropostaId) {
+      updateProposta(propostaCotacaoId, editingPropostaId, propostaData);
+      toast({ title: "Proposta atualizada!" });
+    } else {
+      addProposta(propostaCotacaoId, propostaData);
+      toast({ title: "Proposta adicionada!" });
+    }
     setPropostaDialogOpen(false);
   };
 
@@ -487,7 +507,7 @@ export default function CotacaoComprasPage() {
                       <DropdownMenuItem onClick={() => openMapa(c)} disabled={c.propostas.length === 0}>
                         <BarChart3 className="mr-2 h-4 w-4" />Mapa Comparativo
                       </DropdownMenuItem>
-                      {c.status === "Em Andamento" && (
+                      {(c.status === "Em Andamento" || c.status === "Aguardando Aprovação") && (
                         <>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => openEnviarDialog(c.id)}>
@@ -496,21 +516,16 @@ export default function CotacaoComprasPage() {
                           <DropdownMenuItem onClick={() => openPropostaDialog(c.id)}>
                             <Plus className="mr-2 h-4 w-4" />Adicionar Proposta Manual
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openFinalizarDialog(c.id)} disabled={c.propostas.length < 1}>
-                            <Lock className="mr-2 h-4 w-4" />Finalizar Cotação
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => { cancelarCotacao(c.id); toast({ title: "Cotação cancelada" }); }}>
-                            <XCircle className="mr-2 h-4 w-4" />Cancelar
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      {c.status === "Aguardando Aprovação" && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => openAprovarDialog(c.id)}>
-                            <ShieldCheck className="mr-2 h-4 w-4" />Aprovar Cotação
-                          </DropdownMenuItem>
+                          {c.status === "Em Andamento" && (
+                            <DropdownMenuItem onClick={() => openFinalizarDialog(c.id)} disabled={c.propostas.length < 1}>
+                              <Lock className="mr-2 h-4 w-4" />Finalizar Cotação
+                            </DropdownMenuItem>
+                          )}
+                          {c.status === "Aguardando Aprovação" && (
+                            <DropdownMenuItem onClick={() => openAprovarDialog(c.id)}>
+                              <ShieldCheck className="mr-2 h-4 w-4" />Aprovar Cotação
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive" onClick={() => { cancelarCotacao(c.id); toast({ title: "Cotação cancelada" }); }}>
                             <XCircle className="mr-2 h-4 w-4" />Cancelar
@@ -584,24 +599,28 @@ export default function CotacaoComprasPage() {
       <Dialog open={propostaDialogOpen} onOpenChange={setPropostaDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Adicionar Proposta de Fornecedor</DialogTitle>
+            <DialogTitle>{editingPropostaId ? "Editar Proposta de Fornecedor" : "Adicionar Proposta de Fornecedor"}</DialogTitle>
             <DialogDescription>Preencha os dados da proposta recebida.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Fornecedor *</Label>
-                <Select value={propFornecedorId} onValueChange={setPropFornecedorId}>
-                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                  <SelectContent>{(() => {
-                    const cotAtual = cotacoes.find(c => c.id === propostaCotacaoId);
-                    const idsJaComProposta = cotAtual?.propostas.map(p => p.fornecedorId) || [];
-                    const disponiveis = fornecedores.filter(f => !idsJaComProposta.includes(f.id));
-                    return disponiveis.length > 0
-                      ? disponiveis.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)
-                      : <div className="px-2 py-4 text-sm text-muted-foreground text-center">Todos os fornecedores já possuem proposta</div>;
-                  })()}</SelectContent>
-                </Select>
+                {editingPropostaId ? (
+                  <Input value={fornecedores.find(f => f.id === propFornecedorId)?.nome || ""} disabled />
+                ) : (
+                  <Select value={propFornecedorId} onValueChange={setPropFornecedorId}>
+                    <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>{(() => {
+                      const cotAtual = cotacoes.find(c => c.id === propostaCotacaoId);
+                      const idsJaComProposta = cotAtual?.propostas.map(p => p.fornecedorId) || [];
+                      const disponiveis = fornecedores.filter(f => !idsJaComProposta.includes(f.id));
+                      return disponiveis.length > 0
+                        ? disponiveis.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)
+                        : <div className="px-2 py-4 text-sm text-muted-foreground text-center">Todos os fornecedores já possuem proposta</div>;
+                    })()}</SelectContent>
+                  </Select>
+                )}
               </div>
               <div>
                 <Label>Condição de Pagamento</Label>
@@ -659,7 +678,7 @@ export default function CotacaoComprasPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPropostaDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAddProposta}>Salvar Proposta</Button>
+            <Button onClick={handleAddProposta}>{editingPropostaId ? "Atualizar Proposta" : "Salvar Proposta"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -960,13 +979,25 @@ export default function CotacaoComprasPage() {
                 )}
               </div>
               <h3 className="font-semibold mt-4">Propostas ({viewCotacao.propostas.length})</h3>
-              {viewCotacao.propostas.map(p => (
+              {viewCotacao.propostas.map(p => {
+                const isEditable = viewCotacao.status === "Em Andamento" || viewCotacao.status === "Aguardando Aprovação";
+                return (
                 <Card key={p.id} className={p.fornecedorId === viewCotacao.fornecedorVencedorId ? "border-green-500 border-2" : ""}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm flex items-center gap-2">
                       {p.fornecedorNome}
                       {p.fornecedorId === viewCotacao.fornecedorVencedorId && <Badge className="bg-green-100 text-green-800">Vencedor</Badge>}
                       <span className="ml-auto font-bold">{formatCurrency(p.valorTotal)}</span>
+                      {isEditable && (
+                        <div className="flex gap-1 ml-2">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setViewCotacao(null); openEditPropostaDialog(viewCotacao.id, p); }}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { removeProposta(viewCotacao.id, p.id); toast({ title: "Proposta removida" }); setViewCotacao({ ...viewCotacao, propostas: viewCotacao.propostas.filter(pr => pr.id !== p.id) }); }}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      )}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="text-xs text-muted-foreground space-y-1">
@@ -974,7 +1005,8 @@ export default function CotacaoComprasPage() {
                     {p.observacao && <p>Obs: {p.observacao}</p>}
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
             </div>
           )}
         </DialogContent>
