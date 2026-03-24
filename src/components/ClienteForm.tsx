@@ -284,7 +284,7 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
       <div className="flex gap-2 mt-6">
         <Button type="submit" className="gap-2">
           <Plus className="h-4 w-4" />
-          {editingId ? "Salvar Alterações" : "Adicionar Cliente"}
+          {editingId ? "Salvar Alterações" : `Adicionar ${label}`}
         </Button>
         {editingId && (
           <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
