@@ -66,6 +66,7 @@ export default function RequisicaoComprasPage() {
   const [itemObs, setItemObs] = useState("");
   const [itemQtd, setItemQtd] = useState("");
   const [itemUnidade, setItemUnidade] = useState("UN");
+  const [itemFabricanteId, setItemFabricanteId] = useState("");
 
   const clientesLista = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
 
