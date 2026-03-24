@@ -41,6 +41,9 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { addRequisicao } = useRequisicoes();
   const { clientes } = useClientes();
   const [form, setForm] = useState({
+    headcount: "",
+    orcamento: "",
+    tipoVaga: "",
     unidade: "",
     cargo: "",
     jornada: "",
