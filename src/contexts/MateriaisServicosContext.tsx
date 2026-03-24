@@ -3,7 +3,7 @@ import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper"
 
 export interface MaterialServico {
   id: string; codigo: string; descricao: string; tipo: "Material" | "Serviço";
-  unidadeMedida: string; categoriaId: string; fabricanteId: string;
+  unidadeMedida: string; categoriaId: string; fabricanteId: string; estoqueMinimo: number;
 }
 
 interface MateriaisServicosContextType {
