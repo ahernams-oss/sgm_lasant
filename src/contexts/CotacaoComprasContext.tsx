@@ -71,7 +71,7 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { localStorage.setItem("cotacoes_compras", JSON.stringify(cotacoes)); }, [cotacoes]);
 
-  const addCotacao = (data: Omit<CotacaoCompras, "id" | "numero" | "dataCriacao" | "status" | "propostas" | "fornecedorVencedorId" | "justificativaEscolha">) => {
+  const addCotacao = (data: Omit<CotacaoCompras, "id" | "numero" | "dataCriacao" | "status" | "propostas" | "fornecedorVencedorId" | "justificativaEscolha" | "itensVencedores">) => {
     const cot: CotacaoCompras = {
       ...data,
       id: crypto.randomUUID(),
@@ -81,6 +81,7 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
       propostas: [],
       fornecedorVencedorId: "",
       justificativaEscolha: "",
+      itensVencedores: [],
     };
     setCotacoes(prev => [...prev, cot]);
     setNextNumero(n => n + 1);
