@@ -72,7 +72,7 @@ export function RecebimentoProvider({ children }: { children: ReactNode }) {
     const pedido = pedidos.find(p => p.id === data.pedidoId);
     if (!pedido) return;
 
-    // Calculate if this is total or partial
+    // Calculate if THIS pedido is fully received after this receipt
     const allFullyReceived = pedido.itens.every(pi => {
       const jaRecebido = getTotalRecebidoPorItem(pedido.id, pi.itemId);
       const recebendoAgora = data.itens.find(i => i.itemId === pi.itemId)?.quantidadeRecebida || 0;
@@ -88,37 +88,53 @@ export function RecebimentoProvider({ children }: { children: ReactNode }) {
       tipo,
     };
 
-    setRecebimentos(prev => [...prev, recebimento]);
+    setRecebimentos(prev => {
+      const updatedRecebimentos = [...prev, recebimento];
 
-    // Update pedido status
-    if (allFullyReceived) {
-      updatePedidoStatus(pedido.id, "Entregue", data.usuario, `Recebimento total - NF: ${data.notaFiscal || "N/A"}`);
-    } else {
-      if (pedido.status !== "Entregue Parcial") {
-        updatePedidoStatus(pedido.id, "Entregue Parcial", data.usuario, `Recebimento parcial - NF: ${data.notaFiscal || "N/A"}`);
+      // Update ONLY this pedido's status — never touch other pedidos
+      if (allFullyReceived) {
+        updatePedidoStatus(pedido.id, "Entregue", data.usuario, `Recebimento total - NF: ${data.notaFiscal || "N/A"}`);
+      } else {
+        if (pedido.status !== "Entregue Parcial") {
+          updatePedidoStatus(pedido.id, "Entregue Parcial", data.usuario, `Recebimento parcial - NF: ${data.notaFiscal || "N/A"}`);
+        }
       }
-    }
 
-    // Update RC status
-    if (allFullyReceived) {
-      // Check if all pedidos for this RC are delivered
-      const pedidosRC = pedidos.filter(p => p.requisicaoId === pedido.requisicaoId);
-      const allPedidosEntregues = pedidosRC.every(p => {
-        if (p.id === pedido.id) return true; // This one will be "Entregue"
-        return p.status === "Entregue";
+      // Update RC status based on ACTUAL receipts across ALL pedidos of this RC
+      const pedidosRC = pedidos.filter(p => p.requisicaoId === pedido.requisicaoId && p.status !== "Cancelado");
+
+      // Check each PO: is it fully received based on actual recebimentos?
+      const pedidoStatusMap = pedidosRC.map(p => {
+        const isCurrentPedido = p.id === pedido.id;
+        const fullyReceived = p.itens.every(pi => {
+          const jaRecebido = updatedRecebimentos
+            .filter(r => r.pedidoId === p.id)
+            .reduce((sum, r) => {
+              const item = r.itens.find(i => i.itemId === pi.itemId);
+              return sum + (item?.quantidadeRecebida || 0);
+            }, 0);
+          return jaRecebido >= pi.quantidade;
+        });
+
+        const hasAnyReceipt = updatedRecebimentos.some(r => r.pedidoId === p.id);
+
+        return { pedidoId: p.id, fullyReceived, hasAnyReceipt };
       });
 
-      if (allPedidosEntregues) {
-        updateReqStatus(pedido.requisicaoId, "Recebida", data.usuario, "Todos os pedidos recebidos");
-      } else {
-        updateReqStatus(pedido.requisicaoId, "Recebida Parcial", data.usuario, "Recebimento parcial de pedidos");
+      const allPedidosFullyReceived = pedidoStatusMap.every(s => s.fullyReceived);
+      const anyPedidoHasReceipt = pedidoStatusMap.some(s => s.hasAnyReceipt);
+
+      if (allPedidosFullyReceived) {
+        updateReqStatus(pedido.requisicaoId, "Recebida", data.usuario, "Todos os pedidos de todos os fornecedores recebidos");
+      } else if (anyPedidoHasReceipt) {
+        const req = requisicoes.find(r => r.id === pedido.requisicaoId);
+        if (req && req.status !== "Recebida") {
+          updateReqStatus(pedido.requisicaoId, "Recebida Parcial", data.usuario, "Recebimento parcial - nem todos os fornecedores entregaram");
+        }
       }
-    } else {
-      const req = requisicoes.find(r => r.id === pedido.requisicaoId);
-      if (req && req.status !== "Recebida Parcial" && req.status !== "Recebida") {
-        updateReqStatus(pedido.requisicaoId, "Recebida Parcial", data.usuario, "Recebimento parcial iniciado");
-      }
-    }
+
+      return updatedRecebimentos;
+    });
   };
 
   return (
