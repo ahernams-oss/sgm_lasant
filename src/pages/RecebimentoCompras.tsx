@@ -48,16 +48,26 @@ export default function RecebimentoComprasPage() {
   // Histórico dialog
   const [histPedidoId, setHistPedidoId] = useState<string | null>(null);
 
+  const pedidoTemItensPendentes = (p: PedidoCompra) => {
+    return p.itens.some(pi => {
+      const recebido = getTotalRecebidoPorItem(p.id, pi.itemId);
+      return recebido < pi.quantidade;
+    });
+  };
+
   const pedidosRecebimento = useMemo(() => {
-    // Pedidos that can receive: Confirmado, Em Entrega, Entregue Parcial
-    return pedidos.filter(p => ["Confirmado", "Em Entrega", "Entregue Parcial"].includes(p.status));
-  }, [pedidos]);
+    // Pedidos que podem receber: status ativo OU "Entregue" com itens ainda pendentes
+    return pedidos.filter(p =>
+      ["Confirmado", "Em Entrega", "Entregue Parcial"].includes(p.status) ||
+      (p.status === "Entregue" && pedidoTemItensPendentes(p))
+    );
+  }, [pedidos, recebimentos]);
 
   const filtered = useMemo(() => {
     let list = filterStatus === "Pendentes"
-      ? pedidos.filter(p => ["Confirmado", "Em Entrega", "Entregue Parcial"].includes(p.status))
+      ? pedidos.filter(p => ["Confirmado", "Em Entrega", "Entregue Parcial"].includes(p.status) || (p.status === "Entregue" && pedidoTemItensPendentes(p)))
       : filterStatus === "Recebidos"
-        ? pedidos.filter(p => p.status === "Entregue")
+        ? pedidos.filter(p => p.status === "Entregue" && !pedidoTemItensPendentes(p))
         : pedidos.filter(p => p.status !== "Cancelado");
 
     if (search) {
