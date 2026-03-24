@@ -60,6 +60,25 @@ export default function EstoquePage() {
     return Array.from(locs).sort();
   }, [clientes, movimentacoes]);
 
+  // Centro de custo lookup: pedidoNumero → centroCustoNome
+  const centroCustoMap = useMemo(() => {
+    const map = new Map<number, string>();
+    pedidos.forEach(p => {
+      const rc = requisicoes.find(r => r.id === p.requisicaoId);
+      if (rc?.centroCustoNome) map.set(p.numero, rc.centroCustoNome);
+    });
+    return map;
+  }, [pedidos, requisicoes]);
+
+  const getCentroCustoFromDocRef = (docRef: string): string => {
+    const match = docRef.match(/Pedido\s+(\d+)/i);
+    if (match) {
+      const num = parseInt(match[1]);
+      return centroCustoMap.get(num) || "-";
+    }
+    return "-";
+  };
+
   // === SALDOS ===
   const saldos = useMemo(() => {
     const all = getSaldos();
@@ -67,6 +86,19 @@ export default function EstoquePage() {
     const s = search.toLowerCase();
     return all.filter(sl => sl.materialCodigo.toLowerCase().includes(s) || sl.materialDescricao.toLowerCase().includes(s) || sl.local.toLowerCase().includes(s));
   }, [getSaldos, search]);
+
+  // Map saldo (material+local) → centro de custo from most recent movement
+  const saldoCentroCusto = useMemo(() => {
+    const map = new Map<string, string>();
+    // Process movements in order so latest wins
+    movimentacoes.forEach(m => {
+      const cc = getCentroCustoFromDocRef(m.documentoRef);
+      if (cc !== "-") {
+        map.set(`${m.materialId}|${m.local}`, cc);
+      }
+    });
+    return map;
+  }, [movimentacoes, centroCustoMap]);
 
   // === ALERTAS ===
   const alertas = useMemo(() => {
