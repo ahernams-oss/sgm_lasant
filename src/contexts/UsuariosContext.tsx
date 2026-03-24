@@ -25,6 +25,7 @@ const rowToUsuario = (r: any): Usuario => ({
 const usuarioToRow = (u: Omit<Usuario, "id">) => ({
   nome: u.nome, cargo_id: u.cargoId, telefone: u.telefone,
   email: u.email, senha: u.senha, clientes_permitidos: u.clientesPermitidos as any,
+  perfil_acesso_id: u.perfilAcessoId,
 });
 
 export function UsuariosProvider({ children }: { children: ReactNode }) {

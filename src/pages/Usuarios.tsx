@@ -90,6 +90,9 @@ const Usuarios = () => {
   const getCargoNome = (cargoId: string) =>
     cargos.find((c) => c.id === cargoId)?.nome ?? "—";
 
+  const getPerfilNome = (perfilId: string) =>
+    perfis.find((p) => p.id === perfilId)?.nome ?? "—";
+
   const getClientesNomes = (ids: string[]) =>
     ids.map((id) => clientes.find((c) => c.id === id)?.nome).filter(Boolean).join(", ") || "Nenhum";
 
