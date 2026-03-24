@@ -523,6 +523,20 @@ export default function RecebimentoComprasPage() {
                     </TableBody>
                   </Table>
                   {r.observacaoGeral && <p className="text-xs text-muted-foreground mt-2">Obs: {r.observacaoGeral}</p>}
+                  {r.anexosNF && r.anexosNF.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {r.anexosNF.map((a, i) => (
+                        <a
+                          key={i}
+                          href={a.dados}
+                          download={a.nome}
+                          className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                        >
+                          <Download className="h-3 w-3" />{a.nome}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

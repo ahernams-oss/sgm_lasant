@@ -11,6 +11,12 @@ export interface ItemRecebimento {
   observacao: string;
 }
 
+export interface AnexoNF {
+  nome: string;
+  tipo: string;
+  dados: string; // base64
+}
+
 export interface Recebimento {
   id: string;
   pedidoId: string;
@@ -25,6 +31,7 @@ export interface Recebimento {
   observacaoGeral: string;
   tipo: "Total" | "Parcial";
   notaFiscal: string;
+  anexosNF: AnexoNF[];
 }
 
 interface RecebimentoContextType {
