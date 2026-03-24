@@ -695,12 +695,12 @@ export default function CotacaoComprasPage() {
 
       {/* Dialog Aprovar Cotação */}
       <Dialog open={aprovarDialogOpen} onOpenChange={setAprovarDialogOpen}>
-        <DialogContent className={finModoItemizado ? "max-w-3xl max-h-[85vh] overflow-y-auto" : ""}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Aprovar Cotação</DialogTitle>
             <DialogDescription>
               {finModoItemizado
-                ? "Escolha o fornecedor para cada item individualmente. Pedidos separados serão gerados por fornecedor."
+                ? "Selecione o fornecedor vencedor para cada item usando os checkboxes. Pedidos separados serão gerados por fornecedor."
                 : "Selecione o fornecedor vencedor e justifique a escolha. Um Pedido de Compra será gerado automaticamente."
               }
             </DialogDescription>
@@ -743,95 +743,151 @@ export default function CotacaoComprasPage() {
               if (!cot || !req) return null;
               const propostas = cot.propostas;
 
-              return (
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                      Selecione o fornecedor para cada item
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Item</TableHead>
-                          <TableHead className="w-16">Qtd</TableHead>
-                          <TableHead className="w-[220px]">Fornecedor</TableHead>
-                          <TableHead className="w-28 text-right">Preço Unit.</TableHead>
-                          <TableHead className="w-28 text-right">Total</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {req.itens.map(item => {
-                          const selectedFornId = finItensVencedores[item.id] || "";
-                          const selectedProp = propostas.find(p => p.fornecedorId === selectedFornId);
-                          const selectedItemProp = selectedProp?.itens.find(i => i.itemId === item.id);
+              const handleToggleItem = (itemId: string, fornId: string) => {
+                setFinItensVencedores(prev => {
+                  if (prev[itemId] === fornId) {
+                    const next = { ...prev };
+                    delete next[itemId];
+                    return next;
+                  }
+                  return { ...prev, [itemId]: fornId };
+                });
+              };
 
+              const handleToggleTodos = (fornId: string) => {
+                const allSelected = req.itens.every(item => finItensVencedores[item.id] === fornId);
+                if (allSelected) {
+                  setFinItensVencedores({});
+                } else {
+                  const next: Record<string, string> = {};
+                  req.itens.forEach(item => { next[item.id] = fornId; });
+                  setFinItensVencedores(next);
+                }
+              };
+
+              return (
+                <div className="overflow-x-auto border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="min-w-[200px]">Material / Serviço</TableHead>
+                        <TableHead className="w-16">Un.</TableHead>
+                        <TableHead className="w-20">Qtd.</TableHead>
+                        {propostas.map(p => {
+                          const allSelected = req.itens.every(item => finItensVencedores[item.id] === p.fornecedorId);
                           return (
-                            <TableRow key={item.id}>
-                              <TableCell className="text-sm font-medium">{item.descricao}</TableCell>
-                              <TableCell className="text-sm">{item.quantidade} {item.unidadeMedida}</TableCell>
-                              <TableCell>
-                                <Select
-                                  value={selectedFornId}
-                                  onValueChange={v => setFinItensVencedores(prev => ({ ...prev, [item.id]: v }))}
-                                >
-                                  <SelectTrigger className="h-8 text-xs">
-                                    <SelectValue placeholder="Selecione..." />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {propostas.map(p => {
-                                      const pi = p.itens.find(i => i.itemId === item.id);
-                                      return (
-                                        <SelectItem key={p.fornecedorId} value={p.fornecedorId}>
-                                          {p.fornecedorNome} {pi ? `— ${formatCurrency(pi.precoUnitario)}` : ""}
-                                        </SelectItem>
-                                      );
-                                    })}
-                                  </SelectContent>
-                                </Select>
-                              </TableCell>
-                              <TableCell className="text-right text-sm">
-                                {selectedItemProp ? formatCurrency(selectedItemProp.precoUnitario) : "-"}
-                              </TableCell>
-                              <TableCell className="text-right text-sm font-medium">
-                                {selectedItemProp ? formatCurrency(selectedItemProp.precoUnitario * selectedItemProp.quantidade) : "-"}
-                              </TableCell>
-                            </TableRow>
+                            <TableHead key={p.fornecedorId} className="min-w-[180px] text-center">
+                              <div className="flex flex-col items-center gap-1">
+                                <span className="font-semibold text-xs">{p.fornecedorNome}</span>
+                                <label className="flex items-center gap-1.5 cursor-pointer text-xs text-muted-foreground">
+                                  <input
+                                    type="checkbox"
+                                    checked={allSelected}
+                                    onChange={() => handleToggleTodos(p.fornecedorId)}
+                                    className="rounded border-input"
+                                  />
+                                  Todos
+                                </label>
+                              </div>
+                            </TableHead>
                           );
                         })}
-                      </TableBody>
-                    </Table>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {req.itens.map(item => {
+                        const unitPrices = propostas.map(p => {
+                          const pi = p.itens.find(i => i.itemId === item.id);
+                          return pi ? pi.precoUnitario : Infinity;
+                        });
+                        const minPrice = Math.min(...unitPrices.filter(v => v > 0 && v !== Infinity));
 
-                    {Object.keys(finItensVencedores).length > 0 && (() => {
-                      const groups: Record<string, { nome: string; total: number; count: number }> = {};
-                      for (const [itemId, fornId] of Object.entries(finItensVencedores)) {
-                        const prop = propostas.find(p => p.fornecedorId === fornId);
-                        const pi = prop?.itens.find(i => i.itemId === itemId);
-                        if (!prop || !pi) continue;
-                        if (!groups[fornId]) groups[fornId] = { nome: prop.fornecedorNome, total: 0, count: 0 };
-                        groups[fornId].total += pi.precoUnitario * pi.quantidade;
-                        groups[fornId].count++;
-                      }
-                      return (
-                        <div className="mt-3 space-y-1 border-t pt-3">
-                          <p className="text-xs font-medium text-muted-foreground mb-1">Resumo por fornecedor:</p>
-                          {Object.entries(groups).map(([id, g]) => (
-                            <div key={id} className="flex justify-between text-sm">
-                              <span>{g.nome} <span className="text-muted-foreground">({g.count} {g.count === 1 ? "item" : "itens"})</span></span>
-                              <span className="font-medium">{formatCurrency(g.total)}</span>
-                            </div>
-                          ))}
-                          <div className="flex justify-between text-sm font-bold border-t pt-1 mt-1">
-                            <span>Total Geral</span>
-                            <span>{formatCurrency(Object.values(groups).reduce((s, g) => s + g.total, 0))}</span>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </CardContent>
-                </Card>
+                        return (
+                          <TableRow key={item.id}>
+                            <TableCell className="text-sm font-medium">{item.descricao}</TableCell>
+                            <TableCell className="text-sm">{item.unidadeMedida}</TableCell>
+                            <TableCell className="text-sm">{item.quantidade}</TableCell>
+                            {propostas.map(p => {
+                              const pi = p.itens.find(i => i.itemId === item.id);
+                              const isSelected = finItensVencedores[item.id] === p.fornecedorId;
+                              const isCheapest = pi && pi.precoUnitario === minPrice && pi.precoUnitario > 0;
+
+                              return (
+                                <TableCell key={p.fornecedorId} className={`text-center ${isSelected ? "bg-primary/10" : ""}`}>
+                                  {pi && pi.precoUnitario > 0 ? (
+                                    <label className="flex items-center justify-center gap-1.5 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={() => handleToggleItem(item.id, p.fornecedorId)}
+                                        className="rounded border-input"
+                                      />
+                                      <span className={`text-xs ${isCheapest ? "text-destructive font-bold" : ""}`}>
+                                        {formatCurrency(pi.precoUnitario)} | {formatCurrency(pi.precoUnitario * pi.quantidade)}
+                                      </span>
+                                    </label>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">-</span>
+                                  )}
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                        );
+                      })}
+                      <TableRow className="font-bold border-t-2">
+                        <TableCell colSpan={3}>TOTAL</TableCell>
+                        {propostas.map(p => (
+                          <TableCell key={p.fornecedorId} className="text-center text-sm">
+                            {formatCurrency(p.valorTotal)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-muted-foreground text-sm">Condição Pgto</TableCell>
+                        {propostas.map(p => (
+                          <TableCell key={p.fornecedorId} className="text-center text-xs">{p.condicaoPagamento || "-"}</TableCell>
+                        ))}
+                      </TableRow>
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-muted-foreground text-sm">Prazo Entrega</TableCell>
+                        {propostas.map(p => (
+                          <TableCell key={p.fornecedorId} className="text-center text-xs">{p.prazoEntrega || "-"}</TableCell>
+                        ))}
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              );
+            })()}
+
+            {/* Summary */}
+            {finModoItemizado && Object.keys(finItensVencedores).length > 0 && (() => {
+              const cot = cotacoes.find(c => c.id === aprovarCotacaoId);
+              if (!cot) return null;
+              const groups: Record<string, { nome: string; total: number; count: number }> = {};
+              for (const [itemId, fornId] of Object.entries(finItensVencedores)) {
+                const prop = cot.propostas.find(p => p.fornecedorId === fornId);
+                const pi = prop?.itens.find(i => i.itemId === itemId);
+                if (!prop || !pi) continue;
+                if (!groups[fornId]) groups[fornId] = { nome: prop.fornecedorNome, total: 0, count: 0 };
+                groups[fornId].total += pi.precoUnitario * pi.quantidade;
+                groups[fornId].count++;
+              }
+              return (
+                <div className="space-y-1 rounded-lg border p-3 bg-muted/30">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Resumo da aprovação:</p>
+                  {Object.entries(groups).map(([id, g]) => (
+                    <div key={id} className="flex justify-between text-sm">
+                      <span>{g.nome} <span className="text-muted-foreground">({g.count} {g.count === 1 ? "item" : "itens"})</span></span>
+                      <span className="font-medium">{formatCurrency(g.total)}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between text-sm font-bold border-t pt-1 mt-1">
+                    <span>Total Geral</span>
+                    <span>{formatCurrency(Object.values(groups).reduce((s, g) => s + g.total, 0))}</span>
+                  </div>
+                </div>
               );
             })()}
 
