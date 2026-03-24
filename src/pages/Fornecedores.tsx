@@ -183,12 +183,6 @@ const Fornecedores = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setLocaisClienteId(locaisClienteId === fornecedor.id ? null : fornecedor.id)}>
-                          <MapPin className="mr-2 h-4 w-4" />
-                          Locais
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </div>
                 </div>
               ))}
