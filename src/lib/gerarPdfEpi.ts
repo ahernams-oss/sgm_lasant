@@ -235,18 +235,13 @@ function drawTermoAndLegal(doc: jsPDF, pw: number, startY: number, dataEntrega?:
   doc.text(il2, margin, y);
   y += il2.length * 3.2 + 6;
 
-  // Signature
+  // Data field only (no signature line here)
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
   doc.text("Data:", margin, y);
   doc.setFont("helvetica", "normal");
-  doc.text(dataEntrega ? formatDate(dataEntrega) : "", margin + doc.getTextWidth("Data: ") + 2, y);
-  doc.line(130, y, pw - 12, y);
-  y += 4;
-  doc.setFontSize(7);
-  doc.setFont("helvetica", "bold");
-  doc.text("Assinatura do Empregado", pw - 12, y, { align: "right" });
-  y += 4;
+  doc.text(dataEntrega ? formatDate(dataEntrega) : "", margin + doc.getTextWidth("Data:") + 4, y);
+  y += 6;
 
   return y;
 }
