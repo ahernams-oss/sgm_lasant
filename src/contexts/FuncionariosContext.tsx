@@ -136,6 +136,7 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   passagens: [],
   dependentes: [],
   epis: [],
+  nrs: [],
   observacoes: "", status: "Ativo",
 };
 
