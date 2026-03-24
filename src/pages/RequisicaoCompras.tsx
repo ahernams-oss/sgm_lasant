@@ -70,6 +70,12 @@ export default function RequisicaoComprasPage() {
 
   const clientesLista = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
 
+  const locaisEntregaDoCliente = useMemo(() => {
+    if (!centroCusto) return [];
+    const cliente = clientesLista.find(c => c.id === centroCusto);
+    return cliente?.locaisEntrega || [];
+  }, [centroCusto, clientesLista]);
+
   const filtered = useMemo(() => {
     let list = requisicoes;
     if (filterStatus !== "Todos") list = list.filter(r => r.status === filterStatus);
@@ -235,14 +241,27 @@ export default function RequisicaoComprasPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Centro de Custo (Cliente) *</Label>
-                  <Select value={centroCusto} onValueChange={setCentroCusto}>
+                  <Select value={centroCusto} onValueChange={v => { setCentroCusto(v); setLocalEntrega(""); }}>
                     <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                     <SelectContent>{clientesLista.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div>
                   <Label>Local de Entrega</Label>
-                  <Input value={localEntrega} onChange={e => setLocalEntrega(e.target.value)} placeholder="Endereço ou local de entrega" />
+                  {locaisEntregaDoCliente.length > 0 ? (
+                    <Select value={localEntrega} onValueChange={setLocalEntrega}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o local de entrega..." /></SelectTrigger>
+                      <SelectContent>
+                        {locaisEntregaDoCliente.map(l => (
+                          <SelectItem key={l.id} value={l.local}>
+                            {l.local}{l.logradouro ? ` — ${l.logradouro}, ${l.numero}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input value={localEntrega} onChange={e => setLocalEntrega(e.target.value)} placeholder="Endereço ou local de entrega" />
+                  )}
                 </div>
                 <div>
                   <Label>Grau de Urgência</Label>

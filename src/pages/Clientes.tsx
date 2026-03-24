@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin, FileText, Plus, ChevronDown, ChevronUp } from "lucide-react";
+import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin, FileText, Plus, ChevronDown, ChevronUp, Truck } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClientes, type Cliente, type Contrato } from "@/contexts/ClientesContext";
 import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
 import LocaisSection from "@/components/LocaisSection";
+import LocaisEntregaSection from "@/components/LocaisEntregaSection";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ImportClientesFornecedores from "@/components/ImportClientesFornecedores";
 
@@ -17,7 +18,8 @@ const Clientes = () => {
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
   const [search, setSearch] = useState("");
   const [locaisClienteId, setLocaisClienteId] = useState<string | null>(null);
-  const [contratosClienteId, setContratosClienteId] = useState<string | null>(null);
+   const [locaisEntregaClienteId, setLocaisEntregaClienteId] = useState<string | null>(null);
+   const [contratosClienteId, setContratosClienteId] = useState<string | null>(null);
   const emptyContrato = { numero: "", descricao: "", dataInicio: "", dataFim: "", bdi: "", valorBase: "", valorBase2: "", valorBase3: "", mesSco: "", anoSco: "" };
   const [contratoForm, setContratoForm] = useState(emptyContrato);
   const [editingContratoId, setEditingContratoId] = useState<string | null>(null);
@@ -195,7 +197,13 @@ const Clientes = () => {
                             <FileText className="mr-2 h-4 w-4" />
                             Contratos
                           </DropdownMenuItem>
-                        </DropdownMenuContent>
+                           <DropdownMenuItem onClick={() => {
+                             setLocaisEntregaClienteId(locaisEntregaClienteId === cliente.id ? null : cliente.id);
+                           }}>
+                             <Truck className="mr-2 h-4 w-4" />
+                             Locais de Entrega
+                           </DropdownMenuItem>
+                         </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 </div>
@@ -210,6 +218,18 @@ const Clientes = () => {
             onChange={(locais) => updateCliente(locaisClienteId, { locais })}
           />
          )}
+
+        {locaisEntregaClienteId && (() => {
+          const cliente = clientes.find(c => c.id === locaisEntregaClienteId);
+          if (!cliente) return null;
+          return (
+            <LocaisEntregaSection
+              locais={cliente.locaisEntrega || []}
+              onChange={(locaisEntrega) => updateCliente(locaisEntregaClienteId, { locaisEntrega })}
+              clienteNome={cliente.nome}
+            />
+          );
+        })()}
 
         {contratosClienteId && (() => {
           const cliente = clientes.find(c => c.id === contratosClienteId);
