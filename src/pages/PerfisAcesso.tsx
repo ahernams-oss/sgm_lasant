@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { KeyRound, Trash2, Pencil, Search, Copy } from "lucide-react";
+import { KeyRound, Trash2, Pencil, Search, Copy, ChevronDown, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,7 +8,13 @@ import { Switch } from "@/components/ui/switch";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { usePerfisAcesso, MODULOS_SISTEMA, ALL_MODULE_KEYS, Permissoes } from "@/contexts/PerfisAcessoContext";
+import {
+  usePerfisAcesso,
+  MODULOS_SISTEMA,
+  ALL_MODULE_KEYS,
+  ALL_PERMISSION_KEYS,
+  Permissoes,
+} from "@/contexts/PerfisAcessoContext";
 import { toast } from "sonner";
 
 const emptyForm = { nome: "", descricao: "", permissoes: {} as Permissoes };
@@ -20,6 +26,7 @@ const PerfisAcesso = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
+  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
 
   const togglePermissao = (key: string) => {
     setForm(prev => ({
@@ -28,7 +35,30 @@ const PerfisAcesso = () => {
     }));
   };
 
-  const toggleGrupo = (keys: string[], allChecked: boolean) => {
+  const toggleModule = (moduleKey: string) => {
+    setExpandedModules(prev => ({ ...prev, [moduleKey]: !prev[moduleKey] }));
+  };
+
+  const getModuleAllKeys = (mod: typeof MODULOS_SISTEMA[0]["modulos"][0]) => [
+    mod.key,
+    ...(mod.acoes?.map(a => a.key) ?? []),
+    ...(mod.statusTransicoes?.map(s => s.key) ?? []),
+    ...(mod.flags?.map(f => f.key) ?? []),
+  ];
+
+  const toggleModuleAll = (mod: typeof MODULOS_SISTEMA[0]["modulos"][0]) => {
+    const keys = getModuleAllKeys(mod);
+    const allChecked = keys.every(k => form.permissoes[k]);
+    setForm(prev => {
+      const updated = { ...prev.permissoes };
+      keys.forEach(k => { updated[k] = !allChecked; });
+      return { ...prev, permissoes: updated };
+    });
+  };
+
+  const toggleGrupo = (grupo: typeof MODULOS_SISTEMA[0]) => {
+    const keys = grupo.modulos.flatMap(getModuleAllKeys);
+    const allChecked = keys.every(k => form.permissoes[k]);
     setForm(prev => {
       const updated = { ...prev.permissoes };
       keys.forEach(k => { updated[k] = !allChecked; });
@@ -37,10 +67,10 @@ const PerfisAcesso = () => {
   };
 
   const toggleAll = () => {
-    const allChecked = ALL_MODULE_KEYS.every(k => form.permissoes[k]);
+    const allChecked = ALL_PERMISSION_KEYS.every(k => form.permissoes[k]);
     setForm(prev => {
       const updated = { ...prev.permissoes };
-      ALL_MODULE_KEYS.forEach(k => { updated[k] = !allChecked; });
+      ALL_PERMISSION_KEYS.forEach(k => { updated[k] = !allChecked; });
       return { ...prev, permissoes: updated };
     });
   };
@@ -49,12 +79,12 @@ const PerfisAcesso = () => {
     setForm(emptyForm);
     setEditingId(null);
     setShowForm(false);
+    setExpandedModules({});
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nome.trim()) { toast.error("Informe o nome do perfil."); return; }
-
     if (editingId) {
       await updatePerfil(editingId, form);
       toast.success("Perfil atualizado.");
@@ -85,7 +115,7 @@ const PerfisAcesso = () => {
   };
 
   const countPermissoes = (perms: Permissoes) =>
-    ALL_MODULE_KEYS.filter(k => perms[k]).length;
+    ALL_PERMISSION_KEYS.filter(k => perms[k]).length;
 
   const filteredPerfis = useMemo(() => {
     if (!search.trim()) return perfis;
@@ -95,7 +125,25 @@ const PerfisAcesso = () => {
     );
   }, [perfis, search]);
 
-  const allChecked = ALL_MODULE_KEYS.every(k => form.permissoes[k]);
+  const allChecked = ALL_PERMISSION_KEYS.every(k => form.permissoes[k]);
+
+  const renderPermissionCheckbox = (item: { key: string; label: string }, variant: "acao" | "status" | "flag") => {
+    const checked = !!form.permissoes[item.key];
+    const colorMap = {
+      acao: checked ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30",
+      status: checked ? "border-amber-500 bg-amber-500/5" : "border-border hover:border-muted-foreground/30",
+      flag: checked ? "border-emerald-500 bg-emerald-500/5" : "border-border hover:border-muted-foreground/30",
+    };
+    return (
+      <label
+        key={item.key}
+        className={`flex items-center gap-2.5 rounded-md border px-3 py-2 text-xs cursor-pointer transition-all ${colorMap[variant]}`}
+      >
+        <Checkbox checked={checked} onCheckedChange={() => togglePermissao(item.key)} className="h-3.5 w-3.5" />
+        <span className="text-foreground">{item.label}</span>
+      </label>
+    );
+  };
 
   return (
     <div className="bg-background">
@@ -109,7 +157,7 @@ const PerfisAcesso = () => {
             <div>
               <h1 className="text-xl font-bold text-foreground mb-1">Perfis de Acesso</h1>
               <p className="text-sm text-muted-foreground max-w-lg">
-                Configure perfis com permissões personalizadas e vincule-os aos usuários.
+                Configure perfis com permissões granulares por módulo, ações, status e flags.
               </p>
             </div>
             {!showForm && (
@@ -140,49 +188,141 @@ const PerfisAcesso = () => {
             </div>
 
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-foreground">Permissões de Módulos</h3>
-              <div className="flex items-center gap-2">
-                <Switch checked={allChecked} onCheckedChange={toggleAll} />
-                <span className="text-xs text-muted-foreground">
-                  {allChecked ? "Desmarcar todos" : "Marcar todos"}
-                </span>
+              <h3 className="text-sm font-semibold text-foreground">Permissões</h3>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                  <span className="text-[10px] text-muted-foreground">Ações</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                  <span className="text-[10px] text-muted-foreground">Status</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                  <span className="text-[10px] text-muted-foreground">Flags</span>
+                </div>
+                <div className="flex items-center gap-2 ml-2">
+                  <Switch checked={allChecked} onCheckedChange={toggleAll} />
+                  <span className="text-xs text-muted-foreground">
+                    {allChecked ? "Desmarcar todos" : "Marcar todos"}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-5">
+            <div className="space-y-4">
               {MODULOS_SISTEMA.map(grupo => {
-                const keys = grupo.modulos.map(m => m.key);
-                const allGrupoChecked = keys.every(k => form.permissoes[k]);
+                const grupoKeys = grupo.modulos.flatMap(getModuleAllKeys);
+                const allGrupoChecked = grupoKeys.every(k => form.permissoes[k]);
+                const someGrupoChecked = grupoKeys.some(k => form.permissoes[k]);
+
                 return (
-                  <div key={grupo.grupo} className="rounded-lg border border-border p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-sm font-semibold text-foreground">{grupo.grupo}</h4>
+                  <div key={grupo.grupo} className="rounded-lg border border-border overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 bg-muted/30">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={allGrupoChecked}
+                          className={someGrupoChecked && !allGrupoChecked ? "opacity-60" : ""}
+                          onCheckedChange={() => toggleGrupo(grupo)}
+                        />
+                        <h4 className="text-sm font-semibold text-foreground">{grupo.grupo}</h4>
+                        <span className="text-[10px] text-muted-foreground">
+                          ({grupoKeys.filter(k => form.permissoes[k]).length}/{grupoKeys.length})
+                        </span>
+                      </div>
                       <button
                         type="button"
-                        onClick={() => toggleGrupo(keys, allGrupoChecked)}
+                        onClick={() => toggleGrupo(grupo)}
                         className="text-xs text-primary hover:underline"
                       >
                         {allGrupoChecked ? "Desmarcar grupo" : "Marcar grupo"}
                       </button>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
+                    <div className="divide-y divide-border">
                       {grupo.modulos.map(mod => {
-                        const checked = !!form.permissoes[mod.key];
+                        const modKeys = getModuleAllKeys(mod);
+                        const allModChecked = modKeys.every(k => form.permissoes[k]);
+                        const hasDetails = (mod.acoes?.length ?? 0) > 0 || (mod.statusTransicoes?.length ?? 0) > 0 || (mod.flags?.length ?? 0) > 0;
+                        const isExpanded = !!expandedModules[mod.key];
+
                         return (
-                          <label
-                            key={mod.key}
-                            className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-all ${
-                              checked
-                                ? "border-primary bg-primary/5 shadow-sm"
-                                : "border-border hover:border-muted-foreground/30"
-                            }`}
-                          >
-                            <Checkbox
-                              checked={checked}
-                              onCheckedChange={() => togglePermissao(mod.key)}
-                            />
-                            <span className="text-sm font-medium text-foreground">{mod.label}</span>
-                          </label>
+                          <div key={mod.key} className="bg-card">
+                            <div className="flex items-center gap-3 px-4 py-2.5">
+                              <Checkbox
+                                checked={!!form.permissoes[mod.key]}
+                                onCheckedChange={() => {
+                                  if (!form.permissoes[mod.key]) {
+                                    // When enabling module access, just toggle the module key
+                                    togglePermissao(mod.key);
+                                  } else {
+                                    // When disabling, disable module and all sub-permissions
+                                    toggleModuleAll(mod);
+                                  }
+                                }}
+                              />
+                              <button
+                                type="button"
+                                className="flex items-center gap-1.5 flex-1 text-left"
+                                onClick={() => hasDetails && toggleModule(mod.key)}
+                              >
+                                <span className="text-sm font-medium text-foreground">{mod.label}</span>
+                                {hasDetails && (
+                                  <span className="text-[10px] text-muted-foreground ml-1">
+                                    ({modKeys.filter(k => form.permissoes[k]).length}/{modKeys.length})
+                                  </span>
+                                )}
+                              </button>
+                              {hasDetails && (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleModuleAll(mod)}
+                                    className="text-[10px] text-primary hover:underline"
+                                  >
+                                    {allModChecked ? "Desmarcar" : "Marcar tudo"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleModule(mod.key)}
+                                    className="text-muted-foreground hover:text-foreground transition-colors"
+                                  >
+                                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            {hasDetails && isExpanded && (
+                              <div className="px-4 pb-3 pl-10 space-y-3">
+                                {mod.acoes && mod.acoes.length > 0 && (
+                                  <div>
+                                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Ações</p>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
+                                      {mod.acoes.map(a => renderPermissionCheckbox(a, "acao"))}
+                                    </div>
+                                  </div>
+                                )}
+                                {mod.statusTransicoes && mod.statusTransicoes.length > 0 && (
+                                  <div>
+                                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Transições de Status</p>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
+                                      {mod.statusTransicoes.map(s => renderPermissionCheckbox(s, "status"))}
+                                    </div>
+                                  </div>
+                                )}
+                                {mod.flags && mod.flags.length > 0 && (
+                                  <div>
+                                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Flags / Opções</p>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
+                                      {mod.flags.map(f => renderPermissionCheckbox(f, "flag"))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
@@ -229,7 +369,7 @@ const PerfisAcesso = () => {
                     <TableCell className="text-muted-foreground">{p.descricao || "—"}</TableCell>
                     <TableCell className="text-center">
                       <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                        {countPermissoes(p.permissoes)}/{ALL_MODULE_KEYS.length}
+                        {countPermissoes(p.permissoes)}/{ALL_PERMISSION_KEYS.length}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
