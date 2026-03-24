@@ -880,7 +880,7 @@ export default function CotacaoComprasPage() {
                   </Table>
                 </div>
                 </div>
-            })()}
+              );
 
             {/* Summary */}
             {finModoItemizado && Object.keys(finItensVencedores).length > 0 && (() => {
