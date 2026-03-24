@@ -29,6 +29,14 @@ export interface Dependente {
   anexos: AnexoDependente[];
 }
 
+export interface EpiItem {
+  id: string;
+  quantidade: number;
+  descricao: string;
+  ca: string;
+  dataEntrega: string;
+}
+
 export const grausParentesco = [
   "Cônjuge", "Filho(a)", "Pai", "Mãe", "Irmão(ã)", "Avô(ó)", "Neto(a)", "Enteado(a)", "Tutelado(a)", "Outro"
 ];
@@ -94,6 +102,8 @@ export interface Funcionario {
   passagens: PassagemDiaria[];
   // Dependentes
   dependentes: Dependente[];
+  // EPIs
+  epis: EpiItem[];
   // Observações
   observacoes: string;
   // Status
@@ -113,6 +123,7 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   tamanhoCamisa: "", tamanhoCalca: "", tamanhoCalcado: "", peso: "", altura: "",
   passagens: [],
   dependentes: [],
+  epis: [],
   observacoes: "", status: "Ativo",
 };
 
