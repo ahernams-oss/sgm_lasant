@@ -24,6 +24,12 @@ export interface PropostaFornecedor {
   valorTotal: number;
 }
 
+export interface ItemVencedor {
+  itemId: string;
+  fornecedorId: string;
+  fornecedorNome: string;
+}
+
 export interface CotacaoCompras {
   id: string;
   requisicaoId: string;
@@ -35,6 +41,7 @@ export interface CotacaoCompras {
   propostas: PropostaFornecedor[];
   fornecedorVencedorId: string;
   justificativaEscolha: string;
+  itensVencedores: ItemVencedor[];
 }
 
 interface CotacaoComprasContextType {
