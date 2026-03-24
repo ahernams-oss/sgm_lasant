@@ -29,6 +29,16 @@ export interface Dependente {
   anexos: AnexoDependente[];
 }
 
+export interface NrFuncionario {
+  id: string;
+  numero: string;
+  descricao: string;
+  dataEntrega: string;
+  anexoBase64?: string;
+  anexoNome?: string;
+  anexoTipo?: string;
+}
+
 export interface EpiItem {
   id: string;
   quantidade: number;
