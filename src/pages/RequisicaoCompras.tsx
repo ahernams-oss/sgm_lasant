@@ -92,7 +92,7 @@ export default function RequisicaoComprasPage() {
   };
 
   const resetItemForm = () => {
-    setItemMaterialId(""); setItemDescricao(""); setItemEspec(""); setItemObs(""); setItemQtd(""); setItemUnidade("UN");
+    setItemMaterialId(""); setItemDescricao(""); setItemEspec(""); setItemObs(""); setItemQtd(""); setItemUnidade("UN"); setItemFabricanteId("");
   };
 
   const addItem = () => {
