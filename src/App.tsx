@@ -93,7 +93,10 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppRoutes />
+        <Routes>
+          <Route path="/cotacao/proposta/:token" element={<PropostaFornecedorPage />} />
+          <Route path="/*" element={<AppRoutes />} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
