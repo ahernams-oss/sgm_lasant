@@ -33,6 +33,8 @@ const menuItems = [
     items: [
       { title: "Dashboard Compras", url: "/compras/dashboard", icon: BarChart3 },
       { title: "Requisições de Compras", url: "/compras/requisicoes", icon: ShoppingCart },
+      { title: "Cotações", url: "/compras/cotacoes", icon: Scale },
+      { title: "Pedidos de Compra", url: "/compras/pedidos", icon: FileCheck },
       { title: "Categorias de Compras", url: "/compras/categorias", icon: Tags },
       { title: "Materiais e Serviços", url: "/compras/materiais", icon: Package },
     ],
