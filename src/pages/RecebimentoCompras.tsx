@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { usePedidoCompra, PedidoCompra } from "@/contexts/PedidoCompraContext";
-import { useRecebimento, Recebimento, ItemRecebimento } from "@/contexts/RecebimentoContext";
+import { useRecebimento, Recebimento, ItemRecebimento, AnexoNF } from "@/contexts/RecebimentoContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Search, PackageCheck, Eye, ClipboardList, MoreHorizontal, History } from "lucide-react";
+import { Search, PackageCheck, Eye, ClipboardList, MoreHorizontal, History, Paperclip, FileText, X, Download } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 
@@ -40,6 +40,7 @@ export default function RecebimentoComprasPage() {
   const [recItens, setRecItens] = useState<ItemRecebimento[]>([]);
   const [recNotaFiscal, setRecNotaFiscal] = useState("");
   const [recObservacao, setRecObservacao] = useState("");
+  const [recAnexos, setRecAnexos] = useState<AnexoNF[]>([]);
 
   // View dialog
   const [viewPedido, setViewPedido] = useState<PedidoCompra | null>(null);
@@ -91,6 +92,7 @@ export default function RecebimentoComprasPage() {
     );
     setRecNotaFiscal("");
     setRecObservacao("");
+    setRecAnexos([]);
     setRecDialogOpen(true);
   };
 
@@ -122,6 +124,7 @@ export default function RecebimentoComprasPage() {
       itens: recItens.filter(i => i.quantidadeRecebida > 0),
       observacaoGeral: recObservacao,
       notaFiscal: recNotaFiscal,
+      anexosNF: recAnexos,
     });
 
     toast({ title: "Recebimento registrado com sucesso!" });
@@ -358,6 +361,52 @@ export default function RecebimentoComprasPage() {
                 </CardContent>
               </Card>
 
+              {/* Anexo NF */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2"><Paperclip className="h-4 w-4" />Anexar Nota Fiscal (PDF, Imagem)</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp"
+                    multiple
+                    className="flex-1"
+                    onChange={e => {
+                      const files = e.target.files;
+                      if (!files) return;
+                      Array.from(files).forEach(file => {
+                        if (file.size > 2 * 1024 * 1024) {
+                          toast({ title: `Arquivo "${file.name}" excede 2MB`, variant: "destructive" });
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          setRecAnexos(prev => [...prev, {
+                            nome: file.name,
+                            tipo: file.type,
+                            dados: reader.result as string,
+                          }]);
+                        };
+                        reader.readAsDataURL(file);
+                      });
+                      e.target.value = "";
+                    }}
+                  />
+                </div>
+                {recAnexos.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {recAnexos.map((a, i) => (
+                      <Badge key={i} variant="secondary" className="flex items-center gap-1 py-1 px-2">
+                        <FileText className="h-3 w-3" />
+                        <span className="text-xs max-w-[150px] truncate">{a.nome}</span>
+                        <button onClick={() => setRecAnexos(prev => prev.filter((_, j) => j !== i))} className="ml-1 hover:text-destructive">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div>
                 <Label>Observação Geral</Label>
                 <Textarea value={recObservacao} onChange={e => setRecObservacao(e.target.value)} placeholder="Observações sobre o recebimento..." rows={2} />
@@ -474,6 +523,20 @@ export default function RecebimentoComprasPage() {
                     </TableBody>
                   </Table>
                   {r.observacaoGeral && <p className="text-xs text-muted-foreground mt-2">Obs: {r.observacaoGeral}</p>}
+                  {r.anexosNF && r.anexosNF.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {r.anexosNF.map((a, i) => (
+                        <a
+                          key={i}
+                          href={a.dados}
+                          download={a.nome}
+                          className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                        >
+                          <Download className="h-3 w-3" />{a.nome}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
