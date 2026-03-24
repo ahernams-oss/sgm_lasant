@@ -8,6 +8,7 @@ import { useClientes, type Cliente, type Contrato } from "@/contexts/ClientesCon
 import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
 import LocaisSection from "@/components/LocaisSection";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import ImportClientesFornecedores from "@/components/ImportClientesFornecedores";
 
 const Clientes = () => {
   const [formOpen, setFormOpen] = useState(true);
