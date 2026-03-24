@@ -521,7 +521,8 @@ export default function CotacaoComprasPage() {
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>
