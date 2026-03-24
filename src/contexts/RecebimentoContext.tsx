@@ -48,6 +48,7 @@ const recebimentoToRow = (r: Recebimento) => ({
 export function RecebimentoProvider({ children }: { children: ReactNode }) {
   const { pedidos, updateStatus: updatePedidoStatus } = usePedidoCompra();
   const { requisicoes, updateStatus: updateReqStatus } = useRequisicaoCompras();
+  const { registrarEntradaRecebimento } = useEstoque();
 
   const [recebimentos, setRecebimentos] = useState<Recebimento[]>([]);
 
