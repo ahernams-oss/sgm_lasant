@@ -78,8 +78,8 @@ export default function PedidoCompraPage() {
   const getEmpresa = () => clientes.find(c => c.tipo === "Cliente") || null;
   const getFornecedor = (fornecedorId: string) => clientes.find(c => c.id === fornecedorId) || null;
 
-  const handleDownloadPdf = (pedido: PedidoCompra) => {
-    downloadPdfOrdemCompra({
+  const handleDownloadPdf = async (pedido: PedidoCompra) => {
+    await downloadPdfOrdemCompra({
       pedido,
       empresa: getEmpresa(),
       fornecedor: getFornecedor(pedido.fornecedorId),
@@ -115,7 +115,7 @@ export default function PedidoCompraPage() {
           setSending(false);
           return;
         }
-        const pdfBase64 = getPdfOrdemCompraBase64(pdfData);
+        const pdfBase64 = await getPdfOrdemCompraBase64(pdfData);
         const pcNum = `PC-${String(sendPedido.numero).padStart(4, "0")}`;
         const { data, error } = await supabase.functions.invoke("send-email-ordem", {
           body: {
@@ -146,7 +146,7 @@ export default function PedidoCompraPage() {
           return;
         }
         // First download PDF so user can share, then send WhatsApp message
-        downloadPdfOrdemCompra(pdfData);
+        await downloadPdfOrdemCompra(pdfData);
 
         const pcNum = `PC-${String(sendPedido.numero).padStart(4, "0")}`;
         const mensagem = `*Ordem de Compra ${pcNum}*\n\n` +
