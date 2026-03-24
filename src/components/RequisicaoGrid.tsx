@@ -3,6 +3,7 @@ import { useRequisicoes, Requisicao, StatusHistorico } from "@/contexts/Requisic
 import { useClientes } from "@/contexts/ClientesContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProcessoSeletivo } from "@/contexts/ProcessoSeletivoContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +52,7 @@ const RequisicaoGrid = () => {
   const { cargos } = useCargos();
   const { usuarioLogado } = useAuth();
   const navigate = useNavigate();
+  const { processos } = useProcessoSeletivo();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [editingReq, setEditingReq] = useState<Requisicao | null>(null);
@@ -65,6 +67,12 @@ const RequisicaoGrid = () => {
   });
 
   const canEdit = (req: Requisicao) => req.status !== "Aprovada" && req.status !== "Reprovada" && req.status !== "Concluída";
+
+  const isProcessoLiberado = (reqId: string) => {
+    const processo = processos.find(p => p.requisicaoId === reqId);
+    if (!processo) return false;
+    return processo.candidatos.some(c => c.statusLiberacao === "aprovado");
+  };
 
   const openEdit = (req: Requisicao) => {
     setEditForm({
@@ -227,16 +235,20 @@ const RequisicaoGrid = () => {
                   <TableCell className="text-sm">{req.nomeSubstituido || "—"}</TableCell>
                   <TableCell className="text-sm">{req.aprovadoPor || "—"}</TableCell>
                   <TableCell>
-                    <Select value={req.status} onValueChange={(v) => handleStatusChange(req, v as Requisicao["status"])}>
-                      <SelectTrigger className="h-7 w-[120px] text-xs border-0 p-0 focus:ring-0">
-                        <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statusOptions.map((s) => (
-                          <SelectItem key={s} value={s}>{s}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {isProcessoLiberado(req.id) || req.status === "Concluída" ? (
+                      <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge>
+                    ) : (
+                      <Select value={req.status} onValueChange={(v) => handleStatusChange(req, v as Requisicao["status"])}>
+                        <SelectTrigger className="h-7 w-[120px] text-xs border-0 p-0 focus:ring-0">
+                          <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statusOptions.map((s) => (
+                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </TableCell>
                   <TableCell className="pr-5 text-center">
                     <DropdownMenu>
