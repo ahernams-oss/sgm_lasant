@@ -139,7 +139,8 @@ export default function PedidoCompraPage() {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>
