@@ -397,6 +397,84 @@ export type Database = {
         }
         Relationships: []
       }
+      estoque_inventarios: {
+        Row: {
+          created_at: string | null
+          data_inventario: string | null
+          id: string
+          itens: Json | null
+          local: string
+          observacao: string | null
+          status: string | null
+          usuario: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_inventario?: string | null
+          id?: string
+          itens?: Json | null
+          local?: string
+          observacao?: string | null
+          status?: string | null
+          usuario?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_inventario?: string | null
+          id?: string
+          itens?: Json | null
+          local?: string
+          observacao?: string | null
+          status?: string | null
+          usuario?: string | null
+        }
+        Relationships: []
+      }
+      estoque_movimentacoes: {
+        Row: {
+          created_at: string | null
+          data_movimentacao: string | null
+          documento_ref: string | null
+          id: string
+          local: string
+          material_codigo: string
+          material_descricao: string
+          material_id: string
+          observacao: string | null
+          quantidade: number
+          tipo: string
+          usuario: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_movimentacao?: string | null
+          documento_ref?: string | null
+          id?: string
+          local?: string
+          material_codigo?: string
+          material_descricao?: string
+          material_id?: string
+          observacao?: string | null
+          quantidade?: number
+          tipo?: string
+          usuario?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_movimentacao?: string | null
+          documento_ref?: string | null
+          id?: string
+          local?: string
+          material_codigo?: string
+          material_descricao?: string
+          material_id?: string
+          observacao?: string | null
+          quantidade?: number
+          tipo?: string
+          usuario?: string | null
+        }
+        Relationships: []
+      }
       exames_periodicos: {
         Row: {
           anexo_aso_url: string | null
@@ -730,6 +808,7 @@ export type Database = {
           codigo: string | null
           created_at: string | null
           descricao: string | null
+          estoque_minimo: number | null
           fabricante_id: string | null
           id: string
           tipo: string | null
@@ -740,6 +819,7 @@ export type Database = {
           codigo?: string | null
           created_at?: string | null
           descricao?: string | null
+          estoque_minimo?: number | null
           fabricante_id?: string | null
           id?: string
           tipo?: string | null
@@ -750,6 +830,7 @@ export type Database = {
           codigo?: string | null
           created_at?: string | null
           descricao?: string | null
+          estoque_minimo?: number | null
           fabricante_id?: string | null
           id?: string
           tipo?: string | null

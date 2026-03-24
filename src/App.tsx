@@ -26,6 +26,7 @@ import CotacaoComprasPage from "./pages/CotacaoCompras.tsx";
 import PedidoCompraPage from "./pages/PedidoCompra.tsx";
 import PropostaFornecedorPage from "./pages/PropostaFornecedor.tsx";
 import RecebimentoComprasPage from "./pages/RecebimentoCompras.tsx";
+import EstoquePage from "./pages/Estoque.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
@@ -42,6 +43,7 @@ import { RequisicaoComprasProvider } from "@/contexts/RequisicaoComprasContext";
 import { CotacaoComprasProvider } from "@/contexts/CotacaoComprasContext";
 import { PedidoCompraProvider } from "@/contexts/PedidoCompraContext";
 import { RecebimentoProvider } from "@/contexts/RecebimentoContext";
+import { EstoqueProvider } from "@/contexts/EstoqueContext";
 import { FabricantesProvider } from "@/contexts/FabricantesContext";
 import FabricantesPage from "./pages/Fabricantes.tsx";
 
@@ -70,6 +72,7 @@ function AppRoutes() {
         <Route path="/compras/cotacoes" element={<CotacaoComprasPage />} />
         <Route path="/compras/pedidos" element={<PedidoCompraPage />} />
         <Route path="/compras/recebimento" element={<RecebimentoComprasPage />} />
+        <Route path="/compras/estoque" element={<EstoquePage />} />
         <Route path="/compras/dashboard" element={<DashboardCompras />} />
         <Route path="/compras/fabricantes" element={<FabricantesPage />} />
         <Route path="*" element={<NotFound />} />
@@ -94,6 +97,7 @@ const App = () => (
     <RequisicaoComprasProvider>
     <CotacaoComprasProvider>
     <PedidoCompraProvider>
+    <EstoqueProvider>
     <RecebimentoProvider>
     <FabricantesProvider>
     <AuthProvider>
@@ -110,6 +114,7 @@ const App = () => (
     </AuthProvider>
     </FabricantesProvider>
     </RecebimentoProvider>
+    </EstoqueProvider>
     </PedidoCompraProvider>
     </CotacaoComprasProvider>
     </RequisicaoComprasProvider>
