@@ -654,11 +654,50 @@ export default function CotacaoComprasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog Finalizar Cotação */}
+      {/* Dialog Finalizar Cotação (travar valores) */}
       <Dialog open={finalizarDialogOpen} onOpenChange={setFinalizarDialogOpen}>
-        <DialogContent className={finModoItemizado ? "max-w-3xl max-h-[85vh] overflow-y-auto" : ""}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Finalizar Cotação</DialogTitle>
+            <DialogDescription>
+              Ao finalizar, os valores das propostas serão travados e a cotação será enviada para aprovação do usuário autorizador.
+            </DialogDescription>
+          </DialogHeader>
+          {(() => {
+            const cot = cotacoes.find(c => c.id === finalizarCotacaoId);
+            if (!cot) return null;
+            return (
+              <div className="space-y-3">
+                <div className="text-sm space-y-1">
+                  <p><span className="text-muted-foreground">Cotação:</span> COT-{String(cot.numero).padStart(4, "0")}</p>
+                  <p><span className="text-muted-foreground">Propostas recebidas:</span> {cot.propostas.length}</p>
+                </div>
+                <div className="rounded-lg border p-3 bg-muted/30">
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-primary" />
+                    Os valores das propostas serão travados
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Nenhuma proposta poderá ser adicionada ou removida após a finalização. O aprovador poderá autorizar por pedido completo ou por item individual.
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFinalizarDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleFinalizar}>
+              <Lock className="mr-2 h-4 w-4" />Finalizar e Enviar para Aprovação
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Aprovar Cotação */}
+      <Dialog open={aprovarDialogOpen} onOpenChange={setAprovarDialogOpen}>
+        <DialogContent className={finModoItemizado ? "max-w-3xl max-h-[85vh] overflow-y-auto" : ""}>
+          <DialogHeader>
+            <DialogTitle>Aprovar Cotação</DialogTitle>
             <DialogDescription>
               {finModoItemizado
                 ? "Escolha o fornecedor para cada item individualmente. Pedidos separados serão gerados por fornecedor."
@@ -669,7 +708,7 @@ export default function CotacaoComprasPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
               <div className="space-y-0.5">
-                <Label className="text-sm font-medium">Autorizar por item</Label>
+                <Label className="text-sm font-medium">Aprovar por item</Label>
                 <p className="text-xs text-muted-foreground">
                   Permite escolher fornecedores diferentes para cada item
                 </p>
@@ -690,7 +729,7 @@ export default function CotacaoComprasPage() {
                 <Select value={finVencedorId} onValueChange={setFinVencedorId}>
                   <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    {cotacoes.find(c => c.id === finalizarCotacaoId)?.propostas.map(p => (
+                    {cotacoes.find(c => c.id === aprovarCotacaoId)?.propostas.map(p => (
                       <SelectItem key={p.fornecedorId} value={p.fornecedorId}>{p.fornecedorNome} — {formatCurrency(p.valorTotal)}</SelectItem>
                     ))}
                   </SelectContent>
@@ -699,7 +738,7 @@ export default function CotacaoComprasPage() {
             )}
 
             {finModoItemizado && (() => {
-              const cot = cotacoes.find(c => c.id === finalizarCotacaoId);
+              const cot = cotacoes.find(c => c.id === aprovarCotacaoId);
               const req = cot ? requisicoes.find(r => r.id === cot.requisicaoId) : null;
               if (!cot || !req) return null;
               const propostas = cot.propostas;
@@ -765,7 +804,6 @@ export default function CotacaoComprasPage() {
                       </TableBody>
                     </Table>
 
-                    {/* Summary by supplier */}
                     {Object.keys(finItensVencedores).length > 0 && (() => {
                       const groups: Record<string, { nome: string; total: number; count: number }> = {};
                       for (const [itemId, fornId] of Object.entries(finItensVencedores)) {
@@ -798,14 +836,15 @@ export default function CotacaoComprasPage() {
             })()}
 
             <div>
-              <Label>Justificativa da Escolha *</Label>
-              <Textarea value={finJustificativa} onChange={e => setFinJustificativa(e.target.value)} placeholder="Justifique a escolha do(s) fornecedor(es)..." rows={3} />
+              <Label>Justificativa da Aprovação *</Label>
+              <Textarea value={finJustificativa} onChange={e => setFinJustificativa(e.target.value)} placeholder="Justifique a aprovação e escolha do(s) fornecedor(es)..." rows={3} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setFinalizarDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleFinalizar}>
-              {finModoItemizado ? "Finalizar e Emitir Pedidos" : "Finalizar e Emitir Pedido"}
+            <Button variant="outline" onClick={() => setAprovarDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAprovar}>
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              {finModoItemizado ? "Aprovar e Emitir Pedidos" : "Aprovar e Emitir Pedido"}
             </Button>
           </DialogFooter>
         </DialogContent>
