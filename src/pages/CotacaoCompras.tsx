@@ -625,31 +625,157 @@ export default function CotacaoComprasPage() {
 
       {/* Dialog Finalizar Cotação */}
       <Dialog open={finalizarDialogOpen} onOpenChange={setFinalizarDialogOpen}>
-        <DialogContent>
+        <DialogContent className={finModoItemizado ? "max-w-3xl max-h-[85vh] overflow-y-auto" : ""}>
           <DialogHeader>
             <DialogTitle>Finalizar Cotação</DialogTitle>
-            <DialogDescription>Selecione o fornecedor vencedor e justifique a escolha. Um Pedido de Compra será gerado automaticamente.</DialogDescription>
+            <DialogDescription>
+              {finModoItemizado
+                ? "Escolha o fornecedor para cada item individualmente. Pedidos separados serão gerados por fornecedor."
+                : "Selecione o fornecedor vencedor e justifique a escolha. Um Pedido de Compra será gerado automaticamente."
+              }
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label>Fornecedor Vencedor *</Label>
-              <Select value={finVencedorId} onValueChange={setFinVencedorId}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {cotacoes.find(c => c.id === finalizarCotacaoId)?.propostas.map(p => (
-                    <SelectItem key={p.fornecedorId} value={p.fornecedorId}>{p.fornecedorNome} — {formatCurrency(p.valorTotal)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium">Autorizar por item</Label>
+                <p className="text-xs text-muted-foreground">
+                  Permite escolher fornecedores diferentes para cada item
+                </p>
+              </div>
+              <Switch
+                checked={finModoItemizado}
+                onCheckedChange={(checked) => {
+                  setFinModoItemizado(checked);
+                  if (checked) setFinVencedorId("");
+                  else setFinItensVencedores({});
+                }}
+              />
             </div>
+
+            {!finModoItemizado && (
+              <div>
+                <Label>Fornecedor Vencedor *</Label>
+                <Select value={finVencedorId} onValueChange={setFinVencedorId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    {cotacoes.find(c => c.id === finalizarCotacaoId)?.propostas.map(p => (
+                      <SelectItem key={p.fornecedorId} value={p.fornecedorId}>{p.fornecedorNome} — {formatCurrency(p.valorTotal)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {finModoItemizado && (() => {
+              const cot = cotacoes.find(c => c.id === finalizarCotacaoId);
+              const req = cot ? requisicoes.find(r => r.id === cot.requisicaoId) : null;
+              if (!cot || !req) return null;
+              const propostas = cot.propostas;
+
+              return (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                      Selecione o fornecedor para cada item
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Item</TableHead>
+                          <TableHead className="w-16">Qtd</TableHead>
+                          <TableHead className="w-[220px]">Fornecedor</TableHead>
+                          <TableHead className="w-28 text-right">Preço Unit.</TableHead>
+                          <TableHead className="w-28 text-right">Total</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {req.itens.map(item => {
+                          const selectedFornId = finItensVencedores[item.id] || "";
+                          const selectedProp = propostas.find(p => p.fornecedorId === selectedFornId);
+                          const selectedItemProp = selectedProp?.itens.find(i => i.itemId === item.id);
+
+                          return (
+                            <TableRow key={item.id}>
+                              <TableCell className="text-sm font-medium">{item.descricao}</TableCell>
+                              <TableCell className="text-sm">{item.quantidade} {item.unidadeMedida}</TableCell>
+                              <TableCell>
+                                <Select
+                                  value={selectedFornId}
+                                  onValueChange={v => setFinItensVencedores(prev => ({ ...prev, [item.id]: v }))}
+                                >
+                                  <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue placeholder="Selecione..." />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {propostas.map(p => {
+                                      const pi = p.itens.find(i => i.itemId === item.id);
+                                      return (
+                                        <SelectItem key={p.fornecedorId} value={p.fornecedorId}>
+                                          {p.fornecedorNome} {pi ? `— ${formatCurrency(pi.precoUnitario)}` : ""}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell className="text-right text-sm">
+                                {selectedItemProp ? formatCurrency(selectedItemProp.precoUnitario) : "-"}
+                              </TableCell>
+                              <TableCell className="text-right text-sm font-medium">
+                                {selectedItemProp ? formatCurrency(selectedItemProp.precoUnitario * selectedItemProp.quantidade) : "-"}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+
+                    {/* Summary by supplier */}
+                    {Object.keys(finItensVencedores).length > 0 && (() => {
+                      const groups: Record<string, { nome: string; total: number; count: number }> = {};
+                      for (const [itemId, fornId] of Object.entries(finItensVencedores)) {
+                        const prop = propostas.find(p => p.fornecedorId === fornId);
+                        const pi = prop?.itens.find(i => i.itemId === itemId);
+                        if (!prop || !pi) continue;
+                        if (!groups[fornId]) groups[fornId] = { nome: prop.fornecedorNome, total: 0, count: 0 };
+                        groups[fornId].total += pi.precoUnitario * pi.quantidade;
+                        groups[fornId].count++;
+                      }
+                      return (
+                        <div className="mt-3 space-y-1 border-t pt-3">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Resumo por fornecedor:</p>
+                          {Object.entries(groups).map(([id, g]) => (
+                            <div key={id} className="flex justify-between text-sm">
+                              <span>{g.nome} <span className="text-muted-foreground">({g.count} {g.count === 1 ? "item" : "itens"})</span></span>
+                              <span className="font-medium">{formatCurrency(g.total)}</span>
+                            </div>
+                          ))}
+                          <div className="flex justify-between text-sm font-bold border-t pt-1 mt-1">
+                            <span>Total Geral</span>
+                            <span>{formatCurrency(Object.values(groups).reduce((s, g) => s + g.total, 0))}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+              );
+            })()}
+
             <div>
               <Label>Justificativa da Escolha *</Label>
-              <Textarea value={finJustificativa} onChange={e => setFinJustificativa(e.target.value)} placeholder="Justifique a escolha do fornecedor..." rows={3} />
+              <Textarea value={finJustificativa} onChange={e => setFinJustificativa(e.target.value)} placeholder="Justifique a escolha do(s) fornecedor(es)..." rows={3} />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setFinalizarDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleFinalizar}>Finalizar e Emitir Pedido</Button>
+            <Button onClick={handleFinalizar}>
+              {finModoItemizado ? "Finalizar e Emitir Pedidos" : "Finalizar e Emitir Pedido"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
