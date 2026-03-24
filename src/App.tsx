@@ -42,6 +42,8 @@ import { RequisicaoComprasProvider } from "@/contexts/RequisicaoComprasContext";
 import { CotacaoComprasProvider } from "@/contexts/CotacaoComprasContext";
 import { PedidoCompraProvider } from "@/contexts/PedidoCompraContext";
 import { RecebimentoProvider } from "@/contexts/RecebimentoContext";
+import { FabricantesProvider } from "@/contexts/FabricantesContext";
+import FabricantesPage from "./pages/Fabricantes.tsx";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +71,7 @@ function AppRoutes() {
         <Route path="/compras/pedidos" element={<PedidoCompraPage />} />
         <Route path="/compras/recebimento" element={<RecebimentoComprasPage />} />
         <Route path="/compras/dashboard" element={<DashboardCompras />} />
+        <Route path="/compras/fabricantes" element={<FabricantesPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -92,6 +95,7 @@ const App = () => (
     <CotacaoComprasProvider>
     <PedidoCompraProvider>
     <RecebimentoProvider>
+    <FabricantesProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
@@ -104,6 +108,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </FabricantesProvider>
     </RecebimentoProvider>
     </PedidoCompraProvider>
     </CotacaoComprasProvider>

@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useMateriaisServicos, MaterialServico } from "@/contexts/MateriaisServicosContext";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
+import { useFabricantes } from "@/contexts/FabricantesContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,10 +18,11 @@ const UNIDADES = ["UN", "M", "M²", "M³", "KG", "L", "CX", "PCT", "SC", "GL", "
 export default function MateriaisServicosPage() {
   const { materiais, addMaterial, updateMaterial, deleteMaterial } = useMateriaisServicos();
   const { classes, getDescricaoCompleta } = useCategoriasCompras();
+  const { fabricantes } = useFabricantes();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ descricao: "", tipo: "Material" as "Material" | "Serviço", unidadeMedida: "UN", categoriaId: "" });
+  const [form, setForm] = useState({ descricao: "", tipo: "Material" as "Material" | "Serviço", unidadeMedida: "UN", categoriaId: "", fabricanteId: "" });
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("Todos");
 
@@ -34,8 +36,8 @@ export default function MateriaisServicosPage() {
     return list;
   }, [materiais, search, filterTipo]);
 
-  const openNew = () => { setForm({ descricao: "", tipo: "Material", unidadeMedida: "UN", categoriaId: "" }); setEditingId(null); setDialogOpen(true); };
-  const openEdit = (m: MaterialServico) => { setForm({ descricao: m.descricao, tipo: m.tipo, unidadeMedida: m.unidadeMedida, categoriaId: m.categoriaId }); setEditingId(m.id); setDialogOpen(true); };
+  const openNew = () => { setForm({ descricao: "", tipo: "Material", unidadeMedida: "UN", categoriaId: "", fabricanteId: "" }); setEditingId(null); setDialogOpen(true); };
+  const openEdit = (m: MaterialServico) => { setForm({ descricao: m.descricao, tipo: m.tipo, unidadeMedida: m.unidadeMedida, categoriaId: m.categoriaId, fabricanteId: m.fabricanteId || "" }); setEditingId(m.id); setDialogOpen(true); };
 
   const handleSave = () => {
     if (!form.descricao.trim()) { toast({ title: "Descrição é obrigatória", variant: "destructive" }); return; }
@@ -61,7 +63,7 @@ export default function MateriaisServicosPage() {
           const cols = line.split(/[;\t,]/).map(c => c.trim());
           if (cols[0]?.toLowerCase().includes("cod")) continue;
           if (cols.length >= 2) {
-            addMaterial({ descricao: cols[1] || cols[0] || "", tipo: (cols[2] === "Serviço" ? "Serviço" : "Material"), unidadeMedida: cols[3] || "UN", categoriaId: cols[4] || "" });
+            addMaterial({ descricao: cols[1] || cols[0] || "", tipo: (cols[2] === "Serviço" ? "Serviço" : "Material"), unidadeMedida: cols[3] || "UN", categoriaId: cols[4] || "", fabricanteId: cols[5] || "" });
             count++;
           }
         }
@@ -78,7 +80,7 @@ export default function MateriaisServicosPage() {
         for (const row of rows) {
           if (String(row[0] || "").toLowerCase().includes("cod")) continue;
           if (row.length >= 2) {
-            addMaterial({ descricao: String(row[1] || row[0] || ""), tipo: (String(row[2] || "") === "Serviço" ? "Serviço" : "Material"), unidadeMedida: String(row[3] || "UN"), categoriaId: String(row[4] || "") });
+            addMaterial({ descricao: String(row[1] || row[0] || ""), tipo: (String(row[2] || "") === "Serviço" ? "Serviço" : "Material"), unidadeMedida: String(row[3] || "UN"), categoriaId: String(row[4] || ""), fabricanteId: String(row[5] || "") });
             count++;
           }
         }
@@ -89,6 +91,7 @@ export default function MateriaisServicosPage() {
   };
 
   const catNome = (id: string) => id ? getDescricaoCompleta(id) || "-" : "-";
+  const fabNome = (id: string) => { const f = fabricantes.find(f => f.id === id); return f ? f.nome : "-"; };
 
   return (
     <div className="space-y-6">
@@ -127,12 +130,13 @@ export default function MateriaisServicosPage() {
               <TableHead>Tipo</TableHead>
               <TableHead>Unidade</TableHead>
               <TableHead>Categoria</TableHead>
+              <TableHead>Fabricante</TableHead>
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum item cadastrado</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum item cadastrado</TableCell></TableRow>
             ) : filtered.map(m => (
               <TableRow key={m.id}>
                 <TableCell className="font-mono">{m.codigo}</TableCell>
@@ -140,6 +144,7 @@ export default function MateriaisServicosPage() {
                 <TableCell>{m.tipo}</TableCell>
                 <TableCell>{m.unidadeMedida}</TableCell>
                 <TableCell>{catNome(m.categoriaId)}</TableCell>
+                <TableCell>{fabNome(m.fabricanteId)}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(m)}><Pencil className="h-4 w-4" /></Button>
@@ -174,6 +179,14 @@ export default function MateriaisServicosPage() {
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   {classes.map(c => <SelectItem key={c.id} value={c.id}>{getDescricaoCompleta(c.id)}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div><Label>Fabricante</Label>
+              <Select value={form.fabricanteId} onValueChange={v => setForm(f => ({ ...f, fabricanteId: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  {fabricantes.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
