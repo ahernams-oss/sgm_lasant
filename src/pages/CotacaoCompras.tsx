@@ -41,6 +41,23 @@ export default function CotacaoComprasPage() {
   // Dialog states
   const [novaDialogOpen, setNovaDialogOpen] = useState(false);
   const [selectedReqId, setSelectedReqId] = useState("");
+  const [reqSearch, setReqSearch] = useState("");
+  const [reqFilterUrgencia, setReqFilterUrgencia] = useState("Todas");
+
+  const reqFiltradas = useMemo(() => {
+    let list = reqDisponiveisParaCotacao;
+    if (reqFilterUrgencia !== "Todas") list = list.filter(r => r.urgencia === reqFilterUrgencia);
+    if (reqSearch) {
+      const s = reqSearch.toLowerCase();
+      list = list.filter(r =>
+        String(r.numero).includes(s) ||
+        r.centroCustoNome.toLowerCase().includes(s) ||
+        r.solicitante.toLowerCase().includes(s) ||
+        r.itens.some(i => i.descricao.toLowerCase().includes(s))
+      );
+    }
+    return list.sort((a, b) => b.numero - a.numero);
+  }, [reqDisponiveisParaCotacao, reqSearch, reqFilterUrgencia]);
   const [viewCotacao, setViewCotacao] = useState<CotacaoCompras | null>(null);
   const [propostaDialogOpen, setPropostaDialogOpen] = useState(false);
   const [propostaCotacaoId, setPropostaCotacaoId] = useState("");
