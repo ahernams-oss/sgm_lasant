@@ -291,6 +291,7 @@ export default function EstoquePage() {
                   <TableHead>Tipo</TableHead>
                   <TableHead>Código</TableHead>
                   <TableHead>Material</TableHead>
+                  <TableHead>Centro de Custo</TableHead>
                   <TableHead>Local</TableHead>
                   <TableHead className="text-right">Qtd</TableHead>
                   <TableHead>Documento</TableHead>
@@ -299,13 +300,14 @@ export default function EstoquePage() {
               </TableHeader>
               <TableBody>
                 {movFiltered.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma movimentação</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma movimentação</TableCell></TableRow>
                 ) : movFiltered.slice(0, 100).map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="text-xs">{m.dataMovimentacao ? new Date(m.dataMovimentacao).toLocaleDateString("pt-BR") : "-"}</TableCell>
                     <TableCell><Badge className={tipoColor(m.tipo)}>{m.tipo === "entrada" ? "Entrada" : m.tipo === "saida" ? "Saída" : "Ajuste"}</Badge></TableCell>
                     <TableCell className="font-mono">{m.materialCodigo}</TableCell>
                     <TableCell>{m.materialDescricao}</TableCell>
+                    <TableCell>{getCentroCustoFromDocRef(m.documentoRef)}</TableCell>
                     <TableCell>{m.local}</TableCell>
                     <TableCell className="text-right font-semibold">{m.quantidade.toLocaleString("pt-BR")}</TableCell>
                     <TableCell className="text-xs">{m.documentoRef || "-"}</TableCell>
