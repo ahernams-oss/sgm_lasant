@@ -70,6 +70,12 @@ export default function RequisicaoComprasPage() {
 
   const clientesLista = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
 
+  const locaisEntregaDoCliente = useMemo(() => {
+    if (!centroCusto) return [];
+    const cliente = clientesLista.find(c => c.id === centroCusto);
+    return cliente?.locaisEntrega || [];
+  }, [centroCusto, clientesLista]);
+
   const filtered = useMemo(() => {
     let list = requisicoes;
     if (filterStatus !== "Todos") list = list.filter(r => r.status === filterStatus);
