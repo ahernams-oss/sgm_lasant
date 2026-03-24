@@ -255,21 +255,23 @@ export default function EstoquePage() {
         <TabsContent value="saldos">
           <div className="border rounded-lg">
             <Table>
-              <TableHeader>
+             <TableHeader>
                 <TableRow>
                   <TableHead>Código</TableHead>
                   <TableHead>Material/Serviço</TableHead>
+                  <TableHead>Centro de Custo</TableHead>
                   <TableHead>Local</TableHead>
                   <TableHead className="text-right">Quantidade</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {saldos.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum saldo registrado</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum saldo registrado</TableCell></TableRow>
                 ) : saldos.map((s, i) => (
                   <TableRow key={i}>
                     <TableCell className="font-mono">{s.materialCodigo}</TableCell>
                     <TableCell>{s.materialDescricao}</TableCell>
+                    <TableCell>{saldoCentroCusto.get(`${s.materialId}|${s.local}`) || "-"}</TableCell>
                     <TableCell>{s.local}</TableCell>
                     <TableCell className="text-right font-semibold">{s.quantidade.toLocaleString("pt-BR")}</TableCell>
                   </TableRow>
