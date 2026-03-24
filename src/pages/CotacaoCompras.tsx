@@ -879,7 +879,7 @@ export default function CotacaoComprasPage() {
                     </TableBody>
                   </Table>
                 </div>
-              );
+                </div>
             })()}
 
             {/* Summary */}
