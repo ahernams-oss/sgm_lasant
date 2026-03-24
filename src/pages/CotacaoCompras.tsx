@@ -913,7 +913,7 @@ export default function CotacaoComprasPage() {
             })()}
 
             <div>
-              <Label>Justificativa da Aprovação *</Label>
+              <Label>Justificativa da Aprovação</Label>
               <Textarea value={finJustificativa} onChange={e => setFinJustificativa(e.target.value)} placeholder="Justifique a aprovação e escolha do(s) fornecedor(es)..." rows={3} />
             </div>
           </div>
