@@ -219,6 +219,18 @@ const Clientes = () => {
           />
          )}
 
+        {locaisEntregaClienteId && (() => {
+          const cliente = clientes.find(c => c.id === locaisEntregaClienteId);
+          if (!cliente) return null;
+          return (
+            <LocaisEntregaSection
+              locais={cliente.locaisEntrega || []}
+              onChange={(locaisEntrega) => updateCliente(locaisEntregaClienteId, { locaisEntrega })}
+              clienteNome={cliente.nome}
+            />
+          );
+        })()}
+
         {contratosClienteId && (() => {
           const cliente = clientes.find(c => c.id === contratosClienteId);
           if (!cliente) return null;
