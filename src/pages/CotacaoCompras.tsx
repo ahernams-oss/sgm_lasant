@@ -599,24 +599,28 @@ export default function CotacaoComprasPage() {
       <Dialog open={propostaDialogOpen} onOpenChange={setPropostaDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Adicionar Proposta de Fornecedor</DialogTitle>
+            <DialogTitle>{editingPropostaId ? "Editar Proposta de Fornecedor" : "Adicionar Proposta de Fornecedor"}</DialogTitle>
             <DialogDescription>Preencha os dados da proposta recebida.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Fornecedor *</Label>
-                <Select value={propFornecedorId} onValueChange={setPropFornecedorId}>
-                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                  <SelectContent>{(() => {
-                    const cotAtual = cotacoes.find(c => c.id === propostaCotacaoId);
-                    const idsJaComProposta = cotAtual?.propostas.map(p => p.fornecedorId) || [];
-                    const disponiveis = fornecedores.filter(f => !idsJaComProposta.includes(f.id));
-                    return disponiveis.length > 0
-                      ? disponiveis.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)
-                      : <div className="px-2 py-4 text-sm text-muted-foreground text-center">Todos os fornecedores já possuem proposta</div>;
-                  })()}</SelectContent>
-                </Select>
+                {editingPropostaId ? (
+                  <Input value={fornecedores.find(f => f.id === propFornecedorId)?.nome || ""} disabled />
+                ) : (
+                  <Select value={propFornecedorId} onValueChange={setPropFornecedorId}>
+                    <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>{(() => {
+                      const cotAtual = cotacoes.find(c => c.id === propostaCotacaoId);
+                      const idsJaComProposta = cotAtual?.propostas.map(p => p.fornecedorId) || [];
+                      const disponiveis = fornecedores.filter(f => !idsJaComProposta.includes(f.id));
+                      return disponiveis.length > 0
+                        ? disponiveis.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)
+                        : <div className="px-2 py-4 text-sm text-muted-foreground text-center">Todos os fornecedores já possuem proposta</div>;
+                    })()}</SelectContent>
+                  </Select>
+                )}
               </div>
               <div>
                 <Label>Condição de Pagamento</Label>
