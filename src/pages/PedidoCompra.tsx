@@ -145,8 +145,11 @@ export default function PedidoCompraPage() {
 
       <div className="border rounded-lg">
         <Table>
-          <TableHeader>
+           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox checked={allSelectableSelected && selectableFiltered.length > 0} onCheckedChange={toggleSelectAll} />
+              </TableHead>
               <TableHead>Nº Pedido</TableHead>
               <TableHead>Centro de Custo</TableHead>
               <TableHead>RC</TableHead>
