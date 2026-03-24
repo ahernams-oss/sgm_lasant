@@ -507,7 +507,7 @@ export default function CotacaoComprasPage() {
                       <DropdownMenuItem onClick={() => openMapa(c)} disabled={c.propostas.length === 0}>
                         <BarChart3 className="mr-2 h-4 w-4" />Mapa Comparativo
                       </DropdownMenuItem>
-                      {c.status === "Em Andamento" && (
+                      {(c.status === "Em Andamento" || c.status === "Aguardando Aprovação") && (
                         <>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => openEnviarDialog(c.id)}>
@@ -516,21 +516,16 @@ export default function CotacaoComprasPage() {
                           <DropdownMenuItem onClick={() => openPropostaDialog(c.id)}>
                             <Plus className="mr-2 h-4 w-4" />Adicionar Proposta Manual
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openFinalizarDialog(c.id)} disabled={c.propostas.length < 1}>
-                            <Lock className="mr-2 h-4 w-4" />Finalizar Cotação
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => { cancelarCotacao(c.id); toast({ title: "Cotação cancelada" }); }}>
-                            <XCircle className="mr-2 h-4 w-4" />Cancelar
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      {c.status === "Aguardando Aprovação" && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => openAprovarDialog(c.id)}>
-                            <ShieldCheck className="mr-2 h-4 w-4" />Aprovar Cotação
-                          </DropdownMenuItem>
+                          {c.status === "Em Andamento" && (
+                            <DropdownMenuItem onClick={() => openFinalizarDialog(c.id)} disabled={c.propostas.length < 1}>
+                              <Lock className="mr-2 h-4 w-4" />Finalizar Cotação
+                            </DropdownMenuItem>
+                          )}
+                          {c.status === "Aguardando Aprovação" && (
+                            <DropdownMenuItem onClick={() => openAprovarDialog(c.id)}>
+                              <ShieldCheck className="mr-2 h-4 w-4" />Aprovar Cotação
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive" onClick={() => { cancelarCotacao(c.id); toast({ title: "Cotação cancelada" }); }}>
                             <XCircle className="mr-2 h-4 w-4" />Cancelar
