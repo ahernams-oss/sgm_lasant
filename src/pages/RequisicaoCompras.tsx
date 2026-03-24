@@ -149,6 +149,7 @@ export default function RequisicaoComprasPage() {
     if (mat) {
       setItemDescricao(mat.descricao);
       setItemUnidade(mat.unidadeMedida);
+      if (mat.fabricanteId) setItemFabricanteId(mat.fabricanteId);
     }
   };
 
