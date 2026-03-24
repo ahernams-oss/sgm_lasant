@@ -302,6 +302,7 @@ const Usuarios = () => {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Cargo</TableHead>
+                  <TableHead>Perfil de Acesso</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead>E-mail</TableHead>
                   <TableHead>Clientes com Acesso</TableHead>
@@ -313,6 +314,11 @@ const Usuarios = () => {
                   <TableRow key={u.id}>
                     <TableCell className="font-medium">{u.nome}</TableCell>
                     <TableCell>{getCargoNome(u.cargoId)}</TableCell>
+                    <TableCell>
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${u.perfilAcessoId ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                        {getPerfilNome(u.perfilAcessoId)}
+                      </span>
+                    </TableCell>
                     <TableCell>{u.telefone}</TableCell>
                     <TableCell>{u.email}</TableCell>
                     <TableCell className="max-w-[200px] truncate">{getClientesNomes(u.clientesPermitidos)}</TableCell>

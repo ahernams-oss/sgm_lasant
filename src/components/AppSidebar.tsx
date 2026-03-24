@@ -116,6 +116,19 @@ export function AppSidebar() {
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <NavLink
+                to="/perfis-acesso"
+                end
+                className="hover:bg-sidebar-accent/50"
+                activeClassName="bg-sidebar-accent text-primary font-medium"
+              >
+                <KeyRound className="mr-2 h-4 w-4" />
+                {!collapsed && <span>Perfis de Acesso</span>}
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
 
         {usuarioLogado && (

@@ -116,6 +116,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </PerfisAcessoProvider>
     </FabricantesProvider>
     </RecebimentoProvider>
     </EstoqueProvider>
