@@ -22,6 +22,8 @@ export default function EstoquePage() {
   const { materiais } = useMateriaisServicos();
   const { usuarioLogado } = useAuth();
   const { clientes } = useClientes();
+  const { pedidos } = usePedidoCompra();
+  const { requisicoes } = useRequisicaoCompras();
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
