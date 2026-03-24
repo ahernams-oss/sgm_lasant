@@ -783,7 +783,11 @@ export default function CotacaoComprasPage() {
               };
 
               return (
-                <div className="overflow-x-auto border rounded-lg">
+                <div className="space-y-2">
+                  <Button variant="outline" size="sm" onClick={handleSelecionarMelhorPreco}>
+                    <Trophy className="mr-2 h-4 w-4" />Selecionar Melhor Preço por Item
+                  </Button>
+                  <div className="overflow-x-auto border rounded-lg">
                   <Table>
                     <TableHeader>
                       <TableRow>
