@@ -196,7 +196,7 @@ const Usuarios = () => {
                     <Select value={form.perfilAcessoId} onValueChange={(v) => update("perfilAcessoId", v)}>
                       <SelectTrigger><SelectValue placeholder="Selecione o perfil" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhum</SelectItem>
+                        <SelectItem value="nenhum">Nenhum</SelectItem>
                         {perfis.map((p) => (<SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>))}
                       </SelectContent>
                     </Select>
