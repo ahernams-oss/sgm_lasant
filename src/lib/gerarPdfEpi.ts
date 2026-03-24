@@ -14,42 +14,64 @@ const formatDate = (d: string) => {
   return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : d;
 };
 
-function drawHeader(doc: jsPDF, pw: number) {
-  // Blue header band
-  doc.setFillColor(30, 58, 107);
-  doc.rect(0, 0, pw, 28, "F");
+async function loadImage(url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx?.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
 
-  // LASANT text (left)
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.text("LASANT", 14, 14);
-  doc.setFontSize(7);
-  doc.setFont("helvetica", "normal");
-  doc.text("CONSTRUÇÕES", 14, 20);
+async function drawHeader(doc: jsPDF, pw: number, logoLasant: string | null, logoSeg: string | null) {
+  // Border around the header area
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.5);
+  doc.rect(10, 6, pw - 20, 24);
+
+  // Lasant logo (left)
+  if (logoLasant) {
+    doc.addImage(logoLasant, "PNG", 14, 8, 36, 20);
+  } else {
+    doc.setTextColor(30, 58, 107);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("LASANT", 14, 18);
+    doc.setFontSize(7);
+    doc.text("CONSTRUÇÕES", 14, 23);
+  }
 
   // Title (center)
-  doc.setFontSize(16);
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("FICHA DE CONTROLE DE EPI", pw / 2, 16, { align: "center" });
+  doc.text("FICHA DE CONTROLE DE EPI", pw / 2, 21, { align: "center" });
 
-  // Green cross icon (right) - drawn as a simple cross shape
-  const cx = pw - 24;
-  const cy = 14;
-  doc.setFillColor(0, 150, 60);
-  doc.rect(cx - 4, cy - 8, 8, 16, "F");
-  doc.rect(cx - 8, cy - 4, 16, 8, "F");
-  doc.setFillColor(255, 255, 255);
-  doc.rect(cx - 2, cy - 6, 4, 12, "F");
-  doc.rect(cx - 6, cy - 2, 12, 4, "F");
+  // Safety logo (right)
+  if (logoSeg) {
+    doc.addImage(logoSeg, "JPEG", pw - 40, 8, 20, 20);
+  }
 }
 
 function drawEmployeeData(doc: jsPDF, func: Funcionario, opts: EpiPdfOptions, pw: number): number {
-  let y = 34;
-  const leftCol = 14;
+  let y = 36;
+  const leftCol = 12;
   const rightCol = pw / 2 + 10;
 
-  doc.setTextColor(30, 30, 30);
+  // Border box for employee data
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.3);
+  doc.rect(10, 32, pw - 20, 28);
+
+  doc.setTextColor(0, 0, 0);
   doc.setFontSize(9);
 
   // Row 1: Nome + CPF/MF
@@ -96,184 +118,158 @@ function drawEmployeeData(doc: jsPDF, func: Funcionario, opts: EpiPdfOptions, pw
 
   doc.setFont("helvetica", "bold");
   doc.text("Matrícula:", rightCol, y);
-  doc.setFont("helvetica", "normal");
-  doc.text("", rightCol + doc.getTextWidth("Matrícula:") + 2, y);
 
-  return y + 8;
+  return 64;
 }
 
-function drawTermoResponsabilidade(doc: jsPDF, pw: number, startY: number): number {
+function drawTermoAndLegal(doc: jsPDF, pw: number, startY: number): number {
   let y = startY;
-  const margin = 14;
+  const margin = 12;
   const contentW = pw - margin * 2;
 
-  // Divider
-  doc.setDrawColor(30, 58, 107);
-  doc.setLineWidth(0.5);
-  doc.line(margin, y, pw - margin, y);
-  y += 7;
-
-  // Title
-  doc.setFontSize(10);
+  // TERMO DE RESPONSABILIDADE
+  doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   doc.text("TERMO DE RESPONSABILIDADE", pw / 2, y, { align: "center" });
-  y += 7;
+  y += 6;
 
-  doc.setFontSize(7.5);
+  doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
 
-  const t1 = "Recebi da Lasant Construções LTDA ME. os equipamentos de proteção individual (EPI) abaixo discriminados, ficando obrigado a usá-los em serviço ou em trânsito por área de risco, sob pena de ser punido por ato faltoso com base no artigo 482, letras E e H 158 Único da Consolidação das Leis do Trabalho – CLT.";
+  const t1 = "Recebi da Lasant Construções LTDA, os equipamentos de proteção individual (EPI) abaixo discriminados, ficando obrigado a usá-los em serviço ou em trânsito por área de risco, sob pena de ser punido por ato faltoso com base no artigo 482, letras E e H 158 Único da Consolidação das Leis do Trabalho – CLT.";
   const l1 = doc.splitTextToSize(t1, contentW);
   doc.text(l1, margin, y);
-  y += l1.length * 3.5 + 3;
+  y += l1.length * 3.2 + 2;
 
   const t2 = "Estou ciente que os EPI's citados estão sob a minha inteira responsabilidade, guarda e conservação, para utilização no desenvolvimento das atividades que me forem atribuídas e que conheço o disposto nas normas regulamentares, extraviados ou danificados.";
   const l2 = doc.splitTextToSize(t2, contentW);
   doc.text(l2, margin, y);
-  y += l2.length * 3.5 + 5;
+  y += l2.length * 3.2 + 3;
 
-  return y;
-}
-
-function drawNR01(doc: jsPDF, pw: number, startY: number): number {
-  let y = startY;
-  const margin = 14;
-  const contentW = pw - margin * 2;
-
-  doc.setFontSize(8);
+  // NR01
+  doc.setFontSize(7.5);
   doc.setFont("helvetica", "bold");
   doc.text("NR01 – 'DISPOSIÇÕES GERAIS'", pw / 2, y, { align: "center" });
-  y += 5;
-
+  y += 4;
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
   doc.text("1.4.2 Cabe ao trabalhador:", margin, y);
-  y += 4;
+  y += 3.5;
 
-  const items = [
+  const nr01 = [
     "a) cumprir as disposições legais e regulamentares sobre segurança e saúde no trabalho, inclusive as ordens de serviço expedidas pelo empregador;",
     "b) submeter-se aos exames médicos previstos nas NR;",
     "c) colaborar com a organização na aplicação das NR;",
     "d) usar o equipamento de proteção individual fornecido pelo empregador.",
   ];
-  items.forEach((item) => {
+  nr01.forEach((item) => {
     const lines = doc.splitTextToSize(item, contentW - 4);
-    doc.text(lines, margin + 4, y);
-    y += lines.length * 3.5;
+    doc.text(lines, margin + 3, y);
+    y += lines.length * 3.2;
   });
-  y += 1;
 
   const faltoso = "1.4.2.1 Constitui ato faltoso a recusa injustificada do empregado ao cumprimento do disposto nas alíneas do subitem anterior.";
   const fl = doc.splitTextToSize(faltoso, contentW - 4);
-  doc.text(fl, margin + 4, y);
-  y += fl.length * 3.5 + 4;
+  doc.text(fl, margin + 3, y);
+  y += fl.length * 3.2 + 3;
 
-  return y;
-}
-
-function drawNR06(doc: jsPDF, pw: number, startY: number): number {
-  let y = startY;
-  const margin = 14;
-  const contentW = pw - margin * 2;
-
-  doc.setFontSize(8);
+  // NR06
+  doc.setFontSize(7.5);
   doc.setFont("helvetica", "bold");
   doc.text('NR06 – "EQUIPAMENTOS DE PROTEÇÃO INDIVIDUAL"', pw / 2, y, { align: "center" });
-  y += 5;
-
+  y += 4;
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
   doc.text("Item 6.6 Responsabilidades do trabalhador", margin, y);
-  y += 4;
+  y += 3.5;
   doc.text("6.6.1 Cabe ao trabalhador, quanto ao EPI:", margin, y);
-  y += 4;
+  y += 3.5;
 
-  const items = [
+  const nr06 = [
     "a) usar o fornecido pela organização, observado o disposto no item 6.5.2;",
     "b) usá-lo apenas para a finalidade a que se destina;",
     "c) responsabilizar-se pela sua limpeza, guarda e conservação;",
     "d) comunicar à organização quando extraviado, danificado ou qualquer alteração que o torne impróprio para uso, e",
     "e) cumprir as determinações da organização sobre o uso adequado.",
   ];
-  items.forEach((item) => {
+  nr06.forEach((item) => {
     const lines = doc.splitTextToSize(item, contentW - 4);
-    doc.text(lines, margin + 4, y);
-    y += lines.length * 3.5;
+    doc.text(lines, margin + 3, y);
+    y += lines.length * 3.2;
   });
-  y += 4;
+  y += 3;
 
-  return y;
-}
-
-function drawCLT(doc: jsPDF, pw: number, startY: number): number {
-  let y = startY;
-  const margin = 14;
-  const contentW = pw - margin * 2;
-
-  doc.setFontSize(8);
+  // CLT
+  doc.setFontSize(7.5);
   doc.setFont("helvetica", "bold");
   doc.text("Consolidação das Leis do Trabalho", pw / 2, y, { align: "center" });
-  y += 6;
-
+  y += 5;
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
+
   const clt = "Art. 462 – Ao empregador é vedado efetuar qualquer desconto nos salários do empregado, salvo quando este resultar de adiantamentos, de dispositivos de lei ou de contrato coletivo.";
   const cl = doc.splitTextToSize(clt, contentW);
   doc.text(cl, margin, y);
-  y += cl.length * 3.5 + 2;
+  y += cl.length * 3.2 + 2;
 
   const p1 = "§ 1º - Em caso de dano causado pelo empregado, o desconto será lícito, desde que esta possibilidade tenha sido acordada ou na ocorrência de dolo do empregado.";
   const pl = doc.splitTextToSize(p1, contentW);
   doc.text(pl, margin, y);
-  y += pl.length * 3.5 + 4;
+  y += pl.length * 3.2 + 3;
 
-  return y;
-}
-
-function drawTermoImagem(doc: jsPDF, pw: number, startY: number): number {
-  let y = startY;
-  const margin = 14;
-  const contentW = pw - margin * 2;
-
-  doc.setFontSize(8);
+  // Termo de imagem
+  doc.setFontSize(7.5);
   doc.setFont("helvetica", "bold");
   doc.text("Termo de autorização de termo de uso de imagem.", pw / 2, y, { align: "center" });
-  y += 6;
-
+  y += 5;
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
-  const t1 = "Autoriza, de forma livre, expressa e informada, a captação, utilização e armazenamento de sua imagem pela empresa, por meio de fotografias ou vídeos realizados durante o exercício de suas atividades profissionais, para fins de controle do uso de EPI, cumprimento de obrigações legais, auditorias, treinamentos internos, defesa administrativa ou judicial e divulgação institucional, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).";
-  const l1 = doc.splitTextToSize(t1, contentW);
-  doc.text(l1, margin, y);
-  y += l1.length * 3.5 + 3;
 
-  const t2 = "Declaro ciência de que esta autorização não gera direito a qualquer indenização e poderá ser revogada mediante solicitação formal, respeitados os registros necessários ao cumprimento das obrigações legais.";
-  const l2 = doc.splitTextToSize(t2, contentW);
-  doc.text(l2, margin, y);
-  y += l2.length * 3.5 + 8;
+  const img1 = "Autoriza, de forma livre, expressa e informada, a captação, utilização e armazenamento de sua imagem pela empresa, por meio de fotografias ou vídeos realizados durante o exercício de suas atividades profissionais, para fins de controle do uso de EPI, cumprimento de obrigações legais, auditorias, treinamentos internos, defesa administrativa ou judicial e divulgação institucional, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).";
+  const il1 = doc.splitTextToSize(img1, contentW);
+  doc.text(il1, margin, y);
+  y += il1.length * 3.2 + 2;
 
-  return y;
-}
+  const img2 = "Declaro ciência de que esta autorização não gera direito a qualquer indenização e poderá ser revogada mediante solicitação formal, respeitados os registros necessários ao cumprimento das obrigações legais.";
+  const il2 = doc.splitTextToSize(img2, contentW);
+  doc.text(il2, margin, y);
+  y += il2.length * 3.2 + 6;
 
-function drawSignature(doc: jsPDF, startY: number): number {
-  let y = startY;
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 14, y);
-
-  // Signature line on the right
-  doc.line(120, y, 196, y);
-  y += 4;
+  // Signature
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
-  doc.text("Assinatura do Empregado", 158, y, { align: "center" });
+  doc.text("Data do documento:", margin, y);
+  doc.line(130, y, pw - 12, y);
+  y += 4;
+  doc.setFontSize(7);
+  doc.text("Assinatura do Empregado", pw - 12, y, { align: "right" });
+  y += 4;
 
   return y;
 }
 
-function drawEpiTable(doc: jsPDF, func: Funcionario, pw: number) {
-  const epis = func.epis || [];
+export async function gerarPdfEpi(func: Funcionario, opts: EpiPdfOptions = {}) {
+  // Load logos
+  let logoLasant: string | null = null;
+  let logoSeg: string | null = null;
+  try {
+    logoLasant = await loadImage("/Logo_Lasant.png");
+  } catch { /* fallback to text */ }
+  try {
+    logoSeg = await loadImage("/seguranca_trabalho.jpg");
+  } catch { /* skip */ }
 
+  const doc = new jsPDF();
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+
+  // Page 1 - Header + Employee Data + Termo + EPI Table start
+  await drawHeader(doc, pw, logoLasant, logoSeg);
+  let y = drawEmployeeData(doc, func, opts, pw);
+  y = drawTermoAndLegal(doc, pw, y);
+
+  // EPI Table starts on same page
+  const epis = func.epis || [];
   const epiRows = epis.map((e) => [
     String(e.quantidade).padStart(2, "0"),
     e.descricao,
@@ -282,13 +278,17 @@ function drawEpiTable(doc: jsPDF, func: Funcionario, pw: number) {
     "",
   ]);
 
+  if (epiRows.length === 0) {
+    epiRows.push(["", "", "", "", ""]);
+  }
+
   autoTable(doc, {
-    startY: 20,
-    margin: { left: 14, right: 14 },
+    startY: y,
+    margin: { left: 10, right: 10 },
     head: [["Quant.", "E.P.I", "CA", "Data", "Assinatura do Empregado"]],
-    body: epiRows.length > 0 ? epiRows : [["", "", "", "", ""]],
+    body: epiRows,
     theme: "grid",
-    styles: { fontSize: 8, cellPadding: 3, minCellHeight: 8, lineColor: [0, 0, 0], lineWidth: 0.3 },
+    styles: { fontSize: 8, cellPadding: 2.5, minCellHeight: 7, lineColor: [0, 0, 0], lineWidth: 0.3 },
     headStyles: {
       fillColor: [255, 255, 255],
       textColor: [0, 0, 0],
@@ -305,27 +305,20 @@ function drawEpiTable(doc: jsPDF, func: Funcionario, pw: number) {
       3: { cellWidth: 24, halign: "center" },
       4: { cellWidth: "auto" },
     },
+    didDrawPage: (data) => {
+      // Add signature line at the bottom of the last table page
+      if (data.cursor) {
+        const lastY = data.cursor.y + 12;
+        if (lastY < ph - 20) {
+          doc.line(130, lastY, pw - 10, lastY);
+          doc.setFontSize(7);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(0, 0, 0);
+          doc.text("Assinatura do Empregado", pw - 10, lastY + 4, { align: "right" });
+        }
+      }
+    },
   });
-}
-
-export function gerarPdfEpi(func: Funcionario, opts: EpiPdfOptions = {}) {
-  const doc = new jsPDF();
-  const pw = doc.internal.pageSize.getWidth();
-  const ph = doc.internal.pageSize.getHeight();
-
-  // Page 1 - Termo
-  drawHeader(doc, pw);
-  let y = drawEmployeeData(doc, func, opts, pw);
-  y = drawTermoResponsabilidade(doc, pw, y);
-  y = drawNR01(doc, pw, y);
-  y = drawNR06(doc, pw, y);
-  y = drawCLT(doc, pw, y);
-  y = drawTermoImagem(doc, pw, y);
-  drawSignature(doc, y);
-
-  // Page 2 - EPI Table
-  doc.addPage();
-  drawEpiTable(doc, func, pw);
 
   // Footer on all pages
   const pageCount = doc.getNumberOfPages();
