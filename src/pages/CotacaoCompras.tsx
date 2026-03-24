@@ -765,8 +765,29 @@ export default function CotacaoComprasPage() {
                 }
               };
 
+              const handleSelecionarMelhorPreco = () => {
+                const next: Record<string, string> = {};
+                req.itens.forEach(item => {
+                  let bestFornId = "";
+                  let bestPrice = Infinity;
+                  propostas.forEach(p => {
+                    const pi = p.itens.find(i => i.itemId === item.id);
+                    if (pi && pi.precoUnitario > 0 && pi.precoUnitario < bestPrice) {
+                      bestPrice = pi.precoUnitario;
+                      bestFornId = p.fornecedorId;
+                    }
+                  });
+                  if (bestFornId) next[item.id] = bestFornId;
+                });
+                setFinItensVencedores(next);
+              };
+
               return (
-                <div className="overflow-x-auto border rounded-lg">
+                <div className="space-y-2">
+                  <Button variant="outline" size="sm" onClick={handleSelecionarMelhorPreco}>
+                    <Trophy className="mr-2 h-4 w-4" />Selecionar Melhor Preço por Item
+                  </Button>
+                  <div className="overflow-x-auto border rounded-lg">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -822,7 +843,7 @@ export default function CotacaoComprasPage() {
                                         onChange={() => handleToggleItem(item.id, p.fornecedorId)}
                                         className="rounded border-input"
                                       />
-                                      <span className={`text-xs ${isCheapest ? "text-destructive font-bold" : ""}`}>
+                                      <span className={`text-xs ${isCheapest ? "font-bold" : ""}`} style={isCheapest ? { color: "#4169E1" } : undefined}>
                                         {formatCurrency(pi.precoUnitario)} | {formatCurrency(pi.precoUnitario * pi.quantidade)}
                                       </span>
                                     </label>
@@ -858,6 +879,7 @@ export default function CotacaoComprasPage() {
                     </TableBody>
                   </Table>
                 </div>
+              </div>
               );
             })()}
 
