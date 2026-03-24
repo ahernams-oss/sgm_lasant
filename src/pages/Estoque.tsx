@@ -60,6 +60,17 @@ export default function EstoquePage() {
     return Array.from(locs).sort();
   }, [clientes, movimentacoes]);
 
+  // Locais apenas de clientes (sem fornecedores) para saídas
+  const locaisClientes = useMemo(() => {
+    const locs = new Set<string>();
+    clientes.filter(c => c.tipo !== "Fornecedor").forEach(c => {
+      if (c.nome) locs.add(c.nome);
+      const locaisArr = (c as any).locais || [];
+      locaisArr.forEach((l: any) => { if (l?.nome) locs.add(`${c.nome} - ${l.nome}`); });
+    });
+    return Array.from(locs).sort();
+  }, [clientes]);
+
   // Centro de custo lookup: pedidoNumero → centroCustoNome
   const centroCustoMap = useMemo(() => {
     const map = new Map<number, string>();
