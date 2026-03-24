@@ -90,6 +90,17 @@ export function RecebimentoProvider({ children }: { children: ReactNode }) {
 
     await insertRow("recebimentos", recebimentoToRow(recebimento));
 
+    // Entrada automática no estoque
+    const itensEstoque = data.itens
+      .filter(i => i.quantidadeRecebida > 0)
+      .map(i => ({
+        materialId: i.itemId, materialCodigo: "", materialDescricao: i.descricao,
+        quantidade: i.quantidadeRecebida, unidadeMedida: i.unidadeMedida,
+      }));
+    if (itensEstoque.length > 0) {
+      await registrarEntradaRecebimento(itensEstoque, data.localEntrega, `NF: ${data.notaFiscal || "N/A"} - Pedido ${data.pedidoNumero}`, data.usuario);
+    }
+
     if (allFullyReceived) {
       updatePedidoStatus(pedido.id, "Entregue", data.usuario, `Recebimento total - NF: ${data.notaFiscal || "N/A"}`);
     } else if (pedido.status !== "Entregue Parcial") {

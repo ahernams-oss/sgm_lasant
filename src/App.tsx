@@ -43,6 +43,7 @@ import { RequisicaoComprasProvider } from "@/contexts/RequisicaoComprasContext";
 import { CotacaoComprasProvider } from "@/contexts/CotacaoComprasContext";
 import { PedidoCompraProvider } from "@/contexts/PedidoCompraContext";
 import { RecebimentoProvider } from "@/contexts/RecebimentoContext";
+import { EstoqueProvider } from "@/contexts/EstoqueContext";
 import { FabricantesProvider } from "@/contexts/FabricantesContext";
 import FabricantesPage from "./pages/Fabricantes.tsx";
 
