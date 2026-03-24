@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Eye, Clock, ArrowRight } from "lucide-react";
+import { Search, Eye, Clock, ArrowRight, CheckSquare } from "lucide-react";
 import { format } from "date-fns";
 
 const statusColors: Record<StatusPedido, string> = {
@@ -44,9 +45,10 @@ export default function PedidoCompraPage() {
   const [viewPedido, setViewPedido] = useState<PedidoCompra | null>(null);
   const [historicoPedido, setHistoricoPedido] = useState<PedidoCompra | null>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [statusPedidoId, setStatusPedidoId] = useState("");
+  const [statusPedidoIds, setStatusPedidoIds] = useState<string[]>([]);
   const [newStatus, setNewStatus] = useState<StatusPedido | "">("");
   const [statusObs, setStatusObs] = useState("");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const filtered = useMemo(() => {
     let list = pedidos;
@@ -60,23 +62,54 @@ export default function PedidoCompraPage() {
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-  const openStatusDialog = (pedido: PedidoCompra) => {
-    setStatusPedidoId(pedido.id);
+  const openStatusDialog = (pedidoOrIds: PedidoCompra | string[]) => {
+    const ids = Array.isArray(pedidoOrIds) ? pedidoOrIds : [pedidoOrIds.id];
+    setStatusPedidoIds(ids);
     setNewStatus("");
     setStatusObs("");
     setStatusDialogOpen(true);
   };
 
+  // Compute common next statuses for all selected pedidos
+  const commonNextStatuses = useMemo(() => {
+    if (statusPedidoIds.length === 0) return [];
+    const sets = statusPedidoIds.map(id => {
+      const p = pedidos.find(x => x.id === id);
+      return p ? getNextStatuses(p.status) : [];
+    });
+    const first = new Set(sets[0] || []);
+    for (let i = 1; i < sets.length; i++) {
+      const s = new Set(sets[i]);
+      first.forEach(v => { if (!s.has(v)) first.delete(v); });
+    }
+    return Array.from(first);
+  }, [statusPedidoIds, pedidos]);
+
   const handleUpdateStatus = () => {
     if (!newStatus) { toast({ title: "Selecione um status", variant: "destructive" }); return; }
     if (newStatus === "Cancelado") {
       if (!statusObs.trim()) { toast({ title: "Motivo é obrigatório para cancelamento", variant: "destructive" }); return; }
-      cancelarPedido(statusPedidoId, usuarioLogado?.nome || "Usuário", statusObs);
+      statusPedidoIds.forEach(id => cancelarPedido(id, usuarioLogado?.nome || "Usuário", statusObs));
     } else {
-      updateStatus(statusPedidoId, newStatus, usuarioLogado?.nome || "Usuário", statusObs);
+      statusPedidoIds.forEach(id => updateStatus(id, newStatus, usuarioLogado?.nome || "Usuário", statusObs));
     }
-    toast({ title: `Status atualizado para: ${newStatus}` });
+    toast({ title: `Status atualizado para: ${newStatus} (${statusPedidoIds.length} pedido${statusPedidoIds.length > 1 ? "s" : ""})` });
     setStatusDialogOpen(false);
+    setSelectedIds([]);
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const selectableFiltered = filtered.filter(p => getNextStatuses(p.status).length > 0);
+  const allSelectableSelected = selectableFiltered.length > 0 && selectableFiltered.every(p => selectedIds.includes(p.id));
+  const toggleSelectAll = () => {
+    if (allSelectableSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(selectableFiltered.map(p => p.id));
+    }
   };
 
   return (
@@ -99,10 +132,24 @@ export default function PedidoCompraPage() {
         </Select>
       </div>
 
+      {selectedIds.length > 0 && (
+        <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50">
+          <CheckSquare className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">{selectedIds.length} pedido{selectedIds.length > 1 ? "s" : ""} selecionado{selectedIds.length > 1 ? "s" : ""}</span>
+          <Button size="sm" onClick={() => openStatusDialog(selectedIds)}>
+            <ArrowRight className="h-4 w-4 mr-1" /> Atualizar Status em Lote
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>Limpar Seleção</Button>
+        </div>
+      )}
+
       <div className="border rounded-lg">
         <Table>
-          <TableHeader>
+           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox checked={allSelectableSelected && selectableFiltered.length > 0} onCheckedChange={toggleSelectAll} />
+              </TableHead>
               <TableHead>Nº Pedido</TableHead>
               <TableHead>Centro de Custo</TableHead>
               <TableHead>RC</TableHead>
@@ -116,11 +163,17 @@ export default function PedidoCompraPage() {
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
+              <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
             ) : filtered.map(p => {
               const rcVinculada = requisicoes.find(r => r.id === p.requisicaoId);
+              const canUpdate = getNextStatuses(p.status).length > 0;
               return (
-              <TableRow key={p.id}>
+              <TableRow key={p.id} className={selectedIds.includes(p.id) ? "bg-primary/5" : ""}>
+                <TableCell>
+                  {canUpdate ? (
+                    <Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggleSelect(p.id)} />
+                  ) : <div className="w-4" />}
+                </TableCell>
                 <TableCell className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</TableCell>
                 <TableCell className="text-sm">{rcVinculada?.centroCustoNome || "-"}</TableCell>
                 <TableCell className="font-mono">RC-{String(p.requisicaoNumero).padStart(4, "0")}</TableCell>
@@ -227,7 +280,7 @@ export default function PedidoCompraPage() {
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Atualizar Status do Pedido</DialogTitle>
+            <DialogTitle>Atualizar Status {statusPedidoIds.length > 1 ? `(${statusPedidoIds.length} pedidos)` : "do Pedido"}</DialogTitle>
             <DialogDescription>Selecione o novo status e adicione observações se necessário.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -236,7 +289,7 @@ export default function PedidoCompraPage() {
               <Select value={newStatus} onValueChange={v => setNewStatus(v as StatusPedido)}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  {getNextStatuses(pedidos.find(p => p.id === statusPedidoId)?.status || "Emitido").map(s => (
+                  {commonNextStatuses.map(s => (
                     <SelectItem key={s} value={s}>{s}</SelectItem>
                   ))}
                 </SelectContent>
