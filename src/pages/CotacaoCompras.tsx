@@ -411,6 +411,7 @@ export default function CotacaoComprasPage() {
           <SelectContent>
             <SelectItem value="Todos">Todos os Status</SelectItem>
             <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+            <SelectItem value="Aguardando Aprovação">Aguardando Aprovação</SelectItem>
             <SelectItem value="Finalizada">Finalizada</SelectItem>
             <SelectItem value="Cancelada">Cancelada</SelectItem>
           </SelectContent>
