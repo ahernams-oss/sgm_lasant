@@ -345,11 +345,12 @@ export default function RecebimentoComprasPage() {
                             </TableCell>
                             <TableCell>
                               {!isCompleto && (
-                                <Input
+                                <Textarea
                                   value={item.observacao}
                                   onChange={e => setRecItens(prev => prev.map((it, i) => i === idx ? { ...it, observacao: e.target.value } : it))}
                                   placeholder="Divergência..."
-                                  className="h-8 text-xs"
+                                  className="text-xs min-h-[32px] resize-y"
+                                  rows={1}
                                 />
                               )}
                             </TableCell>
