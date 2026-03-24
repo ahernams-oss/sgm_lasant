@@ -41,6 +41,7 @@ export function MateriaisServicosProvider({ children }: { children: ReactNode })
     await insertRow("materiais_servicos", {
       codigo: nextCodigo(), descricao: m.descricao, tipo: m.tipo,
       unidade_medida: m.unidadeMedida, categoria_id: m.categoriaId, fabricante_id: m.fabricanteId,
+      estoque_minimo: m.estoqueMinimo || 0,
     });
     await load();
   };
