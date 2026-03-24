@@ -40,6 +40,7 @@ export default function RecebimentoComprasPage() {
   const [recItens, setRecItens] = useState<ItemRecebimento[]>([]);
   const [recNotaFiscal, setRecNotaFiscal] = useState("");
   const [recObservacao, setRecObservacao] = useState("");
+  const [recAnexos, setRecAnexos] = useState<AnexoNF[]>([]);
 
   // View dialog
   const [viewPedido, setViewPedido] = useState<PedidoCompra | null>(null);
