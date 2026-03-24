@@ -31,7 +31,9 @@ interface Props {
 
 export function NRsFuncionarioTab({ nrs, onChange }: Props) {
   const [novaNr, setNovaNr] = useState({ numero: "", descricao: "", dataEntrega: "" });
+  const [pendingFile, setPendingFile] = useState<{ base64: string; nome: string; tipo: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formFileRef = useRef<HTMLInputElement>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   const addNr = () => {
@@ -44,10 +46,28 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
       numero: novaNr.numero,
       descricao: novaNr.descricao,
       dataEntrega: novaNr.dataEntrega,
+      ...(pendingFile ? { anexoBase64: pendingFile.base64, anexoNome: pendingFile.nome, anexoTipo: pendingFile.tipo } : {}),
     };
     onChange([...nrs, nova]);
     setNovaNr({ numero: "", descricao: "", dataEntrega: "" });
+    setPendingFile(null);
+    if (formFileRef.current) formFileRef.current.value = "";
     toast.success("NR adicionada!");
+  };
+
+  const handleFormFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Arquivo muito grande (máx. 2MB).");
+      e.target.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPendingFile({ base64: reader.result as string, nome: file.name, tipo: file.type });
+    };
+    reader.readAsDataURL(file);
   };
 
   const removeNr = (id: string) => {
@@ -109,8 +129,9 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
         onChange={handleFileChange}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-        <Field label="Número da NR" required>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-foreground/80">Número da NR *</Label>
           <Select value={novaNr.numero} onValueChange={(v) => setNovaNr((p) => ({ ...p, numero: v }))}>
             <SelectTrigger><SelectValue placeholder="Selecione a NR" /></SelectTrigger>
             <SelectContent>
@@ -119,21 +140,33 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
               ))}
             </SelectContent>
           </Select>
-        </Field>
-        <Field label="Descrição" required>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-foreground/80">Descrição *</Label>
           <Input
             value={novaNr.descricao}
             onChange={(e) => setNovaNr((p) => ({ ...p, descricao: e.target.value }))}
             placeholder="Ex: Equipamentos de Proteção Individual"
           />
-        </Field>
-        <Field label="Data de Entrega">
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-foreground/80">Data de Entrega</Label>
           <Input
             type="date"
             value={novaNr.dataEntrega}
             onChange={(e) => setNovaNr((p) => ({ ...p, dataEntrega: e.target.value }))}
           />
-        </Field>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-foreground/80">Anexo</Label>
+          <Input
+            ref={formFileRef}
+            type="file"
+            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+            onChange={handleFormFileChange}
+            className="text-xs"
+          />
+        </div>
         <Button type="button" onClick={addNr} className="shadow-md">
           <Plus className="h-4 w-4 mr-1" /> Adicionar NR
         </Button>
