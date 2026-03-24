@@ -8,6 +8,7 @@ import { useClientes, type Cliente } from "@/contexts/ClientesContext";
 import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
 import LocaisSection from "@/components/LocaisSection";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import ImportClientesFornecedores from "@/components/ImportClientesFornecedores";
 
 const Fornecedores = () => {
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
@@ -104,10 +105,15 @@ const Fornecedores = () => {
             <Truck className="h-4 w-4" />
             <span className="text-xs font-medium uppercase tracking-wider">Cadastro</span>
           </div>
-          <h1 className="text-xl font-bold text-foreground mb-1">Fornecedores</h1>
-          <p className="text-sm text-muted-foreground max-w-lg">
-            Cadastre e gerencie os fornecedores do sistema.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-bold text-foreground mb-1">Fornecedores</h1>
+              <p className="text-sm text-muted-foreground max-w-lg">
+                Cadastre e gerencie os fornecedores do sistema.
+              </p>
+            </div>
+            <ImportClientesFornecedores tipo="Fornecedor" />
+          </div>
         </div>
 
         <div className="section-card animate-fade-up mb-6" style={{ animationDelay: "80ms" }}>
