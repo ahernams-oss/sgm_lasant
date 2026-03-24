@@ -71,6 +71,7 @@ function AppRoutes() {
         <Route path="/compras/pedidos" element={<PedidoCompraPage />} />
         <Route path="/compras/recebimento" element={<RecebimentoComprasPage />} />
         <Route path="/compras/dashboard" element={<DashboardCompras />} />
+        <Route path="/compras/fabricantes" element={<FabricantesPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
