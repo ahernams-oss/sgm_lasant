@@ -237,22 +237,26 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
           <label className="field-label">E-mail Engenharia</label>
           <Input type="email" placeholder="engenharia@empresa.com" value={form.emailEngenharia} onChange={(e) => update("emailEngenharia", e.target.value)} />
         </div>
-        <div>
-          <label className="field-label">E-mail OS CC</label>
-          <Input type="email" placeholder="os-cc@empresa.com" value={form.emailOsCc} onChange={(e) => update("emailOsCc", e.target.value)} />
-        </div>
-        <div>
-          <label className="field-label">E-mail OS BCC</label>
-          <Input type="email" placeholder="os-bcc@empresa.com" value={form.emailOsBcc} onChange={(e) => update("emailOsBcc", e.target.value)} />
-        </div>
-        <div>
-          <label className="field-label">E-mail SS CC</label>
-          <Input type="email" placeholder="ss-cc@empresa.com" value={form.emailSsCc} onChange={(e) => update("emailSsCc", e.target.value)} />
-        </div>
-        <div>
-          <label className="field-label">E-mail SS BCC</label>
-          <Input type="email" placeholder="ss-bcc@empresa.com" value={form.emailSsBcc} onChange={(e) => update("emailSsBcc", e.target.value)} />
-        </div>
+        {tipoFixo !== "Fornecedor" && (
+          <>
+            <div>
+              <label className="field-label">E-mail OS CC</label>
+              <Input type="email" placeholder="os-cc@empresa.com" value={form.emailOsCc} onChange={(e) => update("emailOsCc", e.target.value)} />
+            </div>
+            <div>
+              <label className="field-label">E-mail OS BCC</label>
+              <Input type="email" placeholder="os-bcc@empresa.com" value={form.emailOsBcc} onChange={(e) => update("emailOsBcc", e.target.value)} />
+            </div>
+            <div>
+              <label className="field-label">E-mail SS CC</label>
+              <Input type="email" placeholder="ss-cc@empresa.com" value={form.emailSsCc} onChange={(e) => update("emailSsCc", e.target.value)} />
+            </div>
+            <div>
+              <label className="field-label">E-mail SS BCC</label>
+              <Input type="email" placeholder="ss-bcc@empresa.com" value={form.emailSsBcc} onChange={(e) => update("emailSsBcc", e.target.value)} />
+            </div>
+          </>
+        )}
         <div>
           <label className="field-label">E-mail Compras</label>
           <Input type="email" placeholder="compras@empresa.com" value={form.emailCompras} onChange={(e) => update("emailCompras", e.target.value)} />
