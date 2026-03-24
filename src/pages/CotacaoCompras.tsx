@@ -82,6 +82,14 @@ export default function CotacaoComprasPage() {
   const [finVencedorId, setFinVencedorId] = useState("");
   const [finJustificativa, setFinJustificativa] = useState("");
 
+  // Enviar para fornecedor
+  const [enviarDialogOpen, setEnviarDialogOpen] = useState(false);
+  const [enviarCotacaoId, setEnviarCotacaoId] = useState("");
+  const [enviarFornecedorId, setEnviarFornecedorId] = useState("");
+  const [enviarEmail, setEnviarEmail] = useState("");
+  const [enviarLoading, setEnviarLoading] = useState(false);
+  const [linkGerado, setLinkGerado] = useState("");
+
   const compradores = useMemo(() => {
     const set = new Set(cotacoes.map(c => c.comprador));
     return Array.from(set).sort();
