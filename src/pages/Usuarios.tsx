@@ -75,6 +75,7 @@ const Usuarios = () => {
     setForm({
       nome: u.nome, cargoId: u.cargoId, telefone: u.telefone,
       email: u.email, senha: "", clientesPermitidos: [...u.clientesPermitidos],
+      perfilAcessoId: u.perfilAcessoId,
     });
     setEditingId(u.id);
     setShowForm(true);
