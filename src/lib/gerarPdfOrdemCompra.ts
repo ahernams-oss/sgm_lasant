@@ -85,9 +85,10 @@ export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<j
   const mr = pw - 12;
   const fullW = mr - ml;
 
-  // load logo
+  // load logo from empresa or fallback
   let logo: string | null = null;
-  try { logo = await loadImage("/Logo_Lasant.png"); } catch { /* fallback */ }
+  const logoSrc = empresa?.logoUrl || "/Logo_Lasant.png";
+  try { logo = await loadImage(logoSrc); } catch { /* fallback */ }
 
   // ────────── HEADER ──────────
   // background stripe
