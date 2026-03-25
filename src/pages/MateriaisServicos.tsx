@@ -26,7 +26,7 @@ export default function MateriaisServicosPage() {
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("Todos");
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 20;
+  const PAGE_SIZE = 10;
 
   const filtered = useMemo(() => {
     let list = materiais;
