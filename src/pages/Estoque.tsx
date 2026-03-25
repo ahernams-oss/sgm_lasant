@@ -15,7 +15,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, ArrowDownCircle, ArrowUpCircle, AlertTriangle, ClipboardList, Package, Warehouse, TrendingDown } from "lucide-react";
+import { Plus, Search, ArrowDownCircle, ArrowUpCircle, AlertTriangle, ClipboardList, Package, Warehouse, TrendingDown, ChevronsUpDown, Check } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 export default function EstoquePage() {
   const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, criarInventario, fecharInventario } = useEstoque();
@@ -33,6 +36,7 @@ export default function EstoquePage() {
   const [movDialogOpen, setMovDialogOpen] = useState(false);
   const [movTipo, setMovTipo] = useState<"entrada" | "saida">("entrada");
   const [movMaterialId, setMovMaterialId] = useState("");
+  const [movMaterialPopoverOpen, setMovMaterialPopoverOpen] = useState(false);
   const [movQuantidade, setMovQuantidade] = useState("");
   const [movLocal, setMovLocal] = useState("");
   const [movDocRef, setMovDocRef] = useState("");
@@ -419,12 +423,39 @@ export default function EstoquePage() {
           <div className="space-y-4">
             <div>
               <Label>Material *</Label>
-              <Select value={movMaterialId} onValueChange={setMovMaterialId}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {materiais.map(m => <SelectItem key={m.id} value={m.id}>{m.codigo} - {m.descricao}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Popover open={movMaterialPopoverOpen} onOpenChange={setMovMaterialPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" aria-expanded={movMaterialPopoverOpen} className="w-full justify-between font-normal h-10">
+                    {movMaterialId
+                      ? (() => { const m = materiais.find(m => m.id === movMaterialId); return m ? `${m.codigo} - ${m.descricao}` : "Selecione..."; })()
+                      : "Selecione..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar material/serviço..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum material encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {materiais.map(m => (
+                          <CommandItem
+                            key={m.id}
+                            value={`${m.codigo} ${m.descricao}`}
+                            onSelect={() => {
+                              setMovMaterialId(m.id);
+                              setMovMaterialPopoverOpen(false);
+                            }}
+                          >
+                            <Check className={cn("mr-2 h-4 w-4", movMaterialId === m.id ? "opacity-100" : "opacity-0")} />
+                            {m.codigo} - {m.descricao}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
               <Label>Quantidade *</Label>
