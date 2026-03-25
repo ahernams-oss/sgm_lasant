@@ -1,4 +1,4 @@
-import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock, FileSpreadsheet, DollarSign, ShoppingCart, Tags, Package, BarChart3, Scale, FileCheck, PackageCheck, Factory, Warehouse, KeyRound } from "lucide-react";
+import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock, FileSpreadsheet, DollarSign, ShoppingCart, Tags, Package, BarChart3, Scale, FileCheck, PackageCheck, Factory, Warehouse, KeyRound, Building2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import { NavLink } from "@/components/NavLink";
@@ -45,6 +45,7 @@ const menuItems = [
   {
     group: "Cadastros",
     items: [
+      { title: "Dados da Empresa", url: "/empresa", icon: Building2 },
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "Fornecedores", url: "/fornecedores", icon: Truck },
       { title: "Cargos", url: "/cargos", icon: Briefcase },
