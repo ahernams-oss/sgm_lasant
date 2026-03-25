@@ -64,6 +64,7 @@ export default function RequisicaoComprasPage() {
 
   // Item form
   const [itemMaterialId, setItemMaterialId] = useState("");
+  const [materialPopoverOpen, setMaterialPopoverOpen] = useState(false);
   const [itemDescricao, setItemDescricao] = useState("");
   const [itemEspec, setItemEspec] = useState("");
   const [itemObs, setItemObs] = useState("");
@@ -291,10 +292,39 @@ export default function RequisicaoComprasPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label>Material/Serviço cadastrado</Label>
-                      <Select value={itemMaterialId} onValueChange={handleMaterialSelect}>
-                        <SelectTrigger><SelectValue placeholder="Selecionar (opcional)..." /></SelectTrigger>
-                        <SelectContent>{materiais.map(m => <SelectItem key={m.id} value={m.id}>{m.codigo ? `${m.codigo} - ` : ""}{m.descricao}</SelectItem>)}</SelectContent>
-                      </Select>
+                      <Popover open={materialPopoverOpen} onOpenChange={setMaterialPopoverOpen}>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" role="combobox" aria-expanded={materialPopoverOpen} className="w-full justify-between font-normal h-10">
+                            {itemMaterialId
+                              ? (() => { const m = materiais.find(m => m.id === itemMaterialId); return m ? `${m.codigo ? m.codigo + " - " : ""}${m.descricao}` : "Selecionar..."; })()
+                              : "Selecionar (opcional)..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[400px] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Buscar material/serviço..." />
+                            <CommandList>
+                              <CommandEmpty>Nenhum material encontrado.</CommandEmpty>
+                              <CommandGroup>
+                                {materiais.map(m => (
+                                  <CommandItem
+                                    key={m.id}
+                                    value={`${m.codigo} ${m.descricao}`}
+                                    onSelect={() => {
+                                      handleMaterialSelect(m.id);
+                                      setMaterialPopoverOpen(false);
+                                    }}
+                                  >
+                                    <Check className={cn("mr-2 h-4 w-4", itemMaterialId === m.id ? "opacity-100" : "opacity-0")} />
+                                    {m.codigo ? `${m.codigo} - ` : ""}{m.descricao}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
                     <div>
                       <Label>Descrição do Item *</Label>
