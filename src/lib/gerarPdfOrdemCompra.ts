@@ -2,11 +2,12 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { PedidoCompra } from "@/contexts/PedidoCompraContext";
 import { Cliente } from "@/contexts/ClientesContext";
+import { Empresa } from "@/contexts/EmpresaContext";
 import { format } from "date-fns";
 
 interface OrdemCompraData {
   pedido: PedidoCompra;
-  empresa: Cliente | null;
+  empresa: Empresa | null;
   fornecedor: Cliente | null;
   autorizadoPor: string;
 }
