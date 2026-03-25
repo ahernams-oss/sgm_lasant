@@ -45,6 +45,7 @@ const menuItems = [
   {
     group: "Cadastros",
     items: [
+      { title: "Dados da Empresa", url: "/empresa", icon: Building2 },
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "Fornecedores", url: "/fornecedores", icon: Truck },
       { title: "Cargos", url: "/cargos", icon: Briefcase },
