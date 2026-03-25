@@ -42,6 +42,7 @@ export default function PedidoCompraPage() {
   const { pedidos, updateStatus, cancelarPedido } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
   const { clientes } = useClientes();
+  const { empresa } = useCompany();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
 
