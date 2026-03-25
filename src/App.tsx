@@ -28,6 +28,7 @@ import PropostaFornecedorPage from "./pages/PropostaFornecedor.tsx";
 import RecebimentoComprasPage from "./pages/RecebimentoCompras.tsx";
 import EstoquePage from "./pages/Estoque.tsx";
 import PerfisAcessoPage from "./pages/PerfisAcesso.tsx";
+import EmpresaDadosPage from "./pages/EmpresaDados.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
