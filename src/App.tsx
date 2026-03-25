@@ -107,6 +107,7 @@ const App = () => (
     <RecebimentoProvider>
     <FabricantesProvider>
     <PerfisAcessoProvider>
+    <EmpresaProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
