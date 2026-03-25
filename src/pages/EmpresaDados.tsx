@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2 } from "lucide-react";
 
+
 export default function EmpresaDados() {
   const { empresa, loading, saveEmpresa, uploadLogo } = useEmpresa();
   const { toast } = useToast();
