@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Search, Upload, FileText, FileSpreadsheet } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Upload, FileText, FileSpreadsheet, ChevronLeft, ChevronRight } from "lucide-react";
 import { gerarPdfMateriaisServicos, gerarExcelMateriaisServicos } from "@/lib/gerarRelatorioMateriaisServicos";
 import * as XLSX from "xlsx";
 
@@ -25,6 +25,8 @@ export default function MateriaisServicosPage() {
   const [form, setForm] = useState({ descricao: "", tipo: "Material" as "Material" | "Serviço", unidadeMedida: "UN", categoriaId: "", estoqueMinimo: 0 });
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("Todos");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
 
   const filtered = useMemo(() => {
     let list = materiais;
@@ -35,6 +37,13 @@ export default function MateriaisServicosPage() {
     }
     return list;
   }, [materiais, search, filterTipo]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safeCurrentPage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safeCurrentPage - 1) * PAGE_SIZE, safeCurrentPage * PAGE_SIZE);
+
+  // Reset page when filters change
+  const resetPage = () => setPage(1);
 
   const openNew = () => { setForm({ descricao: "", tipo: "Material", unidadeMedida: "UN", categoriaId: "", estoqueMinimo: 0 }); setEditingId(null); setDialogOpen(true); };
   const openEdit = (m: MaterialServico) => { setForm({ descricao: m.descricao, tipo: m.tipo, unidadeMedida: m.unidadeMedida, categoriaId: m.categoriaId, estoqueMinimo: m.estoqueMinimo }); setEditingId(m.id); setDialogOpen(true); };
