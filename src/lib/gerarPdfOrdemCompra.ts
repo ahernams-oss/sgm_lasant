@@ -129,7 +129,7 @@ export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<j
   y += 3;
 
   // ────────── EMPRESA (COMPRADORA) ──────────
-  y = sectionTitle(doc, "DADOS DA EMPRESA (COMPRADORA)", ml, y, fullW);
+  y = sectionTitle(doc, "DADOS DA EMPRESA", ml, y, fullW);
 
   y = fieldRow(doc, [
     { label: "RAZÃO SOCIAL", value: empresa?.nome || "", w: fullW * 0.5 },
