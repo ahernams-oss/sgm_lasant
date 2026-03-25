@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { usePedidoCompra, PedidoCompra, StatusPedido } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,7 @@ export default function PedidoCompraPage() {
   const { pedidos, updateStatus, cancelarPedido } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
   const { clientes } = useClientes();
+  const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
 
@@ -74,14 +76,12 @@ export default function PedidoCompraPage() {
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-  // Get empresa (first client of type "Cliente") and fornecedor for PDF
-  const getEmpresa = () => clientes.find(c => c.tipo === "Cliente") || null;
   const getFornecedor = (fornecedorId: string) => clientes.find(c => c.id === fornecedorId) || null;
 
   const handleDownloadPdf = async (pedido: PedidoCompra) => {
     await downloadPdfOrdemCompra({
       pedido,
-      empresa: getEmpresa(),
+      empresa: empresa.id ? empresa : null,
       fornecedor: getFornecedor(pedido.fornecedorId),
       autorizadoPor: usuarioLogado?.nome || "Usuário",
     });
@@ -103,7 +103,7 @@ export default function PedidoCompraPage() {
 
     const pdfData = {
       pedido: sendPedido,
-      empresa: getEmpresa(),
+      empresa: empresa.id ? empresa : null,
       fornecedor: getFornecedor(sendPedido.fornecedorId),
       autorizadoPor: usuarioLogado?.nome || "Usuário",
     };

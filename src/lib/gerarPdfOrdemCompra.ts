@@ -2,11 +2,12 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { PedidoCompra } from "@/contexts/PedidoCompraContext";
 import { Cliente } from "@/contexts/ClientesContext";
+import { Empresa } from "@/contexts/EmpresaContext";
 import { format } from "date-fns";
 
 interface OrdemCompraData {
   pedido: PedidoCompra;
-  empresa: Cliente | null;
+  empresa: Empresa | null;
   fornecedor: Cliente | null;
   autorizadoPor: string;
 }
@@ -84,9 +85,10 @@ export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<j
   const mr = pw - 12;
   const fullW = mr - ml;
 
-  // load logo
+  // load logo from empresa or fallback
   let logo: string | null = null;
-  try { logo = await loadImage("/Logo_Lasant.png"); } catch { /* fallback */ }
+  const logoSrc = empresa?.logoUrl || "/Logo_Lasant.png";
+  try { logo = await loadImage(logoSrc); } catch { /* fallback */ }
 
   // ────────── HEADER ──────────
   // background stripe
@@ -128,11 +130,11 @@ export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<j
 
   y += 3;
 
-  // ────────── EMPRESA (COMPRADORA) ──────────
+  // ────────── EMPRESA ──────────
   y = sectionTitle(doc, "DADOS DA EMPRESA", ml, y, fullW);
 
   y = fieldRow(doc, [
-    { label: "RAZÃO SOCIAL", value: empresa?.nome || "", w: fullW * 0.5 },
+    { label: "RAZÃO SOCIAL", value: empresa?.razaoSocial || "", w: fullW * 0.5 },
     { label: "CNPJ", value: empresa?.cnpj || "", w: fullW * 0.3 },
     { label: "INSC. ESTADUAL", value: empresa?.inscricaoEstadual || "", w: fullW * 0.2 },
   ], ml, y, rowH);
@@ -146,7 +148,7 @@ export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<j
 
   y = fieldRow(doc, [
     { label: "CONTATO", value: empresa?.contato || "", w: fullW * 0.35 },
-    { label: "TELEFONE", value: empresa?.telefones?.[0] || empresa?.telefoneCelular || "", w: fullW * 0.3 },
+    { label: "TELEFONE", value: empresa?.telefone || empresa?.celular || "", w: fullW * 0.3 },
     { label: "E-MAIL", value: empresa?.emailCompras || empresa?.email || "", w: fullW * 0.35 },
   ], ml, y, rowH);
 
