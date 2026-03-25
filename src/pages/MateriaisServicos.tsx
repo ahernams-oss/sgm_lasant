@@ -117,9 +117,9 @@ export default function MateriaisServicosPage() {
       <div className="flex gap-4">
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar..." value={search} onChange={e => { setSearch(e.target.value); resetPage(); }} className="pl-9" />
         </div>
-        <Select value={filterTipo} onValueChange={setFilterTipo}>
+        <Select value={filterTipo} onValueChange={v => { setFilterTipo(v); resetPage(); }}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="Todos">Todos</SelectItem>
@@ -142,9 +142,9 @@ export default function MateriaisServicosPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length === 0 ? (
+            {paginated.length === 0 ? (
               <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum item cadastrado</TableCell></TableRow>
-            ) : filtered.map(m => (
+            ) : paginated.map(m => (
               <TableRow key={m.id}>
                 <TableCell className="font-mono">{m.codigo}</TableCell>
                 <TableCell>{m.descricao}</TableCell>
@@ -162,6 +162,23 @@ export default function MateriaisServicosPage() {
           </TableBody>
         </Table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            Mostrando {(safeCurrentPage - 1) * PAGE_SIZE + 1}–{Math.min(safeCurrentPage * PAGE_SIZE, filtered.length)} de {filtered.length} itens
+          </span>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled={safeCurrentPage <= 1} onClick={() => setPage(p => p - 1)}>
+              <ChevronLeft className="h-4 w-4 mr-1" />Anterior
+            </Button>
+            <span className="text-sm font-medium">Página {safeCurrentPage} de {totalPages}</span>
+            <Button variant="outline" size="sm" disabled={safeCurrentPage >= totalPages} onClick={() => setPage(p => p + 1)}>
+              Próxima<ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
