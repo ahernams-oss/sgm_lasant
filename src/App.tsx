@@ -48,6 +48,7 @@ import { RecebimentoProvider } from "@/contexts/RecebimentoContext";
 import { EstoqueProvider } from "@/contexts/EstoqueContext";
 import { FabricantesProvider } from "@/contexts/FabricantesContext";
 import { PerfisAcessoProvider } from "@/contexts/PerfisAcessoContext";
+import { EmpresaProvider } from "@/contexts/EmpresaContext";
 import FabricantesPage from "./pages/Fabricantes.tsx";
 
 const queryClient = new QueryClient();
