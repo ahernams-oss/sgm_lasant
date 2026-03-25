@@ -76,14 +76,12 @@ export default function PedidoCompraPage() {
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-  // Get empresa (first client of type "Cliente") and fornecedor for PDF
-  const getEmpresa = () => clientes.find(c => c.tipo === "Cliente") || null;
   const getFornecedor = (fornecedorId: string) => clientes.find(c => c.id === fornecedorId) || null;
 
   const handleDownloadPdf = async (pedido: PedidoCompra) => {
     await downloadPdfOrdemCompra({
       pedido,
-      empresa: getEmpresa(),
+      empresa: empresa.id ? empresa : null,
       fornecedor: getFornecedor(pedido.fornecedorId),
       autorizadoPor: usuarioLogado?.nome || "Usuário",
     });
