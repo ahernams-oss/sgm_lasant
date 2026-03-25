@@ -120,6 +120,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </EmpresaProvider>
     </PerfisAcessoProvider>
     </FabricantesProvider>
     </RecebimentoProvider>
