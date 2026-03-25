@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { usePedidoCompra, PedidoCompra, StatusPedido } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { useCompany } from "@/contexts/EmpresaContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
