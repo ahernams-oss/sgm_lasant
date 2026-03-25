@@ -130,11 +130,11 @@ export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<j
 
   y += 3;
 
-  // ────────── EMPRESA (COMPRADORA) ──────────
+  // ────────── EMPRESA ──────────
   y = sectionTitle(doc, "DADOS DA EMPRESA", ml, y, fullW);
 
   y = fieldRow(doc, [
-    { label: "RAZÃO SOCIAL", value: empresa?.nome || "", w: fullW * 0.5 },
+    { label: "RAZÃO SOCIAL", value: empresa?.razaoSocial || "", w: fullW * 0.5 },
     { label: "CNPJ", value: empresa?.cnpj || "", w: fullW * 0.3 },
     { label: "INSC. ESTADUAL", value: empresa?.inscricaoEstadual || "", w: fullW * 0.2 },
   ], ml, y, rowH);
@@ -148,7 +148,7 @@ export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<j
 
   y = fieldRow(doc, [
     { label: "CONTATO", value: empresa?.contato || "", w: fullW * 0.35 },
-    { label: "TELEFONE", value: empresa?.telefones?.[0] || empresa?.telefoneCelular || "", w: fullW * 0.3 },
+    { label: "TELEFONE", value: empresa?.telefone || empresa?.celular || "", w: fullW * 0.3 },
     { label: "E-MAIL", value: empresa?.emailCompras || empresa?.email || "", w: fullW * 0.35 },
   ], ml, y, rowH);
 

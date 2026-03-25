@@ -103,7 +103,7 @@ export default function PedidoCompraPage() {
 
     const pdfData = {
       pedido: sendPedido,
-      empresa: getEmpresa(),
+      empresa: empresa.id ? empresa : null,
       fornecedor: getFornecedor(sendPedido.fornecedorId),
       autorizadoPor: usuarioLogado?.nome || "Usuário",
     };
