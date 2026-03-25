@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Search, Upload, FileText, FileSpreadsheet } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Upload, FileText, FileSpreadsheet, ChevronLeft, ChevronRight } from "lucide-react";
 import { gerarPdfMateriaisServicos, gerarExcelMateriaisServicos } from "@/lib/gerarRelatorioMateriaisServicos";
 import * as XLSX from "xlsx";
 
@@ -25,6 +25,8 @@ export default function MateriaisServicosPage() {
   const [form, setForm] = useState({ descricao: "", tipo: "Material" as "Material" | "Serviço", unidadeMedida: "UN", categoriaId: "", estoqueMinimo: 0 });
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("Todos");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
 
   const filtered = useMemo(() => {
     let list = materiais;
@@ -35,6 +37,13 @@ export default function MateriaisServicosPage() {
     }
     return list;
   }, [materiais, search, filterTipo]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safeCurrentPage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safeCurrentPage - 1) * PAGE_SIZE, safeCurrentPage * PAGE_SIZE);
+
+  // Reset page when filters change
+  const resetPage = () => setPage(1);
 
   const openNew = () => { setForm({ descricao: "", tipo: "Material", unidadeMedida: "UN", categoriaId: "", estoqueMinimo: 0 }); setEditingId(null); setDialogOpen(true); };
   const openEdit = (m: MaterialServico) => { setForm({ descricao: m.descricao, tipo: m.tipo, unidadeMedida: m.unidadeMedida, categoriaId: m.categoriaId, estoqueMinimo: m.estoqueMinimo }); setEditingId(m.id); setDialogOpen(true); };
@@ -108,9 +117,9 @@ export default function MateriaisServicosPage() {
       <div className="flex gap-4">
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar..." value={search} onChange={e => { setSearch(e.target.value); resetPage(); }} className="pl-9" />
         </div>
-        <Select value={filterTipo} onValueChange={setFilterTipo}>
+        <Select value={filterTipo} onValueChange={v => { setFilterTipo(v); resetPage(); }}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="Todos">Todos</SelectItem>
@@ -133,9 +142,9 @@ export default function MateriaisServicosPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length === 0 ? (
+            {paginated.length === 0 ? (
               <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum item cadastrado</TableCell></TableRow>
-            ) : filtered.map(m => (
+            ) : paginated.map(m => (
               <TableRow key={m.id}>
                 <TableCell className="font-mono">{m.codigo}</TableCell>
                 <TableCell>{m.descricao}</TableCell>
@@ -153,6 +162,23 @@ export default function MateriaisServicosPage() {
           </TableBody>
         </Table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            Mostrando {(safeCurrentPage - 1) * PAGE_SIZE + 1}–{Math.min(safeCurrentPage * PAGE_SIZE, filtered.length)} de {filtered.length} itens
+          </span>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled={safeCurrentPage <= 1} onClick={() => setPage(p => p - 1)}>
+              <ChevronLeft className="h-4 w-4 mr-1" />Anterior
+            </Button>
+            <span className="text-sm font-medium">Página {safeCurrentPage} de {totalPages}</span>
+            <Button variant="outline" size="sm" disabled={safeCurrentPage >= totalPages} onClick={() => setPage(p => p + 1)}>
+              Próxima<ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
