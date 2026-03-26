@@ -235,7 +235,7 @@ const MedicoesServicos = () => {
                   }}>
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
-                      {clientes.map(c => (
+                      {clientes.filter(c => c.tipo === "Cliente").map(c => (
                         <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
                       ))}
                     </SelectContent>
