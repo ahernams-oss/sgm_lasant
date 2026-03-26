@@ -571,7 +571,16 @@ export default function LicitacoesPage() {
                 <ChevronDown className="h-4 w-4" /> Detalhes
               </CollapsibleTrigger>
               <CollapsibleContent className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-                <div><Label>Portal da Disputa</Label><Input value={licForm.portalDisputa} onChange={e => setLicForm(p => ({ ...p, portalDisputa: e.target.value }))} /></div>
+                <div><Label>Portal da Disputa</Label>
+                  <Select value={licForm.portalDisputa} onValueChange={v => setLicForm(p => ({ ...p, portalDisputa: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {["ComprasNet", "SIGA/RJ", "Licitações-E", "Caixa Licitações"].map(o => (
+                        <SelectItem key={o} value={o}>{o}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div><Label>Link do Edital</Label><Input value={licForm.linkEdital} onChange={e => setLicForm(p => ({ ...p, linkEdital: e.target.value }))} /></div>
                 <div><Label>Valor Estimado (R$)</Label><Input type="number" value={licForm.valorEstimado || ""} onChange={e => setLicForm(p => ({ ...p, valorEstimado: parseFloat(e.target.value) || 0 }))} /></div>
                 <div>
