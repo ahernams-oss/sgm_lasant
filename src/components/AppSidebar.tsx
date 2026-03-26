@@ -31,6 +31,10 @@ const menuItems = [
     ],
   },
   {
+    group: "Engenharia",
+    items: [],
+  },
+  {
     group: "Compras e Suprimentos",
     items: [
       { title: "Dashboard Compras", url: "/compras/dashboard", icon: BarChart3 },
