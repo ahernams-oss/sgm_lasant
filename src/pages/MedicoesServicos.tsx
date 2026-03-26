@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Plus, Ruler, Trash2, Edit, Eye, X, ChevronDown, ChevronUp } from "lucide-react";
+import { format } from "date-fns";
+import { Plus, Ruler, Trash2, Edit, Eye, X, ChevronDown, ChevronUp, CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { useMedicoes, MedicaoServico, ItemServico, LancamentoMedicao } from "@/contexts/MedicoesContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -41,6 +45,7 @@ const MedicoesServicos = () => {
   const [observacoes, setObservacoes] = useState("");
   const [fornecedorId, setFornecedorId] = useState("");
   const [fornecedorNome, setFornecedorNome] = useState("");
+  const [dataPagamento, setDataPagamento] = useState<Date | undefined>(undefined);
 
   // Lançamento state
   const [lancTipo, setLancTipo] = useState<"percentual" | "valor">("percentual");
@@ -52,6 +57,7 @@ const MedicoesServicos = () => {
     setClienteNome("");
     setFornecedorId("");
     setFornecedorNome("");
+    setDataPagamento(undefined);
     setContrato("");
     setDescricao("");
     setItens([emptyItem()]);
@@ -66,6 +72,7 @@ const MedicoesServicos = () => {
       setClienteNome(m.cliente_nome);
       setFornecedorId((m as any).fornecedor_id || "");
       setFornecedorNome((m as any).fornecedor_nome || "");
+      setDataPagamento((m as any).data_pagamento ? new Date((m as any).data_pagamento) : undefined);
       setContrato(m.contrato);
       setDescricao(m.descricao);
       setItens(m.itens.length > 0 ? m.itens : [emptyItem()]);
@@ -91,6 +98,7 @@ const MedicoesServicos = () => {
       cliente_nome: clienteNome,
       fornecedor_id: fornecedorId,
       fornecedor_nome: fornecedorNome,
+      data_pagamento: dataPagamento ? format(dataPagamento, "yyyy-MM-dd") : null,
       contrato,
       descricao,
       itens: itensCalc,
@@ -265,7 +273,7 @@ const MedicoesServicos = () => {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Contrato</Label>
                   <Input value={contrato} onChange={e => setContrato(e.target.value)} placeholder="Nº do contrato" />
@@ -273,6 +281,29 @@ const MedicoesServicos = () => {
                 <div className="space-y-2">
                   <Label>Descrição</Label>
                   <Input value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Descrição do serviço" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Data de Pagamento</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn("w-full justify-start text-left font-normal", !dataPagamento && "text-muted-foreground")}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dataPagamento ? format(dataPagamento, "dd/MM/yyyy") : "Selecione a data"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dataPagamento}
+                        onSelect={setDataPagamento}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
 
