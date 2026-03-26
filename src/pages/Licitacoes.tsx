@@ -14,7 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Search, Eye, Pencil, Trash2, Upload, FileText, ChevronDown, ExternalLink, AlertTriangle, CheckCircle2, Clock, XCircle, Filter } from "lucide-react";
+import { Plus, Search, Eye, Pencil, Trash2, Upload, FileText, ChevronDown, ExternalLink, AlertTriangle, CheckCircle2, Clock, XCircle, Filter, Send } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
 // ============ CONSTANTS ============
