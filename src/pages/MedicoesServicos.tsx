@@ -541,9 +541,34 @@ const MedicoesServicos = () => {
                   Total desta medição: {fmt(lancItens.reduce((s, li) => s + li.valor, 0))}
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Observação</Label>
-                  <Textarea value={lancObs} onChange={e => setLancObs(e.target.value)} rows={2} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Data de Pagamento</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn("w-full justify-start text-left font-normal", !lancDataPagamento && "text-muted-foreground")}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {lancDataPagamento ? format(lancDataPagamento, "dd/MM/yyyy") : "Selecione a data"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={lancDataPagamento}
+                          onSelect={setLancDataPagamento}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Observação</Label>
+                    <Textarea value={lancObs} onChange={e => setLancObs(e.target.value)} rows={2} />
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-2">
