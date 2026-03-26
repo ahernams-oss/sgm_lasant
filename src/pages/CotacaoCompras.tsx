@@ -347,9 +347,76 @@ export default function CotacaoComprasPage() {
     }
   };
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(linkGerado);
+  const handleCopyLink = (link?: string) => {
+    navigator.clipboard.writeText(link || linkGerado);
     toast({ title: "Link copiado!" });
+  };
+
+  const handleGerarLinkTodos = async () => {
+    setEnviarTodosLoading(true);
+    setLinksGeradosTodos([]);
+    try {
+      const cot = cotacoes.find(c => c.id === enviarCotacaoId);
+      const req = requisicoes.find(r => r.id === cot?.requisicaoId);
+      if (!cot || !req) throw new Error("Dados não encontrados");
+
+      const itensConvite = req.itens.map(i => ({
+        itemId: i.id,
+        descricao: i.descricao,
+        quantidade: i.quantidade,
+        unidadeMedida: i.unidadeMedida,
+      }));
+
+      // Check existing convites to avoid duplicates
+      const { data: existingConvites } = await supabase
+        .from("cotacao_convites")
+        .select("fornecedor_id")
+        .eq("cotacao_id", cot.id);
+      const existingIds = new Set((existingConvites || []).map(c => c.fornecedor_id));
+
+      const results: Array<{ fornecedorNome: string; link: string; erro?: string }> = [];
+
+      for (const forn of fornecedores) {
+        if (existingIds.has(forn.id)) {
+          results.push({ fornecedorNome: forn.nome, link: "", erro: "Convite já enviado anteriormente" });
+          continue;
+        }
+        try {
+          const { data, error } = await supabase.from("cotacao_convites").insert({
+            cotacao_id: cot.id,
+            cotacao_numero: cot.numero,
+            fornecedor_id: forn.id,
+            fornecedor_nome: forn.nome,
+            fornecedor_email: forn.emailCompras || forn.email || "",
+            comprador: usuarioLogado?.nome || "Comprador",
+            itens: itensConvite,
+          }).select("token").single();
+
+          if (error) throw error;
+          const link = `${window.location.origin}/cotacao/proposta/${data.token}`;
+          results.push({ fornecedorNome: forn.nome, link });
+        } catch (e: any) {
+          results.push({ fornecedorNome: forn.nome, link: "", erro: e.message });
+        }
+      }
+
+      setLinksGeradosTodos(results);
+      const successCount = results.filter(r => r.link).length;
+      toast({ title: `Links gerados para ${successCount} de ${fornecedores.length} fornecedores` });
+    } catch (e: any) {
+      toast({ title: "Erro ao gerar links", description: e.message, variant: "destructive" });
+    } finally {
+      setEnviarTodosLoading(false);
+    }
+  };
+
+  const handleCopyAllLinks = () => {
+    const text = linksGeradosTodos
+      .filter(r => r.link)
+      .map(r => `${r.fornecedorNome}: ${r.link}`)
+      .join("\n");
+    navigator.clipboard.writeText(text);
+    toast({ title: "Todos os links copiados!" });
   };
 
   // === Sincronizar propostas externas ===
