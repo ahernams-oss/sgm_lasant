@@ -20,8 +20,8 @@ import { format } from "date-fns";
 // ============ CONSTANTS ============
 
 const MODALIDADES = [
-  "Pregão Eletrônico", "Pregão Presencial", "Concorrência", "Tomada de Preços",
-  "Convite", "Leilão", "Concurso", "Diálogo Competitivo", "RDC",
+  "Pregão Eletrônico", "Pregão Presencial", "Concorrência",
+  "Diálogo Competitivo", "RDC",
 ];
 
 const STATUS_LICITACAO = [
