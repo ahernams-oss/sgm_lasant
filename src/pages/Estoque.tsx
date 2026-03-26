@@ -510,7 +510,7 @@ export default function EstoquePage() {
           <div className="space-y-4">
             <div>
               <Label>Local *</Label>
-              <Select value={invLocal} onValueChange={v => loadInvItens(v)}>
+              <Select value={invLocal} onValueChange={v => loadInvItens(v)} disabled={!!editInvId}>
                 <SelectTrigger><SelectValue placeholder="Selecione o local..." /></SelectTrigger>
                 <SelectContent>
                   {locais.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
