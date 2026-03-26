@@ -418,11 +418,16 @@ export default function EstoquePage() {
                         {inv.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="space-x-1">
                       {inv.status === "Aberto" && (
-                        <Button variant="outline" size="sm" onClick={() => handleFecharInventario(inv.id)}>
-                          Fechar e Ajustar
-                        </Button>
+                        <>
+                          <Button variant="ghost" size="icon" onClick={() => handleEditInventario(inv)} title="Editar itens">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleFecharInventario(inv.id)}>
+                            Fechar e Ajustar
+                          </Button>
+                        </>
                       )}
                     </TableCell>
                   </TableRow>
@@ -501,7 +506,7 @@ export default function EstoquePage() {
       {/* Dialog Inventário */}
       <Dialog open={invDialogOpen} onOpenChange={setInvDialogOpen}>
         <DialogContent className="max-w-3xl">
-          <DialogHeader><DialogTitle><ClipboardList className="inline mr-2 h-5 w-5" />Novo Inventário</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle><ClipboardList className="inline mr-2 h-5 w-5" />{editInvId ? "Editar Inventário" : "Novo Inventário"}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Local *</Label>
