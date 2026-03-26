@@ -76,6 +76,29 @@ export default function EstoquePage() {
     return Array.from(locs).sort();
   }, [clientes]);
 
+  const getLocaisInventarioRelacionados = (localSelecionado: string) => {
+    const relacionados = new Set<string>([localSelecionado]);
+
+    const cliente = clientes.find(c => c.nome === localSelecionado);
+    if (cliente) {
+      const locaisArr = (cliente as any).locais || [];
+      locaisArr.forEach((l: any) => {
+        if (l?.nome) {
+          relacionados.add(l.nome);
+          relacionados.add(`${cliente.nome} - ${l.nome}`);
+        }
+      });
+    }
+
+    const separador = " - ";
+    if (localSelecionado.includes(separador)) {
+      const [, localInterno] = localSelecionado.split(separador);
+      if (localInterno) relacionados.add(localInterno.trim());
+    }
+
+    return relacionados;
+  };
+
   // Centro de custo lookup: pedidoNumero → centroCustoNome
   const centroCustoMap = useMemo(() => {
     const map = new Map<number, string>();
@@ -189,7 +212,8 @@ export default function EstoquePage() {
 
   const loadInvItens = (local: string) => {
     setInvLocal(local);
-    const saldosLocal = getSaldos().filter(s => s.local === local);
+    const locaisRelacionados = getLocaisInventarioRelacionados(local);
+    const saldosLocal = getSaldos().filter(s => locaisRelacionados.has(s.local));
     setInvItens(saldosLocal.map(s => ({
       materialId: s.materialId, materialCodigo: s.materialCodigo,
       materialDescricao: s.materialDescricao, saldoSistema: s.quantidade,
@@ -211,7 +235,8 @@ export default function EstoquePage() {
         observacao: it.observacao || "",
       })));
     } else {
-      const saldosLocal = getSaldos().filter(s => s.local === inv.local);
+      const locaisRelacionados = getLocaisInventarioRelacionados(inv.local);
+      const saldosLocal = getSaldos().filter(s => locaisRelacionados.has(s.local));
       setInvItens(saldosLocal.map(s => ({
         materialId: s.materialId, materialCodigo: s.materialCodigo,
         materialDescricao: s.materialDescricao, saldoSistema: s.quantidade,
