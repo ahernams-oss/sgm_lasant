@@ -58,6 +58,15 @@ export default function RelatoriosEstoquePage() {
     return Array.from(s).sort();
   }, [movimentacoes]);
 
+  const centrosCusto = useMemo(() => {
+    const s = new Set<string>();
+    movimentacoes.forEach(m => {
+      const cc = getCentroCusto(m.documentoRef);
+      if (cc && cc !== "-") s.add(cc);
+    });
+    return Array.from(s).sort();
+  }, [movimentacoes, centroCustoMap]);
+
   const centroCustoMap = useMemo(() => {
     const map = new Map<number, string>();
     pedidos.forEach(p => {
