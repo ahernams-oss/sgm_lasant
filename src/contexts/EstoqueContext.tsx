@@ -171,6 +171,11 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
     await load();
   };
 
+  const atualizarInventario = async (id: string, itens: ItemInventario[], observacao: string) => {
+    await updateRow("estoque_inventarios", id, { itens: itens as any, observacao });
+    await load();
+  };
+
   const fecharInventario = async (id: string, usuario: string) => {
     const inv = inventarios.find(i => i.id === id);
     if (!inv) return;
