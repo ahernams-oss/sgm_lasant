@@ -256,7 +256,40 @@ export default function LicitacoesPage() {
     try {
       const url = await uploadArquivo(file);
       setDocForm(prev => ({ ...prev, arquivoUrl: url, arquivoNome: file.name }));
-      toast({ title: "Arquivo enviado!" });
+      toast({ title: "Arquivo enviado! Analisando datas..." });
+
+      // Extract dates from document using AI
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        const res = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/extract-document-dates`,
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${anonKey}`, apikey: anonKey },
+            body: formData,
+          }
+        );
+        if (res.ok) {
+          const dates = await res.json();
+          const updates: Partial<Omit<DocumentoLicitacao, "id">> = {};
+          if (dates.dataEmissao) updates.dataEmissao = dates.dataEmissao;
+          if (dates.dataValidade) updates.dataValidade = dates.dataValidade;
+          if (Object.keys(updates).length > 0) {
+            setDocForm(prev => ({ ...prev, ...updates }));
+            const found = [];
+            if (dates.dataEmissao) found.push("emissão");
+            if (dates.dataValidade) found.push("validade");
+            toast({ title: `Datas detectadas: ${found.join(" e ")}` });
+          } else {
+            toast({ title: "Nenhuma data encontrada no documento", variant: "destructive" });
+          }
+        }
+      } catch (aiErr) {
+        console.error("Erro na extração de datas:", aiErr);
+      }
     } catch {
       toast({ title: "Erro ao enviar arquivo", variant: "destructive" });
     } finally {
