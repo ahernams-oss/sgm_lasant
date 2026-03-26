@@ -13,6 +13,11 @@ export interface MovimentacaoEstoque {
   observacao: string;
   usuario: string;
   dataMovimentacao: string;
+  lote: string;
+  validade: string;
+  depositoOrigem: string;
+  depositoDestino: string;
+  fornecedorNome: string;
 }
 
 export interface ItemInventario {
