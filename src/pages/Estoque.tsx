@@ -15,13 +15,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, ArrowDownCircle, ArrowUpCircle, AlertTriangle, ClipboardList, Package, Warehouse, TrendingDown, ChevronsUpDown, Check } from "lucide-react";
+import { Plus, Search, ArrowDownCircle, ArrowUpCircle, AlertTriangle, ClipboardList, Package, Warehouse, TrendingDown, ChevronsUpDown, Check, Pencil } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 
 export default function EstoquePage() {
-  const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, criarInventario, fecharInventario } = useEstoque();
+  const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, criarInventario, atualizarInventario, fecharInventario } = useEstoque();
   const { materiais } = useMateriaisServicos();
   const { usuarioLogado } = useAuth();
   const { clientes } = useClientes();
@@ -47,6 +47,7 @@ export default function EstoquePage() {
   const [invLocal, setInvLocal] = useState("");
   const [invObs, setInvObs] = useState("");
   const [invItens, setInvItens] = useState<{ materialId: string; materialCodigo: string; materialDescricao: string; saldoSistema: number; quantidadeContada: number; diferenca: number; observacao: string }[]>([]);
+  const [editInvId, setEditInvId] = useState<string | null>(null);
 
   // Estoque mínimo dialog
   const [minDialogOpen, setMinDialogOpen] = useState(false);
@@ -182,6 +183,7 @@ export default function EstoquePage() {
     setInvLocal("");
     setInvObs("");
     setInvItens([]);
+    setEditInvId(null);
     setInvDialogOpen(true);
   };
 
@@ -195,10 +197,28 @@ export default function EstoquePage() {
     })));
   };
 
+  const handleEditInventario = (inv: any) => {
+    setEditInvId(inv.id);
+    setInvLocal(inv.local);
+    setInvObs(inv.observacao || "");
+    setInvItens(inv.itens.map((it: any) => ({
+      materialId: it.materialId, materialCodigo: it.materialCodigo,
+      materialDescricao: it.materialDescricao, saldoSistema: it.saldoSistema,
+      quantidadeContada: it.quantidadeContada, diferenca: it.quantidadeContada - it.saldoSistema,
+      observacao: it.observacao || "",
+    })));
+    setInvDialogOpen(true);
+  };
+
   const handleInvSave = async () => {
     if (!invLocal) { toast({ title: "Selecione um local", variant: "destructive" }); return; }
-    await criarInventario({ local: invLocal, itens: invItens, usuario: usuarioLogado?.nome || "", observacao: invObs });
-    toast({ title: "Inventário criado" });
+    if (editInvId) {
+      await atualizarInventario(editInvId, invItens, invObs);
+      toast({ title: "Inventário atualizado" });
+    } else {
+      await criarInventario({ local: invLocal, itens: invItens, usuario: usuarioLogado?.nome || "", observacao: invObs });
+      toast({ title: "Inventário criado" });
+    }
     setInvDialogOpen(false);
   };
 
@@ -398,11 +418,16 @@ export default function EstoquePage() {
                         {inv.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="space-x-1">
                       {inv.status === "Aberto" && (
-                        <Button variant="outline" size="sm" onClick={() => handleFecharInventario(inv.id)}>
-                          Fechar e Ajustar
-                        </Button>
+                        <>
+                          <Button variant="ghost" size="icon" onClick={() => handleEditInventario(inv)} title="Editar itens">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleFecharInventario(inv.id)}>
+                            Fechar e Ajustar
+                          </Button>
+                        </>
                       )}
                     </TableCell>
                   </TableRow>
@@ -481,11 +506,11 @@ export default function EstoquePage() {
       {/* Dialog Inventário */}
       <Dialog open={invDialogOpen} onOpenChange={setInvDialogOpen}>
         <DialogContent className="max-w-3xl">
-          <DialogHeader><DialogTitle><ClipboardList className="inline mr-2 h-5 w-5" />Novo Inventário</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle><ClipboardList className="inline mr-2 h-5 w-5" />{editInvId ? "Editar Inventário" : "Novo Inventário"}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Local *</Label>
-              <Select value={invLocal} onValueChange={v => loadInvItens(v)}>
+              <Select value={invLocal} onValueChange={v => loadInvItens(v)} disabled={!!editInvId}>
                 <SelectTrigger><SelectValue placeholder="Selecione o local..." /></SelectTrigger>
                 <SelectContent>
                   {locais.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
@@ -533,7 +558,7 @@ export default function EstoquePage() {
             )}
             <div><Label>Observação Geral</Label><Input value={invObs} onChange={e => setInvObs(e.target.value)} /></div>
           </div>
-          <DialogFooter><Button onClick={handleInvSave}>Criar Inventário</Button></DialogFooter>
+          <DialogFooter><Button onClick={handleInvSave}>{editInvId ? "Salvar Alterações" : "Criar Inventário"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

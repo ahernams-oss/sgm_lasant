@@ -57,6 +57,7 @@ interface EstoqueContextType {
   getSaldoPorMaterial: (materialId: string) => number;
   getSaldoPorLocal: (materialId: string, local: string) => number;
   criarInventario: (data: Omit<Inventario, "id" | "dataInventario" | "status">) => Promise<void>;
+  atualizarInventario: (id: string, itens: ItemInventario[], observacao: string) => Promise<void>;
   fecharInventario: (id: string, usuario: string) => Promise<void>;
   reload: () => Promise<void>;
 }
@@ -171,6 +172,11 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
     await load();
   };
 
+  const atualizarInventario = async (id: string, itens: ItemInventario[], observacao: string) => {
+    await updateRow("estoque_inventarios", id, { itens: itens as any, observacao });
+    await load();
+  };
+
   const fecharInventario = async (id: string, usuario: string) => {
     const inv = inventarios.find(i => i.id === id);
     if (!inv) return;
@@ -195,7 +201,7 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
   return (
     <EstoqueContext.Provider value={{
       movimentacoes, inventarios, registrarMovimentacao, registrarEntradaRecebimento,
-      getSaldos, getSaldoPorMaterial, getSaldoPorLocal, criarInventario, fecharInventario, reload: load,
+      getSaldos, getSaldoPorMaterial, getSaldoPorLocal, criarInventario, atualizarInventario, fecharInventario, reload: load,
     }}>
       {children}
     </EstoqueContext.Provider>
