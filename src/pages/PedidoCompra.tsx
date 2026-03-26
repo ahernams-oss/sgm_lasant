@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send } from "lucide-react";
 import { format } from "date-fns";
-import { downloadPdfOrdemCompra, getPdfOrdemCompraBase64 } from "@/lib/gerarPdfOrdemCompra";
+import { downloadPdfOrdemCompra } from "@/lib/gerarPdfOrdemCompra";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -115,25 +115,23 @@ export default function PedidoCompraPage() {
           setSending(false);
           return;
         }
-        const pdfBase64 = await getPdfOrdemCompraBase64(pdfData);
         const pcNum = `PC-${String(sendPedido.numero).padStart(4, "0")}`;
-        const { data, error } = await supabase.functions.invoke("send-email-ordem", {
+        const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
+
+        const { error } = await supabase.functions.invoke("send-transactional-email", {
           body: {
-            to: sendEmail,
-            subject: `Ordem de Compra ${pcNum} - ${sendPedido.fornecedorNome}`,
-            htmlBody: `
-              <h2>Ordem de Compra ${pcNum}</h2>
-              <p>Prezado(a),</p>
-              <p>Segue em anexo a Ordem de Compra <strong>${pcNum}</strong> referente ao pedido de compra.</p>
-              <p><strong>Fornecedor:</strong> ${sendPedido.fornecedorNome}</p>
-              <p><strong>Valor Total:</strong> ${formatCurrency(sendPedido.valorTotal)}</p>
-              <p><strong>Prazo de Entrega:</strong> ${sendPedido.prazoEntrega || "A combinar"}</p>
-              <p><strong>Condição de Pagamento:</strong> ${sendPedido.condicaoPagamento || "A vista"}</p>
-              <br>
-              <p>Atenciosamente,<br>${usuarioLogado?.nome || "Departamento de Compras"}</p>
-            `,
-            pdfBase64,
-            pdfFilename: `Ordem_Compra_${pcNum}.pdf`,
+            templateName: "ordem-compra-confirmation",
+            recipientEmail: sendEmail,
+            idempotencyKey: `ordem-compra-${sendPedido.id}`,
+            templateData: {
+              fornecedorNome: sendPedido.fornecedorNome,
+              pedidoNumero: sendPedido.numero,
+              valorTotal: formatCurrency(sendPedido.valorTotal),
+              condicaoPagamento: sendPedido.condicaoPagamento || "A vista",
+              prazoEntrega: sendPedido.prazoEntrega || "A combinar",
+              comprador: usuarioLogado?.nome || "Departamento de Compras",
+              nomeEmpresa,
+            },
           },
         });
 

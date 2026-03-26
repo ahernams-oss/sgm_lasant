@@ -53,6 +53,7 @@ import { EmpresaProvider } from "@/contexts/EmpresaContext";
 import FabricantesPage from "./pages/Fabricantes.tsx";
 import EpisPage from "./pages/EpisPage.tsx";
 import ExamesPage from "./pages/ExamesPage.tsx";
+import UnsubscribePage from "./pages/Unsubscribe.tsx";
 
 const queryClient = new QueryClient();
 
@@ -121,6 +122,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/cotacao/proposta/:token" element={<PropostaFornecedorPage />} />
+          <Route path="/unsubscribe" element={<UnsubscribePage />} />
           <Route path="/*" element={<AppRoutes />} />
         </Routes>
       </BrowserRouter>

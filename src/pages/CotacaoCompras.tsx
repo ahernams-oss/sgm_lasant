@@ -423,23 +423,6 @@ export default function CotacaoComprasPage() {
     toast({ title: "Todos os links copiados!" });
   };
 
-  const buildEmailHtml = (fornecedorNome: string, link: string, cotacaoNumero: number) => {
-    const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "Nossa Empresa";
-    return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #333;">Solicitação de Cotação #${cotacaoNumero}</h2>
-        <p>Prezado(a) <strong>${fornecedorNome}</strong>,</p>
-        <p>Gostaríamos de convidá-lo(a) a apresentar sua proposta para a cotação de compras <strong>#${cotacaoNumero}</strong>.</p>
-        <p>Para acessar os itens e enviar sua proposta, clique no botão abaixo:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${link}" style="background-color: #4169E1; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Acessar Cotação e Enviar Proposta</a>
-        </div>
-        <p style="color: #666; font-size: 13px;">Ou copie e cole este link no navegador:<br/><a href="${link}">${link}</a></p>
-        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;"/>
-        <p style="color: #999; font-size: 12px;">Atenciosamente,<br/><strong>${nomeEmpresa}</strong>${empresa.emailCompras ? `<br/>Compras: ${empresa.emailCompras}` : ""}${empresa.telefone ? `<br/>Tel: ${empresa.telefone}` : ""}</p>
-      </div>
-    `;
-  };
 
   const handleEnviarEmailIndividual = async () => {
     if (!linkGerado || !enviarEmail) {
@@ -453,22 +436,25 @@ export default function CotacaoComprasPage() {
       if (!cot || !forn) throw new Error("Dados não encontrados");
 
       const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
-      const htmlBody = buildEmailHtml(forn.nome, linkGerado, cot.numero);
+      const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
 
-      const { data, error } = await supabase.functions.invoke("send-email-cotacao", {
+      const { error } = await supabase.functions.invoke("send-transactional-email", {
         body: {
-          to: enviarEmail,
-          subject: `${nomeEmpresa} - Solicitação de Cotação #${cot.numero}`,
-          htmlBody,
+          templateName: "cotacao-confirmation",
+          recipientEmail: enviarEmail,
+          idempotencyKey: `cotacao-${cot.id}-${enviarFornecedorId}`,
+          templateData: {
+            fornecedorNome: forn.nome,
+            cotacaoNumero: cot.numero,
+            comprador,
+            link: linkGerado,
+            nomeEmpresa,
+          },
         },
       });
 
       if (error) throw error;
-      if (data?.warning) {
-        toast({ title: "E-mail registrado", description: data.warning });
-      } else {
-        toast({ title: "E-mail enviado com sucesso!" });
-      }
+      toast({ title: "E-mail enviado com sucesso!" });
     } catch (e: any) {
       console.error(e);
       toast({ title: "Erro ao enviar e-mail", description: e.message, variant: "destructive" });
@@ -489,6 +475,7 @@ export default function CotacaoComprasPage() {
       if (!cot) throw new Error("Cotação não encontrada");
 
       const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
+      const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
       let enviados = 0;
       let erros = 0;
 
@@ -498,12 +485,18 @@ export default function CotacaoComprasPage() {
         if (!emailForn) { erros++; continue; }
 
         try {
-          const htmlBody = buildEmailHtml(item.fornecedorNome, item.link, cot.numero);
-          await supabase.functions.invoke("send-email-cotacao", {
+          await supabase.functions.invoke("send-transactional-email", {
             body: {
-              to: emailForn,
-              subject: `${nomeEmpresa} - Solicitação de Cotação #${cot.numero}`,
-              htmlBody,
+              templateName: "cotacao-confirmation",
+              recipientEmail: emailForn,
+              idempotencyKey: `cotacao-${cot.id}-${forn?.id || item.fornecedorNome}`,
+              templateData: {
+                fornecedorNome: item.fornecedorNome,
+                cotacaoNumero: cot.numero,
+                comprador,
+                link: item.link,
+                nomeEmpresa,
+              },
             },
           });
           enviados++;
