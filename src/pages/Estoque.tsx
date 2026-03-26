@@ -201,17 +201,30 @@ export default function EstoquePage() {
     setEditInvId(inv.id);
     setInvLocal(inv.local);
     setInvObs(inv.observacao || "");
-    setInvItens(inv.itens.map((it: any) => ({
-      materialId: it.materialId, materialCodigo: it.materialCodigo,
-      materialDescricao: it.materialDescricao, saldoSistema: it.saldoSistema,
-      quantidadeContada: it.quantidadeContada, diferenca: it.quantidadeContada - it.saldoSistema,
-      observacao: it.observacao || "",
-    })));
+
+    const itensSalvos = Array.isArray(inv.itens) ? inv.itens : [];
+    if (itensSalvos.length > 0) {
+      setInvItens(itensSalvos.map((it: any) => ({
+        materialId: it.materialId, materialCodigo: it.materialCodigo,
+        materialDescricao: it.materialDescricao, saldoSistema: Number(it.saldoSistema || 0),
+        quantidadeContada: Number(it.quantidadeContada || 0), diferenca: Number(it.quantidadeContada || 0) - Number(it.saldoSistema || 0),
+        observacao: it.observacao || "",
+      })));
+    } else {
+      const saldosLocal = getSaldos().filter(s => s.local === inv.local);
+      setInvItens(saldosLocal.map(s => ({
+        materialId: s.materialId, materialCodigo: s.materialCodigo,
+        materialDescricao: s.materialDescricao, saldoSistema: s.quantidade,
+        quantidadeContada: s.quantidade, diferenca: 0, observacao: "",
+      })));
+    }
+
     setInvDialogOpen(true);
   };
 
   const handleInvSave = async () => {
     if (!invLocal) { toast({ title: "Selecione um local", variant: "destructive" }); return; }
+    if (invItens.length === 0) { toast({ title: "Nenhum item encontrado para este local", variant: "destructive" }); return; }
     if (editInvId) {
       await atualizarInventario(editInvId, invItens, invObs);
       toast({ title: "Inventário atualizado" });
@@ -517,7 +530,7 @@ export default function EstoquePage() {
                 </SelectContent>
               </Select>
             </div>
-            {invItens.length > 0 && (
+            {invItens.length > 0 ? (
               <div className="border rounded-lg max-h-64 overflow-auto">
                 <Table>
                   <TableHeader>
@@ -558,7 +571,11 @@ export default function EstoquePage() {
                   </TableBody>
                 </Table>
               </div>
-            )}
+            ) : invLocal ? (
+              <div className="border rounded-lg p-4 text-sm text-muted-foreground text-center">
+                Nenhum item com saldo encontrado para este local.
+              </div>
+            ) : null}
             <div><Label>Observação Geral</Label><Input value={invObs} onChange={e => setInvObs(e.target.value)} /></div>
           </div>
           <DialogFooter><Button onClick={handleInvSave}>{editInvId ? "Salvar Alterações" : "Criar Inventário"}</Button></DialogFooter>
