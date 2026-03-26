@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Search, Eye, Pencil, Trash2, Upload, FileText, ChevronDown, ExternalLink, AlertTriangle, CheckCircle2, Clock, XCircle, Filter, Send } from "lucide-react";
+import { Plus, Search, Eye, Pencil, Trash2, Upload, FileText, ChevronDown, ExternalLink, AlertTriangle, CheckCircle2, Clock, XCircle, Filter, Send, Phone, Settings, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
@@ -124,20 +124,44 @@ export default function LicitacoesPage() {
   const { toast } = useToast();
 
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
+  const [phoneList, setPhoneList] = useState<{ id: string; telefone: string; nome_contato: string }[]>([]);
+  const [newPhone, setNewPhone] = useState("");
+  const [newPhoneName, setNewPhoneName] = useState("");
+  const [loadingPhones, setLoadingPhones] = useState(false);
+
+  const loadPhones = async () => {
+    setLoadingPhones(true);
+    const { data } = await supabase.from("licitacoes_telefones_notificacao").select("*").order("created_at");
+    setPhoneList((data as any[]) || []);
+    setLoadingPhones(false);
+  };
+
+  const handleAddPhone = async () => {
+    if (!newPhone.trim()) { toast({ title: "Informe o telefone", variant: "destructive" }); return; }
+    const { error } = await supabase.from("licitacoes_telefones_notificacao").insert({ telefone: newPhone.trim(), nome_contato: newPhoneName.trim() });
+    if (error) { toast({ title: "Erro ao adicionar", description: error.message, variant: "destructive" }); return; }
+    setNewPhone(""); setNewPhoneName("");
+    toast({ title: "Telefone adicionado!" });
+    loadPhones();
+  };
+
+  const handleRemovePhone = async (id: string) => {
+    await supabase.from("licitacoes_telefones_notificacao").delete().eq("id", id);
+    toast({ title: "Telefone removido!" });
+    loadPhones();
+  };
 
   // WhatsApp test notification
   const handleTesteWhatsApp = async () => {
     setSendingWhatsApp(true);
     try {
       const { data, error } = await supabase.functions.invoke('check-documentos-vencimento', {
-        body: {
-          test: true,
-          testNumbers: ['+5521988381303', '+5521991382831'],
-        },
+        body: {},
       });
       if (error) throw error;
       if (data?.notificados === 0) {
-        toast({ title: "Nenhum documento com vencimento nos próximos 15 dias." });
+        toast({ title: "Nenhum documento com vencimento nos próximos 15 dias ou nenhum telefone cadastrado." });
       } else {
         toast({ title: `Teste enviado! ${data?.notificados || 0} documento(s) notificado(s) via WhatsApp.` });
       }
