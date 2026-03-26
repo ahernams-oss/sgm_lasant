@@ -51,6 +51,7 @@ const MedicoesServicos = () => {
   const [lancTipo, setLancTipo] = useState<"percentual" | "valor">("percentual");
   const [lancItens, setLancItens] = useState<{ item_id: string; descricao: string; percentual: number; valor: number; quantidade: number }[]>([]);
   const [lancObs, setLancObs] = useState("");
+  const [lancDataPagamento, setLancDataPagamento] = useState<Date | undefined>(undefined);
 
   const resetForm = () => {
     setClienteId("");
@@ -149,6 +150,7 @@ const MedicoesServicos = () => {
       quantidade: 0,
     })));
     setLancObs("");
+    setLancDataPagamento((m as any).data_pagamento ? new Date((m as any).data_pagamento) : undefined);
     setShowLancamento(true);
   };
 
@@ -192,7 +194,8 @@ const MedicoesServicos = () => {
       valor_total_medido: novoMedido,
       percentual_medido: novoPerc,
       status: novoPerc >= 100 ? "Concluída" : "Em Andamento",
-    });
+      data_pagamento: lancDataPagamento ? format(lancDataPagamento, "yyyy-MM-dd") : null,
+    } as any);
 
     toast({ title: `Medição #${numMedicao} lançada com sucesso` });
     setShowLancamento(false);
@@ -273,7 +276,7 @@ const MedicoesServicos = () => {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Contrato</Label>
                   <Input value={contrato} onChange={e => setContrato(e.target.value)} placeholder="Nº do contrato" />
@@ -281,29 +284,6 @@ const MedicoesServicos = () => {
                 <div className="space-y-2">
                   <Label>Descrição</Label>
                   <Input value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Descrição do serviço" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Data de Pagamento</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn("w-full justify-start text-left font-normal", !dataPagamento && "text-muted-foreground")}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dataPagamento ? format(dataPagamento, "dd/MM/yyyy") : "Selecione a data"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={dataPagamento}
-                        onSelect={setDataPagamento}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
                 </div>
               </div>
 
@@ -561,9 +541,34 @@ const MedicoesServicos = () => {
                   Total desta medição: {fmt(lancItens.reduce((s, li) => s + li.valor, 0))}
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Observação</Label>
-                  <Textarea value={lancObs} onChange={e => setLancObs(e.target.value)} rows={2} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Data de Pagamento</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn("w-full justify-start text-left font-normal", !lancDataPagamento && "text-muted-foreground")}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {lancDataPagamento ? format(lancDataPagamento, "dd/MM/yyyy") : "Selecione a data"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={lancDataPagamento}
+                          onSelect={setLancDataPagamento}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Observação</Label>
+                    <Textarea value={lancObs} onChange={e => setLancObs(e.target.value)} rows={2} />
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-2">
