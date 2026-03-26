@@ -558,7 +558,7 @@ export default function EstoquePage() {
             )}
             <div><Label>Observação Geral</Label><Input value={invObs} onChange={e => setInvObs(e.target.value)} /></div>
           </div>
-          <DialogFooter><Button onClick={handleInvSave}>Criar Inventário</Button></DialogFooter>
+          <DialogFooter><Button onClick={handleInvSave}>{editInvId ? "Salvar Alterações" : "Criar Inventário"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
