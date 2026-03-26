@@ -172,6 +172,7 @@ export default function EstoquePage() {
       tipo: movTipo, quantidade: qty, local: movLocal,
       documentoRef: movDocRef, observacao: movObs,
       usuario: usuarioLogado?.nome || "",
+      lote: "", validade: "", depositoOrigem: "", depositoDestino: "", fornecedorNome: "",
     });
     toast({ title: `${movTipo === "entrada" ? "Entrada" : "Saída"} registrada com sucesso` });
     setMovDialogOpen(false);
