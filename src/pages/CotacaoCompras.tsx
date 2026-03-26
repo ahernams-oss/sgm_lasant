@@ -1200,7 +1200,7 @@ export default function CotacaoComprasPage() {
                   <Label className="text-xs text-muted-foreground">Link gerado:</Label>
                   <div className="flex items-center gap-2 mt-1">
                     <Input value={linkGerado} readOnly className="text-xs font-mono" />
-                    <Button variant="outline" size="icon" onClick={handleCopyLink} title="Copiar link">
+                    <Button variant="outline" size="icon" onClick={() => handleCopyLink()} title="Copiar link">
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
