@@ -245,6 +245,13 @@ export default function EmpresaDados() {
             <Field label="E-mail Compras" field="emailCompras" placeholder="compras@empresa.com" icon={Mail} />
             <Field label="Site" field="site" placeholder="www.empresa.com.br" icon={Globe} />
           </div>
+          <Separator />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="E-mail Envio RH" field="emailRh" placeholder="rh@empresa.com" icon={Mail} />
+            <Field label="E-mail Envio Engenharia" field="emailEngenharia" placeholder="engenharia@empresa.com" icon={Mail} />
+            <Field label="E-mail Envio Estoque" field="emailEstoque" placeholder="estoque@empresa.com" icon={Mail} />
+            <Field label="E-mail Envio Relatórios" field="emailRelatorios" placeholder="relatorios@empresa.com" icon={Mail} />
+          </div>
         </CardContent>
       </Card>
     </div>

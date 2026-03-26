@@ -409,6 +409,10 @@ export type Database = {
           created_at: string | null
           email: string | null
           email_compras: string | null
+          email_engenharia: string | null
+          email_estoque: string | null
+          email_relatorios: string | null
+          email_rh: string | null
           id: string
           inscricao_estadual: string | null
           inscricao_municipal: string | null
@@ -432,6 +436,10 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           email_compras?: string | null
+          email_engenharia?: string | null
+          email_estoque?: string | null
+          email_relatorios?: string | null
+          email_rh?: string | null
           id?: string
           inscricao_estadual?: string | null
           inscricao_municipal?: string | null
@@ -455,6 +463,10 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           email_compras?: string | null
+          email_engenharia?: string | null
+          email_estoque?: string | null
+          email_relatorios?: string | null
+          email_rh?: string | null
           id?: string
           inscricao_estadual?: string | null
           inscricao_municipal?: string | null
