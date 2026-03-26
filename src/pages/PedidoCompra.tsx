@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send } from "lucide-react";
 import { format } from "date-fns";
-import { downloadPdfOrdemCompra, getPdfOrdemCompraBase64 } from "@/lib/gerarPdfOrdemCompra";
+import { downloadPdfOrdemCompra } from "@/lib/gerarPdfOrdemCompra";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { supabase } from "@/integrations/supabase/client";
 
