@@ -96,6 +96,8 @@ export default function CotacaoComprasPage() {
   const [enviarEmail, setEnviarEmail] = useState("");
   const [enviarLoading, setEnviarLoading] = useState(false);
   const [linkGerado, setLinkGerado] = useState("");
+  const [linksGeradosTodos, setLinksGeradosTodos] = useState<Array<{ fornecedorNome: string; link: string; erro?: string }>>([]);
+  const [enviarTodosLoading, setEnviarTodosLoading] = useState(false);
 
   const compradores = useMemo(() => {
     const set = new Set(cotacoes.map(c => c.comprador));
@@ -295,6 +297,7 @@ export default function CotacaoComprasPage() {
     setEnviarFornecedorId("");
     setEnviarEmail("");
     setLinkGerado("");
+    setLinksGeradosTodos([]);
     setEnviarDialogOpen(true);
   };
 
@@ -344,9 +347,76 @@ export default function CotacaoComprasPage() {
     }
   };
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(linkGerado);
+  const handleCopyLink = (link?: string) => {
+    navigator.clipboard.writeText(link || linkGerado);
     toast({ title: "Link copiado!" });
+  };
+
+  const handleGerarLinkTodos = async () => {
+    setEnviarTodosLoading(true);
+    setLinksGeradosTodos([]);
+    try {
+      const cot = cotacoes.find(c => c.id === enviarCotacaoId);
+      const req = requisicoes.find(r => r.id === cot?.requisicaoId);
+      if (!cot || !req) throw new Error("Dados não encontrados");
+
+      const itensConvite = req.itens.map(i => ({
+        itemId: i.id,
+        descricao: i.descricao,
+        quantidade: i.quantidade,
+        unidadeMedida: i.unidadeMedida,
+      }));
+
+      // Check existing convites to avoid duplicates
+      const { data: existingConvites } = await supabase
+        .from("cotacao_convites")
+        .select("fornecedor_id")
+        .eq("cotacao_id", cot.id);
+      const existingIds = new Set((existingConvites || []).map(c => c.fornecedor_id));
+
+      const results: Array<{ fornecedorNome: string; link: string; erro?: string }> = [];
+
+      for (const forn of fornecedores) {
+        if (existingIds.has(forn.id)) {
+          results.push({ fornecedorNome: forn.nome, link: "", erro: "Convite já enviado anteriormente" });
+          continue;
+        }
+        try {
+          const { data, error } = await supabase.from("cotacao_convites").insert({
+            cotacao_id: cot.id,
+            cotacao_numero: cot.numero,
+            fornecedor_id: forn.id,
+            fornecedor_nome: forn.nome,
+            fornecedor_email: forn.emailCompras || forn.email || "",
+            comprador: usuarioLogado?.nome || "Comprador",
+            itens: itensConvite,
+          }).select("token").single();
+
+          if (error) throw error;
+          const link = `${window.location.origin}/cotacao/proposta/${data.token}`;
+          results.push({ fornecedorNome: forn.nome, link });
+        } catch (e: any) {
+          results.push({ fornecedorNome: forn.nome, link: "", erro: e.message });
+        }
+      }
+
+      setLinksGeradosTodos(results);
+      const successCount = results.filter(r => r.link).length;
+      toast({ title: `Links gerados para ${successCount} de ${fornecedores.length} fornecedores` });
+    } catch (e: any) {
+      toast({ title: "Erro ao gerar links", description: e.message, variant: "destructive" });
+    } finally {
+      setEnviarTodosLoading(false);
+    }
+  };
+
+  const handleCopyAllLinks = () => {
+    const text = linksGeradosTodos
+      .filter(r => r.link)
+      .map(r => `${r.fornecedorNome}: ${r.link}`)
+      .join("\n");
+    navigator.clipboard.writeText(text);
+    toast({ title: "Todos os links copiados!" });
   };
 
   // === Sincronizar propostas externas ===
@@ -1088,68 +1158,121 @@ export default function CotacaoComprasPage() {
       </Dialog>
 
       {/* Dialog Enviar para Fornecedor */}
-      <Dialog open={enviarDialogOpen} onOpenChange={v => { setEnviarDialogOpen(v); if (!v) setLinkGerado(""); }}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={enviarDialogOpen} onOpenChange={v => { setEnviarDialogOpen(v); if (!v) { setLinkGerado(""); setLinksGeradosTodos([]); } }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Enviar Cotação para Fornecedor</DialogTitle>
-            <DialogDescription>Selecione o fornecedor e gere o link do formulário de preços.</DialogDescription>
+            <DialogTitle>Enviar Cotação para Fornecedores</DialogTitle>
+            <DialogDescription>Gere o link para um fornecedor específico ou para todos de uma vez.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label>Fornecedor *</Label>
-              <Select value={enviarFornecedorId} onValueChange={handleSelectFornecedorEnviar}>
-                <SelectTrigger><SelectValue placeholder="Selecione um fornecedor..." /></SelectTrigger>
-                <SelectContent>
-                  {fornecedores.map(f => (
-                    <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>E-mail do Fornecedor</Label>
-              <Input
-                type="email"
-                value={enviarEmail}
-                onChange={e => setEnviarEmail(e.target.value)}
-                placeholder="email@fornecedor.com"
-              />
-              <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente do cadastro. Ajuste se necessário.</p>
-            </div>
-
-            {!linkGerado && (
-              <Button onClick={handleGerarLink} disabled={enviarLoading || !enviarFornecedorId} className="w-full">
-                <Link2 className="mr-2 h-4 w-4" />
-                {enviarLoading ? "Gerando..." : "Gerar Link do Formulário"}
-              </Button>
+            {/* Enviar para todos */}
+            {linksGeradosTodos.length === 0 && !linkGerado && (
+              <div className="border border-dashed rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Enviar para todos os fornecedores</p>
+                    <p className="text-xs text-muted-foreground">{fornecedores.length} fornecedores cadastrados</p>
+                  </div>
+                  <Button onClick={handleGerarLinkTodos} disabled={enviarTodosLoading || fornecedores.length === 0}>
+                    <Send className="mr-2 h-4 w-4" />
+                    {enviarTodosLoading ? "Gerando..." : "Gerar Links para Todos"}
+                  </Button>
+                </div>
+              </div>
             )}
 
-            {linkGerado && (
+            {/* Resultados envio em massa */}
+            {linksGeradosTodos.length > 0 && (
               <div className="space-y-3">
-                <div className="bg-muted p-3 rounded-lg">
-                  <Label className="text-xs text-muted-foreground">Link gerado:</Label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Input value={linkGerado} readOnly className="text-xs font-mono" />
-                    <Button variant="outline" size="icon" onClick={handleCopyLink} title="Copiar link">
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">Links gerados ({linksGeradosTodos.filter(r => r.link).length}/{linksGeradosTodos.length})</p>
+                  <Button variant="outline" size="sm" onClick={handleCopyAllLinks}>
+                    <Copy className="mr-2 h-3.5 w-3.5" />
+                    Copiar Todos
+                  </Button>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  O fornecedor pode acessar este link para preencher seus preços. 
-                  Quando ele enviar a proposta, ela aparecerá automaticamente aqui.
-                </p>
-                {enviarEmail && (
-                  <p className="text-xs text-muted-foreground">
-                    📧 Para enviar por e-mail, configure um domínio de e-mail nas configurações do sistema.
-                    Enquanto isso, copie o link e envie manualmente.
-                  </p>
-                )}
+                <div className="border rounded-lg divide-y max-h-60 overflow-y-auto">
+                  {linksGeradosTodos.map((r, idx) => (
+                    <div key={idx} className="flex items-center justify-between px-3 py-2 gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{r.fornecedorNome}</p>
+                        {r.erro && <p className="text-xs text-amber-600">{r.erro}</p>}
+                      </div>
+                      {r.link ? (
+                        <Button variant="ghost" size="sm" onClick={() => handleCopyLink(r.link)} title="Copiar link">
+                          <Copy className="h-3.5 w-3.5" />
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
+            )}
+
+            {/* Separador */}
+            {linksGeradosTodos.length === 0 && !linkGerado && (
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">ou enviar individualmente</span></div>
+              </div>
+            )}
+
+            {/* Envio individual */}
+            {linksGeradosTodos.length === 0 && (
+              <>
+                <div>
+                  <Label>Fornecedor *</Label>
+                  <Select value={enviarFornecedorId} onValueChange={handleSelectFornecedorEnviar}>
+                    <SelectTrigger><SelectValue placeholder="Selecione um fornecedor..." /></SelectTrigger>
+                    <SelectContent>
+                      {fornecedores.map(f => (
+                        <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>E-mail do Fornecedor</Label>
+                  <Input
+                    type="email"
+                    value={enviarEmail}
+                    onChange={e => setEnviarEmail(e.target.value)}
+                    placeholder="email@fornecedor.com"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente do cadastro. Ajuste se necessário.</p>
+                </div>
+
+                {!linkGerado && (
+                  <Button onClick={handleGerarLink} disabled={enviarLoading || !enviarFornecedorId} className="w-full">
+                    <Link2 className="mr-2 h-4 w-4" />
+                    {enviarLoading ? "Gerando..." : "Gerar Link do Formulário"}
+                  </Button>
+                )}
+
+                {linkGerado && (
+                  <div className="space-y-3">
+                    <div className="bg-muted p-3 rounded-lg">
+                      <Label className="text-xs text-muted-foreground">Link gerado:</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Input value={linkGerado} readOnly className="text-xs font-mono" />
+                        <Button variant="outline" size="icon" onClick={() => handleCopyLink()} title="Copiar link">
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      O fornecedor pode acessar este link para preencher seus preços. 
+                      Quando ele enviar a proposta, ela aparecerá automaticamente aqui.
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setEnviarDialogOpen(false); setLinkGerado(""); }}>Fechar</Button>
+            <Button variant="outline" onClick={() => { setEnviarDialogOpen(false); setLinkGerado(""); setLinksGeradosTodos([]); }}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
