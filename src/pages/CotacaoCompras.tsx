@@ -1373,6 +1373,12 @@ export default function CotacaoComprasPage() {
                       O fornecedor pode acessar este link para preencher seus preços. 
                       Quando ele enviar a proposta, ela aparecerá automaticamente aqui.
                     </p>
+                    {enviarEmail && (
+                      <Button onClick={handleEnviarEmailIndividual} disabled={enviarEmailLoading} className="w-full">
+                        <Mail className="mr-2 h-4 w-4" />
+                        {enviarEmailLoading ? "Enviando..." : `Enviar Link por E-mail para ${enviarEmail}`}
+                      </Button>
+                    )}
                   </div>
                 )}
               </>
