@@ -123,6 +123,32 @@ export default function LicitacoesPage() {
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
 
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+
+  // WhatsApp test notification
+  const handleTesteWhatsApp = async () => {
+    setSendingWhatsApp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-documentos-vencimento', {
+        body: {
+          test: true,
+          testNumbers: ['+5521988381303', '+5521991382831'],
+        },
+      });
+      if (error) throw error;
+      if (data?.notificados === 0) {
+        toast({ title: "Nenhum documento com vencimento nos próximos 15 dias." });
+      } else {
+        toast({ title: `Teste enviado! ${data?.notificados || 0} documento(s) notificado(s) via WhatsApp.` });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+      toast({ title: "Erro ao enviar teste WhatsApp", description: msg, variant: "destructive" });
+    } finally {
+      setSendingWhatsApp(false);
+    }
+  };
+
   // Tab state
   const [activeTab, setActiveTab] = useState("oportunidades");
 
