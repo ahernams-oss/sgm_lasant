@@ -988,6 +988,227 @@ export type Database = {
         }
         Relationships: []
       }
+      licitacoes: {
+        Row: {
+          cidade: string | null
+          created_at: string | null
+          criterio_julgamento: string | null
+          data_publicacao: string | null
+          data_sessao: string | null
+          estado: string | null
+          exigencia_garantia: boolean | null
+          exigencia_visita_tecnica: boolean | null
+          grau_interesse: string | null
+          id: string
+          link_edital: string | null
+          modalidade: string | null
+          numero_edital: string | null
+          numero_processo: string | null
+          objeto_detalhado: string | null
+          objeto_resumido: string | null
+          observacoes: string | null
+          orgao_licitante: string | null
+          portal_disputa: string | null
+          possibilidade_prorrogacao: boolean | null
+          prazo_contratual: string | null
+          prazo_esclarecimento: string | null
+          prazo_impugnacao: string | null
+          probabilidade_exito: string | null
+          regime_execucao: string | null
+          responsavel_interno: string | null
+          status: string | null
+          uasg: string | null
+          valor_estimado: number | null
+        }
+        Insert: {
+          cidade?: string | null
+          created_at?: string | null
+          criterio_julgamento?: string | null
+          data_publicacao?: string | null
+          data_sessao?: string | null
+          estado?: string | null
+          exigencia_garantia?: boolean | null
+          exigencia_visita_tecnica?: boolean | null
+          grau_interesse?: string | null
+          id?: string
+          link_edital?: string | null
+          modalidade?: string | null
+          numero_edital?: string | null
+          numero_processo?: string | null
+          objeto_detalhado?: string | null
+          objeto_resumido?: string | null
+          observacoes?: string | null
+          orgao_licitante?: string | null
+          portal_disputa?: string | null
+          possibilidade_prorrogacao?: boolean | null
+          prazo_contratual?: string | null
+          prazo_esclarecimento?: string | null
+          prazo_impugnacao?: string | null
+          probabilidade_exito?: string | null
+          regime_execucao?: string | null
+          responsavel_interno?: string | null
+          status?: string | null
+          uasg?: string | null
+          valor_estimado?: number | null
+        }
+        Update: {
+          cidade?: string | null
+          created_at?: string | null
+          criterio_julgamento?: string | null
+          data_publicacao?: string | null
+          data_sessao?: string | null
+          estado?: string | null
+          exigencia_garantia?: boolean | null
+          exigencia_visita_tecnica?: boolean | null
+          grau_interesse?: string | null
+          id?: string
+          link_edital?: string | null
+          modalidade?: string | null
+          numero_edital?: string | null
+          numero_processo?: string | null
+          objeto_detalhado?: string | null
+          objeto_resumido?: string | null
+          observacoes?: string | null
+          orgao_licitante?: string | null
+          portal_disputa?: string | null
+          possibilidade_prorrogacao?: boolean | null
+          prazo_contratual?: string | null
+          prazo_esclarecimento?: string | null
+          prazo_impugnacao?: string | null
+          probabilidade_exito?: string | null
+          regime_execucao?: string | null
+          responsavel_interno?: string | null
+          status?: string | null
+          uasg?: string | null
+          valor_estimado?: number | null
+        }
+        Relationships: []
+      }
+      licitacoes_analises: {
+        Row: {
+          analista: string | null
+          created_at: string | null
+          data_analise: string | null
+          decisao_participar: string | null
+          documentos_obrigatorios: string | null
+          exigencia_garantia_proposta: string | null
+          exigencia_vistoria: string | null
+          exigencias_economicas: string | null
+          exigencias_equipe: string | null
+          exigencias_tecnicas: string | null
+          id: string
+          licitacao_id: string
+          necessidade_cat_crea_cau: string | null
+          necessidade_certidoes: string | null
+          observacoes: string | null
+          oportunidades_impugnacao: string | null
+          pontos_restritivos: string | null
+          resumo_objeto: string | null
+          riscos_juridicos: string | null
+        }
+        Insert: {
+          analista?: string | null
+          created_at?: string | null
+          data_analise?: string | null
+          decisao_participar?: string | null
+          documentos_obrigatorios?: string | null
+          exigencia_garantia_proposta?: string | null
+          exigencia_vistoria?: string | null
+          exigencias_economicas?: string | null
+          exigencias_equipe?: string | null
+          exigencias_tecnicas?: string | null
+          id?: string
+          licitacao_id: string
+          necessidade_cat_crea_cau?: string | null
+          necessidade_certidoes?: string | null
+          observacoes?: string | null
+          oportunidades_impugnacao?: string | null
+          pontos_restritivos?: string | null
+          resumo_objeto?: string | null
+          riscos_juridicos?: string | null
+        }
+        Update: {
+          analista?: string | null
+          created_at?: string | null
+          data_analise?: string | null
+          decisao_participar?: string | null
+          documentos_obrigatorios?: string | null
+          exigencia_garantia_proposta?: string | null
+          exigencia_vistoria?: string | null
+          exigencias_economicas?: string | null
+          exigencias_equipe?: string | null
+          exigencias_tecnicas?: string | null
+          id?: string
+          licitacao_id?: string
+          necessidade_cat_crea_cau?: string | null
+          necessidade_certidoes?: string | null
+          observacoes?: string | null
+          oportunidades_impugnacao?: string | null
+          pontos_restritivos?: string | null
+          resumo_objeto?: string | null
+          riscos_juridicos?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "licitacoes_analises_licitacao_id_fkey"
+            columns: ["licitacao_id"]
+            isOneToOne: false
+            referencedRelation: "licitacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      licitacoes_documentos: {
+        Row: {
+          arquivo_nome: string | null
+          arquivo_url: string | null
+          categoria: string | null
+          created_at: string | null
+          data_emissao: string | null
+          data_validade: string | null
+          id: string
+          licitacoes_vinculadas: Json | null
+          nome: string
+          observacoes: string | null
+          orgao_emissor: string | null
+          status: string | null
+          tipo_documental: string | null
+          versao: number | null
+        }
+        Insert: {
+          arquivo_nome?: string | null
+          arquivo_url?: string | null
+          categoria?: string | null
+          created_at?: string | null
+          data_emissao?: string | null
+          data_validade?: string | null
+          id?: string
+          licitacoes_vinculadas?: Json | null
+          nome?: string
+          observacoes?: string | null
+          orgao_emissor?: string | null
+          status?: string | null
+          tipo_documental?: string | null
+          versao?: number | null
+        }
+        Update: {
+          arquivo_nome?: string | null
+          arquivo_url?: string | null
+          categoria?: string | null
+          created_at?: string | null
+          data_emissao?: string | null
+          data_validade?: string | null
+          id?: string
+          licitacoes_vinculadas?: Json | null
+          nome?: string
+          observacoes?: string | null
+          orgao_emissor?: string | null
+          status?: string | null
+          tipo_documental?: string | null
+          versao?: number | null
+        }
+        Relationships: []
+      }
       materiais_servicos: {
         Row: {
           categoria_id: string | null
