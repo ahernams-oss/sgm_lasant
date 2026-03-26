@@ -420,6 +420,9 @@ export default function LicitacoesPage() {
             <Button onClick={() => { setDocForm(EMPTY_DOCUMENTO); setEditDocId(null); setDocDialogOpen(true); }}>
               <Plus className="h-4 w-4 mr-1" /> Novo Documento
             </Button>
+            <Button variant="outline" onClick={handleTesteWhatsApp} disabled={sendingWhatsApp}>
+              <Send className="h-4 w-4 mr-1" /> {sendingWhatsApp ? "Enviando..." : "Testar WhatsApp"}
+            </Button>
           </div>
 
           {/* Alert for expiring documents */}
