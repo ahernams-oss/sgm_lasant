@@ -423,23 +423,6 @@ export default function CotacaoComprasPage() {
     toast({ title: "Todos os links copiados!" });
   };
 
-  const buildEmailHtml = (fornecedorNome: string, link: string, cotacaoNumero: number) => {
-    const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "Nossa Empresa";
-    return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #333;">Solicitação de Cotação #${cotacaoNumero}</h2>
-        <p>Prezado(a) <strong>${fornecedorNome}</strong>,</p>
-        <p>Gostaríamos de convidá-lo(a) a apresentar sua proposta para a cotação de compras <strong>#${cotacaoNumero}</strong>.</p>
-        <p>Para acessar os itens e enviar sua proposta, clique no botão abaixo:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${link}" style="background-color: #4169E1; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Acessar Cotação e Enviar Proposta</a>
-        </div>
-        <p style="color: #666; font-size: 13px;">Ou copie e cole este link no navegador:<br/><a href="${link}">${link}</a></p>
-        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;"/>
-        <p style="color: #999; font-size: 12px;">Atenciosamente,<br/><strong>${nomeEmpresa}</strong>${empresa.emailCompras ? `<br/>Compras: ${empresa.emailCompras}` : ""}${empresa.telefone ? `<br/>Tel: ${empresa.telefone}` : ""}</p>
-      </div>
-    `;
-  };
 
   const handleEnviarEmailIndividual = async () => {
     if (!linkGerado || !enviarEmail) {
