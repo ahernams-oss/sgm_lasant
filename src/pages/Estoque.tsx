@@ -537,9 +537,12 @@ export default function EstoquePage() {
                         <TableCell className="text-xs">{it.materialDescricao}</TableCell>
                         <TableCell className="text-right">{it.saldoSistema}</TableCell>
                         <TableCell className="text-right">
-                          <Input type="number" className="w-20 text-right" value={it.quantidadeContada}
+                          <Input type="number" className="w-20 text-right"
+                            value={it.quantidadeContada}
+                            min={0}
+                            onFocus={e => e.target.select()}
                             onChange={e => {
-                              const val = Number(e.target.value);
+                              const val = e.target.value === "" ? 0 : Number(e.target.value);
                               setInvItens(prev => prev.map((p, i) => i === idx ? { ...p, quantidadeContada: val, diferenca: val - p.saldoSistema } : p));
                             }} />
                         </TableCell>
