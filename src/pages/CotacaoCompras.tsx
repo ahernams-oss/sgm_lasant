@@ -4,6 +4,7 @@ import { useRequisicaoCompras, RequisicaoCompras } from "@/contexts/RequisicaoCo
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil } from "lucide-react";
+import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { format, subDays, isAfter } from "date-fns";
 
@@ -34,6 +35,7 @@ export default function CotacaoComprasPage() {
   const { addPedido } = usePedidoCompra();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
+  const { empresa } = useEmpresa();
   const { toast } = useToast();
 
   const fornecedores = useMemo(() => clientes.filter(c => c.tipo === "Fornecedor"), [clientes]);
@@ -98,6 +100,8 @@ export default function CotacaoComprasPage() {
   const [linkGerado, setLinkGerado] = useState("");
   const [linksGeradosTodos, setLinksGeradosTodos] = useState<Array<{ fornecedorNome: string; link: string; erro?: string }>>([]);
   const [enviarTodosLoading, setEnviarTodosLoading] = useState(false);
+  const [enviarEmailLoading, setEnviarEmailLoading] = useState(false);
+  const [enviarEmailTodosLoading, setEnviarEmailTodosLoading] = useState(false);
 
   const compradores = useMemo(() => {
     const set = new Set(cotacoes.map(c => c.comprador));
@@ -417,6 +421,103 @@ export default function CotacaoComprasPage() {
       .join("\n");
     navigator.clipboard.writeText(text);
     toast({ title: "Todos os links copiados!" });
+  };
+
+  const buildEmailHtml = (fornecedorNome: string, link: string, cotacaoNumero: number) => {
+    const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "Nossa Empresa";
+    return `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #333;">Solicitação de Cotação #${cotacaoNumero}</h2>
+        <p>Prezado(a) <strong>${fornecedorNome}</strong>,</p>
+        <p>Gostaríamos de convidá-lo(a) a apresentar sua proposta para a cotação de compras <strong>#${cotacaoNumero}</strong>.</p>
+        <p>Para acessar os itens e enviar sua proposta, clique no botão abaixo:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${link}" style="background-color: #4169E1; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Acessar Cotação e Enviar Proposta</a>
+        </div>
+        <p style="color: #666; font-size: 13px;">Ou copie e cole este link no navegador:<br/><a href="${link}">${link}</a></p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;"/>
+        <p style="color: #999; font-size: 12px;">Atenciosamente,<br/><strong>${nomeEmpresa}</strong>${empresa.emailCompras ? `<br/>Compras: ${empresa.emailCompras}` : ""}${empresa.telefone ? `<br/>Tel: ${empresa.telefone}` : ""}</p>
+      </div>
+    `;
+  };
+
+  const handleEnviarEmailIndividual = async () => {
+    if (!linkGerado || !enviarEmail) {
+      toast({ title: "Gere o link e informe o e-mail antes de enviar", variant: "destructive" });
+      return;
+    }
+    setEnviarEmailLoading(true);
+    try {
+      const cot = cotacoes.find(c => c.id === enviarCotacaoId);
+      const forn = fornecedores.find(f => f.id === enviarFornecedorId);
+      if (!cot || !forn) throw new Error("Dados não encontrados");
+
+      const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
+      const htmlBody = buildEmailHtml(forn.nome, linkGerado, cot.numero);
+
+      const { data, error } = await supabase.functions.invoke("send-email-cotacao", {
+        body: {
+          to: enviarEmail,
+          subject: `${nomeEmpresa} - Solicitação de Cotação #${cot.numero}`,
+          htmlBody,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.warning) {
+        toast({ title: "E-mail registrado", description: data.warning });
+      } else {
+        toast({ title: "E-mail enviado com sucesso!" });
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Erro ao enviar e-mail", description: e.message, variant: "destructive" });
+    } finally {
+      setEnviarEmailLoading(false);
+    }
+  };
+
+  const handleEnviarEmailTodos = async () => {
+    const comLink = linksGeradosTodos.filter(r => r.link);
+    if (comLink.length === 0) {
+      toast({ title: "Nenhum link disponível para enviar", variant: "destructive" });
+      return;
+    }
+    setEnviarEmailTodosLoading(true);
+    try {
+      const cot = cotacoes.find(c => c.id === enviarCotacaoId);
+      if (!cot) throw new Error("Cotação não encontrada");
+
+      const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
+      let enviados = 0;
+      let erros = 0;
+
+      for (const item of comLink) {
+        const forn = fornecedores.find(f => f.nome === item.fornecedorNome);
+        const emailForn = forn?.emailCompras || forn?.email || "";
+        if (!emailForn) { erros++; continue; }
+
+        try {
+          const htmlBody = buildEmailHtml(item.fornecedorNome, item.link, cot.numero);
+          await supabase.functions.invoke("send-email-cotacao", {
+            body: {
+              to: emailForn,
+              subject: `${nomeEmpresa} - Solicitação de Cotação #${cot.numero}`,
+              htmlBody,
+            },
+          });
+          enviados++;
+        } catch {
+          erros++;
+        }
+      }
+
+      toast({ title: `E-mails enviados: ${enviados} de ${comLink.length}${erros > 0 ? ` (${erros} erro(s))` : ""}` });
+    } catch (e: any) {
+      toast({ title: "Erro ao enviar e-mails", description: e.message, variant: "destructive" });
+    } finally {
+      setEnviarEmailTodosLoading(false);
+    }
   };
 
   // === Sincronizar propostas externas ===
@@ -1184,12 +1285,18 @@ export default function CotacaoComprasPage() {
             {/* Resultados envio em massa */}
             {linksGeradosTodos.length > 0 && (
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <p className="text-sm font-medium">Links gerados ({linksGeradosTodos.filter(r => r.link).length}/{linksGeradosTodos.length})</p>
-                  <Button variant="outline" size="sm" onClick={handleCopyAllLinks}>
-                    <Copy className="mr-2 h-3.5 w-3.5" />
-                    Copiar Todos
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={handleCopyAllLinks}>
+                      <Copy className="mr-2 h-3.5 w-3.5" />
+                      Copiar Todos
+                    </Button>
+                    <Button size="sm" onClick={handleEnviarEmailTodos} disabled={enviarEmailTodosLoading || linksGeradosTodos.filter(r => r.link).length === 0}>
+                      <Mail className="mr-2 h-3.5 w-3.5" />
+                      {enviarEmailTodosLoading ? "Enviando..." : "Enviar por E-mail"}
+                    </Button>
+                  </div>
                 </div>
                 <div className="border rounded-lg divide-y max-h-60 overflow-y-auto">
                   {linksGeradosTodos.map((r, idx) => (
@@ -1266,6 +1373,12 @@ export default function CotacaoComprasPage() {
                       O fornecedor pode acessar este link para preencher seus preços. 
                       Quando ele enviar a proposta, ela aparecerá automaticamente aqui.
                     </p>
+                    {enviarEmail && (
+                      <Button onClick={handleEnviarEmailIndividual} disabled={enviarEmailLoading} className="w-full">
+                        <Mail className="mr-2 h-4 w-4" />
+                        {enviarEmailLoading ? "Enviando..." : `Enviar Link por E-mail para ${enviarEmail}`}
+                      </Button>
+                    )}
                   </div>
                 )}
               </>
