@@ -21,7 +21,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from "@/lib/utils";
 
 export default function EstoquePage() {
-  const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, criarInventario, fecharInventario } = useEstoque();
+  const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, criarInventario, atualizarInventario, fecharInventario } = useEstoque();
   const { materiais } = useMateriaisServicos();
   const { usuarioLogado } = useAuth();
   const { clientes } = useClientes();
