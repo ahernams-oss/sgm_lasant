@@ -39,6 +39,8 @@ const MedicoesServicos = () => {
   const [descricao, setDescricao] = useState("");
   const [itens, setItens] = useState<ItemServico[]>([emptyItem()]);
   const [observacoes, setObservacoes] = useState("");
+  const [fornecedorId, setFornecedorId] = useState("");
+  const [fornecedorNome, setFornecedorNome] = useState("");
 
   // Lançamento state
   const [lancTipo, setLancTipo] = useState<"percentual" | "valor">("percentual");
@@ -48,6 +50,8 @@ const MedicoesServicos = () => {
   const resetForm = () => {
     setClienteId("");
     setClienteNome("");
+    setFornecedorId("");
+    setFornecedorNome("");
     setContrato("");
     setDescricao("");
     setItens([emptyItem()]);
@@ -60,6 +64,8 @@ const MedicoesServicos = () => {
       setEditId(m.id);
       setClienteId(m.cliente_id);
       setClienteNome(m.cliente_nome);
+      setFornecedorId((m as any).fornecedor_id || "");
+      setFornecedorNome((m as any).fornecedor_nome || "");
       setContrato(m.contrato);
       setDescricao(m.descricao);
       setItens(m.itens.length > 0 ? m.itens : [emptyItem()]);
@@ -83,6 +89,8 @@ const MedicoesServicos = () => {
     const payload: any = {
       cliente_id: clienteId,
       cliente_nome: clienteNome,
+      fornecedor_id: fornecedorId,
+      fornecedor_nome: fornecedorNome,
       contrato,
       descricao,
       itens: itensCalc,
@@ -225,7 +233,7 @@ const MedicoesServicos = () => {
               </Button>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Cliente / Obra</Label>
                   <Select value={clienteId} onValueChange={(v) => {
@@ -241,6 +249,23 @@ const MedicoesServicos = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label>Fornecedor</Label>
+                  <Select value={fornecedorId} onValueChange={(v) => {
+                    setFornecedorId(v);
+                    const f = clientes.find(c => c.id === v);
+                    setFornecedorNome(f?.nome || "");
+                  }}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {clientes.filter(c => c.tipo === "Fornecedor").map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Contrato</Label>
                   <Input value={contrato} onChange={e => setContrato(e.target.value)} placeholder="Nº do contrato" />

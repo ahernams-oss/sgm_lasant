@@ -1273,6 +1273,8 @@ export type Database = {
           contrato: string | null
           created_at: string | null
           descricao: string | null
+          fornecedor_id: string | null
+          fornecedor_nome: string | null
           id: string
           itens: Json | null
           medicoes: Json | null
@@ -1289,6 +1291,8 @@ export type Database = {
           contrato?: string | null
           created_at?: string | null
           descricao?: string | null
+          fornecedor_id?: string | null
+          fornecedor_nome?: string | null
           id?: string
           itens?: Json | null
           medicoes?: Json | null
@@ -1305,6 +1309,8 @@ export type Database = {
           contrato?: string | null
           created_at?: string | null
           descricao?: string | null
+          fornecedor_id?: string | null
+          fornecedor_nome?: string | null
           id?: string
           itens?: Json | null
           medicoes?: Json | null
