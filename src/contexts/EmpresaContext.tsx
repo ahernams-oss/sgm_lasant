@@ -20,6 +20,10 @@ export interface Empresa {
   celular: string;
   email: string;
   emailCompras: string;
+  emailRh: string;
+  emailEngenharia: string;
+  emailEstoque: string;
+  emailRelatorios: string;
   contato: string;
   site: string;
   logoUrl: string;
@@ -29,7 +33,8 @@ const EMPTY: Empresa = {
   id: "", razaoSocial: "", nomeFantasia: "", cnpj: "", inscricaoEstadual: "",
   inscricaoMunicipal: "", logradouro: "", numero: "", complemento: "", bairro: "",
   cidade: "", uf: "", cep: "", telefone: "", celular: "", email: "", emailCompras: "",
-  contato: "", site: "", logoUrl: "",
+  contato: "", site: "", logoUrl: "", emailRh: "", emailEngenharia: "",
+  emailEstoque: "", emailRelatorios: "",
 };
 
 interface EmpresaContextType {
@@ -59,6 +64,10 @@ const rowToEmpresa = (r: any): Empresa => ({
   celular: r.celular ?? "",
   email: r.email ?? "",
   emailCompras: r.email_compras ?? "",
+  emailRh: r.email_rh ?? "",
+  emailEngenharia: r.email_engenharia ?? "",
+  emailEstoque: r.email_estoque ?? "",
+  emailRelatorios: r.email_relatorios ?? "",
   contato: r.contato ?? "",
   site: r.site ?? "",
   logoUrl: r.logo_url ?? "",
@@ -81,6 +90,10 @@ const empresaToRow = (e: Empresa) => ({
   celular: e.celular,
   email: e.email,
   email_compras: e.emailCompras,
+  email_rh: e.emailRh,
+  email_engenharia: e.emailEngenharia,
+  email_estoque: e.emailEstoque,
+  email_relatorios: e.emailRelatorios,
   contato: e.contato,
   site: e.site,
   logo_url: e.logoUrl,
