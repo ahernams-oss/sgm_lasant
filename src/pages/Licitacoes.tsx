@@ -14,7 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Search, Eye, Pencil, Trash2, Upload, FileText, ChevronDown, ExternalLink, AlertTriangle, CheckCircle2, Clock, XCircle, Filter } from "lucide-react";
+import { Plus, Search, Eye, Pencil, Trash2, Upload, FileText, ChevronDown, ExternalLink, AlertTriangle, CheckCircle2, Clock, XCircle, Filter, Send } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
 // ============ CONSTANTS ============
@@ -121,6 +122,32 @@ export default function LicitacoesPage() {
   } = useLicitacoes();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
+
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+
+  // WhatsApp test notification
+  const handleTesteWhatsApp = async () => {
+    setSendingWhatsApp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-documentos-vencimento', {
+        body: {
+          test: true,
+          testNumbers: ['+5521988381303', '+5521991382831'],
+        },
+      });
+      if (error) throw error;
+      if (data?.notificados === 0) {
+        toast({ title: "Nenhum documento com vencimento nos próximos 15 dias." });
+      } else {
+        toast({ title: `Teste enviado! ${data?.notificados || 0} documento(s) notificado(s) via WhatsApp.` });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+      toast({ title: "Erro ao enviar teste WhatsApp", description: msg, variant: "destructive" });
+    } finally {
+      setSendingWhatsApp(false);
+    }
+  };
 
   // Tab state
   const [activeTab, setActiveTab] = useState("oportunidades");
@@ -392,6 +419,9 @@ export default function LicitacoesPage() {
             </Select>
             <Button onClick={() => { setDocForm(EMPTY_DOCUMENTO); setEditDocId(null); setDocDialogOpen(true); }}>
               <Plus className="h-4 w-4 mr-1" /> Novo Documento
+            </Button>
+            <Button variant="outline" onClick={handleTesteWhatsApp} disabled={sendingWhatsApp}>
+              <Send className="h-4 w-4 mr-1" /> {sendingWhatsApp ? "Enviando..." : "Testar WhatsApp"}
             </Button>
           </div>
 
