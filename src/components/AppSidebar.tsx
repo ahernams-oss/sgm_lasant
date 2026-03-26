@@ -1,4 +1,4 @@
-import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock, FileSpreadsheet, DollarSign, ShoppingCart, Tags, Package, BarChart3, Scale, FileCheck, PackageCheck, Factory, Warehouse, KeyRound, Building2 } from "lucide-react";
+import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock, FileSpreadsheet, DollarSign, ShoppingCart, Tags, Package, BarChart3, Scale, FileCheck, PackageCheck, Factory, Warehouse, KeyRound, Building2, HardHat, Stethoscope } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import { NavLink } from "@/components/NavLink";
@@ -25,6 +25,8 @@ const menuItems = [
       { title: "Requisição de Colaboradores", url: "/", icon: ClipboardList },
       { title: "Processos Seletivos", url: "/processos-seletivos", icon: ClipboardCheck },
       { title: "Funcionários", url: "/funcionarios", icon: UserCheck },
+      { title: "EPIs", url: "/epis", icon: HardHat },
+      { title: "Exames Periódicos", url: "/exames", icon: Stethoscope },
       { title: "Mapa de Funcionários", url: "/mapa-funcionarios", icon: CalendarClock },
     ],
   },

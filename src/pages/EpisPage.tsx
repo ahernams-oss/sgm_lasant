@@ -35,8 +35,8 @@ const EpisPage = () => {
     const lista: EpiComFuncionario[] = [];
     funcionarios.forEach((f) => {
       const epis = (f.epis as EpiItem[] | null) || [];
-      const cliente = clientes.find((c) => c.id === f.cliente_id);
-      const cargo = cargos.find((c) => c.id === f.cargo_id);
+      const cliente = clientes.find((c) => c.id === f.clienteId);
+      const cargo = cargos.find((c) => c.id === f.cargoId);
       epis.forEach((epi) => {
         lista.push({
           ...epi,

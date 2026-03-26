@@ -50,6 +50,8 @@ import { FabricantesProvider } from "@/contexts/FabricantesContext";
 import { PerfisAcessoProvider } from "@/contexts/PerfisAcessoContext";
 import { EmpresaProvider } from "@/contexts/EmpresaContext";
 import FabricantesPage from "./pages/Fabricantes.tsx";
+import EpisPage from "./pages/EpisPage.tsx";
+import ExamesPage from "./pages/ExamesPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +66,8 @@ function AppRoutes() {
         <Route path="/fornecedores" element={<Fornecedores />} />
         <Route path="/cargos" element={<Cargos />} />
         <Route path="/funcionarios" element={<Funcionarios />} />
+        <Route path="/epis" element={<EpisPage />} />
+        <Route path="/exames" element={<ExamesPage />} />
         <Route path="/mapa-funcionarios" element={<MapaFuncionarios />} />
         <Route path="/usuarios" element={<Usuarios />} />
         <Route path="/perfis-acesso" element={<PerfisAcessoPage />} />
