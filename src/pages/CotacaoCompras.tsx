@@ -35,6 +35,7 @@ export default function CotacaoComprasPage() {
   const { addPedido } = usePedidoCompra();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
+  const { empresa } = useEmpresa();
   const { toast } = useToast();
 
   const fornecedores = useMemo(() => clientes.filter(c => c.tipo === "Fornecedor"), [clientes]);
