@@ -69,6 +69,9 @@ const rowToMov = (r: any): MovimentacaoEstoque => ({
   quantidade: Number(r.quantidade ?? 0), local: r.local ?? "",
   documentoRef: r.documento_ref ?? "", observacao: r.observacao ?? "",
   usuario: r.usuario ?? "", dataMovimentacao: r.data_movimentacao ?? "",
+  lote: r.lote ?? "", validade: r.validade ?? "",
+  depositoOrigem: r.deposito_origem ?? "", depositoDestino: r.deposito_destino ?? "",
+  fornecedorNome: r.fornecedor_nome ?? "",
 });
 
 const rowToInv = (r: any): Inventario => ({
@@ -99,6 +102,9 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
       quantidade: data.quantidade, local: data.local,
       documento_ref: data.documentoRef, observacao: data.observacao,
       usuario: data.usuario, data_movimentacao: new Date().toISOString(),
+      lote: data.lote || "", validade: data.validade || null,
+      deposito_origem: data.depositoOrigem || "", deposito_destino: data.depositoDestino || "",
+      fornecedor_nome: data.fornecedorNome || "",
     });
     await load();
   };
