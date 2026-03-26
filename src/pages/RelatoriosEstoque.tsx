@@ -57,11 +57,6 @@ export default function RelatoriosEstoquePage() {
     movimentacoes.forEach(m => { if (m.usuario) s.add(m.usuario); });
     return Array.from(s).sort();
   }, [movimentacoes]);
-      const cc = getCentroCusto(m.documentoRef);
-      if (cc && cc !== "-") s.add(cc);
-    });
-    return Array.from(s).sort();
-  }, [movimentacoes, centroCustoMap]);
 
   const centroCustoMap = useMemo(() => {
     const map = new Map<number, string>();
@@ -77,6 +72,15 @@ export default function RelatoriosEstoquePage() {
     if (match) return centroCustoMap.get(parseInt(match[1])) || "-";
     return "-";
   };
+
+  const centrosCusto = useMemo(() => {
+    const s = new Set<string>();
+    movimentacoes.forEach(m => {
+      const cc = getCentroCusto(m.documentoRef);
+      if (cc && cc !== "-") s.add(cc);
+    });
+    return Array.from(s).sort();
+  }, [movimentacoes, centroCustoMap]);
 
   // Apply common filters
   const filterByPeriod = (dateStr: string) => {
