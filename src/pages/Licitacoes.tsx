@@ -444,8 +444,11 @@ export default function LicitacoesPage() {
             <Button onClick={() => { setDocForm(EMPTY_DOCUMENTO); setEditDocId(null); setDocDialogOpen(true); }}>
               <Plus className="h-4 w-4 mr-1" /> Novo Documento
             </Button>
+            <Button variant="outline" onClick={() => { setPhoneDialogOpen(true); loadPhones(); }}>
+              <Phone className="h-4 w-4 mr-1" /> Telefones WhatsApp
+            </Button>
             <Button variant="outline" onClick={handleTesteWhatsApp} disabled={sendingWhatsApp}>
-              <Send className="h-4 w-4 mr-1" /> {sendingWhatsApp ? "Enviando..." : "Testar WhatsApp"}
+              <Send className="h-4 w-4 mr-1" /> {sendingWhatsApp ? "Enviando..." : "Testar Envio"}
             </Button>
           </div>
 
