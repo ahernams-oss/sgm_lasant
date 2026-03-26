@@ -1209,6 +1209,27 @@ export type Database = {
         }
         Relationships: []
       }
+      licitacoes_telefones_notificacao: {
+        Row: {
+          created_at: string | null
+          id: string
+          nome_contato: string
+          telefone: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          nome_contato?: string
+          telefone?: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          nome_contato?: string
+          telefone?: string
+        }
+        Relationships: []
+      }
       materiais_servicos: {
         Row: {
           categoria_id: string | null
