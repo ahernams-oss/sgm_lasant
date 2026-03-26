@@ -51,6 +51,7 @@ const MedicoesServicos = () => {
   const [lancTipo, setLancTipo] = useState<"percentual" | "valor">("percentual");
   const [lancItens, setLancItens] = useState<{ item_id: string; descricao: string; percentual: number; valor: number; quantidade: number }[]>([]);
   const [lancObs, setLancObs] = useState("");
+  const [lancDataPagamento, setLancDataPagamento] = useState<Date | undefined>(undefined);
 
   const resetForm = () => {
     setClienteId("");
@@ -149,7 +150,7 @@ const MedicoesServicos = () => {
       quantidade: 0,
     })));
     setLancObs("");
-    setLancDataPagamento(m.data_pagamento ? new Date(m.data_pagamento) : undefined);
+    setLancDataPagamento((m as any).data_pagamento ? new Date((m as any).data_pagamento) : undefined);
     setShowLancamento(true);
   };
 
