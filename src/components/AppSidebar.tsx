@@ -1,4 +1,4 @@
-import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock, FileSpreadsheet, DollarSign, ShoppingCart, Tags, Package, BarChart3, Scale, FileCheck, PackageCheck, Factory, Warehouse, KeyRound, Building2, HardHat, Stethoscope, FileBarChart, Gavel } from "lucide-react";
+import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock, FileSpreadsheet, DollarSign, ShoppingCart, Tags, Package, BarChart3, Scale, FileCheck, PackageCheck, Factory, Warehouse, KeyRound, Building2, HardHat, Stethoscope, FileBarChart, Gavel, Ruler } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import { NavLink } from "@/components/NavLink";
@@ -32,7 +32,9 @@ const menuItems = [
   },
   {
     group: "Engenharia",
-    items: [],
+    items: [
+      { title: "Medição de Serviços", url: "/engenharia/medicoes", icon: Ruler },
+    ],
   },
   {
     group: "Compras e Suprimentos",
