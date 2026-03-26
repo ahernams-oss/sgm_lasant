@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, ArrowDownCircle, ArrowUpCircle, AlertTriangle, ClipboardList, Package, Warehouse, TrendingDown, ChevronsUpDown, Check } from "lucide-react";
+import { Plus, Search, ArrowDownCircle, ArrowUpCircle, AlertTriangle, ClipboardList, Package, Warehouse, TrendingDown, ChevronsUpDown, Check, Pencil } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
