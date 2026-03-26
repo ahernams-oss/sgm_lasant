@@ -1,4 +1,4 @@
-import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock, FileSpreadsheet, DollarSign, ShoppingCart, Tags, Package, BarChart3, Scale, FileCheck, PackageCheck, Factory, Warehouse, KeyRound, Building2, HardHat, Stethoscope } from "lucide-react";
+import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock, FileSpreadsheet, DollarSign, ShoppingCart, Tags, Package, BarChart3, Scale, FileCheck, PackageCheck, Factory, Warehouse, KeyRound, Building2, HardHat, Stethoscope, FileBarChart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import { NavLink } from "@/components/NavLink";
@@ -39,6 +39,7 @@ const menuItems = [
       { title: "Pedidos de Compra", url: "/compras/pedidos", icon: FileCheck },
       { title: "Recebimento", url: "/compras/recebimento", icon: PackageCheck },
       { title: "Estoque", url: "/compras/estoque", icon: Warehouse },
+      { title: "Relatórios Estoque", url: "/compras/relatorios-estoque", icon: FileBarChart },
       { title: "Categorias de Compras", url: "/compras/categorias", icon: Tags },
       { title: "Materiais e Serviços", url: "/compras/materiais", icon: Package },
       { title: "Fabricantes", url: "/compras/fabricantes", icon: Factory },

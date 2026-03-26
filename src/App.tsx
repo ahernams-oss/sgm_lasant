@@ -27,6 +27,7 @@ import PedidoCompraPage from "./pages/PedidoCompra.tsx";
 import PropostaFornecedorPage from "./pages/PropostaFornecedor.tsx";
 import RecebimentoComprasPage from "./pages/RecebimentoCompras.tsx";
 import EstoquePage from "./pages/Estoque.tsx";
+import RelatoriosEstoquePage from "./pages/RelatoriosEstoque.tsx";
 import PerfisAcessoPage from "./pages/PerfisAcesso.tsx";
 import EmpresaDadosPage from "./pages/EmpresaDados.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
@@ -83,6 +84,7 @@ function AppRoutes() {
         <Route path="/compras/pedidos" element={<PedidoCompraPage />} />
         <Route path="/compras/recebimento" element={<RecebimentoComprasPage />} />
         <Route path="/compras/estoque" element={<EstoquePage />} />
+        <Route path="/compras/relatorios-estoque" element={<RelatoriosEstoquePage />} />
         <Route path="/compras/dashboard" element={<DashboardCompras />} />
         <Route path="/compras/fabricantes" element={<FabricantesPage />} />
         <Route path="*" element={<NotFound />} />

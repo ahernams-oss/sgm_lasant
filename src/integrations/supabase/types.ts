@@ -506,9 +506,13 @@ export type Database = {
         Row: {
           created_at: string | null
           data_movimentacao: string | null
+          deposito_destino: string | null
+          deposito_origem: string | null
           documento_ref: string | null
+          fornecedor_nome: string | null
           id: string
           local: string
+          lote: string | null
           material_codigo: string
           material_descricao: string
           material_id: string
@@ -516,13 +520,18 @@ export type Database = {
           quantidade: number
           tipo: string
           usuario: string | null
+          validade: string | null
         }
         Insert: {
           created_at?: string | null
           data_movimentacao?: string | null
+          deposito_destino?: string | null
+          deposito_origem?: string | null
           documento_ref?: string | null
+          fornecedor_nome?: string | null
           id?: string
           local?: string
+          lote?: string | null
           material_codigo?: string
           material_descricao?: string
           material_id?: string
@@ -530,13 +539,18 @@ export type Database = {
           quantidade?: number
           tipo?: string
           usuario?: string | null
+          validade?: string | null
         }
         Update: {
           created_at?: string | null
           data_movimentacao?: string | null
+          deposito_destino?: string | null
+          deposito_origem?: string | null
           documento_ref?: string | null
+          fornecedor_nome?: string | null
           id?: string
           local?: string
+          lote?: string | null
           material_codigo?: string
           material_descricao?: string
           material_id?: string
@@ -544,6 +558,7 @@ export type Database = {
           quantidade?: number
           tipo?: string
           usuario?: string | null
+          validade?: string | null
         }
         Relationships: []
       }
