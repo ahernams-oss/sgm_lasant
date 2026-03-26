@@ -1266,6 +1266,57 @@ export type Database = {
         }
         Relationships: []
       }
+      medicoes_servicos: {
+        Row: {
+          cliente_id: string | null
+          cliente_nome: string | null
+          contrato: string | null
+          created_at: string | null
+          descricao: string | null
+          id: string
+          itens: Json | null
+          medicoes: Json | null
+          numero: number
+          observacoes: string | null
+          percentual_medido: number | null
+          status: string | null
+          valor_total_contratado: number | null
+          valor_total_medido: number | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          contrato?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          itens?: Json | null
+          medicoes?: Json | null
+          numero?: number
+          observacoes?: string | null
+          percentual_medido?: number | null
+          status?: string | null
+          valor_total_contratado?: number | null
+          valor_total_medido?: number | null
+        }
+        Update: {
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          contrato?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          itens?: Json | null
+          medicoes?: Json | null
+          numero?: number
+          observacoes?: string | null
+          percentual_medido?: number | null
+          status?: string | null
+          valor_total_contratado?: number | null
+          valor_total_medido?: number | null
+        }
+        Relationships: []
+      }
       pedidos_compra: {
         Row: {
           comprador: string | null
