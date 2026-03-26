@@ -453,22 +453,25 @@ export default function CotacaoComprasPage() {
       if (!cot || !forn) throw new Error("Dados não encontrados");
 
       const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
-      const htmlBody = buildEmailHtml(forn.nome, linkGerado, cot.numero);
+      const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
 
-      const { data, error } = await supabase.functions.invoke("send-email-cotacao", {
+      const { error } = await supabase.functions.invoke("send-transactional-email", {
         body: {
-          to: enviarEmail,
-          subject: `${nomeEmpresa} - Solicitação de Cotação #${cot.numero}`,
-          htmlBody,
+          templateName: "cotacao-confirmation",
+          recipientEmail: enviarEmail,
+          idempotencyKey: `cotacao-${cot.id}-${enviarFornecedorId}`,
+          templateData: {
+            fornecedorNome: forn.nome,
+            cotacaoNumero: cot.numero,
+            comprador,
+            link: linkGerado,
+            nomeEmpresa,
+          },
         },
       });
 
       if (error) throw error;
-      if (data?.warning) {
-        toast({ title: "E-mail registrado", description: data.warning });
-      } else {
-        toast({ title: "E-mail enviado com sucesso!" });
-      }
+      toast({ title: "E-mail enviado com sucesso!" });
     } catch (e: any) {
       console.error(e);
       toast({ title: "Erro ao enviar e-mail", description: e.message, variant: "destructive" });
@@ -489,6 +492,7 @@ export default function CotacaoComprasPage() {
       if (!cot) throw new Error("Cotação não encontrada");
 
       const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
+      const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
       let enviados = 0;
       let erros = 0;
 
@@ -498,12 +502,18 @@ export default function CotacaoComprasPage() {
         if (!emailForn) { erros++; continue; }
 
         try {
-          const htmlBody = buildEmailHtml(item.fornecedorNome, item.link, cot.numero);
-          await supabase.functions.invoke("send-email-cotacao", {
+          await supabase.functions.invoke("send-transactional-email", {
             body: {
-              to: emailForn,
-              subject: `${nomeEmpresa} - Solicitação de Cotação #${cot.numero}`,
-              htmlBody,
+              templateName: "cotacao-confirmation",
+              recipientEmail: emailForn,
+              idempotencyKey: `cotacao-${cot.id}-${forn?.id || item.fornecedorNome}`,
+              templateData: {
+                fornecedorNome: item.fornecedorNome,
+                cotacaoNumero: cot.numero,
+                comprador,
+                link: item.link,
+                nomeEmpresa,
+              },
             },
           });
           enviados++;
