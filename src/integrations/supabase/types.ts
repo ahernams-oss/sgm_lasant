@@ -1272,6 +1272,7 @@ export type Database = {
           cliente_nome: string | null
           contrato: string | null
           created_at: string | null
+          data_pagamento: string | null
           descricao: string | null
           fornecedor_id: string | null
           fornecedor_nome: string | null
@@ -1290,6 +1291,7 @@ export type Database = {
           cliente_nome?: string | null
           contrato?: string | null
           created_at?: string | null
+          data_pagamento?: string | null
           descricao?: string | null
           fornecedor_id?: string | null
           fornecedor_nome?: string | null
@@ -1308,6 +1310,7 @@ export type Database = {
           cliente_nome?: string | null
           contrato?: string | null
           created_at?: string | null
+          data_pagamento?: string | null
           descricao?: string | null
           fornecedor_id?: string | null
           fornecedor_nome?: string | null
