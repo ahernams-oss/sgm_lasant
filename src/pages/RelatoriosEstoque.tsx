@@ -41,6 +41,7 @@ export default function RelatoriosEstoquePage() {
   const [search, setSearch] = useState("");
   const [filtroUnidade, setFiltroUnidade] = useState("__all__");
   const [filtroUsuario, setFiltroUsuario] = useState("__all__");
+  const [filtroCC, setFiltroCC] = useState("__all__");
   const [dataInicio, setDataInicio] = useState<Date | undefined>();
   const [dataFim, setDataFim] = useState<Date | undefined>();
 
