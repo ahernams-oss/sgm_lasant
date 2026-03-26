@@ -100,6 +100,8 @@ export default function CotacaoComprasPage() {
   const [linkGerado, setLinkGerado] = useState("");
   const [linksGeradosTodos, setLinksGeradosTodos] = useState<Array<{ fornecedorNome: string; link: string; erro?: string }>>([]);
   const [enviarTodosLoading, setEnviarTodosLoading] = useState(false);
+  const [enviarEmailLoading, setEnviarEmailLoading] = useState(false);
+  const [enviarEmailTodosLoading, setEnviarEmailTodosLoading] = useState(false);
 
   const compradores = useMemo(() => {
     const set = new Set(cotacoes.map(c => c.comprador));
