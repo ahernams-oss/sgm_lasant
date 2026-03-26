@@ -95,6 +95,7 @@ export default function RelatoriosEstoquePage() {
     if (!filterByPeriod(m.dataMovimentacao)) return false;
     if (filtroUnidade !== "__all__" && m.local !== filtroUnidade) return false;
     if (filtroUsuario !== "__all__" && m.usuario !== filtroUsuario) return false;
+    if (filtroCC !== "__all__" && getCentroCusto(m.documentoRef) !== filtroCC) return false;
     if (search) {
       const s = search.toLowerCase();
       if (!m.materialCodigo.toLowerCase().includes(s) && !m.materialDescricao.toLowerCase().includes(s)) return false;
@@ -102,14 +103,15 @@ export default function RelatoriosEstoquePage() {
     return true;
   };
 
-  const clearFilters = () => { setSearch(""); setFiltroUnidade("__all__"); setFiltroUsuario("__all__"); setDataInicio(undefined); setDataFim(undefined); };
-  const hasFilters = search || filtroUnidade !== "__all__" || filtroUsuario !== "__all__" || dataInicio || dataFim;
+  const clearFilters = () => { setSearch(""); setFiltroUnidade("__all__"); setFiltroUsuario("__all__"); setFiltroCC("__all__"); setDataInicio(undefined); setDataFim(undefined); };
+  const hasFilters = search || filtroUnidade !== "__all__" || filtroUsuario !== "__all__" || filtroCC !== "__all__" || dataInicio || dataFim;
 
   const filtersText = () => {
     const parts: string[] = [];
     if (dataInicio) parts.push(`De: ${format(dataInicio, "dd/MM/yyyy")}`);
     if (dataFim) parts.push(`Até: ${format(dataFim, "dd/MM/yyyy")}`);
     if (filtroUnidade !== "__all__") parts.push(`Unidade: ${filtroUnidade}`);
+    if (filtroCC !== "__all__") parts.push(`C.Custo: ${filtroCC}`);
     if (filtroUsuario !== "__all__") parts.push(`Usuário: ${filtroUsuario}`);
     if (search) parts.push(`Busca: ${search}`);
     return parts.join(" | ");
@@ -331,6 +333,16 @@ export default function RelatoriosEstoquePage() {
                 <SelectContent>
                   <SelectItem value="__all__">Todos</SelectItem>
                   {locais.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Centro de Custo</Label>
+              <Select value={filtroCC} onValueChange={setFiltroCC}>
+                <SelectTrigger className="h-8 text-xs w-[160px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">Todos</SelectItem>
+                  {centrosCusto.map(cc => <SelectItem key={cc} value={cc}>{cc}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
