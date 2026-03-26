@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Search, Eye, Pencil, Trash2, Upload, FileText, ChevronDown, ExternalLink, AlertTriangle, CheckCircle2, Clock, XCircle, Filter, Send } from "lucide-react";
+import { Plus, Search, Eye, Pencil, Trash2, Upload, FileText, ChevronDown, ExternalLink, AlertTriangle, CheckCircle2, Clock, XCircle, Filter, Send, Phone, Settings, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
@@ -124,20 +124,44 @@ export default function LicitacoesPage() {
   const { toast } = useToast();
 
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
+  const [phoneList, setPhoneList] = useState<{ id: string; telefone: string; nome_contato: string }[]>([]);
+  const [newPhone, setNewPhone] = useState("");
+  const [newPhoneName, setNewPhoneName] = useState("");
+  const [loadingPhones, setLoadingPhones] = useState(false);
+
+  const loadPhones = async () => {
+    setLoadingPhones(true);
+    const { data } = await supabase.from("licitacoes_telefones_notificacao").select("*").order("created_at");
+    setPhoneList((data as any[]) || []);
+    setLoadingPhones(false);
+  };
+
+  const handleAddPhone = async () => {
+    if (!newPhone.trim()) { toast({ title: "Informe o telefone", variant: "destructive" }); return; }
+    const { error } = await supabase.from("licitacoes_telefones_notificacao").insert({ telefone: newPhone.trim(), nome_contato: newPhoneName.trim() });
+    if (error) { toast({ title: "Erro ao adicionar", description: error.message, variant: "destructive" }); return; }
+    setNewPhone(""); setNewPhoneName("");
+    toast({ title: "Telefone adicionado!" });
+    loadPhones();
+  };
+
+  const handleRemovePhone = async (id: string) => {
+    await supabase.from("licitacoes_telefones_notificacao").delete().eq("id", id);
+    toast({ title: "Telefone removido!" });
+    loadPhones();
+  };
 
   // WhatsApp test notification
   const handleTesteWhatsApp = async () => {
     setSendingWhatsApp(true);
     try {
       const { data, error } = await supabase.functions.invoke('check-documentos-vencimento', {
-        body: {
-          test: true,
-          testNumbers: ['+5521988381303', '+5521991382831'],
-        },
+        body: {},
       });
       if (error) throw error;
       if (data?.notificados === 0) {
-        toast({ title: "Nenhum documento com vencimento nos próximos 15 dias." });
+        toast({ title: "Nenhum documento com vencimento nos próximos 15 dias ou nenhum telefone cadastrado." });
       } else {
         toast({ title: `Teste enviado! ${data?.notificados || 0} documento(s) notificado(s) via WhatsApp.` });
       }
@@ -420,8 +444,11 @@ export default function LicitacoesPage() {
             <Button onClick={() => { setDocForm(EMPTY_DOCUMENTO); setEditDocId(null); setDocDialogOpen(true); }}>
               <Plus className="h-4 w-4 mr-1" /> Novo Documento
             </Button>
+            <Button variant="outline" onClick={() => { setPhoneDialogOpen(true); loadPhones(); }}>
+              <Phone className="h-4 w-4 mr-1" /> Telefones WhatsApp
+            </Button>
             <Button variant="outline" onClick={handleTesteWhatsApp} disabled={sendingWhatsApp}>
-              <Send className="h-4 w-4 mr-1" /> {sendingWhatsApp ? "Enviando..." : "Testar WhatsApp"}
+              <Send className="h-4 w-4 mr-1" /> {sendingWhatsApp ? "Enviando..." : "Testar Envio"}
             </Button>
           </div>
 
@@ -874,6 +901,55 @@ export default function LicitacoesPage() {
               <div><span className="font-medium">Observações:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.observacoes || "-"}</p></div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* =============== DIALOG: TELEFONES WHATSAPP =============== */}
+      <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Telefones para Notificação WhatsApp</DialogTitle>
+            <DialogDescription>Gerencie os números que receberão avisos de vencimento de documentos (15 dias antes).</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Label>Nome do Contato</Label>
+                <Input placeholder="Ex: João Silva" value={newPhoneName} onChange={e => setNewPhoneName(e.target.value)} />
+              </div>
+              <div className="flex-1">
+                <Label>Telefone</Label>
+                <Input placeholder="+5521999999999" value={newPhone} onChange={e => setNewPhone(e.target.value)} />
+              </div>
+              <div className="flex items-end">
+                <Button onClick={handleAddPhone} size="icon"><Plus className="h-4 w-4" /></Button>
+              </div>
+            </div>
+
+            {loadingPhones ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Carregando...</p>
+            ) : phoneList.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhum telefone cadastrado</p>
+            ) : (
+              <div className="border rounded-lg divide-y max-h-[300px] overflow-y-auto">
+                {phoneList.map(p => (
+                  <div key={p.id} className="flex items-center justify-between px-3 py-2">
+                    <div>
+                      <span className="font-medium text-sm">{p.nome_contato || "Sem nome"}</span>
+                      <span className="text-sm text-muted-foreground ml-2">{p.telefone}</span>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => handleRemovePhone(p.id)}>
+                      <X className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground">
+              Os avisos são enviados automaticamente todos os dias às 8h para documentos com vencimento nos próximos 15 dias.
+            </p>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

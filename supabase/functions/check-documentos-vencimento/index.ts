@@ -23,11 +23,6 @@ serve(async (req) => {
       throw new Error('CHATPRO_TOKEN ou CHATPRO_INSTANCE não configurados');
     }
 
-    // Check if this is a test request
-    const body = await req.json().catch(() => ({}));
-    const isTest = body.test === true;
-    const testNumbers = body.testNumbers || [];
-
     const today = new Date();
     const d15 = new Date(today);
     d15.setDate(d15.getDate() + 15);
@@ -54,6 +49,25 @@ serve(async (req) => {
       });
     }
 
+    // Fetch notification phone numbers from DB
+    const { data: telefones, error: telError } = await supabase
+      .from('licitacoes_telefones_notificacao')
+      .select('telefone');
+
+    if (telError) throw telError;
+
+    const numbers = (telefones || []).map((t: any) => t.telefone).filter(Boolean);
+
+    if (numbers.length === 0) {
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: 'Nenhum telefone cadastrado para notificação.',
+        notificados: 0 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const results: any[] = [];
     const chatproUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}/api/v1/send_message`;
 
@@ -63,11 +77,6 @@ serve(async (req) => {
       const vencFormatado = doc.data_validade.split('-').reverse().join('/');
 
       const mensagem = `⚠️ AVISO - Documento de Licitação\n\nO documento "${doc.nome}" (${doc.categoria || 'Sem categoria'}) vence em ${diffDays} dia(s) (${vencFormatado}).\n\nEmissor: ${doc.orgao_emissor || 'Não informado'}\nStatus atual: ${doc.status}\n\nProvidenciar renovação com urgência.`;
-
-      // Determine which numbers to send to
-      const numbers = isTest && testNumbers.length > 0
-        ? testNumbers
-        : []; // In production, you'd have configured recipient numbers
 
       for (const numero of numbers) {
         const telefoneLimpo = numero.replace(/\D/g, '');
