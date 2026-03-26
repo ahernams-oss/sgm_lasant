@@ -903,6 +903,55 @@ export default function LicitacoesPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* =============== DIALOG: TELEFONES WHATSAPP =============== */}
+      <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Telefones para Notificação WhatsApp</DialogTitle>
+            <DialogDescription>Gerencie os números que receberão avisos de vencimento de documentos (15 dias antes).</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Label>Nome do Contato</Label>
+                <Input placeholder="Ex: João Silva" value={newPhoneName} onChange={e => setNewPhoneName(e.target.value)} />
+              </div>
+              <div className="flex-1">
+                <Label>Telefone</Label>
+                <Input placeholder="+5521999999999" value={newPhone} onChange={e => setNewPhone(e.target.value)} />
+              </div>
+              <div className="flex items-end">
+                <Button onClick={handleAddPhone} size="icon"><Plus className="h-4 w-4" /></Button>
+              </div>
+            </div>
+
+            {loadingPhones ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Carregando...</p>
+            ) : phoneList.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhum telefone cadastrado</p>
+            ) : (
+              <div className="border rounded-lg divide-y max-h-[300px] overflow-y-auto">
+                {phoneList.map(p => (
+                  <div key={p.id} className="flex items-center justify-between px-3 py-2">
+                    <div>
+                      <span className="font-medium text-sm">{p.nome_contato || "Sem nome"}</span>
+                      <span className="text-sm text-muted-foreground ml-2">{p.telefone}</span>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => handleRemovePhone(p.id)}>
+                      <X className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground">
+              Os avisos são enviados automaticamente todos os dias às 8h para documentos com vencimento nos próximos 15 dias.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
