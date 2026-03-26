@@ -47,6 +47,7 @@ export default function EstoquePage() {
   const [invLocal, setInvLocal] = useState("");
   const [invObs, setInvObs] = useState("");
   const [invItens, setInvItens] = useState<{ materialId: string; materialCodigo: string; materialDescricao: string; saldoSistema: number; quantidadeContada: number; diferenca: number; observacao: string }[]>([]);
+  const [editInvId, setEditInvId] = useState<string | null>(null);
 
   // Estoque mínimo dialog
   const [minDialogOpen, setMinDialogOpen] = useState(false);
