@@ -1285,12 +1285,18 @@ export default function CotacaoComprasPage() {
             {/* Resultados envio em massa */}
             {linksGeradosTodos.length > 0 && (
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <p className="text-sm font-medium">Links gerados ({linksGeradosTodos.filter(r => r.link).length}/{linksGeradosTodos.length})</p>
-                  <Button variant="outline" size="sm" onClick={handleCopyAllLinks}>
-                    <Copy className="mr-2 h-3.5 w-3.5" />
-                    Copiar Todos
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={handleCopyAllLinks}>
+                      <Copy className="mr-2 h-3.5 w-3.5" />
+                      Copiar Todos
+                    </Button>
+                    <Button size="sm" onClick={handleEnviarEmailTodos} disabled={enviarEmailTodosLoading || linksGeradosTodos.filter(r => r.link).length === 0}>
+                      <Mail className="mr-2 h-3.5 w-3.5" />
+                      {enviarEmailTodosLoading ? "Enviando..." : "Enviar por E-mail"}
+                    </Button>
+                  </div>
                 </div>
                 <div className="border rounded-lg divide-y max-h-60 overflow-y-auto">
                   {linksGeradosTodos.map((r, idx) => (
