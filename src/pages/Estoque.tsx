@@ -183,6 +183,7 @@ export default function EstoquePage() {
     setInvLocal("");
     setInvObs("");
     setInvItens([]);
+    setEditInvId(null);
     setInvDialogOpen(true);
   };
 
@@ -196,10 +197,28 @@ export default function EstoquePage() {
     })));
   };
 
+  const handleEditInventario = (inv: any) => {
+    setEditInvId(inv.id);
+    setInvLocal(inv.local);
+    setInvObs(inv.observacao || "");
+    setInvItens(inv.itens.map((it: any) => ({
+      materialId: it.materialId, materialCodigo: it.materialCodigo,
+      materialDescricao: it.materialDescricao, saldoSistema: it.saldoSistema,
+      quantidadeContada: it.quantidadeContada, diferenca: it.quantidadeContada - it.saldoSistema,
+      observacao: it.observacao || "",
+    })));
+    setInvDialogOpen(true);
+  };
+
   const handleInvSave = async () => {
     if (!invLocal) { toast({ title: "Selecione um local", variant: "destructive" }); return; }
-    await criarInventario({ local: invLocal, itens: invItens, usuario: usuarioLogado?.nome || "", observacao: invObs });
-    toast({ title: "Inventário criado" });
+    if (editInvId) {
+      await atualizarInventario(editInvId, invItens, invObs);
+      toast({ title: "Inventário atualizado" });
+    } else {
+      await criarInventario({ local: invLocal, itens: invItens, usuario: usuarioLogado?.nome || "", observacao: invObs });
+      toast({ title: "Inventário criado" });
+    }
     setInvDialogOpen(false);
   };
 
