@@ -57,10 +57,6 @@ export default function RelatoriosEstoquePage() {
     movimentacoes.forEach(m => { if (m.usuario) s.add(m.usuario); });
     return Array.from(s).sort();
   }, [movimentacoes]);
-
-  const centrosCusto = useMemo(() => {
-    const s = new Set<string>();
-    movimentacoes.forEach(m => {
       const cc = getCentroCusto(m.documentoRef);
       if (cc && cc !== "-") s.add(cc);
     });
