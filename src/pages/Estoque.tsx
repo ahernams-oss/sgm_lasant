@@ -45,6 +45,7 @@ export default function EstoquePage() {
   // Inventário dialog
   const [invDialogOpen, setInvDialogOpen] = useState(false);
   const [invLocal, setInvLocal] = useState("");
+  const [invCentroCusto, setInvCentroCusto] = useState("");
   const [invObs, setInvObs] = useState("");
   const [invItens, setInvItens] = useState<{ materialId: string; materialCodigo: string; materialDescricao: string; saldoSistema: number; quantidadeContada: number; diferenca: number; observacao: string }[]>([]);
   const [editInvId, setEditInvId] = useState<string | null>(null);
@@ -76,29 +77,6 @@ export default function EstoquePage() {
     return Array.from(locs).sort();
   }, [clientes]);
 
-  const getLocaisInventarioRelacionados = (localSelecionado: string) => {
-    const relacionados = new Set<string>([localSelecionado]);
-
-    const cliente = clientes.find(c => c.nome === localSelecionado);
-    if (cliente) {
-      const locaisArr = (cliente as any).locais || [];
-      locaisArr.forEach((l: any) => {
-        if (l?.nome) {
-          relacionados.add(l.nome);
-          relacionados.add(`${cliente.nome} - ${l.nome}`);
-        }
-      });
-    }
-
-    const separador = " - ";
-    if (localSelecionado.includes(separador)) {
-      const [, localInterno] = localSelecionado.split(separador);
-      if (localInterno) relacionados.add(localInterno.trim());
-    }
-
-    return relacionados;
-  };
-
   // Centro de custo lookup: pedidoNumero → centroCustoNome
   const centroCustoMap = useMemo(() => {
     const map = new Map<number, string>();
@@ -117,6 +95,31 @@ export default function EstoquePage() {
     }
     return "-";
   };
+
+  // Map each movement → centro de custo
+  const movCentroCusto = useMemo(() => {
+    const map = new Map<string, string>();
+    movimentacoes.forEach(m => {
+      const cc = getCentroCustoFromDocRef(m.documentoRef);
+      if (cc !== "-") {
+        map.set(m.id, cc);
+      }
+    });
+    return map;
+  }, [movimentacoes, centroCustoMap]);
+
+  // Available centros de custo (from requisições + movements)
+  const centrosCustoDisponiveis = useMemo(() => {
+    const ccs = new Set<string>();
+    requisicoes.forEach(r => {
+      if (r.centroCustoNome) ccs.add(r.centroCustoNome);
+    });
+    movimentacoes.forEach(m => {
+      const cc = getCentroCustoFromDocRef(m.documentoRef);
+      if (cc !== "-") ccs.add(cc);
+    });
+    return Array.from(ccs).sort();
+  }, [requisicoes, movimentacoes, centroCustoMap]);
 
   // === SALDOS ===
   const saldos = useMemo(() => {
@@ -138,6 +141,24 @@ export default function EstoquePage() {
     });
     return map;
   }, [movimentacoes, centroCustoMap]);
+
+  // Saldos agrupados por centro de custo + material
+  const getSaldosPorCentroCusto = (centroCusto: string) => {
+    const materialMap = new Map<string, { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number }>();
+    movimentacoes.forEach(m => {
+      const cc = getCentroCustoFromDocRef(m.documentoRef);
+      if (cc !== centroCusto) return;
+      const key = m.materialId;
+      if (!materialMap.has(key)) {
+        materialMap.set(key, { materialId: m.materialId, materialCodigo: m.materialCodigo, materialDescricao: m.materialDescricao, quantidade: 0 });
+      }
+      const s = materialMap.get(key)!;
+      if (m.tipo === "entrada") s.quantidade += m.quantidade;
+      else if (m.tipo === "saida") s.quantidade -= m.quantidade;
+      else s.quantidade += m.quantidade;
+    });
+    return Array.from(materialMap.values()).filter(s => s.quantidade !== 0);
+  };
 
   // === ALERTAS ===
   const alertas = useMemo(() => {
@@ -204,17 +225,18 @@ export default function EstoquePage() {
 
   const openInvDialog = () => {
     setInvLocal("");
+    setInvCentroCusto("");
     setInvObs("");
     setInvItens([]);
     setEditInvId(null);
     setInvDialogOpen(true);
   };
 
-  const loadInvItens = (local: string) => {
-    setInvLocal(local);
-    const locaisRelacionados = getLocaisInventarioRelacionados(local);
-    const saldosLocal = getSaldos().filter(s => locaisRelacionados.has(s.local));
-    setInvItens(saldosLocal.map(s => ({
+  const loadInvItens = (centroCusto: string) => {
+    setInvCentroCusto(centroCusto);
+    setInvLocal(centroCusto);
+    const saldosCC = getSaldosPorCentroCusto(centroCusto);
+    setInvItens(saldosCC.map(s => ({
       materialId: s.materialId, materialCodigo: s.materialCodigo,
       materialDescricao: s.materialDescricao, saldoSistema: s.quantidade,
       quantidadeContada: s.quantidade, diferenca: 0, observacao: "",
@@ -224,6 +246,7 @@ export default function EstoquePage() {
   const handleEditInventario = (inv: any) => {
     setEditInvId(inv.id);
     setInvLocal(inv.local);
+    setInvCentroCusto(inv.local);
     setInvObs(inv.observacao || "");
 
     const itensSalvos = Array.isArray(inv.itens) ? inv.itens : [];
@@ -235,9 +258,8 @@ export default function EstoquePage() {
         observacao: it.observacao || "",
       })));
     } else {
-      const locaisRelacionados = getLocaisInventarioRelacionados(inv.local);
-      const saldosLocal = getSaldos().filter(s => locaisRelacionados.has(s.local));
-      setInvItens(saldosLocal.map(s => ({
+      const saldosCC = getSaldosPorCentroCusto(inv.local);
+      setInvItens(saldosCC.map(s => ({
         materialId: s.materialId, materialCodigo: s.materialCodigo,
         materialDescricao: s.materialDescricao, saldoSistema: s.quantidade,
         quantidadeContada: s.quantidade, diferenca: 0, observacao: "",
@@ -248,13 +270,13 @@ export default function EstoquePage() {
   };
 
   const handleInvSave = async () => {
-    if (!invLocal) { toast({ title: "Selecione um local", variant: "destructive" }); return; }
-    if (invItens.length === 0) { toast({ title: "Nenhum item encontrado para este local", variant: "destructive" }); return; }
+    if (!invCentroCusto) { toast({ title: "Selecione um centro de custo", variant: "destructive" }); return; }
+    if (invItens.length === 0) { toast({ title: "Nenhum item encontrado para este centro de custo", variant: "destructive" }); return; }
     if (editInvId) {
       await atualizarInventario(editInvId, invItens, invObs);
       toast({ title: "Inventário atualizado" });
     } else {
-      await criarInventario({ local: invLocal, itens: invItens, usuario: usuarioLogado?.nome || "", observacao: invObs });
+      await criarInventario({ local: invCentroCusto, itens: invItens, usuario: usuarioLogado?.nome || "", observacao: invObs });
       toast({ title: "Inventário criado" });
     }
     setInvDialogOpen(false);
@@ -547,11 +569,11 @@ export default function EstoquePage() {
           <DialogHeader><DialogTitle><ClipboardList className="inline mr-2 h-5 w-5" />{editInvId ? "Editar Inventário" : "Novo Inventário"}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Local *</Label>
-              <Select value={invLocal} onValueChange={v => loadInvItens(v)} disabled={!!editInvId}>
-                <SelectTrigger><SelectValue placeholder="Selecione o local..." /></SelectTrigger>
+              <Label>Centro de Custo *</Label>
+              <Select value={invCentroCusto} onValueChange={v => loadInvItens(v)} disabled={!!editInvId}>
+                <SelectTrigger><SelectValue placeholder="Selecione o centro de custo..." /></SelectTrigger>
                 <SelectContent>
-                  {locaisClientes.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                  {centrosCustoDisponiveis.map(cc => <SelectItem key={cc} value={cc}>{cc}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -596,9 +618,9 @@ export default function EstoquePage() {
                   </TableBody>
                 </Table>
               </div>
-            ) : invLocal ? (
+            ) : invCentroCusto ? (
               <div className="border rounded-lg p-4 text-sm text-muted-foreground text-center">
-                Nenhum item com saldo encontrado para este local.
+                Nenhum item com saldo encontrado para este centro de custo.
               </div>
             ) : null}
             <div><Label>Observação Geral</Label><Input value={invObs} onChange={e => setInvObs(e.target.value)} /></div>
