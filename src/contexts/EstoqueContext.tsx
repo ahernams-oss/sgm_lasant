@@ -57,6 +57,7 @@ interface EstoqueContextType {
   getSaldoPorMaterial: (materialId: string) => number;
   getSaldoPorLocal: (materialId: string, local: string) => number;
   criarInventario: (data: Omit<Inventario, "id" | "dataInventario" | "status">) => Promise<void>;
+  atualizarInventario: (id: string, itens: ItemInventario[], observacao: string) => Promise<void>;
   fecharInventario: (id: string, usuario: string) => Promise<void>;
   reload: () => Promise<void>;
 }
