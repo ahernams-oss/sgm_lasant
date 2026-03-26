@@ -297,6 +297,7 @@ export default function CotacaoComprasPage() {
     setEnviarFornecedorId("");
     setEnviarEmail("");
     setLinkGerado("");
+    setLinksGeradosTodos([]);
     setEnviarDialogOpen(true);
   };
 
