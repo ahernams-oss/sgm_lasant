@@ -50,10 +50,12 @@ import { EstoqueProvider } from "@/contexts/EstoqueContext";
 import { FabricantesProvider } from "@/contexts/FabricantesContext";
 import { PerfisAcessoProvider } from "@/contexts/PerfisAcessoContext";
 import { EmpresaProvider } from "@/contexts/EmpresaContext";
+import { LicitacoesProvider } from "@/contexts/LicitacoesContext";
 import FabricantesPage from "./pages/Fabricantes.tsx";
 import EpisPage from "./pages/EpisPage.tsx";
 import ExamesPage from "./pages/ExamesPage.tsx";
 import UnsubscribePage from "./pages/Unsubscribe.tsx";
+import LicitacoesPage from "./pages/Licitacoes.tsx";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +90,7 @@ function AppRoutes() {
         <Route path="/compras/relatorios-estoque" element={<RelatoriosEstoquePage />} />
         <Route path="/compras/dashboard" element={<DashboardCompras />} />
         <Route path="/compras/fabricantes" element={<FabricantesPage />} />
+        <Route path="/licitacoes" element={<LicitacoesPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -115,6 +118,7 @@ const App = () => (
     <FabricantesProvider>
     <PerfisAcessoProvider>
     <EmpresaProvider>
+    <LicitacoesProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
@@ -128,6 +132,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </LicitacoesProvider>
     </EmpresaProvider>
     </PerfisAcessoProvider>
     </FabricantesProvider>
