@@ -16,8 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send } from "lucide-react";
 import { format } from "date-fns";
-import { downloadPdfOrdemCompra } from "@/lib/gerarPdfOrdemCompra";
-import { enviarWhatsApp } from "@/lib/whatsapp";
+import { downloadPdfOrdemCompra, uploadPdfOrdemCompra } from "@/lib/gerarPdfOrdemCompra";
+import { enviarWhatsApp, enviarWhatsAppComDocumento } from "@/lib/whatsapp";
 import { supabase } from "@/integrations/supabase/client";
 
 const statusColors: Record<StatusPedido, string> = {
@@ -109,20 +109,23 @@ export default function PedidoCompraPage() {
     };
 
     try {
+      // Upload PDF to storage and get public URL
+      const pdfUrl = await uploadPdfOrdemCompra(pdfData);
+      const pcNum = `PC-${String(sendPedido.numero).padStart(4, "0")}`;
+
       if (sendMethod === "email") {
         if (!sendEmail.trim()) {
           toast({ title: "Informe o e-mail do fornecedor", variant: "destructive" });
           setSending(false);
           return;
         }
-        const pcNum = `PC-${String(sendPedido.numero).padStart(4, "0")}`;
         const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
 
         const { error } = await supabase.functions.invoke("send-transactional-email", {
           body: {
             templateName: "ordem-compra-confirmation",
             recipientEmail: sendEmail,
-            idempotencyKey: `ordem-compra-${sendPedido.id}`,
+            idempotencyKey: `ordem-compra-${sendPedido.id}-${Date.now()}`,
             templateData: {
               fornecedorNome: sendPedido.fornecedorNome,
               pedidoNumero: sendPedido.numero,
@@ -131,6 +134,7 @@ export default function PedidoCompraPage() {
               prazoEntrega: sendPedido.prazoEntrega || "A combinar",
               comprador: usuarioLogado?.nome || "Departamento de Compras",
               nomeEmpresa,
+              pdfUrl,
             },
           },
         });
@@ -143,20 +147,21 @@ export default function PedidoCompraPage() {
           setSending(false);
           return;
         }
-        // First download PDF so user can share, then send WhatsApp message
-        await downloadPdfOrdemCompra(pdfData);
 
-        const pcNum = `PC-${String(sendPedido.numero).padStart(4, "0")}`;
         const mensagem = `*Ordem de Compra ${pcNum}*\n\n` +
           `Fornecedor: ${sendPedido.fornecedorNome}\n` +
           `Valor Total: ${formatCurrency(sendPedido.valorTotal)}\n` +
           `Prazo de Entrega: ${sendPedido.prazoEntrega || "A combinar"}\n` +
-          `Condição de Pagamento: ${sendPedido.condicaoPagamento || "A vista"}\n` +
-          `\nO PDF da Ordem de Compra foi gerado. Por favor, envie o arquivo baixado junto a esta mensagem.`;
+          `Condição de Pagamento: ${sendPedido.condicaoPagamento || "A vista"}`;
 
-        const result = await enviarWhatsApp(sendPhone, mensagem);
+        const result = await enviarWhatsAppComDocumento({
+          telefone: sendPhone,
+          mensagem,
+          documentUrl: pdfUrl,
+          documentFilename: `Ordem_Compra_${pcNum}.pdf`,
+        });
         if (!result.success) throw new Error(result.error || "Erro ao enviar WhatsApp");
-        toast({ title: `Mensagem enviada via WhatsApp para ${sendPhone}` });
+        toast({ title: `Ordem de compra enviada via WhatsApp para ${sendPhone}` });
       }
       setSendDialogOpen(false);
     } catch (err: unknown) {
