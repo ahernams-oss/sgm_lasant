@@ -33,6 +33,7 @@ const menuItems = [
   {
     group: "Engenharia",
     items: [
+      { title: "Dashboard Engenharia", url: "/engenharia/dashboard", icon: BarChart3 },
       { title: "Medição de Serviços", url: "/engenharia/medicoes", icon: Ruler },
     ],
   },
