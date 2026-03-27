@@ -29,6 +29,9 @@ export interface Funcionario {
   passagens: PassagemDiaria[]; dependentes: Dependente[]; epis: EpiItem[];
   nrs: NrFuncionario[]; observacoes: string;
   status: "Ativo" | "Inativo" | "Afastado" | "Férias";
+  experienciaInicio: string; experienciaPrimeiraEtapa: string;
+  experienciaFim: string; experienciaRenovado: boolean;
+  experienciaNotificado10dPrimeira: boolean; experienciaNotificado10dFinal: boolean;
 }
 
 export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
@@ -44,6 +47,9 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   tamanhoCamisa: "", tamanhoCalca: "", tamanhoCalcado: "", peso: "", altura: "",
   passagens: [], dependentes: [], epis: [], nrs: [],
   observacoes: "", status: "Ativo",
+  experienciaInicio: "", experienciaPrimeiraEtapa: "", experienciaFim: "",
+  experienciaRenovado: false, experienciaNotificado10dPrimeira: false,
+  experienciaNotificado10dFinal: false,
 };
 
 function rowToFuncionario(row: any): Funcionario {
@@ -74,6 +80,12 @@ function rowToFuncionario(row: any): Funcionario {
     passagens: row.passagens ?? [], dependentes: row.dependentes ?? [],
     epis: row.epis ?? [], nrs: row.nrs ?? [],
     observacoes: row.observacoes ?? "", status: row.status ?? "Ativo",
+    experienciaInicio: row.experiencia_inicio ?? "",
+    experienciaPrimeiraEtapa: row.experiencia_primeira_etapa ?? "",
+    experienciaFim: row.experiencia_fim ?? "",
+    experienciaRenovado: row.experiencia_renovado ?? false,
+    experienciaNotificado10dPrimeira: row.experiencia_notificado_10d_primeira ?? false,
+    experienciaNotificado10dFinal: row.experiencia_notificado_10d_final ?? false,
   };
 }
 
@@ -99,6 +111,12 @@ function funcionarioToRow(f: Omit<Funcionario, "id">) {
     passagens: f.passagens as any, dependentes: f.dependentes as any,
     epis: f.epis as any, nrs: f.nrs as any,
     observacoes: f.observacoes, status: f.status,
+    experiencia_inicio: f.experienciaInicio || null,
+    experiencia_primeira_etapa: f.experienciaPrimeiraEtapa || null,
+    experiencia_fim: f.experienciaFim || null,
+    experiencia_renovado: f.experienciaRenovado,
+    experiencia_notificado_10d_primeira: f.experienciaNotificado10dPrimeira,
+    experiencia_notificado_10d_final: f.experienciaNotificado10dFinal,
   };
 }
 

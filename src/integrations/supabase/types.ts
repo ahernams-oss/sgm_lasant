@@ -762,6 +762,12 @@ export type Database = {
           email: string | null
           epis: Json | null
           estado_civil: string | null
+          experiencia_fim: string | null
+          experiencia_inicio: string | null
+          experiencia_notificado_10d_final: boolean | null
+          experiencia_notificado_10d_primeira: boolean | null
+          experiencia_primeira_etapa: string | null
+          experiencia_renovado: boolean | null
           id: string
           jornada_trabalho: string | null
           logradouro: string | null
@@ -821,6 +827,12 @@ export type Database = {
           email?: string | null
           epis?: Json | null
           estado_civil?: string | null
+          experiencia_fim?: string | null
+          experiencia_inicio?: string | null
+          experiencia_notificado_10d_final?: boolean | null
+          experiencia_notificado_10d_primeira?: boolean | null
+          experiencia_primeira_etapa?: string | null
+          experiencia_renovado?: boolean | null
           id?: string
           jornada_trabalho?: string | null
           logradouro?: string | null
@@ -880,6 +892,12 @@ export type Database = {
           email?: string | null
           epis?: Json | null
           estado_civil?: string | null
+          experiencia_fim?: string | null
+          experiencia_inicio?: string | null
+          experiencia_notificado_10d_final?: boolean | null
+          experiencia_notificado_10d_primeira?: boolean | null
+          experiencia_primeira_etapa?: string | null
+          experiencia_renovado?: boolean | null
           id?: string
           jornada_trabalho?: string | null
           logradouro?: string | null

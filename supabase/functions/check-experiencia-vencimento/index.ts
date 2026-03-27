@@ -1,0 +1,117 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const CHATPRO_TOKEN = Deno.env.get('CHATPRO_TOKEN');
+    const CHATPRO_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
+
+    const today = new Date();
+    const d10 = new Date(today);
+    d10.setDate(d10.getDate() + 10);
+
+    const formatDate = (d: Date) => d.toISOString().split('T')[0];
+
+    // Fetch active employees with experience period ending within 10 days
+    const { data: funcionarios, error } = await supabase
+      .from('funcionarios')
+      .select('*')
+      .eq('status', 'Ativo')
+      .not('experiencia_fim', 'is', null);
+
+    if (error) throw error;
+    if (!funcionarios || funcionarios.length === 0) {
+      return new Response(JSON.stringify({ message: 'Nenhum funcionário em experiência.' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const results: any[] = [];
+
+    for (const func of funcionarios) {
+      // Check 1st stage (45 days)
+      if (func.experiencia_primeira_etapa && !func.experiencia_notificado_10d_primeira) {
+        const fim1 = new Date(func.experiencia_primeira_etapa);
+        const diff1 = Math.ceil((fim1.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (diff1 >= 0 && diff1 <= 10) {
+          const vencFormatado = func.experiencia_primeira_etapa.split('-').reverse().join('/');
+          const mensagem = `⚠️ AVISO - Período de Experiência\n\nO 1º período de experiência (45 dias) do funcionário ${func.nome} vence em ${diff1} dias (${vencFormatado}).\n\nProvidenciar avaliação e decisão sobre renovação.`;
+
+          await sendWhatsApp(CHATPRO_TOKEN, CHATPRO_INSTANCE, func.telefone, mensagem);
+
+          await supabase
+            .from('funcionarios')
+            .update({ experiencia_notificado_10d_primeira: true })
+            .eq('id', func.id);
+
+          results.push({ funcionario: func.nome, etapa: '1ª etapa', dias: diff1 });
+        }
+      }
+
+      // Check 2nd stage (90 days) - only if renewed
+      if (func.experiencia_renovado && func.experiencia_fim && !func.experiencia_notificado_10d_final) {
+        const fimFinal = new Date(func.experiencia_fim);
+        const diffFinal = Math.ceil((fimFinal.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (diffFinal >= 0 && diffFinal <= 10) {
+          const vencFormatado = func.experiencia_fim.split('-').reverse().join('/');
+          const mensagem = `⚠️ AVISO - Período de Experiência\n\nO 2º período de experiência (90 dias) do funcionário ${func.nome} vence em ${diffFinal} dias (${vencFormatado}).\n\nProvidenciar efetivação ou desligamento.`;
+
+          await sendWhatsApp(CHATPRO_TOKEN, CHATPRO_INSTANCE, func.telefone, mensagem);
+
+          await supabase
+            .from('funcionarios')
+            .update({ experiencia_notificado_10d_final: true })
+            .eq('id', func.id);
+
+          results.push({ funcionario: func.nome, etapa: '2ª etapa', dias: diffFinal });
+        }
+      }
+    }
+
+    return new Response(JSON.stringify({ success: true, notificados: results.length, detalhes: results }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error: unknown) {
+    console.error('Error checking experiência:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(JSON.stringify({ success: false, error: errorMessage }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});
+
+async function sendWhatsApp(token: string | undefined, instance: string | undefined, telefone: string | null, mensagem: string) {
+  if (!token || !instance || !telefone) return;
+  const telefoneLimpo = telefone.replace(/\D/g, '');
+  if (telefoneLimpo.length < 10) return;
+  try {
+    const url = `https://v5.chatpro.com.br/${instance}/api/v1/send_message`;
+    await fetch(url, {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'Authorization': token,
+      },
+      body: JSON.stringify({ message: mensagem, number: telefoneLimpo }),
+    });
+  } catch (err) {
+    console.error('WhatsApp error:', err);
+  }
+}
