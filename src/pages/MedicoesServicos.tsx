@@ -174,6 +174,15 @@ const MedicoesServicos = () => {
     const novoMedido = med.valor_total_medido + valorLanc;
     const novoPerc = med.valor_total_contratado > 0 ? (novoMedido / med.valor_total_contratado) * 100 : 0;
 
+    if (novoPerc > 100) {
+      toast({ title: "Erro: A medição ultrapassaria 100% do valor contratado", variant: "destructive" });
+      return;
+    }
+    if (novoMedido > med.valor_total_contratado) {
+      toast({ title: "Erro: O valor medido não pode ser maior que o valor contratado", variant: "destructive" });
+      return;
+    }
+
     const novasMedicoes: LancamentoMedicao[] = [
       ...(med.medicoes || []),
       {
