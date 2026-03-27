@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Plus, Ruler, Trash2, Edit, Eye, X, ChevronDown, ChevronUp, CalendarIcon } from "lucide-react";
+import { Plus, Ruler, Trash2, Edit, Eye, X, ChevronDown, ChevronUp, CalendarIcon, FileText, Download } from "lucide-react";
+import { downloadPdfMedicoes } from "@/lib/gerarPdfMedicoes";
+import { downloadExcelMedicoes } from "@/lib/gerarExcelMedicoes";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -236,10 +238,18 @@ const MedicoesServicos = () => {
             </p>
           </div>
           {!showForm && (
-            <Button onClick={() => handleOpenForm()} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Nova Medição
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => downloadPdfMedicoes(medicoes)}>
+                <FileText className="mr-1 h-4 w-4" /> PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => downloadExcelMedicoes(medicoes)}>
+                <Download className="mr-1 h-4 w-4" /> Excel
+              </Button>
+              <Button onClick={() => handleOpenForm()} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Nova Medição
+              </Button>
+            </div>
           )}
         </div>
 
