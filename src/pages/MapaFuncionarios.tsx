@@ -437,8 +437,8 @@ const MapaFuncionarios = () => {
                 <span className="text-sm font-semibold text-foreground">({filteredLancamentos.length})</span>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <Input type="month" value={filterMes} onChange={(e) => setFilterMes(e.target.value)} className="h-9 w-[160px] text-xs" />
-                <Select value={filterCliente} onValueChange={setFilterCliente}>
+                <Input type="month" value={filterMes} onChange={(e) => { setFilterMes(e.target.value); setPageLanc(1); }} className="h-9 w-[160px] text-xs" />
+                <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); setPageLanc(1); }}>
                   <SelectTrigger className="h-9 w-[160px] text-xs"><SelectValue placeholder="Cliente" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos Clientes</SelectItem>
@@ -447,7 +447,7 @@ const MapaFuncionarios = () => {
                     ))}
                   </SelectContent>
                 </Select>
-                <Select value={filterFuncionario} onValueChange={setFilterFuncionario}>
+                <Select value={filterFuncionario} onValueChange={v => { setFilterFuncionario(v); setPageLanc(1); }}>
                   <SelectTrigger className="h-9 w-[180px] text-xs"><SelectValue placeholder="Funcionário" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos Funcionários</SelectItem>
@@ -456,7 +456,7 @@ const MapaFuncionarios = () => {
                 </Select>
                 <div className="relative w-48">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Pesquisar..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+                  <Input placeholder="Pesquisar..." value={search} onChange={(e) => { setSearch(e.target.value); setPageLanc(1); }} className="pl-9 h-9" />
                 </div>
               </div>
             </div>
