@@ -18,8 +18,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown } from "lucide-react";
+import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText } from "lucide-react";
 import { downloadPdfCotacao } from "@/lib/gerarPdfCotacao";
+import { downloadPdfPedidoCotacaoTodos } from "@/lib/gerarPdfPedidoCotacao";
 import { Switch } from "@/components/ui/switch";
 import { format, subDays, isAfter } from "date-fns";
 
@@ -677,7 +678,29 @@ export default function CotacaoComprasPage() {
                         downloadPdfCotacao({ cotacao: c, requisicao: req, empresa });
                         toast({ title: "PDF gerado com sucesso" });
                       }}>
-                        <FileDown className="mr-2 h-4 w-4" />Exportar PDF
+                        <FileDown className="mr-2 h-4 w-4" />Exportar PDF Cotação
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={async () => {
+                        const req = requisicoes.find(r => r.id === c.requisicaoId) || null;
+                        const fornsComProposta = c.propostas.map(p => {
+                          const fData = fornecedores.find(f => f.id === p.fornecedorId);
+                          return {
+                            id: p.fornecedorId,
+                            nome: p.fornecedorNome,
+                            cnpj: fData?.cnpj || "",
+                            email: fData?.emailCompras || fData?.email || "",
+                            telefone: fData?.telefoneCelular || (fData?.telefones?.[0]) || "",
+                          };
+                        });
+                        const fornsUnicos = fornsComProposta.filter((f, i, arr) => arr.findIndex(a => a.id === f.id) === i);
+                        if (fornsUnicos.length === 0) {
+                          toast({ title: "Nenhum fornecedor", description: "Adicione propostas ou envie para fornecedores antes de gerar os PDFs.", variant: "destructive" });
+                          return;
+                        }
+                        await downloadPdfPedidoCotacaoTodos(c, req, empresa, fornsUnicos);
+                        toast({ title: `${fornsUnicos.length} PDF(s) de pedido de cotação gerado(s)` });
+                      }}>
+                        <FileText className="mr-2 h-4 w-4" />Pedido de Cotação por Fornecedor
                       </DropdownMenuItem>
                       {(c.status === "Em Andamento" || c.status === "Aguardando Aprovação") && (
                         <>
