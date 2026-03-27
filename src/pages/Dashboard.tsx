@@ -17,7 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
-import { useProcessosSeletivos } from "@/contexts/ProcessoSeletivoContext";
+import { useProcessoSeletivo } from "@/contexts/ProcessoSeletivoContext";
 import { supabase } from "@/integrations/supabase/client";
 import { downloadPdfDashboard, gerarTextoDashboard } from "@/lib/gerarPdfDashboard";
 import { enviarWhatsApp } from "@/lib/whatsapp";
