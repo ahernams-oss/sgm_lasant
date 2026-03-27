@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useMateriaisServicos, MaterialServico } from "@/contexts/MateriaisServicosContext";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
 
@@ -9,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Search, Upload, FileText, FileSpreadsheet, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Upload, FileText, FileSpreadsheet } from "lucide-react";
 import { gerarPdfMateriaisServicos, gerarExcelMateriaisServicos } from "@/lib/gerarRelatorioMateriaisServicos";
 import * as XLSX from "xlsx";
 
@@ -26,7 +27,6 @@ export default function MateriaisServicosPage() {
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("Todos");
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 10;
 
   const filtered = useMemo(() => {
     let list = materiais;
@@ -37,10 +37,6 @@ export default function MateriaisServicosPage() {
     }
     return list;
   }, [materiais, search, filterTipo]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safeCurrentPage = Math.min(page, totalPages);
-  const paginated = filtered.slice((safeCurrentPage - 1) * PAGE_SIZE, safeCurrentPage * PAGE_SIZE);
 
   // Reset page when filters change
   const resetPage = () => setPage(1);
@@ -142,9 +138,9 @@ export default function MateriaisServicosPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginated.length === 0 ? (
+             {paginate(filtered, page).paginated.length === 0 ? (
               <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum item cadastrado</TableCell></TableRow>
-            ) : paginated.map(m => (
+            ) : paginate(filtered, page).paginated.map(m => (
               <TableRow key={m.id}>
                 <TableCell className="font-mono">{m.codigo}</TableCell>
                 <TableCell>{m.descricao}</TableCell>
@@ -163,22 +159,7 @@ export default function MateriaisServicosPage() {
         </Table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">
-            Mostrando {(safeCurrentPage - 1) * PAGE_SIZE + 1}–{Math.min(safeCurrentPage * PAGE_SIZE, filtered.length)} de {filtered.length} itens
-          </span>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled={safeCurrentPage <= 1} onClick={() => setPage(p => p - 1)}>
-              <ChevronLeft className="h-4 w-4 mr-1" />Anterior
-            </Button>
-            <span className="text-sm font-medium">Página {safeCurrentPage} de {totalPages}</span>
-            <Button variant="outline" size="sm" disabled={safeCurrentPage >= totalPages} onClick={() => setPage(p => p + 1)}>
-              Próxima<ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
-        </div>
-      )}
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>

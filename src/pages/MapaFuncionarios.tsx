@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ const MapaFuncionarios = () => {
 
   // Filters
   const [search, setSearch] = useState("");
+  const [pageLanc, setPageLanc] = useState(1);
   const [filterFuncionario, setFilterFuncionario] = useState("todos");
   const [filterCliente, setFilterCliente] = useState("todos");
   const [filterMes, setFilterMes] = useState(() => {
@@ -490,7 +492,7 @@ const MapaFuncionarios = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredLancamentos.map((l) => (
+                  {paginate(filteredLancamentos, pageLanc).paginated.map((l) => (
                     <TableRow key={l.id}>
                       <TableCell className="font-medium">{formatData(l.data)}</TableCell>
                       <TableCell>{getFuncionarioNome(l.funcionarioId)}</TableCell>
@@ -545,6 +547,7 @@ const MapaFuncionarios = () => {
             </div>
           )}
         </div>
+        <PaginationControls currentPage={pageLanc} totalItems={filteredLancamentos.length} onPageChange={setPageLanc} />
       </div>
     </div>
   );
