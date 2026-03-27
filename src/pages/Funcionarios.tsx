@@ -699,6 +699,7 @@ const Funcionarios = () => {
                     })()}
                   </div>
                 )}
+              </TabsContent>
 
               {/* DADOS BANCÁRIOS */}
               <TabsContent value="bancario">
