@@ -3,6 +3,8 @@ import { format } from "date-fns";
 import { Plus, Ruler, Trash2, Edit, Eye, X, ChevronDown, ChevronUp, CalendarIcon, FileText, Download } from "lucide-react";
 import { downloadPdfMedicoes } from "@/lib/gerarPdfMedicoes";
 import { downloadExcelMedicoes } from "@/lib/gerarExcelMedicoes";
+import { downloadPdfHistoricoMedicao } from "@/lib/gerarPdfHistoricoMedicao";
+import { downloadExcelHistoricoMedicao } from "@/lib/gerarExcelHistoricoMedicao";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
