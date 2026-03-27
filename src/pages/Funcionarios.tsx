@@ -885,11 +885,32 @@ const Funcionarios = () => {
                     <TableHead>Cliente</TableHead>
                     <TableHead>Telefone</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Experiência</TableHead>
                     <TableHead className="w-24 text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredFuncionarios.map((f) => (
+                  {filteredFuncionarios.map((f) => {
+                    const expBadge = (() => {
+                      if (!f.experienciaFim) return null;
+                      const hoje = new Date();
+                      const fim = new Date(f.experienciaFim);
+                      const fim1 = f.experienciaPrimeiraEtapa ? new Date(f.experienciaPrimeiraEtapa) : null;
+                      if (hoje > fim) return <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px]">Concluída</Badge>;
+                      const dias = Math.ceil((fim.getTime() - hoje.getTime()) / 86400000);
+                      if (fim1 && hoje > fim1 && f.experienciaRenovado) {
+                        return <Badge className={`${dias <= 10 ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"} text-[10px]`}>2ª etapa – {dias}d</Badge>;
+                      }
+                      if (fim1 && hoje <= fim1) {
+                        const d1 = Math.ceil((fim1.getTime() - hoje.getTime()) / 86400000);
+                        return <Badge className={`${d1 <= 10 ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" : "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"} text-[10px]`}>1ª etapa – {d1}d</Badge>;
+                      }
+                      if (fim1 && hoje > fim1 && !f.experienciaRenovado) {
+                        return <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px]">Aguard. renovação</Badge>;
+                      }
+                      return null;
+                    })();
+                    return (
                     <TableRow key={f.id}>
                       <TableCell className="font-medium">{f.nome}</TableCell>
                       <TableCell>{f.cpf || "—"}</TableCell>
@@ -897,6 +918,7 @@ const Funcionarios = () => {
                       <TableCell>{f.clienteId ? getClienteNome(f.clienteId) : "—"}</TableCell>
                       <TableCell>{f.telefone}</TableCell>
                       <TableCell>{statusBadge(f.status || "Ativo")}</TableCell>
+                      <TableCell>{expBadge || "—"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button size="icon" variant="ghost" onClick={() => gerarPdfFuncionario(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })} className="h-8 w-8" title="Baixar PDF Ficha">
