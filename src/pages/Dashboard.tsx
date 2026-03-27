@@ -1,16 +1,17 @@
-import { useState, useMemo } from "react";
-import { format, differenceInCalendarDays, parseISO } from "date-fns";
+import { useState, useMemo, useEffect } from "react";
+import { format, differenceInCalendarDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   LayoutDashboard, CalendarIcon, X, FileDown, Send, MessageSquare, Loader2,
-  Users, UserCheck, HardHat, Stethoscope, ClipboardCheck, Clock, AlertTriangle,
-  TrendingUp, ShieldAlert,
+  Users, UserCheck, HardHat, Stethoscope, ClipboardCheck, Clock,
+  TrendingUp, ClipboardList, FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,11 +19,11 @@ import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useProcessoSeletivo } from "@/contexts/ProcessoSeletivoContext";
+import { useLancamentos } from "@/contexts/LancamentosContext";
 import { supabase } from "@/integrations/supabase/client";
 import { downloadPdfDashboard, gerarTextoDashboard } from "@/lib/gerarPdfDashboard";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useToast } from "@/hooks/use-toast";
-import { useState as useStateEffect, useEffect } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
@@ -57,11 +58,28 @@ function parseDataCriacao(dateStr: string): Date | null {
   return new Date(y, m - 1, d);
 }
 
+const KpiCard = ({ icon: Icon, label, value, color }: { icon: any; label: string; value: number | string; color?: string }) => (
+  <Card>
+    <CardContent className="pt-4 pb-3 px-4">
+      <div className="flex items-center gap-3">
+        <div className="rounded-lg p-2 bg-muted">
+          <Icon className="h-4 w-4 text-muted-foreground" />
+        </div>
+        <div>
+          <p className="text-2xl font-bold" style={color ? { color } : undefined}>{value}</p>
+          <p className="text-xs text-muted-foreground">{label}</p>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
 const Dashboard = () => {
   const { requisicoes } = useRequisicoes();
   const { clientes } = useClientes();
   const { funcionarios } = useFuncionarios();
   const { processos } = useProcessoSeletivo();
+  const { lancamentos } = useLancamentos();
   const { toast } = useToast();
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
@@ -112,7 +130,6 @@ const Dashboard = () => {
       const fim1 = f.experienciaPrimeiraEtapa ? new Date(f.experienciaPrimeiraEtapa) : null;
       const fimFinal = f.experienciaFim ? new Date(f.experienciaFim) : null;
       if (!fim1 && !fimFinal) return false;
-      // check if any deadline is within 15 days
       if (fim1 && !f.experienciaRenovado) {
         const dias = differenceInCalendarDays(fim1, hoje);
         if (dias >= 0 && dias <= 15) return true;
@@ -130,12 +147,30 @@ const Dashboard = () => {
     const total = processos.length;
     let candidatosTotal = 0;
     let contratados = 0;
+    let emAndamento = 0;
     processos.forEach(p => {
       const cands = p.candidatos || [];
       candidatosTotal += cands.length;
       contratados += cands.filter((c: any) => c.contratacaoFinalizada).length;
+      const hasActive = cands.some((c: any) => !c.contratacaoFinalizada && c.statusPsicologico !== "reprovado" && c.statusTecnico !== "reprovado" && c.statusLiberacao !== "reprovado");
+      if (hasActive) emAndamento++;
     });
-    return { total, candidatosTotal, contratados };
+    return { total, candidatosTotal, contratados, emAndamento };
+  }, [processos]);
+
+  // Processos por etapa
+  const psCandidatosPorEtapa = useMemo(() => {
+    const counts = { "Entrevista Psicológica": 0, "Entrevista Técnica": 0, "Liberação Final": 0, "Contratação": 0 };
+    processos.forEach(p => {
+      (p.candidatos || []).forEach((c: any) => {
+        if (c.contratacaoFinalizada) return;
+        if (c.etapaAtual === "entrevista_psicologica") counts["Entrevista Psicológica"]++;
+        else if (c.etapaAtual === "entrevista_tecnica") counts["Entrevista Técnica"]++;
+        else if (c.etapaAtual === "liberacao") counts["Liberação Final"]++;
+        else if (c.etapaAtual === "contratacao") counts["Contratação"]++;
+      });
+    });
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [processos]);
 
   // ---- EPIs ----
@@ -143,12 +178,9 @@ const Dashboard = () => {
     let totalEpis = 0;
     let funcComEpi = 0;
     funcionarios.forEach(f => {
-      if (f.epis && f.epis.length > 0) {
-        funcComEpi++;
-        totalEpis += f.epis.length;
-      }
+      if (f.epis && f.epis.length > 0) { funcComEpi++; totalEpis += f.epis.length; }
     });
-    return { totalEpis, funcComEpi, funcSemEpi: funcStats.ativos - funcComEpi };
+    return { totalEpis, funcComEpi, funcSemEpi: Math.max(0, funcStats.ativos - funcComEpi) };
   }, [funcionarios, funcStats.ativos]);
 
   // ---- Exames Periódicos ----
@@ -159,15 +191,28 @@ const Dashboard = () => {
     let aVencer30 = 0;
     exames.forEach((e: any) => {
       if (!e.data_vencimento) return;
-      const venc = new Date(e.data_vencimento);
-      const dias = differenceInCalendarDays(venc, hoje);
+      const dias = differenceInCalendarDays(new Date(e.data_vencimento), hoje);
       if (dias < 0) vencidos++;
       else if (dias <= 30) aVencer30++;
     });
     return { total, vencidos, aVencer30, emDia: total - vencidos - aVencer30 };
   }, [exames]);
 
-  // ---- Charts data requisições ----
+  // ---- Atestados / Lançamentos ----
+  const atestadosStats = useMemo(() => {
+    const atestados = lancamentos.filter(l => l.tipoFalta === "atestado");
+    const faltasJust = lancamentos.filter(l => l.tipo === "falta" && l.tipoFalta === "justificada");
+    const faltasInjust = lancamentos.filter(l => l.tipo === "falta" && l.tipoFalta === "injustificada");
+    const totalDiasAtestado = atestados.reduce((acc, l) => acc + (l.diasFalta || 0), 0);
+    return { totalAtestados: atestados.length, totalDiasAtestado, faltasJust: faltasJust.length, faltasInjust: faltasInjust.length };
+  }, [lancamentos]);
+
+  // ---- Férias (funcionários em férias) ----
+  const funcionariosFerias = useMemo(() => {
+    return funcionarios.filter(f => f.status === "Férias");
+  }, [funcionarios]);
+
+  // ---- Charts requisições ----
   const statusData = useMemo(() => {
     const counts: Record<string, number> = {};
     filteredReqs.forEach((r) => { counts[r.status] = (counts[r.status] || 0) + 1; });
@@ -184,31 +229,30 @@ const Dashboard = () => {
     const counts: Record<string, number> = {};
     filteredReqs.forEach((r) => {
       const parts = r.dataCriacao.split("/");
-      if (parts.length === 3) {
-        const key = `${parts[1]}/${parts[2]}`;
-        counts[key] = (counts[key] || 0) + 1;
-      }
+      if (parts.length === 3) { counts[`${parts[1]}/${parts[2]}`] = (counts[`${parts[1]}/${parts[2]}`] || 0) + 1; }
     });
     return Object.entries(counts)
-      .sort(([a], [b]) => {
-        const [ma, ya] = a.split("/").map(Number);
-        const [mb, yb] = b.split("/").map(Number);
-        return ya !== yb ? ya - yb : ma - mb;
-      })
+      .sort(([a], [b]) => { const [ma, ya] = a.split("/").map(Number); const [mb, yb] = b.split("/").map(Number); return ya !== yb ? ya - yb : ma - mb; })
       .map(([period, total]) => ({ period, total }));
   }, [filteredReqs]);
 
   // Funcionários por cliente
   const funcPorCliente = useMemo(() => {
     const counts: Record<string, number> = {};
-    const ativosOnly = funcionarios.filter(f => f.status === "Ativo");
-    ativosOnly.forEach(f => {
+    funcionarios.filter(f => f.status === "Ativo").forEach(f => {
       const cliente = clientes.find(c => c.id === f.clienteId);
       const nome = cliente?.nomeFantasia || cliente?.nome || "Sem unidade";
       counts[nome] = (counts[nome] || 0) + 1;
     });
     return Object.entries(counts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [funcionarios, clientes]);
+
+  // Exames por tipo
+  const examesPorTipo = useMemo(() => {
+    const counts: Record<string, number> = {};
+    exames.forEach((e: any) => { counts[e.tipo_exame || "Outro"] = (counts[e.tipo_exame || "Outro"] || 0) + 1; });
+    return Object.entries(counts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+  }, [exames]);
 
   // WhatsApp phones
   const allPhones = useMemo(() => {
@@ -224,11 +268,7 @@ const Dashboard = () => {
   }, [clientes]);
 
   const handleDownloadPdf = () => {
-    downloadPdfDashboard({
-      requisicoes: filteredReqs,
-      dateFrom: dateFrom ? format(dateFrom, "dd/MM/yyyy") : undefined,
-      dateTo: dateTo ? format(dateTo, "dd/MM/yyyy") : undefined,
-    });
+    downloadPdfDashboard({ requisicoes: filteredReqs, dateFrom: dateFrom ? format(dateFrom, "dd/MM/yyyy") : undefined, dateTo: dateTo ? format(dateTo, "dd/MM/yyyy") : undefined });
     toast({ title: "PDF gerado com sucesso!" });
   };
 
@@ -247,23 +287,6 @@ const Dashboard = () => {
 
   const totalReqs = filteredReqs.length;
   const hasFilter = dateFrom || dateTo;
-
-  const KpiCard = ({ icon: Icon, label, value, color, sub }: { icon: any; label: string; value: number | string; color?: string; sub?: string }) => (
-    <Card>
-      <CardContent className="pt-4 pb-3 px-4">
-        <div className="flex items-center gap-3">
-          <div className="rounded-lg p-2 bg-muted">
-            <Icon className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold" style={color ? { color } : undefined}>{value}</p>
-            <p className="text-xs text-muted-foreground">{label}</p>
-            {sub && <p className="text-[10px] text-muted-foreground">{sub}</p>}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
 
   return (
     <div className="bg-background">
@@ -319,288 +342,397 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* ===== SEÇÃO FUNCIONÁRIOS ===== */}
-        <div className="mb-8 animate-fade-up" style={{ animationDelay: "40ms" }}>
-          <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-            <UserCheck className="h-4 w-4 text-primary" /> Funcionários
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            <KpiCard icon={Users} label="Total" value={funcStats.total} />
-            <KpiCard icon={UserCheck} label="Ativos" value={funcStats.ativos} color="hsl(160, 84%, 39%)" />
-            <KpiCard icon={Users} label="Inativos" value={funcStats.inativos} color="hsl(0, 72%, 51%)" />
-            <KpiCard icon={Users} label="Afastados" value={funcStats.afastados} color="hsl(38, 92%, 50%)" />
-            <KpiCard icon={Users} label="Férias" value={funcStats.ferias} color="hsl(217, 91%, 50%)" />
-          </div>
-        </div>
+        {/* ===== TABS ===== */}
+        <Tabs defaultValue="requisicoes" className="animate-fade-up" style={{ animationDelay: "40ms" }}>
+          <TabsList className="mb-6">
+            <TabsTrigger value="requisicoes" className="gap-2">
+              <ClipboardList className="h-4 w-4" />
+              Requisições e Processos Seletivos
+            </TabsTrigger>
+            <TabsTrigger value="funcionarios" className="gap-2">
+              <UserCheck className="h-4 w-4" />
+              Funcionários e Saúde
+            </TabsTrigger>
+          </TabsList>
 
-        {/* ===== ALERTAS EXPERIÊNCIA ===== */}
-        {experienciaAlerts.length > 0 && (
-          <div className="mb-8 animate-fade-up" style={{ animationDelay: "60ms" }}>
-            <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <Clock className="h-4 w-4 text-destructive" /> Período de Experiência — Atenção
-            </h2>
-            <Card className="border-destructive/30">
-              <CardContent className="pt-4 pb-3">
-                <div className="space-y-2">
-                  {experienciaAlerts.map(f => {
-                    const hoje = new Date();
-                    const fim1 = f.experienciaPrimeiraEtapa ? new Date(f.experienciaPrimeiraEtapa) : null;
-                    const fimFinal = f.experienciaFim ? new Date(f.experienciaFim) : null;
-                    let diasRestantes = 0;
-                    let etapa = "";
-                    if (fim1 && !f.experienciaRenovado) {
-                      diasRestantes = differenceInCalendarDays(fim1, hoje);
-                      etapa = "1ª etapa";
-                    } else if (fimFinal) {
-                      diasRestantes = differenceInCalendarDays(fimFinal, hoje);
-                      etapa = f.experienciaRenovado ? "2ª etapa" : "Final";
-                    }
-                    return (
-                      <div key={f.id} className="flex items-center justify-between text-sm px-2 py-1.5 rounded-md bg-destructive/5">
-                        <span className="font-medium">{f.nome}</span>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-[10px] border-destructive/30 text-destructive">
-                            {etapa}
-                          </Badge>
-                          <Badge variant="destructive" className="text-[10px]">
-                            {diasRestantes <= 0 ? "Vencido" : `${diasRestantes} dias restantes`}
-                          </Badge>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* ===== KPIs SECUNDÁRIOS: Processos, EPIs, Exames ===== */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 animate-fade-up" style={{ animationDelay: "80ms" }}>
-          {/* Processos Seletivos */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <ClipboardCheck className="h-4 w-4 text-primary" /> Processos Seletivos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <p className="text-xl font-bold text-foreground">{psStats.total}</p>
-                  <p className="text-[10px] text-muted-foreground">Processos</p>
-                </div>
-                <div>
-                  <p className="text-xl font-bold text-foreground">{psStats.candidatosTotal}</p>
-                  <p className="text-[10px] text-muted-foreground">Candidatos</p>
-                </div>
-                <div>
-                  <p className="text-xl font-bold" style={{ color: "hsl(160, 84%, 39%)" }}>{psStats.contratados}</p>
-                  <p className="text-[10px] text-muted-foreground">Contratados</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* EPIs */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <HardHat className="h-4 w-4 text-primary" /> EPIs
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <p className="text-xl font-bold text-foreground">{episStats.totalEpis}</p>
-                  <p className="text-[10px] text-muted-foreground">EPIs Entregues</p>
-                </div>
-                <div>
-                  <p className="text-xl font-bold" style={{ color: "hsl(160, 84%, 39%)" }}>{episStats.funcComEpi}</p>
-                  <p className="text-[10px] text-muted-foreground">Com EPI</p>
-                </div>
-                <div>
-                  <p className="text-xl font-bold" style={{ color: episStats.funcSemEpi > 0 ? "hsl(38, 92%, 50%)" : undefined }}>{episStats.funcSemEpi}</p>
-                  <p className="text-[10px] text-muted-foreground">Sem EPI</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Exames Periódicos */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Stethoscope className="h-4 w-4 text-primary" /> Exames Periódicos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <p className="text-xl font-bold" style={{ color: "hsl(160, 84%, 39%)" }}>{examesStats.emDia}</p>
-                  <p className="text-[10px] text-muted-foreground">Em Dia</p>
-                </div>
-                <div>
-                  <p className="text-xl font-bold" style={{ color: "hsl(38, 92%, 50%)" }}>{examesStats.aVencer30}</p>
-                  <p className="text-[10px] text-muted-foreground">A Vencer (30d)</p>
-                </div>
-                <div>
-                  <p className="text-xl font-bold" style={{ color: "hsl(0, 72%, 51%)" }}>{examesStats.vencidos}</p>
-                  <p className="text-[10px] text-muted-foreground">Vencidos</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* ===== REQUISIÇÕES KPIs ===== */}
-        <div className="mb-4 animate-fade-up" style={{ animationDelay: "100ms" }}>
-          <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-primary" /> Requisições de Colaboradores
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <Card>
-              <CardContent className="pt-4 pb-3 px-4 text-center">
-                <p className="text-2xl font-bold text-foreground">{totalReqs}</p>
-                <p className="text-xs text-muted-foreground mt-1">Total</p>
-              </CardContent>
-            </Card>
-            {["Pendente", "Em Análise", "Aprovada", "Reprovada", "Concluída"].map((status) => {
-              const count = filteredReqs.filter((r) => r.status === status).length;
-              return (
-                <Card key={status}>
+          {/* ==================== ABA 1: REQUISIÇÕES E PROCESSOS SELETIVOS ==================== */}
+          <TabsContent value="requisicoes" className="space-y-6">
+            {/* Requisições KPIs */}
+            <div>
+              <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-primary" /> Requisições de Colaboradores
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <Card>
                   <CardContent className="pt-4 pb-3 px-4 text-center">
-                    <p className="text-2xl font-bold" style={{ color: STATUS_COLORS[status] }}>{count}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{status}</p>
+                    <p className="text-2xl font-bold text-foreground">{totalReqs}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Total</p>
                   </CardContent>
                 </Card>
-              );
-            })}
-          </div>
-        </div>
+                {["Pendente", "Em Análise", "Aprovada", "Reprovada", "Concluída"].map((status) => {
+                  const count = filteredReqs.filter((r) => r.status === status).length;
+                  return (
+                    <Card key={status}>
+                      <CardContent className="pt-4 pb-3 px-4 text-center">
+                        <p className="text-2xl font-bold" style={{ color: STATUS_COLORS[status] }}>{count}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{status}</p>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
 
-        {/* ===== GRÁFICOS ===== */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-up" style={{ animationDelay: "160ms" }}>
-          {/* Funcionários por Status */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Funcionários por Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {funcStatusData.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-10">Nenhum funcionário cadastrado.</p>
-              ) : (
-                <ResponsiveContainer width="100%" height={280}>
-                  <PieChart>
-                    <Pie data={funcStatusData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" nameKey="name" label={({ name, value }) => `${name}: ${value}`} labelLine>
-                      {funcStatusData.map((entry) => (<Cell key={entry.name} fill={FUNC_STATUS_COLORS[entry.name] || "hsl(200, 80%, 50%)"} />))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
+            {/* Processos Seletivos KPIs */}
+            <div>
+              <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <ClipboardCheck className="h-4 w-4 text-primary" /> Processos Seletivos
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <KpiCard icon={ClipboardCheck} label="Processos" value={psStats.total} />
+                <KpiCard icon={Users} label="Candidatos" value={psStats.candidatosTotal} />
+                <KpiCard icon={UserCheck} label="Contratados" value={psStats.contratados} color="hsl(160, 84%, 39%)" />
+                <KpiCard icon={Clock} label="Em Andamento" value={psStats.emAndamento} color="hsl(217, 91%, 50%)" />
+              </div>
+            </div>
 
-          {/* Funcionários por Cliente/Unidade */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Funcionários Ativos por Unidade</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {funcPorCliente.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-10">Nenhum funcionário ativo.</p>
-              ) : (
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={funcPorCliente} layout="vertical" margin={{ left: 10, right: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                    <XAxis type="number" allowDecimals={false} />
-                    <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 11 }} />
-                    <Tooltip />
-                    <Bar dataKey="value" name="Funcionários" radius={[0, 4, 4, 0]}>
-                      {funcPorCliente.map((_, i) => (<Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
+            {/* Gráficos */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Requisições por Status */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold">Requisições por Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {statusData.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-10">Nenhuma requisição no período.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={280}>
+                      <PieChart>
+                        <Pie data={statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" nameKey="name" label={({ name, value }) => `${name}: ${value}`} labelLine>
+                          {statusData.map((entry) => (<Cell key={entry.name} fill={STATUS_COLORS[entry.name] || "hsl(var(--muted))"} />))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
 
-          {/* Requisições por Status */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Requisições por Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {statusData.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-10">Nenhuma requisição no período.</p>
-              ) : (
-                <ResponsiveContainer width="100%" height={280}>
-                  <PieChart>
-                    <Pie data={statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" nameKey="name" label={({ name, value }) => `${name}: ${value}`} labelLine>
-                      {statusData.map((entry) => (<Cell key={entry.name} fill={STATUS_COLORS[entry.name] || "hsl(var(--muted))"} />))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
+              {/* Candidatos por Etapa */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold">Candidatos por Etapa</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {psCandidatosPorEtapa.every(e => e.value === 0) ? (
+                    <p className="text-sm text-muted-foreground text-center py-10">Nenhum candidato ativo.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={280}>
+                      <BarChart data={psCandidatosPorEtapa} margin={{ left: 10, right: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip />
+                        <Bar dataKey="value" name="Candidatos" radius={[4, 4, 0, 0]}>
+                          {psCandidatosPorEtapa.map((_, i) => (<Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
 
-          {/* Requisições por Cliente */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Requisições por Cliente/Unidade</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {clienteData.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-10">Nenhuma requisição no período.</p>
-              ) : (
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={clienteData} layout="vertical" margin={{ left: 10, right: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                    <XAxis type="number" allowDecimals={false} />
-                    <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 11 }} />
-                    <Tooltip />
-                    <Bar dataKey="value" name="Solicitações" radius={[0, 4, 4, 0]}>
-                      {clienteData.map((_, i) => (<Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
+              {/* Requisições por Cliente */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold">Requisições por Cliente/Unidade</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {clienteData.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-10">Nenhuma requisição no período.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={280}>
+                      <BarChart data={clienteData} layout="vertical" margin={{ left: 10, right: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                        <XAxis type="number" allowDecimals={false} />
+                        <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 11 }} />
+                        <Tooltip />
+                        <Bar dataKey="value" name="Solicitações" radius={[0, 4, 4, 0]}>
+                          {clienteData.map((_, i) => (<Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
 
-          {/* Evolução Temporal */}
-          <Card className="lg:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Evolução Temporal das Requisições</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {timelineData.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-10">Nenhuma requisição no período.</p>
-              ) : (
-                <ResponsiveContainer width="100%" height={280}>
-                  <AreaChart data={timelineData} margin={{ left: 0, right: 20, top: 10, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(217, 91%, 50%)" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="hsl(217, 91%, 50%)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="period" tick={{ fontSize: 11 }} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="total" name="Requisições" stroke="hsl(217, 91%, 50%)" fill="url(#colorTotal)" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              {/* Evolução Temporal */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold">Evolução Temporal das Requisições</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {timelineData.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-10">Nenhuma requisição no período.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={280}>
+                      <AreaChart data={timelineData} margin={{ left: 0, right: 20, top: 10, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(217, 91%, 50%)" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="hsl(217, 91%, 50%)" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="period" tick={{ fontSize: 11 }} />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                        <Tooltip />
+                        <Area type="monotone" dataKey="total" name="Requisições" stroke="hsl(217, 91%, 50%)" fill="url(#colorTotal)" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* ==================== ABA 2: FUNCIONÁRIOS, EPIs, EXAMES, ATESTADOS, FÉRIAS ==================== */}
+          <TabsContent value="funcionarios" className="space-y-6">
+            {/* Funcionários KPIs */}
+            <div>
+              <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <UserCheck className="h-4 w-4 text-primary" /> Funcionários
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <KpiCard icon={Users} label="Total" value={funcStats.total} />
+                <KpiCard icon={UserCheck} label="Ativos" value={funcStats.ativos} color="hsl(160, 84%, 39%)" />
+                <KpiCard icon={Users} label="Inativos" value={funcStats.inativos} color="hsl(0, 72%, 51%)" />
+                <KpiCard icon={Users} label="Afastados" value={funcStats.afastados} color="hsl(38, 92%, 50%)" />
+                <KpiCard icon={Users} label="Férias" value={funcStats.ferias} color="hsl(217, 91%, 50%)" />
+              </div>
+            </div>
+
+            {/* Alertas Experiência */}
+            {experienciaAlerts.length > 0 && (
+              <div>
+                <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-destructive" /> Período de Experiência — Atenção
+                </h2>
+                <Card className="border-destructive/30">
+                  <CardContent className="pt-4 pb-3">
+                    <div className="space-y-2">
+                      {experienciaAlerts.map(f => {
+                        const hoje = new Date();
+                        const fim1 = f.experienciaPrimeiraEtapa ? new Date(f.experienciaPrimeiraEtapa) : null;
+                        const fimFinal = f.experienciaFim ? new Date(f.experienciaFim) : null;
+                        let diasRestantes = 0;
+                        let etapa = "";
+                        if (fim1 && !f.experienciaRenovado) {
+                          diasRestantes = differenceInCalendarDays(fim1, hoje);
+                          etapa = "1ª etapa";
+                        } else if (fimFinal) {
+                          diasRestantes = differenceInCalendarDays(fimFinal, hoje);
+                          etapa = f.experienciaRenovado ? "2ª etapa" : "Final";
+                        }
+                        return (
+                          <div key={f.id} className="flex items-center justify-between text-sm px-2 py-1.5 rounded-md bg-destructive/5">
+                            <span className="font-medium">{f.nome}</span>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-[10px] border-destructive/30 text-destructive">{etapa}</Badge>
+                              <Badge variant="destructive" className="text-[10px]">
+                                {diasRestantes <= 0 ? "Vencido" : `${diasRestantes} dias restantes`}
+                              </Badge>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* EPIs, Exames e Atestados KPIs */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <HardHat className="h-4 w-4 text-primary" /> EPIs
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <p className="text-xl font-bold text-foreground">{episStats.totalEpis}</p>
+                      <p className="text-[10px] text-muted-foreground">EPIs Entregues</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold" style={{ color: "hsl(160, 84%, 39%)" }}>{episStats.funcComEpi}</p>
+                      <p className="text-[10px] text-muted-foreground">Com EPI</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold" style={{ color: episStats.funcSemEpi > 0 ? "hsl(38, 92%, 50%)" : undefined }}>{episStats.funcSemEpi}</p>
+                      <p className="text-[10px] text-muted-foreground">Sem EPI</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <Stethoscope className="h-4 w-4 text-primary" /> Exames Periódicos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <p className="text-xl font-bold" style={{ color: "hsl(160, 84%, 39%)" }}>{examesStats.emDia}</p>
+                      <p className="text-[10px] text-muted-foreground">Em Dia</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold" style={{ color: "hsl(38, 92%, 50%)" }}>{examesStats.aVencer30}</p>
+                      <p className="text-[10px] text-muted-foreground">A Vencer (30d)</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold" style={{ color: "hsl(0, 72%, 51%)" }}>{examesStats.vencidos}</p>
+                      <p className="text-[10px] text-muted-foreground">Vencidos</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary" /> Atestados e Faltas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                    <div>
+                      <p className="text-xl font-bold text-foreground">{atestadosStats.totalAtestados}</p>
+                      <p className="text-[10px] text-muted-foreground">Atestados</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold" style={{ color: "hsl(38, 92%, 50%)" }}>{atestadosStats.totalDiasAtestado}</p>
+                      <p className="text-[10px] text-muted-foreground">Dias Afastados</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold" style={{ color: "hsl(160, 84%, 39%)" }}>{atestadosStats.faltasJust}</p>
+                      <p className="text-[10px] text-muted-foreground">Justificadas</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold" style={{ color: "hsl(0, 72%, 51%)" }}>{atestadosStats.faltasInjust}</p>
+                      <p className="text-[10px] text-muted-foreground">Injustificadas</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Funcionários em Férias */}
+            {funcionariosFerias.length > 0 && (
+              <div>
+                <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4 text-primary" /> Funcionários em Férias ({funcionariosFerias.length})
+                </h2>
+                <Card>
+                  <CardContent className="pt-4 pb-3">
+                    <div className="space-y-2">
+                      {funcionariosFerias.map(f => {
+                        const cliente = clientes.find(c => c.id === f.clienteId);
+                        return (
+                          <div key={f.id} className="flex items-center justify-between text-sm px-2 py-1.5 rounded-md bg-muted/50">
+                            <span className="font-medium">{f.nome}</span>
+                            <Badge variant="outline" className="text-[10px]">
+                              {cliente?.nomeFantasia || cliente?.nome || "—"}
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Gráficos */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Funcionários por Status */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold">Funcionários por Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {funcStatusData.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-10">Nenhum funcionário cadastrado.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={280}>
+                      <PieChart>
+                        <Pie data={funcStatusData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" nameKey="name" label={({ name, value }) => `${name}: ${value}`} labelLine>
+                          {funcStatusData.map((entry) => (<Cell key={entry.name} fill={FUNC_STATUS_COLORS[entry.name] || "hsl(200, 80%, 50%)"} />))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Funcionários por Unidade */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold">Funcionários Ativos por Unidade</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {funcPorCliente.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-10">Nenhum funcionário ativo.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={280}>
+                      <BarChart data={funcPorCliente} layout="vertical" margin={{ left: 10, right: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                        <XAxis type="number" allowDecimals={false} />
+                        <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 11 }} />
+                        <Tooltip />
+                        <Bar dataKey="value" name="Funcionários" radius={[0, 4, 4, 0]}>
+                          {funcPorCliente.map((_, i) => (<Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Exames por Tipo */}
+              <Card className="lg:col-span-2">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold">Exames por Tipo</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {examesPorTipo.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-10">Nenhum exame cadastrado.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={280}>
+                      <BarChart data={examesPorTipo} margin={{ left: 10, right: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip />
+                        <Bar dataKey="value" name="Exames" radius={[4, 4, 0, 0]}>
+                          {examesPorTipo.map((_, i) => (<Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Send WhatsApp Dialog */}
         <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
@@ -610,9 +742,7 @@ const Dashboard = () => {
                 <MessageSquare className="h-5 w-5 text-primary" />
                 Enviar Relatório via WhatsApp
               </DialogTitle>
-              <DialogDescription>
-                Selecione os destinatários para envio do resumo.
-              </DialogDescription>
+              <DialogDescription>Selecione os destinatários para envio do resumo.</DialogDescription>
             </DialogHeader>
             <div className="max-h-60 overflow-y-auto space-y-2 py-2">
               {allPhones.length === 0 ? (
