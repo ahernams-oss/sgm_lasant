@@ -54,12 +54,6 @@ export default {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
         },
-        berry: {
-          blue: "hsl(var(--berry-blue))",
-          purple: "hsl(var(--berry-purple))",
-          orange: "hsl(var(--berry-orange))",
-          green: "hsl(var(--berry-green))",
-        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
