@@ -682,12 +682,16 @@ export default function CotacaoComprasPage() {
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={async () => {
                         const req = requisicoes.find(r => r.id === c.requisicaoId) || null;
-                        const fornsComProposta = c.propostas.map(p => ({
-                          id: p.fornecedorId,
-                          nome: p.fornecedorNome,
-                          cnpj: fornecedores.find(f => f.id === p.fornecedorId)?.cnpj || "",
-                          email: fornecedores.find(f => f.id === p.fornecedorId)?.email || "",
-                        }));
+                        const fornsComProposta = c.propostas.map(p => {
+                          const fData = fornecedores.find(f => f.id === p.fornecedorId);
+                          return {
+                            id: p.fornecedorId,
+                            nome: p.fornecedorNome,
+                            cnpj: fData?.cnpj || "",
+                            email: fData?.emailCompras || fData?.email || "",
+                            telefone: fData?.telefoneCelular || (fData?.telefones?.[0]) || "",
+                          };
+                        });
                         const fornsUnicos = fornsComProposta.filter((f, i, arr) => arr.findIndex(a => a.id === f.id) === i);
                         if (fornsUnicos.length === 0) {
                           toast({ title: "Nenhum fornecedor", description: "Adicione propostas ou envie para fornecedores antes de gerar os PDFs.", variant: "destructive" });
