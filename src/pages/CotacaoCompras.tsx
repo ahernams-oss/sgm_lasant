@@ -679,7 +679,6 @@ export default function CotacaoComprasPage() {
                       }}>
                         <FileDown className="mr-2 h-4 w-4" />Exportar PDF
                       </DropdownMenuItem>
-                      </DropdownMenuItem>
                       {(c.status === "Em Andamento" || c.status === "Aguardando Aprovação") && (
                         <>
                           <DropdownMenuSeparator />
