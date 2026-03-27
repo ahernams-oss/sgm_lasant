@@ -31,31 +31,16 @@ const menuItems = [
     ],
   },
   {
+    group: "Patrimônio",
+    items: [
+      { title: "Ferramentas", url: "/patrimonio/ferramentas", icon: Wrench },
+    ],
+  },
+  {
     group: "Engenharia",
     items: [
       { title: "Dashboard Engenharia", url: "/engenharia/dashboard", icon: BarChart3 },
       { title: "Medição de Serviços", url: "/engenharia/medicoes", icon: Ruler },
-    ],
-  },
-  {
-    group: "Compras e Suprimentos",
-    items: [
-      { title: "Dashboard Compras", url: "/compras/dashboard", icon: BarChart3 },
-      { title: "Requisições de Compras", url: "/compras/requisicoes", icon: ShoppingCart },
-      { title: "Cotações", url: "/compras/cotacoes", icon: Scale },
-      { title: "Pedidos de Compra", url: "/compras/pedidos", icon: FileCheck },
-      { title: "Recebimento", url: "/compras/recebimento", icon: PackageCheck },
-      { title: "Estoque", url: "/compras/estoque", icon: Warehouse },
-      { title: "Relatórios Estoque", url: "/compras/relatorios-estoque", icon: FileBarChart },
-      { title: "Categorias de Compras", url: "/compras/categorias", icon: Tags },
-      { title: "Materiais e Serviços", url: "/compras/materiais", icon: Package },
-      { title: "Fabricantes", url: "/compras/fabricantes", icon: Factory },
-    ],
-  },
-  {
-    group: "Patrimônio",
-    items: [
-      { title: "Ferramentas", url: "/patrimonio/ferramentas", icon: Wrench },
     ],
   },
   {
