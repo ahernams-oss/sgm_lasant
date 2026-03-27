@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Plus, Ruler, Trash2, Edit, Eye, X, ChevronDown, ChevronUp, CalendarIcon } from "lucide-react";
+import { Plus, Ruler, Trash2, Edit, Eye, X, ChevronDown, ChevronUp, CalendarIcon, FileText, Download } from "lucide-react";
+import { downloadPdfMedicoes } from "@/lib/gerarPdfMedicoes";
+import { downloadExcelMedicoes } from "@/lib/gerarExcelMedicoes";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
