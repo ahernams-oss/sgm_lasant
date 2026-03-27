@@ -1,6 +1,6 @@
 import * as React from 'npm:react@18.3.1'
 import {
-  Body, Container, Head, Heading, Html, Preview, Text, Hr, Section,
+  Body, Container, Head, Heading, Html, Preview, Text, Hr, Section, Button,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
@@ -14,6 +14,7 @@ interface OrdemCompraProps {
   prazoEntrega?: string
   comprador?: string
   nomeEmpresa?: string
+  pdfUrl?: string
 }
 
 const OrdemCompraConfirmationEmail = ({
@@ -24,6 +25,7 @@ const OrdemCompraConfirmationEmail = ({
   prazoEntrega,
   comprador,
   nomeEmpresa,
+  pdfUrl,
 }: OrdemCompraProps) => (
   <Html lang="pt-BR" dir="ltr">
     <Head />
@@ -74,10 +76,17 @@ const OrdemCompraConfirmationEmail = ({
           )}
         </Section>
 
-        <Text style={text}>
-          O PDF da Ordem de Compra será enviado em anexo separado ou disponibilizado
-          para download conforme procedimento interno.
-        </Text>
+        {pdfUrl ? (
+          <Section style={buttonSection}>
+            <Button style={downloadButton} href={pdfUrl}>
+              Baixar Ordem de Compra (PDF)
+            </Button>
+          </Section>
+        ) : (
+          <Text style={text}>
+            O PDF da Ordem de Compra será disponibilizado para download conforme procedimento interno.
+          </Text>
+        )}
 
         <Hr style={divider} />
 
@@ -106,6 +115,7 @@ export const template = {
     prazoEntrega: '15 dias úteis',
     comprador: 'João Silva',
     nomeEmpresa: 'LASANT CONSTRUÇÕES LTDA',
+    pdfUrl: 'https://example.com/ordem.pdf',
   },
 } satisfies TemplateEntry
 
@@ -148,4 +158,13 @@ const detailValue = {
   fontWeight: '500' as const,
 }
 const buttonSection = { textAlign: 'center' as const, margin: '24px 0' }
+const downloadButton = {
+  backgroundColor: '#1e3a6e',
+  color: '#ffffff',
+  padding: '12px 24px',
+  borderRadius: '6px',
+  fontSize: '14px',
+  fontWeight: '600' as const,
+  textDecoration: 'none',
+}
 const footer = { fontSize: '13px', color: '#718096', lineHeight: '1.6', margin: '0' }
