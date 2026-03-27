@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown, HardHat, Stethoscope, TrendingUp } from "lucide-react";
+import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown, HardHat, Stethoscope, TrendingUp, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -591,7 +591,19 @@ const Funcionarios = () => {
                     </Select>
                   </Field>
                   <Field label="Data de Admissão">
-                    <Input type="date" value={form.dataAdmissao} onChange={(e) => update("dataAdmissao", e.target.value)} />
+                    <Input type="date" value={form.dataAdmissao} onChange={(e) => {
+                      const val = e.target.value;
+                      update("dataAdmissao", val);
+                      if (val && !form.experienciaInicio) {
+                        update("experienciaInicio", val);
+                        const d = new Date(val);
+                        d.setDate(d.getDate() + 45);
+                        update("experienciaPrimeiraEtapa", d.toISOString().split("T")[0]);
+                        const d2 = new Date(val);
+                        d2.setDate(d2.getDate() + 90);
+                        update("experienciaFim", d2.toISOString().split("T")[0]);
+                      }
+                    }} />
                   </Field>
                   <Field label="Data de Demissão">
                     <Input type="date" value={form.dataDemissao} onChange={(e) => update("dataDemissao", e.target.value)} />
@@ -620,7 +632,73 @@ const Funcionarios = () => {
                     </Select>
                   </Field>
                 </div>
-              </TabsContent>
+
+                {/* PERÍODO DE EXPERIÊNCIA */}
+                {form.tipoContrato === "CLT" && (
+                  <div className="mt-6 p-4 border border-border rounded-lg bg-muted/20">
+                    <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-primary" /> Período de Experiência (45+45 dias)
+                    </h3>
+                    {(() => {
+                      const hoje = new Date();
+                      const fim1 = form.experienciaPrimeiraEtapa ? new Date(form.experienciaPrimeiraEtapa) : null;
+                      const fimFinal = form.experienciaFim ? new Date(form.experienciaFim) : null;
+                      let statusExp = "";
+                      let statusClass = "";
+                      if (fimFinal && hoje > fimFinal) {
+                        statusExp = "Experiência concluída";
+                        statusClass = "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400";
+                      } else if (fim1 && hoje > fim1 && form.experienciaRenovado) {
+                        const dias = fimFinal ? Math.ceil((fimFinal.getTime() - hoje.getTime()) / 86400000) : 0;
+                        statusExp = `2ª etapa – ${dias} dias restantes`;
+                        statusClass = dias <= 10 ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+                      } else if (fim1 && hoje <= fim1) {
+                        const dias = Math.ceil((fim1.getTime() - hoje.getTime()) / 86400000);
+                        statusExp = `1ª etapa – ${dias} dias restantes`;
+                        statusClass = dias <= 10 ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" : "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400";
+                      } else if (fim1 && hoje > fim1 && !form.experienciaRenovado) {
+                        statusExp = "Aguardando renovação";
+                        statusClass = "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+                      }
+                      return (
+                        <>
+                          {statusExp && (
+                            <Badge className={`${statusClass} text-xs font-medium mb-4`}>{statusExp}</Badge>
+                          )}
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <Field label="Início da Experiência">
+                              <Input type="date" value={form.experienciaInicio} onChange={(e) => {
+                                const val = e.target.value;
+                                update("experienciaInicio", val);
+                                if (val) {
+                                  const d = new Date(val);
+                                  d.setDate(d.getDate() + 45);
+                                  update("experienciaPrimeiraEtapa", d.toISOString().split("T")[0]);
+                                  const d2 = new Date(val);
+                                  d2.setDate(d2.getDate() + 90);
+                                  update("experienciaFim", d2.toISOString().split("T")[0]);
+                                }
+                              }} />
+                            </Field>
+                            <Field label="Fim 1ª Etapa (45 dias)">
+                              <Input type="date" value={form.experienciaPrimeiraEtapa} onChange={(e) => update("experienciaPrimeiraEtapa", e.target.value)} />
+                            </Field>
+                            <Field label="Fim 2ª Etapa (90 dias)">
+                              <Input type="date" value={form.experienciaFim} onChange={(e) => update("experienciaFim", e.target.value)} />
+                            </Field>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs font-semibold text-foreground/80">Renovação</Label>
+                              <div className="flex items-center gap-3 h-10">
+                                <Checkbox checked={form.experienciaRenovado} onCheckedChange={(v) => update("experienciaRenovado", !!v)} />
+                                <span className="text-sm text-foreground">Renovado por +45 dias</span>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
 
               {/* DADOS BANCÁRIOS */}
               <TabsContent value="bancario">
