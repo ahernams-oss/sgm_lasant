@@ -52,6 +52,7 @@ import { PerfisAcessoProvider } from "@/contexts/PerfisAcessoContext";
 import { EmpresaProvider } from "@/contexts/EmpresaContext";
 import { LicitacoesProvider } from "@/contexts/LicitacoesContext";
 import { MedicoesProvider } from "@/contexts/MedicoesContext";
+import { FerramentasProvider } from "@/contexts/FerramentasContext";
 import FabricantesPage from "./pages/Fabricantes.tsx";
 import EpisPage from "./pages/EpisPage.tsx";
 import ExamesPage from "./pages/ExamesPage.tsx";
@@ -59,6 +60,7 @@ import UnsubscribePage from "./pages/Unsubscribe.tsx";
 import LicitacoesPage from "./pages/Licitacoes.tsx";
 import MedicoesServicosPage from "./pages/MedicoesServicos.tsx";
 import DashboardMedicoesPage from "./pages/DashboardMedicoes.tsx";
+import FerramentasPage from "./pages/Ferramentas.tsx";
 
 const queryClient = new QueryClient();
 
@@ -96,6 +98,7 @@ function AppRoutes() {
         <Route path="/licitacoes" element={<LicitacoesPage />} />
         <Route path="/engenharia/dashboard" element={<DashboardMedicoesPage />} />
         <Route path="/engenharia/medicoes" element={<MedicoesServicosPage />} />
+        <Route path="/patrimonio/ferramentas" element={<FerramentasPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -125,6 +128,7 @@ const App = () => (
     <EmpresaProvider>
     <LicitacoesProvider>
     <MedicoesProvider>
+    <FerramentasProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
@@ -138,6 +142,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </FerramentasProvider>
     </MedicoesProvider>
     </LicitacoesProvider>
     </EmpresaProvider>

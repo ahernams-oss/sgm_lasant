@@ -1,4 +1,4 @@
-import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock, FileSpreadsheet, DollarSign, ShoppingCart, Tags, Package, BarChart3, Scale, FileCheck, PackageCheck, Factory, Warehouse, KeyRound, Building2, HardHat, Stethoscope, FileBarChart, Gavel, Ruler } from "lucide-react";
+import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock, FileSpreadsheet, DollarSign, ShoppingCart, Tags, Package, BarChart3, Scale, FileCheck, PackageCheck, Factory, Warehouse, KeyRound, Building2, HardHat, Stethoscope, FileBarChart, Gavel, Ruler, Wrench } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import { NavLink } from "@/components/NavLink";
@@ -50,6 +50,12 @@ const menuItems = [
       { title: "Categorias de Compras", url: "/compras/categorias", icon: Tags },
       { title: "Materiais e Serviços", url: "/compras/materiais", icon: Package },
       { title: "Fabricantes", url: "/compras/fabricantes", icon: Factory },
+    ],
+  },
+  {
+    group: "Patrimônio",
+    items: [
+      { title: "Ferramentas", url: "/patrimonio/ferramentas", icon: Wrench },
     ],
   },
   {
