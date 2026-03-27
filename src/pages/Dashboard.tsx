@@ -61,7 +61,7 @@ const Dashboard = () => {
   const { requisicoes } = useRequisicoes();
   const { clientes } = useClientes();
   const { funcionarios } = useFuncionarios();
-  const { processos } = useProcessosSeletivos();
+  const { processos } = useProcessoSeletivo();
   const { toast } = useToast();
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
