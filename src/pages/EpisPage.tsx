@@ -67,9 +67,7 @@ const EpisPage = () => {
     return result;
   }, [todosEpis, search, filtroCliente]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const { paginated, totalPages, safePage } = paginate(filtered, page);
 
   const resetPage = () => setPage(1);
 
@@ -158,21 +156,7 @@ const EpisPage = () => {
         </div>
       )}
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-2">
-          <span className="text-xs text-muted-foreground">
-            Página {safePage} de {totalPages} — {filtered.length} registro(s)
-          </span>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}>
-              Anterior
-            </Button>
-            <Button size="sm" variant="outline" disabled={safePage >= totalPages} onClick={() => setPage(safePage + 1)}>
-              Próxima
-            </Button>
-          </div>
-        </div>
-      )}
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
     </div>
   );
 };
