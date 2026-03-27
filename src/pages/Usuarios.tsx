@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { Shield, Trash2, Pencil, Eye, EyeOff, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ const Usuarios = () => {
   const [showSenha, setShowSenha] = useState(false);
   const [search, setSearch] = useState("");
   const [filterCargo, setFilterCargo] = useState<string>("todos");
+  const [page, setPage] = useState(1);
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -288,7 +290,7 @@ const Usuarios = () => {
               </Select>
               <div className="relative w-52">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Pesquisar usuários..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+                <Input placeholder="Pesquisar usuários..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="pl-9 h-9" />
               </div>
             </div>
           </div>
@@ -310,7 +312,7 @@ const Usuarios = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsuarios.map((u) => (
+                {paginate(filteredUsuarios, page).paginated.map((u) => (
                   <TableRow key={u.id}>
                     <TableCell className="font-medium">{u.nome}</TableCell>
                     <TableCell>{getCargoNome(u.cargoId)}</TableCell>
@@ -333,6 +335,7 @@ const Usuarios = () => {
               </TableBody>
             </Table>
           )}
+          <PaginationControls currentPage={page} totalItems={filteredUsuarios.length} onPageChange={setPage} />
         </div>
       </div>
     </div>

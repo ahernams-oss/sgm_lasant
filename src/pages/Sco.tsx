@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useSco, emptyScoForm, tiposSco, TipoSco } from "@/contexts/ScoContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ export default function Sco() {
   const [form, setForm] = useState(emptyScoForm);
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("todos");
+  const [page, setPage] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImport = (file: File) => {
@@ -152,11 +154,11 @@ export default function Sco() {
           <Input
             placeholder="Buscar por código ou descrição..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="pl-9"
           />
         </div>
-        <Select value={filterTipo} onValueChange={setFilterTipo}>
+        <Select value={filterTipo} onValueChange={(v) => { setFilterTipo(v); setPage(1); }}>
           <SelectTrigger className="w-[160px]">
             <SelectValue />
           </SelectTrigger>
@@ -188,7 +190,7 @@ export default function Sco() {
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((s) => (
+              paginate(filtered, page).paginated.map((s) => (
                 <TableRow key={s.id}>
                   <TableCell className="font-mono">{s.codSco}</TableCell>
                   <TableCell>{s.descricaoSco}</TableCell>
@@ -218,6 +220,8 @@ export default function Sco() {
           </TableBody>
         </Table>
       </div>
+
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

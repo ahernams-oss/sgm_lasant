@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { usePedidoCompra, PedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useRecebimento, Recebimento, ItemRecebimento, AnexoNF } from "@/contexts/RecebimentoContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,6 +34,7 @@ export default function RecebimentoComprasPage() {
 
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("Pendentes");
+  const [pageRec, setPageRec] = useState(1);
 
   // Recebimento dialog
   const [recDialogOpen, setRecDialogOpen] = useState(false);
@@ -225,7 +227,7 @@ export default function RecebimentoComprasPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
-            ) : filtered.map(p => {
+            ) : paginate(filtered, pageRec).paginated.map(p => {
               const recsPedido = getRecebimentosByPedido(p.id);
               const totalItens = p.itens.length;
               const itensCompletos = p.itens.filter(i => {
@@ -291,6 +293,7 @@ export default function RecebimentoComprasPage() {
           </TableBody>
         </Table>
       </div>
+      <PaginationControls currentPage={pageRec} totalItems={filtered.length} onPageChange={setPageRec} />
 
       {/* Dialog Registrar Recebimento */}
       <Dialog open={recDialogOpen} onOpenChange={setRecDialogOpen}>

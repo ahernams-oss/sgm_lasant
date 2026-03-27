@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin, FileText, Plus, ChevronDown, ChevronUp, Truck } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
@@ -17,6 +18,7 @@ const Clientes = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [locaisClienteId, setLocaisClienteId] = useState<string | null>(null);
    const [locaisEntregaClienteId, setLocaisEntregaClienteId] = useState<string | null>(null);
    const [contratosClienteId, setContratosClienteId] = useState<string | null>(null);
@@ -151,7 +153,7 @@ const Clientes = () => {
               <Input
                 placeholder="Pesquisar clientes..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                 className="pl-9 h-9"
               />
             </div>
@@ -162,7 +164,7 @@ const Clientes = () => {
             </p>
           ) : (
             <div className="divide-y divide-border">
-              {filteredClientes.map((cliente) => (
+              {paginate(filteredClientes, page).paginated.map((cliente) => (
                 <div key={cliente.id} className="flex items-center justify-between py-3 gap-4">
                   <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
                     <p className="text-sm font-medium text-foreground truncate">{cliente.nome}</p>
@@ -210,6 +212,7 @@ const Clientes = () => {
               ))}
             </div>
           )}
+          <PaginationControls currentPage={page} totalItems={filteredClientes.length} onPageChange={setPage} />
         </div>
 
         {locaisClienteId && (

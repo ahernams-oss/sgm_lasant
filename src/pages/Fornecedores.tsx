@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import { Truck, Trash2, Search, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
@@ -14,6 +15,7 @@ const Fornecedores = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   
 
   const fornecedores = useMemo(() => clientes.filter((c) => c.tipo === "Fornecedor"), [clientes]);
@@ -147,7 +149,7 @@ const Fornecedores = () => {
               <Input
                 placeholder="Pesquisar fornecedores..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                 className="pl-9 h-9"
               />
             </div>
@@ -158,7 +160,7 @@ const Fornecedores = () => {
             </p>
           ) : (
             <div className="divide-y divide-border">
-              {filteredFornecedores.map((fornecedor) => (
+              {paginate(filteredFornecedores, page).paginated.map((fornecedor) => (
                 <div key={fornecedor.id} className="flex items-center justify-between py-3 gap-4">
                   <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
                     <p className="text-sm font-medium text-foreground truncate">{fornecedor.nome}</p>
@@ -179,6 +181,7 @@ const Fornecedores = () => {
               ))}
             </div>
           )}
+          <PaginationControls currentPage={page} totalItems={filteredFornecedores.length} onPageChange={setPage} />
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown, HardHat, Stethoscope, TrendingUp, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -312,6 +313,7 @@ const Funcionarios = () => {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [filterCliente, setFilterCliente] = useState<string>("todos");
+  const [page, setPage] = useState(1);
 
   const update = (field: string, value: string | boolean | PassagemDiaria[] | Dependente[] | EpiItem[] | NrFuncionario[]) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -866,7 +868,7 @@ const Funcionarios = () => {
               </Select>
               <div className="relative w-52">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Pesquisar..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+                <Input placeholder="Pesquisar..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="pl-9 h-9" />
               </div>
             </div>
           </div>
@@ -890,7 +892,7 @@ const Funcionarios = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredFuncionarios.map((f) => {
+                  {paginate(filteredFuncionarios, page).paginated.map((f) => {
                     const expBadge = (() => {
                       if (!f.experienciaFim) return null;
                       const hoje = new Date();
@@ -942,6 +944,7 @@ const Funcionarios = () => {
               </Table>
             </div>
           )}
+          <PaginationControls currentPage={page} totalItems={filteredFuncionarios.length} onPageChange={setPage} />
         </div>
       </div>
     </div>
