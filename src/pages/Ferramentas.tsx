@@ -223,7 +223,8 @@ export default function FerramentasPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Ferramenta</TableHead>
+                  <TableHead>Ferramentas</TableHead>
+                  <TableHead>Qtd</TableHead>
                   <TableHead>Funcionário</TableHead>
                   <TableHead>Data Vínculo</TableHead>
                   <TableHead>Data Devolução</TableHead>
@@ -233,11 +234,18 @@ export default function FerramentasPage() {
               </TableHeader>
               <TableBody>
                 {vinculos.length === 0 && (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum vínculo registrado.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum vínculo registrado.</TableCell></TableRow>
                 )}
                 {vinculos.map(v => (
                   <TableRow key={v.id}>
-                    <TableCell className="text-sm">{v.ferramentaDescricao}</TableCell>
+                    <TableCell className="text-sm max-w-[300px]">
+                      {v.ferramentasDescricoes.length > 0 ? (
+                        <ul className="list-disc list-inside space-y-0.5">
+                          {v.ferramentasDescricoes.map((desc, i) => <li key={i} className="text-xs">{desc}</li>)}
+                        </ul>
+                      ) : v.ferramentaDescricao}
+                    </TableCell>
+                    <TableCell className="text-sm font-medium">{v.ferramentasIds.length || 1}</TableCell>
                     <TableCell className="text-sm">{v.funcionarioNome}</TableCell>
                     <TableCell className="text-sm">{v.dataVinculo}</TableCell>
                     <TableCell className="text-sm">{v.dataDevolucao || "-"}</TableCell>
