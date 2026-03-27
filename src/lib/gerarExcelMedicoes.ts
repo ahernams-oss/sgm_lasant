@@ -4,7 +4,7 @@ import { MedicaoServico } from "@/contexts/MedicoesContext";
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-export function gerarExcelMedicoes(medicoes: MedicaoServico[]): XLSX.WorkBook {
+export function gerarExcelMedicoes(medicoes: MedicaoServico[], filterLabel?: string): XLSX.WorkBook {
   const wb = XLSX.utils.book_new();
 
   // Resumo sheet
@@ -16,21 +16,22 @@ export function gerarExcelMedicoes(medicoes: MedicaoServico[]): XLSX.WorkBook {
     statusCounts[m.status].medido += m.valor_total_medido || 0;
   });
 
-  const resumoData = [
+  const resumoData: any[][] = [
     ["Relatório de Medição de Serviços e Obras"],
     [`Gerado em: ${new Date().toLocaleString("pt-BR")}`],
     [`Total de medições: ${medicoes.length}`],
+    [`Filtros: ${filterLabel || "Sem filtros aplicados"}`],
     [],
     ["Status", "Quantidade", "Valor Contratado", "Valor Medido"],
     ...Object.entries(statusCounts).map(([s, v]) => [s, v.count, v.contratado, v.medido]),
   ];
   const wsResumo = XLSX.utils.aoa_to_sheet(resumoData);
-  wsResumo["!cols"] = [{ wch: 20 }, { wch: 12 }, { wch: 20 }, { wch: 20 }];
+  wsResumo["!cols"] = [{ wch: 25 }, { wch: 12 }, { wch: 20 }, { wch: 20 }];
   XLSX.utils.book_append_sheet(wb, wsResumo, "Resumo");
 
   // Detalhes sheet
   const detalhesData = [
-    ["Nº", "Cliente / Obra", "Fornecedor", "Contrato", "Descrição", "Status", "Valor Contratado", "Valor Medido", "% Executado", "Data Pagamento", "Observações"],
+    ["Nº", "Cliente / Obra", "Fornecedor", "Contrato", "Descrição", "Status", "Valor Contratado", "Valor Medido", "% Executado", "Data Pagamento", "Data Lançamento", "Observações"],
     ...medicoes.map((m) => [
       m.numero,
       m.cliente_nome || "",
@@ -42,13 +43,14 @@ export function gerarExcelMedicoes(medicoes: MedicaoServico[]): XLSX.WorkBook {
       m.valor_total_medido || 0,
       (m.percentual_medido || 0) / 100,
       (m as any).data_pagamento || "",
+      m.created_at ? new Date(m.created_at).toLocaleDateString("pt-BR") : "",
       m.observacoes || "",
     ]),
   ];
   const wsDetalhes = XLSX.utils.aoa_to_sheet(detalhesData);
   wsDetalhes["!cols"] = [
     { wch: 6 }, { wch: 25 }, { wch: 25 }, { wch: 15 }, { wch: 30 },
-    { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 12 }, { wch: 14 }, { wch: 30 },
+    { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 30 },
   ];
   XLSX.utils.book_append_sheet(wb, wsDetalhes, "Detalhes");
 
@@ -73,7 +75,7 @@ export function gerarExcelMedicoes(medicoes: MedicaoServico[]): XLSX.WorkBook {
   return wb;
 }
 
-export function downloadExcelMedicoes(medicoes: MedicaoServico[]) {
-  const wb = gerarExcelMedicoes(medicoes);
+export function downloadExcelMedicoes(medicoes: MedicaoServico[], filterLabel?: string) {
+  const wb = gerarExcelMedicoes(medicoes, filterLabel);
   XLSX.writeFile(wb, `Relatorio_Medicoes_${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.xlsx`);
 }

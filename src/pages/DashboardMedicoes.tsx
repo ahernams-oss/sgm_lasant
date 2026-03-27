@@ -1,16 +1,23 @@
 import { useMemo, useState } from "react";
+import { format } from "date-fns";
 import { useMedicoes, MedicaoServico } from "@/contexts/MedicoesContext";
+import { useClientes } from "@/contexts/ClientesContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, LineChart, Line,
 } from "recharts";
-import { FileText, Ruler, TrendingUp, DollarSign, Clock, CheckCircle, Download } from "lucide-react";
+import { FileText, Ruler, TrendingUp, DollarSign, Clock, CheckCircle, Download, CalendarIcon, Filter, X } from "lucide-react";
 import { downloadPdfMedicoes } from "@/lib/gerarPdfMedicoes";
 import { downloadExcelMedicoes } from "@/lib/gerarExcelMedicoes";
 
@@ -28,23 +35,138 @@ const fmt = (v: number) =>
 
 const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 
+export interface ReportFilters {
+  lancamentoStart?: Date;
+  lancamentoEnd?: Date;
+  pagamentoStart?: Date;
+  pagamentoEnd?: Date;
+  clienteId: string;
+  fornecedorNome: string;
+  status: string;
+}
+
+function buildFilterLabel(filters: ReportFilters, clientes: { id: string; nome: string }[]): string {
+  const parts: string[] = [];
+  if (filters.lancamentoStart || filters.lancamentoEnd) {
+    const s = filters.lancamentoStart ? format(filters.lancamentoStart, "dd/MM/yyyy") : "...";
+    const e = filters.lancamentoEnd ? format(filters.lancamentoEnd, "dd/MM/yyyy") : "...";
+    parts.push(`Lançamento: ${s} a ${e}`);
+  }
+  if (filters.pagamentoStart || filters.pagamentoEnd) {
+    const s = filters.pagamentoStart ? format(filters.pagamentoStart, "dd/MM/yyyy") : "...";
+    const e = filters.pagamentoEnd ? format(filters.pagamentoEnd, "dd/MM/yyyy") : "...";
+    parts.push(`Pagamento: ${s} a ${e}`);
+  }
+  if (filters.clienteId && filters.clienteId !== "todos") {
+    const c = clientes.find((x) => x.id === filters.clienteId);
+    parts.push(`Cliente: ${c?.nome || filters.clienteId}`);
+  }
+  if (filters.fornecedorNome && filters.fornecedorNome !== "todos") {
+    parts.push(`Fornecedor: ${filters.fornecedorNome}`);
+  }
+  if (filters.status && filters.status !== "todos") {
+    parts.push(`Status: ${filters.status}`);
+  }
+  return parts.length > 0 ? parts.join(" | ") : "Sem filtros aplicados";
+}
+
 export default function DashboardMedicoes() {
   const { medicoes, loading } = useMedicoes();
-  const [periodo, setPeriodo] = useState("todos");
+  const { clientes } = useClientes();
+
+  // Filters
+  const [lancStart, setLancStart] = useState<Date | undefined>();
+  const [lancEnd, setLancEnd] = useState<Date | undefined>();
+  const [pagStart, setPagStart] = useState<Date | undefined>();
+  const [pagEnd, setPagEnd] = useState<Date | undefined>();
+  const [clienteFilter, setClienteFilter] = useState("todos");
+  const [fornecedorFilter, setFornecedorFilter] = useState("todos");
   const [statusFilter, setStatusFilter] = useState("todos");
+
+  const clearFilters = () => {
+    setLancStart(undefined);
+    setLancEnd(undefined);
+    setPagStart(undefined);
+    setPagEnd(undefined);
+    setClienteFilter("todos");
+    setFornecedorFilter("todos");
+    setStatusFilter("todos");
+  };
+
+  const hasFilters = lancStart || lancEnd || pagStart || pagEnd || clienteFilter !== "todos" || fornecedorFilter !== "todos" || statusFilter !== "todos";
+
+  // Unique values for selects
+  const allStatuses = useMemo(() => {
+    const s = new Set<string>();
+    medicoes.forEach((m) => s.add(m.status));
+    return Array.from(s);
+  }, [medicoes]);
+
+  const allFornecedores = useMemo(() => {
+    const s = new Set<string>();
+    medicoes.forEach((m) => {
+      const fn = (m as any).fornecedor_nome;
+      if (fn) s.add(fn);
+    });
+    return Array.from(s).sort();
+  }, [medicoes]);
+
+  const allClientes = useMemo(() => {
+    const ids = new Set<string>();
+    medicoes.forEach((m) => { if (m.cliente_id) ids.add(m.cliente_id); });
+    return clientes.filter((c) => ids.has(c.id));
+  }, [medicoes, clientes]);
 
   const filtered = useMemo(() => {
     let list = medicoes;
-    if (periodo !== "todos") {
-      const days = Number(periodo);
-      const cutoff = new Date(Date.now() - days * 86400000);
-      list = list.filter((m) => m.created_at && new Date(m.created_at) >= cutoff);
+
+    // Data lançamento (created_at)
+    if (lancStart) {
+      const s = new Date(lancStart); s.setHours(0, 0, 0, 0);
+      list = list.filter((m) => m.created_at && new Date(m.created_at) >= s);
     }
+    if (lancEnd) {
+      const e = new Date(lancEnd); e.setHours(23, 59, 59, 999);
+      list = list.filter((m) => m.created_at && new Date(m.created_at) <= e);
+    }
+
+    // Data pagamento
+    if (pagStart) {
+      const s = format(pagStart, "yyyy-MM-dd");
+      list = list.filter((m) => {
+        // Check both top-level and per-lancamento payment dates
+        const dp = (m as any).data_pagamento;
+        if (dp && dp >= s) return true;
+        // Check medicoes lancamentos for data_pagamento
+        return (m.medicoes || []).some((lanc: any) => lanc.data_pagamento && lanc.data_pagamento >= s);
+      });
+    }
+    if (pagEnd) {
+      const e = format(pagEnd, "yyyy-MM-dd");
+      list = list.filter((m) => {
+        const dp = (m as any).data_pagamento;
+        if (dp && dp <= e) return true;
+        return (m.medicoes || []).some((lanc: any) => lanc.data_pagamento && lanc.data_pagamento <= e);
+      });
+    }
+
+    // Cliente (centro de custo)
+    if (clienteFilter !== "todos") {
+      list = list.filter((m) => m.cliente_id === clienteFilter);
+    }
+
+    // Fornecedor
+    if (fornecedorFilter !== "todos") {
+      list = list.filter((m) => (m as any).fornecedor_nome === fornecedorFilter);
+    }
+
+    // Status
     if (statusFilter !== "todos") {
       list = list.filter((m) => m.status === statusFilter);
     }
+
     return list;
-  }, [medicoes, periodo, statusFilter]);
+  }, [medicoes, lancStart, lancEnd, pagStart, pagEnd, clienteFilter, fornecedorFilter, statusFilter]);
 
   // KPIs
   const totalMedicoes = filtered.length;
@@ -56,16 +178,13 @@ export default function DashboardMedicoes() {
   const emAndamento = filtered.filter((m) => m.status === "Em Andamento").length;
   const concluidas = filtered.filter((m) => m.status === "Concluída").length;
 
-  // Status chart
+  // Charts data
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    filtered.forEach((m) => {
-      counts[m.status] = (counts[m.status] || 0) + 1;
-    });
+    filtered.forEach((m) => { counts[m.status] = (counts[m.status] || 0) + 1; });
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [filtered]);
 
-  // By client chart
   const byClient = useMemo(() => {
     const counts: Record<string, { contratado: number; medido: number }> = {};
     filtered.forEach((m) => {
@@ -74,13 +193,9 @@ export default function DashboardMedicoes() {
       counts[key].contratado += m.valor_total_contratado || 0;
       counts[key].medido += m.valor_total_medido || 0;
     });
-    return Object.entries(counts)
-      .map(([name, v]) => ({ name, ...v }))
-      .sort((a, b) => b.contratado - a.contratado)
-      .slice(0, 10);
+    return Object.entries(counts).map(([name, v]) => ({ name, ...v })).sort((a, b) => b.contratado - a.contratado).slice(0, 10);
   }, [filtered]);
 
-  // Progress by month
   const byMonth = useMemo(() => {
     const months: Record<string, { contratado: number; medido: number; count: number }> = {};
     filtered.forEach((m) => {
@@ -92,29 +207,29 @@ export default function DashboardMedicoes() {
       months[key].medido += m.valor_total_medido || 0;
       months[key].count += 1;
     });
-    return Object.entries(months)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, v]) => ({ month, ...v }));
+    return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([month, v]) => ({ month, ...v }));
   }, [filtered]);
 
-  // By fornecedor
   const byFornecedor = useMemo(() => {
     const counts: Record<string, number> = {};
     filtered.forEach((m) => {
       const key = (m as any).fornecedor_nome || "Sem fornecedor";
       counts[key] = (counts[key] || 0) + 1;
     });
-    return Object.entries(counts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 10);
+    return Object.entries(counts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 10);
   }, [filtered]);
 
-  const allStatuses = useMemo(() => {
-    const s = new Set<string>();
-    medicoes.forEach((m) => s.add(m.status));
-    return Array.from(s);
-  }, [medicoes]);
+  const currentFilters: ReportFilters = {
+    lancamentoStart: lancStart,
+    lancamentoEnd: lancEnd,
+    pagamentoStart: pagStart,
+    pagamentoEnd: pagEnd,
+    clienteId: clienteFilter,
+    fornecedorNome: fornecedorFilter,
+    status: statusFilter,
+  };
+
+  const filterLabel = buildFilterLabel(currentFilters, clientes);
 
   if (loading) return <div className="p-8 text-muted-foreground">Carregando...</div>;
 
@@ -123,32 +238,134 @@ export default function DashboardMedicoes() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-foreground">Dashboard — Medição de Serviços e Obras</h1>
         <div className="flex gap-2 flex-wrap">
-          <Select value={periodo} onValueChange={setPeriodo}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os períodos</SelectItem>
-              <SelectItem value="30">Últimos 30 dias</SelectItem>
-              <SelectItem value="90">Últimos 90 dias</SelectItem>
-              <SelectItem value="365">Último ano</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os status</SelectItem>
-              {allStatuses.map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm" onClick={() => downloadPdfMedicoes(filtered)}>
-            <FileText className="mr-1 h-4 w-4" /> PDF
+          <Button variant="outline" size="sm" onClick={() => downloadPdfMedicoes(filtered, filterLabel)}>
+            <FileText className="mr-1 h-4 w-4" /> Relatório PDF
           </Button>
-          <Button variant="outline" size="sm" onClick={() => downloadExcelMedicoes(filtered)}>
-            <Download className="mr-1 h-4 w-4" /> Excel
+          <Button variant="outline" size="sm" onClick={() => downloadExcelMedicoes(filtered, filterLabel)}>
+            <Download className="mr-1 h-4 w-4" /> Relatório Excel
           </Button>
         </div>
       </div>
+
+      {/* Filters */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Filter className="h-4 w-4" /> Filtros do Relatório
+            </CardTitle>
+            {hasFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs">
+                <X className="mr-1 h-3 w-3" /> Limpar filtros
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Data Lançamento */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Data Lançamento (De)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-9 text-sm", !lancStart && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {lancStart ? format(lancStart, "dd/MM/yyyy") : "Selecione"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={lancStart} onSelect={setLancStart} /></PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Data Lançamento (Até)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-9 text-sm", !lancEnd && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {lancEnd ? format(lancEnd, "dd/MM/yyyy") : "Selecione"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={lancEnd} onSelect={setLancEnd} /></PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Data Pagamento */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Data Pagamento (De)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-9 text-sm", !pagStart && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {pagStart ? format(pagStart, "dd/MM/yyyy") : "Selecione"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={pagStart} onSelect={setPagStart} /></PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Data Pagamento (Até)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-9 text-sm", !pagEnd && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {pagEnd ? format(pagEnd, "dd/MM/yyyy") : "Selecione"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={pagEnd} onSelect={setPagEnd} /></PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Cliente / Centro de Custo */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Cliente / Centro de Custo</Label>
+              <Select value={clienteFilter} onValueChange={setClienteFilter}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  {allClientes.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Fornecedor */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Fornecedor</Label>
+              <Select value={fornecedorFilter} onValueChange={setFornecedorFilter}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  {allFornecedores.map((f) => (
+                    <SelectItem key={f} value={f}>{f}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Status */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Status</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  {allStatuses.map((s) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Result count */}
+            <div className="flex items-end">
+              <Badge variant="secondary" className="h-9 px-4 flex items-center text-sm">
+                {filtered.length} medição(ões) encontrada(s)
+              </Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -292,6 +509,7 @@ export default function DashboardMedicoes() {
                   <TableHead>Cliente / Obra</TableHead>
                   <TableHead>Fornecedor</TableHead>
                   <TableHead>Contrato</TableHead>
+                  <TableHead>Data Pgto</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Contratado</TableHead>
                   <TableHead className="text-right">Medido</TableHead>
@@ -305,6 +523,7 @@ export default function DashboardMedicoes() {
                     <TableCell className="max-w-[200px] truncate">{m.cliente_nome}</TableCell>
                     <TableCell className="max-w-[200px] truncate">{(m as any).fornecedor_nome || "—"}</TableCell>
                     <TableCell>{m.contrato || "—"}</TableCell>
+                    <TableCell>{(m as any).data_pagamento || "—"}</TableCell>
                     <TableCell>
                       <Badge variant="secondary" style={{ background: STATUS_COLORS[m.status] || "#666", color: "#fff" }}>
                         {m.status}
@@ -317,7 +536,7 @@ export default function DashboardMedicoes() {
                 ))}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                       Nenhuma medição encontrada
                     </TableCell>
                   </TableRow>
