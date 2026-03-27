@@ -902,6 +902,8 @@ export type Database = {
           data_vinculo: string | null
           ferramenta_descricao: string | null
           ferramenta_id: string
+          ferramentas_descricoes: Json | null
+          ferramentas_ids: Json | null
           funcionario_id: string
           funcionario_nome: string | null
           id: string
@@ -914,6 +916,8 @@ export type Database = {
           data_vinculo?: string | null
           ferramenta_descricao?: string | null
           ferramenta_id?: string
+          ferramentas_descricoes?: Json | null
+          ferramentas_ids?: Json | null
           funcionario_id?: string
           funcionario_nome?: string | null
           id?: string
@@ -926,6 +930,8 @@ export type Database = {
           data_vinculo?: string | null
           ferramenta_descricao?: string | null
           ferramenta_id?: string
+          ferramentas_descricoes?: Json | null
+          ferramentas_ids?: Json | null
           funcionario_id?: string
           funcionario_nome?: string | null
           id?: string
