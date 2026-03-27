@@ -75,31 +75,29 @@ export default function FerramentasPage() {
   };
 
   const handleVincular = async () => {
-    if (!vinculoFerramentaId || !vinculoFuncionarioId) return;
-    const fer = ferramentas.find(f => f.id === vinculoFerramentaId);
+    if (vinculoFerramentaIds.length === 0 || !vinculoFuncionarioId) return;
+    const selectedFerramentas = ferramentas.filter(f => vinculoFerramentaIds.includes(f.id));
     const func = funcionarios.find(f => f.id === vinculoFuncionarioId);
-    if (!fer || !func) return;
-    await addVinculo({
-      ferramentaId: fer.id, ferramentaDescricao: `${fer.codigo} - ${fer.descricao}`,
-      funcionarioId: func.id, funcionarioNome: func.nome,
-      dataVinculo: vinculoData, dataDevolucao: "", observacoes: vinculoObs, status: "Ativo",
-    });
+    if (selectedFerramentas.length === 0 || !func) return;
+    const ids = selectedFerramentas.map(f => f.id);
+    const descricoes = selectedFerramentas.map(f => `${f.codigo} - ${f.descricao}`);
+    await addVinculoMulti(ids, descricoes, func.id, func.nome, vinculoData, vinculoObs);
     setVinculoOpen(false);
-    setVinculoFerramentaId("");
+    setVinculoFerramentaIds([]);
     setVinculoFuncionarioId("");
     setVinculoObs("");
   };
 
   const handleGerarTermo = (v: FerramentaVinculo) => {
-    const fer = ferramentas.find(f => f.id === v.ferramentaId);
+    const fers = v.ferramentasIds.map(fId => ferramentas.find(f => f.id === fId)).filter(Boolean) as Ferramenta[];
     const func = funcionarios.find(f => f.id === v.funcionarioId);
-    if (!fer || !func) return;
+    if (fers.length === 0 || !func) return;
     const cargo = cargos.find(c => c.id === func.cargoId);
     const cliente = clientes.find(c => c.id === func.clienteId);
     downloadPdfTermoResponsabilidade({
       empresa: { razaoSocial: empresa.razaoSocial, cnpj: empresa.cnpj, logradouro: empresa.logradouro, numero: empresa.numero, bairro: empresa.bairro, cidade: empresa.cidade, uf: empresa.uf },
       funcionario: { nome: func.nome, cpf: func.cpf, cargo: cargo?.nome || "", setor: cliente?.nome || "" },
-      ferramenta: { codigo: fer.codigo, descricao: fer.descricao, marca: fer.marca, modelo: fer.modelo, numeroSerie: fer.numeroSerie, patrimonio: fer.patrimonio, estadoConservacao: fer.estadoConservacao, valorAquisicao: fer.valorAquisicao },
+      ferramentas: fers.map(fer => ({ codigo: fer.codigo, descricao: fer.descricao, marca: fer.marca, modelo: fer.modelo, numeroSerie: fer.numeroSerie, patrimonio: fer.patrimonio, estadoConservacao: fer.estadoConservacao, valorAquisicao: fer.valorAquisicao })),
       dataVinculo: v.dataVinculo,
     });
   };
