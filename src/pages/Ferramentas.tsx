@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useFerramentas, Ferramenta, emptyFerramentaForm, FerramentaVinculo, FerramentaEmprestimo } from "@/contexts/FerramentasContext";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
@@ -413,15 +414,32 @@ export default function FerramentasPage() {
 
       {/* Dialog Vínculo */}
       <Dialog open={vinculoOpen} onOpenChange={setVinculoOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Vincular Ferramenta a Funcionário</DialogTitle></DialogHeader>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Vincular Ferramentas a Funcionário</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div>
-              <Label>Ferramenta</Label>
-              <Select value={vinculoFerramentaId} onValueChange={setVinculoFerramentaId}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>{ferramentas.filter(f => f.status === "Disponível").map(f => <SelectItem key={f.id} value={f.id}>{f.codigo} - {f.descricao}</SelectItem>)}</SelectContent>
-              </Select>
+              <Label>Ferramentas Disponíveis</Label>
+              <div className="border rounded-md p-3 max-h-48 overflow-y-auto space-y-2 mt-1">
+                {ferramentas.filter(f => f.status === "Disponível").length === 0 && (
+                  <p className="text-sm text-muted-foreground">Nenhuma ferramenta disponível.</p>
+                )}
+                {ferramentas.filter(f => f.status === "Disponível").map(f => (
+                  <label key={f.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded p-1">
+                    <Checkbox
+                      checked={vinculoFerramentaIds.includes(f.id)}
+                      onCheckedChange={(checked) => {
+                        setVinculoFerramentaIds(prev =>
+                          checked ? [...prev, f.id] : prev.filter(id => id !== f.id)
+                        );
+                      }}
+                    />
+                    <span className="text-sm">{f.codigo} - {f.descricao}</span>
+                  </label>
+                ))}
+              </div>
+              {vinculoFerramentaIds.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">{vinculoFerramentaIds.length} ferramenta(s) selecionada(s)</p>
+              )}
             </div>
             <div>
               <Label>Funcionário</Label>
@@ -434,7 +452,7 @@ export default function FerramentasPage() {
             <div><Label>Observações</Label><Textarea value={vinculoObs} onChange={e => setVinculoObs(e.target.value)} rows={2} /></div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setVinculoOpen(false)}>Cancelar</Button>
-              <Button onClick={handleVincular}>Vincular</Button>
+              <Button onClick={handleVincular} disabled={vinculoFerramentaIds.length === 0}>Vincular</Button>
             </div>
           </div>
         </DialogContent>
