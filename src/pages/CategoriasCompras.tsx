@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,9 @@ export default function CategoriasCompras() {
 
   const [activeTab, setActiveTab] = useState("grupos");
   const [search, setSearch] = useState("");
+  const [pageGrupos, setPageGrupos] = useState(1);
+  const [pageSubs, setPageSubs] = useState(1);
+  const [pageClasses, setPageClasses] = useState(1);
 
   // Grupo dialog
   const [grupoDialog, setGrupoDialog] = useState(false);
@@ -124,7 +128,7 @@ export default function CategoriasCompras() {
         {/* Search bar */}
         <div className="relative max-w-sm mt-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar..." value={search} onChange={e => { setSearch(e.target.value); setPageGrupos(1); setPageSubs(1); setPageClasses(1); }} className="pl-9" />
         </div>
 
         {/* === GRUPOS === */}
@@ -145,7 +149,7 @@ export default function CategoriasCompras() {
               <TableBody>
                 {filteredGrupos.length === 0 ? (
                   <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum grupo cadastrado</TableCell></TableRow>
-                ) : filteredGrupos.map(g => (
+                ) : paginate(filteredGrupos, pageGrupos).paginated.map(g => (
                   <TableRow key={g.id}>
                     <TableCell><Badge variant="outline" className="font-mono">{g.codigo}</Badge></TableCell>
                     <TableCell className="font-medium">{g.nome}</TableCell>
@@ -161,12 +165,13 @@ export default function CategoriasCompras() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={pageGrupos} totalItems={filteredGrupos.length} onPageChange={setPageGrupos} />
         </TabsContent>
 
         {/* === SUBGRUPOS === */}
         <TabsContent value="subgrupos" className="space-y-4">
           <div className="flex items-center justify-between">
-            <Select value={filterGrupoId} onValueChange={setFilterGrupoId}>
+            <Select value={filterGrupoId} onValueChange={v => { setFilterGrupoId(v); setPageSubs(1); }}>
               <SelectTrigger className="w-56"><SelectValue placeholder="Filtrar por Grupo" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Grupos</SelectItem>
@@ -189,7 +194,7 @@ export default function CategoriasCompras() {
               <TableBody>
                 {filteredSubs.length === 0 ? (
                   <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum subgrupo cadastrado</TableCell></TableRow>
-                ) : filteredSubs.map(s => (
+                ) : paginate(filteredSubs, pageSubs).paginated.map(s => (
                   <TableRow key={s.id}>
                     <TableCell><Badge variant="outline" className="font-mono">{s.codigo}</Badge></TableCell>
                     <TableCell className="font-medium">{s.nome}</TableCell>
@@ -206,20 +211,21 @@ export default function CategoriasCompras() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={pageSubs} totalItems={filteredSubs.length} onPageChange={setPageSubs} />
         </TabsContent>
 
         {/* === CLASSES === */}
         <TabsContent value="classes" className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex gap-2">
-              <Select value={filterGrupoId} onValueChange={v => { setFilterGrupoId(v); setFilterSubGrupoId("all"); }}>
+              <Select value={filterGrupoId} onValueChange={v => { setFilterGrupoId(v); setFilterSubGrupoId("all"); setPageClasses(1); }}>
                 <SelectTrigger className="w-48"><SelectValue placeholder="Grupo" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os Grupos</SelectItem>
                   {grupos.map(g => <SelectItem key={g.id} value={g.id}>{g.codigo} - {g.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={filterSubGrupoId} onValueChange={setFilterSubGrupoId}>
+              <Select value={filterSubGrupoId} onValueChange={v => { setFilterSubGrupoId(v); setPageClasses(1); }}>
                 <SelectTrigger className="w-48"><SelectValue placeholder="SubGrupo" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os SubGrupos</SelectItem>
@@ -246,7 +252,7 @@ export default function CategoriasCompras() {
               <TableBody>
                 {filteredClasses.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma classe cadastrada</TableCell></TableRow>
-                ) : filteredClasses.map(c => (
+                ) : paginate(filteredClasses, pageClasses).paginated.map(c => (
                   <TableRow key={c.id}>
                     <TableCell><Badge variant="secondary" className="font-mono">{getCodigoCompleto(c.id)}</Badge></TableCell>
                     <TableCell><Badge variant="outline" className="font-mono">{c.codigo}</Badge></TableCell>
@@ -264,6 +270,7 @@ export default function CategoriasCompras() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={pageClasses} totalItems={filteredClasses.length} onPageChange={setPageClasses} />
         </TabsContent>
 
         {/* === VISÃO GERAL (ÁRVORE) === */}

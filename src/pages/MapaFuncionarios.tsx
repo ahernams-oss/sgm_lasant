@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ const MapaFuncionarios = () => {
 
   // Filters
   const [search, setSearch] = useState("");
+  const [pageLanc, setPageLanc] = useState(1);
   const [filterFuncionario, setFilterFuncionario] = useState("todos");
   const [filterCliente, setFilterCliente] = useState("todos");
   const [filterMes, setFilterMes] = useState(() => {
@@ -435,8 +437,8 @@ const MapaFuncionarios = () => {
                 <span className="text-sm font-semibold text-foreground">({filteredLancamentos.length})</span>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <Input type="month" value={filterMes} onChange={(e) => setFilterMes(e.target.value)} className="h-9 w-[160px] text-xs" />
-                <Select value={filterCliente} onValueChange={setFilterCliente}>
+                <Input type="month" value={filterMes} onChange={(e) => { setFilterMes(e.target.value); setPageLanc(1); }} className="h-9 w-[160px] text-xs" />
+                <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); setPageLanc(1); }}>
                   <SelectTrigger className="h-9 w-[160px] text-xs"><SelectValue placeholder="Cliente" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos Clientes</SelectItem>
@@ -445,7 +447,7 @@ const MapaFuncionarios = () => {
                     ))}
                   </SelectContent>
                 </Select>
-                <Select value={filterFuncionario} onValueChange={setFilterFuncionario}>
+                <Select value={filterFuncionario} onValueChange={v => { setFilterFuncionario(v); setPageLanc(1); }}>
                   <SelectTrigger className="h-9 w-[180px] text-xs"><SelectValue placeholder="Funcionário" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos Funcionários</SelectItem>
@@ -454,7 +456,7 @@ const MapaFuncionarios = () => {
                 </Select>
                 <div className="relative w-48">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Pesquisar..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+                  <Input placeholder="Pesquisar..." value={search} onChange={(e) => { setSearch(e.target.value); setPageLanc(1); }} className="pl-9 h-9" />
                 </div>
               </div>
             </div>
@@ -490,7 +492,7 @@ const MapaFuncionarios = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredLancamentos.map((l) => (
+                  {paginate(filteredLancamentos, pageLanc).paginated.map((l) => (
                     <TableRow key={l.id}>
                       <TableCell className="font-medium">{formatData(l.data)}</TableCell>
                       <TableCell>{getFuncionarioNome(l.funcionarioId)}</TableCell>
@@ -545,6 +547,7 @@ const MapaFuncionarios = () => {
             </div>
           )}
         </div>
+        <PaginationControls currentPage={pageLanc} totalItems={filteredLancamentos.length} onPageChange={setPageLanc} />
       </div>
     </div>
   );

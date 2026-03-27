@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useI0, emptyI0Form } from "@/contexts/I0Context";
 import { useSco } from "@/contexts/ScoContext";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ export default function I0Page() {
   const [search, setSearch] = useState("");
   const [filterMes, setFilterMes] = useState<string>("todos");
   const [filterAno, setFilterAno] = useState<string>("todos");
+  const [page, setPage] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getScoDesc = (cod: string) => scos.find((s) => s.codSco === cod)?.descricaoSco ?? "";
@@ -153,16 +155,16 @@ export default function I0Page() {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar por código SCO..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar por código SCO..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="pl-9" />
         </div>
-        <Select value={filterMes} onValueChange={setFilterMes}>
+        <Select value={filterMes} onValueChange={v => { setFilterMes(v); setPage(1); }}>
           <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos meses</SelectItem>
             {meses.map((m) => <SelectItem key={m.value} value={String(m.value)}>{m.label}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filterAno} onValueChange={setFilterAno}>
+        <Select value={filterAno} onValueChange={v => { setFilterAno(v); setPage(1); }}>
           <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos anos</SelectItem>
@@ -191,7 +193,7 @@ export default function I0Page() {
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((item) => (
+              paginate(filtered, page).paginated.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>{mesLabel(item.mes)}</TableCell>
                   <TableCell>{item.ano}</TableCell>
@@ -214,6 +216,8 @@ export default function I0Page() {
           </TableBody>
         </Table>
       </div>
+
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
