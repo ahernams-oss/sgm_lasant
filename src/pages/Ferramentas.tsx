@@ -201,7 +201,7 @@ export default function FerramentasPage() {
                       <div className="flex gap-1 justify-end">
                         <Button size="icon" variant="ghost" title="Editar" onClick={() => handleEdit(f)}><Pencil className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" title="Histórico" onClick={() => { setHistoricoFerramentaId(f.id); setHistoricoOpen(true); }}><History className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Vincular a Funcionário" disabled={f.status !== "Disponível"} onClick={() => { setVinculoFerramentaId(f.id); setVinculoOpen(true); }}><Link className="h-4 w-4" /></Button>
+                        <Button size="icon" variant="ghost" title="Vincular a Funcionário" disabled={f.status !== "Disponível"} onClick={() => { setVinculoFerramentaIds([f.id]); setVinculoOpen(true); }}><Link className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" title="Emprestar" disabled={f.status !== "Disponível"} onClick={() => { setEmpFerramentaId(f.id); setEmprestimoOpen(true); }}><ArrowRightLeft className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" title="Excluir" className="text-destructive" onClick={() => { if (confirm("Remover esta ferramenta?")) deleteFerramenta(f.id); }}><Trash2 className="h-4 w-4" /></Button>
                       </div>
@@ -216,7 +216,7 @@ export default function FerramentasPage() {
         {/* VÍNCULOS */}
         <TabsContent value="vinculos" className="space-y-4">
           <div className="flex gap-2">
-            <Button onClick={() => { setVinculoFerramentaId(""); setVinculoOpen(true); }}><Plus className="mr-1 h-4 w-4" />Novo Vínculo</Button>
+            <Button onClick={() => { setVinculoFerramentaIds([]); setVinculoOpen(true); }}><Plus className="mr-1 h-4 w-4" />Novo Vínculo</Button>
           </div>
           <div className="border rounded-lg overflow-auto">
             <Table>
