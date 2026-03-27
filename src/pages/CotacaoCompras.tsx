@@ -672,6 +672,14 @@ export default function CotacaoComprasPage() {
                       <DropdownMenuItem onClick={() => openMapa(c)} disabled={c.propostas.length === 0}>
                         <BarChart3 className="mr-2 h-4 w-4" />Mapa Comparativo
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        const req = requisicoes.find(r => r.id === c.requisicaoId) || null;
+                        downloadPdfCotacao({ cotacao: c, requisicao: req, empresa });
+                        toast({ title: "PDF gerado com sucesso" });
+                      }}>
+                        <FileDown className="mr-2 h-4 w-4" />Exportar PDF
+                      </DropdownMenuItem>
+                      </DropdownMenuItem>
                       {(c.status === "Em Andamento" || c.status === "Aguardando Aprovação") && (
                         <>
                           <DropdownMenuSeparator />
