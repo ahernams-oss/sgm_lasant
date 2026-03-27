@@ -91,27 +91,29 @@ export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<j
   try { logo = await loadImage(logoSrc); } catch { /* fallback */ }
 
   // ────────── HEADER ──────────
-  // background stripe
+  // Blue rectangle on the RIGHT side only (starts roughly at center)
+  const headerH = 34;
+  const blueStartX = pw * 0.42;
   doc.setFillColor(BLUE.r, BLUE.g, BLUE.b);
-  doc.rect(0, 0, pw, 34, "F");
+  doc.rect(blueStartX, 0, pw - blueStartX, headerH, "F");
 
-  // logo
+  // logo on the LEFT (white background area)
   if (logo) {
-    doc.addImage(logo, "PNG", ml, 5, 38, 24);
+    doc.addImage(logo, "PNG", ml, 4, 42, 26);
   } else {
-    doc.setTextColor(255, 255, 255);
+    doc.setTextColor(BLUE.r, BLUE.g, BLUE.b);
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("LASANT CONSTRUÇÕES", ml + 2, 20);
   }
 
-  // title
+  // title on the RIGHT (inside blue area)
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
   doc.text("ORDEM DE COMPRA", mr, 16, { align: "right" });
 
-  // order number badge
+  // order number
   const pcNum = `PC-${String(pedido.numero).padStart(4, "0")}`;
   doc.setFontSize(12);
   doc.text(`Nº ${pcNum}`, mr, 27, { align: "right" });
