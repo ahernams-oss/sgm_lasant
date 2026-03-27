@@ -3,6 +3,8 @@ import { format } from "date-fns";
 import { Plus, Ruler, Trash2, Edit, Eye, X, ChevronDown, ChevronUp, CalendarIcon, FileText, Download } from "lucide-react";
 import { downloadPdfMedicoes } from "@/lib/gerarPdfMedicoes";
 import { downloadExcelMedicoes } from "@/lib/gerarExcelMedicoes";
+import { downloadPdfHistoricoMedicao } from "@/lib/gerarPdfHistoricoMedicao";
+import { downloadExcelHistoricoMedicao } from "@/lib/gerarExcelHistoricoMedicao";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -431,7 +433,17 @@ const MedicoesServicos = () => {
           <Dialog open onOpenChange={() => setDetailId(null)}>
             <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Medição #{detailMedicao.numero} — {detailMedicao.descricao}</DialogTitle>
+                <div className="flex items-center justify-between">
+                  <DialogTitle>Medição #{detailMedicao.numero} — {detailMedicao.descricao}</DialogTitle>
+                  <div className="flex gap-2 mr-6">
+                    <Button variant="outline" size="sm" onClick={() => downloadPdfHistoricoMedicao(detailMedicao)}>
+                      <FileText className="mr-1 h-4 w-4" /> PDF
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => downloadExcelHistoricoMedicao(detailMedicao)}>
+                      <Download className="mr-1 h-4 w-4" /> Excel
+                    </Button>
+                  </div>
+                </div>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
