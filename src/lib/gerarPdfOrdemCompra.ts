@@ -277,3 +277,22 @@ export async function getPdfOrdemCompraBase64(data: OrdemCompraData): Promise<st
   const doc = await gerarPdfOrdemCompraAsync(data);
   return doc.output("datauristring");
 }
+
+export async function uploadPdfOrdemCompra(data: OrdemCompraData): Promise<string> {
+  const { supabase } = await import("@/integrations/supabase/client");
+  const doc = await gerarPdfOrdemCompraAsync(data);
+  const pdfBlob = doc.output("blob");
+  const fileName = `ordens_compra/OC_PC-${String(data.pedido.numero).padStart(4, "0")}_${Date.now()}.pdf`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("documentos")
+    .upload(fileName, pdfBlob, { contentType: "application/pdf", upsert: true });
+
+  if (uploadError) throw new Error(`Erro ao enviar PDF: ${uploadError.message}`);
+
+  const { data: urlData } = supabase.storage
+    .from("documentos")
+    .getPublicUrl(fileName);
+
+  return urlData.publicUrl;
+}
