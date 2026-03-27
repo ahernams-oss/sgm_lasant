@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { KeyRound, Trash2, Pencil, Search, Copy, ChevronDown, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ const PerfisAcesso = () => {
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
+  const [page, setPage] = useState(1);
 
   const togglePermissao = (key: string) => {
     setForm(prev => ({
@@ -345,7 +347,7 @@ const PerfisAcesso = () => {
             <h2 className="text-sm font-semibold text-foreground">Perfis Cadastrados</h2>
             <div className="relative w-52">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Pesquisar perfis..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9" />
+              <Input placeholder="Pesquisar perfis..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="pl-9 h-9" />
             </div>
           </div>
           {filteredPerfis.length === 0 ? (
@@ -363,7 +365,7 @@ const PerfisAcesso = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPerfis.map(p => (
+                {paginate(filteredPerfis, page).paginated.map(p => (
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.nome}</TableCell>
                     <TableCell className="text-muted-foreground">{p.descricao || "—"}</TableCell>
@@ -390,6 +392,7 @@ const PerfisAcesso = () => {
               </TableBody>
             </Table>
           )}
+          <PaginationControls currentPage={page} totalItems={filteredPerfis.length} onPageChange={setPage} />
         </div>
       </div>
     </div>

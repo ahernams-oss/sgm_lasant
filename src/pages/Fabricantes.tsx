@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useFabricantes, Fabricante } from "@/contexts/FabricantesContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,7 @@ export default function FabricantesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [nome, setNome] = useState("");
   const [search, setSearch] = useState("");
-
+  const [page, setPage] = useState(1);
   const filtered = useMemo(() => {
     if (!search) return fabricantes;
     const s = search.toLowerCase();
@@ -46,7 +47,7 @@ export default function FabricantesPage() {
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+        <Input placeholder="Buscar..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="pl-9" />
       </div>
 
       <div className="border rounded-lg">
@@ -60,7 +61,7 @@ export default function FabricantesPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground py-8">Nenhum fabricante cadastrado</TableCell></TableRow>
-            ) : filtered.map(f => (
+            ) : paginate(filtered, page).paginated.map(f => (
               <TableRow key={f.id}>
                 <TableCell>{f.nome}</TableCell>
                 <TableCell>
@@ -74,6 +75,8 @@ export default function FabricantesPage() {
           </TableBody>
         </Table>
       </div>
+
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
