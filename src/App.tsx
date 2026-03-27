@@ -94,6 +94,7 @@ function AppRoutes() {
         <Route path="/compras/dashboard" element={<DashboardCompras />} />
         <Route path="/compras/fabricantes" element={<FabricantesPage />} />
         <Route path="/licitacoes" element={<LicitacoesPage />} />
+        <Route path="/engenharia/dashboard" element={<DashboardMedicoesPage />} />
         <Route path="/engenharia/medicoes" element={<MedicoesServicosPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
