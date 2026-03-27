@@ -58,6 +58,7 @@ import ExamesPage from "./pages/ExamesPage.tsx";
 import UnsubscribePage from "./pages/Unsubscribe.tsx";
 import LicitacoesPage from "./pages/Licitacoes.tsx";
 import MedicoesServicosPage from "./pages/MedicoesServicos.tsx";
+import DashboardMedicoesPage from "./pages/DashboardMedicoes.tsx";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,7 @@ function AppRoutes() {
         <Route path="/compras/dashboard" element={<DashboardCompras />} />
         <Route path="/compras/fabricantes" element={<FabricantesPage />} />
         <Route path="/licitacoes" element={<LicitacoesPage />} />
+        <Route path="/engenharia/dashboard" element={<DashboardMedicoesPage />} />
         <Route path="/engenharia/medicoes" element={<MedicoesServicosPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
