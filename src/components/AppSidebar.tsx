@@ -44,6 +44,20 @@ const menuItems = [
     ],
   },
   {
+    group: "Compras e Suprimentos",
+    items: [
+      { title: "Requisições de Compras", url: "/compras/requisicoes", icon: ShoppingCart },
+      { title: "Cotações", url: "/compras/cotacoes", icon: Scale },
+      { title: "Pedidos de Compra", url: "/compras/pedidos", icon: FileCheck },
+      { title: "Recebimento", url: "/compras/recebimento", icon: PackageCheck },
+      { title: "Estoque", url: "/estoque", icon: Warehouse },
+      { title: "Relatórios de Estoque", url: "/estoque/relatorios", icon: FileBarChart },
+      { title: "Materiais e Serviços", url: "/materiais-servicos", icon: Package },
+      { title: "Categorias de Compras", url: "/categorias-compras", icon: Tags },
+      { title: "Fabricantes", url: "/fabricantes", icon: Factory },
+    ],
+  },
+  {
     group: "Licitações",
     items: [
       { title: "Licitações", url: "/licitacoes", icon: Gavel },
