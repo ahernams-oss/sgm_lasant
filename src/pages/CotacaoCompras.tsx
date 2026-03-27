@@ -678,7 +678,25 @@ export default function CotacaoComprasPage() {
                         downloadPdfCotacao({ cotacao: c, requisicao: req, empresa });
                         toast({ title: "PDF gerado com sucesso" });
                       }}>
-                        <FileDown className="mr-2 h-4 w-4" />Exportar PDF
+                        <FileDown className="mr-2 h-4 w-4" />Exportar PDF Cotação
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={async () => {
+                        const req = requisicoes.find(r => r.id === c.requisicaoId) || null;
+                        const fornsComProposta = c.propostas.map(p => ({
+                          id: p.fornecedorId,
+                          nome: p.fornecedorNome,
+                          cnpj: fornecedores.find(f => f.id === p.fornecedorId)?.cnpj || "",
+                          email: fornecedores.find(f => f.id === p.fornecedorId)?.email || "",
+                        }));
+                        const fornsUnicos = fornsComProposta.filter((f, i, arr) => arr.findIndex(a => a.id === f.id) === i);
+                        if (fornsUnicos.length === 0) {
+                          toast({ title: "Nenhum fornecedor", description: "Adicione propostas ou envie para fornecedores antes de gerar os PDFs.", variant: "destructive" });
+                          return;
+                        }
+                        await downloadPdfPedidoCotacaoTodos(c, req, empresa, fornsUnicos);
+                        toast({ title: `${fornsUnicos.length} PDF(s) de pedido de cotação gerado(s)` });
+                      }}>
+                        <FileText className="mr-2 h-4 w-4" />Pedido de Cotação por Fornecedor
                       </DropdownMenuItem>
                       {(c.status === "Em Andamento" || c.status === "Aguardando Aprovação") && (
                         <>
