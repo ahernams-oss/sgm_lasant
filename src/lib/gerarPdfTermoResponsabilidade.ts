@@ -1,10 +1,21 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+interface FerramentaInfo {
+  codigo: string;
+  descricao: string;
+  marca: string;
+  modelo: string;
+  numeroSerie: string;
+  patrimonio: string;
+  estadoConservacao: string;
+  valorAquisicao: number;
+}
+
 interface TermoData {
   empresa: { razaoSocial: string; cnpj: string; logradouro: string; numero: string; bairro: string; cidade: string; uf: string; };
   funcionario: { nome: string; cpf: string; cargo: string; setor: string; };
-  ferramenta: { codigo: string; descricao: string; marca: string; modelo: string; numeroSerie: string; patrimonio: string; estadoConservacao: string; valorAquisicao: number; };
+  ferramentas: FerramentaInfo[];
   dataVinculo: string;
 }
 
@@ -13,7 +24,6 @@ export function downloadPdfTermoResponsabilidade(data: TermoData) {
   const pageWidth = doc.internal.pageSize.getWidth();
   let y = 20;
 
-  // Title
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.text("TERMO DE RESPONSABILIDADE", pageWidth / 2, y, { align: "center" });
@@ -22,7 +32,6 @@ export function downloadPdfTermoResponsabilidade(data: TermoData) {
   doc.text("ENTREGA DE FERRAMENTA / EQUIPAMENTO", pageWidth / 2, y, { align: "center" });
   y += 12;
 
-  // Empresa
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   doc.text("EMPRESA:", 14, y);
@@ -35,7 +44,6 @@ export function downloadPdfTermoResponsabilidade(data: TermoData) {
   doc.text(data.empresa.cnpj || "-", 30, y);
   y += 10;
 
-  // Funcionário
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
   doc.text("DADOS DO FUNCIONÁRIO", 14, y);
@@ -62,27 +70,28 @@ export function downloadPdfTermoResponsabilidade(data: TermoData) {
   });
   y += 5;
 
-  // Ferramenta
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
-  doc.text("DADOS DA FERRAMENTA / EQUIPAMENTO", 14, y);
+  doc.text("FERRAMENTAS / EQUIPAMENTOS", 14, y);
   y += 2;
   doc.line(14, y, pageWidth - 14, y);
   y += 4;
 
+  const bodyRows = data.ferramentas.map(f => [
+    f.codigo,
+    f.descricao,
+    f.marca || "-",
+    f.modelo || "-",
+    f.numeroSerie || "-",
+    f.patrimonio || "-",
+    f.estadoConservacao,
+    f.valorAquisicao ? `R$ ${f.valorAquisicao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "-",
+  ]);
+
   autoTable(doc, {
     startY: y,
     head: [["Código", "Descrição", "Marca", "Modelo", "Nº Série", "Patrimônio", "Estado", "Valor"]],
-    body: [[
-      data.ferramenta.codigo,
-      data.ferramenta.descricao,
-      data.ferramenta.marca || "-",
-      data.ferramenta.modelo || "-",
-      data.ferramenta.numeroSerie || "-",
-      data.ferramenta.patrimonio || "-",
-      data.ferramenta.estadoConservacao,
-      data.ferramenta.valorAquisicao ? `R$ ${data.ferramenta.valorAquisicao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "-",
-    ]],
+    body: bodyRows,
     styles: { fontSize: 7, cellPadding: 2 },
     headStyles: { fillColor: [41, 65, 122], fontStyle: "bold", fontSize: 7 },
     margin: { left: 14, right: 14 },
@@ -90,7 +99,6 @@ export function downloadPdfTermoResponsabilidade(data: TermoData) {
 
   y = (doc as any).lastAutoTable.finalY + 10;
 
-  // Termos
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   const termos = [
@@ -112,7 +120,6 @@ export function downloadPdfTermoResponsabilidade(data: TermoData) {
 
   y += 15;
 
-  // Data e assinaturas
   doc.setFont("helvetica", "normal");
   const dataFormatada = data.dataVinculo
     ? new Date(data.dataVinculo + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
@@ -125,7 +132,6 @@ export function downloadPdfTermoResponsabilidade(data: TermoData) {
   doc.text(`${cidadeEstado}, ${dataFormatada}`, pageWidth / 2, y, { align: "center" });
   y += 25;
 
-  // Assinaturas
   const col1 = pageWidth / 4;
   const col2 = (pageWidth / 4) * 3;
 
@@ -138,5 +144,6 @@ export function downloadPdfTermoResponsabilidade(data: TermoData) {
   doc.line(col2 - 35, y, col2 + 35, y);
   doc.text("Responsável pela Entrega", col2, y + 5, { align: "center" });
 
-  doc.save(`Termo_Responsabilidade_${data.funcionario.nome.replace(/\s+/g, "_")}_${data.ferramenta.codigo}.pdf`);
+  const firstCode = data.ferramentas[0]?.codigo || "MULTI";
+  doc.save(`Termo_Responsabilidade_${data.funcionario.nome.replace(/\s+/g, "_")}_${firstCode}.pdf`);
 }

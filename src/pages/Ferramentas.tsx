@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useFerramentas, Ferramenta, emptyFerramentaForm, FerramentaVinculo, FerramentaEmprestimo } from "@/contexts/FerramentasContext";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
@@ -22,7 +23,7 @@ const estadosConservacao = ["Novo", "Bom", "Regular", "Ruim", "Inservível"];
 const statusOptions = ["Disponível", "Em Uso", "Emprestada", "Manutenção", "Baixada"];
 
 export default function FerramentasPage() {
-  const { ferramentas, vinculos, emprestimos, historico, addFerramenta, updateFerramenta, deleteFerramenta, addVinculo, devolverVinculo, addEmprestimo, aprovarEmprestimo, rejeitarEmprestimo, devolverEmprestimo } = useFerramentas();
+  const { ferramentas, vinculos, emprestimos, historico, addFerramenta, updateFerramenta, deleteFerramenta, addVinculoMulti, devolverVinculo, addEmprestimo, aprovarEmprestimo, rejeitarEmprestimo, devolverEmprestimo } = useFerramentas();
   const { funcionarios } = useFuncionarios();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
@@ -37,7 +38,7 @@ export default function FerramentasPage() {
 
   // Vínculo dialog
   const [vinculoOpen, setVinculoOpen] = useState(false);
-  const [vinculoFerramentaId, setVinculoFerramentaId] = useState("");
+  const [vinculoFerramentaIds, setVinculoFerramentaIds] = useState<string[]>([]);
   const [vinculoFuncionarioId, setVinculoFuncionarioId] = useState("");
   const [vinculoData, setVinculoData] = useState(new Date().toISOString().slice(0, 10));
   const [vinculoObs, setVinculoObs] = useState("");
@@ -75,31 +76,29 @@ export default function FerramentasPage() {
   };
 
   const handleVincular = async () => {
-    if (!vinculoFerramentaId || !vinculoFuncionarioId) return;
-    const fer = ferramentas.find(f => f.id === vinculoFerramentaId);
+    if (vinculoFerramentaIds.length === 0 || !vinculoFuncionarioId) return;
+    const selectedFerramentas = ferramentas.filter(f => vinculoFerramentaIds.includes(f.id));
     const func = funcionarios.find(f => f.id === vinculoFuncionarioId);
-    if (!fer || !func) return;
-    await addVinculo({
-      ferramentaId: fer.id, ferramentaDescricao: `${fer.codigo} - ${fer.descricao}`,
-      funcionarioId: func.id, funcionarioNome: func.nome,
-      dataVinculo: vinculoData, dataDevolucao: "", observacoes: vinculoObs, status: "Ativo",
-    });
+    if (selectedFerramentas.length === 0 || !func) return;
+    const ids = selectedFerramentas.map(f => f.id);
+    const descricoes = selectedFerramentas.map(f => `${f.codigo} - ${f.descricao}`);
+    await addVinculoMulti(ids, descricoes, func.id, func.nome, vinculoData, vinculoObs);
     setVinculoOpen(false);
-    setVinculoFerramentaId("");
+    setVinculoFerramentaIds([]);
     setVinculoFuncionarioId("");
     setVinculoObs("");
   };
 
   const handleGerarTermo = (v: FerramentaVinculo) => {
-    const fer = ferramentas.find(f => f.id === v.ferramentaId);
+    const fers = v.ferramentasIds.map(fId => ferramentas.find(f => f.id === fId)).filter(Boolean) as Ferramenta[];
     const func = funcionarios.find(f => f.id === v.funcionarioId);
-    if (!fer || !func) return;
+    if (fers.length === 0 || !func) return;
     const cargo = cargos.find(c => c.id === func.cargoId);
     const cliente = clientes.find(c => c.id === func.clienteId);
     downloadPdfTermoResponsabilidade({
       empresa: { razaoSocial: empresa.razaoSocial, cnpj: empresa.cnpj, logradouro: empresa.logradouro, numero: empresa.numero, bairro: empresa.bairro, cidade: empresa.cidade, uf: empresa.uf },
       funcionario: { nome: func.nome, cpf: func.cpf, cargo: cargo?.nome || "", setor: cliente?.nome || "" },
-      ferramenta: { codigo: fer.codigo, descricao: fer.descricao, marca: fer.marca, modelo: fer.modelo, numeroSerie: fer.numeroSerie, patrimonio: fer.patrimonio, estadoConservacao: fer.estadoConservacao, valorAquisicao: fer.valorAquisicao },
+      ferramentas: fers.map(fer => ({ codigo: fer.codigo, descricao: fer.descricao, marca: fer.marca, modelo: fer.modelo, numeroSerie: fer.numeroSerie, patrimonio: fer.patrimonio, estadoConservacao: fer.estadoConservacao, valorAquisicao: fer.valorAquisicao })),
       dataVinculo: v.dataVinculo,
     });
   };
@@ -203,7 +202,7 @@ export default function FerramentasPage() {
                       <div className="flex gap-1 justify-end">
                         <Button size="icon" variant="ghost" title="Editar" onClick={() => handleEdit(f)}><Pencil className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" title="Histórico" onClick={() => { setHistoricoFerramentaId(f.id); setHistoricoOpen(true); }}><History className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Vincular a Funcionário" disabled={f.status !== "Disponível"} onClick={() => { setVinculoFerramentaId(f.id); setVinculoOpen(true); }}><Link className="h-4 w-4" /></Button>
+                        <Button size="icon" variant="ghost" title="Vincular a Funcionário" disabled={f.status !== "Disponível"} onClick={() => { setVinculoFerramentaIds([f.id]); setVinculoOpen(true); }}><Link className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" title="Emprestar" disabled={f.status !== "Disponível"} onClick={() => { setEmpFerramentaId(f.id); setEmprestimoOpen(true); }}><ArrowRightLeft className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" title="Excluir" className="text-destructive" onClick={() => { if (confirm("Remover esta ferramenta?")) deleteFerramenta(f.id); }}><Trash2 className="h-4 w-4" /></Button>
                       </div>
@@ -218,13 +217,14 @@ export default function FerramentasPage() {
         {/* VÍNCULOS */}
         <TabsContent value="vinculos" className="space-y-4">
           <div className="flex gap-2">
-            <Button onClick={() => { setVinculoFerramentaId(""); setVinculoOpen(true); }}><Plus className="mr-1 h-4 w-4" />Novo Vínculo</Button>
+            <Button onClick={() => { setVinculoFerramentaIds([]); setVinculoOpen(true); }}><Plus className="mr-1 h-4 w-4" />Novo Vínculo</Button>
           </div>
           <div className="border rounded-lg overflow-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Ferramenta</TableHead>
+                  <TableHead>Ferramentas</TableHead>
+                  <TableHead>Qtd</TableHead>
                   <TableHead>Funcionário</TableHead>
                   <TableHead>Data Vínculo</TableHead>
                   <TableHead>Data Devolução</TableHead>
@@ -234,11 +234,18 @@ export default function FerramentasPage() {
               </TableHeader>
               <TableBody>
                 {vinculos.length === 0 && (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum vínculo registrado.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum vínculo registrado.</TableCell></TableRow>
                 )}
                 {vinculos.map(v => (
                   <TableRow key={v.id}>
-                    <TableCell className="text-sm">{v.ferramentaDescricao}</TableCell>
+                    <TableCell className="text-sm max-w-[300px]">
+                      {v.ferramentasDescricoes.length > 0 ? (
+                        <ul className="list-disc list-inside space-y-0.5">
+                          {v.ferramentasDescricoes.map((desc, i) => <li key={i} className="text-xs">{desc}</li>)}
+                        </ul>
+                      ) : v.ferramentaDescricao}
+                    </TableCell>
+                    <TableCell className="text-sm font-medium">{v.ferramentasIds.length || 1}</TableCell>
                     <TableCell className="text-sm">{v.funcionarioNome}</TableCell>
                     <TableCell className="text-sm">{v.dataVinculo}</TableCell>
                     <TableCell className="text-sm">{v.dataDevolucao || "-"}</TableCell>
@@ -415,15 +422,32 @@ export default function FerramentasPage() {
 
       {/* Dialog Vínculo */}
       <Dialog open={vinculoOpen} onOpenChange={setVinculoOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Vincular Ferramenta a Funcionário</DialogTitle></DialogHeader>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Vincular Ferramentas a Funcionário</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div>
-              <Label>Ferramenta</Label>
-              <Select value={vinculoFerramentaId} onValueChange={setVinculoFerramentaId}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>{ferramentas.filter(f => f.status === "Disponível").map(f => <SelectItem key={f.id} value={f.id}>{f.codigo} - {f.descricao}</SelectItem>)}</SelectContent>
-              </Select>
+              <Label>Ferramentas Disponíveis</Label>
+              <div className="border rounded-md p-3 max-h-48 overflow-y-auto space-y-2 mt-1">
+                {ferramentas.filter(f => f.status === "Disponível").length === 0 && (
+                  <p className="text-sm text-muted-foreground">Nenhuma ferramenta disponível.</p>
+                )}
+                {ferramentas.filter(f => f.status === "Disponível").map(f => (
+                  <label key={f.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded p-1">
+                    <Checkbox
+                      checked={vinculoFerramentaIds.includes(f.id)}
+                      onCheckedChange={(checked) => {
+                        setVinculoFerramentaIds(prev =>
+                          checked ? [...prev, f.id] : prev.filter(id => id !== f.id)
+                        );
+                      }}
+                    />
+                    <span className="text-sm">{f.codigo} - {f.descricao}</span>
+                  </label>
+                ))}
+              </div>
+              {vinculoFerramentaIds.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">{vinculoFerramentaIds.length} ferramenta(s) selecionada(s)</p>
+              )}
             </div>
             <div>
               <Label>Funcionário</Label>
@@ -436,7 +460,7 @@ export default function FerramentasPage() {
             <div><Label>Observações</Label><Textarea value={vinculoObs} onChange={e => setVinculoObs(e.target.value)} rows={2} /></div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setVinculoOpen(false)}>Cancelar</Button>
-              <Button onClick={handleVincular}>Vincular</Button>
+              <Button onClick={handleVincular} disabled={vinculoFerramentaIds.length === 0}>Vincular</Button>
             </div>
           </div>
         </DialogContent>
