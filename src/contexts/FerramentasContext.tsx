@@ -28,6 +28,8 @@ export interface FerramentaVinculo {
   id: string;
   ferramentaId: string;
   ferramentaDescricao: string;
+  ferramentasIds: string[];
+  ferramentasDescricoes: string[];
   funcionarioId: string;
   funcionarioNome: string;
   dataVinculo: string;
@@ -97,6 +99,8 @@ const ferramentaToRow = (f: Omit<Ferramenta, "id">) => ({
 
 const rowToVinculo = (r: any): FerramentaVinculo => ({
   id: r.id, ferramentaId: r.ferramenta_id ?? "", ferramentaDescricao: r.ferramenta_descricao ?? "",
+  ferramentasIds: Array.isArray(r.ferramentas_ids) ? r.ferramentas_ids : (r.ferramenta_id ? [r.ferramenta_id] : []),
+  ferramentasDescricoes: Array.isArray(r.ferramentas_descricoes) ? r.ferramentas_descricoes : (r.ferramenta_descricao ? [r.ferramenta_descricao] : []),
   funcionarioId: r.funcionario_id ?? "", funcionarioNome: r.funcionario_nome ?? "",
   dataVinculo: r.data_vinculo ?? "", dataDevolucao: r.data_devolucao ?? "",
   observacoes: r.observacoes ?? "", status: r.status ?? "Ativo",
@@ -126,7 +130,7 @@ interface FerramentasContextType {
   addFerramenta: (f: Omit<Ferramenta, "id">) => Promise<void>;
   updateFerramenta: (id: string, f: Partial<Omit<Ferramenta, "id">>) => Promise<void>;
   deleteFerramenta: (id: string) => Promise<void>;
-  addVinculo: (v: Omit<FerramentaVinculo, "id">) => Promise<void>;
+  addVinculoMulti: (ferramentasIds: string[], ferramentasDescricoes: string[], funcionarioId: string, funcionarioNome: string, dataVinculo: string, observacoes: string) => Promise<void>;
   devolverVinculo: (id: string) => Promise<void>;
   addEmprestimo: (e: Omit<FerramentaEmprestimo, "id">) => Promise<void>;
   aprovarEmprestimo: (id: string, aprovadoPor: string) => Promise<void>;
@@ -207,16 +211,39 @@ export function FerramentasProvider({ children }: { children: ReactNode }) {
     await fetchFerramentas();
   };
 
-  const addVinculo = async (v: Omit<FerramentaVinculo, "id">) => {
+  const addVinculoMulti = async (
+    ferramentasIds: string[],
+    ferramentasDescricoes: string[],
+    funcionarioId: string,
+    funcionarioNome: string,
+    dataVinculo: string,
+    observacoes: string,
+  ) => {
+    if (ferramentasIds.length === 0) return;
     const { error } = await (supabase as any).from("ferramentas_vinculos").insert({
-      ferramenta_id: v.ferramentaId, ferramenta_descricao: v.ferramentaDescricao,
-      funcionario_id: v.funcionarioId, funcionario_nome: v.funcionarioNome,
-      data_vinculo: v.dataVinculo, observacoes: v.observacoes, status: "Ativo",
+      ferramenta_id: ferramentasIds[0],
+      ferramenta_descricao: ferramentasDescricoes.join(", "),
+      ferramentas_ids: ferramentasIds,
+      ferramentas_descricoes: ferramentasDescricoes,
+      funcionario_id: funcionarioId,
+      funcionario_nome: funcionarioNome,
+      data_vinculo: dataVinculo,
+      observacoes,
+      status: "Ativo",
     });
     if (error) { toast.error("Erro ao vincular."); return; }
-    await (supabase as any).from("ferramentas").update({ status: "Em Uso" }).eq("id", v.ferramentaId);
-    await addHistorico({ ferramentaId: v.ferramentaId, ferramentaDescricao: v.ferramentaDescricao, tipo: "Vínculo", descricao: `Vinculada ao funcionário ${v.funcionarioNome}`, usuario: "", dataEvento: v.dataVinculo });
-    toast.success("Ferramenta vinculada!");
+    for (const fId of ferramentasIds) {
+      await (supabase as any).from("ferramentas").update({ status: "Em Uso" }).eq("id", fId);
+    }
+    await addHistorico({
+      ferramentaId: ferramentasIds[0],
+      ferramentaDescricao: ferramentasDescricoes.join(", "),
+      tipo: "Vínculo",
+      descricao: `${ferramentasDescricoes.length} ferramenta(s) vinculada(s) ao funcionário ${funcionarioNome}`,
+      usuario: "",
+      dataEvento: dataVinculo,
+    });
+    toast.success("Ferramentas vinculadas!");
     await refreshAll();
   };
 
@@ -225,9 +252,18 @@ export function FerramentasProvider({ children }: { children: ReactNode }) {
     if (!v) return;
     const hoje = new Date().toISOString().slice(0, 10);
     await (supabase as any).from("ferramentas_vinculos").update({ status: "Devolvido", data_devolucao: hoje }).eq("id", id);
-    await (supabase as any).from("ferramentas").update({ status: "Disponível" }).eq("id", v.ferramentaId);
-    await addHistorico({ ferramentaId: v.ferramentaId, ferramentaDescricao: v.ferramentaDescricao, tipo: "Devolução", descricao: `Devolvida pelo funcionário ${v.funcionarioNome}`, usuario: "", dataEvento: hoje });
-    toast.success("Ferramenta devolvida!");
+    for (const fId of v.ferramentasIds) {
+      await (supabase as any).from("ferramentas").update({ status: "Disponível" }).eq("id", fId);
+    }
+    await addHistorico({
+      ferramentaId: v.ferramentasIds[0] || v.ferramentaId,
+      ferramentaDescricao: v.ferramentasDescricoes.join(", ") || v.ferramentaDescricao,
+      tipo: "Devolução",
+      descricao: `${v.ferramentasDescricoes.length || 1} ferramenta(s) devolvida(s) pelo funcionário ${v.funcionarioNome}`,
+      usuario: "",
+      dataEvento: hoje,
+    });
+    toast.success("Ferramentas devolvidas!");
     await refreshAll();
   };
 
@@ -278,7 +314,7 @@ export function FerramentasProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <FerramentasContext.Provider value={{ ferramentas, vinculos, emprestimos, historico, addFerramenta, updateFerramenta, deleteFerramenta, addVinculo, devolverVinculo, addEmprestimo, aprovarEmprestimo, rejeitarEmprestimo, devolverEmprestimo, addHistorico, refreshAll }}>
+    <FerramentasContext.Provider value={{ ferramentas, vinculos, emprestimos, historico, addFerramenta, updateFerramenta, deleteFerramenta, addVinculoMulti, devolverVinculo, addEmprestimo, aprovarEmprestimo, rejeitarEmprestimo, devolverEmprestimo, addHistorico, refreshAll }}>
       {children}
     </FerramentasContext.Provider>
   );
