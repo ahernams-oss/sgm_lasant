@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useNavigate } from "react-router-dom";
 import { ClipboardCheck, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ const ProcessosSeletivos = () => {
   const { processos } = useProcessoSeletivo();
   const { requisicoes } = useRequisicoes();
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
   const processosComReq = processos.map((p) => ({
     ...p,
@@ -48,7 +50,7 @@ const ProcessosSeletivos = () => {
             </div>
             <div className="relative w-64">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Pesquisar processos..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+              <Input placeholder="Pesquisar processos..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="pl-9 h-9" />
             </div>
           </div>
         </div>
@@ -61,7 +63,7 @@ const ProcessosSeletivos = () => {
           </Card>
         ) : (
           <div className="grid gap-3">
-            {filtered.map((p) => {
+            {paginate(filtered, page).paginated.map((p) => {
               const total = p.candidatos.length;
               const contratados = p.candidatos.filter((c) => c.etapaAtual === "contratacao").length;
               return (
@@ -93,6 +95,7 @@ const ProcessosSeletivos = () => {
             })}
           </div>
         )}
+        <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
       </div>
     </div>
   );
