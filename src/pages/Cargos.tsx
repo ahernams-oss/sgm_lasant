@@ -367,7 +367,7 @@ const Cargos = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
             <h2 className="section-title mb-0">Cargos Cadastrados</h2>
             <div className="flex items-center gap-2">
-              <Select value={filterNivel} onValueChange={setFilterNivel}>
+              <Select value={filterNivel} onValueChange={(v) => { setFilterNivel(v); resetPage(); }}>
                 <SelectTrigger className="h-9 w-[130px] text-xs">
                   <SelectValue placeholder="Nível" />
                 </SelectTrigger>
@@ -380,7 +380,7 @@ const Cargos = () => {
               </Select>
               <div className="relative w-52">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Pesquisar cargos..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+                <Input placeholder="Pesquisar cargos..." value={search} onChange={(e) => { setSearch(e.target.value); resetPage(); }} className="pl-9 h-9" />
               </div>
             </div>
           </div>
@@ -390,7 +390,7 @@ const Cargos = () => {
             </p>
           ) : (
             <div className="divide-y divide-border">
-              {filteredCargos.map((cargo) => {
+              {paginate(filteredCargos, page).paginated.map((cargo) => {
                 const salarioAtual = getSalarioAtual(cargo.salarios);
                 return (
                   <div key={cargo.id} className="py-3">
@@ -676,7 +676,8 @@ const Cargos = () => {
                 );
               })}
             </div>
-          )}
+           )}
+          <PaginationControls currentPage={page} totalItems={filteredCargos.length} onPageChange={setPage} />
         </div>
       </div>
     </div>
