@@ -22,7 +22,7 @@ const estadosConservacao = ["Novo", "Bom", "Regular", "Ruim", "Inservível"];
 const statusOptions = ["Disponível", "Em Uso", "Emprestada", "Manutenção", "Baixada"];
 
 export default function FerramentasPage() {
-  const { ferramentas, vinculos, emprestimos, historico, addFerramenta, updateFerramenta, deleteFerramenta, addVinculo, devolverVinculo, addEmprestimo, aprovarEmprestimo, rejeitarEmprestimo, devolverEmprestimo } = useFerramentas();
+  const { ferramentas, vinculos, emprestimos, historico, addFerramenta, updateFerramenta, deleteFerramenta, addVinculoMulti, devolverVinculo, addEmprestimo, aprovarEmprestimo, rejeitarEmprestimo, devolverEmprestimo } = useFerramentas();
   const { funcionarios } = useFuncionarios();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
@@ -37,7 +37,7 @@ export default function FerramentasPage() {
 
   // Vínculo dialog
   const [vinculoOpen, setVinculoOpen] = useState(false);
-  const [vinculoFerramentaId, setVinculoFerramentaId] = useState("");
+  const [vinculoFerramentaIds, setVinculoFerramentaIds] = useState<string[]>([]);
   const [vinculoFuncionarioId, setVinculoFuncionarioId] = useState("");
   const [vinculoData, setVinculoData] = useState(new Date().toISOString().slice(0, 10));
   const [vinculoObs, setVinculoObs] = useState("");
