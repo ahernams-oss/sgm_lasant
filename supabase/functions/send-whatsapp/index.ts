@@ -52,7 +52,13 @@ serve(async (req) => {
         }),
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        throw new Error(`ChatPro retornou resposta inválida [${response.status}]: ${responseText.substring(0, 200)}`);
+      }
 
       if (!response.ok) {
         throw new Error(`ChatPro API error [${response.status}]: ${JSON.stringify(data)}`);
@@ -80,7 +86,13 @@ serve(async (req) => {
       }),
     });
 
-    const data = await response.json();
+    const responseText = await response.text();
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      throw new Error(`ChatPro retornou resposta inválida [${response.status}]: ${responseText.substring(0, 200)}`);
+    }
 
     if (!response.ok) {
       throw new Error(`ChatPro API error [${response.status}]: ${JSON.stringify(data)}`);
