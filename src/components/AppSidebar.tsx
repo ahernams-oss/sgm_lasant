@@ -94,7 +94,7 @@ export function AppSidebar() {
       <SidebarContent>
         {menuItems.map((group) => (
           <SidebarGroup key={group.group}>
-            <SidebarGroupLabel>{group.group}</SidebarGroupLabel>
+            <SidebarGroupLabel className="font-bold">{group.group}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {group.items.map((item) => (
@@ -103,7 +103,7 @@ export function AppSidebar() {
                       <NavLink
                         to={item.url}
                         end
-                        className="hover:bg-sidebar-accent/50"
+                        className="hover:bg-sidebar-accent/50 font-semibold"
                         activeClassName="bg-sidebar-accent text-primary font-medium"
                       >
                         <item.icon className="mr-2 h-4 w-4" />
