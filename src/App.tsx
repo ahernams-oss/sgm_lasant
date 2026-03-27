@@ -128,6 +128,7 @@ const App = () => (
     <EmpresaProvider>
     <LicitacoesProvider>
     <MedicoesProvider>
+    <FerramentasProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
@@ -141,6 +142,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </FerramentasProvider>
     </MedicoesProvider>
     </LicitacoesProvider>
     </EmpresaProvider>
