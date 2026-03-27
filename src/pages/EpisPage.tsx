@@ -21,7 +21,7 @@ interface EpiComFuncionario extends EpiItem {
   cargoNome: string;
 }
 
-const PAGE_SIZE = 20;
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 const EpisPage = () => {
   const { funcionarios } = useFuncionarios();

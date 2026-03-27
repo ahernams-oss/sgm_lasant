@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import { Briefcase, Plus, Trash2, Search, ChevronDown, ChevronUp, Pencil, Check, X, Upload, FileText, ExternalLink } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -255,6 +256,9 @@ const Cargos = () => {
       reader.readAsText(file);
     }
   };
+
+  const [page, setPage] = useState(1);
+  const resetPage = () => setPage(1);
 
   const filteredCargos = useMemo(() => {
     let result = cargos;

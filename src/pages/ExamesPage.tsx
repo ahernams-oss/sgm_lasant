@@ -37,7 +37,7 @@ interface ExamePeriodico {
   created_at: string;
 }
 
-const PAGE_SIZE = 20;
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 const getStatusVencimento = (dataVencimento: string) => {
   const hoje = new Date();
