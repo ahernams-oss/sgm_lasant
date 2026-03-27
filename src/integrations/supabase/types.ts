@@ -736,6 +736,204 @@ export type Database = {
         }
         Relationships: []
       }
+      ferramentas: {
+        Row: {
+          centro_custo_atual_id: string | null
+          centro_custo_atual_nome: string | null
+          certificado_calibracao_url: string | null
+          codigo: string
+          created_at: string | null
+          data_aquisicao: string | null
+          data_calibracao: string | null
+          descricao: string
+          estado_conservacao: string | null
+          foto_url: string | null
+          id: string
+          marca: string | null
+          modelo: string | null
+          nota_fiscal: string | null
+          numero_serie: string | null
+          observacoes: string | null
+          patrimonio: string | null
+          status: string | null
+          validade_calibracao: string | null
+          valor_aquisicao: number | null
+        }
+        Insert: {
+          centro_custo_atual_id?: string | null
+          centro_custo_atual_nome?: string | null
+          certificado_calibracao_url?: string | null
+          codigo?: string
+          created_at?: string | null
+          data_aquisicao?: string | null
+          data_calibracao?: string | null
+          descricao?: string
+          estado_conservacao?: string | null
+          foto_url?: string | null
+          id?: string
+          marca?: string | null
+          modelo?: string | null
+          nota_fiscal?: string | null
+          numero_serie?: string | null
+          observacoes?: string | null
+          patrimonio?: string | null
+          status?: string | null
+          validade_calibracao?: string | null
+          valor_aquisicao?: number | null
+        }
+        Update: {
+          centro_custo_atual_id?: string | null
+          centro_custo_atual_nome?: string | null
+          certificado_calibracao_url?: string | null
+          codigo?: string
+          created_at?: string | null
+          data_aquisicao?: string | null
+          data_calibracao?: string | null
+          descricao?: string
+          estado_conservacao?: string | null
+          foto_url?: string | null
+          id?: string
+          marca?: string | null
+          modelo?: string | null
+          nota_fiscal?: string | null
+          numero_serie?: string | null
+          observacoes?: string | null
+          patrimonio?: string | null
+          status?: string | null
+          validade_calibracao?: string | null
+          valor_aquisicao?: number | null
+        }
+        Relationships: []
+      }
+      ferramentas_emprestimos: {
+        Row: {
+          aprovado_por: string | null
+          centro_custo_destino_id: string | null
+          centro_custo_destino_nome: string | null
+          centro_custo_origem_id: string | null
+          centro_custo_origem_nome: string | null
+          created_at: string | null
+          data_aprovacao: string | null
+          data_devolucao_prevista: string | null
+          data_devolucao_real: string | null
+          data_solicitacao: string | null
+          ferramenta_descricao: string | null
+          ferramenta_id: string
+          id: string
+          observacoes: string | null
+          solicitante: string | null
+          status: string | null
+        }
+        Insert: {
+          aprovado_por?: string | null
+          centro_custo_destino_id?: string | null
+          centro_custo_destino_nome?: string | null
+          centro_custo_origem_id?: string | null
+          centro_custo_origem_nome?: string | null
+          created_at?: string | null
+          data_aprovacao?: string | null
+          data_devolucao_prevista?: string | null
+          data_devolucao_real?: string | null
+          data_solicitacao?: string | null
+          ferramenta_descricao?: string | null
+          ferramenta_id?: string
+          id?: string
+          observacoes?: string | null
+          solicitante?: string | null
+          status?: string | null
+        }
+        Update: {
+          aprovado_por?: string | null
+          centro_custo_destino_id?: string | null
+          centro_custo_destino_nome?: string | null
+          centro_custo_origem_id?: string | null
+          centro_custo_origem_nome?: string | null
+          created_at?: string | null
+          data_aprovacao?: string | null
+          data_devolucao_prevista?: string | null
+          data_devolucao_real?: string | null
+          data_solicitacao?: string | null
+          ferramenta_descricao?: string | null
+          ferramenta_id?: string
+          id?: string
+          observacoes?: string | null
+          solicitante?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      ferramentas_historico: {
+        Row: {
+          created_at: string | null
+          data_evento: string | null
+          descricao: string | null
+          ferramenta_descricao: string | null
+          ferramenta_id: string
+          id: string
+          tipo: string | null
+          usuario: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_evento?: string | null
+          descricao?: string | null
+          ferramenta_descricao?: string | null
+          ferramenta_id?: string
+          id?: string
+          tipo?: string | null
+          usuario?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_evento?: string | null
+          descricao?: string | null
+          ferramenta_descricao?: string | null
+          ferramenta_id?: string
+          id?: string
+          tipo?: string | null
+          usuario?: string | null
+        }
+        Relationships: []
+      }
+      ferramentas_vinculos: {
+        Row: {
+          created_at: string | null
+          data_devolucao: string | null
+          data_vinculo: string | null
+          ferramenta_descricao: string | null
+          ferramenta_id: string
+          funcionario_id: string
+          funcionario_nome: string | null
+          id: string
+          observacoes: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_devolucao?: string | null
+          data_vinculo?: string | null
+          ferramenta_descricao?: string | null
+          ferramenta_id?: string
+          funcionario_id?: string
+          funcionario_nome?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_devolucao?: string | null
+          data_vinculo?: string | null
+          ferramenta_descricao?: string | null
+          ferramenta_id?: string
+          funcionario_id?: string
+          funcionario_nome?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       funcionarios: {
         Row: {
           agencia: string | null
