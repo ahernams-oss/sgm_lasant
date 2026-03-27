@@ -35,7 +35,7 @@ serve(async (req) => {
 
     // Se tiver documento, envia como arquivo
     if (documentUrl) {
-      const chatproUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}/api/v1/send_file_url`;
+      const chatproUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}/api/v1/send_message_file_from_url`;
 
       const response = await fetch(chatproUrl, {
         method: 'POST',
