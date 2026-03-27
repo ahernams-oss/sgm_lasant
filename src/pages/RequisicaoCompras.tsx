@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras, GrauUrgencia, ItemRequisicaoCompras, AnexoRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useFabricantes } from "@/contexts/FabricantesContext";
@@ -51,6 +52,7 @@ export default function RequisicaoComprasPage() {
   const [historicoReq, setHistoricoReq] = useState<RequisicaoCompras | null>(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("Todos");
+  const [pageReq, setPageReq] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state

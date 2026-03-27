@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useLicitacoes, Licitacao, DocumentoLicitacao, AnaliseLicitacao } from "@/contexts/LicitacoesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -185,6 +186,9 @@ export default function LicitacoesPage() {
   const [editLicId, setEditLicId] = useState<string | null>(null);
   const [viewLicId, setViewLicId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [pageLic, setPageLic] = useState(1);
+  const [pageDoc, setPageDoc] = useState(1);
+  const [pageAna, setPageAna] = useState(1);
 
   const filteredLicitacoes = useMemo(() => {
     return licitacoes.filter(l => {
@@ -429,7 +433,7 @@ export default function LicitacoesPage() {
               <TableBody>
                 {filteredLicitacoes.length === 0 ? (
                   <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma licitação encontrada</TableCell></TableRow>
-                ) : filteredLicitacoes.map(l => (
+                ) : paginate(filteredLicitacoes, pageLic).paginated.map(l => (
                   <TableRow key={l.id}>
                     <TableCell className="font-medium whitespace-nowrap">{l.numeroProcesso}</TableCell>
                     <TableCell className="whitespace-nowrap">{l.modalidade}</TableCell>
@@ -449,6 +453,7 @@ export default function LicitacoesPage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={pageLic} totalItems={filteredLicitacoes.length} onPageChange={setPageLic} />
         </TabsContent>
 
         {/* =============== TAB DOCUMENTOS =============== */}
@@ -517,7 +522,7 @@ export default function LicitacoesPage() {
               <TableBody>
                 {filteredDocumentos.length === 0 ? (
                   <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhum documento encontrado</TableCell></TableRow>
-                ) : filteredDocumentos.map(d => (
+                ) : paginate(filteredDocumentos, pageDoc).paginated.map(d => (
                   <TableRow key={d.id}>
                     <TableCell className="font-medium">{d.nome}</TableCell>
                     <TableCell>{d.categoria}</TableCell>

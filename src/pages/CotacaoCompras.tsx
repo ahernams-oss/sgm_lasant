@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useCotacaoCompras, CotacaoCompras, PropostaFornecedor, ItemCotacaoFornecedor, ItemVencedor } from "@/contexts/CotacaoComprasContext";
 import { useRequisicaoCompras, RequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
@@ -47,6 +48,7 @@ export default function CotacaoComprasPage() {
   const [filterStatus, setFilterStatus] = useState("Todos");
   const [filterPeriodo, setFilterPeriodo] = useState("Todos");
   const [filterComprador, setFilterComprador] = useState("Todos");
+  const [pageCot, setPageCot] = useState(1);
 
   // Dialog states
   const [novaDialogOpen, setNovaDialogOpen] = useState(false);
@@ -651,7 +653,7 @@ export default function CotacaoComprasPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma cotação encontrada</TableCell></TableRow>
-            ) : filtered.map(c => {
+            ) : paginate(filtered, pageCot).paginated.map(c => {
               const rcVinculada = requisicoes.find(r => r.id === c.requisicaoId);
               return (
               <TableRow key={c.id}>

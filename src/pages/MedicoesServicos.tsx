@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { format } from "date-fns";
 import { Plus, Ruler, Trash2, Edit, Eye, X, ChevronDown, ChevronUp, CalendarIcon, FileText, Download } from "lucide-react";
 import { downloadPdfMedicoes } from "@/lib/gerarPdfMedicoes";
@@ -39,6 +40,7 @@ const MedicoesServicos = () => {
   const [editId, setEditId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [showLancamento, setShowLancamento] = useState(false);
+  const [pageMed, setPageMed] = useState(1);
 
   // Form state
   const [clienteId, setClienteId] = useState("");
@@ -395,7 +397,7 @@ const MedicoesServicos = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {medicoes.map(m => (
+                {paginate(medicoes, pageMed).paginated.map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="font-mono">{m.numero}</TableCell>
                     <TableCell>{m.cliente_nome}</TableCell>

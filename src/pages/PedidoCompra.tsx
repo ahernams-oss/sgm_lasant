@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { usePedidoCompra, PedidoCompra, StatusPedido } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -48,6 +49,7 @@ export default function PedidoCompraPage() {
 
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("Todos");
+  const [pagePed, setPagePed] = useState(1);
   const [viewPedido, setViewPedido] = useState<PedidoCompra | null>(null);
   const [historicoPedido, setHistoricoPedido] = useState<PedidoCompra | null>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
@@ -270,7 +272,7 @@ export default function PedidoCompraPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
-            ) : filtered.map(p => {
+            ) : paginate(filtered, pagePed).paginated.map(p => {
               const rcVinculada = requisicoes.find(r => r.id === p.requisicaoId);
               const canUpdate = getNextStatuses(p.status).length > 0;
               return (
@@ -305,6 +307,7 @@ export default function PedidoCompraPage() {
           </TableBody>
         </Table>
       </div>
+      <PaginationControls currentPage={pagePed} totalItems={filtered.length} onPageChange={setPagePed} />
 
       {/* Dialog Detalhes */}
       <Dialog open={!!viewPedido} onOpenChange={() => setViewPedido(null)}>
