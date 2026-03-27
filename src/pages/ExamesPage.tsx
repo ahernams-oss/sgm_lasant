@@ -144,6 +144,7 @@ const ExamesPage = () => {
   }, [exames, search, filtroStatus, filtroTipo]);
 
   const { paginated, totalPages, safePage } = paginate(filtered, page);
+  const resetPage = () => setPage(1);
 
   const getNotificacaoStatus = (exame: ExamePeriodico) => {
     const flags = [];
