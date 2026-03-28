@@ -290,6 +290,12 @@ export default function EvidenciasPage() {
 
       <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={ITEMS_PER_PAGE} />
 
+      <DoubleConfirmDelete
+        open={!!deleteId}
+        onOpenChange={(open) => { if (!open) setDeleteId(null); }}
+        onConfirm={() => { if (deleteId) deleteEvidencia(deleteId); setDeleteId(null); }}
+      />
+
       {/* Dialog cadastro/edição */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
