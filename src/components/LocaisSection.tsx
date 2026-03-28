@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
 import { Plus, Trash2, X, ChevronDown, ChevronUp, Upload, Pencil, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
 import { MapPin, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
