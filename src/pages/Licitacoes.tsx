@@ -232,10 +232,8 @@ export default function LicitacoesPage() {
   };
 
   const handleDeleteLicitacao = async (id: string) => {
-    if (confirm("Deseja realmente excluir esta licitação?")) {
-      await deleteLicitacao(id);
-      toast({ title: "Licitação excluída!" });
-    }
+    await deleteLicitacao(id);
+    toast({ title: "Licitação excluída!" });
   };
 
   // ============ DOCUMENTOS ============
@@ -331,10 +329,8 @@ export default function LicitacoesPage() {
   };
 
   const handleDeleteDocumento = async (id: string) => {
-    if (confirm("Deseja realmente excluir este documento?")) {
-      await deleteDocumento(id);
-      toast({ title: "Documento excluído!" });
-    }
+    await deleteDocumento(id);
+    toast({ title: "Documento excluído!" });
   };
 
   // ============ ANÁLISES ============
@@ -368,10 +364,8 @@ export default function LicitacoesPage() {
   };
 
   const handleDeleteAnalise = async (id: string) => {
-    if (confirm("Deseja realmente excluir esta análise?")) {
-      await deleteAnalise(id);
-      toast({ title: "Análise excluída!" });
-    }
+    await deleteAnalise(id);
+    toast({ title: "Análise excluída!" });
   };
 
   const viewLic = viewLicId ? licitacoes.find(l => l.id === viewLicId) : null;
@@ -451,7 +445,7 @@ export default function LicitacoesPage() {
                     <TableCell className="text-right space-x-1">
                       <Button variant="ghost" size="icon" onClick={() => setViewLicId(l.id)}><Eye className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" onClick={() => handleEditLicitacao(l)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteLicitacao(l.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => requestDeleteLic(l.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                     </TableCell>
                   </TableRow>
                 ))}
