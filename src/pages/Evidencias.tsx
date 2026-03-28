@@ -65,6 +65,7 @@ export default function EvidenciasPage() {
   const [editing, setEditing] = useState<Evidencia | null>(null);
   const [viewing, setViewing] = useState<Evidencia | null>(null);
   const [form, setForm] = useState<Partial<Evidencia>>(emptyForm());
+  const [uploading, setUploading] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const centrosCusto = useMemo(() => clientes.filter((c) => c.tipo === "Cliente"), [clientes]);
