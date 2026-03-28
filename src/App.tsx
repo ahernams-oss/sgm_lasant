@@ -104,6 +104,7 @@ function AppRoutes() {
         <Route path="/engenharia/medicoes" element={<MedicoesServicosPage />} />
         <Route path="/patrimonio/ferramentas" element={<FerramentasPage />} />
         <Route path="/qualidade/evidencias" element={<EvidenciasPage />} />
+        <Route path="/qualidade/checklists" element={<ChecklistsPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -135,6 +136,7 @@ const App = () => (
     <MedicoesProvider>
     <FerramentasProvider>
     <EvidenciasProvider>
+    <ChecklistsProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
@@ -148,6 +150,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </ChecklistsProvider>
     </EvidenciasProvider>
     </FerramentasProvider>
     </MedicoesProvider>
