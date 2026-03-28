@@ -329,6 +329,7 @@ const Clientes = () => {
                   ))}
                 </div>
               )}
+              <DoubleConfirmDelete open={!!deleteContratoId} onOpenChange={(open) => !open && cancelDeleteContrato()} onConfirm={() => { if (deleteContratoId) { handleDeleteContrato(deleteContratoId); cancelDeleteContrato(); } }} />
             </div>
           );
         })()}
