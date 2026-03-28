@@ -30,6 +30,7 @@ const Cargos = () => {
   const [search, setSearch] = useState("");
   const [filterNivel, setFilterNivel] = useState<string>("todos");
   const [expandedCargoId, setExpandedCargoId] = useState<string | null>(null);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   // Salário form state
   const [novoSalarioValor, setNovoSalarioValor] = useState<Record<string, string>>({});
@@ -92,6 +93,7 @@ const Cargos = () => {
     toast.success("Cargo removido.");
     if (editingId === id) resetForm();
   };
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   // Salários management
   const addSalario = (cargoId: string) => {
@@ -433,7 +435,7 @@ const Cargos = () => {
                           Salários
                         </Button>
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(cargo)} className="text-xs">Editar</Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(cargo.id)} className="text-destructive hover:text-destructive">
+                        <Button variant="ghost" size="sm" onClick={() => requestDelete(cargo.id)} className="text-destructive hover:text-destructive">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>

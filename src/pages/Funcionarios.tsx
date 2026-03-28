@@ -371,6 +371,8 @@ const Funcionarios = () => {
     if (editingId === id) resetForm();
     toast.success("Funcionário removido.");
   };
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   const getCargoNome = (cargoId: string) =>
     cargos.find((c) => c.id === cargoId)?.nome ?? "—";
@@ -933,7 +935,7 @@ const Funcionarios = () => {
                           <Button size="icon" variant="ghost" onClick={() => handleEdit(f)} className="h-8 w-8">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
-                          <Button size="icon" variant="ghost" onClick={() => handleDelete(f.id)} className="h-8 w-8 text-destructive hover:text-destructive">
+                          <Button size="icon" variant="ghost" onClick={() => requestDelete(f.id)} className="h-8 w-8 text-destructive hover:text-destructive">
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
@@ -948,6 +950,7 @@ const Funcionarios = () => {
           <PaginationControls currentPage={page} totalItems={filteredFuncionarios.length} onPageChange={setPage} />
         </div>
       </div>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 };
