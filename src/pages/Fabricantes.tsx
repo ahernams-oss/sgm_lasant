@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useFabricantes, Fabricante } from "@/contexts/FabricantesContext";
 import { Button } from "@/components/ui/button";

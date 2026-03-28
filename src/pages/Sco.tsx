@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useSco, emptyScoForm, tiposSco, TipoSco } from "@/contexts/ScoContext";
 import { Button } from "@/components/ui/button";
