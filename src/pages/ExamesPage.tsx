@@ -303,8 +303,6 @@ const ExamesPage = () => {
                         onClick={() => requestDelete(exame.id)}
                         className="h-7 w-7 text-destructive hover:text-destructive"
                       >
-                        className="h-7 w-7 text-destructive hover:text-destructive"
-                      >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </TableCell>
