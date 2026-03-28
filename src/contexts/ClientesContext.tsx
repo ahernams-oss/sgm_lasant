@@ -25,7 +25,7 @@ export interface Contrato {
 }
 export interface Cliente {
   id: string; tipo: "Cliente" | "Fornecedor"; nome: string; nomeFantasia: string;
-  cnpj: string; inscricaoEstadual: string; inscricaoMunicipal: string; esfera: string; descricao: string;
+  cnpj: string; inscricaoEstadual: string; inscricaoMunicipal: string; esfera: string; descricao: string; cap: string;
   email: string; emailEngenharia: string; emailOsCc: string; emailOsBcc: string;
   emailSsCc: string; emailSsBcc: string; emailCompras: string;
   telefones: string[]; telefoneCelular: string; celulares: string; telefonesWhatsapp: string;
@@ -51,7 +51,7 @@ const ClientesContext = createContext<ClientesContextType | undefined>(undefined
 const rowToCliente = (r: any): Cliente => ({
   id: r.id, tipo: r.tipo || "Cliente", nome: r.nome ?? "", nomeFantasia: r.nome_fantasia ?? "",
   cnpj: r.cnpj ?? "", inscricaoEstadual: r.inscricao_estadual ?? "",
-  inscricaoMunicipal: r.inscricao_municipal ?? "", esfera: r.esfera ?? "", descricao: r.descricao ?? "",
+  inscricaoMunicipal: r.inscricao_municipal ?? "", esfera: r.esfera ?? "", descricao: r.descricao ?? "", cap: r.cap ?? "",
   email: r.email ?? "", emailEngenharia: r.email_engenharia ?? "",
   emailOsCc: r.email_os_cc ?? "", emailOsBcc: r.email_os_bcc ?? "",
   emailSsCc: r.email_ss_cc ?? "", emailSsBcc: r.email_ss_bcc ?? "", emailCompras: r.email_compras ?? "",
@@ -70,7 +70,7 @@ const rowToCliente = (r: any): Cliente => ({
 const clienteToRow = (c: Omit<Cliente, "id">) => ({
   tipo: c.tipo, nome: c.nome, nome_fantasia: c.nomeFantasia,
   cnpj: c.cnpj, inscricao_estadual: c.inscricaoEstadual,
-  inscricao_municipal: c.inscricaoMunicipal, esfera: c.esfera, descricao: c.descricao,
+  inscricao_municipal: c.inscricaoMunicipal, esfera: c.esfera, descricao: c.descricao, cap: c.cap,
   email: c.email, email_engenharia: c.emailEngenharia,
   email_os_cc: c.emailOsCc, email_os_bcc: c.emailOsBcc,
   email_ss_cc: c.emailSsCc, email_ss_bcc: c.emailSsBcc, email_compras: c.emailCompras,

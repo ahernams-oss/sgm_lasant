@@ -18,7 +18,7 @@ type FormData = Omit<Cliente, "id" | "informacoesFinanceiras" | "locais" | "loca
 
 const emptyForm: FormData = {
   tipo: "Cliente", nome: "", nomeFantasia: "", cnpj: "", inscricaoEstadual: "",
-  inscricaoMunicipal: "", esfera: "", descricao: "", email: "", emailEngenharia: "",
+  inscricaoMunicipal: "", esfera: "", descricao: "", cap: "", email: "", emailEngenharia: "",
   emailOsCc: "", emailOsBcc: "", emailSsCc: "", emailSsBcc: "", emailCompras: "",
   telefones: [""], telefoneCelular: "", celulares: "", telefonesWhatsapp: "",
   cep: "", bairro: "", logradouro: "", numero: "", complemento: "", uf: "", cidade: "",
@@ -110,9 +110,13 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
           <label className="field-label">Razão Social / Nome Empresa</label>
           <Input placeholder="Ex: Construtora ABC Ltda" value={form.nome} onChange={(e) => update("nome", e.target.value)} />
         </div>
-        <div className="md:col-span-2">
+        <div>
           <label className="field-label">Nome Fantasia</label>
           <Input placeholder="Nome Fantasia" value={form.nomeFantasia} onChange={(e) => update("nomeFantasia", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">CAP</label>
+          <Input placeholder="CAP" value={form.cap} onChange={(e) => update("cap", e.target.value)} />
         </div>
         <div>
           <label className="field-label">CNPJ / CPF</label>
