@@ -62,7 +62,9 @@ import MedicoesServicosPage from "./pages/MedicoesServicos.tsx";
 import DashboardMedicoesPage from "./pages/DashboardMedicoes.tsx";
 import FerramentasPage from "./pages/Ferramentas.tsx";
 import EvidenciasPage from "./pages/Evidencias.tsx";
+import ChecklistsPage from "./pages/Checklists.tsx";
 import { EvidenciasProvider } from "@/contexts/EvidenciasContext";
+import { ChecklistsProvider } from "@/contexts/ChecklistsContext";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +104,7 @@ function AppRoutes() {
         <Route path="/engenharia/medicoes" element={<MedicoesServicosPage />} />
         <Route path="/patrimonio/ferramentas" element={<FerramentasPage />} />
         <Route path="/qualidade/evidencias" element={<EvidenciasPage />} />
+        <Route path="/qualidade/checklists" element={<ChecklistsPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -133,6 +136,7 @@ const App = () => (
     <MedicoesProvider>
     <FerramentasProvider>
     <EvidenciasProvider>
+    <ChecklistsProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
@@ -146,6 +150,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </ChecklistsProvider>
     </EvidenciasProvider>
     </FerramentasProvider>
     </MedicoesProvider>
