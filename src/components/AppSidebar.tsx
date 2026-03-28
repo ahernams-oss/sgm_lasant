@@ -85,7 +85,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         <div className="flex items-center gap-3">
-          <img src={logoLasant} alt="Lasant Construções" className="h-8 w-auto shrink-0" />
+          <img src={logoLasant} alt="Lasant Construções" className="h-8 w-auto shrink-0 object-contain" />
           {!collapsed && (
             <div className="overflow-hidden">
               <p className="text-[10px] text-muted-foreground truncate">
