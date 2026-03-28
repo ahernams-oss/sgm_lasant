@@ -72,6 +72,7 @@ export default function LocaisEntregaSection({ locais, onChange, clienteNome }: 
     toast.success("Local de entrega removido.");
     if (editingId === id) { setForm(emptyLocal); setEditingId(null); }
   };
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   return (
     <div className="section-card animate-fade-up mt-6">
@@ -155,7 +156,7 @@ export default function LocaisEntregaSection({ locais, onChange, clienteNome }: 
                   </div>
                   <div className="flex gap-1 shrink-0">
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(l)} className="text-xs">Editar</Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(l.id)} className="text-destructive hover:text-destructive">
+                    <Button variant="ghost" size="sm" onClick={() => requestDelete(l.id)} className="text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -165,6 +166,7 @@ export default function LocaisEntregaSection({ locais, onChange, clienteNome }: 
           )}
         </div>
       )}
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 }

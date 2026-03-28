@@ -38,8 +38,14 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
   const [editingPavDesc, setEditingPavDesc] = useState("");
   const [editingSetorId, setEditingSetorId] = useState<string | null>(null);
   const [editingSetorDesc, setEditingSetorDesc] = useState("");
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
-  const updateField = (field: keyof Omit<LocalCliente, "id">, value: string) =>
+  const handleDelete = (id: string) => {
+    onChange(locais.filter((l) => l.id !== id));
+    toast.success("Local removido.");
+  };
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
+
     setNewLocal((prev) => ({ ...prev, [field]: value }));
 
   const buscarCep = useCallback(async (cep: string, setter: (field: string, value: string) => void) => {
