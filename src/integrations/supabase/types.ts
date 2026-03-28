@@ -134,6 +134,93 @@ export type Database = {
         }
         Relationships: []
       }
+      checklist_preenchimentos: {
+        Row: {
+          checklist_id: string
+          checklist_titulo: string | null
+          created_at: string | null
+          data_preenchimento: string | null
+          evidencia_id: string | null
+          evidencia_titulo: string | null
+          id: string
+          itens: Json | null
+          observacoes: string | null
+          percentual_conformidade: number | null
+          responsavel: string | null
+          status: string | null
+        }
+        Insert: {
+          checklist_id: string
+          checklist_titulo?: string | null
+          created_at?: string | null
+          data_preenchimento?: string | null
+          evidencia_id?: string | null
+          evidencia_titulo?: string | null
+          id?: string
+          itens?: Json | null
+          observacoes?: string | null
+          percentual_conformidade?: number | null
+          responsavel?: string | null
+          status?: string | null
+        }
+        Update: {
+          checklist_id?: string
+          checklist_titulo?: string | null
+          created_at?: string | null
+          data_preenchimento?: string | null
+          evidencia_id?: string | null
+          evidencia_titulo?: string | null
+          id?: string
+          itens?: Json | null
+          observacoes?: string | null
+          percentual_conformidade?: number | null
+          responsavel?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_preenchimentos_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "checklists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_preenchimentos_evidencia_id_fkey"
+            columns: ["evidencia_id"]
+            isOneToOne: false
+            referencedRelation: "evidencias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklists: {
+        Row: {
+          categoria: string | null
+          created_at: string | null
+          descricao: string | null
+          id: string
+          itens: Json | null
+          titulo: string
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          itens?: Json | null
+          titulo?: string
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          itens?: Json | null
+          titulo?: string
+        }
+        Relationships: []
+      }
       clientes: {
         Row: {
           bairro: string | null
