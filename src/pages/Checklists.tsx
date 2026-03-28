@@ -227,7 +227,7 @@ export default function ChecklistsPage() {
               </TableBody>
             </Table>
           </div>
-          {totalPages > 1 && <PaginationControls currentPage={page} totalPages={totalPages} onPageChange={setPage} />}
+          {filteredTemplates.length > ITEMS_PER_PAGE && <PaginationControls currentPage={page} totalItems={filteredTemplates.length} onPageChange={setPage} pageSize={ITEMS_PER_PAGE} />}
         </TabsContent>
 
         {/* === PREENCHIMENTOS TAB === */}
@@ -274,7 +274,7 @@ export default function ChecklistsPage() {
               </TableBody>
             </Table>
           </div>
-          {totalPages > 1 && <PaginationControls currentPage={page} totalPages={totalPages} onPageChange={setPage} />}
+          {filteredPreench.length > ITEMS_PER_PAGE && <PaginationControls currentPage={page} totalItems={filteredPreench.length} onPageChange={setPage} pageSize={ITEMS_PER_PAGE} />}
         </TabsContent>
       </Tabs>
 

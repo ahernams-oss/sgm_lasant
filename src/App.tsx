@@ -62,7 +62,9 @@ import MedicoesServicosPage from "./pages/MedicoesServicos.tsx";
 import DashboardMedicoesPage from "./pages/DashboardMedicoes.tsx";
 import FerramentasPage from "./pages/Ferramentas.tsx";
 import EvidenciasPage from "./pages/Evidencias.tsx";
+import ChecklistsPage from "./pages/Checklists.tsx";
 import { EvidenciasProvider } from "@/contexts/EvidenciasContext";
+import { ChecklistsProvider } from "@/contexts/ChecklistsContext";
 
 const queryClient = new QueryClient();
 

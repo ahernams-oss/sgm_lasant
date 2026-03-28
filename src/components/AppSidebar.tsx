@@ -92,7 +92,10 @@ const menuItems = [
   },
   {
     group: "Qualidade",
-    items: [{ title: "Registro de Evidências", url: "/qualidade/evidencias", icon: ShieldCheck }],
+    items: [
+      { title: "Registro de Evidências", url: "/qualidade/evidencias", icon: ShieldCheck },
+      { title: "Checklists", url: "/qualidade/checklists", icon: ClipboardCheck },
+    ],
   },
   {
     group: "Cadastros",
