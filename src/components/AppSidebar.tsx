@@ -28,6 +28,7 @@ import {
   Gavel,
   Ruler,
   Wrench,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
@@ -88,6 +89,10 @@ const menuItems = [
   {
     group: "Licitações",
     items: [{ title: "Licitações", url: "/licitacoes", icon: Gavel }],
+  },
+  {
+    group: "Qualidade",
+    items: [{ title: "Registro de Evidências", url: "/qualidade/evidencias", icon: ShieldCheck }],
   },
   {
     group: "Cadastros",

@@ -61,6 +61,8 @@ import LicitacoesPage from "./pages/Licitacoes.tsx";
 import MedicoesServicosPage from "./pages/MedicoesServicos.tsx";
 import DashboardMedicoesPage from "./pages/DashboardMedicoes.tsx";
 import FerramentasPage from "./pages/Ferramentas.tsx";
+import EvidenciasPage from "./pages/Evidencias.tsx";
+import { EvidenciasProvider } from "@/contexts/EvidenciasContext";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +101,7 @@ function AppRoutes() {
         <Route path="/engenharia/dashboard" element={<DashboardMedicoesPage />} />
         <Route path="/engenharia/medicoes" element={<MedicoesServicosPage />} />
         <Route path="/patrimonio/ferramentas" element={<FerramentasPage />} />
+        <Route path="/qualidade/evidencias" element={<EvidenciasPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -129,6 +132,7 @@ const App = () => (
     <LicitacoesProvider>
     <MedicoesProvider>
     <FerramentasProvider>
+    <EvidenciasProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
@@ -142,6 +146,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </EvidenciasProvider>
     </FerramentasProvider>
     </MedicoesProvider>
     </LicitacoesProvider>

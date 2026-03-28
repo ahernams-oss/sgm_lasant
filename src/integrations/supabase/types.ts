@@ -664,6 +664,69 @@ export type Database = {
         }
         Relationships: []
       }
+      evidencias: {
+        Row: {
+          anexos: Json | null
+          centro_custo_id: string | null
+          centro_custo_nome: string | null
+          created_at: string | null
+          data_fato_gerador: string | null
+          data_registro: string | null
+          descricao: string | null
+          historico: Json | null
+          id: string
+          numero: number
+          observacoes: string | null
+          palavras_chave: string | null
+          processo_vinculado: string | null
+          responsavel_registro: string | null
+          setor: string | null
+          status: string | null
+          tipo: string | null
+          titulo: string
+        }
+        Insert: {
+          anexos?: Json | null
+          centro_custo_id?: string | null
+          centro_custo_nome?: string | null
+          created_at?: string | null
+          data_fato_gerador?: string | null
+          data_registro?: string | null
+          descricao?: string | null
+          historico?: Json | null
+          id?: string
+          numero?: number
+          observacoes?: string | null
+          palavras_chave?: string | null
+          processo_vinculado?: string | null
+          responsavel_registro?: string | null
+          setor?: string | null
+          status?: string | null
+          tipo?: string | null
+          titulo?: string
+        }
+        Update: {
+          anexos?: Json | null
+          centro_custo_id?: string | null
+          centro_custo_nome?: string | null
+          created_at?: string | null
+          data_fato_gerador?: string | null
+          data_registro?: string | null
+          descricao?: string | null
+          historico?: Json | null
+          id?: string
+          numero?: number
+          observacoes?: string | null
+          palavras_chave?: string | null
+          processo_vinculado?: string | null
+          responsavel_registro?: string | null
+          setor?: string | null
+          status?: string | null
+          tipo?: string | null
+          titulo?: string
+        }
+        Relationships: []
+      }
       exames_periodicos: {
         Row: {
           anexo_aso_url: string | null
