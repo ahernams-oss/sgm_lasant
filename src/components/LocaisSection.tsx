@@ -72,10 +72,6 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
     toast.success("Local adicionado!");
   };
 
-  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
-    onChange(locais.filter((l) => l.id !== id));
-    toast.success("Local removido.");
-  };
 
   const handleUpdateLocal = (id: string, field: keyof Omit<LocalCliente, "id">, value: string) => {
     onChange(locais.map((l) => l.id === id ? { ...l, [field]: value } : l));
