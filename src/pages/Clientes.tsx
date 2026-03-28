@@ -26,6 +26,8 @@ const Clientes = () => {
   const emptyContrato = { numero: "", descricao: "", dataInicio: "", dataFim: "", bdi: "", valorBase: "", valorBase2: "", valorBase3: "", mesSco: "", anoSco: "" };
   const [contratoForm, setContratoForm] = useState(emptyContrato);
   const [editingContratoId, setEditingContratoId] = useState<string | null>(null);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { deleteId: deleteContratoId, requestDelete: requestDeleteContrato, cancelDelete: cancelDeleteContrato } = useDoubleConfirmDelete();
   const handleSubmit = (data: FormData, id: string | null) => {
     if (!data.nome.trim()) {
       toast.error("Informe o nome do cliente.");
@@ -65,6 +67,10 @@ const Clientes = () => {
     deleteCliente(id);
     toast.success("Cliente removido.");
     if (editingId === id) resetForm();
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteId) handleDelete(deleteId);
   };
 
   const handleEnviarWhatsApp = async (cliente: Cliente) => {
