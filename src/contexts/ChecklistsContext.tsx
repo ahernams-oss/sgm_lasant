@@ -4,6 +4,8 @@ import { toast } from "sonner";
 
 export interface ChecklistItem {
   descricao: string;
+  quantidade: string;
+  registro_fotografico: boolean;
 }
 
 export interface Checklist {
@@ -17,7 +19,10 @@ export interface Checklist {
 
 export interface PreenchimentoItem {
   descricao: string;
+  quantidade: string;
+  registro_fotografico: boolean;
   status: "Conforme" | "Não Conforme" | "N/A" | "";
+  foto_url?: string;
 }
 
 export interface ChecklistPreenchimento {
