@@ -30,6 +30,7 @@ const PerfisAcesso = () => {
   const [search, setSearch] = useState("");
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
   const [page, setPage] = useState(1);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const togglePermissao = (key: string) => {
     setForm(prev => ({
@@ -116,6 +117,7 @@ const PerfisAcesso = () => {
     if (editingId === id) resetForm();
     toast.success("Perfil removido.");
   };
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   const countPermissoes = (perms: Permissoes) =>
     ALL_PERMISSION_KEYS.filter(k => perms[k]).length;
@@ -383,7 +385,7 @@ const PerfisAcesso = () => {
                         <Button size="icon" variant="ghost" onClick={() => handleEdit(p)} className="h-8 w-8">
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button size="icon" variant="ghost" onClick={() => handleDelete(p.id)} className="h-8 w-8 text-destructive hover:text-destructive">
+                        <Button size="icon" variant="ghost" onClick={() => requestDelete(p.id)} className="h-8 w-8 text-destructive hover:text-destructive">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -396,6 +398,7 @@ const PerfisAcesso = () => {
           <PaginationControls currentPage={page} totalItems={filteredPerfis.length} onPageChange={setPage} />
         </div>
       </div>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 };

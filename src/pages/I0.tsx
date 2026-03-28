@@ -278,6 +278,7 @@ export default function I0Page() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 }

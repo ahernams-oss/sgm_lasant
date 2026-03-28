@@ -37,6 +37,7 @@ const Usuarios = () => {
   const [search, setSearch] = useState("");
   const [filterCargo, setFilterCargo] = useState<string>("todos");
   const [page, setPage] = useState(1);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -89,6 +90,7 @@ const Usuarios = () => {
     if (editingId === id) resetForm();
     toast.success("Usuário removido.");
   };
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   const getCargoNome = (cargoId: string) =>
     cargos.find((c) => c.id === cargoId)?.nome ?? "—";
@@ -328,7 +330,7 @@ const Usuarios = () => {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button size="icon" variant="ghost" onClick={() => handleEdit(u)} className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>
-                        <Button size="icon" variant="ghost" onClick={() => handleDelete(u.id)} className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" variant="ghost" onClick={() => requestDelete(u.id)} className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -339,6 +341,7 @@ const Usuarios = () => {
           <PaginationControls currentPage={page} totalItems={filteredUsuarios.length} onPageChange={setPage} />
         </div>
       </div>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 };
