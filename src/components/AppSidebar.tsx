@@ -1,4 +1,34 @@
-import { ClipboardList, Users, Briefcase, UserCheck, Shield, LogOut, ClipboardCheck, Truck, LayoutDashboard, CalendarClock, FileSpreadsheet, DollarSign, ShoppingCart, Tags, Package, BarChart3, Scale, FileCheck, PackageCheck, Factory, Warehouse, KeyRound, Building2, HardHat, Stethoscope, FileBarChart, Gavel, Ruler, Wrench } from "lucide-react";
+import {
+  ClipboardList,
+  Users,
+  Briefcase,
+  UserCheck,
+  Shield,
+  LogOut,
+  ClipboardCheck,
+  Truck,
+  LayoutDashboard,
+  CalendarClock,
+  FileSpreadsheet,
+  DollarSign,
+  ShoppingCart,
+  Tags,
+  Package,
+  BarChart3,
+  Scale,
+  FileCheck,
+  PackageCheck,
+  Factory,
+  Warehouse,
+  KeyRound,
+  Building2,
+  HardHat,
+  Stethoscope,
+  FileBarChart,
+  Gavel,
+  Ruler,
+  Wrench,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import { NavLink } from "@/components/NavLink";
@@ -32,9 +62,7 @@ const menuItems = [
   },
   {
     group: "Patrimônio",
-    items: [
-      { title: "Ferramentas", url: "/patrimonio/ferramentas", icon: Wrench },
-    ],
+    items: [{ title: "Ferramentas", url: "/patrimonio/ferramentas", icon: Wrench }],
   },
   {
     group: "Engenharia",
@@ -59,9 +87,7 @@ const menuItems = [
   },
   {
     group: "Licitações",
-    items: [
-      { title: "Licitações", url: "/licitacoes", icon: Gavel },
-    ],
+    items: [{ title: "Licitações", url: "/licitacoes", icon: Gavel }],
   },
   {
     group: "Cadastros",
@@ -88,9 +114,7 @@ export function AppSidebar() {
           <img src={logoLasant} alt="Lasant Construções" className="h-8 w-auto shrink-0 object-contain" />
           {!collapsed && (
             <div className="overflow-hidden">
-              <p className="text-[10px] text-muted-foreground truncate">
-                SGM
-              </p>
+              <p className="text-[12px] text-muted-foreground truncate">SGM</p>
             </div>
           )}
         </div>
@@ -159,12 +183,8 @@ export function AppSidebar() {
               <div className="flex-1 min-w-0">
                 {!collapsed && (
                   <>
-                    <p className="text-xs font-medium text-sidebar-foreground truncate">
-                      {usuarioLogado.nome}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground truncate">
-                      {usuarioLogado.email}
-                    </p>
+                    <p className="text-xs font-medium text-sidebar-foreground truncate">{usuarioLogado.nome}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{usuarioLogado.email}</p>
                   </>
                 )}
               </div>
