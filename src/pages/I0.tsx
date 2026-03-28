@@ -43,6 +43,7 @@ export default function I0Page() {
   const [filterAno, setFilterAno] = useState<string>("todos");
   const [page, setPage] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const getScoDesc = (cod: string) => scos.find((s) => s.codSco === cod)?.descricaoSco ?? "";
 
@@ -84,6 +85,7 @@ export default function I0Page() {
     deleteItem(id);
     toast({ title: "Registro removido" });
   };
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   const handleImport = (file: File) => {
     const ext = file.name.split(".").pop()?.toLowerCase();
@@ -206,7 +208,7 @@ export default function I0Page() {
                       <Button size="icon" variant="ghost" onClick={() => openEdit(item)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="text-destructive" onClick={() => handleDelete(item.id)}>
+                      <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(item.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
