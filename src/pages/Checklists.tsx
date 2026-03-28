@@ -12,7 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Edit, Trash2, ClipboardCheck, Play, Eye, X, CheckCircle2, XCircle, MinusCircle } from "lucide-react";
+import { Search, Plus, Edit, Trash2, ClipboardCheck, Play, Eye, X, CheckCircle2, XCircle, MinusCircle, Camera, Upload } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
 
@@ -55,15 +57,17 @@ export default function ChecklistsPage() {
   const [deleteType, setDeleteType] = useState<"template" | "preenchimento">("template");
 
   // --- Template handlers ---
+  const emptyItem = (): ChecklistItem => ({ descricao: "", quantidade: "", registro_fotografico: false });
+
   const openNewTemplate = () => {
     setEditingTemplate(null);
-    setTemplateForm({ titulo: "", descricao: "", categoria: "", itens: [{ descricao: "" }] });
+    setTemplateForm({ titulo: "", descricao: "", categoria: "", itens: [emptyItem()] });
     setTemplateDialogOpen(true);
   };
 
   const openEditTemplate = (c: Checklist) => {
     setEditingTemplate(c);
-    setTemplateForm({ titulo: c.titulo, descricao: c.descricao, categoria: c.categoria, itens: c.itens?.length ? c.itens : [{ descricao: "" }] });
+    setTemplateForm({ titulo: c.titulo, descricao: c.descricao, categoria: c.categoria, itens: c.itens?.length ? c.itens.map(i => ({ descricao: i.descricao || "", quantidade: i.quantidade || "", registro_fotografico: i.registro_fotografico || false })) : [emptyItem()] });
     setTemplateDialogOpen(true);
   };
 
@@ -79,9 +83,9 @@ export default function ChecklistsPage() {
     setTemplateDialogOpen(false);
   };
 
-  const addTemplateItem = () => setTemplateForm(f => ({ ...f, itens: [...f.itens, { descricao: "" }] }));
+  const addTemplateItem = () => setTemplateForm(f => ({ ...f, itens: [...f.itens, emptyItem()] }));
   const removeTemplateItem = (idx: number) => setTemplateForm(f => ({ ...f, itens: f.itens.filter((_, i) => i !== idx) }));
-  const updateTemplateItem = (idx: number, val: string) => setTemplateForm(f => ({ ...f, itens: f.itens.map((it, i) => i === idx ? { descricao: val } : it) }));
+  const updateTemplateItemField = (idx: number, field: keyof ChecklistItem, val: any) => setTemplateForm(f => ({ ...f, itens: f.itens.map((it, i) => i === idx ? { ...it, [field]: val } : it) }));
 
   // --- Preenchimento handlers ---
   const openNewPreench = () => {
@@ -99,7 +103,7 @@ export default function ChecklistsPage() {
   const handleSelectChecklist = (checklistId: string) => {
     const tpl = checklists.find(c => c.id === checklistId);
     if (!tpl) return;
-    const itens: PreenchimentoItem[] = tpl.itens.map(i => ({ descricao: i.descricao, status: "" }));
+    const itens: PreenchimentoItem[] = tpl.itens.map(i => ({ descricao: i.descricao, quantidade: i.quantidade || "", registro_fotografico: i.registro_fotografico || false, status: "", foto_url: "" }));
     setPreenchForm(f => ({ ...f, checklist_id: checklistId, itens }));
   };
 
