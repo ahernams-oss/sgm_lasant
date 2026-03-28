@@ -12,7 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Edit, Trash2, ClipboardCheck, Play, Eye, X, CheckCircle2, XCircle, MinusCircle } from "lucide-react";
+import { Search, Plus, Edit, Trash2, ClipboardCheck, Play, Eye, X, CheckCircle2, XCircle, MinusCircle, Camera, Upload } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
 
@@ -55,15 +57,17 @@ export default function ChecklistsPage() {
   const [deleteType, setDeleteType] = useState<"template" | "preenchimento">("template");
 
   // --- Template handlers ---
+  const emptyItem = (): ChecklistItem => ({ descricao: "", quantidade: "", registro_fotografico: false });
+
   const openNewTemplate = () => {
     setEditingTemplate(null);
-    setTemplateForm({ titulo: "", descricao: "", categoria: "", itens: [{ descricao: "" }] });
+    setTemplateForm({ titulo: "", descricao: "", categoria: "", itens: [emptyItem()] });
     setTemplateDialogOpen(true);
   };
 
   const openEditTemplate = (c: Checklist) => {
     setEditingTemplate(c);
-    setTemplateForm({ titulo: c.titulo, descricao: c.descricao, categoria: c.categoria, itens: c.itens?.length ? c.itens : [{ descricao: "" }] });
+    setTemplateForm({ titulo: c.titulo, descricao: c.descricao, categoria: c.categoria, itens: c.itens?.length ? c.itens.map(i => ({ descricao: i.descricao || "", quantidade: i.quantidade || "", registro_fotografico: i.registro_fotografico || false })) : [emptyItem()] });
     setTemplateDialogOpen(true);
   };
 
@@ -79,9 +83,9 @@ export default function ChecklistsPage() {
     setTemplateDialogOpen(false);
   };
 
-  const addTemplateItem = () => setTemplateForm(f => ({ ...f, itens: [...f.itens, { descricao: "" }] }));
+  const addTemplateItem = () => setTemplateForm(f => ({ ...f, itens: [...f.itens, emptyItem()] }));
   const removeTemplateItem = (idx: number) => setTemplateForm(f => ({ ...f, itens: f.itens.filter((_, i) => i !== idx) }));
-  const updateTemplateItem = (idx: number, val: string) => setTemplateForm(f => ({ ...f, itens: f.itens.map((it, i) => i === idx ? { descricao: val } : it) }));
+  const updateTemplateItemField = (idx: number, field: keyof ChecklistItem, val: any) => setTemplateForm(f => ({ ...f, itens: f.itens.map((it, i) => i === idx ? { ...it, [field]: val } : it) }));
 
   // --- Preenchimento handlers ---
   const openNewPreench = () => {
@@ -99,7 +103,7 @@ export default function ChecklistsPage() {
   const handleSelectChecklist = (checklistId: string) => {
     const tpl = checklists.find(c => c.id === checklistId);
     if (!tpl) return;
-    const itens: PreenchimentoItem[] = tpl.itens.map(i => ({ descricao: i.descricao, status: "" }));
+    const itens: PreenchimentoItem[] = tpl.itens.map(i => ({ descricao: i.descricao, quantidade: i.quantidade || "", registro_fotografico: i.registro_fotografico || false, status: "", foto_url: "" }));
     setPreenchForm(f => ({ ...f, checklist_id: checklistId, itens }));
   };
 
@@ -216,7 +220,7 @@ export default function ChecklistsPage() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button size="icon" variant="ghost" title="Editar" onClick={() => openEditTemplate(c)}><Edit className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Preencher" onClick={() => { setPreenchForm({ checklist_id: c.id, evidencia_id: "", itens: c.itens.map(i => ({ descricao: i.descricao, status: "" })), observacoes: "" }); setEditingPreench(null); setPreenchDialogOpen(true); }}><Play className="h-4 w-4" /></Button>
+                        <Button size="icon" variant="ghost" title="Preencher" onClick={() => { setPreenchForm({ checklist_id: c.id, evidencia_id: "", itens: c.itens.map(i => ({ descricao: i.descricao, quantidade: i.quantidade || "", registro_fotografico: i.registro_fotografico || false, status: "", foto_url: "" })), observacoes: "" }); setEditingPreench(null); setPreenchDialogOpen(true); }}><Play className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" className="text-destructive" title="Excluir" onClick={() => { setDeleteId(c.id); setDeleteType("template"); }}><Trash2 className="h-4 w-4" /></Button>
                       </div>
                     </TableCell>
@@ -298,13 +302,24 @@ export default function ChecklistsPage() {
                 <Label className="text-base font-semibold">Itens do Checklist</Label>
                 <Button size="sm" variant="outline" onClick={addTemplateItem}><Plus className="h-3 w-3 mr-1" />Adicionar Item</Button>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {templateForm.itens.map((item, idx) => (
-                  <div key={idx} className="flex gap-2 items-center">
-                    <span className="text-xs text-muted-foreground w-6 text-right">{idx + 1}.</span>
-                    <Input value={item.descricao} onChange={e => updateTemplateItem(idx, e.target.value)} placeholder="Descrição do item" className="flex-1" />
+                  <div key={idx} className="flex gap-2 items-start p-3 border rounded-lg bg-muted/30">
+                    <span className="text-xs text-muted-foreground w-6 text-right mt-2.5">{idx + 1}.</span>
+                    <div className="flex-1 space-y-2">
+                      <Input value={item.descricao} onChange={e => updateTemplateItemField(idx, "descricao", e.target.value)} placeholder="Descrição do item" />
+                      <div className="flex gap-3 items-center">
+                        <div className="flex-1">
+                          <Input value={item.quantidade} onChange={e => updateTemplateItemField(idx, "quantidade", e.target.value)} placeholder="Quantidade (ex: 5 un)" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox checked={item.registro_fotografico} onCheckedChange={(v) => updateTemplateItemField(idx, "registro_fotografico", !!v)} id={`foto-${idx}`} />
+                          <Label htmlFor={`foto-${idx}`} className="text-xs whitespace-nowrap cursor-pointer flex items-center gap-1"><Camera className="h-3 w-3" />Registro Fotográfico</Label>
+                        </div>
+                      </div>
+                    </div>
                     {templateForm.itens.length > 1 && (
-                      <Button size="icon" variant="ghost" className="text-destructive shrink-0" onClick={() => removeTemplateItem(idx)}><X className="h-4 w-4" /></Button>
+                      <Button size="icon" variant="ghost" className="text-destructive shrink-0 mt-1" onClick={() => removeTemplateItem(idx)}><X className="h-4 w-4" /></Button>
                     )}
                   </div>
                 ))}
@@ -352,19 +367,45 @@ export default function ChecklistsPage() {
                 </div>
                 <div className="space-y-2">
                   {preenchForm.itens.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
-                      <span className="text-xs text-muted-foreground w-6 text-right font-medium">{idx + 1}.</span>
-                      <span className="flex-1 text-sm">{item.descricao}</span>
-                      <div className="flex gap-1">
-                        <Button size="sm" variant={item.status === "Conforme" ? "default" : "outline"} className={item.status === "Conforme" ? "bg-green-600 hover:bg-green-700" : ""} onClick={() => updatePreenchItem(idx, "Conforme")} title="Conforme">
-                          <CheckCircle2 className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant={item.status === "Não Conforme" ? "default" : "outline"} className={item.status === "Não Conforme" ? "bg-red-600 hover:bg-red-700" : ""} onClick={() => updatePreenchItem(idx, "Não Conforme")} title="Não Conforme">
-                          <XCircle className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant={item.status === "N/A" ? "default" : "outline"} className={item.status === "N/A" ? "bg-gray-600 hover:bg-gray-700" : ""} onClick={() => updatePreenchItem(idx, "N/A")} title="Não Aplicável">
-                          <MinusCircle className="h-4 w-4" />
-                        </Button>
+                    <div key={idx} className="p-3 border rounded-lg bg-muted/30 space-y-2">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground w-6 text-right font-medium">{idx + 1}.</span>
+                        <span className="flex-1 text-sm font-medium">{item.descricao}</span>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant={item.status === "Conforme" ? "default" : "outline"} className={item.status === "Conforme" ? "bg-green-600 hover:bg-green-700" : ""} onClick={() => updatePreenchItem(idx, "Conforme")} title="Conforme">
+                            <CheckCircle2 className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant={item.status === "Não Conforme" ? "default" : "outline"} className={item.status === "Não Conforme" ? "bg-red-600 hover:bg-red-700" : ""} onClick={() => updatePreenchItem(idx, "Não Conforme")} title="Não Conforme">
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant={item.status === "N/A" ? "default" : "outline"} className={item.status === "N/A" ? "bg-gray-600 hover:bg-gray-700" : ""} onClick={() => updatePreenchItem(idx, "N/A")} title="Não Aplicável">
+                            <MinusCircle className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 ml-9">
+                        {item.quantidade && <span className="text-xs text-muted-foreground">Qtd: <strong>{item.quantidade}</strong></span>}
+                        {item.registro_fotografico && (
+                          <div className="flex items-center gap-2">
+                            <Camera className="h-3 w-3 text-muted-foreground" />
+                            {item.foto_url ? (
+                              <a href={item.foto_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">Ver foto</a>
+                            ) : (
+                              <label className="text-xs text-primary cursor-pointer flex items-center gap-1 hover:underline">
+                                <Upload className="h-3 w-3" />Enviar foto
+                                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  const path = `checklist-fotos/${Date.now()}-${file.name}`;
+                                  const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
+                                  if (error) return;
+                                  const { data: urlData } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
+                                  setPreenchForm(f => ({ ...f, itens: f.itens.map((it, i) => i === idx ? { ...it, foto_url: urlData.publicUrl } : it) }));
+                                }} />
+                              </label>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -396,13 +437,21 @@ export default function ChecklistsPage() {
               </div>
               <div className="space-y-2">
                 {viewing.itens?.map((item: PreenchimentoItem, idx: number) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="text-xs text-muted-foreground w-6 text-right">{idx + 1}.</span>
-                    <span className="flex-1 text-sm">{item.descricao}</span>
-                    {item.status === "Conforme" && <Badge className="bg-green-100 text-green-800">Conforme</Badge>}
-                    {item.status === "Não Conforme" && <Badge className="bg-red-100 text-red-800">Não Conforme</Badge>}
-                    {item.status === "N/A" && <Badge variant="secondary">N/A</Badge>}
-                    {!item.status && <Badge variant="outline">—</Badge>}
+                  <div key={idx} className="p-3 border rounded-lg space-y-1">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground w-6 text-right">{idx + 1}.</span>
+                      <span className="flex-1 text-sm">{item.descricao}</span>
+                      {item.status === "Conforme" && <Badge className="bg-green-100 text-green-800">Conforme</Badge>}
+                      {item.status === "Não Conforme" && <Badge className="bg-red-100 text-red-800">Não Conforme</Badge>}
+                      {item.status === "N/A" && <Badge variant="secondary">N/A</Badge>}
+                      {!item.status && <Badge variant="outline">—</Badge>}
+                    </div>
+                    <div className="flex items-center gap-4 ml-9">
+                      {item.quantidade && <span className="text-xs text-muted-foreground">Qtd: <strong>{item.quantidade}</strong></span>}
+                      {item.foto_url && (
+                        <a href={item.foto_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline flex items-center gap-1"><Camera className="h-3 w-3" />Ver foto</a>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
