@@ -46,6 +46,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
   };
   const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
+  const updateField = (field: keyof Omit<LocalCliente, "id">, value: string) =>
     setNewLocal((prev) => ({ ...prev, [field]: value }));
 
   const buscarCep = useCallback(async (cep: string, setter: (field: string, value: string) => void) => {
