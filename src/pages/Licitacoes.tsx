@@ -130,7 +130,7 @@ export default function LicitacoesPage() {
   const [phoneList, setPhoneList] = useState<{ id: string; telefone: string; nome_contato: string }[]>([]);
   const [newPhone, setNewPhone] = useState("");
   const [newPhoneName, setNewPhoneName] = useState("");
-  const [loadingPhones, setLoadingPhones] = false;
+  const [loadingPhones, setLoadingPhones] = useState(false);
   const { deleteId: deleteLicId, requestDelete: requestDeleteLic, cancelDelete: cancelDeleteLic } = useDoubleConfirmDelete();
   const { deleteId: deleteDocId, requestDelete: requestDeleteDoc, cancelDelete: cancelDeleteDoc } = useDoubleConfirmDelete();
   const { deleteId: deleteAnaId, requestDelete: requestDeleteAna, cancelDelete: cancelDeleteAna } = useDoubleConfirmDelete();
