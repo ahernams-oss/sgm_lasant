@@ -276,7 +276,17 @@ export default function EvidenciasPage() {
                       <Button size="icon" variant="ghost" onClick={() => handleOpen(ev)} title="Editar">
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <DoubleConfirmDelete onConfirm={() => deleteEvidencia(ev.id)} />
+                      {(() => {
+                        const [delOpen, setDelOpen] = useStateReact(false);
+                        return (
+                          <>
+                            <Button size="icon" variant="ghost" onClick={() => setDelOpen(true)} title="Excluir">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                            <DoubleConfirmDelete open={delOpen} onOpenChange={setDelOpen} onConfirm={() => deleteEvidencia(ev.id)} />
+                          </>
+                        );
+                      })()}
                     </div>
                   </TableCell>
                 </TableRow>
