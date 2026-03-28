@@ -20,7 +20,7 @@ const COLUNAS_TEMPLATE = [
 const COLUNAS_LABEL: Record<string, string> = {
   nome: "Razão Social *", nomeFantasia: "Nome Fantasia", cnpj: "CNPJ",
   inscricaoEstadual: "Inscrição Estadual", inscricaoMunicipal: "Inscrição Municipal",
-  esfera: "Esfera", descricao: "Descrição", contato: "Contato", email: "E-mail",
+  esfera: "Esfera", descricao: "Descrição", cap: "CAP", contato: "Contato", email: "E-mail",
   emailCompras: "E-mail Compras", telefone1: "Telefone 1", telefone2: "Telefone 2",
   telefone3: "Telefone 3", cep: "CEP", logradouro: "Logradouro", numero: "Número",
   complemento: "Complemento", bairro: "Bairro", cidade: "Cidade", uf: "UF",
@@ -87,7 +87,7 @@ export default function ImportClientesFornecedores({ tipo }: Props) {
           tipo, nome: row.nome || "", nomeFantasia: row.nomeFantasia || "",
           cnpj: row.cnpj || "", inscricaoEstadual: row.inscricaoEstadual || "",
           inscricaoMunicipal: row.inscricaoMunicipal || "", esfera: row.esfera || "",
-          descricao: row.descricao || "", contato: row.contato || "",
+          descricao: row.descricao || "", cap: row.cap || "", contato: row.contato || "",
           email: row.email || "", emailCompras: row.emailCompras || "",
           emailEngenharia: "", emailOsCc: "", emailOsBcc: "",
           emailSsCc: "", emailSsBcc: "",
