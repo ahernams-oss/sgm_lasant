@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useFerramentas, Ferramenta, emptyFerramentaForm, FerramentaVinculo, FerramentaEmprestimo } from "@/contexts/FerramentasContext";
 import { Checkbox } from "@/components/ui/checkbox";

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useLicitacoes, Licitacao, DocumentoLicitacao, AnaliseLicitacao } from "@/contexts/LicitacoesContext";
 import { useAuth } from "@/contexts/AuthContext";

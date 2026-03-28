@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { Stethoscope, Search, Trash2, Upload, FileText, Bell, AlertTriangle, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
