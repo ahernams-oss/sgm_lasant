@@ -683,6 +683,7 @@ const Cargos = () => {
           <PaginationControls currentPage={page} totalItems={filteredCargos.length} onPageChange={setPage} />
         </div>
       </div>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 };
