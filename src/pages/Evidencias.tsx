@@ -296,7 +296,7 @@ export default function EvidenciasPage() {
         </Table>
       </div>
 
-      <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={ITEMS_PER_PAGE} />
 
       {/* Dialog cadastro/edição */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
