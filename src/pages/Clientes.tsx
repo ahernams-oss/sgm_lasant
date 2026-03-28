@@ -184,7 +184,7 @@ const Clientes = () => {
                       <MessageCircle className="h-3.5 w-3.5" />
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(cliente)} className="text-xs">Editar</Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(cliente.id)} className="text-destructive hover:text-destructive">
+                    <Button variant="ghost" size="sm" onClick={() => requestDelete(cliente.id)} className="text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                     <DropdownMenu>
@@ -321,7 +321,7 @@ const Clientes = () => {
                       </div>
                       <div className="flex gap-1 shrink-0">
                         <Button variant="ghost" size="sm" onClick={() => handleEditContrato(ct)} className="text-xs">Editar</Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteContrato(ct.id)} className="text-destructive hover:text-destructive">
+                        <Button variant="ghost" size="sm" onClick={() => requestDeleteContrato(ct.id)} className="text-destructive hover:text-destructive">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -333,6 +333,8 @@ const Clientes = () => {
           );
         })()}
       </div>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
+      <DoubleConfirmDelete open={!!deleteContratoId} onOpenChange={(open) => !open && cancelDeleteContrato()} onConfirm={() => { if (deleteContratoId) handleDeleteContrato(deleteContratoId); }} />
     </div>
   );
 };
