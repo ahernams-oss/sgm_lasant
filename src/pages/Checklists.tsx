@@ -142,8 +142,6 @@ export default function ChecklistsPage() {
     );
   }, [preenchimentos, search]);
 
-  const currentItems = activeTab === "templates" ? filteredTemplates : filteredPreench;
-  const totalPages = Math.ceil(currentItems.length / ITEMS_PER_PAGE);
   const paginatedTemplates = filteredTemplates.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const paginatedPreench = filteredPreench.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
