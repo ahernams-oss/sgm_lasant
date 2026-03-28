@@ -130,6 +130,7 @@ export function ExamesPeriodicosTab({ funcionarioId, funcionarioNome, funcionari
       fetchExames();
     }
   };
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   const handleUploadASO = async (exameId: string, file: File) => {
     if (file.size > 10 * 1024 * 1024) {
@@ -283,7 +284,7 @@ export function ExamesPeriodicosTab({ funcionarioId, funcionarioNome, funcionari
                       )}
                     </TableCell>
                     <TableCell>
-                      <Button size="icon" variant="ghost" type="button" onClick={() => handleDelete(exame.id)} className="h-7 w-7 text-destructive hover:text-destructive">
+                      <Button size="icon" variant="ghost" type="button" onClick={() => requestDelete(exame.id)} className="h-7 w-7 text-destructive hover:text-destructive">
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </TableCell>
@@ -300,6 +301,7 @@ export function ExamesPeriodicosTab({ funcionarioId, funcionarioNome, funcionari
         <p>O sistema enviará avisos por WhatsApp 30, 20 e 10 dias antes do vencimento de cada exame.</p>
         <p>Os avisos são verificados automaticamente todos os dias.</p>
       </div>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 }
