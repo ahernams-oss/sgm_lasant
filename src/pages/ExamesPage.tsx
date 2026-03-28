@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { Stethoscope, Search, Trash2, Upload, FileText, Bell, AlertTriangle, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ const ExamesPage = () => {
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [page, setPage] = useState(1);
   const [uploading, setUploading] = useState(false);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const fetchExames = async () => {
     setLoading(true);
@@ -88,6 +90,7 @@ const ExamesPage = () => {
       fetchExames();
     }
   };
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   const handleUploadASO = async (exame: ExamePeriodico, file: File) => {
     if (file.size > 10 * 1024 * 1024) {
@@ -297,7 +300,7 @@ const ExamesPage = () => {
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => handleDelete(exame.id)}
+                        onClick={() => requestDelete(exame.id)}
                         className="h-7 w-7 text-destructive hover:text-destructive"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -319,6 +322,7 @@ const ExamesPage = () => {
         </p>
         <p>O sistema enviará avisos por WhatsApp 30, 20 e 10 dias antes do vencimento de cada exame.</p>
       </div>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 };

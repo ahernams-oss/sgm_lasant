@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import { Briefcase, Plus, Trash2, Search, ChevronDown, ChevronUp, Pencil, Check, X, Upload, FileText, ExternalLink } from "lucide-react";
@@ -29,6 +30,7 @@ const Cargos = () => {
   const [search, setSearch] = useState("");
   const [filterNivel, setFilterNivel] = useState<string>("todos");
   const [expandedCargoId, setExpandedCargoId] = useState<string | null>(null);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   // Salário form state
   const [novoSalarioValor, setNovoSalarioValor] = useState<Record<string, string>>({});
@@ -91,6 +93,7 @@ const Cargos = () => {
     toast.success("Cargo removido.");
     if (editingId === id) resetForm();
   };
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   // Salários management
   const addSalario = (cargoId: string) => {
@@ -432,7 +435,7 @@ const Cargos = () => {
                           Salários
                         </Button>
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(cargo)} className="text-xs">Editar</Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(cargo.id)} className="text-destructive hover:text-destructive">
+                        <Button variant="ghost" size="sm" onClick={() => requestDelete(cargo.id)} className="text-destructive hover:text-destructive">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -680,6 +683,7 @@ const Cargos = () => {
           <PaginationControls currentPage={page} totalItems={filteredCargos.length} onPageChange={setPage} />
         </div>
       </div>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 };

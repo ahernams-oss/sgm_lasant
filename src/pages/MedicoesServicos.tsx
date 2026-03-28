@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { format } from "date-fns";
 import { Plus, Ruler, Trash2, Edit, Eye, X, ChevronDown, ChevronUp, CalendarIcon, FileText, Download } from "lucide-react";
@@ -36,6 +37,7 @@ const MedicoesServicos = () => {
   const { clientes } = useClientes();
   const { toast } = useToast();
 
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -133,6 +135,7 @@ const MedicoesServicos = () => {
     await deleteMedicao(id);
     toast({ title: "Medição excluída" });
   };
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   // Item management
   const updateItem = (idx: number, field: keyof ItemServico, value: any) => {
@@ -418,7 +421,7 @@ const MedicoesServicos = () => {
                         <Button variant="ghost" size="icon" title="Editar" onClick={() => handleOpenForm(m)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" title="Excluir" onClick={() => handleDelete(m.id)}>
+                        <Button variant="ghost" size="icon" title="Excluir" onClick={() => requestDelete(m.id)}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
@@ -613,6 +616,7 @@ const MedicoesServicos = () => {
           </Dialog>
         )}
       </div>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 };

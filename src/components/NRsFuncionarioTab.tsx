@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { Plus, Trash2, FileDown, Upload, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formFileRef = useRef<HTMLInputElement>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const { deleteId: deleteNrId, requestDelete: requestDeleteNr, cancelDelete: cancelDeleteNr } = useDoubleConfirmDelete();
 
   const addNr = () => {
     if (!novaNr.numero || !novaNr.descricao) {
@@ -230,7 +232,7 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
                       type="button"
                       size="icon"
                       variant="ghost"
-                      onClick={() => removeNr(nr.id)}
+                      onClick={() => requestDeleteNr(nr.id)}
                       className="h-8 w-8 text-destructive hover:text-destructive"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -247,6 +249,7 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
           Nenhuma NR cadastrada para este funcionário.
         </div>
       )}
+      <DoubleConfirmDelete open={!!deleteNrId} onOpenChange={(open) => !open && cancelDeleteNr()} onConfirm={() => { if (deleteNrId) { removeNr(deleteNrId); cancelDeleteNr(); } }} />
     </div>
   );
 }

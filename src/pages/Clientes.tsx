@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin, FileText, Plus, ChevronDown, ChevronUp, Truck } from "lucide-react";
@@ -25,6 +26,8 @@ const Clientes = () => {
   const emptyContrato = { numero: "", descricao: "", dataInicio: "", dataFim: "", bdi: "", valorBase: "", valorBase2: "", valorBase3: "", mesSco: "", anoSco: "" };
   const [contratoForm, setContratoForm] = useState(emptyContrato);
   const [editingContratoId, setEditingContratoId] = useState<string | null>(null);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { deleteId: deleteContratoId, requestDelete: requestDeleteContrato, cancelDelete: cancelDeleteContrato } = useDoubleConfirmDelete();
   const handleSubmit = (data: FormData, id: string | null) => {
     if (!data.nome.trim()) {
       toast.error("Informe o nome do cliente.");
@@ -64,6 +67,10 @@ const Clientes = () => {
     deleteCliente(id);
     toast.success("Cliente removido.");
     if (editingId === id) resetForm();
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteId) handleDelete(deleteId);
   };
 
   const handleEnviarWhatsApp = async (cliente: Cliente) => {
@@ -177,7 +184,7 @@ const Clientes = () => {
                       <MessageCircle className="h-3.5 w-3.5" />
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(cliente)} className="text-xs">Editar</Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(cliente.id)} className="text-destructive hover:text-destructive">
+                    <Button variant="ghost" size="sm" onClick={() => requestDelete(cliente.id)} className="text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                     <DropdownMenu>
@@ -314,7 +321,7 @@ const Clientes = () => {
                       </div>
                       <div className="flex gap-1 shrink-0">
                         <Button variant="ghost" size="sm" onClick={() => handleEditContrato(ct)} className="text-xs">Editar</Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteContrato(ct.id)} className="text-destructive hover:text-destructive">
+                        <Button variant="ghost" size="sm" onClick={() => requestDeleteContrato(ct.id)} className="text-destructive hover:text-destructive">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -322,10 +329,12 @@ const Clientes = () => {
                   ))}
                 </div>
               )}
+              <DoubleConfirmDelete open={!!deleteContratoId} onOpenChange={(open) => !open && cancelDeleteContrato()} onConfirm={() => { if (deleteContratoId) { handleDeleteContrato(deleteContratoId); cancelDeleteContrato(); } }} />
             </div>
           );
         })()}
       </div>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 };

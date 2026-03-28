@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useFerramentas, Ferramenta, emptyFerramentaForm, FerramentaVinculo, FerramentaEmprestimo } from "@/contexts/FerramentasContext";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -39,6 +40,7 @@ export default function FerramentasPage() {
   const [pageCad, setPageCad] = useState(1);
   const [pageVinc, setPageVinc] = useState(1);
   const [pageEmp, setPageEmp] = useState(1);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [pageHist, setPageHist] = useState(1);
 
   // Vínculo dialog
@@ -209,7 +211,7 @@ export default function FerramentasPage() {
                         <Button size="icon" variant="ghost" title="Histórico" onClick={() => { setHistoricoFerramentaId(f.id); setHistoricoOpen(true); }}><History className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" title="Vincular a Funcionário" disabled={f.status !== "Disponível"} onClick={() => { setVinculoFerramentaIds([f.id]); setVinculoOpen(true); }}><Link className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" title="Emprestar" disabled={f.status !== "Disponível"} onClick={() => { setEmpFerramentaId(f.id); setEmprestimoOpen(true); }}><ArrowRightLeft className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Excluir" className="text-destructive" onClick={() => { if (confirm("Remover esta ferramenta?")) deleteFerramenta(f.id); }}><Trash2 className="h-4 w-4" /></Button>
+                        <Button size="icon" variant="ghost" title="Excluir" className="text-destructive" onClick={() => requestDelete(f.id)}><Trash2 className="h-4 w-4" /></Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -533,6 +535,7 @@ export default function FerramentasPage() {
           </Table>
         </DialogContent>
       </Dialog>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={() => { if (deleteId) { deleteFerramenta(deleteId); cancelDelete(); } }} />
     </div>
   );
 }

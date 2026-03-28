@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useFabricantes, Fabricante } from "@/contexts/FabricantesContext";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ export default function FabricantesPage() {
   const [nome, setNome] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const filtered = useMemo(() => {
     if (!search) return fabricantes;
     const s = search.toLowerCase();
@@ -67,7 +69,7 @@ export default function FabricantesPage() {
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(f)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => { deleteFabricante(f.id); toast({ title: "Excluído" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => requestDelete(f.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -85,6 +87,7 @@ export default function FabricantesPage() {
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={() => { if (deleteId) { deleteFabricante(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
     </div>
   );
 }

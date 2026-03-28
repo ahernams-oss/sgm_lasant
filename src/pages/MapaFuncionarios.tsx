@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -52,6 +53,7 @@ const MapaFuncionarios = () => {
   const [observacao, setObservacao] = useState("");
   const [anexos, setAnexos] = useState<AnexoFalta[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   // Filters
   const [search, setSearch] = useState("");
@@ -162,6 +164,7 @@ const MapaFuncionarios = () => {
     if (editingId === id) resetForm();
     toast.success("Lançamento removido.");
   };
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   const getFuncionarioNome = (id: string) =>
     funcionarios.find((f) => f.id === id)?.nome ?? "—";
@@ -535,7 +538,7 @@ const MapaFuncionarios = () => {
                           <Button size="icon" variant="ghost" onClick={() => handleEdit(l)} className="h-8 w-8">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
-                          <Button size="icon" variant="ghost" onClick={() => handleDelete(l.id)} className="h-8 w-8 text-destructive hover:text-destructive">
+                          <Button size="icon" variant="ghost" onClick={() => requestDelete(l.id)} className="h-8 w-8 text-destructive hover:text-destructive">
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
@@ -549,6 +552,7 @@ const MapaFuncionarios = () => {
         </div>
         <PaginationControls currentPage={pageLanc} totalItems={filteredLancamentos.length} onPageChange={setPageLanc} />
       </div>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 };

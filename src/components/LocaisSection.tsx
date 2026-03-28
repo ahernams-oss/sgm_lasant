@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
 import { Plus, Trash2, X, ChevronDown, ChevronUp, Upload, Pencil, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,13 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
   const [editingPavDesc, setEditingPavDesc] = useState("");
   const [editingSetorId, setEditingSetorId] = useState<string | null>(null);
   const [editingSetorDesc, setEditingSetorDesc] = useState("");
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+
+  const handleDelete = (id: string) => {
+    onChange(locais.filter((l) => l.id !== id));
+    toast.success("Local removido.");
+  };
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   const updateField = (field: keyof Omit<LocalCliente, "id">, value: string) =>
     setNewLocal((prev) => ({ ...prev, [field]: value }));
@@ -64,7 +72,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
     toast.success("Local adicionado!");
   };
 
-  const handleDelete = (id: string) => {
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
     onChange(locais.filter((l) => l.id !== id));
     toast.success("Local removido.");
   };
@@ -304,7 +312,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                   <Button type="button" variant="ghost" size="sm" onClick={() => setExpandedId(expandedId === local.id ? null : local.id)} title="Editar local">
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
-                  <Button type="button" variant="ghost" size="sm" onClick={() => handleDelete(local.id)} className="text-destructive hover:text-destructive">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => requestDelete(local.id)} className="text-destructive hover:text-destructive">
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
@@ -497,6 +505,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
           ))}
         </div>
       )}
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 }

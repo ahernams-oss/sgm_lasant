@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useSco, emptyScoForm, tiposSco, TipoSco } from "@/contexts/ScoContext";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ export default function Sco() {
   const [filterTipo, setFilterTipo] = useState<string>("todos");
   const [page, setPage] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const handleImport = (file: File) => {
     const ext = file.name.split(".").pop()?.toLowerCase();
@@ -122,6 +124,7 @@ export default function Sco() {
     deleteSco(id);
     toast({ title: "Item removido" });
   };
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   return (
     <div className="space-y-6">
@@ -209,7 +212,7 @@ export default function Sco() {
                       <Button size="icon" variant="ghost" onClick={() => openEdit(s)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="text-destructive" onClick={() => handleDelete(s.id)}>
+                      <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(s.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -261,6 +264,7 @@ export default function Sco() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 }

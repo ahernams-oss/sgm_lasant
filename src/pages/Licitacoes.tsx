@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useLicitacoes, Licitacao, DocumentoLicitacao, AnaliseLicitacao } from "@/contexts/LicitacoesContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -130,6 +131,10 @@ export default function LicitacoesPage() {
   const [newPhone, setNewPhone] = useState("");
   const [newPhoneName, setNewPhoneName] = useState("");
   const [loadingPhones, setLoadingPhones] = useState(false);
+  const { deleteId: deleteLicId, requestDelete: requestDeleteLic, cancelDelete: cancelDeleteLic } = useDoubleConfirmDelete();
+  const { deleteId: deleteDocId, requestDelete: requestDeleteDoc, cancelDelete: cancelDeleteDoc } = useDoubleConfirmDelete();
+  const { deleteId: deleteAnaId, requestDelete: requestDeleteAna, cancelDelete: cancelDeleteAna } = useDoubleConfirmDelete();
+  const { deleteId: deletePhoneId, requestDelete: requestDeletePhone, cancelDelete: cancelDeletePhone } = useDoubleConfirmDelete();
 
   const loadPhones = async () => {
     setLoadingPhones(true);
@@ -227,10 +232,8 @@ export default function LicitacoesPage() {
   };
 
   const handleDeleteLicitacao = async (id: string) => {
-    if (confirm("Deseja realmente excluir esta licitação?")) {
-      await deleteLicitacao(id);
-      toast({ title: "Licitação excluída!" });
-    }
+    await deleteLicitacao(id);
+    toast({ title: "Licitação excluída!" });
   };
 
   // ============ DOCUMENTOS ============
@@ -326,10 +329,8 @@ export default function LicitacoesPage() {
   };
 
   const handleDeleteDocumento = async (id: string) => {
-    if (confirm("Deseja realmente excluir este documento?")) {
-      await deleteDocumento(id);
-      toast({ title: "Documento excluído!" });
-    }
+    await deleteDocumento(id);
+    toast({ title: "Documento excluído!" });
   };
 
   // ============ ANÁLISES ============
@@ -363,10 +364,8 @@ export default function LicitacoesPage() {
   };
 
   const handleDeleteAnalise = async (id: string) => {
-    if (confirm("Deseja realmente excluir esta análise?")) {
-      await deleteAnalise(id);
-      toast({ title: "Análise excluída!" });
-    }
+    await deleteAnalise(id);
+    toast({ title: "Análise excluída!" });
   };
 
   const viewLic = viewLicId ? licitacoes.find(l => l.id === viewLicId) : null;
@@ -446,7 +445,7 @@ export default function LicitacoesPage() {
                     <TableCell className="text-right space-x-1">
                       <Button variant="ghost" size="icon" onClick={() => setViewLicId(l.id)}><Eye className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" onClick={() => handleEditLicitacao(l)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteLicitacao(l.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => requestDeleteLic(l.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -540,7 +539,7 @@ export default function LicitacoesPage() {
                     <TableCell>{d.licitacoesVinculadas.length}</TableCell>
                     <TableCell className="text-right space-x-1">
                       <Button variant="ghost" size="icon" onClick={() => handleEditDocumento(d)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteDocumento(d.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => requestDeleteDoc(d.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -575,7 +574,7 @@ export default function LicitacoesPage() {
                         <Badge className={decisaoColors[a.decisaoParticipar] || "bg-gray-100"}>{a.decisaoParticipar}</Badge>
                         <Button variant="ghost" size="icon" onClick={() => setViewAnaliseId(a.id)}><Eye className="h-4 w-4" /></Button>
                         <Button variant="ghost" size="icon" onClick={() => handleEditAnalise(a)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteAnalise(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => requestDeleteAna(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                       </div>
                     </div>
                   </CardHeader>
@@ -976,7 +975,7 @@ export default function LicitacoesPage() {
                       <span className="font-medium text-sm">{p.nome_contato || "Sem nome"}</span>
                       <span className="text-sm text-muted-foreground ml-2">{p.telefone}</span>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => handleRemovePhone(p.id)}>
+                    <Button variant="ghost" size="icon" onClick={() => requestDeletePhone(p.id)}>
                       <X className="h-4 w-4 text-destructive" />
                     </Button>
                   </div>
@@ -990,6 +989,10 @@ export default function LicitacoesPage() {
           </div>
         </DialogContent>
       </Dialog>
+      <DoubleConfirmDelete open={!!deleteLicId} onOpenChange={(open) => !open && cancelDeleteLic()} onConfirm={() => { if (deleteLicId) handleDeleteLicitacao(deleteLicId); }} />
+      <DoubleConfirmDelete open={!!deleteDocId} onOpenChange={(open) => !open && cancelDeleteDoc()} onConfirm={() => { if (deleteDocId) handleDeleteDocumento(deleteDocId); }} />
+      <DoubleConfirmDelete open={!!deleteAnaId} onOpenChange={(open) => !open && cancelDeleteAna()} onConfirm={() => { if (deleteAnaId) handleDeleteAnalise(deleteAnaId); }} />
+      <DoubleConfirmDelete open={!!deletePhoneId} onOpenChange={(open) => !open && cancelDeletePhone()} onConfirm={() => { if (deletePhoneId) { handleRemovePhone(deletePhoneId); cancelDeletePhone(); } }} />
     </div>
   );
 }
