@@ -38,6 +38,7 @@ const MedicoesServicos = () => {
   const { toast } = useToast();
 
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [showLancamento, setShowLancamento] = useState(false);
