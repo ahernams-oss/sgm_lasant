@@ -137,6 +137,7 @@ export type Database = {
       clientes: {
         Row: {
           bairro: string | null
+          cap: string | null
           celulares: string | null
           cep: string | null
           cidade: string | null
@@ -179,6 +180,7 @@ export type Database = {
         }
         Insert: {
           bairro?: string | null
+          cap?: string | null
           celulares?: string | null
           cep?: string | null
           cidade?: string | null
@@ -221,6 +223,7 @@ export type Database = {
         }
         Update: {
           bairro?: string | null
+          cap?: string | null
           celulares?: string | null
           cep?: string | null
           cidade?: string | null
