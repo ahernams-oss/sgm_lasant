@@ -28,6 +28,7 @@ export default function LocaisEntregaSection({ locais, onChange, clienteNome }: 
   const [form, setForm] = useState(emptyLocal);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [open, setOpen] = useState(true);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const buscarCep = async (cep: string) => {
     const clean = cep.replace(/\D/g, "");
