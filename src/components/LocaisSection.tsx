@@ -305,7 +305,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                   <Button type="button" variant="ghost" size="sm" onClick={() => setExpandedId(expandedId === local.id ? null : local.id)} title="Editar local">
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
-                  <Button type="button" variant="ghost" size="sm" onClick={() => handleDelete(local.id)} className="text-destructive hover:text-destructive">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => requestDelete(local.id)} className="text-destructive hover:text-destructive">
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
@@ -498,6 +498,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
           ))}
         </div>
       )}
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 }
