@@ -1,14 +1,13 @@
 import { useState } from "react";
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 interface DoubleConfirmDeleteProps {
   open: boolean;
@@ -46,15 +45,17 @@ export function DoubleConfirmDelete({ open, onOpenChange, onConfirm }: DoubleCon
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
+            Cancelar
+          </Button>
           {step === 1 ? (
-            <AlertDialogAction onClick={handleFirstConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <Button variant="destructive" onClick={handleFirstConfirm}>
               Sim, excluir
-            </AlertDialogAction>
+            </Button>
           ) : (
-            <AlertDialogAction onClick={handleSecondConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <Button variant="destructive" onClick={handleSecondConfirm}>
               Confirmo a exclusão
-            </AlertDialogAction>
+            </Button>
           )}
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -64,7 +65,6 @@ export function DoubleConfirmDelete({ open, onOpenChange, onConfirm }: DoubleCon
 
 /**
  * Hook to manage double confirm delete state.
- * Returns [deleteId, requestDelete, confirmDelete, cancelDelete]
  */
 export function useDoubleConfirmDelete() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
