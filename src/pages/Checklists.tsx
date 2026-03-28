@@ -302,13 +302,24 @@ export default function ChecklistsPage() {
                 <Label className="text-base font-semibold">Itens do Checklist</Label>
                 <Button size="sm" variant="outline" onClick={addTemplateItem}><Plus className="h-3 w-3 mr-1" />Adicionar Item</Button>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {templateForm.itens.map((item, idx) => (
-                  <div key={idx} className="flex gap-2 items-center">
-                    <span className="text-xs text-muted-foreground w-6 text-right">{idx + 1}.</span>
-                    <Input value={item.descricao} onChange={e => updateTemplateItem(idx, e.target.value)} placeholder="Descrição do item" className="flex-1" />
+                  <div key={idx} className="flex gap-2 items-start p-3 border rounded-lg bg-muted/30">
+                    <span className="text-xs text-muted-foreground w-6 text-right mt-2.5">{idx + 1}.</span>
+                    <div className="flex-1 space-y-2">
+                      <Input value={item.descricao} onChange={e => updateTemplateItemField(idx, "descricao", e.target.value)} placeholder="Descrição do item" />
+                      <div className="flex gap-3 items-center">
+                        <div className="flex-1">
+                          <Input value={item.quantidade} onChange={e => updateTemplateItemField(idx, "quantidade", e.target.value)} placeholder="Quantidade (ex: 5 un)" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox checked={item.registro_fotografico} onCheckedChange={(v) => updateTemplateItemField(idx, "registro_fotografico", !!v)} id={`foto-${idx}`} />
+                          <Label htmlFor={`foto-${idx}`} className="text-xs whitespace-nowrap cursor-pointer flex items-center gap-1"><Camera className="h-3 w-3" />Registro Fotográfico</Label>
+                        </div>
+                      </div>
+                    </div>
                     {templateForm.itens.length > 1 && (
-                      <Button size="icon" variant="ghost" className="text-destructive shrink-0" onClick={() => removeTemplateItem(idx)}><X className="h-4 w-4" /></Button>
+                      <Button size="icon" variant="ghost" className="text-destructive shrink-0 mt-1" onClick={() => removeTemplateItem(idx)}><X className="h-4 w-4" /></Button>
                     )}
                   </div>
                 ))}
