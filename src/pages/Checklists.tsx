@@ -367,19 +367,45 @@ export default function ChecklistsPage() {
                 </div>
                 <div className="space-y-2">
                   {preenchForm.itens.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
-                      <span className="text-xs text-muted-foreground w-6 text-right font-medium">{idx + 1}.</span>
-                      <span className="flex-1 text-sm">{item.descricao}</span>
-                      <div className="flex gap-1">
-                        <Button size="sm" variant={item.status === "Conforme" ? "default" : "outline"} className={item.status === "Conforme" ? "bg-green-600 hover:bg-green-700" : ""} onClick={() => updatePreenchItem(idx, "Conforme")} title="Conforme">
-                          <CheckCircle2 className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant={item.status === "Não Conforme" ? "default" : "outline"} className={item.status === "Não Conforme" ? "bg-red-600 hover:bg-red-700" : ""} onClick={() => updatePreenchItem(idx, "Não Conforme")} title="Não Conforme">
-                          <XCircle className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant={item.status === "N/A" ? "default" : "outline"} className={item.status === "N/A" ? "bg-gray-600 hover:bg-gray-700" : ""} onClick={() => updatePreenchItem(idx, "N/A")} title="Não Aplicável">
-                          <MinusCircle className="h-4 w-4" />
-                        </Button>
+                    <div key={idx} className="p-3 border rounded-lg bg-muted/30 space-y-2">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground w-6 text-right font-medium">{idx + 1}.</span>
+                        <span className="flex-1 text-sm font-medium">{item.descricao}</span>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant={item.status === "Conforme" ? "default" : "outline"} className={item.status === "Conforme" ? "bg-green-600 hover:bg-green-700" : ""} onClick={() => updatePreenchItem(idx, "Conforme")} title="Conforme">
+                            <CheckCircle2 className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant={item.status === "Não Conforme" ? "default" : "outline"} className={item.status === "Não Conforme" ? "bg-red-600 hover:bg-red-700" : ""} onClick={() => updatePreenchItem(idx, "Não Conforme")} title="Não Conforme">
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant={item.status === "N/A" ? "default" : "outline"} className={item.status === "N/A" ? "bg-gray-600 hover:bg-gray-700" : ""} onClick={() => updatePreenchItem(idx, "N/A")} title="Não Aplicável">
+                            <MinusCircle className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 ml-9">
+                        {item.quantidade && <span className="text-xs text-muted-foreground">Qtd: <strong>{item.quantidade}</strong></span>}
+                        {item.registro_fotografico && (
+                          <div className="flex items-center gap-2">
+                            <Camera className="h-3 w-3 text-muted-foreground" />
+                            {item.foto_url ? (
+                              <a href={item.foto_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">Ver foto</a>
+                            ) : (
+                              <label className="text-xs text-primary cursor-pointer flex items-center gap-1 hover:underline">
+                                <Upload className="h-3 w-3" />Enviar foto
+                                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  const path = `checklist-fotos/${Date.now()}-${file.name}`;
+                                  const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
+                                  if (error) return;
+                                  const { data: urlData } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
+                                  setPreenchForm(f => ({ ...f, itens: f.itens.map((it, i) => i === idx ? { ...it, foto_url: urlData.publicUrl } : it) }));
+                                }} />
+                              </label>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -411,13 +437,21 @@ export default function ChecklistsPage() {
               </div>
               <div className="space-y-2">
                 {viewing.itens?.map((item: PreenchimentoItem, idx: number) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="text-xs text-muted-foreground w-6 text-right">{idx + 1}.</span>
-                    <span className="flex-1 text-sm">{item.descricao}</span>
-                    {item.status === "Conforme" && <Badge className="bg-green-100 text-green-800">Conforme</Badge>}
-                    {item.status === "Não Conforme" && <Badge className="bg-red-100 text-red-800">Não Conforme</Badge>}
-                    {item.status === "N/A" && <Badge variant="secondary">N/A</Badge>}
-                    {!item.status && <Badge variant="outline">—</Badge>}
+                  <div key={idx} className="p-3 border rounded-lg space-y-1">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground w-6 text-right">{idx + 1}.</span>
+                      <span className="flex-1 text-sm">{item.descricao}</span>
+                      {item.status === "Conforme" && <Badge className="bg-green-100 text-green-800">Conforme</Badge>}
+                      {item.status === "Não Conforme" && <Badge className="bg-red-100 text-red-800">Não Conforme</Badge>}
+                      {item.status === "N/A" && <Badge variant="secondary">N/A</Badge>}
+                      {!item.status && <Badge variant="outline">—</Badge>}
+                    </div>
+                    <div className="flex items-center gap-4 ml-9">
+                      {item.quantidade && <span className="text-xs text-muted-foreground">Qtd: <strong>{item.quantidade}</strong></span>}
+                      {item.foto_url && (
+                        <a href={item.foto_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline flex items-center gap-1"><Camera className="h-3 w-3" />Ver foto</a>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
