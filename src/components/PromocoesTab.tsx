@@ -56,6 +56,7 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
   const { clientes } = useClientes();
   const [promocoes, setPromocoes] = useState<Promocao[]>([]);
   const [loading, setLoading] = useState(true);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [form, setForm] = useState({
     data_promocao: new Date().toISOString().split("T")[0],
     cargo_novo_id: "",
@@ -159,6 +160,7 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
       fetchPromocoes();
     }
   };
+  const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   if (!funcionarioId) {
     return (
@@ -267,7 +269,7 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
                     </TableCell>
                     <TableCell>{p.motivo || "—"}</TableCell>
                     <TableCell>
-                      <Button size="icon" variant="ghost" type="button" onClick={() => handleDelete(p.id)} className="h-7 w-7 text-destructive hover:text-destructive">
+                      <Button size="icon" variant="ghost" type="button" onClick={() => requestDelete(p.id)} className="h-7 w-7 text-destructive hover:text-destructive">
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </TableCell>
@@ -278,6 +280,7 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
           </div>
         )}
       </div>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
 }

@@ -61,6 +61,7 @@ export function ExamesPeriodicosTab({ funcionarioId, funcionarioNome, funcionari
   const [exames, setExames] = useState<ExamePeriodico[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [form, setForm] = useState({
     tipo_exame: "",
     data_realizacao: "",
