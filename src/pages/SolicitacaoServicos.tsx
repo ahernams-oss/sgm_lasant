@@ -208,9 +208,12 @@ export default function SolicitacaoServicosPage() {
     setSelectedPrioridade("");
   };
 
-  const handleCancelar = async (id: string) => {
-    await updateSolicitacao(id, { situacao: "Cancelada" });
-    toast({ title: "Solicitação cancelada" });
+  const handleCancelar = async () => {
+    if (cancelId) {
+      await updateSolicitacao(cancelId, { situacao: "Cancelada" });
+      toast({ title: "Solicitação cancelada" });
+      abortCancel();
+    }
   };
 
   const handleSolicitarOrcamento = (s: any) => {
