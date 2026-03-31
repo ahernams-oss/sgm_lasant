@@ -119,7 +119,9 @@ function AppRoutes() {
           path="/engenharia/solicitacao-servicos"
           element={
             <SolicitacoesServicosProvider>
-              <SolicitacaoServicosPage />
+              <OrdensServicoProvider>
+                <SolicitacaoServicosPage />
+              </OrdensServicoProvider>
             </SolicitacoesServicosProvider>
           }
         />
