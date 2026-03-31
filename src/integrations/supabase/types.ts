@@ -2734,6 +2734,7 @@ export type Database = {
           observacoes: string | null
           pavimento_descricao: string | null
           pavimento_id: string | null
+          prioridade: string | null
           setor_descricao: string | null
           setor_id: string | null
           situacao: string | null
@@ -2754,6 +2755,7 @@ export type Database = {
           observacoes?: string | null
           pavimento_descricao?: string | null
           pavimento_id?: string | null
+          prioridade?: string | null
           setor_descricao?: string | null
           setor_id?: string | null
           situacao?: string | null
@@ -2774,6 +2776,7 @@ export type Database = {
           observacoes?: string | null
           pavimento_descricao?: string | null
           pavimento_id?: string | null
+          prioridade?: string | null
           setor_descricao?: string | null
           setor_id?: string | null
           situacao?: string | null

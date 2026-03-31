@@ -16,10 +16,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText } from "lucide-react";
 
 const SITUACOES = ["Aguardando aprovação", "Aprovada", "Em execução", "Concluída", "Cancelada"];
+
+const PRIORIDADES = [
+  { value: "Normal", color: "bg-green-500" },
+  { value: "Urgente", color: "bg-yellow-500" },
+  { value: "Emergencial", color: "bg-red-500" },
+];
 
 const emptyForm = {
   tipo: "" as "" | "Predial" | "Equipamentos",
@@ -41,6 +48,11 @@ export default function SolicitacaoServicosPage() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+
+  // Approval dialog state
+  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
+  const [approvalTargetId, setApprovalTargetId] = useState<string | null>(null);
+  const [selectedPrioridade, setSelectedPrioridade] = useState<string>("");
 
   const soClientes = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
 
@@ -164,6 +176,38 @@ export default function SolicitacaoServicosPage() {
       toast({ title: "Solicitação excluída" });
       cancelDelete();
     }
+  };
+
+  const handleOpenApproval = (id: string) => {
+    setApprovalTargetId(id);
+    setSelectedPrioridade("");
+    setApprovalDialogOpen(true);
+  };
+
+  const handleConfirmApproval = async () => {
+    if (!approvalTargetId || !selectedPrioridade) {
+      toast({ title: "Selecione o nível de prioridade", variant: "destructive" });
+      return;
+    }
+    await updateSolicitacao(approvalTargetId, { situacao: "Aprovada", prioridade: selectedPrioridade });
+    toast({ title: `Solicitação aprovada como ${selectedPrioridade}` });
+    setApprovalDialogOpen(false);
+    setApprovalTargetId(null);
+    setSelectedPrioridade("");
+  };
+
+  const handleCancelar = async (id: string) => {
+    await updateSolicitacao(id, { situacao: "Cancelada" });
+    toast({ title: "Solicitação cancelada" });
+  };
+
+  const handleSolicitarOrcamento = (s: any) => {
+    toast({ title: "Orçamento solicitado", description: `Solicitação nº ${s.numero}` });
+  };
+
+  const getPrioridadeColor = (prioridade: string) => {
+    const p = PRIORIDADES.find(x => x.value === prioridade);
+    return p?.color || "";
   };
 
   const filtered = useMemo(() => {
@@ -372,7 +416,14 @@ export default function SolicitacaoServicosPage() {
               </TableRow>
             ) : paginated.map(s => (
               <TableRow key={s.id}>
-                <TableCell className="font-medium">{s.numero}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    {s.prioridade && (
+                      <span className={`inline-block w-3 h-3 rounded-full ${getPrioridadeColor(s.prioridade)}`} title={s.prioridade} />
+                    )}
+                    {s.numero}
+                  </div>
+                </TableCell>
                 <TableCell>
                   <Badge variant="outline">{s.tipo}</Badge>
                 </TableCell>
@@ -393,6 +444,16 @@ export default function SolicitacaoServicosPage() {
                       <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleOpenApproval(s.id)}>
+                        <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleCancelar(s.id)}>
+                        <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar Solicitação
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleSolicitarOrcamento(s)}>
+                        <FileText className="mr-2 h-4 w-4" />Solicitar Orçamento
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => handleEdit(s)}>
                         <Pencil className="mr-2 h-4 w-4" />Editar
                       </DropdownMenuItem>
@@ -410,6 +471,39 @@ export default function SolicitacaoServicosPage() {
 
       <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
+
+      {/* Approval Dialog */}
+      <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Aprovar Solicitação</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Label className="font-bold">Selecione o nível de prioridade:</Label>
+            <div className="flex flex-col gap-3">
+              {PRIORIDADES.map(p => (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => setSelectedPrioridade(p.value)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-all ${
+                    selectedPrioridade === p.value
+                      ? "border-primary bg-accent"
+                      : "border-border hover:border-muted-foreground/50"
+                  }`}
+                >
+                  <span className={`inline-block w-4 h-4 rounded-full ${p.color}`} />
+                  <span className="font-medium">{p.value}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApprovalDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleConfirmApproval} disabled={!selectedPrioridade}>Confirmar Aprovação</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
