@@ -30,6 +30,7 @@ import {
   Wrench,
   ShieldCheck,
   Monitor,
+  Fan,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
@@ -90,6 +91,10 @@ const menuItems = [
   {
     group: "Licitações",
     items: [{ title: "Licitações", url: "/licitacoes", icon: Gavel }],
+  },
+  {
+    group: "PMOC",
+    items: [{ title: "PMOC", url: "/pmoc", icon: Fan }],
   },
   {
     group: "Qualidade",

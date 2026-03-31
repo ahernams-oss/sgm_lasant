@@ -1,0 +1,1063 @@
+import { useState, useMemo } from "react";
+import { usePmoc } from "@/contexts/PmocContext";
+import { useClientes } from "@/contexts/ClientesContext";
+import { useEquipamentos } from "@/contexts/EquipamentosContext";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
+import { supabase } from "@/integrations/supabase/client";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Plus, Pencil, Trash2, Search, FileText, ClipboardList, Settings, Users,
+  Wind, AlertTriangle, BookOpen, BarChart3, CalendarClock, Wrench, ShieldCheck,
+  ThermometerSun, Activity
+} from "lucide-react";
+
+const PERIODICIDADES = ["Diária", "Semanal", "Quinzenal", "Mensal", "Bimestral", "Trimestral", "Semestral", "Anual"];
+const TIPOS_ATIVIDADE = ["Preventiva", "Corretiva", "Inspeção", "Preditiva"];
+const PRIORIDADES = ["Baixa", "Normal", "Alta", "Urgente"];
+const STATUS_OS = ["Aberta", "Em Execução", "Concluída", "Cancelada", "Aguardando Aprovação"];
+const STATUS_PLANO = ["Ativo", "Inativo", "Em Revisão", "Vencido"];
+const GRAVIDADES = ["Leve", "Moderada", "Grave", "Crítica"];
+const TIPOS_REGISTRO = ["CREA", "CRQ", "CRECI", "CFT", "Outro"];
+
+// ====================== PLANOS TAB ======================
+function PlanosTab() {
+  const { planos, addPlano, updatePlano, deletePlano } = usePmoc();
+  const { clientes } = useClientes();
+  const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const [form, setForm] = useState({
+    titulo: "", descricao: "", cliente_id: "", cliente_nome: "", unidade: "",
+    contrato: "", edificio: "", ambiente_critico: "", vigencia_inicio: "",
+    vigencia_fim: "", status: "Ativo", responsavel_tecnico_nome: "",
+    observacoes: "", procedimentos_falha: "", contingencia: "",
+  });
+
+  const filtered = useMemo(() => {
+    if (!search) return planos;
+    const s = search.toLowerCase();
+    return planos.filter(p => p.titulo.toLowerCase().includes(s) || p.clienteNome.toLowerCase().includes(s));
+  }, [planos, search]);
+
+  const openNew = () => {
+    setForm({ titulo: "", descricao: "", cliente_id: "", cliente_nome: "", unidade: "",
+      contrato: "", edificio: "", ambiente_critico: "", vigencia_inicio: "",
+      vigencia_fim: "", status: "Ativo", responsavel_tecnico_nome: "",
+      observacoes: "", procedimentos_falha: "", contingencia: "" });
+    setEditingId(null); setDialogOpen(true);
+  };
+
+  const openEdit = (p: any) => {
+    setForm({
+      titulo: p.titulo, descricao: p.descricao, cliente_id: p.clienteId,
+      cliente_nome: p.clienteNome, unidade: p.unidade, contrato: p.contrato,
+      edificio: p.edificio, ambiente_critico: p.ambienteCritico,
+      vigencia_inicio: p.vigenciaInicio, vigencia_fim: p.vigenciaFim,
+      status: p.status, responsavel_tecnico_nome: p.responsavelTecnicoNome,
+      observacoes: p.observacoes, procedimentos_falha: p.procedimentosFalha,
+      contingencia: p.contingencia,
+    });
+    setEditingId(p.id); setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.titulo.trim()) { toast({ title: "Título é obrigatório", variant: "destructive" }); return; }
+    if (editingId) {
+      await updatePlano(editingId, form);
+      toast({ title: "Plano atualizado" });
+    } else {
+      await addPlano(form);
+      toast({ title: "Plano criado" });
+    }
+    setDialogOpen(false);
+  };
+
+  const statusColor = (s: string) => {
+    if (s === "Ativo") return "default";
+    if (s === "Inativo" || s === "Vencido") return "destructive";
+    return "secondary";
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Buscar plano..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="pl-9" />
+        </div>
+        <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo Plano</Button>
+      </div>
+
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Título</TableHead>
+              <TableHead>Cliente</TableHead>
+              <TableHead>Unidade</TableHead>
+              <TableHead>Vigência</TableHead>
+              <TableHead>Rev.</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>RT</TableHead>
+              <TableHead className="w-24">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginate(filtered, page).paginated.length === 0 ? (
+              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum plano cadastrado</TableCell></TableRow>
+            ) : paginate(filtered, page).paginated.map(p => (
+              <TableRow key={p.id}>
+                <TableCell className="font-medium">{p.titulo}</TableCell>
+                <TableCell>{p.clienteNome || "-"}</TableCell>
+                <TableCell>{p.unidade || "-"}</TableCell>
+                <TableCell className="text-xs">{p.vigenciaInicio && p.vigenciaFim ? `${p.vigenciaInicio} a ${p.vigenciaFim}` : "-"}</TableCell>
+                <TableCell>{p.revisao}</TableCell>
+                <TableCell><Badge variant={statusColor(p.status)}>{p.status}</Badge></TableCell>
+                <TableCell className="text-xs">{p.responsavelTecnicoNome || "-"}</TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => requestDelete(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{editingId ? "Editar" : "Novo"} Plano PMOC</DialogTitle></DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2"><Label>Título *</Label><Input value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} /></div>
+            <div className="col-span-2"><Label>Descrição</Label><Textarea value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} rows={2} /></div>
+            <div><Label>Cliente</Label>
+              <Select value={form.cliente_id} onValueChange={v => { const c = clientes.find(c => c.id === v); setForm(f => ({ ...f, cliente_id: v, cliente_nome: c?.nome || "" })); }}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>{clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Unidade</Label><Input value={form.unidade} onChange={e => setForm(f => ({ ...f, unidade: e.target.value }))} /></div>
+            <div><Label>Contrato</Label><Input value={form.contrato} onChange={e => setForm(f => ({ ...f, contrato: e.target.value }))} /></div>
+            <div><Label>Edifício</Label><Input value={form.edificio} onChange={e => setForm(f => ({ ...f, edificio: e.target.value }))} /></div>
+            <div><Label>Vigência Início</Label><Input type="date" value={form.vigencia_inicio} onChange={e => setForm(f => ({ ...f, vigencia_inicio: e.target.value }))} /></div>
+            <div><Label>Vigência Fim</Label><Input type="date" value={form.vigencia_fim} onChange={e => setForm(f => ({ ...f, vigencia_fim: e.target.value }))} /></div>
+            <div><Label>Status</Label>
+              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{STATUS_PLANO.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Responsável Técnico</Label><Input value={form.responsavel_tecnico_nome} onChange={e => setForm(f => ({ ...f, responsavel_tecnico_nome: e.target.value }))} /></div>
+            <div className="col-span-2"><Label>Procedimentos em Caso de Falha</Label><Textarea value={form.procedimentos_falha} onChange={e => setForm(f => ({ ...f, procedimentos_falha: e.target.value }))} rows={2} /></div>
+            <div className="col-span-2"><Label>Contingência</Label><Textarea value={form.contingencia} onChange={e => setForm(f => ({ ...f, contingencia: e.target.value }))} rows={2} /></div>
+            <div className="col-span-2"><Label>Observações</Label><Textarea value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} /></div>
+          </div>
+          <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId) { deletePlano(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+    </div>
+  );
+}
+
+// ====================== ATIVIDADES TAB ======================
+function AtividadesTab() {
+  const { planos, atividades, addAtividade, updateAtividade, deleteAtividade } = usePmoc();
+  const { equipamentos } = useEquipamentos();
+  const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [filterPlano, setFilterPlano] = useState("");
+  const [page, setPage] = useState(1);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const [form, setForm] = useState({
+    plano_id: "", equipamento_id: "", equipamento_nome: "", descricao: "",
+    tipo: "Preventiva", periodicidade: "Mensal", parametros_tecnicos: "",
+    procedimento_falha: "", prioridade: "Normal", duracao_estimada: "",
+    proxima_execucao: "",
+  });
+
+  const filtered = useMemo(() => {
+    let list = atividades;
+    if (filterPlano) list = list.filter(a => a.planoId === filterPlano);
+    if (search) { const s = search.toLowerCase(); list = list.filter(a => a.descricao.toLowerCase().includes(s) || a.equipamentoNome.toLowerCase().includes(s)); }
+    return list;
+  }, [atividades, search, filterPlano]);
+
+  const openNew = () => {
+    setForm({ plano_id: filterPlano || "", equipamento_id: "", equipamento_nome: "", descricao: "",
+      tipo: "Preventiva", periodicidade: "Mensal", parametros_tecnicos: "",
+      procedimento_falha: "", prioridade: "Normal", duracao_estimada: "", proxima_execucao: "" });
+    setEditingId(null); setDialogOpen(true);
+  };
+
+  const openEdit = (a: any) => {
+    setForm({
+      plano_id: a.planoId, equipamento_id: a.equipamentoId, equipamento_nome: a.equipamentoNome,
+      descricao: a.descricao, tipo: a.tipo, periodicidade: a.periodicidade,
+      parametros_tecnicos: a.parametrosTecnicos, procedimento_falha: a.procedimentoFalha,
+      prioridade: a.prioridade, duracao_estimada: a.duracaoEstimada,
+      proxima_execucao: a.proximaExecucao,
+    });
+    setEditingId(a.id); setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.descricao.trim()) { toast({ title: "Descrição obrigatória", variant: "destructive" }); return; }
+    if (editingId) { await updateAtividade(editingId, form); toast({ title: "Atividade atualizada" }); }
+    else { await addAtividade(form); toast({ title: "Atividade criada" }); }
+    setDialogOpen(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Buscar atividade..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="pl-9" />
+        </div>
+        <Select value={filterPlano} onValueChange={v => { setFilterPlano(v === "__all" ? "" : v); setPage(1); }}>
+          <SelectTrigger className="w-52"><SelectValue placeholder="Filtrar por plano" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all">Todos os planos</SelectItem>
+            {planos.map(p => <SelectItem key={p.id} value={p.id}>{p.titulo}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova Atividade</Button>
+      </div>
+
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Equipamento</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Periodicidade</TableHead>
+              <TableHead>Prioridade</TableHead>
+              <TableHead>Próx. Execução</TableHead>
+              <TableHead className="w-24">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginate(filtered, page).paginated.length === 0 ? (
+              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhuma atividade</TableCell></TableRow>
+            ) : paginate(filtered, page).paginated.map(a => (
+              <TableRow key={a.id}>
+                <TableCell className="font-medium">{a.descricao}</TableCell>
+                <TableCell>{a.equipamentoNome || "-"}</TableCell>
+                <TableCell><Badge variant="outline">{a.tipo}</Badge></TableCell>
+                <TableCell>{a.periodicidade}</TableCell>
+                <TableCell><Badge variant={a.prioridade === "Urgente" || a.prioridade === "Alta" ? "destructive" : "secondary"}>{a.prioridade}</Badge></TableCell>
+                <TableCell>{a.proximaExecucao || "-"}</TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(a)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => requestDelete(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{editingId ? "Editar" : "Nova"} Atividade</DialogTitle></DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2"><Label>Descrição *</Label><Input value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} /></div>
+            <div><Label>Plano PMOC</Label>
+              <Select value={form.plano_id} onValueChange={v => setForm(f => ({ ...f, plano_id: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>{planos.map(p => <SelectItem key={p.id} value={p.id}>{p.titulo}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Equipamento</Label>
+              <Select value={form.equipamento_id} onValueChange={v => { const eq = equipamentos.find(e => e.id === v); setForm(f => ({ ...f, equipamento_id: v, equipamento_nome: eq?.equipamento || "" })); }}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>{equipamentos.map(e => <SelectItem key={e.id} value={e.id}>{e.tag ? `${e.tag} - ` : ""}{e.equipamento}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Tipo</Label>
+              <Select value={form.tipo} onValueChange={v => setForm(f => ({ ...f, tipo: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{TIPOS_ATIVIDADE.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Periodicidade</Label>
+              <Select value={form.periodicidade} onValueChange={v => setForm(f => ({ ...f, periodicidade: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{PERIODICIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Prioridade</Label>
+              <Select value={form.prioridade} onValueChange={v => setForm(f => ({ ...f, prioridade: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{PRIORIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Duração Estimada</Label><Input value={form.duracao_estimada} onChange={e => setForm(f => ({ ...f, duracao_estimada: e.target.value }))} placeholder="Ex: 2h" /></div>
+            <div><Label>Próxima Execução</Label><Input type="date" value={form.proxima_execucao} onChange={e => setForm(f => ({ ...f, proxima_execucao: e.target.value }))} /></div>
+            <div className="col-span-2"><Label>Parâmetros Técnicos</Label><Textarea value={form.parametros_tecnicos} onChange={e => setForm(f => ({ ...f, parametros_tecnicos: e.target.value }))} rows={2} /></div>
+            <div className="col-span-2"><Label>Procedimento em Caso de Falha</Label><Textarea value={form.procedimento_falha} onChange={e => setForm(f => ({ ...f, procedimento_falha: e.target.value }))} rows={2} /></div>
+          </div>
+          <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId) { deleteAtividade(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+    </div>
+  );
+}
+
+// ====================== ORDENS DE SERVIÇO TAB ======================
+function OrdensServicoTab() {
+  const { planos, ordensServico, addOS, updateOS, deleteOS } = usePmoc();
+  const { equipamentos } = useEquipamentos();
+  const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("Todos");
+  const [page, setPage] = useState(1);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const [form, setForm] = useState({
+    plano_id: "", equipamento_id: "", equipamento_nome: "", descricao: "",
+    tipo: "Preventiva", prioridade: "Normal", status: "Aberta", origem: "PMOC",
+    unidade: "", local_descricao: "", data_abertura: new Date().toISOString().slice(0, 10),
+    data_prazo: "", tecnico_responsavel: "", equipe: "", observacoes: "",
+  });
+
+  const filtered = useMemo(() => {
+    let list = ordensServico;
+    if (filterStatus !== "Todos") list = list.filter(o => o.status === filterStatus);
+    if (search) { const s = search.toLowerCase(); list = list.filter(o => o.descricao.toLowerCase().includes(s) || String(o.numero).includes(s)); }
+    return list;
+  }, [ordensServico, search, filterStatus]);
+
+  const openNew = () => {
+    setForm({ plano_id: "", equipamento_id: "", equipamento_nome: "", descricao: "",
+      tipo: "Preventiva", prioridade: "Normal", status: "Aberta", origem: "Manual",
+      unidade: "", local_descricao: "", data_abertura: new Date().toISOString().slice(0, 10),
+      data_prazo: "", tecnico_responsavel: "", equipe: "", observacoes: "" });
+    setEditingId(null); setDialogOpen(true);
+  };
+
+  const openEdit = (o: any) => {
+    setForm({
+      plano_id: o.planoId, equipamento_id: o.equipamentoId, equipamento_nome: o.equipamentoNome,
+      descricao: o.descricao, tipo: o.tipo, prioridade: o.prioridade, status: o.status,
+      origem: o.origem, unidade: o.unidade, local_descricao: o.localDescricao,
+      data_abertura: o.dataAbertura, data_prazo: o.dataPrazo,
+      tecnico_responsavel: o.tecnicoResponsavel, equipe: o.equipe, observacoes: o.observacoes,
+    });
+    setEditingId(o.id); setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.descricao.trim()) { toast({ title: "Descrição obrigatória", variant: "destructive" }); return; }
+    if (editingId) { await updateOS(editingId, form); toast({ title: "OS atualizada" }); }
+    else { await addOS(form); toast({ title: "OS criada" }); }
+    setDialogOpen(false);
+  };
+
+  const statusColor = (s: string) => {
+    if (s === "Concluída") return "default";
+    if (s === "Aberta") return "secondary";
+    if (s === "Em Execução") return "outline";
+    if (s === "Cancelada") return "destructive";
+    return "secondary";
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Buscar OS..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="pl-9" />
+        </div>
+        <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPage(1); }}>
+          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Todos">Todos Status</SelectItem>
+            {STATUS_OS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova OS</Button>
+      </div>
+
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nº</TableHead>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Equipamento</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Prioridade</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Prazo</TableHead>
+              <TableHead>Técnico</TableHead>
+              <TableHead className="w-24">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginate(filtered, page).paginated.length === 0 ? (
+              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma OS</TableCell></TableRow>
+            ) : paginate(filtered, page).paginated.map(o => (
+              <TableRow key={o.id}>
+                <TableCell className="font-mono">{o.numero}</TableCell>
+                <TableCell className="font-medium">{o.descricao}</TableCell>
+                <TableCell>{o.equipamentoNome || "-"}</TableCell>
+                <TableCell><Badge variant="outline">{o.tipo}</Badge></TableCell>
+                <TableCell><Badge variant={o.prioridade === "Urgente" || o.prioridade === "Alta" ? "destructive" : "secondary"}>{o.prioridade}</Badge></TableCell>
+                <TableCell><Badge variant={statusColor(o.status) as any}>{o.status}</Badge></TableCell>
+                <TableCell>{o.dataPrazo || "-"}</TableCell>
+                <TableCell>{o.tecnicoResponsavel || "-"}</TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(o)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => requestDelete(o.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{editingId ? "Editar" : "Nova"} Ordem de Serviço</DialogTitle></DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2"><Label>Descrição *</Label><Input value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} /></div>
+            <div><Label>Plano PMOC</Label>
+              <Select value={form.plano_id} onValueChange={v => setForm(f => ({ ...f, plano_id: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>{planos.map(p => <SelectItem key={p.id} value={p.id}>{p.titulo}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Equipamento</Label>
+              <Select value={form.equipamento_id} onValueChange={v => { const eq = equipamentos.find(e => e.id === v); setForm(f => ({ ...f, equipamento_id: v, equipamento_nome: eq?.equipamento || "" })); }}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>{equipamentos.map(e => <SelectItem key={e.id} value={e.id}>{e.tag ? `${e.tag} - ` : ""}{e.equipamento}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Tipo</Label>
+              <Select value={form.tipo} onValueChange={v => setForm(f => ({ ...f, tipo: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{TIPOS_ATIVIDADE.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Prioridade</Label>
+              <Select value={form.prioridade} onValueChange={v => setForm(f => ({ ...f, prioridade: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{PRIORIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Status</Label>
+              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{STATUS_OS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Origem</Label><Input value={form.origem} onChange={e => setForm(f => ({ ...f, origem: e.target.value }))} /></div>
+            <div><Label>Data Abertura</Label><Input type="date" value={form.data_abertura} onChange={e => setForm(f => ({ ...f, data_abertura: e.target.value }))} /></div>
+            <div><Label>Data Prazo</Label><Input type="date" value={form.data_prazo} onChange={e => setForm(f => ({ ...f, data_prazo: e.target.value }))} /></div>
+            <div><Label>Técnico Responsável</Label><Input value={form.tecnico_responsavel} onChange={e => setForm(f => ({ ...f, tecnico_responsavel: e.target.value }))} /></div>
+            <div><Label>Equipe</Label><Input value={form.equipe} onChange={e => setForm(f => ({ ...f, equipe: e.target.value }))} /></div>
+            <div className="col-span-2"><Label>Observações</Label><Textarea value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} /></div>
+          </div>
+          <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId) { deleteOS(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+    </div>
+  );
+}
+
+// ====================== RESPONSÁVEIS TÉCNICOS TAB ======================
+function ResponsaveisTecnicosTab() {
+  const { responsaveisTecnicos, addRT, updateRT, deleteRT } = usePmoc();
+  const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const [form, setForm] = useState({
+    nome: "", registro_profissional: "", tipo_registro: "CREA",
+    especialidade: "", telefone: "", email: "", documento_art_rrt: "",
+    vigencia_inicio: "", vigencia_fim: "", status: "Ativo", observacoes: "",
+  });
+
+  const openNew = () => {
+    setForm({ nome: "", registro_profissional: "", tipo_registro: "CREA",
+      especialidade: "", telefone: "", email: "", documento_art_rrt: "",
+      vigencia_inicio: "", vigencia_fim: "", status: "Ativo", observacoes: "" });
+    setEditingId(null); setDialogOpen(true);
+  };
+
+  const openEdit = (rt: any) => {
+    setForm({
+      nome: rt.nome, registro_profissional: rt.registroProfissional,
+      tipo_registro: rt.tipoRegistro, especialidade: rt.especialidade,
+      telefone: rt.telefone, email: rt.email, documento_art_rrt: rt.documentoArtRrt,
+      vigencia_inicio: rt.vigenciaInicio, vigencia_fim: rt.vigenciaFim,
+      status: rt.status, observacoes: rt.observacoes,
+    });
+    setEditingId(rt.id); setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.nome.trim()) { toast({ title: "Nome obrigatório", variant: "destructive" }); return; }
+    if (editingId) { await updateRT(editingId, form); toast({ title: "RT atualizado" }); }
+    else { await addRT(form); toast({ title: "RT cadastrado" }); }
+    setDialogOpen(false);
+  };
+
+  // Check for expiring ARTs
+  const alertasVencimento = useMemo(() => {
+    const hoje = new Date();
+    return responsaveisTecnicos.filter(rt => {
+      if (!rt.vigenciaFim) return false;
+      const fim = new Date(rt.vigenciaFim);
+      const diff = (fim.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24);
+      return diff <= 30 && diff >= 0;
+    });
+  }, [responsaveisTecnicos]);
+
+  return (
+    <div className="space-y-4">
+      {alertasVencimento.length > 0 && (
+        <Card className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-medium mb-2">
+              <AlertTriangle className="h-4 w-4" />Documentos próximos do vencimento
+            </div>
+            {alertasVencimento.map(rt => (
+              <p key={rt.id} className="text-sm text-amber-600 dark:text-amber-500">• {rt.nome} - ART/RRT vence em {rt.vigenciaFim}</p>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Responsáveis Técnicos</h3>
+        <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo RT</Button>
+      </div>
+
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Registro</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Especialidade</TableHead>
+              <TableHead>Vigência ART</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="w-24">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginate(responsaveisTecnicos, page).paginated.length === 0 ? (
+              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum RT cadastrado</TableCell></TableRow>
+            ) : paginate(responsaveisTecnicos, page).paginated.map(rt => (
+              <TableRow key={rt.id}>
+                <TableCell className="font-medium">{rt.nome}</TableCell>
+                <TableCell className="font-mono">{rt.registroProfissional || "-"}</TableCell>
+                <TableCell>{rt.tipoRegistro}</TableCell>
+                <TableCell>{rt.especialidade || "-"}</TableCell>
+                <TableCell className="text-xs">{rt.vigenciaInicio && rt.vigenciaFim ? `${rt.vigenciaInicio} a ${rt.vigenciaFim}` : "-"}</TableCell>
+                <TableCell><Badge variant={rt.status === "Ativo" ? "default" : "destructive"}>{rt.status}</Badge></TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(rt)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => requestDelete(rt.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <PaginationControls currentPage={page} totalItems={responsaveisTecnicos.length} onPageChange={setPage} />
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{editingId ? "Editar" : "Novo"} Responsável Técnico</DialogTitle></DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2"><Label>Nome *</Label><Input value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} /></div>
+            <div><Label>Registro Profissional</Label><Input value={form.registro_profissional} onChange={e => setForm(f => ({ ...f, registro_profissional: e.target.value }))} /></div>
+            <div><Label>Tipo Registro</Label>
+              <Select value={form.tipo_registro} onValueChange={v => setForm(f => ({ ...f, tipo_registro: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{TIPOS_REGISTRO.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Especialidade</Label><Input value={form.especialidade} onChange={e => setForm(f => ({ ...f, especialidade: e.target.value }))} /></div>
+            <div><Label>Telefone</Label><Input value={form.telefone} onChange={e => setForm(f => ({ ...f, telefone: e.target.value }))} /></div>
+            <div className="col-span-2"><Label>E-mail</Label><Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
+            <div><Label>Nº ART/RRT</Label><Input value={form.documento_art_rrt} onChange={e => setForm(f => ({ ...f, documento_art_rrt: e.target.value }))} /></div>
+            <div><Label>Status</Label>
+              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent><SelectItem value="Ativo">Ativo</SelectItem><SelectItem value="Inativo">Inativo</SelectItem></SelectContent>
+              </Select>
+            </div>
+            <div><Label>Vigência Início</Label><Input type="date" value={form.vigencia_inicio} onChange={e => setForm(f => ({ ...f, vigencia_inicio: e.target.value }))} /></div>
+            <div><Label>Vigência Fim</Label><Input type="date" value={form.vigencia_fim} onChange={e => setForm(f => ({ ...f, vigencia_fim: e.target.value }))} /></div>
+            <div className="col-span-2"><Label>Observações</Label><Textarea value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} /></div>
+          </div>
+          <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId) { deleteRT(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+    </div>
+  );
+}
+
+// ====================== QUALIDADE DO AR TAB ======================
+function QualidadeArTab() {
+  const { pontosQA, medicoesQA, addPontoQA, updatePontoQA, deletePontoQA, addMedicaoQA, updateMedicaoQA, deleteMedicaoQA } = usePmoc();
+  const { toast } = useToast();
+  const [subTab, setSubTab] = useState<"pontos" | "medicoes">("pontos");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogType, setDialogType] = useState<"ponto" | "medicao">("ponto");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+
+  const [pontoForm, setPontoForm] = useState({ descricao: "", ambiente: "", edificio: "", pavimento: "", tipo_ambiente: "", periodicidade_coleta: "Mensal" });
+  const [medicaoForm, setMedicaoForm] = useState({
+    ponto_id: "", ponto_descricao: "", data_medicao: new Date().toISOString().slice(0, 10),
+    hora_medicao: "", temperatura: "", umidade: "", co2: "", renovacao_ar: "",
+    pressao_diferencial: "", conforme: true, observacoes: "", responsavel: "", plano_acao: "",
+  });
+
+  const openNewPonto = () => { setPontoForm({ descricao: "", ambiente: "", edificio: "", pavimento: "", tipo_ambiente: "", periodicidade_coleta: "Mensal" }); setEditingId(null); setDialogType("ponto"); setDialogOpen(true); };
+  const openEditPonto = (p: any) => { setPontoForm({ descricao: p.descricao, ambiente: p.ambiente, edificio: p.edificio, pavimento: p.pavimento, tipo_ambiente: p.tipoAmbiente, periodicidade_coleta: p.periodicidadeColeta }); setEditingId(p.id); setDialogType("ponto"); setDialogOpen(true); };
+  const openNewMedicao = () => { setMedicaoForm({ ponto_id: "", ponto_descricao: "", data_medicao: new Date().toISOString().slice(0, 10), hora_medicao: "", temperatura: "", umidade: "", co2: "", renovacao_ar: "", pressao_diferencial: "", conforme: true, observacoes: "", responsavel: "", plano_acao: "" }); setEditingId(null); setDialogType("medicao"); setDialogOpen(true); };
+  const openEditMedicao = (m: any) => { setMedicaoForm({ ponto_id: m.pontoId, ponto_descricao: m.pontoDescricao, data_medicao: m.dataMedicao, hora_medicao: m.horaMedicao, temperatura: m.temperatura?.toString() || "", umidade: m.umidade?.toString() || "", co2: m.co2?.toString() || "", renovacao_ar: m.renovacaoAr?.toString() || "", pressao_diferencial: m.pressaoDiferencial?.toString() || "", conforme: m.conforme, observacoes: m.observacoes, responsavel: m.responsavel, plano_acao: m.planoAcao }); setEditingId(m.id); setDialogType("medicao"); setDialogOpen(true); };
+
+  const handleSave = async () => {
+    if (dialogType === "ponto") {
+      if (!pontoForm.descricao.trim()) { toast({ title: "Descrição obrigatória", variant: "destructive" }); return; }
+      if (editingId) { await updatePontoQA(editingId, pontoForm); toast({ title: "Ponto atualizado" }); }
+      else { await addPontoQA(pontoForm); toast({ title: "Ponto cadastrado" }); }
+    } else {
+      if (!medicaoForm.ponto_id) { toast({ title: "Selecione um ponto", variant: "destructive" }); return; }
+      const data = { ...medicaoForm, temperatura: medicaoForm.temperatura ? Number(medicaoForm.temperatura) : null, umidade: medicaoForm.umidade ? Number(medicaoForm.umidade) : null, co2: medicaoForm.co2 ? Number(medicaoForm.co2) : null, renovacao_ar: medicaoForm.renovacao_ar ? Number(medicaoForm.renovacao_ar) : null, pressao_diferencial: medicaoForm.pressao_diferencial ? Number(medicaoForm.pressao_diferencial) : null };
+      if (editingId) { await updateMedicaoQA(editingId, data); toast({ title: "Medição atualizada" }); }
+      else { await addMedicaoQA(data); toast({ title: "Medição registrada" }); }
+    }
+    setDialogOpen(false);
+  };
+
+  const naoConformes = medicoesQA.filter(m => !m.conforme).length;
+
+  return (
+    <div className="space-y-4">
+      {naoConformes > 0 && (
+        <Card className="border-red-500 bg-red-50 dark:bg-red-950/20">
+          <CardContent className="pt-4 flex items-center gap-2 text-red-700 dark:text-red-400">
+            <AlertTriangle className="h-4 w-4" /><span className="font-medium">{naoConformes} medição(ões) não conforme(s)</span>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex gap-2">
+        <Button variant={subTab === "pontos" ? "default" : "outline"} onClick={() => { setSubTab("pontos"); setPage(1); }}>Pontos de Medição</Button>
+        <Button variant={subTab === "medicoes" ? "default" : "outline"} onClick={() => { setSubTab("medicoes"); setPage(1); }}>Medições</Button>
+      </div>
+
+      {subTab === "pontos" ? (
+        <>
+          <div className="flex justify-end"><Button onClick={openNewPonto}><Plus className="mr-2 h-4 w-4" />Novo Ponto</Button></div>
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Ambiente</TableHead><TableHead>Edifício</TableHead><TableHead>Periodicidade</TableHead><TableHead>Status</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {paginate(pontosQA, page).paginated.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum ponto</TableCell></TableRow>
+                ) : paginate(pontosQA, page).paginated.map(p => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{p.descricao}</TableCell>
+                    <TableCell>{p.ambiente || "-"}</TableCell>
+                    <TableCell>{p.edificio || "-"}</TableCell>
+                    <TableCell>{p.periodicidadeColeta}</TableCell>
+                    <TableCell><Badge variant={p.status === "Ativo" ? "default" : "destructive"}>{p.status}</Badge></TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => openEditPonto(p)}><Pencil className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => requestDelete(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <PaginationControls currentPage={page} totalItems={pontosQA.length} onPageChange={setPage} />
+        </>
+      ) : (
+        <>
+          <div className="flex justify-end"><Button onClick={openNewMedicao}><Plus className="mr-2 h-4 w-4" />Nova Medição</Button></div>
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Ponto</TableHead><TableHead>Temp °C</TableHead><TableHead>Umid %</TableHead><TableHead>CO₂ ppm</TableHead><TableHead>Conforme</TableHead><TableHead>Responsável</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {paginate(medicoesQA, page).paginated.length === 0 ? (
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma medição</TableCell></TableRow>
+                ) : paginate(medicoesQA, page).paginated.map(m => (
+                  <TableRow key={m.id}>
+                    <TableCell>{m.dataMedicao}</TableCell>
+                    <TableCell>{m.pontoDescricao || "-"}</TableCell>
+                    <TableCell>{m.temperatura ?? "-"}</TableCell>
+                    <TableCell>{m.umidade ?? "-"}</TableCell>
+                    <TableCell>{m.co2 ?? "-"}</TableCell>
+                    <TableCell><Badge variant={m.conforme ? "default" : "destructive"}>{m.conforme ? "Sim" : "Não"}</Badge></TableCell>
+                    <TableCell>{m.responsavel || "-"}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => openEditMedicao(m)}><Pencil className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => requestDelete(m.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <PaginationControls currentPage={page} totalItems={medicoesQA.length} onPageChange={setPage} />
+        </>
+      )}
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{editingId ? "Editar" : "Novo"} {dialogType === "ponto" ? "Ponto de Medição" : "Medição"}</DialogTitle></DialogHeader>
+          {dialogType === "ponto" ? (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2"><Label>Descrição *</Label><Input value={pontoForm.descricao} onChange={e => setPontoForm(f => ({ ...f, descricao: e.target.value }))} /></div>
+              <div><Label>Ambiente</Label><Input value={pontoForm.ambiente} onChange={e => setPontoForm(f => ({ ...f, ambiente: e.target.value }))} /></div>
+              <div><Label>Edifício</Label><Input value={pontoForm.edificio} onChange={e => setPontoForm(f => ({ ...f, edificio: e.target.value }))} /></div>
+              <div><Label>Pavimento</Label><Input value={pontoForm.pavimento} onChange={e => setPontoForm(f => ({ ...f, pavimento: e.target.value }))} /></div>
+              <div><Label>Tipo Ambiente</Label><Input value={pontoForm.tipo_ambiente} onChange={e => setPontoForm(f => ({ ...f, tipo_ambiente: e.target.value }))} /></div>
+              <div><Label>Periodicidade</Label>
+                <Select value={pontoForm.periodicidade_coleta} onValueChange={v => setPontoForm(f => ({ ...f, periodicidade_coleta: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{PERIODICIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2"><Label>Ponto de Medição *</Label>
+                <Select value={medicaoForm.ponto_id} onValueChange={v => { const p = pontosQA.find(p => p.id === v); setMedicaoForm(f => ({ ...f, ponto_id: v, ponto_descricao: p?.descricao || "" })); }}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>{pontosQA.map(p => <SelectItem key={p.id} value={p.id}>{p.descricao}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div><Label>Data</Label><Input type="date" value={medicaoForm.data_medicao} onChange={e => setMedicaoForm(f => ({ ...f, data_medicao: e.target.value }))} /></div>
+              <div><Label>Hora</Label><Input type="time" value={medicaoForm.hora_medicao} onChange={e => setMedicaoForm(f => ({ ...f, hora_medicao: e.target.value }))} /></div>
+              <div><Label>Temperatura (°C)</Label><Input type="number" step="0.1" value={medicaoForm.temperatura} onChange={e => setMedicaoForm(f => ({ ...f, temperatura: e.target.value }))} /></div>
+              <div><Label>Umidade (%)</Label><Input type="number" step="0.1" value={medicaoForm.umidade} onChange={e => setMedicaoForm(f => ({ ...f, umidade: e.target.value }))} /></div>
+              <div><Label>CO₂ (ppm)</Label><Input type="number" value={medicaoForm.co2} onChange={e => setMedicaoForm(f => ({ ...f, co2: e.target.value }))} /></div>
+              <div><Label>Renovação Ar</Label><Input type="number" step="0.1" value={medicaoForm.renovacao_ar} onChange={e => setMedicaoForm(f => ({ ...f, renovacao_ar: e.target.value }))} /></div>
+              <div><Label>Pressão Diferencial</Label><Input type="number" step="0.1" value={medicaoForm.pressao_diferencial} onChange={e => setMedicaoForm(f => ({ ...f, pressao_diferencial: e.target.value }))} /></div>
+              <div><Label>Conforme?</Label>
+                <Select value={medicaoForm.conforme ? "true" : "false"} onValueChange={v => setMedicaoForm(f => ({ ...f, conforme: v === "true" }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="true">Sim</SelectItem><SelectItem value="false">Não</SelectItem></SelectContent>
+                </Select>
+              </div>
+              <div><Label>Responsável</Label><Input value={medicaoForm.responsavel} onChange={e => setMedicaoForm(f => ({ ...f, responsavel: e.target.value }))} /></div>
+              <div className="col-span-2"><Label>Observações</Label><Textarea value={medicaoForm.observacoes} onChange={e => setMedicaoForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} /></div>
+              {!medicaoForm.conforme && <div className="col-span-2"><Label>Plano de Ação Corretiva</Label><Textarea value={medicaoForm.plano_acao} onChange={e => setMedicaoForm(f => ({ ...f, plano_acao: e.target.value }))} rows={2} /></div>}
+            </div>
+          )}
+          <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId) { if (subTab === "pontos") deletePontoQA(deleteId); else deleteMedicaoQA(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+    </div>
+  );
+}
+
+// ====================== INCONFORMIDADES TAB ======================
+function InconformidadesTab() {
+  const { inconformidades, addInconformidade, updateInconformidade, deleteInconformidade } = usePmoc();
+  const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const [form, setForm] = useState({
+    descricao: "", gravidade: "Moderada", causa_provavel: "", plano_acao: "",
+    prazo: "", responsavel: "", status: "Aberta", ambiente: "",
+    equipamento_nome: "", reavaliacao: "",
+  });
+
+  const openNew = () => { setForm({ descricao: "", gravidade: "Moderada", causa_provavel: "", plano_acao: "", prazo: "", responsavel: "", status: "Aberta", ambiente: "", equipamento_nome: "", reavaliacao: "" }); setEditingId(null); setDialogOpen(true); };
+  const openEdit = (i: any) => { setForm({ descricao: i.descricao, gravidade: i.gravidade, causa_provavel: i.causaProvavel, plano_acao: i.planoAcao, prazo: i.prazo, responsavel: i.responsavel, status: i.status, ambiente: i.ambiente, equipamento_nome: i.equipamentoNome, reavaliacao: i.reavaliacao }); setEditingId(i.id); setDialogOpen(true); };
+
+  const handleSave = async () => {
+    if (!form.descricao.trim()) { toast({ title: "Descrição obrigatória", variant: "destructive" }); return; }
+    if (editingId) { await updateInconformidade(editingId, form); toast({ title: "Inconformidade atualizada" }); }
+    else { await addInconformidade(form); toast({ title: "Inconformidade registrada" }); }
+    setDialogOpen(false);
+  };
+
+  const gravColor = (g: string) => { if (g === "Crítica" || g === "Grave") return "destructive"; return "secondary"; };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold">Inconformidades</h3>
+        <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova Inconformidade</Button>
+      </div>
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader><TableRow><TableHead>Nº</TableHead><TableHead>Descrição</TableHead><TableHead>Gravidade</TableHead><TableHead>Ambiente</TableHead><TableHead>Responsável</TableHead><TableHead>Prazo</TableHead><TableHead>Status</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
+          <TableBody>
+            {paginate(inconformidades, page).paginated.length === 0 ? (
+              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma inconformidade</TableCell></TableRow>
+            ) : paginate(inconformidades, page).paginated.map(i => (
+              <TableRow key={i.id}>
+                <TableCell className="font-mono">{i.numero}</TableCell>
+                <TableCell className="font-medium">{i.descricao}</TableCell>
+                <TableCell><Badge variant={gravColor(i.gravidade) as any}>{i.gravidade}</Badge></TableCell>
+                <TableCell>{i.ambiente || "-"}</TableCell>
+                <TableCell>{i.responsavel || "-"}</TableCell>
+                <TableCell>{i.prazo || "-"}</TableCell>
+                <TableCell><Badge variant={i.status === "Encerrada" ? "default" : "secondary"}>{i.status}</Badge></TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(i)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => requestDelete(i.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <PaginationControls currentPage={page} totalItems={inconformidades.length} onPageChange={setPage} />
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{editingId ? "Editar" : "Nova"} Inconformidade</DialogTitle></DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2"><Label>Descrição *</Label><Textarea value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} rows={2} /></div>
+            <div><Label>Gravidade</Label>
+              <Select value={form.gravidade} onValueChange={v => setForm(f => ({ ...f, gravidade: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{GRAVIDADES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Status</Label>
+              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent><SelectItem value="Aberta">Aberta</SelectItem><SelectItem value="Em Tratamento">Em Tratamento</SelectItem><SelectItem value="Encerrada">Encerrada</SelectItem></SelectContent>
+              </Select>
+            </div>
+            <div><Label>Ambiente</Label><Input value={form.ambiente} onChange={e => setForm(f => ({ ...f, ambiente: e.target.value }))} /></div>
+            <div><Label>Equipamento</Label><Input value={form.equipamento_nome} onChange={e => setForm(f => ({ ...f, equipamento_nome: e.target.value }))} /></div>
+            <div className="col-span-2"><Label>Causa Provável</Label><Textarea value={form.causa_provavel} onChange={e => setForm(f => ({ ...f, causa_provavel: e.target.value }))} rows={2} /></div>
+            <div className="col-span-2"><Label>Plano de Ação</Label><Textarea value={form.plano_acao} onChange={e => setForm(f => ({ ...f, plano_acao: e.target.value }))} rows={2} /></div>
+            <div><Label>Prazo</Label><Input type="date" value={form.prazo} onChange={e => setForm(f => ({ ...f, prazo: e.target.value }))} /></div>
+            <div><Label>Responsável</Label><Input value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} /></div>
+            <div className="col-span-2"><Label>Reavaliação</Label><Textarea value={form.reavaliacao} onChange={e => setForm(f => ({ ...f, reavaliacao: e.target.value }))} rows={2} /></div>
+          </div>
+          <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId) { deleteInconformidade(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+    </div>
+  );
+}
+
+// ====================== BIBLIOTECA TAB ======================
+function BibliotecaTab() {
+  const { biblioteca, addRotina, updateRotina, deleteRotina } = usePmoc();
+  const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const [form, setForm] = useState({
+    titulo: "", tipo_equipamento: "", tipo_atividade: "Preventiva",
+    descricao: "", periodicidade_sugerida: "Mensal", duracao_estimada: "",
+  });
+
+  const openNew = () => { setForm({ titulo: "", tipo_equipamento: "", tipo_atividade: "Preventiva", descricao: "", periodicidade_sugerida: "Mensal", duracao_estimada: "" }); setEditingId(null); setDialogOpen(true); };
+  const openEdit = (b: any) => { setForm({ titulo: b.titulo, tipo_equipamento: b.tipoEquipamento, tipo_atividade: b.tipoAtividade, descricao: b.descricao, periodicidade_sugerida: b.periodicidadeSugerida, duracao_estimada: b.duracaoEstimada }); setEditingId(b.id); setDialogOpen(true); };
+
+  const handleSave = async () => {
+    if (!form.titulo.trim()) { toast({ title: "Título obrigatório", variant: "destructive" }); return; }
+    if (editingId) { await updateRotina(editingId, form); toast({ title: "Rotina atualizada" }); }
+    else { await addRotina(form); toast({ title: "Rotina criada" }); }
+    setDialogOpen(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold">Biblioteca de Rotinas e Modelos</h3>
+        <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova Rotina</Button>
+      </div>
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader><TableRow><TableHead>Título</TableHead><TableHead>Tipo Equipamento</TableHead><TableHead>Tipo Atividade</TableHead><TableHead>Periodicidade</TableHead><TableHead>Duração</TableHead><TableHead>Versão</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
+          <TableBody>
+            {paginate(biblioteca, page).paginated.length === 0 ? (
+              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhuma rotina</TableCell></TableRow>
+            ) : paginate(biblioteca, page).paginated.map(b => (
+              <TableRow key={b.id}>
+                <TableCell className="font-medium">{b.titulo}</TableCell>
+                <TableCell>{b.tipoEquipamento || "-"}</TableCell>
+                <TableCell><Badge variant="outline">{b.tipoAtividade}</Badge></TableCell>
+                <TableCell>{b.periodicidadeSugerida}</TableCell>
+                <TableCell>{b.duracaoEstimada || "-"}</TableCell>
+                <TableCell>{b.versao}</TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(b)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => requestDelete(b.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <PaginationControls currentPage={page} totalItems={biblioteca.length} onPageChange={setPage} />
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>{editingId ? "Editar" : "Nova"} Rotina</DialogTitle></DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2"><Label>Título *</Label><Input value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} /></div>
+            <div><Label>Tipo Equipamento</Label><Input value={form.tipo_equipamento} onChange={e => setForm(f => ({ ...f, tipo_equipamento: e.target.value }))} placeholder="Ex: Split, VRF..." /></div>
+            <div><Label>Tipo Atividade</Label>
+              <Select value={form.tipo_atividade} onValueChange={v => setForm(f => ({ ...f, tipo_atividade: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{TIPOS_ATIVIDADE.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Periodicidade Sugerida</Label>
+              <Select value={form.periodicidade_sugerida} onValueChange={v => setForm(f => ({ ...f, periodicidade_sugerida: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{PERIODICIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Duração Estimada</Label><Input value={form.duracao_estimada} onChange={e => setForm(f => ({ ...f, duracao_estimada: e.target.value }))} placeholder="Ex: 1h30" /></div>
+            <div className="col-span-2"><Label>Descrição</Label><Textarea value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} rows={3} /></div>
+          </div>
+          <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId) { deleteRotina(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+    </div>
+  );
+}
+
+// ====================== DASHBOARD TAB ======================
+function DashboardTab() {
+  const { planos, atividades, ordensServico, inconformidades, medicoesQA, responsaveisTecnicos } = usePmoc();
+
+  const planosAtivos = planos.filter(p => p.status === "Ativo").length;
+  const osAbertas = ordensServico.filter(o => o.status === "Aberta").length;
+  const osExecucao = ordensServico.filter(o => o.status === "Em Execução").length;
+  const osConcluidas = ordensServico.filter(o => o.status === "Concluída").length;
+  const incAbertas = inconformidades.filter(i => i.status === "Aberta").length;
+  const medNaoConformes = medicoesQA.filter(m => !m.conforme).length;
+
+  const hoje = new Date();
+  const osVencidas = ordensServico.filter(o => o.dataPrazo && new Date(o.dataPrazo) < hoje && o.status !== "Concluída" && o.status !== "Cancelada").length;
+
+  const totalAtividades = atividades.length;
+  const atividadesComExecucao = atividades.filter(a => a.ultimaExecucao).length;
+  const percentualExec = totalAtividades > 0 ? Math.round((atividadesComExecucao / totalAtividades) * 100) : 0;
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Planos Ativos</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold">{planosAtivos}</p></CardContent></Card>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Atividades Programadas</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold">{totalAtividades}</p></CardContent></Card>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">PMOC Executado</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold">{percentualExec}%</p></CardContent></Card>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">RTs Cadastrados</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold">{responsaveisTecnicos.length}</p></CardContent></Card>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="border-blue-200 dark:border-blue-800"><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-1"><Wrench className="h-4 w-4" />OS Abertas</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-blue-600">{osAbertas}</p></CardContent></Card>
+        <Card className="border-amber-200 dark:border-amber-800"><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-1"><Activity className="h-4 w-4" />OS em Execução</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-amber-600">{osExecucao}</p></CardContent></Card>
+        <Card className="border-green-200 dark:border-green-800"><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-1"><ShieldCheck className="h-4 w-4" />OS Concluídas</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-green-600">{osConcluidas}</p></CardContent></Card>
+        <Card className={osVencidas > 0 ? "border-red-500 bg-red-50 dark:bg-red-950/20" : ""}><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-1"><AlertTriangle className="h-4 w-4" />OS Vencidas</CardTitle></CardHeader><CardContent><p className={`text-2xl font-bold ${osVencidas > 0 ? "text-red-600" : ""}`}>{osVencidas}</p></CardContent></Card>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className={incAbertas > 0 ? "border-amber-500" : ""}>
+          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4" />Inconformidades Abertas</CardTitle></CardHeader>
+          <CardContent><p className="text-3xl font-bold">{incAbertas}</p></CardContent>
+        </Card>
+        <Card className={medNaoConformes > 0 ? "border-red-500" : ""}>
+          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><ThermometerSun className="h-4 w-4" />Medições Não Conformes (QAI)</CardTitle></CardHeader>
+          <CardContent><p className="text-3xl font-bold">{medNaoConformes}</p></CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// ====================== MAIN PAGE ======================
+export default function PmocPage() {
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-foreground">PMOC – Plano de Manutenção, Operação e Controle</h1>
+
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList className="flex flex-wrap h-auto gap-1">
+          <TabsTrigger value="dashboard" className="flex items-center gap-1"><BarChart3 className="h-4 w-4" />Painel</TabsTrigger>
+          <TabsTrigger value="planos" className="flex items-center gap-1"><FileText className="h-4 w-4" />Planos</TabsTrigger>
+          <TabsTrigger value="atividades" className="flex items-center gap-1"><CalendarClock className="h-4 w-4" />Atividades</TabsTrigger>
+          <TabsTrigger value="os" className="flex items-center gap-1"><Wrench className="h-4 w-4" />Ordens de Serviço</TabsTrigger>
+          <TabsTrigger value="rt" className="flex items-center gap-1"><Users className="h-4 w-4" />Resp. Técnicos</TabsTrigger>
+          <TabsTrigger value="qa" className="flex items-center gap-1"><Wind className="h-4 w-4" />Qualidade do Ar</TabsTrigger>
+          <TabsTrigger value="inconformidades" className="flex items-center gap-1"><AlertTriangle className="h-4 w-4" />Inconformidades</TabsTrigger>
+          <TabsTrigger value="biblioteca" className="flex items-center gap-1"><BookOpen className="h-4 w-4" />Biblioteca</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard"><DashboardTab /></TabsContent>
+        <TabsContent value="planos"><PlanosTab /></TabsContent>
+        <TabsContent value="atividades"><AtividadesTab /></TabsContent>
+        <TabsContent value="os"><OrdensServicoTab /></TabsContent>
+        <TabsContent value="rt"><ResponsaveisTecnicosTab /></TabsContent>
+        <TabsContent value="qa"><QualidadeArTab /></TabsContent>
+        <TabsContent value="inconformidades"><InconformidadesTab /></TabsContent>
+        <TabsContent value="biblioteca"><BibliotecaTab /></TabsContent>
+      </Tabs>
+    </div>
+  );
+}

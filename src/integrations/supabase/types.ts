@@ -1899,6 +1899,510 @@ export type Database = {
         }
         Relationships: []
       }
+      pmoc_atividades: {
+        Row: {
+          ativa: boolean | null
+          checklist_id: string | null
+          checklist_titulo: string | null
+          created_at: string | null
+          descricao: string
+          duracao_estimada: string | null
+          equipamento_id: string | null
+          equipamento_nome: string | null
+          id: string
+          materiais_previstos: Json | null
+          parametros_tecnicos: string | null
+          periodicidade: string | null
+          plano_id: string
+          prioridade: string | null
+          procedimento_falha: string | null
+          proxima_execucao: string | null
+          tipo: string | null
+          ultima_execucao: string | null
+        }
+        Insert: {
+          ativa?: boolean | null
+          checklist_id?: string | null
+          checklist_titulo?: string | null
+          created_at?: string | null
+          descricao?: string
+          duracao_estimada?: string | null
+          equipamento_id?: string | null
+          equipamento_nome?: string | null
+          id?: string
+          materiais_previstos?: Json | null
+          parametros_tecnicos?: string | null
+          periodicidade?: string | null
+          plano_id?: string
+          prioridade?: string | null
+          procedimento_falha?: string | null
+          proxima_execucao?: string | null
+          tipo?: string | null
+          ultima_execucao?: string | null
+        }
+        Update: {
+          ativa?: boolean | null
+          checklist_id?: string | null
+          checklist_titulo?: string | null
+          created_at?: string | null
+          descricao?: string
+          duracao_estimada?: string | null
+          equipamento_id?: string | null
+          equipamento_nome?: string | null
+          id?: string
+          materiais_previstos?: Json | null
+          parametros_tecnicos?: string | null
+          periodicidade?: string | null
+          plano_id?: string
+          prioridade?: string | null
+          procedimento_falha?: string | null
+          proxima_execucao?: string | null
+          tipo?: string | null
+          ultima_execucao?: string | null
+        }
+        Relationships: []
+      }
+      pmoc_biblioteca_rotinas: {
+        Row: {
+          ativa: boolean | null
+          checklist_itens: Json | null
+          created_at: string | null
+          descricao: string | null
+          duracao_estimada: string | null
+          id: string
+          materiais_sugeridos: Json | null
+          periodicidade_sugerida: string | null
+          tipo_atividade: string | null
+          tipo_equipamento: string | null
+          titulo: string
+          versao: number | null
+        }
+        Insert: {
+          ativa?: boolean | null
+          checklist_itens?: Json | null
+          created_at?: string | null
+          descricao?: string | null
+          duracao_estimada?: string | null
+          id?: string
+          materiais_sugeridos?: Json | null
+          periodicidade_sugerida?: string | null
+          tipo_atividade?: string | null
+          tipo_equipamento?: string | null
+          titulo?: string
+          versao?: number | null
+        }
+        Update: {
+          ativa?: boolean | null
+          checklist_itens?: Json | null
+          created_at?: string | null
+          descricao?: string | null
+          duracao_estimada?: string | null
+          id?: string
+          materiais_sugeridos?: Json | null
+          periodicidade_sugerida?: string | null
+          tipo_atividade?: string | null
+          tipo_equipamento?: string | null
+          titulo?: string
+          versao?: number | null
+        }
+        Relationships: []
+      }
+      pmoc_inconformidades: {
+        Row: {
+          ambiente: string | null
+          causa_provavel: string | null
+          created_at: string | null
+          data_encerramento: string | null
+          descricao: string
+          equipamento_id: string | null
+          equipamento_nome: string | null
+          evidencias: Json | null
+          gravidade: string | null
+          historico: Json | null
+          id: string
+          numero: number
+          os_id: string | null
+          plano_acao: string | null
+          plano_id: string | null
+          prazo: string | null
+          reavaliacao: string | null
+          reincidencia: number | null
+          responsavel: string | null
+          status: string | null
+        }
+        Insert: {
+          ambiente?: string | null
+          causa_provavel?: string | null
+          created_at?: string | null
+          data_encerramento?: string | null
+          descricao?: string
+          equipamento_id?: string | null
+          equipamento_nome?: string | null
+          evidencias?: Json | null
+          gravidade?: string | null
+          historico?: Json | null
+          id?: string
+          numero?: number
+          os_id?: string | null
+          plano_acao?: string | null
+          plano_id?: string | null
+          prazo?: string | null
+          reavaliacao?: string | null
+          reincidencia?: number | null
+          responsavel?: string | null
+          status?: string | null
+        }
+        Update: {
+          ambiente?: string | null
+          causa_provavel?: string | null
+          created_at?: string | null
+          data_encerramento?: string | null
+          descricao?: string
+          equipamento_id?: string | null
+          equipamento_nome?: string | null
+          evidencias?: Json | null
+          gravidade?: string | null
+          historico?: Json | null
+          id?: string
+          numero?: number
+          os_id?: string | null
+          plano_acao?: string | null
+          plano_id?: string | null
+          prazo?: string | null
+          reavaliacao?: string | null
+          reincidencia?: number | null
+          responsavel?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      pmoc_ordens_servico: {
+        Row: {
+          aprovado_por: string | null
+          atividade_id: string | null
+          checklist_id: string | null
+          checklist_resultado: Json | null
+          created_at: string | null
+          data_abertura: string | null
+          data_aprovacao: string | null
+          data_conclusao: string | null
+          data_inicio_execucao: string | null
+          data_prazo: string | null
+          descricao: string
+          equipamento_id: string | null
+          equipamento_nome: string | null
+          equipe: string | null
+          evidencias: Json | null
+          evidencias_obrigatorias: boolean | null
+          id: string
+          local_descricao: string | null
+          materiais_previstos: Json | null
+          materiais_utilizados: Json | null
+          numero: number
+          observacoes: string | null
+          origem: string | null
+          plano_id: string | null
+          prioridade: string | null
+          status: string | null
+          tecnico_responsavel: string | null
+          tipo: string | null
+          unidade: string | null
+        }
+        Insert: {
+          aprovado_por?: string | null
+          atividade_id?: string | null
+          checklist_id?: string | null
+          checklist_resultado?: Json | null
+          created_at?: string | null
+          data_abertura?: string | null
+          data_aprovacao?: string | null
+          data_conclusao?: string | null
+          data_inicio_execucao?: string | null
+          data_prazo?: string | null
+          descricao?: string
+          equipamento_id?: string | null
+          equipamento_nome?: string | null
+          equipe?: string | null
+          evidencias?: Json | null
+          evidencias_obrigatorias?: boolean | null
+          id?: string
+          local_descricao?: string | null
+          materiais_previstos?: Json | null
+          materiais_utilizados?: Json | null
+          numero?: number
+          observacoes?: string | null
+          origem?: string | null
+          plano_id?: string | null
+          prioridade?: string | null
+          status?: string | null
+          tecnico_responsavel?: string | null
+          tipo?: string | null
+          unidade?: string | null
+        }
+        Update: {
+          aprovado_por?: string | null
+          atividade_id?: string | null
+          checklist_id?: string | null
+          checklist_resultado?: Json | null
+          created_at?: string | null
+          data_abertura?: string | null
+          data_aprovacao?: string | null
+          data_conclusao?: string | null
+          data_inicio_execucao?: string | null
+          data_prazo?: string | null
+          descricao?: string
+          equipamento_id?: string | null
+          equipamento_nome?: string | null
+          equipe?: string | null
+          evidencias?: Json | null
+          evidencias_obrigatorias?: boolean | null
+          id?: string
+          local_descricao?: string | null
+          materiais_previstos?: Json | null
+          materiais_utilizados?: Json | null
+          numero?: number
+          observacoes?: string | null
+          origem?: string | null
+          plano_id?: string | null
+          prioridade?: string | null
+          status?: string | null
+          tecnico_responsavel?: string | null
+          tipo?: string | null
+          unidade?: string | null
+        }
+        Relationships: []
+      }
+      pmoc_planos: {
+        Row: {
+          ambiente_critico: string | null
+          cliente_id: string | null
+          cliente_nome: string | null
+          contingencia: string | null
+          contrato: string | null
+          created_at: string | null
+          descricao: string | null
+          documentos_anexos: Json | null
+          edificio: string | null
+          historico_revisoes: Json | null
+          id: string
+          observacoes: string | null
+          procedimentos_falha: string | null
+          responsavel_tecnico_id: string | null
+          responsavel_tecnico_nome: string | null
+          revisao: number | null
+          status: string | null
+          titulo: string
+          unidade: string | null
+          vigencia_fim: string | null
+          vigencia_inicio: string | null
+        }
+        Insert: {
+          ambiente_critico?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          contingencia?: string | null
+          contrato?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          documentos_anexos?: Json | null
+          edificio?: string | null
+          historico_revisoes?: Json | null
+          id?: string
+          observacoes?: string | null
+          procedimentos_falha?: string | null
+          responsavel_tecnico_id?: string | null
+          responsavel_tecnico_nome?: string | null
+          revisao?: number | null
+          status?: string | null
+          titulo?: string
+          unidade?: string | null
+          vigencia_fim?: string | null
+          vigencia_inicio?: string | null
+        }
+        Update: {
+          ambiente_critico?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          contingencia?: string | null
+          contrato?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          documentos_anexos?: Json | null
+          edificio?: string | null
+          historico_revisoes?: Json | null
+          id?: string
+          observacoes?: string | null
+          procedimentos_falha?: string | null
+          responsavel_tecnico_id?: string | null
+          responsavel_tecnico_nome?: string | null
+          revisao?: number | null
+          status?: string | null
+          titulo?: string
+          unidade?: string | null
+          vigencia_fim?: string | null
+          vigencia_inicio?: string | null
+        }
+        Relationships: []
+      }
+      pmoc_qualidade_ar_medicoes: {
+        Row: {
+          co2: number | null
+          conforme: boolean | null
+          created_at: string | null
+          data_medicao: string | null
+          hora_medicao: string | null
+          id: string
+          observacoes: string | null
+          outros_parametros: Json | null
+          plano_acao: string | null
+          ponto_descricao: string | null
+          ponto_id: string
+          pressao_diferencial: number | null
+          relatorio_laboratorial_url: string | null
+          renovacao_ar: number | null
+          responsavel: string | null
+          temperatura: number | null
+          umidade: number | null
+        }
+        Insert: {
+          co2?: number | null
+          conforme?: boolean | null
+          created_at?: string | null
+          data_medicao?: string | null
+          hora_medicao?: string | null
+          id?: string
+          observacoes?: string | null
+          outros_parametros?: Json | null
+          plano_acao?: string | null
+          ponto_descricao?: string | null
+          ponto_id?: string
+          pressao_diferencial?: number | null
+          relatorio_laboratorial_url?: string | null
+          renovacao_ar?: number | null
+          responsavel?: string | null
+          temperatura?: number | null
+          umidade?: number | null
+        }
+        Update: {
+          co2?: number | null
+          conforme?: boolean | null
+          created_at?: string | null
+          data_medicao?: string | null
+          hora_medicao?: string | null
+          id?: string
+          observacoes?: string | null
+          outros_parametros?: Json | null
+          plano_acao?: string | null
+          ponto_descricao?: string | null
+          ponto_id?: string
+          pressao_diferencial?: number | null
+          relatorio_laboratorial_url?: string | null
+          renovacao_ar?: number | null
+          responsavel?: string | null
+          temperatura?: number | null
+          umidade?: number | null
+        }
+        Relationships: []
+      }
+      pmoc_qualidade_ar_pontos: {
+        Row: {
+          ambiente: string | null
+          cliente_id: string | null
+          created_at: string | null
+          descricao: string
+          edificio: string | null
+          id: string
+          parametros_monitorados: Json | null
+          pavimento: string | null
+          periodicidade_coleta: string | null
+          plano_id: string | null
+          status: string | null
+          tipo_ambiente: string | null
+        }
+        Insert: {
+          ambiente?: string | null
+          cliente_id?: string | null
+          created_at?: string | null
+          descricao?: string
+          edificio?: string | null
+          id?: string
+          parametros_monitorados?: Json | null
+          pavimento?: string | null
+          periodicidade_coleta?: string | null
+          plano_id?: string | null
+          status?: string | null
+          tipo_ambiente?: string | null
+        }
+        Update: {
+          ambiente?: string | null
+          cliente_id?: string | null
+          created_at?: string | null
+          descricao?: string
+          edificio?: string | null
+          id?: string
+          parametros_monitorados?: Json | null
+          pavimento?: string | null
+          periodicidade_coleta?: string | null
+          plano_id?: string | null
+          status?: string | null
+          tipo_ambiente?: string | null
+        }
+        Relationships: []
+      }
+      pmoc_responsaveis_tecnicos: {
+        Row: {
+          clientes_vinculados: Json | null
+          created_at: string | null
+          documento_art_rrt: string | null
+          documento_url: string | null
+          email: string | null
+          especialidade: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          registro_profissional: string | null
+          status: string | null
+          telefone: string | null
+          tipo_registro: string | null
+          vigencia_fim: string | null
+          vigencia_inicio: string | null
+        }
+        Insert: {
+          clientes_vinculados?: Json | null
+          created_at?: string | null
+          documento_art_rrt?: string | null
+          documento_url?: string | null
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          registro_profissional?: string | null
+          status?: string | null
+          telefone?: string | null
+          tipo_registro?: string | null
+          vigencia_fim?: string | null
+          vigencia_inicio?: string | null
+        }
+        Update: {
+          clientes_vinculados?: Json | null
+          created_at?: string | null
+          documento_art_rrt?: string | null
+          documento_url?: string | null
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          registro_profissional?: string | null
+          status?: string | null
+          telefone?: string | null
+          tipo_registro?: string | null
+          vigencia_fim?: string | null
+          vigencia_inicio?: string | null
+        }
+        Relationships: []
+      }
       processos_seletivos: {
         Row: {
           candidatos: Json | null
