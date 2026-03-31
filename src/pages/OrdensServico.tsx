@@ -414,7 +414,7 @@ export default function OrdensServicoPage() {
               <div>
                 <Label>Pavimento</Label>
                 {editingId ? (
-                  <Input value={(pavimentos as any[]).find((p: any) => p.id === pavimentoId)?.descricao || pavimentoId || ""} disabled className="bg-muted cursor-not-allowed" />
+                  <Input value={editPavDesc || ""} disabled className="bg-muted cursor-not-allowed" />
                 ) : (
                   <Select value={pavimentoId} onValueChange={v => { setPavimentoId(v); setSetorId(""); }}>
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
