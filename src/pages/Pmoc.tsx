@@ -641,6 +641,8 @@ function ResponsaveisTecnicosTab() {
 // ====================== QUALIDADE DO AR TAB ======================
 function QualidadeArTab() {
   const { pontosQA, medicoesQA, addPontoQA, updatePontoQA, deletePontoQA, addMedicaoQA, updateMedicaoQA, deleteMedicaoQA } = usePmoc();
+  const { clientes } = useClientes();
+  const soClientes = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
   const { toast } = useToast();
   const [subTab, setSubTab] = useState<"pontos" | "medicoes">("pontos");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -649,23 +651,53 @@ function QualidadeArTab() {
   const [page, setPage] = useState(1);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
-  const [pontoForm, setPontoForm] = useState({ descricao: "", ambiente: "", edificio: "", pavimento: "", tipo_ambiente: "", periodicidade_coleta: "Mensal" });
+  const [pontoForm, setPontoForm] = useState({ descricao: "", cliente_id: "", local_id: "", pavimento_id: "", setor_id: "", tipo_ambiente: "", periodicidade_coleta: "Mensal" });
+
+  // Cascading helpers
+  const selectedClienteLocais = useMemo(() => {
+    const c = soClientes.find(c => c.id === pontoForm.cliente_id);
+    return c?.locais || [];
+  }, [soClientes, pontoForm.cliente_id]);
+
+  const selectedLocalPavimentos = useMemo(() => {
+    const loc = selectedClienteLocais.find((l: any) => l.id === pontoForm.local_id);
+    return loc?.pavimentos || [];
+  }, [selectedClienteLocais, pontoForm.local_id]);
+
+  const selectedPavimentoSetores = useMemo(() => {
+    const pav = selectedLocalPavimentos.find((p: any) => p.id === pontoForm.pavimento_id);
+    return pav?.setores || [];
+  }, [selectedLocalPavimentos, pontoForm.pavimento_id]);
   const [medicaoForm, setMedicaoForm] = useState({
     ponto_id: "", ponto_descricao: "", data_medicao: new Date().toISOString().slice(0, 10),
     hora_medicao: "", temperatura: "", umidade: "", co2: "", renovacao_ar: "",
     pressao_diferencial: "", conforme: true, observacoes: "", responsavel: "", plano_acao: "",
   });
 
-  const openNewPonto = () => { setPontoForm({ descricao: "", ambiente: "", edificio: "", pavimento: "", tipo_ambiente: "", periodicidade_coleta: "Mensal" }); setEditingId(null); setDialogType("ponto"); setDialogOpen(true); };
-  const openEditPonto = (p: any) => { setPontoForm({ descricao: p.descricao, ambiente: p.ambiente, edificio: p.edificio, pavimento: p.pavimento, tipo_ambiente: p.tipoAmbiente, periodicidade_coleta: p.periodicidadeColeta }); setEditingId(p.id); setDialogType("ponto"); setDialogOpen(true); };
+  const openNewPonto = () => { setPontoForm({ descricao: "", cliente_id: "", local_id: "", pavimento_id: "", setor_id: "", tipo_ambiente: "", periodicidade_coleta: "Mensal" }); setEditingId(null); setDialogType("ponto"); setDialogOpen(true); };
+  const openEditPonto = (p: any) => { setPontoForm({ descricao: p.descricao, cliente_id: p.clienteId || "", local_id: p.ambiente || "", pavimento_id: p.pavimento || "", setor_id: p.edificio || "", tipo_ambiente: p.tipoAmbiente, periodicidade_coleta: p.periodicidadeColeta }); setEditingId(p.id); setDialogType("ponto"); setDialogOpen(true); };
   const openNewMedicao = () => { setMedicaoForm({ ponto_id: "", ponto_descricao: "", data_medicao: new Date().toISOString().slice(0, 10), hora_medicao: "", temperatura: "", umidade: "", co2: "", renovacao_ar: "", pressao_diferencial: "", conforme: true, observacoes: "", responsavel: "", plano_acao: "" }); setEditingId(null); setDialogType("medicao"); setDialogOpen(true); };
   const openEditMedicao = (m: any) => { setMedicaoForm({ ponto_id: m.pontoId, ponto_descricao: m.pontoDescricao, data_medicao: m.dataMedicao, hora_medicao: m.horaMedicao, temperatura: m.temperatura?.toString() || "", umidade: m.umidade?.toString() || "", co2: m.co2?.toString() || "", renovacao_ar: m.renovacaoAr?.toString() || "", pressao_diferencial: m.pressaoDiferencial?.toString() || "", conforme: m.conforme, observacoes: m.observacoes, responsavel: m.responsavel, plano_acao: m.planoAcao }); setEditingId(m.id); setDialogType("medicao"); setDialogOpen(true); };
 
   const handleSave = async () => {
     if (dialogType === "ponto") {
       if (!pontoForm.descricao.trim()) { toast({ title: "Descrição obrigatória", variant: "destructive" }); return; }
-      if (editingId) { await updatePontoQA(editingId, pontoForm); toast({ title: "Ponto atualizado" }); }
-      else { await addPontoQA(pontoForm); toast({ title: "Ponto cadastrado" }); }
+      // Resolve names from IDs for storage
+      const cliente = soClientes.find(c => c.id === pontoForm.cliente_id);
+      const local = (cliente?.locais || []).find((l: any) => l.id === pontoForm.local_id);
+      const pav = (local?.pavimentos || []).find((p: any) => p.id === pontoForm.pavimento_id);
+      const setor = (pav?.setores || []).find((s: any) => s.id === pontoForm.setor_id);
+      const payload = {
+        descricao: pontoForm.descricao,
+        cliente_id: pontoForm.cliente_id,
+        ambiente: pontoForm.local_id, // store local_id in ambiente field
+        edificio: pontoForm.setor_id, // store setor_id in edificio field
+        pavimento: pontoForm.pavimento_id, // store pavimento_id
+        tipo_ambiente: pontoForm.tipo_ambiente,
+        periodicidade_coleta: pontoForm.periodicidade_coleta,
+      };
+      if (editingId) { await updatePontoQA(editingId, payload); toast({ title: "Ponto atualizado" }); }
+      else { await addPontoQA(payload); toast({ title: "Ponto cadastrado" }); }
     } else {
       if (!medicaoForm.ponto_id) { toast({ title: "Selecione um ponto", variant: "destructive" }); return; }
       const data = { ...medicaoForm, temperatura: medicaoForm.temperatura ? Number(medicaoForm.temperatura) : null, umidade: medicaoForm.umidade ? Number(medicaoForm.umidade) : null, co2: medicaoForm.co2 ? Number(medicaoForm.co2) : null, renovacao_ar: medicaoForm.renovacao_ar ? Number(medicaoForm.renovacao_ar) : null, pressao_diferencial: medicaoForm.pressao_diferencial ? Number(medicaoForm.pressao_diferencial) : null };
@@ -697,15 +729,22 @@ function QualidadeArTab() {
           <div className="flex justify-end"><Button onClick={openNewPonto}><Plus className="mr-2 h-4 w-4" />Novo Ponto</Button></div>
           <div className="border rounded-lg">
             <Table>
-              <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Ambiente</TableHead><TableHead>Edifício</TableHead><TableHead>Periodicidade</TableHead><TableHead>Status</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Cliente</TableHead><TableHead>Local</TableHead><TableHead>Pavimento</TableHead><TableHead>Setor</TableHead><TableHead>Periodicidade</TableHead><TableHead>Status</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
               <TableBody>
                 {paginate(pontosQA, page).paginated.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum ponto</TableCell></TableRow>
-                ) : paginate(pontosQA, page).paginated.map(p => (
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum ponto</TableCell></TableRow>
+                ) : paginate(pontosQA, page).paginated.map(p => {
+                  const cli = soClientes.find(c => c.id === p.clienteId);
+                  const loc = (cli?.locais || []).find((l: any) => l.id === p.ambiente);
+                  const pav = (loc?.pavimentos || []).find((pv: any) => pv.id === p.pavimento);
+                  const set = (pav?.setores || []).find((s: any) => s.id === p.edificio);
+                  return (
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.descricao}</TableCell>
-                    <TableCell>{p.ambiente || "-"}</TableCell>
-                    <TableCell>{p.edificio || "-"}</TableCell>
+                    <TableCell>{cli?.nome || "-"}</TableCell>
+                    <TableCell>{loc?.descricao || "-"}</TableCell>
+                    <TableCell>{pav?.descricao || "-"}</TableCell>
+                    <TableCell>{set?.descricao || "-"}</TableCell>
                     <TableCell>{p.periodicidadeColeta}</TableCell>
                     <TableCell><Badge variant={p.status === "Ativo" ? "default" : "destructive"}>{p.status}</Badge></TableCell>
                     <TableCell>
@@ -715,7 +754,8 @@ function QualidadeArTab() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -760,9 +800,30 @@ function QualidadeArTab() {
           {dialogType === "ponto" ? (
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2"><Label>Descrição *</Label><Input value={pontoForm.descricao} onChange={e => setPontoForm(f => ({ ...f, descricao: e.target.value }))} /></div>
-              <div><Label>Ambiente</Label><Input value={pontoForm.ambiente} onChange={e => setPontoForm(f => ({ ...f, ambiente: e.target.value }))} /></div>
-              <div><Label>Edifício</Label><Input value={pontoForm.edificio} onChange={e => setPontoForm(f => ({ ...f, edificio: e.target.value }))} /></div>
-              <div><Label>Pavimento</Label><Input value={pontoForm.pavimento} onChange={e => setPontoForm(f => ({ ...f, pavimento: e.target.value }))} /></div>
+              <div><Label>Cliente</Label>
+                <Select value={pontoForm.cliente_id} onValueChange={v => setPontoForm(f => ({ ...f, cliente_id: v, local_id: "", pavimento_id: "", setor_id: "" }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>{soClientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div><Label>Local</Label>
+                <Select value={pontoForm.local_id} onValueChange={v => setPontoForm(f => ({ ...f, local_id: v, pavimento_id: "", setor_id: "" }))} disabled={!pontoForm.cliente_id}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>{selectedClienteLocais.map((l: any) => <SelectItem key={l.id} value={l.id}>{l.descricao}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div><Label>Pavimento</Label>
+                <Select value={pontoForm.pavimento_id} onValueChange={v => setPontoForm(f => ({ ...f, pavimento_id: v, setor_id: "" }))} disabled={!pontoForm.local_id}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>{selectedLocalPavimentos.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.descricao}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div><Label>Setor</Label>
+                <Select value={pontoForm.setor_id} onValueChange={v => setPontoForm(f => ({ ...f, setor_id: v }))} disabled={!pontoForm.pavimento_id}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>{selectedPavimentoSetores.map((s: any) => <SelectItem key={s.id} value={s.id}>{s.descricao}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
               <div><Label>Tipo Ambiente</Label><Input value={pontoForm.tipo_ambiente} onChange={e => setPontoForm(f => ({ ...f, tipo_ambiente: e.target.value }))} /></div>
               <div><Label>Periodicidade</Label>
                 <Select value={pontoForm.periodicidade_coleta} onValueChange={v => setPontoForm(f => ({ ...f, periodicidade_coleta: v }))}>
