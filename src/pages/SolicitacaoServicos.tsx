@@ -509,7 +509,7 @@ export default function SolicitacaoServicosPage() {
                         <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
                       </DropdownMenuItem>
                       {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
-                        <DropdownMenuItem onClick={() => handleCancelar(s.id)}>
+                        <DropdownMenuItem onClick={() => requestCancel(s.id)}>
                           <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar Solicitação
                         </DropdownMenuItem>
                       )}
