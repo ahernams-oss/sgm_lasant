@@ -602,7 +602,7 @@ export default function OrdensServicoPage() {
               )}
 
               <div>
-                <p className="text-xs text-muted-foreground">Operador</p>
+                <p className="text-xs text-muted-foreground font-semibold">Aprovador:</p>
                 <p>{viewOS.operadorNome || "-"}</p>
               </div>
             </div>
