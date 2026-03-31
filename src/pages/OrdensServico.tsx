@@ -281,7 +281,7 @@ export default function OrdensServicoPage() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Todas">Todas</SelectItem>
-                  {SITUACOES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  {SITUACOES_WORKFLOW.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
