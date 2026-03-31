@@ -427,7 +427,7 @@ export default function OrdensServicoPage() {
               <div>
                 <Label>Setor</Label>
                 {editingId ? (
-                  <Input value={(setores as any[]).find((s: any) => s.id === setorId)?.descricao || setorId || ""} disabled className="bg-muted cursor-not-allowed" />
+                  <Input value={editSetorDesc || ""} disabled className="bg-muted cursor-not-allowed" />
                 ) : (
                   <Select value={setorId} onValueChange={setSetorId}>
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
