@@ -113,7 +113,14 @@ function AppRoutes() {
         <Route path="/qualidade/checklists" element={<ChecklistsPage />} />
         <Route path="/cadastros/equipamentos" element={<EquipamentosPage />} />
         <Route path="/pmoc" element={<PmocPage />} />
-        <Route path="/engenharia/solicitacao-servicos" element={<SolicitacaoServicosPage />} />
+        <Route
+          path="/engenharia/solicitacao-servicos"
+          element={
+            <SolicitacoesServicosProvider>
+              <SolicitacaoServicosPage />
+            </SolicitacoesServicosProvider>
+          }
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -148,7 +155,6 @@ const App = () => (
     <ChecklistsProvider>
     <EquipamentosProvider>
     <PmocProvider>
-    <SolicitacoesServicosProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
@@ -162,7 +168,6 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
-    </SolicitacoesServicosProvider>
     </PmocProvider>
     </EquipamentosProvider>
     </ChecklistsProvider>
