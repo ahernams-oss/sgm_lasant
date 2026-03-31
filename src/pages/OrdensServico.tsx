@@ -684,6 +684,9 @@ export default function OrdensServicoPage() {
 
       {/* Double Confirm Delete */}
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
+
+      {/* Double Confirm Cancel OS */}
+      <DoubleConfirmDelete open={!!cancelId} onOpenChange={o => !o && cancelCancelAction()} onConfirm={handleCancelOS} />
     </div>
   );
 }
