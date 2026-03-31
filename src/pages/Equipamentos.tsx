@@ -343,7 +343,7 @@ export default function Equipamentos() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
+          <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
         </CardContent>
       </Card>
 
