@@ -487,22 +487,18 @@ export default function OrdensServicoPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <p className="text-xs text-muted-foreground">Data Início</p>
-                  <p>{viewOS.dataInicio ? viewOS.dataInicio.split("-").reverse().join("/") : "-"}</p>
+                  <p className="text-xs text-muted-foreground">Local</p>
+                  <p className="font-medium">{viewOS.localDescricao || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Hora Início</p>
-                  <p>{viewOS.horaInicio || "-"}</p>
+                  <p className="text-xs text-muted-foreground">Pavimento</p>
+                  <p className="font-medium">{viewOS.pavimentoDescricao || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Data Término</p>
-                  <p>{viewOS.dataTermino ? viewOS.dataTermino.split("-").reverse().join("/") : "-"}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Hora Término</p>
-                  <p>{viewOS.horaTermino || "-"}</p>
+                  <p className="text-xs text-muted-foreground">Setor</p>
+                  <p className="font-medium">{viewOS.setorDescricao || "-"}</p>
                 </div>
               </div>
 
@@ -525,18 +521,22 @@ export default function OrdensServicoPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-muted/30 rounded p-3">
                 <div>
-                  <p className="text-xs text-muted-foreground">Local</p>
-                  <p>{viewOS.localDescricao || "-"}</p>
+                  <p className="text-xs text-muted-foreground">Data Início</p>
+                  <p>{viewOS.dataInicio ? viewOS.dataInicio.split("-").reverse().join("/") : "-"}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Pavimento</p>
-                  <p>{viewOS.pavimentoDescricao || "-"}</p>
+                  <p className="text-xs text-muted-foreground">Hora Início</p>
+                  <p>{viewOS.horaInicio || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Setor</p>
-                  <p>{viewOS.setorDescricao || "-"}</p>
+                  <p className="text-xs text-muted-foreground">Data Término</p>
+                  <p>{viewOS.dataTermino ? viewOS.dataTermino.split("-").reverse().join("/") : "-"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Hora Término</p>
+                  <p>{viewOS.horaTermino || "-"}</p>
                 </div>
               </div>
 
