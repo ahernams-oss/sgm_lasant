@@ -651,7 +651,23 @@ function QualidadeArTab() {
   const [page, setPage] = useState(1);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
-  const [pontoForm, setPontoForm] = useState({ descricao: "", ambiente: "", edificio: "", pavimento: "", tipo_ambiente: "", periodicidade_coleta: "Mensal" });
+  const [pontoForm, setPontoForm] = useState({ descricao: "", cliente_id: "", local_id: "", pavimento_id: "", setor_id: "", tipo_ambiente: "", periodicidade_coleta: "Mensal" });
+
+  // Cascading helpers
+  const selectedClienteLocais = useMemo(() => {
+    const c = soClientes.find(c => c.id === pontoForm.cliente_id);
+    return c?.locais || [];
+  }, [soClientes, pontoForm.cliente_id]);
+
+  const selectedLocalPavimentos = useMemo(() => {
+    const loc = selectedClienteLocais.find((l: any) => l.id === pontoForm.local_id);
+    return loc?.pavimentos || [];
+  }, [selectedClienteLocais, pontoForm.local_id]);
+
+  const selectedPavimentoSetores = useMemo(() => {
+    const pav = selectedLocalPavimentos.find((p: any) => p.id === pontoForm.pavimento_id);
+    return pav?.setores || [];
+  }, [selectedLocalPavimentos, pontoForm.pavimento_id]);
   const [medicaoForm, setMedicaoForm] = useState({
     ponto_id: "", ponto_descricao: "", data_medicao: new Date().toISOString().slice(0, 10),
     hora_medicao: "", temperatura: "", umidade: "", co2: "", renovacao_ar: "",
