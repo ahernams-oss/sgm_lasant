@@ -29,6 +29,7 @@ import {
   Ruler,
   Wrench,
   ShieldCheck,
+  Monitor,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";

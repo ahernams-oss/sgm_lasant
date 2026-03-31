@@ -144,8 +144,8 @@ export default function Equipamentos() {
       {/* Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-primary">{equipamentos.length}</p><p className="text-xs text-muted-foreground">Total</p></CardContent></Card>
-        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-green-600">{equipamentos.filter(e => e.situacao === "Ativo").length}</p><p className="text-xs text-muted-foreground">Ativos</p></CardContent></Card>
-        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-yellow-600">{equipamentos.filter(e => e.situacao === "Em Manutenção").length}</p><p className="text-xs text-muted-foreground">Em Manutenção</p></CardContent></Card>
+        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-primary">{equipamentos.filter(e => e.situacao === "Ativo").length}</p><p className="text-xs text-muted-foreground">Ativos</p></CardContent></Card>
+        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-secondary-foreground">{equipamentos.filter(e => e.situacao === "Em Manutenção").length}</p><p className="text-xs text-muted-foreground">Em Manutenção</p></CardContent></Card>
         <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-destructive">{equipamentos.filter(e => e.situacao === "Inativo" || e.situacao === "Desativado").length}</p><p className="text-xs text-muted-foreground">Inativos</p></CardContent></Card>
       </div>
 

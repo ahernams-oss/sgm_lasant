@@ -154,6 +154,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </EquipamentosProvider>
     </ChecklistsProvider>
     </EvidenciasProvider>
     </FerramentasProvider>
