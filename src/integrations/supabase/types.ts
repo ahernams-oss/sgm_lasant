@@ -1812,6 +1812,126 @@ export type Database = {
         }
         Relationships: []
       }
+      ordens_servico: {
+        Row: {
+          anexos: Json | null
+          bdi: number | null
+          categoria: string | null
+          cliente_id: string | null
+          cliente_nome: string | null
+          created_at: string | null
+          data_inicio: string | null
+          data_termino: string | null
+          descricao_conclusao: string | null
+          descricao_servicos: string | null
+          fotos: Json | null
+          hora_inicio: string | null
+          hora_termino: string | null
+          id: string
+          local_descricao: string | null
+          local_id: string | null
+          materiais: Json | null
+          materiais_estoque: Json | null
+          matricula: string | null
+          n_cliente: string | null
+          numero: number
+          observacoes_fiscalizacao: Json | null
+          operador_id: string | null
+          operador_nome: string | null
+          pavimento_descricao: string | null
+          pavimento_id: string | null
+          prioridade: string | null
+          ramal: string | null
+          ressalva_aprovacao: string | null
+          servico: string | null
+          setor_descricao: string | null
+          setor_id: string | null
+          situacao: string | null
+          solicitacao_id: string | null
+          solicitacao_numero: number | null
+          solicitante: string | null
+          telefone: string | null
+        }
+        Insert: {
+          anexos?: Json | null
+          bdi?: number | null
+          categoria?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          created_at?: string | null
+          data_inicio?: string | null
+          data_termino?: string | null
+          descricao_conclusao?: string | null
+          descricao_servicos?: string | null
+          fotos?: Json | null
+          hora_inicio?: string | null
+          hora_termino?: string | null
+          id?: string
+          local_descricao?: string | null
+          local_id?: string | null
+          materiais?: Json | null
+          materiais_estoque?: Json | null
+          matricula?: string | null
+          n_cliente?: string | null
+          numero?: number
+          observacoes_fiscalizacao?: Json | null
+          operador_id?: string | null
+          operador_nome?: string | null
+          pavimento_descricao?: string | null
+          pavimento_id?: string | null
+          prioridade?: string | null
+          ramal?: string | null
+          ressalva_aprovacao?: string | null
+          servico?: string | null
+          setor_descricao?: string | null
+          setor_id?: string | null
+          situacao?: string | null
+          solicitacao_id?: string | null
+          solicitacao_numero?: number | null
+          solicitante?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          anexos?: Json | null
+          bdi?: number | null
+          categoria?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          created_at?: string | null
+          data_inicio?: string | null
+          data_termino?: string | null
+          descricao_conclusao?: string | null
+          descricao_servicos?: string | null
+          fotos?: Json | null
+          hora_inicio?: string | null
+          hora_termino?: string | null
+          id?: string
+          local_descricao?: string | null
+          local_id?: string | null
+          materiais?: Json | null
+          materiais_estoque?: Json | null
+          matricula?: string | null
+          n_cliente?: string | null
+          numero?: number
+          observacoes_fiscalizacao?: Json | null
+          operador_id?: string | null
+          operador_nome?: string | null
+          pavimento_descricao?: string | null
+          pavimento_id?: string | null
+          prioridade?: string | null
+          ramal?: string | null
+          ressalva_aprovacao?: string | null
+          servico?: string | null
+          setor_descricao?: string | null
+          setor_id?: string | null
+          situacao?: string | null
+          solicitacao_id?: string | null
+          solicitacao_numero?: number | null
+          solicitante?: string | null
+          telefone?: string | null
+        }
+        Relationships: []
+      }
       pedidos_compra: {
         Row: {
           comprador: string | null
