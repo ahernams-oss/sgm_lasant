@@ -555,18 +555,18 @@ export default function SolicitacaoServicosPage() {
                           <Pencil className="mr-2 h-4 w-4" />Alterar Prioridade
                         </DropdownMenuItem>
                       )}
-                      {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
-                        <DropdownMenuItem onClick={() => requestCancel(s.id)}>
-                          <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar Solicitação
-                        </DropdownMenuItem>
-                      )}
                       <DropdownMenuItem onClick={() => handleSolicitarOrcamento(s)}>
                         <FileText className="mr-2 h-4 w-4" />Solicitar Orçamento
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
                       {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleEdit(s)}>
                           <Pencil className="mr-2 h-4 w-4" />Editar
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
+                        <DropdownMenuItem onClick={() => requestCancel(s.id)}>
+                          <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar Solicitação
                         </DropdownMenuItem>
                       )}
                       {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
