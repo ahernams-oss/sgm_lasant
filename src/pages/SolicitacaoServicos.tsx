@@ -583,7 +583,7 @@ export default function SolicitacaoServicosPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setApprovalDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleConfirmApproval} disabled={!selectedPrioridade}>Confirmar Aprovação</Button>
+            <Button onClick={handleConfirmApproval} disabled={!selectedPrioridade}>{prioridadeOnly ? "Confirmar Alteração" : "Confirmar Aprovação"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
