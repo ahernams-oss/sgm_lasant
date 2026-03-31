@@ -100,6 +100,54 @@ export default function OrdensServicoPage() {
   const [descricaoConclusao, setDescricaoConclusao] = useState("");
 
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: cancelCancelAction } = useDoubleConfirmDelete();
+
+  // Workflow action handler
+  const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
+    await updateOrdem(os.id, { situacao: novaSituacao });
+    toast.success(`OS ${os.numero} alterada para "${novaSituacao}"`);
+  };
+
+  const handleCancelOS = async () => {
+    if (cancelId) {
+      await updateOrdem(cancelId, { situacao: "Cancelada" });
+      toast.success("Ordem de Serviço cancelada!");
+      cancelCancelAction();
+    }
+  };
+
+  // Get available workflow actions based on current situação
+  const getWorkflowActions = (os: OrdemServico) => {
+    switch (os.situacao) {
+      case "Aberta":
+        return [
+          { label: "Executar", icon: Play, action: () => handleWorkflowAction(os, "Executada") },
+          { label: "Cancelar OS", icon: Ban, action: () => requestCancel(os.id), destructive: true },
+        ];
+      case "Executada":
+        return [
+          { label: "Serviço Confirmado", icon: ShieldCheck, action: () => handleWorkflowAction(os, "Serviço Confirmado") },
+          { label: "Serviço Não Aprovado pela Fiscalização", icon: ShieldX, action: () => handleWorkflowAction(os, "Serviço Não Aprovado pela Fiscalização") },
+        ];
+      case "Serviço Confirmado":
+        return [
+          { label: "Validar OS", icon: BadgeCheck, action: () => handleWorkflowAction(os, "Validada") },
+        ];
+      case "Serviço Não Aprovado pela Fiscalização":
+        return [
+          { label: "Serviço Re-executado", icon: RotateCcw, action: () => handleWorkflowAction(os, "Serviço Re-executado") },
+        ];
+      case "Serviço Re-executado":
+        return [
+          { label: "Serviço Confirmado", icon: ShieldCheck, action: () => handleWorkflowAction(os, "Serviço Confirmado") },
+          { label: "Serviço Não Aprovado pela Fiscalização", icon: ShieldX, action: () => handleWorkflowAction(os, "Serviço Não Aprovado pela Fiscalização") },
+        ];
+      case "Validada":
+      case "Cancelada":
+      default:
+        return [];
+    }
+  };
 
   const clienteSelecionado = clientesFiltrados.find(c => c.id === clienteId);
   const locais = clienteSelecionado?.locais || [];
