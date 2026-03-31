@@ -34,6 +34,7 @@ const SolicitacoesServicosContext = createContext<SolicitacoesServicosContextTyp
 const rowToSolicitacao = (r: any): SolicitacaoServico => ({
   id: r.id,
   numero: r.numero ?? 0,
+  tipo: r.tipo ?? "Predial",
   clienteId: r.cliente_id ?? "",
   clienteNome: r.cliente_nome ?? "",
   localId: r.local_id ?? "",
