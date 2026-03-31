@@ -71,6 +71,8 @@ import PmocPage from "./pages/Pmoc.tsx";
 import { PmocProvider } from "@/contexts/PmocContext";
 import SolicitacaoServicosPage from "@/pages/SolicitacaoServicos";
 import { SolicitacoesServicosProvider } from "@/contexts/SolicitacoesServicosContext";
+import OrdensServicoPage from "@/pages/OrdensServico";
+import { OrdensServicoProvider } from "@/contexts/OrdensServicoContext";
 
 const queryClient = new QueryClient();
 

@@ -277,7 +277,7 @@ export default function OrdensServicoPage() {
           </Table>
           {totalPages > 1 && (
             <div className="p-4">
-              <PaginationControls currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+              <PaginationControls currentPage={safePage} totalItems={ordensFiltradas.length} onPageChange={setPage} pageSize={ITEMS_PER_PAGE} />
             </div>
           )}
         </CardContent>
