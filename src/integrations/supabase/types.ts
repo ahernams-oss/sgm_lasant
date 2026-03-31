@@ -2944,8 +2944,10 @@ export type Database = {
           created_at: string | null
           email: string
           id: string
+          matricula: string | null
           nome: string
           perfil_acesso_id: string | null
+          ramal: string | null
           senha: string
           telefone: string | null
         }
@@ -2955,8 +2957,10 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
+          matricula?: string | null
           nome?: string
           perfil_acesso_id?: string | null
+          ramal?: string | null
           senha?: string
           telefone?: string | null
         }
@@ -2966,8 +2970,10 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
+          matricula?: string | null
           nome?: string
           perfil_acesso_id?: string | null
+          ramal?: string | null
           senha?: string
           telefone?: string | null
         }
