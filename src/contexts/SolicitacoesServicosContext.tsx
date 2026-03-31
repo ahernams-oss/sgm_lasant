@@ -18,6 +18,7 @@ export interface SolicitacaoServico {
   equipamentoNome: string;
   descricaoServicos: string;
   situacao: string;
+  prioridade: string;
   observacoes: string;
   imagens: string[];
   createdAt: string;
