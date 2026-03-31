@@ -99,6 +99,22 @@ export default function MateriaisServicosPage() {
     }
   };
 
+  const handlePhotoUpload = async (file: File) => {
+    if (form.fotos.length >= 5) { toast({ title: "Máximo de 5 fotos atingido", variant: "destructive" }); return; }
+    setUploadingPhoto(true);
+    const ext = file.name.split(".").pop();
+    const path = `materiais-fotos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
+    if (error) { toast({ title: "Erro no upload", variant: "destructive" }); setUploadingPhoto(false); return; }
+    const { data: urlData } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
+    setForm(f => ({ ...f, fotos: [...f.fotos, urlData.publicUrl] }));
+    setUploadingPhoto(false);
+  };
+
+  const removePhoto = (index: number) => {
+    setForm(f => ({ ...f, fotos: f.fotos.filter((_, i) => i !== index) }));
+  };
+
   const catNome = (id: string) => id ? getDescricaoCompleta(id) || "-" : "-";
 
   return (
