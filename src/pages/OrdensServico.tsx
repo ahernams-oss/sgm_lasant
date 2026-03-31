@@ -52,9 +52,11 @@ const situacaoBadge = (s: string) => {
   return <Badge>{s}</Badge>;
 };
 
+const PRIORIDADES = ["A: IMEDIATA", "B: (24 a 72H)", "C: PROGRAMADA"];
+
 const prioridadeBadge = (p: string) => {
-  if (p.startsWith("A")) return <Badge className="bg-red-600 text-white">{p}</Badge>;
-  if (p.startsWith("B")) return <Badge className="bg-yellow-500 text-white">{p}</Badge>;
+  if (p.startsWith("A")) return <Badge className="bg-destructive text-destructive-foreground">{p}</Badge>;
+  if (p.startsWith("B")) return <Badge style={{ backgroundColor: "#e7b73b", color: "#fff" }}>{p}</Badge>;
   return <Badge className="bg-green-600 text-white">{p}</Badge>;
 };
 
