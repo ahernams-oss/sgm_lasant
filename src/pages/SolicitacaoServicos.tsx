@@ -471,6 +471,10 @@ export default function SolicitacaoServicosPage() {
                     {s.numero}
                   </div>
                 </TableCell>
+                <TableCell className="text-xs whitespace-nowrap">
+                  {s.dataHoraSolicitacao ? new Date(s.dataHoraSolicitacao).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "-"}
+                </TableCell>
+                <TableCell className="text-xs">{s.solicitanteNome || "-"}</TableCell>
                 <TableCell>
                   <Badge variant="outline">{s.tipo}</Badge>
                 </TableCell>
