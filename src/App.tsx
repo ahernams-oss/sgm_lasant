@@ -69,6 +69,8 @@ import EquipamentosPage from "./pages/Equipamentos.tsx";
 import { EquipamentosProvider } from "@/contexts/EquipamentosContext";
 import PmocPage from "./pages/Pmoc.tsx";
 import { PmocProvider } from "@/contexts/PmocContext";
+import SolicitacaoServicosPage from "./pages/SolicitacaoServicos.tsx";
+import { SolicitacoesServicosProvider } from "@/contexts/SolicitacoesServicosContext";
 
 const queryClient = new QueryClient();
 
