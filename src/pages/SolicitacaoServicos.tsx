@@ -191,9 +191,10 @@ export default function SolicitacaoServicosPage() {
     }
   };
 
-  const handleOpenApproval = (id: string) => {
+  const handleOpenApproval = (id: string, onlyPriority = false) => {
     setApprovalTargetId(id);
     setSelectedPrioridade("");
+    setPrioridadeOnly(onlyPriority);
     setApprovalDialogOpen(true);
   };
 
