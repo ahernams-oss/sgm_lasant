@@ -20,6 +20,7 @@ const rowToUsuario = (r: any): Usuario => ({
   telefone: r.telefone ?? "", email: r.email ?? "", senha: r.senha ?? "",
   clientesPermitidos: r.clientes_permitidos ?? [],
   perfilAcessoId: r.perfil_acesso_id ?? "",
+  matricula: r.matricula ?? "", ramal: r.ramal ?? "",
 });
 
 const usuarioToRow = (u: Omit<Usuario, "id">) => ({
