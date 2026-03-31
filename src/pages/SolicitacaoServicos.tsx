@@ -438,7 +438,10 @@ export default function SolicitacaoServicosPage() {
                       s.situacao === "Cancelada" ? "destructive" :
                       s.situacao === "Em execução" ? "secondary" : "outline"
                     }
-                    className={s.situacao === "Aprovada" ? "bg-green-600 text-white border-green-600 hover:bg-green-700" : ""}
+                    className={
+                      s.situacao === "Aprovada" ? "bg-green-600 text-white border-green-600 hover:bg-green-700" :
+                      s.situacao === "Aguardando aprovação" ? "bg-yellow-500 text-white border-yellow-500 hover:bg-yellow-600" : ""
+                    }
                   >{s.situacao}</Badge>
                 </TableCell>
                 <TableCell>
