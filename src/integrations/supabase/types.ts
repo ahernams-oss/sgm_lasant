@@ -2718,6 +2718,63 @@ export type Database = {
         }
         Relationships: []
       }
+      solicitacoes_servicos: {
+        Row: {
+          cliente_id: string | null
+          cliente_nome: string | null
+          created_at: string | null
+          descricao_servicos: string | null
+          equipamento_id: string | null
+          equipamento_nome: string | null
+          id: string
+          local_descricao: string | null
+          local_id: string | null
+          numero: number
+          observacoes: string | null
+          pavimento_descricao: string | null
+          pavimento_id: string | null
+          setor_descricao: string | null
+          setor_id: string | null
+          situacao: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          created_at?: string | null
+          descricao_servicos?: string | null
+          equipamento_id?: string | null
+          equipamento_nome?: string | null
+          id?: string
+          local_descricao?: string | null
+          local_id?: string | null
+          numero?: number
+          observacoes?: string | null
+          pavimento_descricao?: string | null
+          pavimento_id?: string | null
+          setor_descricao?: string | null
+          setor_id?: string | null
+          situacao?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          created_at?: string | null
+          descricao_servicos?: string | null
+          equipamento_id?: string | null
+          equipamento_nome?: string | null
+          id?: string
+          local_descricao?: string | null
+          local_id?: string | null
+          numero?: number
+          observacoes?: string | null
+          pavimento_descricao?: string | null
+          pavimento_id?: string | null
+          setor_descricao?: string | null
+          setor_id?: string | null
+          situacao?: string | null
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
