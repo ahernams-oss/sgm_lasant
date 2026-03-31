@@ -128,7 +128,7 @@ export default function SolicitacaoServicosPage() {
     const setor = setores.find((s: any) => s.id === form.setor_id);
     const equip = equipamentosFiltrados.find((e: any) => e.id === form.equipamento_id);
 
-    const payload = {
+    const payload: any = {
       tipo: form.tipo,
       cliente_id: form.cliente_id,
       cliente_nome: cliente?.nome || "",
@@ -144,6 +144,12 @@ export default function SolicitacaoServicosPage() {
       situacao: form.situacao,
       imagens: imagensUrls,
     };
+
+    if (!editingId) {
+      payload.data_hora_solicitacao = new Date().toISOString();
+      payload.solicitante_id = usuarioLogado?.id || "";
+      payload.solicitante_nome = usuarioLogado?.nome || "";
+    }
 
     if (editingId) {
       await updateSolicitacao(editingId, payload);
