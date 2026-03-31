@@ -207,6 +207,25 @@ export default function MateriaisServicosPage() {
               </Select>
             </div>
             <div><Label>Estoque Mínimo</Label><Input type="number" min="0" value={form.estoqueMinimo} onChange={e => setForm(f => ({ ...f, estoqueMinimo: Number(e.target.value) }))} placeholder="0" /></div>
+            <div>
+              <Label className="flex items-center gap-2"><Camera className="h-4 w-4" />Fotos ({form.fotos.length}/5)</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {form.fotos.map((url, i) => (
+                  <div key={i} className="relative w-20 h-20 rounded-md overflow-hidden border border-border group">
+                    <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => removePhoto(i)} className="absolute top-0 right-0 bg-destructive text-destructive-foreground rounded-bl p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                {form.fotos.length < 5 && (
+                  <label className="w-20 h-20 rounded-md border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                    {uploadingPhoto ? <span className="text-xs text-muted-foreground">...</span> : <><Image className="h-5 w-5 text-muted-foreground" /><span className="text-[10px] text-muted-foreground mt-1">Adicionar</span></>}
+                    <input type="file" accept="image/*" className="hidden" disabled={uploadingPhoto} onChange={e => { if (e.target.files?.[0]) handlePhotoUpload(e.target.files[0]); e.target.value = ""; }} />
+                  </label>
+                )}
+              </div>
+            </div>
           </div>
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
         </DialogContent>
