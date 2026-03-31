@@ -379,7 +379,7 @@ export default function OrdensServicoPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label>Nº Cliente</Label>
-                <Input value={nCliente} onChange={e => setNCliente(e.target.value)} placeholder="Nº do cliente" disabled={!!editingId} className={editingId ? "bg-muted cursor-not-allowed" : ""} />
+                <Input value={nCliente} onChange={e => setNCliente(e.target.value)} placeholder="Nº do cliente" />
               </div>
               <div className="md:col-span-2">
                 <Label>Cliente *</Label>
