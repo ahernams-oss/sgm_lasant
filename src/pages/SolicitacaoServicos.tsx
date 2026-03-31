@@ -504,9 +504,11 @@ export default function SolicitacaoServicosPage() {
                       <DropdownMenuItem onClick={() => handleOpenApproval(s.id)}>
                         <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleCancelar(s.id)}>
-                        <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar Solicitação
-                      </DropdownMenuItem>
+                      {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
+                        <DropdownMenuItem onClick={() => handleCancelar(s.id)}>
+                          <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar Solicitação
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => handleSolicitarOrcamento(s)}>
                         <FileText className="mr-2 h-4 w-4" />Solicitar Orçamento
                       </DropdownMenuItem>
@@ -514,9 +516,11 @@ export default function SolicitacaoServicosPage() {
                       <DropdownMenuItem onClick={() => handleEdit(s)}>
                         <Pencil className="mr-2 h-4 w-4" />Editar
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => requestDelete(s.id)} className="text-destructive">
-                        <Trash2 className="mr-2 h-4 w-4" />Excluir
-                      </DropdownMenuItem>
+                      {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
+                        <DropdownMenuItem onClick={() => requestDelete(s.id)} className="text-destructive">
+                          <Trash2 className="mr-2 h-4 w-4" />Excluir
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
