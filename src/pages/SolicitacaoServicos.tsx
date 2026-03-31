@@ -443,6 +443,8 @@ export default function SolicitacaoServicosPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Nº</TableHead>
+              <TableHead>Data/Hora</TableHead>
+              <TableHead>Solicitante</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Local</TableHead>
