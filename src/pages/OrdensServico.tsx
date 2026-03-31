@@ -453,7 +453,17 @@ export default function OrdensServicoPage() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Nº SS</p>
-                  <p className="font-medium">{viewOS.solicitacaoNumero || "-"}</p>
+                  {viewOS.solicitacaoNumero ? (
+                    <button
+                      type="button"
+                      className="font-medium text-primary underline hover:text-primary/80 cursor-pointer"
+                      onClick={() => { setViewOS(null); navigate("/engenharia/solicitacao-servicos"); }}
+                    >
+                      SS {viewOS.solicitacaoNumero}
+                    </button>
+                  ) : (
+                    <p className="font-medium">-</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Situação</p>
