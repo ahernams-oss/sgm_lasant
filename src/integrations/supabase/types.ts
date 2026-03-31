@@ -658,6 +658,114 @@ export type Database = {
         }
         Relationships: []
       }
+      equipamentos: {
+        Row: {
+          capacidade_btu: string | null
+          cliente_id: string | null
+          cliente_nome: string | null
+          contrato: string | null
+          corrente: string | null
+          created_at: string | null
+          data_aquisicao: string | null
+          data_garantia: string | null
+          equipamento: string | null
+          expectativa_vida: string | null
+          fabricante: string | null
+          foto_url: string | null
+          grupo: string | null
+          id: string
+          local_descricao: string | null
+          local_id: string | null
+          manual_url: string | null
+          modelo: string | null
+          nivel_manutencao: string | null
+          nivel_risco: string | null
+          numero_anvisa: string | null
+          pavimento_descricao: string | null
+          pavimento_id: string | null
+          plano_manutencao: string | null
+          potencia: string | null
+          serie: string | null
+          setor_descricao: string | null
+          setor_id: string | null
+          situacao: string | null
+          subgrupo: string | null
+          tag: string | null
+          tensao: string | null
+          valor: number | null
+        }
+        Insert: {
+          capacidade_btu?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          contrato?: string | null
+          corrente?: string | null
+          created_at?: string | null
+          data_aquisicao?: string | null
+          data_garantia?: string | null
+          equipamento?: string | null
+          expectativa_vida?: string | null
+          fabricante?: string | null
+          foto_url?: string | null
+          grupo?: string | null
+          id?: string
+          local_descricao?: string | null
+          local_id?: string | null
+          manual_url?: string | null
+          modelo?: string | null
+          nivel_manutencao?: string | null
+          nivel_risco?: string | null
+          numero_anvisa?: string | null
+          pavimento_descricao?: string | null
+          pavimento_id?: string | null
+          plano_manutencao?: string | null
+          potencia?: string | null
+          serie?: string | null
+          setor_descricao?: string | null
+          setor_id?: string | null
+          situacao?: string | null
+          subgrupo?: string | null
+          tag?: string | null
+          tensao?: string | null
+          valor?: number | null
+        }
+        Update: {
+          capacidade_btu?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          contrato?: string | null
+          corrente?: string | null
+          created_at?: string | null
+          data_aquisicao?: string | null
+          data_garantia?: string | null
+          equipamento?: string | null
+          expectativa_vida?: string | null
+          fabricante?: string | null
+          foto_url?: string | null
+          grupo?: string | null
+          id?: string
+          local_descricao?: string | null
+          local_id?: string | null
+          manual_url?: string | null
+          modelo?: string | null
+          nivel_manutencao?: string | null
+          nivel_risco?: string | null
+          numero_anvisa?: string | null
+          pavimento_descricao?: string | null
+          pavimento_id?: string | null
+          plano_manutencao?: string | null
+          potencia?: string | null
+          serie?: string | null
+          setor_descricao?: string | null
+          setor_id?: string | null
+          situacao?: string | null
+          subgrupo?: string | null
+          tag?: string | null
+          tensao?: string | null
+          valor?: number | null
+        }
+        Relationships: []
+      }
       estoque_inventarios: {
         Row: {
           created_at: string | null
