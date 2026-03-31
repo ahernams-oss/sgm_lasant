@@ -59,6 +59,7 @@ export default function SolicitacaoServicosPage() {
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [approvalTargetId, setApprovalTargetId] = useState<string | null>(null);
   const [selectedPrioridade, setSelectedPrioridade] = useState<string>("");
+  const [prioridadeOnly, setPrioridadeOnly] = useState(false);
 
   const soClientes = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
 
@@ -190,9 +191,10 @@ export default function SolicitacaoServicosPage() {
     }
   };
 
-  const handleOpenApproval = (id: string) => {
+  const handleOpenApproval = (id: string, onlyPriority = false) => {
     setApprovalTargetId(id);
     setSelectedPrioridade("");
+    setPrioridadeOnly(onlyPriority);
     setApprovalDialogOpen(true);
   };
 
@@ -201,11 +203,17 @@ export default function SolicitacaoServicosPage() {
       toast({ title: "Selecione o nível de prioridade", variant: "destructive" });
       return;
     }
-    await updateSolicitacao(approvalTargetId, { situacao: "Aprovada", prioridade: selectedPrioridade });
-    toast({ title: `Solicitação aprovada como ${selectedPrioridade}` });
+    if (prioridadeOnly) {
+      await updateSolicitacao(approvalTargetId, { prioridade: selectedPrioridade });
+      toast({ title: `Prioridade alterada para ${selectedPrioridade}` });
+    } else {
+      await updateSolicitacao(approvalTargetId, { situacao: "Aprovada", prioridade: selectedPrioridade });
+      toast({ title: `Solicitação aprovada como ${selectedPrioridade}` });
+    }
     setApprovalDialogOpen(false);
     setApprovalTargetId(null);
     setSelectedPrioridade("");
+    setPrioridadeOnly(false);
   };
 
   const handleCancelar = async () => {
@@ -505,9 +513,16 @@ export default function SolicitacaoServicosPage() {
                       <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleOpenApproval(s.id)}>
-                        <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
-                      </DropdownMenuItem>
+                      {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
+                        <DropdownMenuItem onClick={() => handleOpenApproval(s.id)}>
+                          <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
+                        </DropdownMenuItem>
+                      )}
+                      {["Aprovada", "Em execução"].includes(s.situacao) && (
+                        <DropdownMenuItem onClick={() => handleOpenApproval(s.id, true)}>
+                          <Pencil className="mr-2 h-4 w-4" />Alterar Prioridade
+                        </DropdownMenuItem>
+                      )}
                       {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => requestCancel(s.id)}>
                           <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar Solicitação
@@ -544,7 +559,7 @@ export default function SolicitacaoServicosPage() {
       <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Aprovar Solicitação</DialogTitle>
+            <DialogTitle>{prioridadeOnly ? "Alterar Prioridade" : "Aprovar Solicitação"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Label className="font-bold">Selecione o nível de prioridade:</Label>
@@ -568,7 +583,7 @@ export default function SolicitacaoServicosPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setApprovalDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleConfirmApproval} disabled={!selectedPrioridade}>Confirmar Aprovação</Button>
+            <Button onClick={handleConfirmApproval} disabled={!selectedPrioridade}>{prioridadeOnly ? "Confirmar Alteração" : "Confirmar Aprovação"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
