@@ -203,11 +203,17 @@ export default function SolicitacaoServicosPage() {
       toast({ title: "Selecione o nível de prioridade", variant: "destructive" });
       return;
     }
-    await updateSolicitacao(approvalTargetId, { situacao: "Aprovada", prioridade: selectedPrioridade });
-    toast({ title: `Solicitação aprovada como ${selectedPrioridade}` });
+    if (prioridadeOnly) {
+      await updateSolicitacao(approvalTargetId, { prioridade: selectedPrioridade });
+      toast({ title: `Prioridade alterada para ${selectedPrioridade}` });
+    } else {
+      await updateSolicitacao(approvalTargetId, { situacao: "Aprovada", prioridade: selectedPrioridade });
+      toast({ title: `Solicitação aprovada como ${selectedPrioridade}` });
+    }
     setApprovalDialogOpen(false);
     setApprovalTargetId(null);
     setSelectedPrioridade("");
+    setPrioridadeOnly(false);
   };
 
   const handleCancelar = async () => {
