@@ -237,6 +237,8 @@ export default function SolicitacaoServicosPage() {
           telefone: usuarioLogado?.telefone || "",
           prioridade: prioridadeOS,
           situacao: "Aberta",
+          operador_id: usuarioLogado?.id || "",
+          operador_nome: usuarioLogado?.nome || "",
         });
       }
 
