@@ -344,7 +344,7 @@ export default function SolicitacaoServicosPage() {
           placeholder="Buscar solicitação..."
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1); }}
-          className="max-w-sm"
+          className="max-w-sm px-[30px] mx-[10px]"
         />
       </div>
 
