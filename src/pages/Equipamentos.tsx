@@ -385,7 +385,7 @@ export default function Equipamentos() {
         </DialogContent>
       </Dialog>
 
-      <DoubleConfirmDelete deleteId={deleteId} onConfirm={() => { if (deleteId) handleDelete(deleteId); }} onCancel={cancelDelete} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => { if (!open) cancelDelete(); }} onConfirm={() => { if (deleteId) handleDelete(deleteId); }} />
     </div>
   );
 }
