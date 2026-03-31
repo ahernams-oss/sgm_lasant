@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useOrdensServico, OrdemServico } from "@/contexts/OrdensServicoContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -47,6 +48,7 @@ export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
+  const navigate = useNavigate();
 
   const clientesFiltrados = clientes.filter(c => c.tipo === "Cliente");
 
@@ -452,7 +454,17 @@ export default function OrdensServicoPage() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Nº SS</p>
-                  <p className="font-medium">{viewOS.solicitacaoNumero || "-"}</p>
+                  {viewOS.solicitacaoNumero ? (
+                    <button
+                      type="button"
+                      className="font-medium text-primary underline hover:text-primary/80 cursor-pointer"
+                      onClick={() => { setViewOS(null); navigate("/engenharia/solicitacao-servicos"); }}
+                    >
+                      SS {viewOS.solicitacaoNumero}
+                    </button>
+                  ) : (
+                    <p className="font-medium">-</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Situação</p>
