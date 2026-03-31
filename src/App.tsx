@@ -123,6 +123,14 @@ function AppRoutes() {
             </SolicitacoesServicosProvider>
           }
         />
+        <Route
+          path="/engenharia/ordem-servico"
+          element={
+            <OrdensServicoProvider>
+              <OrdensServicoPage />
+            </OrdensServicoProvider>
+          }
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
