@@ -56,6 +56,9 @@ const rowToSolicitacao = (r: any): SolicitacaoServico => ({
   observacoes: r.observacoes ?? "",
   imagens: Array.isArray(r.imagens) ? r.imagens : [],
   createdAt: r.created_at ?? "",
+  dataHoraSolicitacao: r.data_hora_solicitacao ?? "",
+  solicitanteId: r.solicitante_id ?? "",
+  solicitanteNome: r.solicitante_nome ?? "",
 });
 
 export function SolicitacoesServicosProvider({ children }: { children: ReactNode }) {
