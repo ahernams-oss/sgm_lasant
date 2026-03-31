@@ -538,6 +538,7 @@ export default function SolicitacaoServicosPage() {
 
       <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
+      <DoubleConfirmDelete open={!!cancelId} onOpenChange={o => !o && abortCancel()} onConfirm={handleCancelar} />
 
       {/* Approval Dialog */}
       <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
