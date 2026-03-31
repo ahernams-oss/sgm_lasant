@@ -44,6 +44,9 @@ export default function SolicitacaoServicosPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [filterCliente, setFilterCliente] = useState("all");
+  const [filterTipo, setFilterTipo] = useState("all");
+  const [filterSituacao, setFilterSituacao] = useState("all");
   const [imagens, setImagens] = useState<{ file?: File; url: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -211,16 +214,28 @@ export default function SolicitacaoServicosPage() {
   };
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return solicitacoes;
-    const q = search.toLowerCase();
-    return solicitacoes.filter(s =>
-      s.clienteNome.toLowerCase().includes(q) ||
-      s.descricaoServicos.toLowerCase().includes(q) ||
-      s.situacao.toLowerCase().includes(q) ||
-      s.tipo.toLowerCase().includes(q) ||
-      String(s.numero).includes(q)
-    );
-  }, [solicitacoes, search]);
+    let result = solicitacoes;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(s =>
+        s.clienteNome.toLowerCase().includes(q) ||
+        s.descricaoServicos.toLowerCase().includes(q) ||
+        s.situacao.toLowerCase().includes(q) ||
+        s.tipo.toLowerCase().includes(q) ||
+        String(s.numero).includes(q)
+      );
+    }
+    if (filterCliente !== "all") result = result.filter(s => s.clienteId === filterCliente);
+    if (filterTipo !== "all") result = result.filter(s => s.tipo === filterTipo);
+    if (filterSituacao !== "all") result = result.filter(s => s.situacao === filterSituacao);
+    return result;
+  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao]);
+
+  const clientesUnicos = useMemo(() => {
+    const map = new Map<string, string>();
+    solicitacoes.forEach(s => { if (s.clienteId && s.clienteNome) map.set(s.clienteId, s.clienteNome); });
+    return Array.from(map.entries());
+  }, [solicitacoes]);
 
   const { paginated, totalPages } = paginate(filtered, page);
 
@@ -382,14 +397,36 @@ export default function SolicitacaoServicosPage() {
         </Collapsible>
       )}
 
-      {/* Search */}
-      <div className="flex justify-between items-center">
+      {/* Search & Filters */}
+      <div className="flex flex-wrap gap-3 items-end">
         <Input
           placeholder="Buscar solicitação..."
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1); }}
-          className="max-w-sm px-[30px] mx-[10px]"
+          className="max-w-xs"
         />
+        <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); setPage(1); }}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Cliente" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Clientes</SelectItem>
+            {clientesUnicos.map(([id, nome]) => <SelectItem key={id} value={id}>{nome}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterTipo} onValueChange={v => { setFilterTipo(v); setPage(1); }}>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Tipos</SelectItem>
+            <SelectItem value="Predial">Predial</SelectItem>
+            <SelectItem value="Equipamentos">Equipamentos</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterSituacao} onValueChange={v => { setFilterSituacao(v); setPage(1); }}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Situação" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as Situações</SelectItem>
+            {SITUACOES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
