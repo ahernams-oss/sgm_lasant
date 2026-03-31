@@ -49,6 +49,7 @@ const rowToSolicitacao = (r: any): SolicitacaoServico => ({
   equipamentoNome: r.equipamento_nome ?? "",
   descricaoServicos: r.descricao_servicos ?? "",
   situacao: r.situacao ?? "Aguardando aprovação",
+  prioridade: r.prioridade ?? "",
   observacoes: r.observacoes ?? "",
   imagens: Array.isArray(r.imagens) ? r.imagens : [],
   createdAt: r.created_at ?? "",
