@@ -69,6 +69,8 @@ import EquipamentosPage from "./pages/Equipamentos.tsx";
 import { EquipamentosProvider } from "@/contexts/EquipamentosContext";
 import PmocPage from "./pages/Pmoc.tsx";
 import { PmocProvider } from "@/contexts/PmocContext";
+import SolicitacaoServicosPage from "./pages/SolicitacaoServicos.tsx";
+import { SolicitacoesServicosProvider } from "@/contexts/SolicitacoesServicosContext";
 
 const queryClient = new QueryClient();
 
@@ -111,6 +113,7 @@ function AppRoutes() {
         <Route path="/qualidade/checklists" element={<ChecklistsPage />} />
         <Route path="/cadastros/equipamentos" element={<EquipamentosPage />} />
         <Route path="/pmoc" element={<PmocPage />} />
+        <Route path="/engenharia/solicitacao-servicos" element={<SolicitacaoServicosPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -145,6 +148,7 @@ const App = () => (
     <ChecklistsProvider>
     <EquipamentosProvider>
     <PmocProvider>
+    <SolicitacoesServicosProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
@@ -158,6 +162,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </SolicitacoesServicosProvider>
     </PmocProvider>
     </EquipamentosProvider>
     </ChecklistsProvider>
