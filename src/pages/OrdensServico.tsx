@@ -328,11 +328,23 @@ export default function OrdensServicoPage() {
                         <DropdownMenuItem onClick={() => setViewOS(os)}>
                           <Eye className="mr-2 h-4 w-4" /> Visualizar
                         </DropdownMenuItem>
-                        {!["Concluída", "Cancelada"].includes(os.situacao) && (
+                        {!["Validada", "Cancelada"].includes(os.situacao) && (
                           <DropdownMenuItem onClick={() => handleEdit(os)}>
                             <Pencil className="mr-2 h-4 w-4" /> Editar
                           </DropdownMenuItem>
                         )}
+                        {/* Workflow actions */}
+                        {getWorkflowActions(os).length > 0 && <DropdownMenuSeparator />}
+                        {getWorkflowActions(os).map((action, idx) => (
+                          <DropdownMenuItem
+                            key={idx}
+                            onClick={action.action}
+                            className={action.destructive ? "text-destructive" : ""}
+                          >
+                            <action.icon className="mr-2 h-4 w-4" /> {action.label}
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => requestDelete(os.id)} className="text-destructive">
                           <Trash2 className="mr-2 h-4 w-4" /> Excluir
                         </DropdownMenuItem>
