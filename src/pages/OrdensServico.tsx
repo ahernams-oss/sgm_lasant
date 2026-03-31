@@ -221,6 +221,7 @@ export default function OrdensServicoPage() {
     } else {
       const nextNumero = ordens.length > 0 ? Math.max(...ordens.map(o => o.numero)) + 1 : 1;
       row.numero = nextNumero;
+      row.situacao = "Aberta";
       row.operador_id = usuarioLogado?.id || "";
       row.operador_nome = usuarioLogado?.nome || "";
       await addOrdem(row);
