@@ -2727,6 +2727,7 @@ export type Database = {
           equipamento_id: string | null
           equipamento_nome: string | null
           id: string
+          imagens: Json | null
           local_descricao: string | null
           local_id: string | null
           numero: number
@@ -2736,6 +2737,7 @@ export type Database = {
           setor_descricao: string | null
           setor_id: string | null
           situacao: string | null
+          tipo: string | null
         }
         Insert: {
           cliente_id?: string | null
@@ -2745,6 +2747,7 @@ export type Database = {
           equipamento_id?: string | null
           equipamento_nome?: string | null
           id?: string
+          imagens?: Json | null
           local_descricao?: string | null
           local_id?: string | null
           numero?: number
@@ -2754,6 +2757,7 @@ export type Database = {
           setor_descricao?: string | null
           setor_id?: string | null
           situacao?: string | null
+          tipo?: string | null
         }
         Update: {
           cliente_id?: string | null
@@ -2763,6 +2767,7 @@ export type Database = {
           equipamento_id?: string | null
           equipamento_nome?: string | null
           id?: string
+          imagens?: Json | null
           local_descricao?: string | null
           local_id?: string | null
           numero?: number
@@ -2772,6 +2777,7 @@ export type Database = {
           setor_descricao?: string | null
           setor_id?: string | null
           situacao?: string | null
+          tipo?: string | null
         }
         Relationships: []
       }
