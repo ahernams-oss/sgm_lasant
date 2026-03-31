@@ -53,6 +53,7 @@ export default function SolicitacaoServicosPage() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: abortCancel } = useDoubleConfirmDelete();
 
   // Approval dialog state
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
@@ -207,9 +208,12 @@ export default function SolicitacaoServicosPage() {
     setSelectedPrioridade("");
   };
 
-  const handleCancelar = async (id: string) => {
-    await updateSolicitacao(id, { situacao: "Cancelada" });
-    toast({ title: "Solicitação cancelada" });
+  const handleCancelar = async () => {
+    if (cancelId) {
+      await updateSolicitacao(cancelId, { situacao: "Cancelada" });
+      toast({ title: "Solicitação cancelada" });
+      abortCancel();
+    }
   };
 
   const handleSolicitarOrcamento = (s: any) => {
@@ -505,7 +509,7 @@ export default function SolicitacaoServicosPage() {
                         <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
                       </DropdownMenuItem>
                       {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
-                        <DropdownMenuItem onClick={() => handleCancelar(s.id)}>
+                        <DropdownMenuItem onClick={() => requestCancel(s.id)}>
                           <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar Solicitação
                         </DropdownMenuItem>
                       )}
@@ -534,6 +538,7 @@ export default function SolicitacaoServicosPage() {
 
       <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
+      <DoubleConfirmDelete open={!!cancelId} onOpenChange={o => !o && abortCancel()} onConfirm={handleCancelar} />
 
       {/* Approval Dialog */}
       <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
