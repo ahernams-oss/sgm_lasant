@@ -214,16 +214,28 @@ export default function SolicitacaoServicosPage() {
   };
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return solicitacoes;
-    const q = search.toLowerCase();
-    return solicitacoes.filter(s =>
-      s.clienteNome.toLowerCase().includes(q) ||
-      s.descricaoServicos.toLowerCase().includes(q) ||
-      s.situacao.toLowerCase().includes(q) ||
-      s.tipo.toLowerCase().includes(q) ||
-      String(s.numero).includes(q)
-    );
-  }, [solicitacoes, search]);
+    let result = solicitacoes;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(s =>
+        s.clienteNome.toLowerCase().includes(q) ||
+        s.descricaoServicos.toLowerCase().includes(q) ||
+        s.situacao.toLowerCase().includes(q) ||
+        s.tipo.toLowerCase().includes(q) ||
+        String(s.numero).includes(q)
+      );
+    }
+    if (filterCliente !== "all") result = result.filter(s => s.clienteId === filterCliente);
+    if (filterTipo !== "all") result = result.filter(s => s.tipo === filterTipo);
+    if (filterSituacao !== "all") result = result.filter(s => s.situacao === filterSituacao);
+    return result;
+  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao]);
+
+  const clientesUnicos = useMemo(() => {
+    const map = new Map<string, string>();
+    solicitacoes.forEach(s => { if (s.clienteId && s.clienteNome) map.set(s.clienteId, s.clienteNome); });
+    return Array.from(map.entries());
+  }, [solicitacoes]);
 
   const { paginated, totalPages } = paginate(filtered, page);
 
