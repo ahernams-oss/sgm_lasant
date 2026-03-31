@@ -450,12 +450,7 @@ export default function OrdensServicoPage() {
               </div>
               <div>
                 <Label>Situação</Label>
-                <Select value={situacao} onValueChange={setSituacao}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {SITUACOES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Input value={situacao} disabled className="bg-muted cursor-not-allowed" />
               </div>
             </div>
 
