@@ -682,8 +682,22 @@ function QualidadeArTab() {
   const handleSave = async () => {
     if (dialogType === "ponto") {
       if (!pontoForm.descricao.trim()) { toast({ title: "Descrição obrigatória", variant: "destructive" }); return; }
-      if (editingId) { await updatePontoQA(editingId, pontoForm); toast({ title: "Ponto atualizado" }); }
-      else { await addPontoQA(pontoForm); toast({ title: "Ponto cadastrado" }); }
+      // Resolve names from IDs for storage
+      const cliente = soClientes.find(c => c.id === pontoForm.cliente_id);
+      const local = (cliente?.locais || []).find((l: any) => l.id === pontoForm.local_id);
+      const pav = (local?.pavimentos || []).find((p: any) => p.id === pontoForm.pavimento_id);
+      const setor = (pav?.setores || []).find((s: any) => s.id === pontoForm.setor_id);
+      const payload = {
+        descricao: pontoForm.descricao,
+        cliente_id: pontoForm.cliente_id,
+        ambiente: pontoForm.local_id, // store local_id in ambiente field
+        edificio: pontoForm.setor_id, // store setor_id in edificio field
+        pavimento: pontoForm.pavimento_id, // store pavimento_id
+        tipo_ambiente: pontoForm.tipo_ambiente,
+        periodicidade_coleta: pontoForm.periodicidade_coleta,
+      };
+      if (editingId) { await updatePontoQA(editingId, payload); toast({ title: "Ponto atualizado" }); }
+      else { await addPontoQA(payload); toast({ title: "Ponto cadastrado" }); }
     } else {
       if (!medicaoForm.ponto_id) { toast({ title: "Selecione um ponto", variant: "destructive" }); return; }
       const data = { ...medicaoForm, temperatura: medicaoForm.temperatura ? Number(medicaoForm.temperatura) : null, umidade: medicaoForm.umidade ? Number(medicaoForm.umidade) : null, co2: medicaoForm.co2 ? Number(medicaoForm.co2) : null, renovacao_ar: medicaoForm.renovacao_ar ? Number(medicaoForm.renovacao_ar) : null, pressao_diferencial: medicaoForm.pressao_diferencial ? Number(medicaoForm.pressao_diferencial) : null };
