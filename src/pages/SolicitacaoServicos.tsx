@@ -513,9 +513,16 @@ export default function SolicitacaoServicosPage() {
                       <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleOpenApproval(s.id)}>
-                        <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
-                      </DropdownMenuItem>
+                      {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
+                        <DropdownMenuItem onClick={() => handleOpenApproval(s.id)}>
+                          <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
+                        </DropdownMenuItem>
+                      )}
+                      {["Aprovada", "Em execução"].includes(s.situacao) && (
+                        <DropdownMenuItem onClick={() => handleOpenApproval(s.id, true)}>
+                          <Pencil className="mr-2 h-4 w-4" />Alterar Prioridade
+                        </DropdownMenuItem>
+                      )}
                       {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => requestCancel(s.id)}>
                           <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar Solicitação
