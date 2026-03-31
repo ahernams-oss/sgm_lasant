@@ -3,6 +3,7 @@ import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext"
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { supabase } from "@/integrations/supabase/client";
