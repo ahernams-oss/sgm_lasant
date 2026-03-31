@@ -44,6 +44,9 @@ export default function SolicitacaoServicosPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [filterCliente, setFilterCliente] = useState("all");
+  const [filterTipo, setFilterTipo] = useState("all");
+  const [filterSituacao, setFilterSituacao] = useState("all");
   const [imagens, setImagens] = useState<{ file?: File; url: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
