@@ -56,6 +56,7 @@ export function MateriaisServicosProvider({ children }: { children: ReactNode })
       codigo: merged.codigo, descricao: merged.descricao, tipo: merged.tipo,
       unidade_medida: merged.unidadeMedida, categoria_id: merged.categoriaId,
       fabricante_id: merged.fabricanteId, estoque_minimo: merged.estoqueMinimo,
+      fotos: merged.fotos || [],
     });
     await load();
   };
