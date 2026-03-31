@@ -12,28 +12,44 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import {
   Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, ChevronDown, ChevronUp,
-  ClipboardList, Clock, CheckCircle2, XCircle, AlertTriangle, Wrench
+  ClipboardList, Clock, CheckCircle2, XCircle, AlertTriangle, Wrench, Play, ShieldCheck, ShieldX, RotateCcw, BadgeCheck, Ban
 } from "lucide-react";
 
-const SITUACOES = ["Aberta", "Em Execução", "Aguardando Material", "Concluída", "Cancelada"];
-const PRIORIDADES = ["A: IMEDIATA", "B: (24 a 72H)", "C: PROGRAMADA"];
+const SITUACOES_WORKFLOW = [
+  "Aberta",
+  "Executada",
+  "Serviço Confirmado",
+  "Validada",
+  "Serviço Não Aprovado pela Fiscalização",
+  "Serviço Re-executado",
+  "OS com Orçamento",
+  "Cancelada",
+];
+
+const SITUACAO_CORES: Record<string, string> = {
+  "Aberta": "#e7b73b",
+  "Executada": "#26379e",
+  "Serviço Confirmado": "#ff0000",
+  "Validada": "#2a8819",
+  "Serviço Não Aprovado pela Fiscalização": "#400040",
+  "Serviço Re-executado": "#6acfff",
+  "OS com Orçamento": "#6b7280",
+  "Cancelada": "#dc2626",
+};
 
 const situacaoBadge = (s: string) => {
-  switch (s) {
-    case "Aberta": return <Badge className="bg-blue-500 text-white">{s}</Badge>;
-    case "Em Execução": return <Badge className="bg-yellow-500 text-white">{s}</Badge>;
-    case "Aguardando Material": return <Badge className="bg-orange-500 text-white">{s}</Badge>;
-    case "Concluída": return <Badge className="bg-green-600 text-white">{s}</Badge>;
-    case "Cancelada": return <Badge variant="destructive">{s}</Badge>;
-    default: return <Badge>{s}</Badge>;
+  const cor = SITUACAO_CORES[s];
+  if (cor) {
+    return <Badge style={{ backgroundColor: cor, color: "#fff" }}>{s}</Badge>;
   }
+  return <Badge>{s}</Badge>;
 };
 
 const prioridadeBadge = (p: string) => {
