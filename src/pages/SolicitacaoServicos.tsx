@@ -513,9 +513,11 @@ export default function SolicitacaoServicosPage() {
                         <FileText className="mr-2 h-4 w-4" />Solicitar Orçamento
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => handleEdit(s)}>
-                        <Pencil className="mr-2 h-4 w-4" />Editar
-                      </DropdownMenuItem>
+                      {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
+                        <DropdownMenuItem onClick={() => handleEdit(s)}>
+                          <Pencil className="mr-2 h-4 w-4" />Editar
+                        </DropdownMenuItem>
+                      )}
                       {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => requestDelete(s.id)} className="text-destructive">
                           <Trash2 className="mr-2 h-4 w-4" />Excluir
