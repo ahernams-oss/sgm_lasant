@@ -113,6 +113,7 @@ function AppRoutes() {
         <Route path="/qualidade/checklists" element={<ChecklistsPage />} />
         <Route path="/cadastros/equipamentos" element={<EquipamentosPage />} />
         <Route path="/pmoc" element={<PmocPage />} />
+        <Route path="/engenharia/solicitacao-servicos" element={<SolicitacaoServicosPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
