@@ -4,6 +4,7 @@ import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper"
 export interface SolicitacaoServico {
   id: string;
   numero: number;
+  tipo: string;
   clienteId: string;
   clienteNome: string;
   localId: string;
@@ -17,6 +18,7 @@ export interface SolicitacaoServico {
   descricaoServicos: string;
   situacao: string;
   observacoes: string;
+  imagens: string[];
   createdAt: string;
 }
 
@@ -32,6 +34,7 @@ const SolicitacoesServicosContext = createContext<SolicitacoesServicosContextTyp
 const rowToSolicitacao = (r: any): SolicitacaoServico => ({
   id: r.id,
   numero: r.numero ?? 0,
+  tipo: r.tipo ?? "Predial",
   clienteId: r.cliente_id ?? "",
   clienteNome: r.cliente_nome ?? "",
   localId: r.local_id ?? "",
@@ -45,6 +48,7 @@ const rowToSolicitacao = (r: any): SolicitacaoServico => ({
   descricaoServicos: r.descricao_servicos ?? "",
   situacao: r.situacao ?? "Aguardando aprovação",
   observacoes: r.observacoes ?? "",
+  imagens: Array.isArray(r.imagens) ? r.imagens : [],
   createdAt: r.created_at ?? "",
 });
 
