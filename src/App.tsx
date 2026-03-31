@@ -65,6 +65,8 @@ import EvidenciasPage from "./pages/Evidencias.tsx";
 import ChecklistsPage from "./pages/Checklists.tsx";
 import { EvidenciasProvider } from "@/contexts/EvidenciasContext";
 import { ChecklistsProvider } from "@/contexts/ChecklistsContext";
+import EquipamentosPage from "./pages/Equipamentos.tsx";
+import { EquipamentosProvider } from "@/contexts/EquipamentosContext";
 
 const queryClient = new QueryClient();
 
