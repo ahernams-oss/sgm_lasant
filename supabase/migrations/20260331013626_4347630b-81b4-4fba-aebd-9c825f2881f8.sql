@@ -1,0 +1,1 @@
+CREATE POLICY "Allow all for anon" ON public.solicitacoes_servicos FOR ALL TO anon USING (true) WITH CHECK (true);
