@@ -166,6 +166,10 @@ export default function OrdensServicoPage() {
     setEditingId(null);
   };
 
+  const [editLocalDesc, setEditLocalDesc] = useState("");
+  const [editPavDesc, setEditPavDesc] = useState("");
+  const [editSetorDesc, setEditSetorDesc] = useState("");
+
   const handleEdit = (os: OrdemServico) => {
     setEditingId(os.id);
     setClienteId(os.clienteId); setNCliente(os.nCliente); setSituacao(os.situacao);
@@ -174,6 +178,7 @@ export default function OrdensServicoPage() {
     setPrioridade(os.prioridade); setSolicitante(os.solicitante);
     setMatricula(os.matricula); setRamal(os.ramal); setTelefone(os.telefone);
     setLocalId(os.localId); setPavimentoId(os.pavimentoId); setSetorId(os.setorId);
+    setEditLocalDesc(os.localDescricao); setEditPavDesc(os.pavimentoDescricao); setEditSetorDesc(os.setorDescricao);
     setCategoria(os.categoria); setServico(os.servico);
     setDescricaoServicos(os.descricaoServicos); setRessalvaAprovacao(os.ressalvaAprovacao);
     setDescricaoConclusao(os.descricaoConclusao);
@@ -374,16 +379,20 @@ export default function OrdensServicoPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label>Nº Cliente</Label>
-                <Input value={nCliente} onChange={e => setNCliente(e.target.value)} placeholder="Nº do cliente" />
+                <Input value={nCliente} onChange={e => setNCliente(e.target.value)} placeholder="Nº do cliente" disabled={!!editingId} className={editingId ? "bg-muted cursor-not-allowed" : ""} />
               </div>
               <div className="md:col-span-2">
                 <Label>Cliente *</Label>
-                <Select value={clienteId} onValueChange={v => { setClienteId(v); setLocalId(""); setPavimentoId(""); setSetorId(""); }}>
-                  <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
-                  <SelectContent>
-                    {clientesFiltrados.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                {editingId ? (
+                  <Input value={clientesFiltrados.find(c => c.id === clienteId)?.nome || ""} disabled className="bg-muted cursor-not-allowed" />
+                ) : (
+                  <Select value={clienteId} onValueChange={v => { setClienteId(v); setLocalId(""); setPavimentoId(""); setSetorId(""); }}>
+                    <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
+                    <SelectContent>
+                      {clientesFiltrados.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
 
@@ -391,30 +400,42 @@ export default function OrdensServicoPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label>Local</Label>
-                <Select value={localId} onValueChange={v => { setLocalId(v); setPavimentoId(""); setSetorId(""); }}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    {(locais as any[]).map((l: any) => <SelectItem key={l.id} value={l.id}>{l.descricao}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                {editingId ? (
+                  <Input value={editLocalDesc || ""} disabled className="bg-muted cursor-not-allowed" />
+                ) : (
+                  <Select value={localId} onValueChange={v => { setLocalId(v); setPavimentoId(""); setSetorId(""); }}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {(locais as any[]).map((l: any) => <SelectItem key={l.id} value={l.id}>{l.descricao}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div>
                 <Label>Pavimento</Label>
-                <Select value={pavimentoId} onValueChange={v => { setPavimentoId(v); setSetorId(""); }}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    {(pavimentos as any[]).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.descricao}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                {editingId ? (
+                  <Input value={editPavDesc || ""} disabled className="bg-muted cursor-not-allowed" />
+                ) : (
+                  <Select value={pavimentoId} onValueChange={v => { setPavimentoId(v); setSetorId(""); }}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {(pavimentos as any[]).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.descricao}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div>
                 <Label>Setor</Label>
-                <Select value={setorId} onValueChange={setSetorId}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    {(setores as any[]).map((s: any) => <SelectItem key={s.id} value={s.id}>{s.descricao}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                {editingId ? (
+                  <Input value={editSetorDesc || ""} disabled className="bg-muted cursor-not-allowed" />
+                ) : (
+                  <Select value={setorId} onValueChange={setSetorId}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {(setores as any[]).map((s: any) => <SelectItem key={s.id} value={s.id}>{s.descricao}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
 
