@@ -166,6 +166,10 @@ export default function OrdensServicoPage() {
     setEditingId(null);
   };
 
+  const [editLocalDesc, setEditLocalDesc] = useState("");
+  const [editPavDesc, setEditPavDesc] = useState("");
+  const [editSetorDesc, setEditSetorDesc] = useState("");
+
   const handleEdit = (os: OrdemServico) => {
     setEditingId(os.id);
     setClienteId(os.clienteId); setNCliente(os.nCliente); setSituacao(os.situacao);
@@ -174,6 +178,7 @@ export default function OrdensServicoPage() {
     setPrioridade(os.prioridade); setSolicitante(os.solicitante);
     setMatricula(os.matricula); setRamal(os.ramal); setTelefone(os.telefone);
     setLocalId(os.localId); setPavimentoId(os.pavimentoId); setSetorId(os.setorId);
+    setEditLocalDesc(os.localDescricao); setEditPavDesc(os.pavimentoDescricao); setEditSetorDesc(os.setorDescricao);
     setCategoria(os.categoria); setServico(os.servico);
     setDescricaoServicos(os.descricaoServicos); setRessalvaAprovacao(os.ressalvaAprovacao);
     setDescricaoConclusao(os.descricaoConclusao);
