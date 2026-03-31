@@ -397,14 +397,36 @@ export default function SolicitacaoServicosPage() {
         </Collapsible>
       )}
 
-      {/* Search */}
-      <div className="flex justify-between items-center">
+      {/* Search & Filters */}
+      <div className="flex flex-wrap gap-3 items-end">
         <Input
           placeholder="Buscar solicitação..."
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1); }}
-          className="max-w-sm px-[30px] mx-[10px]"
+          className="max-w-xs"
         />
+        <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); setPage(1); }}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Cliente" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Clientes</SelectItem>
+            {clientesUnicos.map(([id, nome]) => <SelectItem key={id} value={id}>{nome}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterTipo} onValueChange={v => { setFilterTipo(v); setPage(1); }}>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Tipos</SelectItem>
+            <SelectItem value="Predial">Predial</SelectItem>
+            <SelectItem value="Equipamentos">Equipamentos</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterSituacao} onValueChange={v => { setFilterSituacao(v); setPage(1); }}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Situação" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as Situações</SelectItem>
+            {SITUACOES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
