@@ -4,7 +4,7 @@ import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper"
 export interface Usuario {
   id: string; nome: string; cargoId: string; telefone: string;
   email: string; senha: string; clientesPermitidos: string[];
-  perfilAcessoId: string;
+  perfilAcessoId: string; matricula: string; ramal: string;
 }
 
 interface UsuariosContextType {
@@ -20,12 +20,13 @@ const rowToUsuario = (r: any): Usuario => ({
   telefone: r.telefone ?? "", email: r.email ?? "", senha: r.senha ?? "",
   clientesPermitidos: r.clientes_permitidos ?? [],
   perfilAcessoId: r.perfil_acesso_id ?? "",
+  matricula: r.matricula ?? "", ramal: r.ramal ?? "",
 });
 
 const usuarioToRow = (u: Omit<Usuario, "id">) => ({
   nome: u.nome, cargo_id: u.cargoId, telefone: u.telefone,
   email: u.email, senha: u.senha, clientes_permitidos: u.clientesPermitidos as any,
-  perfil_acesso_id: u.perfilAcessoId,
+  perfil_acesso_id: u.perfilAcessoId, matricula: u.matricula, ramal: u.ramal,
 });
 
 export function UsuariosProvider({ children }: { children: ReactNode }) {

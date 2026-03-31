@@ -22,6 +22,7 @@ import { toast } from "sonner";
 const emptyForm = {
   nome: "", cargoId: "", telefone: "+55 ", email: "", senha: "",
   clientesPermitidos: [] as string[], perfilAcessoId: "",
+  matricula: "", ramal: "",
 };
 
 const Usuarios = () => {
@@ -79,7 +80,7 @@ const Usuarios = () => {
     setForm({
       nome: u.nome, cargoId: u.cargoId, telefone: u.telefone,
       email: u.email, senha: "", clientesPermitidos: [...u.clientesPermitidos],
-      perfilAcessoId: u.perfilAcessoId,
+      perfilAcessoId: u.perfilAcessoId, matricula: u.matricula, ramal: u.ramal,
     });
     setEditingId(u.id);
     setShowForm(true);
@@ -174,6 +175,14 @@ const Usuarios = () => {
                       }}
                       placeholder="+55 21 99999-9999"
                     />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-foreground/80">Matrícula</Label>
+                    <Input value={form.matricula} onChange={(e) => update("matricula", e.target.value)} placeholder="Matrícula" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-foreground/80">Ramal</Label>
+                    <Input value={form.ramal} onChange={(e) => update("ramal", e.target.value)} placeholder="Ramal" />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-foreground/80">E-mail *</Label>

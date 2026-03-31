@@ -3,6 +3,7 @@ import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext"
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { supabase } from "@/integrations/supabase/client";
@@ -198,6 +199,8 @@ export default function SolicitacaoServicosPage() {
     setApprovalDialogOpen(true);
   };
 
+  const { addOrdem } = useOrdensServico();
+
   const handleConfirmApproval = async () => {
     if (!approvalTargetId || !selectedPrioridade) {
       toast({ title: "Selecione o nível de prioridade", variant: "destructive" });
@@ -208,7 +211,36 @@ export default function SolicitacaoServicosPage() {
       toast({ title: `Prioridade alterada para ${selectedPrioridade}` });
     } else {
       await updateSolicitacao(approvalTargetId, { situacao: "Aprovada", prioridade: selectedPrioridade });
-      toast({ title: `Solicitação aprovada como ${selectedPrioridade}` });
+
+      // Auto-create OS linked to this SS
+      const ss = solicitacoes.find(s => s.id === approvalTargetId);
+      if (ss) {
+        const prioridadeOS =
+          selectedPrioridade === "Emergencial" ? "A: IMEDIATA" :
+          selectedPrioridade === "Urgente" ? "B: (24 a 72H)" : "C: PROGRAMADA";
+
+        await addOrdem({
+          solicitacao_id: ss.id,
+          solicitacao_numero: ss.numero,
+          cliente_id: ss.clienteId,
+          cliente_nome: ss.clienteNome,
+          local_id: ss.localId,
+          local_descricao: ss.localDescricao,
+          pavimento_id: ss.pavimentoId,
+          pavimento_descricao: ss.pavimentoDescricao,
+          setor_id: ss.setorId,
+          setor_descricao: ss.setorDescricao,
+          descricao_servicos: ss.descricaoServicos,
+          solicitante: ss.solicitanteNome,
+          matricula: usuarioLogado?.matricula || "",
+          ramal: usuarioLogado?.ramal || "",
+          telefone: usuarioLogado?.telefone || "",
+          prioridade: prioridadeOS,
+          situacao: "Aberta",
+        });
+      }
+
+      toast({ title: `Solicitação aprovada e Ordem de Serviço criada` });
     }
     setApprovalDialogOpen(false);
     setApprovalTargetId(null);
