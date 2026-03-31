@@ -1,0 +1,1 @@
+ALTER TABLE public.materiais_servicos ADD COLUMN fotos jsonb DEFAULT '[]'::jsonb;
