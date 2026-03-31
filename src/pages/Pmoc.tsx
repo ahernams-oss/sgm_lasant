@@ -641,6 +641,8 @@ function ResponsaveisTecnicosTab() {
 // ====================== QUALIDADE DO AR TAB ======================
 function QualidadeArTab() {
   const { pontosQA, medicoesQA, addPontoQA, updatePontoQA, deletePontoQA, addMedicaoQA, updateMedicaoQA, deleteMedicaoQA } = usePmoc();
+  const { clientes } = useClientes();
+  const soClientes = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
   const { toast } = useToast();
   const [subTab, setSubTab] = useState<"pontos" | "medicoes">("pontos");
   const [dialogOpen, setDialogOpen] = useState(false);
