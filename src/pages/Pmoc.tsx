@@ -151,7 +151,7 @@ function PlanosTab() {
             <div><Label>Cliente</Label>
               <Select value={form.cliente_id} onValueChange={v => { const c = clientes.find(c => c.id === v); setForm(f => ({ ...f, cliente_id: v, cliente_nome: c?.nome || "" })); }}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>{clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
+                <SelectContent>{clientes.filter(c => c.tipo === "Cliente").map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div><Label>Unidade</Label><Input value={form.unidade} onChange={e => setForm(f => ({ ...f, unidade: e.target.value }))} /></div>
