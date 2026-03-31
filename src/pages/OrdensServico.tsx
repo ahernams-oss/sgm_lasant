@@ -193,7 +193,6 @@ export default function OrdensServicoPage() {
       n_cliente: nCliente,
       cliente_id: clienteId,
       cliente_nome: cliente?.nome || "",
-      situacao,
       data_inicio: dataInicio,
       hora_inicio: horaInicio,
       data_termino: dataTermino,
