@@ -4,6 +4,7 @@ import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper"
 export interface SolicitacaoServico {
   id: string;
   numero: number;
+  tipo: string;
   clienteId: string;
   clienteNome: string;
   localId: string;
@@ -17,6 +18,7 @@ export interface SolicitacaoServico {
   descricaoServicos: string;
   situacao: string;
   observacoes: string;
+  imagens: string[];
   createdAt: string;
 }
 
