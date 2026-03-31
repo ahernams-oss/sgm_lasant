@@ -432,11 +432,14 @@ export default function SolicitacaoServicosPage() {
                 <TableCell>{s.tipo === "Equipamentos" ? (s.equipamentoNome || "-") : "-"}</TableCell>
                 <TableCell className="max-w-[200px] truncate">{s.descricaoServicos || "-"}</TableCell>
                 <TableCell>
-                  <Badge variant={
-                    s.situacao === "Concluída" ? "default" :
-                    s.situacao === "Cancelada" ? "destructive" :
-                    s.situacao === "Em execução" ? "secondary" : "outline"
-                  }>{s.situacao}</Badge>
+                  <Badge
+                    variant={
+                      s.situacao === "Concluída" ? "default" :
+                      s.situacao === "Cancelada" ? "destructive" :
+                      s.situacao === "Em execução" ? "secondary" : "outline"
+                    }
+                    className={s.situacao === "Aprovada" ? "bg-green-600 text-white border-green-600 hover:bg-green-700" : ""}
+                  >{s.situacao}</Badge>
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
