@@ -183,8 +183,7 @@ export default function OrdensServicoPage() {
     });
   }, [ordens, busca, filtroSituacao]);
 
-  const totalPages = Math.max(1, Math.ceil(ordensFiltradas.length / ITEMS_PER_PAGE));
-  const ordensPage = ordensFiltradas.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const { paginated: ordensPage, totalPages, safePage } = paginate(ordensFiltradas, page, ITEMS_PER_PAGE);
 
   return (
     <div className="space-y-4">
