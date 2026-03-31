@@ -166,6 +166,7 @@ export default function MateriaisServicosPage() {
                 <TableCell>{m.descricao}</TableCell>
                 <TableCell>{m.tipo}</TableCell>
                 <TableCell>{m.unidadeMedida}</TableCell>
+                <TableCell>{(m.fotos?.length || 0) > 0 ? <span className="flex items-center gap-1 text-primary"><Camera className="h-3.5 w-3.5" />{m.fotos.length}</span> : "-"}</TableCell>
                 <TableCell>{catNome(m.categoriaId)}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
