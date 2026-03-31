@@ -3,6 +3,7 @@ import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/Double
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useMateriaisServicos, MaterialServico } from "@/contexts/MateriaisServicosContext";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
+import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Search, Upload, FileText, FileSpreadsheet } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Upload, FileText, FileSpreadsheet, Camera, X, Image } from "lucide-react";
 import { gerarPdfMateriaisServicos, gerarExcelMateriaisServicos } from "@/lib/gerarRelatorioMateriaisServicos";
 import * as XLSX from "xlsx";
 
