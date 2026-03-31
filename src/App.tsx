@@ -158,6 +158,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </PmocProvider>
     </EquipamentosProvider>
     </ChecklistsProvider>
     </EvidenciasProvider>

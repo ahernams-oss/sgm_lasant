@@ -93,6 +93,10 @@ const menuItems = [
     items: [{ title: "Licitações", url: "/licitacoes", icon: Gavel }],
   },
   {
+    group: "PMOC",
+    items: [{ title: "PMOC", url: "/pmoc", icon: Fan }],
+  },
+  {
     group: "Qualidade",
     items: [
       { title: "Registro de Evidências", url: "/qualidade/evidencias", icon: ShieldCheck },
