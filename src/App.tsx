@@ -67,6 +67,8 @@ import { EvidenciasProvider } from "@/contexts/EvidenciasContext";
 import { ChecklistsProvider } from "@/contexts/ChecklistsContext";
 import EquipamentosPage from "./pages/Equipamentos.tsx";
 import { EquipamentosProvider } from "@/contexts/EquipamentosContext";
+import PmocPage from "./pages/Pmoc.tsx";
+import { PmocProvider } from "@/contexts/PmocContext";
 
 const queryClient = new QueryClient();
 
