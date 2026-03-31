@@ -401,7 +401,7 @@ export default function OrdensServicoPage() {
               <div>
                 <Label>Local</Label>
                 {editingId ? (
-                  <Input value={(locais as any[]).find((l: any) => l.id === localId)?.descricao || localId || ""} disabled className="bg-muted cursor-not-allowed" />
+                  <Input value={editLocalDesc || ""} disabled className="bg-muted cursor-not-allowed" />
                 ) : (
                   <Select value={localId} onValueChange={v => { setLocalId(v); setPavimentoId(""); setSetorId(""); }}>
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
