@@ -800,9 +800,30 @@ function QualidadeArTab() {
           {dialogType === "ponto" ? (
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2"><Label>Descrição *</Label><Input value={pontoForm.descricao} onChange={e => setPontoForm(f => ({ ...f, descricao: e.target.value }))} /></div>
-              <div><Label>Ambiente</Label><Input value={pontoForm.ambiente} onChange={e => setPontoForm(f => ({ ...f, ambiente: e.target.value }))} /></div>
-              <div><Label>Edifício</Label><Input value={pontoForm.edificio} onChange={e => setPontoForm(f => ({ ...f, edificio: e.target.value }))} /></div>
-              <div><Label>Pavimento</Label><Input value={pontoForm.pavimento} onChange={e => setPontoForm(f => ({ ...f, pavimento: e.target.value }))} /></div>
+              <div><Label>Cliente</Label>
+                <Select value={pontoForm.cliente_id} onValueChange={v => setPontoForm(f => ({ ...f, cliente_id: v, local_id: "", pavimento_id: "", setor_id: "" }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>{soClientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div><Label>Local</Label>
+                <Select value={pontoForm.local_id} onValueChange={v => setPontoForm(f => ({ ...f, local_id: v, pavimento_id: "", setor_id: "" }))} disabled={!pontoForm.cliente_id}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>{selectedClienteLocais.map((l: any) => <SelectItem key={l.id} value={l.id}>{l.descricao}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div><Label>Pavimento</Label>
+                <Select value={pontoForm.pavimento_id} onValueChange={v => setPontoForm(f => ({ ...f, pavimento_id: v, setor_id: "" }))} disabled={!pontoForm.local_id}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>{selectedLocalPavimentos.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.descricao}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div><Label>Setor</Label>
+                <Select value={pontoForm.setor_id} onValueChange={v => setPontoForm(f => ({ ...f, setor_id: v }))} disabled={!pontoForm.pavimento_id}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>{selectedPavimentoSetores.map((s: any) => <SelectItem key={s.id} value={s.id}>{s.descricao}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
               <div><Label>Tipo Ambiente</Label><Input value={pontoForm.tipo_ambiente} onChange={e => setPontoForm(f => ({ ...f, tipo_ambiente: e.target.value }))} /></div>
               <div><Label>Periodicidade</Label>
                 <Select value={pontoForm.periodicidade_coleta} onValueChange={v => setPontoForm(f => ({ ...f, periodicidade_coleta: v }))}>
