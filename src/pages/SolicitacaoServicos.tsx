@@ -440,7 +440,7 @@ export default function SolicitacaoServicosPage() {
                     }
                     className={
                       s.situacao === "Aprovada" ? "bg-green-600 text-white border-green-600 hover:bg-green-700" :
-                      s.situacao === "Aguardando aprovação" ? "border-yellow-500 bg-amber-600 text-primary-foreground" : ""
+                      s.situacao === "Aguardando aprovação" ? "bg-yellow-500 border-yellow-500 hover:bg-yellow-600 text-primary" : ""
                     }
                   >{s.situacao}</Badge>
                 </TableCell>
