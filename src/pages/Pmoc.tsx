@@ -729,15 +729,22 @@ function QualidadeArTab() {
           <div className="flex justify-end"><Button onClick={openNewPonto}><Plus className="mr-2 h-4 w-4" />Novo Ponto</Button></div>
           <div className="border rounded-lg">
             <Table>
-              <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Ambiente</TableHead><TableHead>Edifício</TableHead><TableHead>Periodicidade</TableHead><TableHead>Status</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Cliente</TableHead><TableHead>Local</TableHead><TableHead>Pavimento</TableHead><TableHead>Setor</TableHead><TableHead>Periodicidade</TableHead><TableHead>Status</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
               <TableBody>
                 {paginate(pontosQA, page).paginated.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum ponto</TableCell></TableRow>
-                ) : paginate(pontosQA, page).paginated.map(p => (
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum ponto</TableCell></TableRow>
+                ) : paginate(pontosQA, page).paginated.map(p => {
+                  const cli = soClientes.find(c => c.id === p.clienteId);
+                  const loc = (cli?.locais || []).find((l: any) => l.id === p.ambiente);
+                  const pav = (loc?.pavimentos || []).find((pv: any) => pv.id === p.pavimento);
+                  const set = (pav?.setores || []).find((s: any) => s.id === p.edificio);
+                  return (
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.descricao}</TableCell>
-                    <TableCell>{p.ambiente || "-"}</TableCell>
-                    <TableCell>{p.edificio || "-"}</TableCell>
+                    <TableCell>{cli?.nome || "-"}</TableCell>
+                    <TableCell>{loc?.descricao || "-"}</TableCell>
+                    <TableCell>{pav?.descricao || "-"}</TableCell>
+                    <TableCell>{set?.descricao || "-"}</TableCell>
                     <TableCell>{p.periodicidadeColeta}</TableCell>
                     <TableCell><Badge variant={p.status === "Ativo" ? "default" : "destructive"}>{p.status}</Badge></TableCell>
                     <TableCell>
