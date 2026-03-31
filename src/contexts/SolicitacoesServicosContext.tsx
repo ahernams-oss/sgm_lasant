@@ -22,6 +22,9 @@ export interface SolicitacaoServico {
   observacoes: string;
   imagens: string[];
   createdAt: string;
+  dataHoraSolicitacao: string;
+  solicitanteId: string;
+  solicitanteNome: string;
 }
 
 interface SolicitacoesServicosContextType {
