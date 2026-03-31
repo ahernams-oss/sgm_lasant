@@ -177,6 +177,14 @@ const Usuarios = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-foreground/80">Matrícula</Label>
+                    <Input value={form.matricula} onChange={(e) => update("matricula", e.target.value)} placeholder="Matrícula" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-foreground/80">Ramal</Label>
+                    <Input value={form.ramal} onChange={(e) => update("ramal", e.target.value)} placeholder="Ramal" />
+                  </div>
+                  <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-foreground/80">E-mail *</Label>
                     <Input type="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="email@empresa.com" />
                   </div>
