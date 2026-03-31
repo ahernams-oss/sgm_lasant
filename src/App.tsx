@@ -140,6 +140,7 @@ const App = () => (
     <FerramentasProvider>
     <EvidenciasProvider>
     <ChecklistsProvider>
+    <EquipamentosProvider>
     <AuthProvider>
     <TooltipProvider>
       <Toaster />
