@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from "react";
 import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ export default function SolicitacaoServicosPage() {
   const { clientes } = useClientes();
   const { equipamentos } = useEquipamentos();
   const { toast } = useToast();
+  const { usuarioLogado } = useAuth();
   const [form, setForm] = useState({ ...emptyForm });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -126,7 +128,7 @@ export default function SolicitacaoServicosPage() {
     const setor = setores.find((s: any) => s.id === form.setor_id);
     const equip = equipamentosFiltrados.find((e: any) => e.id === form.equipamento_id);
 
-    const payload = {
+    const payload: any = {
       tipo: form.tipo,
       cliente_id: form.cliente_id,
       cliente_nome: cliente?.nome || "",
@@ -142,6 +144,12 @@ export default function SolicitacaoServicosPage() {
       situacao: form.situacao,
       imagens: imagensUrls,
     };
+
+    if (!editingId) {
+      payload.data_hora_solicitacao = new Date().toISOString();
+      payload.solicitante_id = usuarioLogado?.id || "";
+      payload.solicitante_nome = usuarioLogado?.nome || "";
+    }
 
     if (editingId) {
       await updateSolicitacao(editingId, payload);
@@ -435,6 +443,8 @@ export default function SolicitacaoServicosPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Nº</TableHead>
+              <TableHead>Data/Hora</TableHead>
+              <TableHead>Solicitante</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Local</TableHead>
@@ -447,7 +457,7 @@ export default function SolicitacaoServicosPage() {
           <TableBody>
             {paginated.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                   Nenhuma solicitação cadastrada
                 </TableCell>
               </TableRow>
@@ -461,6 +471,10 @@ export default function SolicitacaoServicosPage() {
                     {s.numero}
                   </div>
                 </TableCell>
+                <TableCell className="text-xs whitespace-nowrap">
+                  {s.dataHoraSolicitacao ? new Date(s.dataHoraSolicitacao).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "-"}
+                </TableCell>
+                <TableCell className="text-xs">{s.solicitanteNome || "-"}</TableCell>
                 <TableCell>
                   <Badge variant="outline">{s.tipo}</Badge>
                 </TableCell>

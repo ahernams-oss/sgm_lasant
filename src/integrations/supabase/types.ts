@@ -2723,6 +2723,7 @@ export type Database = {
           cliente_id: string | null
           cliente_nome: string | null
           created_at: string | null
+          data_hora_solicitacao: string | null
           descricao_servicos: string | null
           equipamento_id: string | null
           equipamento_nome: string | null
@@ -2738,12 +2739,15 @@ export type Database = {
           setor_descricao: string | null
           setor_id: string | null
           situacao: string | null
+          solicitante_id: string | null
+          solicitante_nome: string | null
           tipo: string | null
         }
         Insert: {
           cliente_id?: string | null
           cliente_nome?: string | null
           created_at?: string | null
+          data_hora_solicitacao?: string | null
           descricao_servicos?: string | null
           equipamento_id?: string | null
           equipamento_nome?: string | null
@@ -2759,12 +2763,15 @@ export type Database = {
           setor_descricao?: string | null
           setor_id?: string | null
           situacao?: string | null
+          solicitante_id?: string | null
+          solicitante_nome?: string | null
           tipo?: string | null
         }
         Update: {
           cliente_id?: string | null
           cliente_nome?: string | null
           created_at?: string | null
+          data_hora_solicitacao?: string | null
           descricao_servicos?: string | null
           equipamento_id?: string | null
           equipamento_nome?: string | null
@@ -2780,6 +2787,8 @@ export type Database = {
           setor_descricao?: string | null
           setor_id?: string | null
           situacao?: string | null
+          solicitante_id?: string | null
+          solicitante_nome?: string | null
           tipo?: string | null
         }
         Relationships: []
