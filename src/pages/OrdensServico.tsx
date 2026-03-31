@@ -188,10 +188,10 @@ export default function OrdensServicoPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+        <h1 className="text-2xl font-bold flex items-center gap-2 mx-[20px] my-[5px]">
           <Wrench className="h-6 w-6" /> Ordem de Serviço
         </h1>
-        <Button onClick={() => { resetForm(); setFormOpen(true); }}>
+        <Button onClick={() => { resetForm(); setFormOpen(true); }} className="mx-[24px] my-[2px]">
           <Plus className="mr-2 h-4 w-4" /> Nova OS
         </Button>
       </div>
