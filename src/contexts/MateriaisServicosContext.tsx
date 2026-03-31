@@ -4,6 +4,7 @@ import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper"
 export interface MaterialServico {
   id: string; codigo: string; descricao: string; tipo: "Material" | "Serviço";
   unidadeMedida: string; categoriaId: string; fabricanteId: string; estoqueMinimo: number;
+  fotos: string[];
 }
 
 interface MateriaisServicosContextType {
@@ -20,6 +21,7 @@ const rowToMaterial = (r: any): MaterialServico => ({
   tipo: r.tipo ?? "Material", unidadeMedida: r.unidade_medida ?? "",
   categoriaId: r.categoria_id ?? "", fabricanteId: r.fabricante_id ?? "",
   estoqueMinimo: Number(r.estoque_minimo ?? 0),
+  fotos: Array.isArray(r.fotos) ? r.fotos : [],
 });
 
 export function MateriaisServicosProvider({ children }: { children: ReactNode }) {
@@ -41,7 +43,7 @@ export function MateriaisServicosProvider({ children }: { children: ReactNode })
     await insertRow("materiais_servicos", {
       codigo: nextCodigo(), descricao: m.descricao, tipo: m.tipo,
       unidade_medida: m.unidadeMedida, categoria_id: m.categoriaId, fabricante_id: m.fabricanteId,
-      estoque_minimo: m.estoqueMinimo || 0,
+      estoque_minimo: m.estoqueMinimo || 0, fotos: m.fotos || [],
     });
     await load();
   };
@@ -54,6 +56,7 @@ export function MateriaisServicosProvider({ children }: { children: ReactNode })
       codigo: merged.codigo, descricao: merged.descricao, tipo: merged.tipo,
       unidade_medida: merged.unidadeMedida, categoria_id: merged.categoriaId,
       fabricante_id: merged.fabricanteId, estoque_minimo: merged.estoqueMinimo,
+      fotos: merged.fotos || [],
     });
     await load();
   };

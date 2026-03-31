@@ -1721,6 +1721,7 @@ export type Database = {
           descricao: string | null
           estoque_minimo: number | null
           fabricante_id: string | null
+          fotos: Json | null
           id: string
           tipo: string | null
           unidade_medida: string | null
@@ -1732,6 +1733,7 @@ export type Database = {
           descricao?: string | null
           estoque_minimo?: number | null
           fabricante_id?: string | null
+          fotos?: Json | null
           id?: string
           tipo?: string | null
           unidade_medida?: string | null
@@ -1743,6 +1745,7 @@ export type Database = {
           descricao?: string | null
           estoque_minimo?: number | null
           fabricante_id?: string | null
+          fotos?: Json | null
           id?: string
           tipo?: string | null
           unidade_medida?: string | null

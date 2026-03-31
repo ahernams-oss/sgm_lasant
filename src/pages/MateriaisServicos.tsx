@@ -3,6 +3,7 @@ import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/Double
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useMateriaisServicos, MaterialServico } from "@/contexts/MateriaisServicosContext";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
+import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Search, Upload, FileText, FileSpreadsheet } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Upload, FileText, FileSpreadsheet, Camera, X, Image } from "lucide-react";
 import { gerarPdfMateriaisServicos, gerarExcelMateriaisServicos } from "@/lib/gerarRelatorioMateriaisServicos";
 import * as XLSX from "xlsx";
 
@@ -24,7 +25,8 @@ export default function MateriaisServicosPage() {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ descricao: "", tipo: "Material" as "Material" | "Serviço", unidadeMedida: "UN", categoriaId: "", estoqueMinimo: 0 });
+  const [form, setForm] = useState({ descricao: "", tipo: "Material" as "Material" | "Serviço", unidadeMedida: "UN", categoriaId: "", estoqueMinimo: 0, fotos: [] as string[] });
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("Todos");
   const [page, setPage] = useState(1);
@@ -43,8 +45,8 @@ export default function MateriaisServicosPage() {
   // Reset page when filters change
   const resetPage = () => setPage(1);
 
-  const openNew = () => { setForm({ descricao: "", tipo: "Material", unidadeMedida: "UN", categoriaId: "", estoqueMinimo: 0 }); setEditingId(null); setDialogOpen(true); };
-  const openEdit = (m: MaterialServico) => { setForm({ descricao: m.descricao, tipo: m.tipo, unidadeMedida: m.unidadeMedida, categoriaId: m.categoriaId, estoqueMinimo: m.estoqueMinimo }); setEditingId(m.id); setDialogOpen(true); };
+  const openNew = () => { setForm({ descricao: "", tipo: "Material", unidadeMedida: "UN", categoriaId: "", estoqueMinimo: 0, fotos: [] }); setEditingId(null); setDialogOpen(true); };
+  const openEdit = (m: MaterialServico) => { setForm({ descricao: m.descricao, tipo: m.tipo, unidadeMedida: m.unidadeMedida, categoriaId: m.categoriaId, estoqueMinimo: m.estoqueMinimo, fotos: m.fotos || [] }); setEditingId(m.id); setDialogOpen(true); };
 
   const handleSave = () => {
     if (!form.descricao.trim()) { toast({ title: "Descrição é obrigatória", variant: "destructive" }); return; }
@@ -52,7 +54,7 @@ export default function MateriaisServicosPage() {
       updateMaterial(editingId, { ...form, fabricanteId: "" });
       toast({ title: "Material/Serviço atualizado" });
     } else {
-      addMaterial({ ...form, fabricanteId: "", estoqueMinimo: form.estoqueMinimo });
+      addMaterial({ ...form, fabricanteId: "" });
       toast({ title: "Material/Serviço criado" });
     }
     setDialogOpen(false);
@@ -70,7 +72,7 @@ export default function MateriaisServicosPage() {
           const cols = line.split(/[;\t,]/).map(c => c.trim());
           if (cols[0]?.toLowerCase().includes("cod")) continue;
           if (cols.length >= 2) {
-            addMaterial({ descricao: cols[1] || cols[0] || "", tipo: (cols[2] === "Serviço" ? "Serviço" : "Material"), unidadeMedida: cols[3] || "UN", categoriaId: cols[4] || "", fabricanteId: "", estoqueMinimo: 0 });
+            addMaterial({ descricao: cols[1] || cols[0] || "", tipo: (cols[2] === "Serviço" ? "Serviço" : "Material"), unidadeMedida: cols[3] || "UN", categoriaId: cols[4] || "", fabricanteId: "", estoqueMinimo: 0, fotos: [] });
             count++;
           }
         }
@@ -87,7 +89,7 @@ export default function MateriaisServicosPage() {
         for (const row of rows) {
           if (String(row[0] || "").toLowerCase().includes("cod")) continue;
           if (row.length >= 2) {
-            addMaterial({ descricao: String(row[1] || row[0] || ""), tipo: (String(row[2] || "") === "Serviço" ? "Serviço" : "Material"), unidadeMedida: String(row[3] || "UN"), categoriaId: String(row[4] || ""), fabricanteId: "", estoqueMinimo: 0 });
+            addMaterial({ descricao: String(row[1] || row[0] || ""), tipo: (String(row[2] || "") === "Serviço" ? "Serviço" : "Material"), unidadeMedida: String(row[3] || "UN"), categoriaId: String(row[4] || ""), fabricanteId: "", estoqueMinimo: 0, fotos: [] });
             count++;
           }
         }
@@ -95,6 +97,22 @@ export default function MateriaisServicosPage() {
       };
       reader.readAsArrayBuffer(file);
     }
+  };
+
+  const handlePhotoUpload = async (file: File) => {
+    if (form.fotos.length >= 5) { toast({ title: "Máximo de 5 fotos atingido", variant: "destructive" }); return; }
+    setUploadingPhoto(true);
+    const ext = file.name.split(".").pop();
+    const path = `materiais-fotos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
+    if (error) { toast({ title: "Erro no upload", variant: "destructive" }); setUploadingPhoto(false); return; }
+    const { data: urlData } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
+    setForm(f => ({ ...f, fotos: [...f.fotos, urlData.publicUrl] }));
+    setUploadingPhoto(false);
+  };
+
+  const removePhoto = (index: number) => {
+    setForm(f => ({ ...f, fotos: f.fotos.filter((_, i) => i !== index) }));
   };
 
   const catNome = (id: string) => id ? getDescricaoCompleta(id) || "-" : "-";
@@ -135,19 +153,21 @@ export default function MateriaisServicosPage() {
               <TableHead>Descrição</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Unidade</TableHead>
+              <TableHead>Fotos</TableHead>
               <TableHead>Categoria</TableHead>
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
              {paginate(filtered, page).paginated.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum item cadastrado</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum item cadastrado</TableCell></TableRow>
             ) : paginate(filtered, page).paginated.map(m => (
               <TableRow key={m.id}>
                 <TableCell className="font-mono">{m.codigo}</TableCell>
                 <TableCell>{m.descricao}</TableCell>
                 <TableCell>{m.tipo}</TableCell>
                 <TableCell>{m.unidadeMedida}</TableCell>
+                <TableCell>{(m.fotos?.length || 0) > 0 ? <span className="flex items-center gap-1 text-primary"><Camera className="h-3.5 w-3.5" />{m.fotos.length}</span> : "-"}</TableCell>
                 <TableCell>{catNome(m.categoriaId)}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
@@ -189,6 +209,25 @@ export default function MateriaisServicosPage() {
               </Select>
             </div>
             <div><Label>Estoque Mínimo</Label><Input type="number" min="0" value={form.estoqueMinimo} onChange={e => setForm(f => ({ ...f, estoqueMinimo: Number(e.target.value) }))} placeholder="0" /></div>
+            <div>
+              <Label className="flex items-center gap-2"><Camera className="h-4 w-4" />Fotos ({form.fotos.length}/5)</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {form.fotos.map((url, i) => (
+                  <div key={i} className="relative w-20 h-20 rounded-md overflow-hidden border border-border group">
+                    <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => removePhoto(i)} className="absolute top-0 right-0 bg-destructive text-destructive-foreground rounded-bl p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                {form.fotos.length < 5 && (
+                  <label className="w-20 h-20 rounded-md border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                    {uploadingPhoto ? <span className="text-xs text-muted-foreground">...</span> : <><Image className="h-5 w-5 text-muted-foreground" /><span className="text-[10px] text-muted-foreground mt-1">Adicionar</span></>}
+                    <input type="file" accept="image/*" className="hidden" disabled={uploadingPhoto} onChange={e => { if (e.target.files?.[0]) handlePhotoUpload(e.target.files[0]); e.target.value = ""; }} />
+                  </label>
+                )}
+              </div>
+            </div>
           </div>
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
         </DialogContent>
