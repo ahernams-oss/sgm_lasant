@@ -53,6 +53,7 @@ export default function SolicitacaoServicosPage() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: abortCancel } = useDoubleConfirmDelete();
 
   // Approval dialog state
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
