@@ -132,7 +132,7 @@ export default function Equipamentos() {
     return list;
   }, [equipamentos, search, filterCliente]);
 
-  const { paginatedItems, totalPages } = paginate(filtered, page);
+  const { paginated: paginatedItems, totalPages } = paginate(filtered, page);
 
   return (
     <div className="space-y-6">
