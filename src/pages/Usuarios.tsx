@@ -80,7 +80,7 @@ const Usuarios = () => {
     setForm({
       nome: u.nome, cargoId: u.cargoId, telefone: u.telefone,
       email: u.email, senha: "", clientesPermitidos: [...u.clientesPermitidos],
-      perfilAcessoId: u.perfilAcessoId,
+      perfilAcessoId: u.perfilAcessoId, matricula: u.matricula, ramal: u.ramal,
     });
     setEditingId(u.id);
     setShowForm(true);
