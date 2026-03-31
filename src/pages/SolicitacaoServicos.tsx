@@ -40,6 +40,7 @@ export default function SolicitacaoServicosPage() {
   const { clientes } = useClientes();
   const { equipamentos } = useEquipamentos();
   const { toast } = useToast();
+  const { usuarioLogado } = useAuth();
   const [form, setForm] = useState({ ...emptyForm });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
