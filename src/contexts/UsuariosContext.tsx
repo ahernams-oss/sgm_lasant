@@ -4,7 +4,7 @@ import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper"
 export interface Usuario {
   id: string; nome: string; cargoId: string; telefone: string;
   email: string; senha: string; clientesPermitidos: string[];
-  perfilAcessoId: string;
+  perfilAcessoId: string; matricula: string; ramal: string;
 }
 
 interface UsuariosContextType {
