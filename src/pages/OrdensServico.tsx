@@ -343,12 +343,12 @@ export default function OrdensServicoPage() {
               <Label>Buscar</Label>
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Nº, cliente, descrição..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-8" />
+                <Input placeholder="Nº, cliente, descrição, local..." value={busca} onChange={e => { setBusca(e.target.value); setPage(1); }} className="pl-8" />
               </div>
             </div>
             <div className="w-[180px]">
               <Label>Situação</Label>
-              <Select value={filtroSituacao} onValueChange={setFiltroSituacao}>
+              <Select value={filtroSituacao} onValueChange={v => { setFiltroSituacao(v); setPage(1); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Todas">Todas</SelectItem>
