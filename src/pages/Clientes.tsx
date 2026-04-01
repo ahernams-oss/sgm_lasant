@@ -7,6 +7,8 @@ import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClientes, type Cliente, type Contrato } from "@/contexts/ClientesContext";
+import { useI0 } from "@/contexts/I0Context";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
 import LocaisSection from "@/components/LocaisSection";
 import LocaisEntregaSection from "@/components/LocaisEntregaSection";
