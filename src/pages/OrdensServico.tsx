@@ -125,13 +125,35 @@ export default function OrdensServicoPage() {
   const [scoQtd, setScoQtd] = useState(1);
   const [scoResultPage, setScoResultPage] = useState(1);
 
+  // Estoque search state
+  const [estoqueBusca, setEstoqueBusca] = useState("");
+  const [estoqueQtd, setEstoqueQtd] = useState(1);
+  const [estoquePopoverOpen, setEstoquePopoverOpen] = useState(false);
+
+  const saldosCliente = useMemo(() => {
+    if (!clienteId) return [];
+    return getSaldos().filter(s => s.local === clienteId && s.quantidade > 0);
+  }, [getSaldos, clienteId]);
+
+  const saldosFiltrados = useMemo(() => {
+    if (!estoqueBusca.trim()) return saldosCliente;
+    const q = estoqueBusca.toLowerCase();
+    return saldosCliente.filter(s =>
+      s.materialCodigo.toLowerCase().includes(q) || s.materialDescricao.toLowerCase().includes(q)
+    );
+  }, [saldosCliente, estoqueBusca]);
+
+  const autoSaveMateriaisEstoque = async (updated: MaterialOS[]) => {
+    if (editingId) {
+      await updateOrdem(editingId, { materiais_estoque: updated });
+    }
+  };
+
   const scosFiltered = useMemo(() => {
     if (!scoBusca.trim()) return [];
     const q = scoBusca.toLowerCase();
     return scos.filter(s => s.codSco.toLowerCase().includes(q) || s.descricaoSco.toLowerCase().includes(q));
   }, [scos, scoBusca]);
-
-
 
   // Workflow action handler
   const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
