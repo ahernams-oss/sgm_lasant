@@ -25,6 +25,7 @@ interface OrcamentoDialogProps {
   solicitacao: { id: string; numero: number; clienteId: string; clienteNome: string } | null;
   existingOrcamento?: Orcamento | null;
   onApproved?: (orcamento: Orcamento) => void;
+  onSent?: () => void;
 }
 
 interface ItemSco {
@@ -37,7 +38,7 @@ interface ItemMaterial {
   quantidade: number; valorUnitario: number; valorTotal: number;
 }
 
-export default function OrcamentoDialog({ open, onOpenChange, solicitacao, existingOrcamento, onApproved }: OrcamentoDialogProps) {
+export default function OrcamentoDialog({ open, onOpenChange, solicitacao, existingOrcamento, onApproved, onSent }: OrcamentoDialogProps) {
   const { scos } = useSco();
   const { items: i0Items } = useI0();
   const { materiais } = useMateriaisServicos();
@@ -59,9 +60,10 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
   const [matPopoverOpen, setMatPopoverOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isReadOnly = existingOrcamento?.status === "Aprovado";
+  const isReadOnly = existingOrcamento?.status === "Aprovado" || existingOrcamento?.status === "Enviado";
   const isPendente = !existingOrcamento || existingOrcamento.status === "Pendente";
   const isRevisao = existingOrcamento?.status === "Revisão";
+  const isRascunho = !existingOrcamento || existingOrcamento.status === "Pendente" || existingOrcamento.status === "Revisão";
 
   // Get latest SCO price from I0
   const getScoPrice = (codSco: string): number => {
@@ -191,7 +193,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       anexos: anexosUrls,
       valor_total: valorTotal,
       observacoes,
-      status: "Pendente",
+      status: existingOrcamento?.status === "Pendente" ? "Pendente" : "Pendente",
     };
 
     if (existingOrcamento) {
@@ -201,6 +203,37 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       await addOrcamento(payload);
       toast({ title: "Orçamento criado com sucesso" });
     }
+    setUploading(false);
+    onOpenChange(false);
+  };
+
+  const handleEnviar = async () => {
+    if (itensSco.length === 0 && itensMateriais.length === 0) {
+      toast({ title: "Adicione pelo menos um item ao orçamento", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    const anexosUrls = await uploadAnexos();
+    const payload: any = {
+      solicitacao_id: solicitacao?.id || "",
+      solicitacao_numero: solicitacao?.numero || 0,
+      cliente_id: solicitacao?.clienteId || "",
+      cliente_nome: solicitacao?.clienteNome || "",
+      itens_sco: itensSco,
+      itens_materiais: itensMateriais,
+      anexos: anexosUrls,
+      valor_total: valorTotal,
+      observacoes,
+      status: "Enviado",
+    };
+
+    if (existingOrcamento) {
+      await updateOrcamento(existingOrcamento.id, payload);
+    } else {
+      await addOrcamento(payload);
+    }
+    toast({ title: "Orçamento enviado com sucesso" });
+    onSent?.();
     setUploading(false);
     onOpenChange(false);
   };
@@ -482,15 +515,22 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
         <DialogFooter className="flex-col sm:flex-row gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Fechar</Button>
 
-          {/* Save / Update */}
-          {!isReadOnly && (
-            <Button onClick={handleSave} disabled={uploading}>
+          {/* Save as draft */}
+          {isRascunho && (
+            <Button variant="outline" onClick={handleSave} disabled={uploading}>
               {uploading ? "Salvando..." : existingOrcamento ? "Atualizar Orçamento" : "Salvar Orçamento"}
             </Button>
           )}
 
-          {/* Approval actions — only for existing pending/revision budgets */}
-          {existingOrcamento && (isPendente || isRevisao) && (
+          {/* Send budget — locks editing and changes SS status */}
+          {isRascunho && (
+            <Button onClick={handleEnviar} disabled={uploading}>
+              {uploading ? "Enviando..." : "Enviar Orçamento"}
+            </Button>
+          )}
+
+          {/* Approval actions — only for sent budgets */}
+          {existingOrcamento && existingOrcamento.status === "Enviado" && (
             <>
               <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10" onClick={handleSolicitarRevisao}>
                 <RotateCcw className="mr-2 h-4 w-4" /> Solicitar Revisão
