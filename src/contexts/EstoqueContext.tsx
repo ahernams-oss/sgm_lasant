@@ -261,7 +261,7 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
   return (
     <EstoqueContext.Provider value={{
       movimentacoes, inventarios, registrarMovimentacao, registrarEntradaRecebimento,
-      getSaldos, getSaldoPorMaterial, getSaldoPorLocal, criarInventario, atualizarInventario, fecharInventario, reload: load,
+      getSaldos, getSaldoPorMaterial, getSaldoPorLocal, getLotesFIFO, criarInventario, atualizarInventario, fecharInventario, reload: load,
     }}>
       {children}
     </EstoqueContext.Provider>
