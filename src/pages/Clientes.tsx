@@ -292,8 +292,24 @@ const Clientes = () => {
                 <Input placeholder="Valor Base" value={contratoForm.valorBase} onChange={e => setContratoForm(p => ({ ...p, valorBase: e.target.value }))} />
                 <Input placeholder="Valor Base 2" value={contratoForm.valorBase2} onChange={e => setContratoForm(p => ({ ...p, valorBase2: e.target.value }))} />
                 <Input placeholder="Valor Base 3" value={contratoForm.valorBase3} onChange={e => setContratoForm(p => ({ ...p, valorBase3: e.target.value }))} />
-                <Input placeholder="Mês SCO" value={contratoForm.mesSco} onChange={e => setContratoForm(p => ({ ...p, mesSco: e.target.value }))} />
-                <Input placeholder="Ano SCO" value={contratoForm.anoSco} onChange={e => setContratoForm(p => ({ ...p, anoSco: e.target.value }))} />
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">Mês SCO</label>
+                  <Select value={contratoForm.mesSco} onValueChange={v => setContratoForm(p => ({ ...p, mesSco: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Mês SCO" /></SelectTrigger>
+                    <SelectContent>
+                      {i0Meses.map(m => <SelectItem key={m} value={String(m)}>{String(m).padStart(2, "0")}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">Ano SCO</label>
+                  <Select value={contratoForm.anoSco} onValueChange={v => setContratoForm(p => ({ ...p, anoSco: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Ano SCO" /></SelectTrigger>
+                    <SelectContent>
+                      {i0Anos.map(a => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="flex gap-2 mb-4">
