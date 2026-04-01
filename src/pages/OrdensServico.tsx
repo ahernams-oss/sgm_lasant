@@ -821,7 +821,7 @@ export default function OrdensServicoPage() {
                                 <CommandEmpty>Nenhum material encontrado.</CommandEmpty>
                                 <CommandGroup>
                                   {saldosFiltrados.slice(0, 50).map(s => (
-                                    <CommandItem key={s.materialId} onSelect={() => {
+                                    <CommandItem key={s.materialId + '__' + s.local} onSelect={() => {
                                       const jaExiste = materiaisEstoque.find(m => m.codigo === s.materialCodigo);
                                       if (jaExiste) {
                                         toast.error("Material já adicionado.");
@@ -842,7 +842,6 @@ export default function OrdensServicoPage() {
                                       toast.success("Material adicionado e salvo.");
                                       setEstoqueBusca("");
                                       setEstoqueQtd(1);
-                                      setEstoquePopoverOpen(false);
                                     }}>
                                       <div className="flex justify-between w-full items-center">
                                         <span className="text-xs"><strong>{s.materialCodigo}</strong> — {s.materialDescricao}</span>
