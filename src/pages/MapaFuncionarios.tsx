@@ -312,7 +312,7 @@ const MapaFuncionarios = () => {
         </div>
 
         {/* Resumo cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 animate-fade-up" style={{ animationDelay: "50ms" }}>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 animate-fade-up" style={{ animationDelay: "50ms" }}>
           <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
             <p className="text-xs text-muted-foreground mb-1">Total Faltas (mês)</p>
             <p className="text-2xl font-bold text-foreground">{resumoMes.totalFaltas}</p>
@@ -330,6 +330,11 @@ const MapaFuncionarios = () => {
             <p className="text-xs text-muted-foreground mb-1">Horas Extras (mês)</p>
             <p className="text-2xl font-bold text-primary">{resumoMes.totalHorasExtras.toFixed(1)}h</p>
             <p className="text-xs text-muted-foreground">{resumoMes.funcionariosComHE} funcionário(s)</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+            <p className="text-xs text-muted-foreground mb-1">Advertências (mês)</p>
+            <p className="text-2xl font-bold text-orange-600">{resumoMes.totalAdvertencias}</p>
+            <p className="text-xs text-muted-foreground">{resumoMes.funcionariosComAdvertencia} funcionário(s)</p>
           </div>
         </div>
 
