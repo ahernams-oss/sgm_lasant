@@ -324,6 +324,19 @@ export default function SolicitacaoServicosPage() {
     toast({ title: "Orçamento aprovado e Ordem de Serviço criada!" });
   };
 
+  const handleDownloadOrcamento = (s: any, tipo: "pdf" | "excel") => {
+    const orc = orcamentos.find(o => o.solicitacaoId === s.id);
+    if (!orc) {
+      toast({ title: "Orçamento não encontrado", variant: "destructive" });
+      return;
+    }
+    if (tipo === "pdf") {
+      gerarPdfOrcamento(orc);
+    } else {
+      gerarExcelOrcamento(orc);
+    }
+  };
+
   const getPrioridadeColor = (prioridade: string) => {
     const p = PRIORIDADES.find(x => x.value === prioridade);
     return p?.color || "";
