@@ -1,6 +1,10 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useOrdensServico, OrdemServico } from "@/contexts/OrdensServicoContext";
+import { useOrdensServico, OrdemServico, MaterialOS, ProfissionalOS, AnexoOS, FotoOS, ObservacaoOS, ObservacaoFiscalizacao } from "@/contexts/OrdensServicoContext";
+import { useClientes } from "@/contexts/ClientesContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSco } from "@/contexts/ScoContext";
+import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
