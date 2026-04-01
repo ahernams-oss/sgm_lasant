@@ -31,6 +31,11 @@ const TIPO_FALTA_LABELS: Record<TipoFalta, string> = {
   suspensao: "Suspensão",
 };
 
+const TIPO_ADVERTENCIA_LABELS: Record<TipoAdvertencia, string> = {
+  verbal: "Verbal",
+  escrita: "Escrita",
+};
+
 const PERCENTUAIS_HE = [50, 60, 70, 80, 100];
 
 const MapaFuncionarios = () => {
