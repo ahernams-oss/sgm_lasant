@@ -266,8 +266,8 @@ export default function SolicitacaoServicosPage() {
   };
 
   const handleSolicitarOrcamento = async (s: any) => {
-    await updateSolicitacao(s.id, { situacao: "Aguardando Orçamento" });
-    toast({ title: "Orçamento solicitado", description: `SS nº ${s.numero} aguardando orçamento` });
+    await updateSolicitacao(s.id, { situacao: "Orçamento Solicitado" });
+    toast({ title: "Orçamento solicitado", description: `SS nº ${s.numero} — Orçamento Solicitado` });
   };
 
   const handleOrcarSolicitacao = (s: any) => {
