@@ -308,11 +308,15 @@ export default function OrdensServicoPage() {
 
   const ordensFiltradas = useMemo(() => {
     return ordens.filter(o => {
+      const q = busca.toLowerCase();
       const matchBusca = !busca ||
         o.numero.toString().includes(busca) ||
-        o.clienteNome.toLowerCase().includes(busca.toLowerCase()) ||
-        o.descricaoServicos.toLowerCase().includes(busca.toLowerCase()) ||
-        o.solicitante.toLowerCase().includes(busca.toLowerCase());
+        o.clienteNome.toLowerCase().includes(q) ||
+        o.nCliente.toLowerCase().includes(q) ||
+        o.descricaoServicos.toLowerCase().includes(q) ||
+        o.solicitante.toLowerCase().includes(q) ||
+        o.localDescricao.toLowerCase().includes(q) ||
+        o.categoria.toLowerCase().includes(q);
       const matchSituacao = filtroSituacao === "Todas" || o.situacao === filtroSituacao;
       return matchBusca && matchSituacao;
     });
