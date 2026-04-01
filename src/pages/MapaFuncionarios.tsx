@@ -580,10 +580,16 @@ const MapaFuncionarios = () => {
                         <TableHead>Dias</TableHead>
                         <TableHead>Anexos</TableHead>
                       </>
-                    ) : (
+                    ) : activeTab === "horas_extras" ? (
                       <>
                         <TableHead>Horas</TableHead>
                         <TableHead>Percentual</TableHead>
+                      </>
+                    ) : (
+                      <>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Motivo</TableHead>
+                        <TableHead>Anexos</TableHead>
                       </>
                     )}
                     <TableHead>Observação</TableHead>
@@ -620,11 +626,34 @@ const MapaFuncionarios = () => {
                             )}
                           </TableCell>
                         </>
-                      ) : (
+                      ) : l.tipo === "hora_extra" ? (
                         <>
                           <TableCell className="font-medium">{l.horasExtras}h</TableCell>
                           <TableCell>
                             <Badge className="bg-primary/10 text-primary text-xs">{l.percentual}%</Badge>
+                          </TableCell>
+                        </>
+                      ) : (
+                        <>
+                          <TableCell>
+                            <Badge variant={l.tipoAdvertencia === "escrita" ? "destructive" : "secondary"} className="text-xs">
+                              {TIPO_ADVERTENCIA_LABELS[l.tipoAdvertencia || "verbal"]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="max-w-[200px] truncate text-xs">{l.motivo || "—"}</TableCell>
+                          <TableCell>
+                            {l.anexos && l.anexos.length > 0 ? (
+                              <div className="flex items-center gap-1">
+                                {l.anexos.map((a, i) => (
+                                  <button key={i} onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline text-xs flex items-center gap-0.5" title={a.nome}>
+                                    <Paperclip className="h-3 w-3" />
+                                  </button>
+                                ))}
+                                <span className="text-xs text-muted-foreground">({l.anexos.length})</span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                         </>
                       )}
