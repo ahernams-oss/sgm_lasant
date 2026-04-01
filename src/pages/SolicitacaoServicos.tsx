@@ -602,7 +602,7 @@ export default function SolicitacaoServicosPage() {
                       <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      {!["Aprovada", "Em execução", "Concluída", "Aguardando Orçamento"].includes(s.situacao) && (
+                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleOpenApproval(s.id)}>
                           <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
                         </DropdownMenuItem>
@@ -612,28 +612,28 @@ export default function SolicitacaoServicosPage() {
                           <Pencil className="mr-2 h-4 w-4" />Alterar Prioridade
                         </DropdownMenuItem>
                       )}
-                      {s.situacao === "Aprovada" && (
+                      {s.situacao === "Aguardando aprovação" && (
                         <DropdownMenuItem onClick={() => handleSolicitarOrcamento(s)}>
                           <FileText className="mr-2 h-4 w-4" />Solicitar Orçamento
                         </DropdownMenuItem>
                       )}
-                      {s.situacao === "Aguardando Orçamento" && (
+                      {s.situacao === "Orçamento Solicitado" && (
                         <DropdownMenuItem onClick={() => handleOrcarSolicitacao(s)}>
                           <ClipboardList className="mr-2 h-4 w-4 text-blue-600" />Orçar Solicitação
                         </DropdownMenuItem>
                       )}
-                      {!["Aprovada", "Em execução", "Concluída", "Aguardando Orçamento"].includes(s.situacao) && (
+                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleEdit(s)}>
                           <Pencil className="mr-2 h-4 w-4" />Editar
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
-                      {!["Aprovada", "Em execução", "Concluída", "Aguardando Orçamento"].includes(s.situacao) && (
+                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => requestCancel(s.id)}>
                           <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar Solicitação
                         </DropdownMenuItem>
                       )}
-                      {!["Aprovada", "Em execução", "Concluída", "Aguardando Orçamento"].includes(s.situacao) && (
+                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => requestDelete(s.id)} className="text-destructive">
                           <Trash2 className="mr-2 h-4 w-4" />Excluir
                         </DropdownMenuItem>
