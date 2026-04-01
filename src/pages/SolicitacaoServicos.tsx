@@ -22,9 +22,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList } from "lucide-react";
 
-const SITUACOES = ["Aguardando aprovação", "Aprovada", "Em execução", "Concluída", "Cancelada"];
+const SITUACOES = ["Aguardando aprovação", "Aguardando Orçamento", "Aprovada", "Em execução", "Concluída", "Cancelada"];
 
 const PRIORIDADES = [
   { value: "Normal", color: "bg-green-500" },
@@ -265,7 +265,12 @@ export default function SolicitacaoServicosPage() {
     }
   };
 
-  const handleSolicitarOrcamento = (s: any) => {
+  const handleSolicitarOrcamento = async (s: any) => {
+    await updateSolicitacao(s.id, { situacao: "Aguardando Orçamento" });
+    toast({ title: "Orçamento solicitado", description: `SS nº ${s.numero} aguardando orçamento` });
+  };
+
+  const handleOrcarSolicitacao = (s: any) => {
     setOrcamentoTarget({ id: s.id, numero: s.numero, clienteId: s.clienteId, clienteNome: s.clienteNome });
     setOrcamentoDialogOpen(true);
   };
@@ -586,7 +591,8 @@ export default function SolicitacaoServicosPage() {
                     }
                     className={
                       s.situacao === "Aprovada" ? "bg-green-600 text-white border-green-600 hover:bg-green-700" :
-                      s.situacao === "Aguardando aprovação" ? "bg-yellow-500 border-yellow-500 hover:bg-yellow-600 text-primary" : ""
+                      s.situacao === "Aguardando aprovação" ? "bg-yellow-500 border-yellow-500 hover:bg-yellow-600 text-primary" :
+                      s.situacao === "Aguardando Orçamento" ? "bg-blue-500 border-blue-500 hover:bg-blue-600 text-white" : ""
                     }
                   >{s.situacao}</Badge>
                 </TableCell>
@@ -596,7 +602,7 @@ export default function SolicitacaoServicosPage() {
                       <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
+                      {!["Aprovada", "Em execução", "Concluída", "Aguardando Orçamento"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleOpenApproval(s.id)}>
                           <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
                         </DropdownMenuItem>
@@ -606,21 +612,28 @@ export default function SolicitacaoServicosPage() {
                           <Pencil className="mr-2 h-4 w-4" />Alterar Prioridade
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem onClick={() => handleSolicitarOrcamento(s)}>
-                        <FileText className="mr-2 h-4 w-4" />Solicitar Orçamento
-                      </DropdownMenuItem>
-                      {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
+                      {s.situacao === "Aprovada" && (
+                        <DropdownMenuItem onClick={() => handleSolicitarOrcamento(s)}>
+                          <FileText className="mr-2 h-4 w-4" />Solicitar Orçamento
+                        </DropdownMenuItem>
+                      )}
+                      {s.situacao === "Aguardando Orçamento" && (
+                        <DropdownMenuItem onClick={() => handleOrcarSolicitacao(s)}>
+                          <ClipboardList className="mr-2 h-4 w-4 text-blue-600" />Orçar Solicitação
+                        </DropdownMenuItem>
+                      )}
+                      {!["Aprovada", "Em execução", "Concluída", "Aguardando Orçamento"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleEdit(s)}>
                           <Pencil className="mr-2 h-4 w-4" />Editar
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
-                      {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
+                      {!["Aprovada", "Em execução", "Concluída", "Aguardando Orçamento"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => requestCancel(s.id)}>
                           <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar Solicitação
                         </DropdownMenuItem>
                       )}
-                      {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
+                      {!["Aprovada", "Em execução", "Concluída", "Aguardando Orçamento"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => requestDelete(s.id)} className="text-destructive">
                           <Trash2 className="mr-2 h-4 w-4" />Excluir
                         </DropdownMenuItem>
