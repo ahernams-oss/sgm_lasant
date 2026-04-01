@@ -53,10 +53,11 @@ interface EstoqueContextType {
   movimentacoes: MovimentacaoEstoque[];
   inventarios: Inventario[];
   registrarMovimentacao: (data: Omit<MovimentacaoEstoque, "id" | "dataMovimentacao">) => Promise<void>;
-  registrarEntradaRecebimento: (itens: { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number; unidadeMedida: string }[], local: string, documentoRef: string, usuario: string) => Promise<void>;
+  registrarEntradaRecebimento: (itens: { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number; unidadeMedida: string; valorUnitario?: number }[], local: string, documentoRef: string, usuario: string) => Promise<void>;
   getSaldos: () => SaldoEstoque[];
   getSaldoPorMaterial: (materialId: string) => number;
   getSaldoPorLocal: (materialId: string, local: string) => number;
+  getLotesFIFO: (materialId: string, local: string) => LoteFIFO[];
   criarInventario: (data: Omit<Inventario, "id" | "dataInventario" | "status">) => Promise<void>;
   atualizarInventario: (id: string, itens: ItemInventario[], observacao: string) => Promise<void>;
   fecharInventario: (id: string, usuario: string) => Promise<void>;
