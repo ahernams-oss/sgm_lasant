@@ -265,7 +265,12 @@ export default function SolicitacaoServicosPage() {
     }
   };
 
-  const handleSolicitarOrcamento = (s: any) => {
+  const handleSolicitarOrcamento = async (s: any) => {
+    await updateSolicitacao(s.id, { situacao: "Aguardando Orçamento" });
+    toast({ title: "Orçamento solicitado", description: `SS nº ${s.numero} aguardando orçamento` });
+  };
+
+  const handleOrcarSolicitacao = (s: any) => {
     setOrcamentoTarget({ id: s.id, numero: s.numero, clienteId: s.clienteId, clienteNome: s.clienteNome });
     setOrcamentoDialogOpen(true);
   };
