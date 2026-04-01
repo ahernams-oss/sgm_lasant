@@ -38,7 +38,7 @@ interface ItemMaterial {
   quantidade: number; valorUnitario: number; valorTotal: number;
 }
 
-export default function OrcamentoDialog({ open, onOpenChange, solicitacao, existingOrcamento, onApproved }: OrcamentoDialogProps) {
+export default function OrcamentoDialog({ open, onOpenChange, solicitacao, existingOrcamento, onApproved, onSent }: OrcamentoDialogProps) {
   const { scos } = useSco();
   const { items: i0Items } = useI0();
   const { materiais } = useMateriaisServicos();
