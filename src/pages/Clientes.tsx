@@ -7,6 +7,8 @@ import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClientes, type Cliente, type Contrato } from "@/contexts/ClientesContext";
+import { useI0 } from "@/contexts/I0Context";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
 import LocaisSection from "@/components/LocaisSection";
 import LocaisEntregaSection from "@/components/LocaisEntregaSection";
@@ -15,6 +17,7 @@ import ImportClientesFornecedores from "@/components/ImportClientesFornecedores"
 
 const Clientes = () => {
   const [formOpen, setFormOpen] = useState(true);
+  const { items: i0Items } = useI0();
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
@@ -28,6 +31,9 @@ const Clientes = () => {
   const [editingContratoId, setEditingContratoId] = useState<string | null>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { deleteId: deleteContratoId, requestDelete: requestDeleteContrato, cancelDelete: cancelDeleteContrato } = useDoubleConfirmDelete();
+
+  const i0Meses = useMemo(() => [...new Set(i0Items.map(i => i.mes))].sort((a, b) => a - b), [i0Items]);
+  const i0Anos = useMemo(() => [...new Set(i0Items.map(i => i.ano))].sort((a, b) => a - b), [i0Items]);
   const handleSubmit = (data: FormData, id: string | null) => {
     if (!data.nome.trim()) {
       toast.error("Informe o nome do cliente.");
@@ -286,8 +292,24 @@ const Clientes = () => {
                 <Input placeholder="Valor Base" value={contratoForm.valorBase} onChange={e => setContratoForm(p => ({ ...p, valorBase: e.target.value }))} />
                 <Input placeholder="Valor Base 2" value={contratoForm.valorBase2} onChange={e => setContratoForm(p => ({ ...p, valorBase2: e.target.value }))} />
                 <Input placeholder="Valor Base 3" value={contratoForm.valorBase3} onChange={e => setContratoForm(p => ({ ...p, valorBase3: e.target.value }))} />
-                <Input placeholder="Mês SCO" value={contratoForm.mesSco} onChange={e => setContratoForm(p => ({ ...p, mesSco: e.target.value }))} />
-                <Input placeholder="Ano SCO" value={contratoForm.anoSco} onChange={e => setContratoForm(p => ({ ...p, anoSco: e.target.value }))} />
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">Mês SCO</label>
+                  <Select value={contratoForm.mesSco} onValueChange={v => setContratoForm(p => ({ ...p, mesSco: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Mês SCO" /></SelectTrigger>
+                    <SelectContent>
+                      {i0Meses.map(m => <SelectItem key={m} value={String(m)}>{String(m).padStart(2, "0")}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">Ano SCO</label>
+                  <Select value={contratoForm.anoSco} onValueChange={v => setContratoForm(p => ({ ...p, anoSco: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Ano SCO" /></SelectTrigger>
+                    <SelectContent>
+                      {i0Anos.map(a => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="flex gap-2 mb-4">
