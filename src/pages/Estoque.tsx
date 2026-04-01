@@ -397,13 +397,14 @@ export default function EstoquePage() {
                   <TableHead>Centro de Custo</TableHead>
                   <TableHead>Local</TableHead>
                   <TableHead className="text-right">Qtd</TableHead>
+                  <TableHead className="text-right">Vlr Unit.</TableHead>
                   <TableHead>Documento</TableHead>
                   <TableHead>Usuário</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {movFiltered.length === 0 ? (
-                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma movimentação</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Nenhuma movimentação</TableCell></TableRow>
                 ) : paginate(movFiltered, pageMov).paginated.map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="text-xs">{m.dataMovimentacao ? new Date(m.dataMovimentacao).toLocaleDateString("pt-BR") : "-"}</TableCell>
@@ -413,6 +414,7 @@ export default function EstoquePage() {
                     <TableCell>{getCentroCustoFromDocRef(m.documentoRef)}</TableCell>
                     <TableCell>{m.local}</TableCell>
                     <TableCell className="text-right font-semibold">{m.quantidade.toLocaleString("pt-BR")}</TableCell>
+                    <TableCell className="text-right">{m.valorUnitario > 0 ? m.valorUnitario.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</TableCell>
                     <TableCell className="text-xs">{m.documentoRef || "-"}</TableCell>
                     <TableCell className="text-xs">{m.usuario}</TableCell>
                   </TableRow>
