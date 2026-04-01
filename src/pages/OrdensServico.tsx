@@ -193,16 +193,25 @@ export default function OrdensServicoPage() {
     return item?.valor ?? 0;
   };
 
+  const autoSaveMateriais = async (updatedMateriais: MaterialOS[]) => {
+    if (editingId) {
+      await updateOrdem(editingId, { materiais: updatedMateriais });
+    }
+  };
+
   const handleAddScoMaterial = (scoItem: typeof scos[0]) => {
     const valorUnitario = getI0Valor(scoItem.codSco);
     const newItem: MaterialOS = {
       id: crypto.randomUUID(), codigo: scoItem.codSco, descricao: scoItem.descricaoSco,
       unidade: scoItem.unidade, valorUnitario, quantidade: scoQtd, valorTotal: valorUnitario * scoQtd,
     };
-    setMateriais([...materiais, newItem]);
+    const updated = [...materiais, newItem];
+    setMateriais(updated);
+    autoSaveMateriais(updated);
     setScoBusca("");
     setScoQtd(1);
     setScoResultPage(1);
+    toast.success("Item adicionado e salvo automaticamente");
   };
 
   const resetForm = () => {
@@ -680,11 +689,11 @@ export default function OrdensServicoPage() {
                               <TableCell>
                                 <Input type="number" className="h-8 text-xs" value={m.quantidade} onChange={e => {
                                   const updated = [...materiais]; updated[idx] = { ...m, quantidade: Number(e.target.value), valorTotal: m.valorUnitario * Number(e.target.value) }; setMateriais(updated);
-                                }} />
+                                }} onBlur={() => autoSaveMateriais(materiais)} />
                               </TableCell>
                               <TableCell className="text-xs font-medium">R$ {m.valorTotal.toFixed(2)}</TableCell>
                               <TableCell>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setMateriais(materiais.filter(x => x.id !== m.id))}><Trash2 className="h-3 w-3" /></Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { const updated = materiais.filter(x => x.id !== m.id); setMateriais(updated); autoSaveMateriais(updated); }}><Trash2 className="h-3 w-3" /></Button>
                               </TableCell>
                             </TableRow>
                           ))}
