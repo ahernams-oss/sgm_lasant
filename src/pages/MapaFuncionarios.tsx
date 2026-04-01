@@ -341,13 +341,16 @@ const MapaFuncionarios = () => {
         {/* Formulário */}
         {showForm && (
           <form onSubmit={handleSubmit} className="mb-8 rounded-xl border border-border bg-card p-6 shadow-sm animate-fade-up">
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras")} className="w-full">
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras" | "advertencias")} className="w-full">
               <TabsList className="mb-6">
                 <TabsTrigger value="faltas" className="gap-1.5">
                   <XCircle className="h-3.5 w-3.5" /> Falta
                 </TabsTrigger>
                 <TabsTrigger value="horas_extras" className="gap-1.5">
                   <Clock className="h-3.5 w-3.5" /> Hora Extra
+                </TabsTrigger>
+                <TabsTrigger value="advertencias" className="gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Advertência
                 </TabsTrigger>
               </TabsList>
 
