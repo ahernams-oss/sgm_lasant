@@ -84,6 +84,7 @@ const rowToMov = (r: any): MovimentacaoEstoque => ({
   lote: r.lote ?? "", validade: r.validade ?? "",
   depositoOrigem: r.deposito_origem ?? "", depositoDestino: r.deposito_destino ?? "",
   fornecedorNome: r.fornecedor_nome ?? "",
+  valorUnitario: Number(r.valor_unitario ?? 0),
 });
 
 const rowToInv = (r: any): Inventario => ({
