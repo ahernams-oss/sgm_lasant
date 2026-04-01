@@ -25,6 +25,7 @@ interface OrcamentoDialogProps {
   solicitacao: { id: string; numero: number; clienteId: string; clienteNome: string } | null;
   existingOrcamento?: Orcamento | null;
   onApproved?: (orcamento: Orcamento) => void;
+  onSent?: () => void;
 }
 
 interface ItemSco {
