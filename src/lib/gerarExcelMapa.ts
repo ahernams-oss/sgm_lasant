@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { Lancamento, TipoFalta } from "@/contexts/LancamentosContext";
+import { Lancamento, TipoFalta, TipoAdvertencia } from "@/contexts/LancamentosContext";
 import { Funcionario } from "@/contexts/FuncionariosContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -9,6 +9,11 @@ const TIPO_FALTA_LABELS: Record<TipoFalta, string> = {
   injustificada: "Injustificada",
   atestado: "Atestado Médico",
   suspensao: "Suspensão",
+};
+
+const TIPO_ADVERTENCIA_LABELS: Record<TipoAdvertencia, string> = {
+  verbal: "Verbal",
+  escrita: "Escrita",
 };
 
 interface ExcelMapaParams {
