@@ -209,7 +209,7 @@ const MapaFuncionarios = () => {
   };
 
   const filteredLancamentos = useMemo(() => {
-    const tipo = activeTab === "faltas" ? "falta" : "hora_extra";
+    const tipo = activeTab === "faltas" ? "falta" : activeTab === "horas_extras" ? "hora_extra" : "advertencia";
     let result = lancamentos.filter((l) => l.tipo === tipo);
 
     if (filterMes) {
