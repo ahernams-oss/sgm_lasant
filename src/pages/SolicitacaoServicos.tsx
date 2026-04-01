@@ -57,6 +57,11 @@ export default function SolicitacaoServicosPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: abortCancel } = useDoubleConfirmDelete();
+  const { orcamentos } = useOrcamentos();
+
+  // Orcamento dialog state
+  const [orcamentoDialogOpen, setOrcamentoDialogOpen] = useState(false);
+  const [orcamentoTarget, setOrcamentoTarget] = useState<{ id: string; numero: number; clienteId: string; clienteNome: string } | null>(null);
 
   // Approval dialog state
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
