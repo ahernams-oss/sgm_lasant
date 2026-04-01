@@ -1821,6 +1821,63 @@ export type Database = {
         }
         Relationships: []
       }
+      orcamentos: {
+        Row: {
+          anexos: Json
+          aprovado_por: string | null
+          cliente_id: string
+          cliente_nome: string
+          created_at: string | null
+          data_aprovacao: string | null
+          id: string
+          itens_materiais: Json
+          itens_sco: Json
+          numero: number
+          observacoes: string | null
+          revisao_motivo: string | null
+          solicitacao_id: string
+          solicitacao_numero: number
+          status: string
+          valor_total: number
+        }
+        Insert: {
+          anexos?: Json
+          aprovado_por?: string | null
+          cliente_id?: string
+          cliente_nome?: string
+          created_at?: string | null
+          data_aprovacao?: string | null
+          id?: string
+          itens_materiais?: Json
+          itens_sco?: Json
+          numero?: number
+          observacoes?: string | null
+          revisao_motivo?: string | null
+          solicitacao_id?: string
+          solicitacao_numero?: number
+          status?: string
+          valor_total?: number
+        }
+        Update: {
+          anexos?: Json
+          aprovado_por?: string | null
+          cliente_id?: string
+          cliente_nome?: string
+          created_at?: string | null
+          data_aprovacao?: string | null
+          id?: string
+          itens_materiais?: Json
+          itens_sco?: Json
+          numero?: number
+          observacoes?: string | null
+          revisao_motivo?: string | null
+          solicitacao_id?: string
+          solicitacao_numero?: number
+          status?: string
+          valor_total?: number
+        }
+        Relationships: []
+      }
       ordens_servico: {
         Row: {
           anexos: Json | null
