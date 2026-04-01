@@ -176,6 +176,8 @@ export default function OrdensServicoPage() {
     setRamal(""); setTelefone(""); setLocalId(""); setPavimentoId("");
     setSetorId(""); setCategoria(""); setServico("");
     setDescricaoServicos(""); setRessalvaAprovacao(""); setDescricaoConclusao("");
+    setMateriais([]); setMateriaisEstoque([]); setProfissionais([]);
+    setAnexos([]); setFotos([]); setObservacoes([]); setObservacoesFiscalizacao([]);
     setEditingId(null);
   };
 
@@ -195,6 +197,9 @@ export default function OrdensServicoPage() {
     setCategoria(os.categoria); setServico(os.servico);
     setDescricaoServicos(os.descricaoServicos); setRessalvaAprovacao(os.ressalvaAprovacao);
     setDescricaoConclusao(os.descricaoConclusao);
+    setMateriais(os.materiais); setMateriaisEstoque(os.materiaisEstoque);
+    setProfissionais(os.profissionais); setAnexos(os.anexos); setFotos(os.fotos);
+    setObservacoes(os.observacoes); setObservacoesFiscalizacao(os.observacoesFiscalizacao);
     setFormOpen(true);
   };
 
