@@ -75,8 +75,10 @@ export interface OrdemServico {
   descricaoConclusao: string;
   materiais: MaterialOS[];
   materiaisEstoque: MaterialOS[];
+  profissionais: ProfissionalOS[];
   anexos: AnexoOS[];
   fotos: FotoOS[];
+  observacoes: ObservacaoOS[];
   observacoesFiscalizacao: ObservacaoFiscalizacao[];
   bdi: number;
   operadorId: string;
