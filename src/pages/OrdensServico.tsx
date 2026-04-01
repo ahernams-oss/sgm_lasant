@@ -789,7 +789,10 @@ export default function OrdensServicoPage() {
                                     }}>
                                       <div className="flex justify-between w-full items-center">
                                         <span className="text-xs"><strong>{s.materialCodigo}</strong> — {s.materialDescricao}</span>
-                                        <Badge variant="secondary" className="ml-2 text-xs">Saldo: {s.quantidade}</Badge>
+                                        <div className="flex gap-2 ml-2">
+                                          {s.valorUnitarioFIFO > 0 && <Badge variant="outline" className="text-xs">{s.valorUnitarioFIFO.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</Badge>}
+                                          <Badge variant="secondary" className="text-xs">Saldo: {s.quantidade}</Badge>
+                                        </div>
                                       </div>
                                     </CommandItem>
                                   ))}
