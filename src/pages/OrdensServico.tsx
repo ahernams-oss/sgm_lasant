@@ -236,6 +236,13 @@ export default function OrdensServicoPage() {
       descricao_servicos: descricaoServicos,
       ressalva_aprovacao: ressalvaAprovacao,
       descricao_conclusao: descricaoConclusao,
+      materiais,
+      materiais_estoque: materiaisEstoque,
+      profissionais,
+      anexos,
+      fotos,
+      observacoes,
+      observacoes_fiscalizacao: observacoesFiscalizacao,
     };
 
     if (editingId) {
