@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
-export type TipoLancamento = "falta" | "hora_extra";
+export type TipoLancamento = "falta" | "hora_extra" | "advertencia";
 export type TipoFalta = "justificada" | "injustificada" | "atestado" | "suspensao";
+export type TipoAdvertencia = "verbal" | "escrita";
 
 export interface AnexoFalta { nome: string; tipo: string; base64: string; }
 
@@ -10,6 +11,7 @@ export interface Lancamento {
   id: string; funcionarioId: string; tipo: TipoLancamento; data: string;
   tipoFalta?: TipoFalta; diasFalta?: number; anexos?: AnexoFalta[];
   horasExtras?: number; percentual?: number; observacao: string; criadoEm: string;
+  tipoAdvertencia?: TipoAdvertencia; motivo?: string;
 }
 
 interface LancamentosContextType {
