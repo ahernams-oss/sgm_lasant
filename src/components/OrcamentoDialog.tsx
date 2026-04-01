@@ -236,6 +236,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     onSent?.();
     setUploading(false);
     onOpenChange(false);
+  };
 
   const handleAprovar = async () => {
     if (!existingOrcamento) return;
