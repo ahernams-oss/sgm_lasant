@@ -17,6 +17,7 @@ import ImportClientesFornecedores from "@/components/ImportClientesFornecedores"
 
 const Clientes = () => {
   const [formOpen, setFormOpen] = useState(true);
+  const { items: i0Items } = useI0();
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
