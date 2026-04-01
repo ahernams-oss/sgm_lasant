@@ -207,6 +207,36 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     onOpenChange(false);
   };
 
+  const handleEnviar = async () => {
+    if (itensSco.length === 0 && itensMateriais.length === 0) {
+      toast({ title: "Adicione pelo menos um item ao orçamento", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    const anexosUrls = await uploadAnexos();
+    const payload: any = {
+      solicitacao_id: solicitacao?.id || "",
+      solicitacao_numero: solicitacao?.numero || 0,
+      cliente_id: solicitacao?.clienteId || "",
+      cliente_nome: solicitacao?.clienteNome || "",
+      itens_sco: itensSco,
+      itens_materiais: itensMateriais,
+      anexos: anexosUrls,
+      valor_total: valorTotal,
+      observacoes,
+      status: "Enviado",
+    };
+
+    if (existingOrcamento) {
+      await updateOrcamento(existingOrcamento.id, payload);
+    } else {
+      await addOrcamento(payload);
+    }
+    toast({ title: "Orçamento enviado com sucesso" });
+    onSent?.();
+    setUploading(false);
+    onOpenChange(false);
+
   const handleAprovar = async () => {
     if (!existingOrcamento) return;
     const data = {
