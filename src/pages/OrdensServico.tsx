@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSco } from "@/contexts/ScoContext";
 import { useI0 } from "@/contexts/I0Context";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
+import { useCargos } from "@/contexts/CargosContext";
 import { useEstoque } from "@/contexts/EstoqueContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -76,6 +77,7 @@ export default function OrdensServicoPage() {
   const { items: i0Items } = useI0();
   const { funcionarios } = useFuncionarios();
   const { getSaldos } = useEstoque();
+  const { cargos } = useCargos();
   const navigate = useNavigate();
 
   const clientesFiltrados = clientes.filter(c => c.tipo === "Cliente");
@@ -851,12 +853,13 @@ export default function OrdensServicoPage() {
                       <Select onValueChange={v => {
                         const func = funcionarios.find(f => f.id === v);
                         if (func && !profissionais.find(p => p.funcionarioId === v)) {
-                          setProfissionais([...profissionais, { id: crypto.randomUUID(), funcionarioId: func.id, nome: func.nome, cargo: "" }]);
+                          const cargoNome = cargos.find(c => c.id === func.cargoId)?.nome || "";
+                          setProfissionais([...profissionais, { id: crypto.randomUUID(), funcionarioId: func.id, nome: func.nome, cargo: cargoNome }]);
                         }
                       }}>
                         <SelectTrigger><SelectValue placeholder="Selecionar profissional..." /></SelectTrigger>
                         <SelectContent>
-                          {funcionarios.filter(f => f.status !== "Inativo").map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+                          {funcionarios.filter(f => f.status !== "Inativo" && f.clienteId === clienteId).map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
@@ -870,11 +873,7 @@ export default function OrdensServicoPage() {
                         {profissionais.map((p, idx) => (
                           <TableRow key={p.id}>
                             <TableCell className="text-xs">{p.nome}</TableCell>
-                            <TableCell>
-                              <Input className="h-8 text-xs" value={p.cargo} onChange={e => {
-                                const updated = [...profissionais]; updated[idx] = { ...p, cargo: e.target.value }; setProfissionais(updated);
-                              }} placeholder="Cargo/Função" />
-                            </TableCell>
+                            <TableCell className="text-xs">{p.cargo}</TableCell>
                             <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setProfissionais(profissionais.filter(x => x.id !== p.id))}><Trash2 className="h-3 w-3" /></Button></TableCell>
                           </TableRow>
                         ))}
