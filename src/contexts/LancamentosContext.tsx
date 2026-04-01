@@ -37,6 +37,7 @@ const lancamentoToRow = (l: Omit<Lancamento, "id">) => ({
   tipo_falta: l.tipoFalta ?? "", dias_falta: l.diasFalta ?? 0,
   anexos: (l.anexos ?? []) as any, horas_extras: l.horasExtras ?? 0,
   percentual: l.percentual ?? 0, observacao: l.observacao, criado_em: l.criadoEm,
+  tipo_advertencia: l.tipoAdvertencia ?? "", motivo: l.motivo ?? "",
 });
 
 export function LancamentosProvider({ children }: { children: ReactNode }) {
