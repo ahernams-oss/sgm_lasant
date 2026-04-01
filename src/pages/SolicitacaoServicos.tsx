@@ -629,7 +629,7 @@ export default function SolicitacaoServicosPage() {
                           <ClipboardList className="mr-2 h-4 w-4 text-blue-600" />Orçar Solicitação
                         </DropdownMenuItem>
                       )}
-                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado"].includes(s.situacao) && (
+                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleEdit(s)}>
                           <Pencil className="mr-2 h-4 w-4" />Editar
                         </DropdownMenuItem>
