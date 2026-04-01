@@ -858,29 +858,48 @@ export default function OrdensServicoPage() {
                                 <CommandEmpty>Nenhum material encontrado.</CommandEmpty>
                                 <CommandGroup>
                                   {saldosFiltrados
-                                    .filter(s => !materiaisEstoque.some(m => m.codigo === s.materialCodigo))
+                                    .filter(s => !materiaisEstoque.some(m =>
+                                      m.id === `estoque:${s.materialId}__${s.local}` ||
+                                      (
+                                        m.codigo === s.materialCodigo &&
+                                        m.descricao === s.materialDescricao &&
+                                        Number(m.valorUnitario || 0) === Number(s.valorUnitarioFIFO || 0)
+                                      )
+                                    ))
                                     .slice(0, 50).map(s => (
-                                    <CommandItem key={s.materialId + '__' + s.local} onSelect={() => {
-                                      const newItem: MaterialOS = {
-                                        id: crypto.randomUUID(),
-                                        codigo: s.materialCodigo,
-                                        descricao: s.materialDescricao,
-                                        unidade: "",
-                                        valorUnitario: s.valorUnitarioFIFO || 0,
-                                        quantidade: estoqueQtd,
-                                        valorTotal: (s.valorUnitarioFIFO || 0) * estoqueQtd,
-                                      };
-                                      const updated = [...materiaisEstoque, newItem];
-                                      setMateriaisEstoque(updated);
-                                      autoSaveMateriaisEstoque(updated);
-                                      toast.success("Material adicionado e salvo.");
-                                      setEstoqueQtd(1);
-                                    }}>
+                                    <CommandItem
+                                      key={s.materialId + '__' + s.local}
+                                      value={`${s.materialCodigo} ${s.materialDescricao} ${s.local}`.trim()}
+                                      onSelect={() => {
+                                        const newItem: MaterialOS = {
+                                          id: `estoque:${s.materialId}__${s.local}`,
+                                          codigo: s.materialCodigo,
+                                          descricao: s.materialDescricao,
+                                          unidade: "",
+                                          valorUnitario: s.valorUnitarioFIFO || 0,
+                                          quantidade: estoqueQtd,
+                                          valorTotal: (s.valorUnitarioFIFO || 0) * estoqueQtd,
+                                        };
+                                        const updated = [...materiaisEstoque, newItem];
+                                        setMateriaisEstoque(updated);
+                                        autoSaveMateriaisEstoque(updated);
+                                        toast.success("Material adicionado e salvo.");
+                                        setEstoquePopoverOpen(true);
+                                        setEstoqueQtd(1);
+                                        requestAnimationFrame(() => setEstoqueBusca(""));
+                                      }}
+                                    >
                                       <div className="flex justify-between w-full items-center">
                                         <span className="text-xs"><strong>{s.materialCodigo}</strong> — {s.materialDescricao}</span>
                                         <div className="flex gap-2 ml-2">
-                                          {s.valorUnitarioFIFO > 0 && <Badge variant="outline" className="text-xs">{s.valorUnitarioFIFO.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</Badge>}
-                                          <Badge variant="secondary" className="text-xs">Saldo: {s.quantidade}</Badge>
+                                          {s.valorUnitarioFIFO > 0 && (
+                                            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold text-foreground">
+                                              {s.valorUnitarioFIFO.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                            </span>
+                                          )}
+                                          <span className="inline-flex items-center rounded-full border-transparent bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
+                                            Saldo: {s.quantidade}
+                                          </span>
                                         </div>
                                       </div>
                                     </CommandItem>
