@@ -844,26 +844,23 @@ export default function OrdensServicoPage() {
                     <div className="flex gap-2 items-end">
                       <div className="flex-[3]">
                         <Label>Buscar Material no Estoque</Label>
-                        <Popover open={estoquePopoverOpen} onOpenChange={setEstoquePopoverOpen}>
+                        <Popover open={estoquePopoverOpen} onOpenChange={setEstoquePopoverOpen} modal={false}>
                           <PopoverTrigger asChild>
                             <Button variant="outline" role="combobox" className="w-full justify-start font-normal h-10 text-sm">
                               <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                               Buscar por código ou descrição...
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[500px] p-0" align="start">
+                          <PopoverContent className="w-[500px] p-0" align="start" onOpenAutoFocus={e => e.preventDefault()}>
                             <Command shouldFilter={false}>
                               <CommandInput placeholder="Digite código ou descrição..." value={estoqueBusca} onValueChange={setEstoqueBusca} />
                               <CommandList>
                                 <CommandEmpty>Nenhum material encontrado.</CommandEmpty>
                                 <CommandGroup>
-                                  {saldosFiltrados.slice(0, 50).map(s => (
+                                  {saldosFiltrados
+                                    .filter(s => !materiaisEstoque.some(m => m.codigo === s.materialCodigo))
+                                    .slice(0, 50).map(s => (
                                     <CommandItem key={s.materialId + '__' + s.local} onSelect={() => {
-                                      const jaExiste = materiaisEstoque.find(m => m.codigo === s.materialCodigo);
-                                      if (jaExiste) {
-                                        toast.error("Material já adicionado.");
-                                        return;
-                                      }
                                       const newItem: MaterialOS = {
                                         id: crypto.randomUUID(),
                                         codigo: s.materialCodigo,
@@ -877,7 +874,6 @@ export default function OrdensServicoPage() {
                                       setMateriaisEstoque(updated);
                                       autoSaveMateriaisEstoque(updated);
                                       toast.success("Material adicionado e salvo.");
-                                      setEstoqueBusca("");
                                       setEstoqueQtd(1);
                                     }}>
                                       <div className="flex justify-between w-full items-center">
