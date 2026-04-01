@@ -75,6 +75,7 @@ export default function OrdensServicoPage() {
   const { scos } = useSco();
   const { items: i0Items } = useI0();
   const { funcionarios } = useFuncionarios();
+  const { getSaldos } = useEstoque();
   const navigate = useNavigate();
 
   const clientesFiltrados = clientes.filter(c => c.tipo === "Cliente");
