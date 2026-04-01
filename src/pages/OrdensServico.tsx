@@ -4,6 +4,7 @@ import { useOrdensServico, OrdemServico, MaterialOS, ProfissionalOS, AnexoOS, Fo
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSco } from "@/contexts/ScoContext";
+import { useI0 } from "@/contexts/I0Context";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
