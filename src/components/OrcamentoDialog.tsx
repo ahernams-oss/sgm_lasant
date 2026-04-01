@@ -193,7 +193,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       anexos: anexosUrls,
       valor_total: valorTotal,
       observacoes,
-      status: "Pendente",
+      status: existingOrcamento?.status === "Pendente" ? "Pendente" : "Pendente",
     };
 
     if (existingOrcamento) {
