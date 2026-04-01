@@ -695,7 +695,7 @@ export default function OrdensServicoPage() {
                       }}>
                         <SelectTrigger><SelectValue placeholder="Selecionar profissional..." /></SelectTrigger>
                         <SelectContent>
-                          {funcionarios.filter(f => f.status !== "Demitido").map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+                          {funcionarios.filter(f => f.status !== "Inativo").map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
