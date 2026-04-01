@@ -410,7 +410,7 @@ export default function OrdensServicoPage() {
                         </DropdownMenuItem>
                         {!["Validada", "Cancelada"].includes(os.situacao) && (
                           <DropdownMenuItem onClick={() => handleEdit(os)}>
-                            <Pencil className="mr-2 h-4 w-4" /> Editar
+                            <Pencil className="mr-2 h-4 w-4" /> Preencher OS
                           </DropdownMenuItem>
                         )}
                         {/* Workflow actions */}
