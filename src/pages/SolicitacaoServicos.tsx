@@ -8,6 +8,8 @@ import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import OrcamentoDialog from "@/components/OrcamentoDialog";
+import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
+import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
 import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
@@ -22,7 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList, Download } from "lucide-react";
 
 const SITUACOES = ["Aguardando aprovação", "Orçamento Solicitado", "Orçamento Disponível", "Aprovada", "Em execução", "Concluída", "Cancelada"];
 
@@ -320,6 +322,19 @@ export default function SolicitacaoServicosPage() {
     });
 
     toast({ title: "Orçamento aprovado e Ordem de Serviço criada!" });
+  };
+
+  const handleDownloadOrcamento = (s: any, tipo: "pdf" | "excel") => {
+    const orc = orcamentos.find(o => o.solicitacaoId === s.id);
+    if (!orc) {
+      toast({ title: "Orçamento não encontrado", variant: "destructive" });
+      return;
+    }
+    if (tipo === "pdf") {
+      gerarPdfOrcamento(orc);
+    } else {
+      gerarExcelOrcamento(orc);
+    }
   };
 
   const getPrioridadeColor = (prioridade: string) => {
@@ -633,6 +648,17 @@ export default function SolicitacaoServicosPage() {
                         <DropdownMenuItem onClick={() => handleOrcarSolicitacao(s)}>
                           <FileText className="mr-2 h-4 w-4 text-indigo-600" />Ver Orçamento
                         </DropdownMenuItem>
+                      )}
+                      {["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && orcamentos.some(o => o.solicitacaoId === s.id) && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleDownloadOrcamento(s, "pdf")}>
+                            <Download className="mr-2 h-4 w-4" />Orçamento PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadOrcamento(s, "excel")}>
+                            <Download className="mr-2 h-4 w-4" />Orçamento Excel
+                          </DropdownMenuItem>
+                        </>
                       )}
                       {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleEdit(s)}>
