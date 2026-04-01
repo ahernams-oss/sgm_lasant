@@ -4,6 +4,7 @@ import { useOrdensServico, OrdemServico, MaterialOS, ProfissionalOS, AnexoOS, Fo
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSco } from "@/contexts/ScoContext";
+import { useI0 } from "@/contexts/I0Context";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,13 +63,14 @@ const prioridadeBadge = (p: string) => {
   return <Badge className="bg-green-600 text-white">{p}</Badge>;
 };
 
-const ITEMS_PER_PAGE = 15;
+const ITEMS_PER_PAGE = 10;
 
 export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
   const { scos } = useSco();
+  const { items: i0Items } = useI0();
   const { funcionarios } = useFuncionarios();
   const navigate = useNavigate();
 
@@ -114,6 +116,18 @@ export default function OrdensServicoPage() {
 
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: cancelCancelAction } = useDoubleConfirmDelete();
+  // SCO search state
+  const [scoBusca, setScoBusca] = useState("");
+  const [scoQtd, setScoQtd] = useState(1);
+  const [scoResultPage, setScoResultPage] = useState(1);
+
+  const scosFiltered = useMemo(() => {
+    if (!scoBusca.trim()) return [];
+    const q = scoBusca.toLowerCase();
+    return scos.filter(s => s.codSco.toLowerCase().includes(q) || s.descricaoSco.toLowerCase().includes(q));
+  }, [scos, scoBusca]);
+
+
 
   // Workflow action handler
   const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
@@ -169,6 +183,28 @@ export default function OrdensServicoPage() {
   const pavimentoSelecionado = (pavimentos as any[]).find((p: any) => p.id === pavimentoId);
   const setores = pavimentoSelecionado?.setores || [];
 
+  const getI0Valor = (codSco: string) => {
+    const contratos = clienteSelecionado?.contratos || [];
+    const contrato = contratos[0];
+    if (!contrato?.mesSco || !contrato?.anoSco) return 0;
+    const mes = Number(contrato.mesSco);
+    const ano = Number(contrato.anoSco);
+    const item = i0Items.find(i => i.codSco === codSco && i.mes === mes && i.ano === ano);
+    return item?.valor ?? 0;
+  };
+
+  const handleAddScoMaterial = (scoItem: typeof scos[0]) => {
+    const valorUnitario = getI0Valor(scoItem.codSco);
+    const newItem: MaterialOS = {
+      id: crypto.randomUUID(), codigo: scoItem.codSco, descricao: scoItem.descricaoSco,
+      unidade: scoItem.unidade, valorUnitario, quantidade: scoQtd, valorTotal: valorUnitario * scoQtd,
+    };
+    setMateriais([...materiais, newItem]);
+    setScoBusca("");
+    setScoQtd(1);
+    setScoResultPage(1);
+  };
+
   const resetForm = () => {
     setClienteId(""); setNCliente(""); setSituacao("Aberta");
     setDataInicio(""); setHoraInicio(""); setDataTermino(""); setHoraTermino("");
@@ -178,6 +214,7 @@ export default function OrdensServicoPage() {
     setDescricaoServicos(""); setRessalvaAprovacao(""); setDescricaoConclusao("");
     setMateriais([]); setMateriaisEstoque([]); setProfissionais([]);
     setAnexos([]); setFotos([]); setObservacoes([]); setObservacoesFiscalizacao([]);
+    setScoBusca(""); setScoQtd(1); setScoResultPage(1);
     setEditingId(null);
   };
 
@@ -271,11 +308,15 @@ export default function OrdensServicoPage() {
 
   const ordensFiltradas = useMemo(() => {
     return ordens.filter(o => {
+      const q = busca.toLowerCase();
       const matchBusca = !busca ||
         o.numero.toString().includes(busca) ||
-        o.clienteNome.toLowerCase().includes(busca.toLowerCase()) ||
-        o.descricaoServicos.toLowerCase().includes(busca.toLowerCase()) ||
-        o.solicitante.toLowerCase().includes(busca.toLowerCase());
+        o.clienteNome.toLowerCase().includes(q) ||
+        o.nCliente.toLowerCase().includes(q) ||
+        o.descricaoServicos.toLowerCase().includes(q) ||
+        o.solicitante.toLowerCase().includes(q) ||
+        o.localDescricao.toLowerCase().includes(q) ||
+        o.categoria.toLowerCase().includes(q);
       const matchSituacao = filtroSituacao === "Todas" || o.situacao === filtroSituacao;
       return matchBusca && matchSituacao;
     });
@@ -302,12 +343,12 @@ export default function OrdensServicoPage() {
               <Label>Buscar</Label>
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Nº, cliente, descrição..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-8" />
+                <Input placeholder="Nº, cliente, descrição, local..." value={busca} onChange={e => { setBusca(e.target.value); setPage(1); }} className="pl-8" />
               </div>
             </div>
             <div className="w-[180px]">
               <Label>Situação</Label>
-              <Select value={filtroSituacao} onValueChange={setFiltroSituacao}>
+              <Select value={filtroSituacao} onValueChange={v => { setFiltroSituacao(v); setPage(1); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Todas">Todas</SelectItem>
@@ -560,61 +601,94 @@ export default function OrdensServicoPage() {
                 <CollapsibleContent className="p-3 space-y-3">
                   <div className="flex gap-2 items-end">
                     <div className="flex-1">
-                      <Label>Item SCO</Label>
-                      <Select onValueChange={v => {
-                        const sco = scos.find(s => s.id === v);
-                        if (sco) {
-                          const newItem: MaterialOS = {
-                            id: crypto.randomUUID(), codigo: sco.codSco, descricao: sco.descricaoSco,
-                            unidade: sco.unidade, valorUnitario: 0, quantidade: 1, valorTotal: 0
-                          };
-                          setMateriais([...materiais, newItem]);
-                        }
-                      }}>
-                        <SelectTrigger><SelectValue placeholder="Buscar item SCO..." /></SelectTrigger>
-                        <SelectContent>
-                          {scos.map(s => <SelectItem key={s.id} value={s.id}>{s.codSco} - {s.descricaoSco}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                      <Label>Código</Label>
+                      <div className="relative">
+                        <Input
+                          placeholder="Código"
+                          value={scoBusca}
+                          onChange={e => { setScoBusca(e.target.value); setScoResultPage(1); }}
+                        />
+                        <Search className="absolute right-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </div>
+                    <div className="w-[120px]">
+                      <Label>Qtd</Label>
+                      <Input type="number" min={1} value={scoQtd} onChange={e => setScoQtd(Number(e.target.value) || 1)} placeholder="Qtd" />
                     </div>
                   </div>
-                  {materiais.length > 0 && (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Código</TableHead>
-                          <TableHead>Descrição</TableHead>
-                          <TableHead>Un.</TableHead>
-                          <TableHead className="w-[100px]">Vl. Unit.</TableHead>
-                          <TableHead className="w-[80px]">Qtd.</TableHead>
-                          <TableHead className="w-[100px]">Vl. Total</TableHead>
-                          <TableHead className="w-[50px]"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {materiais.map((m, idx) => (
-                          <TableRow key={m.id}>
-                            <TableCell className="text-xs">{m.codigo}</TableCell>
-                            <TableCell className="text-xs">{m.descricao}</TableCell>
-                            <TableCell className="text-xs">{m.unidade}</TableCell>
-                            <TableCell>
-                              <Input type="number" className="h-8 text-xs" value={m.valorUnitario} onChange={e => {
-                                const updated = [...materiais]; updated[idx] = { ...m, valorUnitario: Number(e.target.value), valorTotal: Number(e.target.value) * m.quantidade }; setMateriais(updated);
-                              }} />
-                            </TableCell>
-                            <TableCell>
-                              <Input type="number" className="h-8 text-xs" value={m.quantidade} onChange={e => {
-                                const updated = [...materiais]; updated[idx] = { ...m, quantidade: Number(e.target.value), valorTotal: m.valorUnitario * Number(e.target.value) }; setMateriais(updated);
-                              }} />
-                            </TableCell>
-                            <TableCell className="text-xs font-medium">R$ {m.valorTotal.toFixed(2)}</TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setMateriais(materiais.filter(x => x.id !== m.id))}><Trash2 className="h-3 w-3" /></Button>
-                            </TableCell>
+                  {scosFiltered.length > 0 && (
+                    <div className="border rounded-md max-h-[250px] overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Código</TableHead>
+                            <TableHead>Descrição</TableHead>
+                            <TableHead>Un.</TableHead>
+                            <TableHead>Tipo</TableHead>
+                            <TableHead className="w-[80px]"></TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {paginate(scosFiltered, scoResultPage, 10).paginated.map(s => (
+                            <TableRow key={s.id}>
+                              <TableCell className="text-xs font-mono">{s.codSco}</TableCell>
+                              <TableCell className="text-xs">{s.descricaoSco}</TableCell>
+                              <TableCell className="text-xs">{s.unidade}</TableCell>
+                              <TableCell className="text-xs">{s.tipo}</TableCell>
+                              <TableCell>
+                                <Button size="sm" onClick={() => handleAddScoMaterial(s)}>Adicionar</Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                      {scosFiltered.length > 10 && (
+                        <div className="p-2">
+                          <PaginationControls currentPage={scoResultPage} totalItems={scosFiltered.length} onPageChange={setScoResultPage} pageSize={10} />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {materiais.length > 0 && (
+                    <>
+                      <p className="text-xs text-muted-foreground font-semibold mt-2">Itens adicionados</p>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Código</TableHead>
+                            <TableHead>Descrição</TableHead>
+                            <TableHead>Un.</TableHead>
+                            <TableHead className="w-[100px]">Vl. Unit.</TableHead>
+                            <TableHead className="w-[80px]">Qtd.</TableHead>
+                            <TableHead className="w-[100px]">Vl. Total</TableHead>
+                            <TableHead className="w-[50px]"></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {materiais.map((m, idx) => (
+                            <TableRow key={m.id}>
+                              <TableCell className="text-xs">{m.codigo}</TableCell>
+                              <TableCell className="text-xs">{m.descricao}</TableCell>
+                              <TableCell className="text-xs">{m.unidade}</TableCell>
+                              <TableCell>
+                                <Input type="number" className="h-8 text-xs" value={m.valorUnitario} onChange={e => {
+                                  const updated = [...materiais]; updated[idx] = { ...m, valorUnitario: Number(e.target.value), valorTotal: Number(e.target.value) * m.quantidade }; setMateriais(updated);
+                                }} />
+                              </TableCell>
+                              <TableCell>
+                                <Input type="number" className="h-8 text-xs" value={m.quantidade} onChange={e => {
+                                  const updated = [...materiais]; updated[idx] = { ...m, quantidade: Number(e.target.value), valorTotal: m.valorUnitario * Number(e.target.value) }; setMateriais(updated);
+                                }} />
+                              </TableCell>
+                              <TableCell className="text-xs font-medium">R$ {m.valorTotal.toFixed(2)}</TableCell>
+                              <TableCell>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setMateriais(materiais.filter(x => x.id !== m.id))}><Trash2 className="h-3 w-3" /></Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </>
                   )}
                 </CollapsibleContent>
               </Collapsible>
