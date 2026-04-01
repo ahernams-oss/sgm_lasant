@@ -118,6 +118,7 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
       lote: data.lote || "", validade: data.validade || null,
       deposito_origem: data.depositoOrigem || "", deposito_destino: data.depositoDestino || "",
       fornecedor_nome: data.fornecedorNome || "",
+      valor_unitario: data.valorUnitario || 0,
     });
     await load();
   };
