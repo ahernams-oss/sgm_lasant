@@ -4,8 +4,10 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
+import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+import OrcamentoDialog from "@/components/OrcamentoDialog";
 import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
@@ -55,6 +57,11 @@ export default function SolicitacaoServicosPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: abortCancel } = useDoubleConfirmDelete();
+  const { orcamentos } = useOrcamentos();
+
+  // Orcamento dialog state
+  const [orcamentoDialogOpen, setOrcamentoDialogOpen] = useState(false);
+  const [orcamentoTarget, setOrcamentoTarget] = useState<{ id: string; numero: number; clienteId: string; clienteNome: string } | null>(null);
 
   // Approval dialog state
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
@@ -259,7 +266,49 @@ export default function SolicitacaoServicosPage() {
   };
 
   const handleSolicitarOrcamento = (s: any) => {
-    toast({ title: "Orçamento solicitado", description: `Solicitação nº ${s.numero}` });
+    setOrcamentoTarget({ id: s.id, numero: s.numero, clienteId: s.clienteId, clienteNome: s.clienteNome });
+    setOrcamentoDialogOpen(true);
+  };
+
+  const existingOrcamentoForTarget = useMemo(() => {
+    if (!orcamentoTarget) return null;
+    return orcamentos.find(o => o.solicitacaoId === orcamentoTarget.id) || null;
+  }, [orcamentos, orcamentoTarget]);
+
+  const handleOrcamentoApproved = async (orcamento: any) => {
+    // When budget is approved, create OS linked to it
+    const ss = solicitacoes.find(s => s.id === orcamento.solicitacaoId);
+    if (!ss) return;
+
+    await updateSolicitacao(ss.id, { situacao: "Aprovada", prioridade: ss.prioridade || "Normal" });
+
+    const prioridadeOS =
+      ss.prioridade === "Emergencial" ? "A: IMEDIATA" :
+      ss.prioridade === "Urgente" ? "B: (24 a 72H)" : "C: PROGRAMADA";
+
+    await addOrdem({
+      solicitacao_id: ss.id,
+      solicitacao_numero: ss.numero,
+      cliente_id: ss.clienteId,
+      cliente_nome: ss.clienteNome,
+      local_id: ss.localId,
+      local_descricao: ss.localDescricao,
+      pavimento_id: ss.pavimentoId,
+      pavimento_descricao: ss.pavimentoDescricao,
+      setor_id: ss.setorId,
+      setor_descricao: ss.setorDescricao,
+      descricao_servicos: ss.descricaoServicos,
+      solicitante: ss.solicitanteNome,
+      matricula: usuarioLogado?.matricula || "",
+      ramal: usuarioLogado?.ramal || "",
+      telefone: usuarioLogado?.telefone || "",
+      prioridade: prioridadeOS,
+      situacao: "Aberta",
+      operador_id: usuarioLogado?.id || "",
+      operador_nome: usuarioLogado?.nome || "",
+    });
+
+    toast({ title: "Orçamento aprovado e Ordem de Serviço criada!" });
   };
 
   const getPrioridadeColor = (prioridade: string) => {
@@ -588,6 +637,15 @@ export default function SolicitacaoServicosPage() {
       <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
       <DoubleConfirmDelete open={!!cancelId} onOpenChange={o => !o && abortCancel()} onConfirm={handleCancelar} />
+
+      {/* Orcamento Dialog */}
+      <OrcamentoDialog
+        open={orcamentoDialogOpen}
+        onOpenChange={(o) => { setOrcamentoDialogOpen(o); if (!o) setOrcamentoTarget(null); }}
+        solicitacao={orcamentoTarget}
+        existingOrcamento={existingOrcamentoForTarget}
+        onApproved={handleOrcamentoApproved}
+      />
 
       {/* Approval Dialog */}
       <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>

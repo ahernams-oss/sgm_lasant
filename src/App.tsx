@@ -73,6 +73,7 @@ import SolicitacaoServicosPage from "@/pages/SolicitacaoServicos";
 import { SolicitacoesServicosProvider } from "@/contexts/SolicitacoesServicosContext";
 import OrdensServicoPage from "@/pages/OrdensServico";
 import { OrdensServicoProvider } from "@/contexts/OrdensServicoContext";
+import { OrcamentosProvider } from "@/contexts/OrcamentosContext";
 
 const queryClient = new QueryClient();
 
@@ -120,7 +121,9 @@ function AppRoutes() {
           element={
             <SolicitacoesServicosProvider>
               <OrdensServicoProvider>
-                <SolicitacaoServicosPage />
+                <OrcamentosProvider>
+                  <SolicitacaoServicosPage />
+                </OrcamentosProvider>
               </OrdensServicoProvider>
             </SolicitacoesServicosProvider>
           }
