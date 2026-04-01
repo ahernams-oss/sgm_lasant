@@ -689,11 +689,11 @@ export default function OrdensServicoPage() {
                               <TableCell>
                                 <Input type="number" className="h-8 text-xs" value={m.quantidade} onChange={e => {
                                   const updated = [...materiais]; updated[idx] = { ...m, quantidade: Number(e.target.value), valorTotal: m.valorUnitario * Number(e.target.value) }; setMateriais(updated);
-                                }} />
+                                }} onBlur={() => autoSaveMateriais(materiais)} />
                               </TableCell>
                               <TableCell className="text-xs font-medium">R$ {m.valorTotal.toFixed(2)}</TableCell>
                               <TableCell>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setMateriais(materiais.filter(x => x.id !== m.id))}><Trash2 className="h-3 w-3" /></Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { const updated = materiais.filter(x => x.id !== m.id); setMateriais(updated); autoSaveMateriais(updated); }}><Trash2 className="h-3 w-3" /></Button>
                               </TableCell>
                             </TableRow>
                           ))}
