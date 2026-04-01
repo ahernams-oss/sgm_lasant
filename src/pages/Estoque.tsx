@@ -62,14 +62,11 @@ export default function EstoquePage() {
 
   const locais = useMemo(() => {
     const locs = new Set<string>();
-    clientes.forEach(c => {
+    clientes.filter(c => c.tipo !== "Fornecedor").forEach(c => {
       if (c.nome) locs.add(c.nome);
-      const locaisArr = (c as any).locais || [];
-      locaisArr.forEach((l: any) => { if (l?.nome) locs.add(`${c.nome} - ${l.nome}`); });
     });
-    movimentacoes.forEach(m => { if (m.local) locs.add(m.local); });
     return Array.from(locs).sort();
-  }, [clientes, movimentacoes]);
+  }, [clientes]);
 
   // Locais apenas de clientes (sem fornecedores) para saídas
   const locaisClientes = useMemo(() => {
