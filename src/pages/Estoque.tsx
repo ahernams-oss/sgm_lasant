@@ -360,11 +360,13 @@ export default function EstoquePage() {
                   <TableHead>Centro de Custo</TableHead>
                   <TableHead>Local</TableHead>
                   <TableHead className="text-right">Quantidade</TableHead>
+                  <TableHead className="text-right">Vlr Unit. (FIFO)</TableHead>
+                  <TableHead className="text-right">Vlr Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {saldos.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum saldo registrado</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum saldo registrado</TableCell></TableRow>
                 ) : paginate(saldos, pageSaldos).paginated.map((s, i) => (
                   <TableRow key={i}>
                     <TableCell className="font-mono">{s.materialCodigo}</TableCell>
@@ -372,6 +374,8 @@ export default function EstoquePage() {
                     <TableCell>{saldoCentroCusto.get(`${s.materialId}|${s.local}`) || "-"}</TableCell>
                     <TableCell>{s.local}</TableCell>
                     <TableCell className="text-right font-semibold">{s.quantidade.toLocaleString("pt-BR")}</TableCell>
+                    <TableCell className="text-right">{s.valorUnitarioFIFO > 0 ? s.valorUnitarioFIFO.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</TableCell>
+                    <TableCell className="text-right font-semibold">{s.valorTotal > 0 ? s.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
