@@ -874,7 +874,6 @@ export default function OrdensServicoPage() {
                           <TableRow key={p.id}>
                             <TableCell className="text-xs">{p.nome}</TableCell>
                             <TableCell className="text-xs">{p.cargo}</TableCell>
-                            </TableCell>
                             <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setProfissionais(profissionais.filter(x => x.id !== p.id))}><Trash2 className="h-3 w-3" /></Button></TableCell>
                           </TableRow>
                         ))}
