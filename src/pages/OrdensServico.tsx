@@ -103,6 +103,15 @@ export default function OrdensServicoPage() {
   const [ressalvaAprovacao, setRessalvaAprovacao] = useState("");
   const [descricaoConclusao, setDescricaoConclusao] = useState("");
 
+  // Tab data state
+  const [materiais, setMateriais] = useState<MaterialOS[]>([]);
+  const [materiaisEstoque, setMateriaisEstoque] = useState<MaterialOS[]>([]);
+  const [profissionais, setProfissionais] = useState<ProfissionalOS[]>([]);
+  const [anexos, setAnexos] = useState<AnexoOS[]>([]);
+  const [fotos, setFotos] = useState<FotoOS[]>([]);
+  const [observacoes, setObservacoes] = useState<ObservacaoOS[]>([]);
+  const [observacoesFiscalizacao, setObservacoesFiscalizacao] = useState<ObservacaoFiscalizacao[]>([]);
+
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: cancelCancelAction } = useDoubleConfirmDelete();
 
