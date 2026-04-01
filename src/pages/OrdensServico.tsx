@@ -135,11 +135,18 @@ export default function OrdensServicoPage() {
 
   const saldosCliente = useMemo(() => {
     if (!clienteId) return [];
-    const nomeCliente = clientesFiltrados.find(c => c.id === clienteId)?.nome || "";
+    const cliente = clientesFiltrados.find(c => c.id === clienteId);
+    const nomeCliente = cliente?.nome || "";
+    const nomeFantasia = cliente?.nomeFantasia || cliente?.nome_fantasia || "";
     const saldos = getSaldos();
     return saldos.filter(s => {
       if (s.quantidade <= 0) return false;
-      return s.local === clienteId || s.local === nomeCliente || s.local.startsWith(nomeCliente + " - ");
+      const loc = s.local;
+      return loc === clienteId || 
+             loc === nomeCliente || 
+             loc.startsWith(nomeCliente + " - ") ||
+             (nomeFantasia && loc === nomeFantasia) ||
+             (nomeFantasia && loc.startsWith(nomeFantasia + " - "));
     });
   }, [getSaldos, clienteId, clientesFiltrados]);
 
