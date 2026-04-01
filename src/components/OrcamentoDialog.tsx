@@ -60,9 +60,10 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
   const [matPopoverOpen, setMatPopoverOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isReadOnly = existingOrcamento?.status === "Aprovado";
+  const isReadOnly = existingOrcamento?.status === "Aprovado" || existingOrcamento?.status === "Enviado";
   const isPendente = !existingOrcamento || existingOrcamento.status === "Pendente";
   const isRevisao = existingOrcamento?.status === "Revisão";
+  const isRascunho = !existingOrcamento || existingOrcamento.status === "Pendente" || existingOrcamento.status === "Revisão";
 
   // Get latest SCO price from I0
   const getScoPrice = (codSco: string): number => {
