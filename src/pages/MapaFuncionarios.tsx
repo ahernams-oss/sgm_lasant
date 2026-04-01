@@ -237,6 +237,7 @@ const MapaFuncionarios = () => {
     const mesLancamentos = lancamentos.filter((l) => l.data.startsWith(filterMes));
     const faltas = mesLancamentos.filter((l) => l.tipo === "falta");
     const horas = mesLancamentos.filter((l) => l.tipo === "hora_extra");
+    const advertencias = mesLancamentos.filter((l) => l.tipo === "advertencia");
     return {
       totalFaltas: faltas.reduce((sum, l) => sum + (l.diasFalta || 1), 0),
       totalFaltasJustificadas: faltas.filter((l) => l.tipoFalta === "justificada" || l.tipoFalta === "atestado").reduce((sum, l) => sum + (l.diasFalta || 1), 0),
@@ -244,6 +245,8 @@ const MapaFuncionarios = () => {
       totalHorasExtras: horas.reduce((sum, l) => sum + (l.horasExtras || 0), 0),
       funcionariosComFalta: new Set(faltas.map((l) => l.funcionarioId)).size,
       funcionariosComHE: new Set(horas.map((l) => l.funcionarioId)).size,
+      totalAdvertencias: advertencias.length,
+      funcionariosComAdvertencia: new Set(advertencias.map((l) => l.funcionarioId)).size,
     };
   }, [lancamentos, filterMes]);
 
