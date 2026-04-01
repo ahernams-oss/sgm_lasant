@@ -93,10 +93,14 @@ export function RecebimentoProvider({ children }: { children: ReactNode }) {
     // Entrada automática no estoque
     const itensEstoque = data.itens
       .filter(i => i.quantidadeRecebida > 0)
-      .map(i => ({
-        materialId: i.itemId, materialCodigo: "", materialDescricao: i.descricao,
-        quantidade: i.quantidadeRecebida, unidadeMedida: i.unidadeMedida,
-      }));
+      .map(i => {
+        const itemPedido = pedido.itens.find(pi => pi.itemId === i.itemId);
+        return {
+          materialId: i.itemId, materialCodigo: "", materialDescricao: i.descricao,
+          quantidade: i.quantidadeRecebida, unidadeMedida: i.unidadeMedida,
+          valorUnitario: itemPedido?.precoUnitario || 0,
+        };
+      });
     if (itensEstoque.length > 0) {
       await registrarEntradaRecebimento(itensEstoque, data.localEntrega, `NF: ${data.notaFiscal || "N/A"} - Pedido ${data.pedidoNumero}`, data.usuario);
     }
