@@ -821,7 +821,7 @@ export default function OrdensServicoPage() {
                   {materiaisEstoque.length > 0 && (
                     <Table>
                       <TableHeader><TableRow>
-                        <TableHead>Código</TableHead><TableHead>Descrição</TableHead><TableHead>Qtd.</TableHead><TableHead className="w-[50px]"></TableHead>
+                        <TableHead>Código</TableHead><TableHead>Descrição</TableHead><TableHead className="text-center">Qtd.</TableHead><TableHead className="text-right">Vlr. Unit.</TableHead><TableHead className="text-right">Vlr. Total</TableHead><TableHead className="w-[50px]"></TableHead>
                       </TableRow></TableHeader>
                       <TableBody>
                         {materiaisEstoque.map((m, idx) => (
@@ -829,12 +829,15 @@ export default function OrdensServicoPage() {
                             <TableCell className="text-xs">{m.codigo}</TableCell>
                             <TableCell className="text-xs">{m.descricao}</TableCell>
                             <TableCell className="text-xs w-[100px]">
-                              <Input type="number" className="h-8 text-xs" min={1} value={m.quantidade} onChange={e => {
+                              <Input type="number" className="h-8 text-xs text-center" min={1} value={m.quantidade} onChange={e => {
+                                const qtd = Number(e.target.value) || 1;
                                 const updated = [...materiaisEstoque];
-                                updated[idx] = { ...m, quantidade: Number(e.target.value) || 1 };
+                                updated[idx] = { ...m, quantidade: qtd, valorTotal: m.valorUnitario * qtd };
                                 setMateriaisEstoque(updated);
                               }} onBlur={() => autoSaveMateriaisEstoque(materiaisEstoque)} />
                             </TableCell>
+                            <TableCell className="text-xs text-right">{m.valorUnitario.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
+                            <TableCell className="text-xs text-right font-semibold">{(m.valorUnitario * m.quantidade).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
                             <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
                               const updated = materiaisEstoque.filter(x => x.id !== m.id);
                               setMateriaisEstoque(updated);
