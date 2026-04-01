@@ -81,6 +81,8 @@ const MapaFuncionarios = () => {
     setPercentual("50");
     setObservacao("");
     setAnexos([]);
+    setTipoAdvertencia("verbal");
+    setMotivo("");
     setEditingId(null);
     setShowForm(false);
   };
