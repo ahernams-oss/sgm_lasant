@@ -1439,9 +1439,11 @@ export type Database = {
           funcionario_id: string
           horas_extras: number | null
           id: string
+          motivo: string | null
           observacao: string | null
           percentual: number | null
           tipo: string | null
+          tipo_advertencia: string | null
           tipo_falta: string | null
         }
         Insert: {
@@ -1453,9 +1455,11 @@ export type Database = {
           funcionario_id?: string
           horas_extras?: number | null
           id?: string
+          motivo?: string | null
           observacao?: string | null
           percentual?: number | null
           tipo?: string | null
+          tipo_advertencia?: string | null
           tipo_falta?: string | null
         }
         Update: {
@@ -1467,9 +1471,11 @@ export type Database = {
           funcionario_id?: string
           horas_extras?: number | null
           id?: string
+          motivo?: string | null
           observacao?: string | null
           percentual?: number | null
           tipo?: string | null
+          tipo_advertencia?: string | null
           tipo_falta?: string | null
         }
         Relationships: []
