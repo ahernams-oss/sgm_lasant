@@ -57,6 +57,8 @@ const MapaFuncionarios = () => {
   const [percentual, setPercentual] = useState("50");
   const [observacao, setObservacao] = useState("");
   const [anexos, setAnexos] = useState<AnexoFalta[]>([]);
+  const [tipoAdvertencia, setTipoAdvertencia] = useState<TipoAdvertencia>("verbal");
+  const [motivo, setMotivo] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
