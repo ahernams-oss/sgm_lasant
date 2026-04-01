@@ -124,7 +124,7 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
   };
 
   const registrarEntradaRecebimento = async (
-    itens: { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number; unidadeMedida: string }[],
+    itens: { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number; unidadeMedida: string; valorUnitario?: number }[],
     local: string, documentoRef: string, usuario: string
   ) => {
     for (const item of itens) {
@@ -135,6 +135,7 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
           quantidade: item.quantidade, local,
           documento_ref: documentoRef, observacao: "Entrada automática via recebimento",
           usuario, data_movimentacao: new Date().toISOString(),
+          valor_unitario: item.valorUnitario || 0,
         });
       }
     }
