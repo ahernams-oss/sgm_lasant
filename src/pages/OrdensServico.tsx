@@ -79,7 +79,7 @@ export default function OrdensServicoPage() {
   const { scos } = useSco();
   const { items: i0Items } = useI0();
   const { funcionarios } = useFuncionarios();
-  const { getSaldos, movimentacoes, getLotesFIFO } = useEstoque();
+  const { movimentacoes } = useEstoque();
   const { pedidos } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
   const { cargos } = useCargos();
