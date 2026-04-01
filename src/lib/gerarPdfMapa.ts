@@ -172,6 +172,37 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
     });
   }
 
+  // Advertências table
+  if (advertencias.length > 0) {
+    if (y > 160) { doc.addPage(); y = 20; }
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.setFillColor(230, 236, 245);
+    doc.rect(14, y - 4, pageWidth - 28, 8, "F");
+    doc.text("Registro de Advertências", 16, y + 2);
+    y += 10;
+
+    autoTable(doc, {
+      startY: y,
+      margin: { left: 14, right: 14 },
+      head: [["Data", "Funcionário", "Cargo", "Cliente", "Tipo", "Motivo", "Observação"]],
+      body: advertencias.map((l) => [
+        formatData(l.data),
+        getFuncNome(l.funcionarioId),
+        getCargoNome(l.funcionarioId),
+        getClienteNome(l.funcionarioId),
+        TIPO_ADVERTENCIA_LABELS[l.tipoAdvertencia || "verbal"],
+        l.motivo || "—",
+        l.observacao || "—",
+      ]),
+      theme: "striped",
+      styles: { fontSize: 8, cellPadding: 2.5 },
+      headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
+      columnStyles: { 5: { cellWidth: 50 }, 6: { cellWidth: 50 } },
+    });
+  }
+
   // Footer
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
