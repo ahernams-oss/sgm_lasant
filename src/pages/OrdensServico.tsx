@@ -115,6 +115,7 @@ export default function OrdensServicoPage() {
   const [observacoesFiscalizacao, setObservacoesFiscalizacao] = useState<ObservacaoFiscalizacao[]>([]);
 
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: cancelCancelAction } = useDoubleConfirmDelete();
   // SCO search state
   const [scoBusca, setScoBusca] = useState("");
   const [scoQtd, setScoQtd] = useState(1);
