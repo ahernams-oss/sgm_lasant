@@ -121,7 +121,9 @@ function AppRoutes() {
           element={
             <SolicitacoesServicosProvider>
               <OrdensServicoProvider>
-                <SolicitacaoServicosPage />
+                <OrcamentosProvider>
+                  <SolicitacaoServicosPage />
+                </OrcamentosProvider>
               </OrdensServicoProvider>
             </SolicitacoesServicosProvider>
           }
