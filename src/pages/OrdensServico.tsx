@@ -158,44 +158,81 @@ export default function OrdensServicoPage() {
 
   const saldosCliente = useMemo(() => {
     if (!clienteId) return [];
+
     const cliente = clientesFiltrados.find(c => c.id === clienteId);
-    const nomeCliente = cliente?.nome || "";
-    const nomeFantasia = cliente?.nomeFantasia || "";
+    const centrosCustoPermitidos = new Set(
+      [cliente?.nome, cliente?.nomeFantasia].filter((value): value is string => Boolean(value?.trim()))
+    );
 
-    // Build saldos filtered by centro de custo matching this client
-    // Group movements by materialId where centro de custo matches the client
-    const materialMap = new Map<string, { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number; local: string }>();
-    
-    movimentacoes.forEach(m => {
-      const cc = getCentroCustoFromDocRef(m.documentoRef);
-      // Also check if local matches client (for manual entries without pedido ref)
-      const ccMatch = cc === nomeCliente || cc === nomeFantasia || 
-                      (nomeFantasia && cc === nomeFantasia) ||
-                      m.local === clienteId || m.local === nomeCliente || 
-                      (nomeFantasia && m.local === nomeFantasia) ||
-                      m.local.startsWith(nomeCliente + " - ") ||
-                      (nomeFantasia && m.local.startsWith(nomeFantasia + " - "));
-      if (!ccMatch) return;
+    if (centrosCustoPermitidos.size === 0) return [];
 
-      const key = `${m.materialId}__${m.local}`;
-      if (!materialMap.has(key)) {
-        materialMap.set(key, { materialId: m.materialId, materialCodigo: m.materialCodigo, materialDescricao: m.materialDescricao, quantidade: 0, local: m.local });
+    const movimentacoesCentroCusto = movimentacoes.filter(m =>
+      centrosCustoPermitidos.has(getCentroCustoFromDocRef(m.documentoRef))
+    );
+
+    const buildLotesFIFO = (movs: typeof movimentacoes) => {
+      const lotes: { quantidade: number; valorUnitario: number }[] = [];
+      let saidasPendentes = 0;
+
+      const ordenadas = [...movs].sort((a, b) =>
+        (a.dataMovimentacao || "").localeCompare(b.dataMovimentacao || "")
+      );
+
+      for (const mov of ordenadas) {
+        if (mov.tipo === "entrada" || mov.tipo === "ajuste") {
+          if (mov.quantidade > 0) {
+            lotes.push({
+              quantidade: mov.quantidade,
+              valorUnitario: mov.valorUnitario || 0,
+            });
+          } else if (mov.quantidade < 0) {
+            saidasPendentes += Math.abs(mov.quantidade);
+          }
+        } else if (mov.tipo === "saida") {
+          saidasPendentes += mov.quantidade;
+        }
       }
-      const s = materialMap.get(key)!;
-      if (m.tipo === "entrada") s.quantidade += m.quantidade;
-      else if (m.tipo === "saida") s.quantidade -= m.quantidade;
-      else s.quantidade += m.quantidade;
+
+      for (const lote of lotes) {
+        if (saidasPendentes <= 0) break;
+        const consumir = Math.min(saidasPendentes, lote.quantidade);
+        lote.quantidade -= consumir;
+        saidasPendentes -= consumir;
+      }
+
+      return lotes.filter(lote => lote.quantidade > 0);
+    };
+
+    const saldoMap = new Map<string, { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number; local: string }>();
+
+    movimentacoesCentroCusto.forEach(m => {
+      const key = `${m.materialId}__${m.local}`;
+      if (!saldoMap.has(key)) {
+        saldoMap.set(key, {
+          materialId: m.materialId,
+          materialCodigo: m.materialCodigo,
+          materialDescricao: m.materialDescricao,
+          quantidade: 0,
+          local: m.local,
+        });
+      }
+
+      const saldo = saldoMap.get(key)!;
+      if (m.tipo === "entrada") saldo.quantidade += m.quantidade;
+      else if (m.tipo === "saida") saldo.quantidade -= m.quantidade;
+      else saldo.quantidade += m.quantidade;
     });
 
-    return Array.from(materialMap.values())
+    return Array.from(saldoMap.values())
       .filter(s => s.quantidade > 0)
       .map(s => {
-        const lotes = getLotesFIFO(s.materialId, s.local);
-        const valorTotal = lotes.reduce((sum, l) => sum + l.quantidade * l.valorUnitario, 0);
+        const movsDoSaldo = movimentacoesCentroCusto.filter(m => m.materialId === s.materialId && m.local === s.local);
+        const lotes = buildLotesFIFO(movsDoSaldo);
+        const valorTotal = lotes.reduce((sum, lote) => sum + lote.quantidade * lote.valorUnitario, 0);
         const valorUnitarioFIFO = s.quantidade > 0 ? valorTotal / s.quantidade : 0;
         return { ...s, valorUnitarioFIFO, valorTotal };
       });
-  }, [movimentacoes, getCentroCustoFromDocRef, getLotesFIFO, clienteId, clientesFiltrados]);
+  }, [movimentacoes, getCentroCustoFromDocRef, clienteId, clientesFiltrados]);
 
   const saldosFiltrados = useMemo(() => {
     if (!estoqueBusca.trim()) return saldosCliente;
