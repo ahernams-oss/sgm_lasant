@@ -947,22 +947,48 @@ export default function OrdensServicoPage() {
               {/* 5. Fotos */}
               <Collapsible>
                 <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
-                  <Eye className="h-4 w-4" /> Fotos
+                  <Eye className="h-4 w-4" /> Fotos ({fotos.length}/5)
                   <ChevronDown className="h-4 w-4 ml-auto" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="p-3 space-y-3">
-                  <div className="flex gap-2 items-end">
-                    <div className="flex-1">
-                      <Label>URL da Foto</Label>
-                      <Input id="foto-url" placeholder="Link da imagem" />
+                  {fotos.length < 5 && (
+                    <div className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        <Label>Imagem (JPG, PNG, WEBP - máx. 5)</Label>
+                        <Input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            if (!file.type.startsWith("image/")) {
+                              toast.error("Apenas imagens são permitidas.");
+                              e.target.value = "";
+                              return;
+                            }
+                            if (fotos.length >= 5) {
+                              toast.error("Máximo de 5 fotos permitidas.");
+                              e.target.value = "";
+                              return;
+                            }
+                            const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+                            const path = `os-fotos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+                            const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
+                            if (error) {
+                              console.error(error);
+                              toast.error("Erro ao enviar imagem.");
+                              e.target.value = "";
+                              return;
+                            }
+                            const { data: urlData } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
+                            setFotos([...fotos, { id: crypto.randomUUID(), url: urlData.publicUrl }]);
+                            e.target.value = "";
+                            toast.success("Foto anexada com sucesso!");
+                          }}
+                        />
+                      </div>
                     </div>
-                    <Button size="sm" onClick={() => {
-                      const url = (document.getElementById("foto-url") as HTMLInputElement)?.value || "";
-                      if (!url.trim()) { toast.error("Preencha a URL."); return; }
-                      setFotos([...fotos, { id: crypto.randomUUID(), url }]);
-                      (document.getElementById("foto-url") as HTMLInputElement).value = "";
-                    }}><Plus className="h-4 w-4" /></Button>
-                  </div>
+                  )}
                   {fotos.length > 0 && (
                     <div className="grid grid-cols-3 gap-2">
                       {fotos.map(f => (
