@@ -18,6 +18,7 @@ export interface MovimentacaoEstoque {
   depositoOrigem: string;
   depositoDestino: string;
   fornecedorNome: string;
+  valorUnitario: number;
 }
 
 export interface ItemInventario {
