@@ -622,18 +622,18 @@ export default function SolicitacaoServicosPage() {
                           <ClipboardList className="mr-2 h-4 w-4 text-blue-600" />Orçar Solicitação
                         </DropdownMenuItem>
                       )}
-                      {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
+                      {!["Aprovada", "Em execução", "Concluída", "Aguardando Orçamento"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleEdit(s)}>
                           <Pencil className="mr-2 h-4 w-4" />Editar
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
-                      {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
+                      {!["Aprovada", "Em execução", "Concluída", "Aguardando Orçamento"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => requestCancel(s.id)}>
                           <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar Solicitação
                         </DropdownMenuItem>
                       )}
-                      {!["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && (
+                      {!["Aprovada", "Em execução", "Concluída", "Aguardando Orçamento"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => requestDelete(s.id)} className="text-destructive">
                           <Trash2 className="mr-2 h-4 w-4" />Excluir
                         </DropdownMenuItem>
