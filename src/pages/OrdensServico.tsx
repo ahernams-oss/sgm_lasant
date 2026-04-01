@@ -127,27 +127,6 @@ export default function OrdensServicoPage() {
     return scos.filter(s => s.codSco.toLowerCase().includes(q) || s.descricaoSco.toLowerCase().includes(q));
   }, [scos, scoBusca]);
 
-  const getI0Valor = (codSco: string) => {
-    const contratos = clienteSelecionado?.contratos || [];
-    const contrato = contratos[0]; // first contract
-    if (!contrato?.mesSco || !contrato?.anoSco) return 0;
-    const mes = Number(contrato.mesSco);
-    const ano = Number(contrato.anoSco);
-    const item = i0Items.find(i => i.codSco === codSco && i.mes === mes && i.ano === ano);
-    return item?.valor ?? 0;
-  };
-
-  const handleAddScoMaterial = (scoItem: typeof scos[0]) => {
-    const valorUnitario = getI0Valor(scoItem.codSco);
-    const newItem: MaterialOS = {
-      id: crypto.randomUUID(), codigo: scoItem.codSco, descricao: scoItem.descricaoSco,
-      unidade: scoItem.unidade, valorUnitario, quantidade: scoQtd, valorTotal: valorUnitario * scoQtd,
-    };
-    setMateriais([...materiais, newItem]);
-    setScoBusca("");
-    setScoQtd(1);
-    setScoResultPage(1);
-  };
 
 
   // Workflow action handler
