@@ -520,13 +520,16 @@ const MapaFuncionarios = () => {
           <div className="px-6 py-4 border-b border-border bg-muted/30">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras")}>
+                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras" | "advertencias")}>
                   <TabsList className="h-9">
                     <TabsTrigger value="faltas" className="text-xs gap-1">
                       <XCircle className="h-3 w-3" /> Faltas
                     </TabsTrigger>
                     <TabsTrigger value="horas_extras" className="text-xs gap-1">
                       <Clock className="h-3 w-3" /> Horas Extras
+                    </TabsTrigger>
+                    <TabsTrigger value="advertencias" className="text-xs gap-1">
+                      <AlertTriangle className="h-3 w-3" /> Advertências
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
