@@ -22,6 +22,20 @@ export interface FotoOS {
   url: string;
 }
 
+export interface ProfissionalOS {
+  id: string;
+  funcionarioId: string;
+  nome: string;
+  cargo: string;
+}
+
+export interface ObservacaoOS {
+  id: string;
+  descricao: string;
+  usuario: string;
+  data: string;
+}
+
 export interface ObservacaoFiscalizacao {
   id: string;
   titulo: string;
@@ -61,8 +75,10 @@ export interface OrdemServico {
   descricaoConclusao: string;
   materiais: MaterialOS[];
   materiaisEstoque: MaterialOS[];
+  profissionais: ProfissionalOS[];
   anexos: AnexoOS[];
   fotos: FotoOS[];
+  observacoes: ObservacaoOS[];
   observacoesFiscalizacao: ObservacaoFiscalizacao[];
   bdi: number;
   operadorId: string;
@@ -111,8 +127,10 @@ const rowToOrdem = (r: any): OrdemServico => ({
   descricaoConclusao: r.descricao_conclusao ?? "",
   materiais: Array.isArray(r.materiais) ? r.materiais : [],
   materiaisEstoque: Array.isArray(r.materiais_estoque) ? r.materiais_estoque : [],
+  profissionais: Array.isArray(r.profissionais) ? r.profissionais : [],
   anexos: Array.isArray(r.anexos) ? r.anexos : [],
   fotos: Array.isArray(r.fotos) ? r.fotos : [],
+  observacoes: Array.isArray(r.observacoes) ? r.observacoes : [],
   observacoesFiscalizacao: Array.isArray(r.observacoes_fiscalizacao) ? r.observacoes_fiscalizacao : [],
   bdi: r.bdi ?? 0,
   operadorId: r.operador_id ?? "",

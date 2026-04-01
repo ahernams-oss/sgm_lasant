@@ -1835,12 +1835,14 @@ export type Database = {
           matricula: string | null
           n_cliente: string | null
           numero: number
+          observacoes: Json | null
           observacoes_fiscalizacao: Json | null
           operador_id: string | null
           operador_nome: string | null
           pavimento_descricao: string | null
           pavimento_id: string | null
           prioridade: string | null
+          profissionais: Json | null
           ramal: string | null
           ressalva_aprovacao: string | null
           servico: string | null
@@ -1874,12 +1876,14 @@ export type Database = {
           matricula?: string | null
           n_cliente?: string | null
           numero?: number
+          observacoes?: Json | null
           observacoes_fiscalizacao?: Json | null
           operador_id?: string | null
           operador_nome?: string | null
           pavimento_descricao?: string | null
           pavimento_id?: string | null
           prioridade?: string | null
+          profissionais?: Json | null
           ramal?: string | null
           ressalva_aprovacao?: string | null
           servico?: string | null
@@ -1913,12 +1917,14 @@ export type Database = {
           matricula?: string | null
           n_cliente?: string | null
           numero?: number
+          observacoes?: Json | null
           observacoes_fiscalizacao?: Json | null
           operador_id?: string | null
           operador_nome?: string | null
           pavimento_descricao?: string | null
           pavimento_id?: string | null
           prioridade?: string | null
+          profissionais?: Json | null
           ramal?: string | null
           ressalva_aprovacao?: string | null
           servico?: string | null

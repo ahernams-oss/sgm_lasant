@@ -1,8 +1,10 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useOrdensServico, OrdemServico } from "@/contexts/OrdensServicoContext";
+import { useOrdensServico, OrdemServico, MaterialOS, ProfissionalOS, AnexoOS, FotoOS, ObservacaoOS, ObservacaoFiscalizacao } from "@/contexts/OrdensServicoContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSco } from "@/contexts/ScoContext";
+import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,6 +68,8 @@ export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
+  const { scos } = useSco();
+  const { funcionarios } = useFuncionarios();
   const navigate = useNavigate();
 
   const clientesFiltrados = clientes.filter(c => c.tipo === "Cliente");
@@ -98,6 +102,15 @@ export default function OrdensServicoPage() {
   const [descricaoServicos, setDescricaoServicos] = useState("");
   const [ressalvaAprovacao, setRessalvaAprovacao] = useState("");
   const [descricaoConclusao, setDescricaoConclusao] = useState("");
+
+  // Tab data state
+  const [materiais, setMateriais] = useState<MaterialOS[]>([]);
+  const [materiaisEstoque, setMateriaisEstoque] = useState<MaterialOS[]>([]);
+  const [profissionais, setProfissionais] = useState<ProfissionalOS[]>([]);
+  const [anexos, setAnexos] = useState<AnexoOS[]>([]);
+  const [fotos, setFotos] = useState<FotoOS[]>([]);
+  const [observacoes, setObservacoes] = useState<ObservacaoOS[]>([]);
+  const [observacoesFiscalizacao, setObservacoesFiscalizacao] = useState<ObservacaoFiscalizacao[]>([]);
 
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: cancelCancelAction } = useDoubleConfirmDelete();
@@ -163,6 +176,8 @@ export default function OrdensServicoPage() {
     setRamal(""); setTelefone(""); setLocalId(""); setPavimentoId("");
     setSetorId(""); setCategoria(""); setServico("");
     setDescricaoServicos(""); setRessalvaAprovacao(""); setDescricaoConclusao("");
+    setMateriais([]); setMateriaisEstoque([]); setProfissionais([]);
+    setAnexos([]); setFotos([]); setObservacoes([]); setObservacoesFiscalizacao([]);
     setEditingId(null);
   };
 
@@ -182,6 +197,9 @@ export default function OrdensServicoPage() {
     setCategoria(os.categoria); setServico(os.servico);
     setDescricaoServicos(os.descricaoServicos); setRessalvaAprovacao(os.ressalvaAprovacao);
     setDescricaoConclusao(os.descricaoConclusao);
+    setMateriais(os.materiais); setMateriaisEstoque(os.materiaisEstoque);
+    setProfissionais(os.profissionais); setAnexos(os.anexos); setFotos(os.fotos);
+    setObservacoes(os.observacoes); setObservacoesFiscalizacao(os.observacoesFiscalizacao);
     setFormOpen(true);
   };
 
@@ -218,6 +236,13 @@ export default function OrdensServicoPage() {
       descricao_servicos: descricaoServicos,
       ressalva_aprovacao: ressalvaAprovacao,
       descricao_conclusao: descricaoConclusao,
+      materiais,
+      materiais_estoque: materiaisEstoque,
+      profissionais,
+      anexos,
+      fotos,
+      observacoes,
+      observacoes_fiscalizacao: observacoesFiscalizacao,
     };
 
     if (editingId) {
@@ -522,6 +547,336 @@ export default function OrdensServicoPage() {
                 <Textarea rows={3} value={descricaoConclusao} onChange={e => setDescricaoConclusao(e.target.value)} placeholder="Descreva a conclusão dos serviços" />
               </div>
             )}
+
+            {/* === ABAS COLAPSÁVEIS === */}
+            <div className="space-y-2 border-t pt-4">
+
+              {/* 1. Materiais e Serviços - SCO */}
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
+                  <ClipboardList className="h-4 w-4" /> Materiais e Serviços - SCO
+                  <ChevronDown className="h-4 w-4 ml-auto" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="p-3 space-y-3">
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Label>Item SCO</Label>
+                      <Select onValueChange={v => {
+                        const sco = scos.find(s => s.id === v);
+                        if (sco) {
+                          const newItem: MaterialOS = {
+                            id: crypto.randomUUID(), codigo: sco.codSco, descricao: sco.descricaoSco,
+                            unidade: sco.unidade, valorUnitario: 0, quantidade: 1, valorTotal: 0
+                          };
+                          setMateriais([...materiais, newItem]);
+                        }
+                      }}>
+                        <SelectTrigger><SelectValue placeholder="Buscar item SCO..." /></SelectTrigger>
+                        <SelectContent>
+                          {scos.map(s => <SelectItem key={s.id} value={s.id}>{s.codSco} - {s.descricaoSco}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  {materiais.length > 0 && (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Código</TableHead>
+                          <TableHead>Descrição</TableHead>
+                          <TableHead>Un.</TableHead>
+                          <TableHead className="w-[100px]">Vl. Unit.</TableHead>
+                          <TableHead className="w-[80px]">Qtd.</TableHead>
+                          <TableHead className="w-[100px]">Vl. Total</TableHead>
+                          <TableHead className="w-[50px]"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {materiais.map((m, idx) => (
+                          <TableRow key={m.id}>
+                            <TableCell className="text-xs">{m.codigo}</TableCell>
+                            <TableCell className="text-xs">{m.descricao}</TableCell>
+                            <TableCell className="text-xs">{m.unidade}</TableCell>
+                            <TableCell>
+                              <Input type="number" className="h-8 text-xs" value={m.valorUnitario} onChange={e => {
+                                const updated = [...materiais]; updated[idx] = { ...m, valorUnitario: Number(e.target.value), valorTotal: Number(e.target.value) * m.quantidade }; setMateriais(updated);
+                              }} />
+                            </TableCell>
+                            <TableCell>
+                              <Input type="number" className="h-8 text-xs" value={m.quantidade} onChange={e => {
+                                const updated = [...materiais]; updated[idx] = { ...m, quantidade: Number(e.target.value), valorTotal: m.valorUnitario * Number(e.target.value) }; setMateriais(updated);
+                              }} />
+                            </TableCell>
+                            <TableCell className="text-xs font-medium">R$ {m.valorTotal.toFixed(2)}</TableCell>
+                            <TableCell>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setMateriais(materiais.filter(x => x.id !== m.id))}><Trash2 className="h-3 w-3" /></Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* 2. Materiais do Estoque */}
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
+                  <ClipboardList className="h-4 w-4" /> Materiais do Estoque
+                  <ChevronDown className="h-4 w-4 ml-auto" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="p-3 space-y-3">
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Label>Código</Label>
+                      <Input id="est-codigo" placeholder="Código" />
+                    </div>
+                    <div className="flex-[2]">
+                      <Label>Descrição</Label>
+                      <Input id="est-descricao" placeholder="Descrição do material" />
+                    </div>
+                    <div className="w-[80px]">
+                      <Label>Un.</Label>
+                      <Input id="est-unidade" placeholder="Un." />
+                    </div>
+                    <div className="w-[80px]">
+                      <Label>Qtd.</Label>
+                      <Input id="est-qtd" type="number" defaultValue={1} />
+                    </div>
+                    <Button size="sm" onClick={() => {
+                      const codigo = (document.getElementById("est-codigo") as HTMLInputElement)?.value || "";
+                      const descricao = (document.getElementById("est-descricao") as HTMLInputElement)?.value || "";
+                      const unidade = (document.getElementById("est-unidade") as HTMLInputElement)?.value || "";
+                      const quantidade = Number((document.getElementById("est-qtd") as HTMLInputElement)?.value) || 1;
+                      if (!descricao.trim()) { toast.error("Preencha a descrição."); return; }
+                      setMateriaisEstoque([...materiaisEstoque, { id: crypto.randomUUID(), codigo, descricao, unidade, valorUnitario: 0, quantidade, valorTotal: 0 }]);
+                      (document.getElementById("est-codigo") as HTMLInputElement).value = "";
+                      (document.getElementById("est-descricao") as HTMLInputElement).value = "";
+                      (document.getElementById("est-unidade") as HTMLInputElement).value = "";
+                      (document.getElementById("est-qtd") as HTMLInputElement).value = "1";
+                    }}><Plus className="h-4 w-4" /></Button>
+                  </div>
+                  {materiaisEstoque.length > 0 && (
+                    <Table>
+                      <TableHeader><TableRow>
+                        <TableHead>Código</TableHead><TableHead>Descrição</TableHead><TableHead>Un.</TableHead><TableHead>Qtd.</TableHead><TableHead className="w-[50px]"></TableHead>
+                      </TableRow></TableHeader>
+                      <TableBody>
+                        {materiaisEstoque.map(m => (
+                          <TableRow key={m.id}>
+                            <TableCell className="text-xs">{m.codigo}</TableCell>
+                            <TableCell className="text-xs">{m.descricao}</TableCell>
+                            <TableCell className="text-xs">{m.unidade}</TableCell>
+                            <TableCell className="text-xs">{m.quantidade}</TableCell>
+                            <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setMateriaisEstoque(materiaisEstoque.filter(x => x.id !== m.id))}><Trash2 className="h-3 w-3" /></Button></TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* 3. Profissionais */}
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
+                  <Wrench className="h-4 w-4" /> Profissionais
+                  <ChevronDown className="h-4 w-4 ml-auto" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="p-3 space-y-3">
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Label>Funcionário</Label>
+                      <Select onValueChange={v => {
+                        const func = funcionarios.find(f => f.id === v);
+                        if (func && !profissionais.find(p => p.funcionarioId === v)) {
+                          setProfissionais([...profissionais, { id: crypto.randomUUID(), funcionarioId: func.id, nome: func.nome, cargo: "" }]);
+                        }
+                      }}>
+                        <SelectTrigger><SelectValue placeholder="Selecionar profissional..." /></SelectTrigger>
+                        <SelectContent>
+                          {funcionarios.filter(f => f.status !== "Inativo").map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  {profissionais.length > 0 && (
+                    <Table>
+                      <TableHeader><TableRow>
+                        <TableHead>Nome</TableHead><TableHead>Cargo</TableHead><TableHead className="w-[50px]"></TableHead>
+                      </TableRow></TableHeader>
+                      <TableBody>
+                        {profissionais.map((p, idx) => (
+                          <TableRow key={p.id}>
+                            <TableCell className="text-xs">{p.nome}</TableCell>
+                            <TableCell>
+                              <Input className="h-8 text-xs" value={p.cargo} onChange={e => {
+                                const updated = [...profissionais]; updated[idx] = { ...p, cargo: e.target.value }; setProfissionais(updated);
+                              }} placeholder="Cargo/Função" />
+                            </TableCell>
+                            <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setProfissionais(profissionais.filter(x => x.id !== p.id))}><Trash2 className="h-3 w-3" /></Button></TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* 4. Anexos */}
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
+                  <ClipboardList className="h-4 w-4" /> Anexos
+                  <ChevronDown className="h-4 w-4 ml-auto" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="p-3 space-y-3">
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Label>Título</Label>
+                      <Input id="anexo-titulo" placeholder="Título do anexo" />
+                    </div>
+                    <div className="flex-1">
+                      <Label>URL</Label>
+                      <Input id="anexo-url" placeholder="Link do arquivo" />
+                    </div>
+                    <Button size="sm" onClick={() => {
+                      const titulo = (document.getElementById("anexo-titulo") as HTMLInputElement)?.value || "";
+                      const url = (document.getElementById("anexo-url") as HTMLInputElement)?.value || "";
+                      if (!titulo.trim() || !url.trim()) { toast.error("Preencha título e URL."); return; }
+                      setAnexos([...anexos, { id: crypto.randomUUID(), titulo, url }]);
+                      (document.getElementById("anexo-titulo") as HTMLInputElement).value = "";
+                      (document.getElementById("anexo-url") as HTMLInputElement).value = "";
+                    }}><Plus className="h-4 w-4" /></Button>
+                  </div>
+                  {anexos.length > 0 && (
+                    <div className="space-y-2">
+                      {anexos.map(a => (
+                        <div key={a.id} className="flex items-center gap-2 p-2 bg-muted/30 rounded text-sm">
+                          <span className="flex-1 truncate">{a.titulo}</span>
+                          <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">Abrir</a>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setAnexos(anexos.filter(x => x.id !== a.id))}><Trash2 className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* 5. Fotos */}
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
+                  <Eye className="h-4 w-4" /> Fotos
+                  <ChevronDown className="h-4 w-4 ml-auto" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="p-3 space-y-3">
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Label>URL da Foto</Label>
+                      <Input id="foto-url" placeholder="Link da imagem" />
+                    </div>
+                    <Button size="sm" onClick={() => {
+                      const url = (document.getElementById("foto-url") as HTMLInputElement)?.value || "";
+                      if (!url.trim()) { toast.error("Preencha a URL."); return; }
+                      setFotos([...fotos, { id: crypto.randomUUID(), url }]);
+                      (document.getElementById("foto-url") as HTMLInputElement).value = "";
+                    }}><Plus className="h-4 w-4" /></Button>
+                  </div>
+                  {fotos.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {fotos.map(f => (
+                        <div key={f.id} className="relative group">
+                          <img src={f.url} alt="Foto" className="w-full h-24 object-cover rounded" />
+                          <Button variant="destructive" size="icon" className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setFotos(fotos.filter(x => x.id !== f.id))}><Trash2 className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* 6. Observações */}
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
+                  <ClipboardList className="h-4 w-4" /> Observações
+                  <ChevronDown className="h-4 w-4 ml-auto" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="p-3 space-y-3">
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Label>Observação</Label>
+                      <Textarea id="obs-desc" rows={2} placeholder="Digite a observação..." />
+                    </div>
+                    <Button size="sm" onClick={() => {
+                      const descricao = (document.getElementById("obs-desc") as HTMLTextAreaElement)?.value || "";
+                      if (!descricao.trim()) { toast.error("Preencha a observação."); return; }
+                      setObservacoes([...observacoes, { id: crypto.randomUUID(), descricao, usuario: usuarioLogado?.nome || "", data: new Date().toISOString().split("T")[0] }]);
+                      (document.getElementById("obs-desc") as HTMLTextAreaElement).value = "";
+                    }}><Plus className="h-4 w-4" /></Button>
+                  </div>
+                  {observacoes.length > 0 && (
+                    <div className="space-y-2">
+                      {observacoes.map(o => (
+                        <div key={o.id} className="p-2 bg-muted/30 rounded text-sm space-y-1">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-xs">{o.usuario} - {o.data.split("-").reverse().join("/")}</span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setObservacoes(observacoes.filter(x => x.id !== o.id))}><Trash2 className="h-3 w-3" /></Button>
+                          </div>
+                          <p className="text-xs">{o.descricao}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* 7. Observações (Fiscalização) */}
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
+                  <AlertTriangle className="h-4 w-4" /> Observações (Fiscalização)
+                  <ChevronDown className="h-4 w-4 ml-auto" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="p-3 space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <Label>Título</Label>
+                        <Input id="obs-fisc-titulo" placeholder="Título" />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        <Label>Descrição</Label>
+                        <Textarea id="obs-fisc-desc" rows={2} placeholder="Descrição da observação..." />
+                      </div>
+                      <Button size="sm" onClick={() => {
+                        const titulo = (document.getElementById("obs-fisc-titulo") as HTMLInputElement)?.value || "";
+                        const descricao = (document.getElementById("obs-fisc-desc") as HTMLTextAreaElement)?.value || "";
+                        if (!descricao.trim()) { toast.error("Preencha a descrição."); return; }
+                        setObservacoesFiscalizacao([...observacoesFiscalizacao, {
+                          id: crypto.randomUUID(), titulo, descricao, usuario: usuarioLogado?.nome || "", data: new Date().toISOString().split("T")[0]
+                        }]);
+                        (document.getElementById("obs-fisc-titulo") as HTMLInputElement).value = "";
+                        (document.getElementById("obs-fisc-desc") as HTMLTextAreaElement).value = "";
+                      }}><Plus className="h-4 w-4" /></Button>
+                    </div>
+                  </div>
+                  {observacoesFiscalizacao.length > 0 && (
+                    <div className="space-y-2">
+                      {observacoesFiscalizacao.map(o => (
+                        <div key={o.id} className="p-2 bg-muted/30 rounded text-sm space-y-1">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-xs">{o.titulo && `${o.titulo} — `}{o.usuario} - {o.data.split("-").reverse().join("/")}</span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setObservacoesFiscalizacao(observacoesFiscalizacao.filter(x => x.id !== o.id))}><Trash2 className="h-3 w-3" /></Button>
+                          </div>
+                          <p className="text-xs">{o.descricao}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { resetForm(); setFormOpen(false); }}>Cancelar</Button>
