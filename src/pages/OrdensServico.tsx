@@ -193,16 +193,25 @@ export default function OrdensServicoPage() {
     return item?.valor ?? 0;
   };
 
+  const autoSaveMateriais = async (updatedMateriais: MaterialOS[]) => {
+    if (editingId) {
+      await updateOrdem(editingId, { materiais: updatedMateriais });
+    }
+  };
+
   const handleAddScoMaterial = (scoItem: typeof scos[0]) => {
     const valorUnitario = getI0Valor(scoItem.codSco);
     const newItem: MaterialOS = {
       id: crypto.randomUUID(), codigo: scoItem.codSco, descricao: scoItem.descricaoSco,
       unidade: scoItem.unidade, valorUnitario, quantidade: scoQtd, valorTotal: valorUnitario * scoQtd,
     };
-    setMateriais([...materiais, newItem]);
+    const updated = [...materiais, newItem];
+    setMateriais(updated);
+    autoSaveMateriais(updated);
     setScoBusca("");
     setScoQtd(1);
     setScoResultPage(1);
+    toast.success("Item adicionado e salvo automaticamente");
   };
 
   const resetForm = () => {
