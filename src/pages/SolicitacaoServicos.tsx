@@ -275,6 +275,12 @@ export default function SolicitacaoServicosPage() {
     setOrcamentoDialogOpen(true);
   };
 
+  const handleOrcamentoSent = async () => {
+    if (!orcamentoTarget) return;
+    await updateSolicitacao(orcamentoTarget.id, { situacao: "Orçamento Disponível" });
+    toast({ title: "Orçamento enviado", description: `SS nº ${orcamentoTarget.numero} — Orçamento Disponível` });
+  };
+
   const existingOrcamentoForTarget = useMemo(() => {
     if (!orcamentoTarget) return null;
     return orcamentos.find(o => o.solicitacaoId === orcamentoTarget.id) || null;
