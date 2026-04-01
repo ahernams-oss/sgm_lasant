@@ -1,0 +1,507 @@
+import { useState, useMemo, useRef } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSco } from "@/contexts/ScoContext";
+import { useI0 } from "@/contexts/I0Context";
+import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
+import { useOrcamentos, Orcamento } from "@/contexts/OrcamentosContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Plus, Trash2, Upload, X, FileText, Check, RotateCcw, ChevronsUpDown } from "lucide-react";
+
+interface OrcamentoDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  solicitacao: { id: string; numero: number; clienteId: string; clienteNome: string } | null;
+  existingOrcamento?: Orcamento | null;
+  onApproved?: (orcamento: Orcamento) => void;
+}
+
+interface ItemSco {
+  id: string; codSco: string; descricao: string; unidade: string;
+  quantidade: number; valorUnitario: number; valorTotal: number;
+}
+
+interface ItemMaterial {
+  id: string; materialId: string; codigo: string; descricao: string; unidade: string;
+  quantidade: number; valorUnitario: number; valorTotal: number;
+}
+
+export default function OrcamentoDialog({ open, onOpenChange, solicitacao, existingOrcamento, onApproved }: OrcamentoDialogProps) {
+  const { scos } = useSco();
+  const { items: i0Items } = useI0();
+  const { materiais } = useMateriaisServicos();
+  const { addOrcamento, updateOrcamento } = useOrcamentos();
+  const { usuarioLogado } = useAuth();
+  const { toast } = useToast();
+
+  const [itensSco, setItensSco] = useState<ItemSco[]>(existingOrcamento?.itensSco || []);
+  const [itensMateriais, setItensMateriais] = useState<ItemMaterial[]>(existingOrcamento?.itensMateriais || []);
+  const [anexos, setAnexos] = useState<{ file?: File; url: string; nome: string }[]>(
+    (existingOrcamento?.anexos || []).map((url: string) => ({ url, nome: url.split("/").pop() || "arquivo" }))
+  );
+  const [observacoes, setObservacoes] = useState(existingOrcamento?.observacoes || "");
+  const [revisaoMotivo, setRevisaoMotivo] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [scoSearch, setScoSearch] = useState("");
+  const [scoPopoverOpen, setScoPopoverOpen] = useState(false);
+  const [matSearch, setMatSearch] = useState("");
+  const [matPopoverOpen, setMatPopoverOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isReadOnly = existingOrcamento?.status === "Aprovado";
+  const isPendente = !existingOrcamento || existingOrcamento.status === "Pendente";
+  const isRevisao = existingOrcamento?.status === "Revisão";
+
+  // Get latest SCO price from I0
+  const getScoPrice = (codSco: string): number => {
+    const prices = i0Items.filter(i => i.codSco === codSco);
+    if (prices.length === 0) return 0;
+    prices.sort((a, b) => (b.ano * 100 + b.mes) - (a.ano * 100 + a.mes));
+    return prices[0].valor;
+  };
+
+  const handleAddSco = (sco: typeof scos[0]) => {
+    if (itensSco.find(i => i.codSco === sco.codSco)) {
+      toast({ title: "Item SCO já adicionado", variant: "destructive" });
+      return;
+    }
+    const price = getScoPrice(sco.codSco);
+    setItensSco(prev => [...prev, {
+      id: crypto.randomUUID(),
+      codSco: sco.codSco,
+      descricao: sco.descricaoSco,
+      unidade: sco.unidade,
+      quantidade: 1,
+      valorUnitario: price,
+      valorTotal: price,
+    }]);
+    setScoPopoverOpen(false);
+    setScoSearch("");
+  };
+
+  const handleScoQty = (id: string, qty: number) => {
+    if (qty < 0) return;
+    setItensSco(prev => prev.map(i =>
+      i.id === id ? { ...i, quantidade: qty, valorTotal: qty * i.valorUnitario } : i
+    ));
+  };
+
+  const handleScoPrice = (id: string, price: number) => {
+    setItensSco(prev => prev.map(i =>
+      i.id === id ? { ...i, valorUnitario: price, valorTotal: i.quantidade * price } : i
+    ));
+  };
+
+  const handleRemoveSco = (id: string) => setItensSco(prev => prev.filter(i => i.id !== id));
+
+  const handleAddMaterial = (mat: typeof materiais[0]) => {
+    if (itensMateriais.find(i => i.materialId === mat.id)) {
+      toast({ title: "Material já adicionado", variant: "destructive" });
+      return;
+    }
+    setItensMateriais(prev => [...prev, {
+      id: crypto.randomUUID(),
+      materialId: mat.id,
+      codigo: mat.codigo,
+      descricao: mat.descricao,
+      unidade: mat.unidadeMedida,
+      quantidade: 1,
+      valorUnitario: 0,
+      valorTotal: 0,
+    }]);
+    setMatPopoverOpen(false);
+    setMatSearch("");
+  };
+
+  const handleMatQty = (id: string, qty: number) => {
+    if (qty < 0) return;
+    setItensMateriais(prev => prev.map(i =>
+      i.id === id ? { ...i, quantidade: qty, valorTotal: qty * i.valorUnitario } : i
+    ));
+  };
+
+  const handleMatPrice = (id: string, price: number) => {
+    setItensMateriais(prev => prev.map(i =>
+      i.id === id ? { ...i, valorUnitario: price, valorTotal: i.quantidade * price } : i
+    ));
+  };
+
+  const handleRemoveMat = (id: string) => setItensMateriais(prev => prev.filter(i => i.id !== id));
+
+  const totalSco = useMemo(() => itensSco.reduce((s, i) => s + i.valorTotal, 0), [itensSco]);
+  const totalMat = useMemo(() => itensMateriais.reduce((s, i) => s + i.valorTotal, 0), [itensMateriais]);
+  const valorTotal = totalSco + totalMat;
+
+  const handleAddAnexo = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const remaining = 3 - anexos.length;
+    if (remaining <= 0) { toast({ title: "Máximo de 3 anexos", variant: "destructive" }); return; }
+    const newAnexos = Array.from(files).slice(0, remaining).map(file => ({
+      file, url: URL.createObjectURL(file), nome: file.name,
+    }));
+    setAnexos(prev => [...prev, ...newAnexos]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleRemoveAnexo = (idx: number) => setAnexos(prev => prev.filter((_, i) => i !== idx));
+
+  const uploadAnexos = async (): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const a of anexos) {
+      if (a.file) {
+        const ext = a.file.name.split(".").pop();
+        const path = `orcamentos/${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage.from("documentos").upload(path, a.file);
+        if (error) { console.error(error); continue; }
+        const { data } = supabase.storage.from("documentos").getPublicUrl(path);
+        urls.push(data.publicUrl);
+      } else {
+        urls.push(a.url);
+      }
+    }
+    return urls;
+  };
+
+  const handleSave = async () => {
+    if (itensSco.length === 0 && itensMateriais.length === 0) {
+      toast({ title: "Adicione pelo menos um item ao orçamento", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    const anexosUrls = await uploadAnexos();
+    const payload: any = {
+      solicitacao_id: solicitacao?.id || "",
+      solicitacao_numero: solicitacao?.numero || 0,
+      cliente_id: solicitacao?.clienteId || "",
+      cliente_nome: solicitacao?.clienteNome || "",
+      itens_sco: itensSco,
+      itens_materiais: itensMateriais,
+      anexos: anexosUrls,
+      valor_total: valorTotal,
+      observacoes,
+      status: "Pendente",
+    };
+
+    if (existingOrcamento) {
+      await updateOrcamento(existingOrcamento.id, payload);
+      toast({ title: "Orçamento atualizado" });
+    } else {
+      await addOrcamento(payload);
+      toast({ title: "Orçamento criado com sucesso" });
+    }
+    setUploading(false);
+    onOpenChange(false);
+  };
+
+  const handleAprovar = async () => {
+    if (!existingOrcamento) return;
+    const data = {
+      status: "Aprovado",
+      aprovado_por: usuarioLogado?.nome || "",
+      data_aprovacao: new Date().toISOString(),
+    };
+    await updateOrcamento(existingOrcamento.id, data);
+    toast({ title: "Orçamento aprovado!" });
+    onApproved?.({ ...existingOrcamento, ...data, status: "Aprovado", aprovadoPor: data.aprovado_por, dataAprovacao: data.data_aprovacao });
+    onOpenChange(false);
+  };
+
+  const handleSolicitarRevisao = async () => {
+    if (!existingOrcamento) return;
+    if (!revisaoMotivo.trim()) {
+      toast({ title: "Informe o motivo da revisão", variant: "destructive" });
+      return;
+    }
+    await updateOrcamento(existingOrcamento.id, { status: "Revisão", revisao_motivo: revisaoMotivo });
+    toast({ title: "Revisão solicitada" });
+    onOpenChange(false);
+  };
+
+  const filteredScos = useMemo(() => {
+    if (!scoSearch.trim()) return scos.slice(0, 50);
+    const q = scoSearch.toLowerCase();
+    return scos.filter(s => s.codSco.toLowerCase().includes(q) || s.descricaoSco.toLowerCase().includes(q)).slice(0, 50);
+  }, [scos, scoSearch]);
+
+  const filteredMateriais = useMemo(() => {
+    if (!matSearch.trim()) return materiais.slice(0, 50);
+    const q = matSearch.toLowerCase();
+    return materiais.filter(m => m.codigo.toLowerCase().includes(q) || m.descricao.toLowerCase().includes(q)).slice(0, 50);
+  }, [materiais, matSearch]);
+
+  const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-3">
+            <FileText className="h-5 w-5" />
+            Orçamento — SS nº {solicitacao?.numero || existingOrcamento?.solicitacaoNumero}
+            {existingOrcamento && (
+              <Badge variant={existingOrcamento.status === "Aprovado" ? "default" : existingOrcamento.status === "Revisão" ? "destructive" : "outline"}
+                className={existingOrcamento.status === "Aprovado" ? "bg-green-600 border-green-600" : ""}>
+                {existingOrcamento.status}
+              </Badge>
+            )}
+          </DialogTitle>
+        </DialogHeader>
+
+        {isRevisao && existingOrcamento?.revisaoMotivo && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-md p-3 text-sm">
+            <strong>Motivo da revisão:</strong> {existingOrcamento.revisaoMotivo}
+          </div>
+        )}
+
+        <Tabs defaultValue="sco" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="sco">Itens SCO ({itensSco.length})</TabsTrigger>
+            <TabsTrigger value="materiais">Materiais ({itensMateriais.length})</TabsTrigger>
+            <TabsTrigger value="anexos">Anexos ({anexos.length}/3)</TabsTrigger>
+          </TabsList>
+
+          {/* SCO Tab */}
+          <TabsContent value="sco" className="space-y-3">
+            {!isReadOnly && (
+              <Popover open={scoPopoverOpen} onOpenChange={setScoPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    <span>Adicionar item SCO...</span>
+                    <ChevronsUpDown className="h-4 w-4 ml-2 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[600px] p-0" align="start">
+                  <Command shouldFilter={false}>
+                    <CommandInput placeholder="Buscar por código ou descrição..." value={scoSearch} onValueChange={setScoSearch} />
+                    <CommandList>
+                      <CommandEmpty>Nenhum item encontrado</CommandEmpty>
+                      <CommandGroup>
+                        {filteredScos.map(s => (
+                          <CommandItem key={s.id} onSelect={() => handleAddSco(s)} className="cursor-pointer">
+                            <span className="font-mono text-xs mr-2">{s.codSco}</span>
+                            <span className="truncate flex-1">{s.descricaoSco}</span>
+                            <span className="text-xs text-muted-foreground ml-2">{s.unidade}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            )}
+
+            {itensSco.length > 0 && (
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Código</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>Unidade</TableHead>
+                      <TableHead className="w-24">Qtd</TableHead>
+                      <TableHead className="w-32">Valor Unit.</TableHead>
+                      <TableHead className="w-32">Total</TableHead>
+                      {!isReadOnly && <TableHead className="w-12"></TableHead>}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {itensSco.map(item => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-mono text-xs">{item.codSco}</TableCell>
+                        <TableCell className="text-sm max-w-[200px] truncate">{item.descricao}</TableCell>
+                        <TableCell className="text-xs">{item.unidade}</TableCell>
+                        <TableCell>
+                          <Input type="number" min={0} value={item.quantidade} onChange={e => handleScoQty(item.id, Number(e.target.value))} disabled={isReadOnly} className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Input type="number" min={0} step={0.01} value={item.valorUnitario} onChange={e => handleScoPrice(item.id, Number(e.target.value))} disabled={isReadOnly} className="h-8 w-28" />
+                        </TableCell>
+                        <TableCell className="font-medium">{fmt(item.valorTotal)}</TableCell>
+                        {!isReadOnly && (
+                          <TableCell>
+                            <Button size="icon" variant="ghost" className="text-destructive h-7 w-7" onClick={() => handleRemoveSco(item.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                    <TableRow className="bg-muted/50">
+                      <TableCell colSpan={isReadOnly ? 5 : 5} className="text-right font-bold">Subtotal SCO:</TableCell>
+                      <TableCell className="font-bold">{fmt(totalSco)}</TableCell>
+                      {!isReadOnly && <TableCell />}
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Materiais Tab */}
+          <TabsContent value="materiais" className="space-y-3">
+            {!isReadOnly && (
+              <Popover open={matPopoverOpen} onOpenChange={setMatPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    <span>Adicionar material...</span>
+                    <ChevronsUpDown className="h-4 w-4 ml-2 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[600px] p-0" align="start">
+                  <Command shouldFilter={false}>
+                    <CommandInput placeholder="Buscar por código ou descrição..." value={matSearch} onValueChange={setMatSearch} />
+                    <CommandList>
+                      <CommandEmpty>Nenhum material encontrado</CommandEmpty>
+                      <CommandGroup>
+                        {filteredMateriais.map(m => (
+                          <CommandItem key={m.id} onSelect={() => handleAddMaterial(m)} className="cursor-pointer">
+                            <span className="font-mono text-xs mr-2">{m.codigo}</span>
+                            <span className="truncate flex-1">{m.descricao}</span>
+                            <span className="text-xs text-muted-foreground ml-2">{m.unidadeMedida}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            )}
+
+            {itensMateriais.length > 0 && (
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Código</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>Unidade</TableHead>
+                      <TableHead className="w-24">Qtd</TableHead>
+                      <TableHead className="w-32">Valor Unit.</TableHead>
+                      <TableHead className="w-32">Total</TableHead>
+                      {!isReadOnly && <TableHead className="w-12"></TableHead>}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {itensMateriais.map(item => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-mono text-xs">{item.codigo}</TableCell>
+                        <TableCell className="text-sm max-w-[200px] truncate">{item.descricao}</TableCell>
+                        <TableCell className="text-xs">{item.unidade}</TableCell>
+                        <TableCell>
+                          <Input type="number" min={0} value={item.quantidade} onChange={e => handleMatQty(item.id, Number(e.target.value))} disabled={isReadOnly} className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Input type="number" min={0} step={0.01} value={item.valorUnitario} onChange={e => handleMatPrice(item.id, Number(e.target.value))} disabled={isReadOnly} className="h-8 w-28" />
+                        </TableCell>
+                        <TableCell className="font-medium">{fmt(item.valorTotal)}</TableCell>
+                        {!isReadOnly && (
+                          <TableCell>
+                            <Button size="icon" variant="ghost" className="text-destructive h-7 w-7" onClick={() => handleRemoveMat(item.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                    <TableRow className="bg-muted/50">
+                      <TableCell colSpan={isReadOnly ? 5 : 5} className="text-right font-bold">Subtotal Materiais:</TableCell>
+                      <TableCell className="font-bold">{fmt(totalMat)}</TableCell>
+                      {!isReadOnly && <TableCell />}
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Anexos Tab */}
+          <TabsContent value="anexos" className="space-y-3">
+            {!isReadOnly && (
+              <>
+                <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={anexos.length >= 3}>
+                  <Upload className="mr-2 h-4 w-4" /> Adicionar Anexo
+                </Button>
+                <input ref={fileInputRef} type="file" className="hidden" multiple onChange={handleAddAnexo} accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png" />
+              </>
+            )}
+            {anexos.length > 0 ? (
+              <div className="space-y-2">
+                {anexos.map((a, idx) => (
+                  <div key={idx} className="flex items-center gap-3 p-2 border rounded-md">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <span className="flex-1 text-sm truncate">{a.nome}</span>
+                    {!a.file && (
+                      <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Abrir</a>
+                    )}
+                    {!isReadOnly && (
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => handleRemoveAnexo(idx)}>
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum anexo adicionado</p>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        {/* Total */}
+        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
+          <span className="text-lg font-bold">Valor Total do Orçamento:</span>
+          <span className="text-2xl font-bold text-primary">{fmt(valorTotal)}</span>
+        </div>
+
+        {/* Observações */}
+        <div>
+          <Label className="font-bold">Observações</Label>
+          <Textarea value={observacoes} onChange={e => setObservacoes(e.target.value)} rows={2} disabled={isReadOnly} placeholder="Observações do orçamento..." />
+        </div>
+
+        {/* Revisão motivo — show when reviewing */}
+        {existingOrcamento && (isPendente || isRevisao) && (
+          <div>
+            <Label className="font-bold">Motivo da Revisão (caso solicite)</Label>
+            <Textarea value={revisaoMotivo} onChange={e => setRevisaoMotivo(e.target.value)} rows={2} placeholder="Informe o motivo caso solicite revisão..." />
+          </div>
+        )}
+
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Fechar</Button>
+
+          {/* Save / Update */}
+          {!isReadOnly && (
+            <Button onClick={handleSave} disabled={uploading}>
+              {uploading ? "Salvando..." : existingOrcamento ? "Atualizar Orçamento" : "Salvar Orçamento"}
+            </Button>
+          )}
+
+          {/* Approval actions — only for existing pending/revision budgets */}
+          {existingOrcamento && (isPendente || isRevisao) && (
+            <>
+              <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10" onClick={handleSolicitarRevisao}>
+                <RotateCcw className="mr-2 h-4 w-4" /> Solicitar Revisão
+              </Button>
+              <Button className="bg-green-600 hover:bg-green-700" onClick={handleAprovar}>
+                <Check className="mr-2 h-4 w-4" /> Aprovar Orçamento
+              </Button>
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
