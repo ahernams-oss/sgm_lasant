@@ -205,6 +205,7 @@ export default function OrdensServicoPage() {
     setScoResultPage(1);
   };
 
+  const resetForm = () => {
     setClienteId(""); setNCliente(""); setSituacao("Aberta");
     setDataInicio(""); setHoraInicio(""); setDataTermino(""); setHoraTermino("");
     setPrioridade("C: PROGRAMADA"); setSolicitante(""); setMatricula("");
