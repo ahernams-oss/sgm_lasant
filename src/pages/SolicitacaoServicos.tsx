@@ -8,6 +8,8 @@ import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import OrcamentoDialog from "@/components/OrcamentoDialog";
+import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
+import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
 import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
