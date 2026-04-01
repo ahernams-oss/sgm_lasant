@@ -886,28 +886,49 @@ export default function OrdensServicoPage() {
               {/* 4. Anexos */}
               <Collapsible>
                 <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
-                  <ClipboardList className="h-4 w-4" /> Anexos
+                  <ClipboardList className="h-4 w-4" /> Anexos ({anexos.length}/5)
                   <ChevronDown className="h-4 w-4 ml-auto" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="p-3 space-y-3">
-                  <div className="flex gap-2 items-end">
-                    <div className="flex-1">
-                      <Label>Título</Label>
-                      <Input id="anexo-titulo" placeholder="Título do anexo" />
+                  {anexos.length < 5 && (
+                    <div className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        <Label>Arquivo (Word, Excel, PDF, DWG, PPT - máx. 5)</Label>
+                        <Input
+                          type="file"
+                          accept=".doc,.docx,.xls,.xlsx,.pdf,.dwg,.ppt,.pptx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const allowedExts = ["doc", "docx", "xls", "xlsx", "pdf", "dwg", "ppt", "pptx"];
+                            const ext = file.name.split(".").pop()?.toLowerCase() || "";
+                            if (!allowedExts.includes(ext)) {
+                              toast.error("Formato não permitido. Use: Word, Excel, PDF, DWG ou PPT.");
+                              e.target.value = "";
+                              return;
+                            }
+                            if (anexos.length >= 5) {
+                              toast.error("Máximo de 5 anexos permitidos.");
+                              e.target.value = "";
+                              return;
+                            }
+                            const path = `os-anexos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+                            const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
+                            if (error) {
+                              console.error(error);
+                              toast.error("Erro ao enviar arquivo.");
+                              e.target.value = "";
+                              return;
+                            }
+                            const { data: urlData } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
+                            setAnexos([...anexos, { id: crypto.randomUUID(), titulo: file.name, url: urlData.publicUrl }]);
+                            e.target.value = "";
+                            toast.success("Arquivo anexado com sucesso!");
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <Label>URL</Label>
-                      <Input id="anexo-url" placeholder="Link do arquivo" />
-                    </div>
-                    <Button size="sm" onClick={() => {
-                      const titulo = (document.getElementById("anexo-titulo") as HTMLInputElement)?.value || "";
-                      const url = (document.getElementById("anexo-url") as HTMLInputElement)?.value || "";
-                      if (!titulo.trim() || !url.trim()) { toast.error("Preencha título e URL."); return; }
-                      setAnexos([...anexos, { id: crypto.randomUUID(), titulo, url }]);
-                      (document.getElementById("anexo-titulo") as HTMLInputElement).value = "";
-                      (document.getElementById("anexo-url") as HTMLInputElement).value = "";
-                    }}><Plus className="h-4 w-4" /></Button>
-                  </div>
+                  )}
                   {anexos.length > 0 && (
                     <div className="space-y-2">
                       {anexos.map(a => (
