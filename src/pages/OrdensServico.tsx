@@ -9,6 +9,8 @@ import { useI0 } from "@/contexts/I0Context";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useEstoque } from "@/contexts/EstoqueContext";
+import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
+import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
