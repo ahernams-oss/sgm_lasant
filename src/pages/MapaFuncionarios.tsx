@@ -270,7 +270,7 @@ const MapaFuncionarios = () => {
             <div>
               <h1 className="text-xl font-bold text-foreground mb-1">Mapa de Funcionários</h1>
               <p className="text-sm text-muted-foreground max-w-lg">
-                Lançamento e controle de faltas e horas extras.
+                Lançamento e controle de faltas, horas extras e advertências.
               </p>
             </div>
             {!showForm && (
