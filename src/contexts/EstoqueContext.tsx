@@ -142,8 +142,47 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
     await load();
   };
 
+  // FIFO: retorna lotes restantes ordenados por data (mais antigo primeiro)
+  const getLotesFIFO = useCallback((materialId: string, local: string): LoteFIFO[] => {
+    // Pegar todas as entradas e saídas para este material+local, ordenadas por data
+    const movs = movimentacoes
+      .filter(m => m.materialId === materialId && m.local === local)
+      .sort((a, b) => (a.dataMovimentacao || "").localeCompare(b.dataMovimentacao || ""));
+
+    const lotes: LoteFIFO[] = [];
+    let saidasPendentes = 0;
+
+    // Separar entradas como lotes
+    for (const m of movs) {
+      if (m.tipo === "entrada" || m.tipo === "ajuste") {
+        if (m.quantidade > 0) {
+          lotes.push({
+            quantidade: m.quantidade,
+            valorUnitario: m.valorUnitario,
+            dataMovimentacao: m.dataMovimentacao,
+            documentoRef: m.documentoRef,
+          });
+        } else if (m.quantidade < 0) {
+          saidasPendentes += Math.abs(m.quantidade);
+        }
+      } else if (m.tipo === "saida") {
+        saidasPendentes += m.quantidade;
+      }
+    }
+
+    // Consumir saídas dos lotes mais antigos (FIFO)
+    for (const lote of lotes) {
+      if (saidasPendentes <= 0) break;
+      const consumir = Math.min(saidasPendentes, lote.quantidade);
+      lote.quantidade -= consumir;
+      saidasPendentes -= consumir;
+    }
+
+    return lotes.filter(l => l.quantidade > 0);
+  }, [movimentacoes]);
+
   const getSaldos = useCallback((): SaldoEstoque[] => {
-    const map = new Map<string, SaldoEstoque>();
+    const map = new Map<string, { materialId: string; materialCodigo: string; materialDescricao: string; local: string; quantidade: number }>();
     for (const m of movimentacoes) {
       const key = `${m.materialId}__${m.local}`;
       if (!map.has(key)) {
@@ -152,9 +191,17 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
       const s = map.get(key)!;
       if (m.tipo === "entrada") s.quantidade += m.quantidade;
       else if (m.tipo === "saida") s.quantidade -= m.quantidade;
-      else s.quantidade += m.quantidade; // ajuste pode ser +/-
+      else s.quantidade += m.quantidade;
     }
-    return Array.from(map.values()).filter(s => s.quantidade !== 0);
+    return Array.from(map.values())
+      .filter(s => s.quantidade !== 0)
+      .map(s => {
+        const lotes = getLotesFIFO(s.materialId, s.local);
+        const valorTotal = lotes.reduce((sum, l) => sum + l.quantidade * l.valorUnitario, 0);
+        const valorUnitarioFIFO = s.quantidade > 0 ? valorTotal / s.quantidade : 0;
+        return { ...s, valorUnitarioFIFO, valorTotal };
+      });
+  }, [movimentacoes, getLotesFIFO]);
   }, [movimentacoes]);
 
   const getSaldoPorMaterial = useCallback((materialId: string): number => {
