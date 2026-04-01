@@ -70,6 +70,7 @@ export default function OrdensServicoPage() {
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
   const { scos } = useSco();
+  const { items: i0Items } = useI0();
   const { funcionarios } = useFuncionarios();
   const navigate = useNavigate();
 
