@@ -591,7 +591,8 @@ export default function SolicitacaoServicosPage() {
                     }
                     className={
                       s.situacao === "Aprovada" ? "bg-green-600 text-white border-green-600 hover:bg-green-700" :
-                      s.situacao === "Aguardando aprovação" ? "bg-yellow-500 border-yellow-500 hover:bg-yellow-600 text-primary" : ""
+                      s.situacao === "Aguardando aprovação" ? "bg-yellow-500 border-yellow-500 hover:bg-yellow-600 text-primary" :
+                      s.situacao === "Aguardando Orçamento" ? "bg-blue-500 border-blue-500 hover:bg-blue-600 text-white" : ""
                     }
                   >{s.situacao}</Badge>
                 </TableCell>
