@@ -131,14 +131,14 @@ export default function OrdensServicoPage() {
   const [estoquePopoverOpen, setEstoquePopoverOpen] = useState(false);
 
   const saldosCliente = useMemo(() => {
-    if (!clienteId && !clienteNome) return [];
+    if (!clienteId) return [];
+    const nomeCliente = clientesFiltrados.find(c => c.id === clienteId)?.nome || "";
     const saldos = getSaldos();
     return saldos.filter(s => {
       if (s.quantidade <= 0) return false;
-      // Match by client ID or client name (local can store either)
-      return s.local === clienteId || s.local === clienteNome;
+      return s.local === clienteId || s.local === nomeCliente;
     });
-  }, [getSaldos, clienteId, clienteNome]);
+  }, [getSaldos, clienteId, clientesFiltrados]);
 
   const saldosFiltrados = useMemo(() => {
     if (!estoqueBusca.trim()) return saldosCliente;
