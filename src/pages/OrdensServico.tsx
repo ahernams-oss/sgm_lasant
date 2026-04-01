@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOrdensServico, OrdemServico, MaterialOS, ProfissionalOS, AnexoOS, FotoOS, ObservacaoOS, ObservacaoFiscalizacao } from "@/contexts/OrdensServicoContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -6,6 +6,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSco } from "@/contexts/ScoContext";
 import { useI0 } from "@/contexts/I0Context";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
+import { useEstoque } from "@/contexts/EstoqueContext";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -72,6 +75,7 @@ export default function OrdensServicoPage() {
   const { scos } = useSco();
   const { items: i0Items } = useI0();
   const { funcionarios } = useFuncionarios();
+  const { getSaldos } = useEstoque();
   const navigate = useNavigate();
 
   const clientesFiltrados = clientes.filter(c => c.tipo === "Cliente");
@@ -121,13 +125,35 @@ export default function OrdensServicoPage() {
   const [scoQtd, setScoQtd] = useState(1);
   const [scoResultPage, setScoResultPage] = useState(1);
 
+  // Estoque search state
+  const [estoqueBusca, setEstoqueBusca] = useState("");
+  const [estoqueQtd, setEstoqueQtd] = useState(1);
+  const [estoquePopoverOpen, setEstoquePopoverOpen] = useState(false);
+
+  const saldosCliente = useMemo(() => {
+    if (!clienteId) return [];
+    return getSaldos().filter(s => s.local === clienteId && s.quantidade > 0);
+  }, [getSaldos, clienteId]);
+
+  const saldosFiltrados = useMemo(() => {
+    if (!estoqueBusca.trim()) return saldosCliente;
+    const q = estoqueBusca.toLowerCase();
+    return saldosCliente.filter(s =>
+      s.materialCodigo.toLowerCase().includes(q) || s.materialDescricao.toLowerCase().includes(q)
+    );
+  }, [saldosCliente, estoqueBusca]);
+
+  const autoSaveMateriaisEstoque = async (updated: MaterialOS[]) => {
+    if (editingId) {
+      await updateOrdem(editingId, { materiais_estoque: updated });
+    }
+  };
+
   const scosFiltered = useMemo(() => {
     if (!scoBusca.trim()) return [];
     const q = scoBusca.toLowerCase();
     return scos.filter(s => s.codSco.toLowerCase().includes(q) || s.descricaoSco.toLowerCase().includes(q));
   }, [scos, scoBusca]);
-
-
 
   // Workflow action handler
   const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
@@ -711,49 +737,91 @@ export default function OrdensServicoPage() {
                   <ChevronDown className="h-4 w-4 ml-auto" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="p-3 space-y-3">
-                  <div className="flex gap-2 items-end">
-                    <div className="flex-1">
-                      <Label>Código</Label>
-                      <Input id="est-codigo" placeholder="Código" />
+                  {!clienteId ? (
+                    <p className="text-sm text-muted-foreground">Selecione um cliente para visualizar o estoque disponível.</p>
+                  ) : saldosCliente.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Nenhum material em estoque para este cliente.</p>
+                  ) : (
+                    <div className="flex gap-2 items-end">
+                      <div className="flex-[3]">
+                        <Label>Buscar Material no Estoque</Label>
+                        <Popover open={estoquePopoverOpen} onOpenChange={setEstoquePopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" role="combobox" className="w-full justify-start font-normal h-10 text-sm">
+                              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                              Buscar por código ou descrição...
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[500px] p-0" align="start">
+                            <Command shouldFilter={false}>
+                              <CommandInput placeholder="Digite código ou descrição..." value={estoqueBusca} onValueChange={setEstoqueBusca} />
+                              <CommandList>
+                                <CommandEmpty>Nenhum material encontrado.</CommandEmpty>
+                                <CommandGroup>
+                                  {saldosFiltrados.slice(0, 50).map(s => (
+                                    <CommandItem key={s.materialId} onSelect={() => {
+                                      const jaExiste = materiaisEstoque.find(m => m.codigo === s.materialCodigo);
+                                      if (jaExiste) {
+                                        toast.error("Material já adicionado.");
+                                        return;
+                                      }
+                                      const newItem: MaterialOS = {
+                                        id: crypto.randomUUID(),
+                                        codigo: s.materialCodigo,
+                                        descricao: s.materialDescricao,
+                                        unidade: "",
+                                        valorUnitario: 0,
+                                        quantidade: estoqueQtd,
+                                        valorTotal: 0,
+                                      };
+                                      const updated = [...materiaisEstoque, newItem];
+                                      setMateriaisEstoque(updated);
+                                      autoSaveMateriaisEstoque(updated);
+                                      toast.success("Material adicionado e salvo.");
+                                      setEstoqueBusca("");
+                                      setEstoqueQtd(1);
+                                      setEstoquePopoverOpen(false);
+                                    }}>
+                                      <div className="flex justify-between w-full items-center">
+                                        <span className="text-xs"><strong>{s.materialCodigo}</strong> — {s.materialDescricao}</span>
+                                        <Badge variant="secondary" className="ml-2 text-xs">Saldo: {s.quantidade}</Badge>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      <div className="w-[80px]">
+                        <Label>Qtd.</Label>
+                        <Input type="number" min={1} value={estoqueQtd} onChange={e => setEstoqueQtd(Number(e.target.value) || 1)} />
+                      </div>
                     </div>
-                    <div className="flex-[2]">
-                      <Label>Descrição</Label>
-                      <Input id="est-descricao" placeholder="Descrição do material" />
-                    </div>
-                    <div className="w-[80px]">
-                      <Label>Un.</Label>
-                      <Input id="est-unidade" placeholder="Un." />
-                    </div>
-                    <div className="w-[80px]">
-                      <Label>Qtd.</Label>
-                      <Input id="est-qtd" type="number" defaultValue={1} />
-                    </div>
-                    <Button size="sm" onClick={() => {
-                      const codigo = (document.getElementById("est-codigo") as HTMLInputElement)?.value || "";
-                      const descricao = (document.getElementById("est-descricao") as HTMLInputElement)?.value || "";
-                      const unidade = (document.getElementById("est-unidade") as HTMLInputElement)?.value || "";
-                      const quantidade = Number((document.getElementById("est-qtd") as HTMLInputElement)?.value) || 1;
-                      if (!descricao.trim()) { toast.error("Preencha a descrição."); return; }
-                      setMateriaisEstoque([...materiaisEstoque, { id: crypto.randomUUID(), codigo, descricao, unidade, valorUnitario: 0, quantidade, valorTotal: 0 }]);
-                      (document.getElementById("est-codigo") as HTMLInputElement).value = "";
-                      (document.getElementById("est-descricao") as HTMLInputElement).value = "";
-                      (document.getElementById("est-unidade") as HTMLInputElement).value = "";
-                      (document.getElementById("est-qtd") as HTMLInputElement).value = "1";
-                    }}><Plus className="h-4 w-4" /></Button>
-                  </div>
+                  )}
                   {materiaisEstoque.length > 0 && (
                     <Table>
                       <TableHeader><TableRow>
-                        <TableHead>Código</TableHead><TableHead>Descrição</TableHead><TableHead>Un.</TableHead><TableHead>Qtd.</TableHead><TableHead className="w-[50px]"></TableHead>
+                        <TableHead>Código</TableHead><TableHead>Descrição</TableHead><TableHead>Qtd.</TableHead><TableHead className="w-[50px]"></TableHead>
                       </TableRow></TableHeader>
                       <TableBody>
-                        {materiaisEstoque.map(m => (
+                        {materiaisEstoque.map((m, idx) => (
                           <TableRow key={m.id}>
                             <TableCell className="text-xs">{m.codigo}</TableCell>
                             <TableCell className="text-xs">{m.descricao}</TableCell>
-                            <TableCell className="text-xs">{m.unidade}</TableCell>
-                            <TableCell className="text-xs">{m.quantidade}</TableCell>
-                            <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setMateriaisEstoque(materiaisEstoque.filter(x => x.id !== m.id))}><Trash2 className="h-3 w-3" /></Button></TableCell>
+                            <TableCell className="text-xs w-[100px]">
+                              <Input type="number" className="h-8 text-xs" min={1} value={m.quantidade} onChange={e => {
+                                const updated = [...materiaisEstoque];
+                                updated[idx] = { ...m, quantidade: Number(e.target.value) || 1 };
+                                setMateriaisEstoque(updated);
+                              }} onBlur={() => autoSaveMateriaisEstoque(materiaisEstoque)} />
+                            </TableCell>
+                            <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
+                              const updated = materiaisEstoque.filter(x => x.id !== m.id);
+                              setMateriaisEstoque(updated);
+                              autoSaveMateriaisEstoque(updated);
+                            }}><Trash2 className="h-3 w-3" /></Button></TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
