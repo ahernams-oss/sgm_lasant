@@ -5,8 +5,6 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSco } from "@/contexts/ScoContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
-import { useClientes } from "@/contexts/ClientesContext";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
