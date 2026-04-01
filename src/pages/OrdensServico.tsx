@@ -139,7 +139,7 @@ export default function OrdensServicoPage() {
     const saldos = getSaldos();
     return saldos.filter(s => {
       if (s.quantidade <= 0) return false;
-      return s.local === clienteId || s.local === nomeCliente;
+      return s.local === clienteId || s.local === nomeCliente || s.local.startsWith(nomeCliente + " - ");
     });
   }, [getSaldos, clienteId, clientesFiltrados]);
 
