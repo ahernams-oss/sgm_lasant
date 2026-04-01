@@ -84,6 +84,7 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
   // Separate by type
   const faltas = lancamentos.filter((l) => l.tipo === "falta").sort((a, b) => a.data.localeCompare(b.data));
   const horasExtras = lancamentos.filter((l) => l.tipo === "hora_extra").sort((a, b) => a.data.localeCompare(b.data));
+  const advertencias = lancamentos.filter((l) => l.tipo === "advertencia").sort((a, b) => a.data.localeCompare(b.data));
 
   // KPIs
   const totalFaltas = faltas.reduce((s, l) => s + (l.diasFalta || 1), 0);
@@ -92,6 +93,8 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
   const totalHE = horasExtras.reduce((s, l) => s + (l.horasExtras || 0), 0);
   const funcComFalta = new Set(faltas.map((l) => l.funcionarioId)).size;
   const funcComHE = new Set(horasExtras.map((l) => l.funcionarioId)).size;
+  const totalAdv = advertencias.length;
+  const funcComAdv = new Set(advertencias.map((l) => l.funcionarioId)).size;
 
   // Summary table
   autoTable(doc, {
