@@ -818,6 +818,7 @@ export type Database = {
           tipo: string
           usuario: string | null
           validade: string | null
+          valor_unitario: number | null
         }
         Insert: {
           created_at?: string | null
@@ -837,6 +838,7 @@ export type Database = {
           tipo?: string
           usuario?: string | null
           validade?: string | null
+          valor_unitario?: number | null
         }
         Update: {
           created_at?: string | null
@@ -856,6 +858,7 @@ export type Database = {
           tipo?: string
           usuario?: string | null
           validade?: string | null
+          valor_unitario?: number | null
         }
         Relationships: []
       }
