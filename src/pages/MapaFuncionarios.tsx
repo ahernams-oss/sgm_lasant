@@ -36,7 +36,7 @@ const TIPO_ADVERTENCIA_LABELS: Record<TipoAdvertencia, string> = {
   escrita: "Escrita",
 };
 
-const PERCENTUAIS_HE = [50, 60, 70, 80, 100];
+const PERCENTUAIS_HE = [50, 100];
 
 const MapaFuncionarios = () => {
   const { funcionarios } = useFuncionarios();
