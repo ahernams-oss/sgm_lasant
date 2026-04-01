@@ -775,9 +775,9 @@ export default function OrdensServicoPage() {
                                         codigo: s.materialCodigo,
                                         descricao: s.materialDescricao,
                                         unidade: "",
-                                        valorUnitario: 0,
+                                        valorUnitario: s.valorUnitarioFIFO || 0,
                                         quantidade: estoqueQtd,
-                                        valorTotal: 0,
+                                        valorTotal: (s.valorUnitarioFIFO || 0) * estoqueQtd,
                                       };
                                       const updated = [...materiaisEstoque, newItem];
                                       setMateriaisEstoque(updated);
