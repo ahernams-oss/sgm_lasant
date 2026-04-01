@@ -671,9 +671,7 @@ export default function OrdensServicoPage() {
                               <TableCell className="text-xs">{m.descricao}</TableCell>
                               <TableCell className="text-xs">{m.unidade}</TableCell>
                               <TableCell>
-                                <Input type="number" className="h-8 text-xs" value={m.valorUnitario} onChange={e => {
-                                  const updated = [...materiais]; updated[idx] = { ...m, valorUnitario: Number(e.target.value), valorTotal: Number(e.target.value) * m.quantidade }; setMateriais(updated);
-                                }} />
+                                <Input type="number" className="h-8 text-xs bg-muted cursor-not-allowed" value={m.valorUnitario} disabled />
                               </TableCell>
                               <TableCell>
                                 <Input type="number" className="h-8 text-xs" value={m.quantidade} onChange={e => {
