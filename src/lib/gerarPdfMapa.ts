@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { Lancamento, TipoFalta } from "@/contexts/LancamentosContext";
+import { Lancamento, TipoFalta, TipoAdvertencia } from "@/contexts/LancamentosContext";
 import { Funcionario } from "@/contexts/FuncionariosContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -10,6 +10,11 @@ const TIPO_FALTA_LABELS: Record<TipoFalta, string> = {
   injustificada: "Injustificada",
   atestado: "Atestado Médico",
   suspensao: "Suspensão",
+};
+
+const TIPO_ADVERTENCIA_LABELS: Record<TipoAdvertencia, string> = {
+  verbal: "Verbal",
+  escrita: "Escrita",
 };
 
 interface MapaPdfParams {
@@ -79,6 +84,7 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
   // Separate by type
   const faltas = lancamentos.filter((l) => l.tipo === "falta").sort((a, b) => a.data.localeCompare(b.data));
   const horasExtras = lancamentos.filter((l) => l.tipo === "hora_extra").sort((a, b) => a.data.localeCompare(b.data));
+  const advertencias = lancamentos.filter((l) => l.tipo === "advertencia").sort((a, b) => a.data.localeCompare(b.data));
 
   // KPIs
   const totalFaltas = faltas.reduce((s, l) => s + (l.diasFalta || 1), 0);
@@ -87,6 +93,8 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
   const totalHE = horasExtras.reduce((s, l) => s + (l.horasExtras || 0), 0);
   const funcComFalta = new Set(faltas.map((l) => l.funcionarioId)).size;
   const funcComHE = new Set(horasExtras.map((l) => l.funcionarioId)).size;
+  const totalAdv = advertencias.length;
+  const funcComAdv = new Set(advertencias.map((l) => l.funcionarioId)).size;
 
   // Summary table
   autoTable(doc, {
@@ -95,7 +103,7 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
     head: [["Resumo do Período", "", "", ""]],
     body: [
       [`Total de Faltas: ${totalFaltas} dia(s)`, `Justificadas: ${faltasJust}`, `Injustificadas: ${faltasInjust}`, `Funcionários c/ falta: ${funcComFalta}`],
-      [`Total Horas Extras: ${totalHE.toFixed(1)}h`, `Funcionários c/ HE: ${funcComHE}`, "", ""],
+      [`Total Horas Extras: ${totalHE.toFixed(1)}h`, `Funcionários c/ HE: ${funcComHE}`, `Total Advertências: ${totalAdv}`, `Funcionários c/ adv: ${funcComAdv}`],
     ],
     theme: "plain",
     styles: { fontSize: 8.5, cellPadding: 3 },
@@ -161,6 +169,37 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
       styles: { fontSize: 8, cellPadding: 2.5 },
       headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
       columnStyles: { 6: { cellWidth: 60 } },
+    });
+  }
+
+  // Advertências table
+  if (advertencias.length > 0) {
+    if (y > 160) { doc.addPage(); y = 20; }
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.setFillColor(230, 236, 245);
+    doc.rect(14, y - 4, pageWidth - 28, 8, "F");
+    doc.text("Registro de Advertências", 16, y + 2);
+    y += 10;
+
+    autoTable(doc, {
+      startY: y,
+      margin: { left: 14, right: 14 },
+      head: [["Data", "Funcionário", "Cargo", "Cliente", "Tipo", "Motivo", "Observação"]],
+      body: advertencias.map((l) => [
+        formatData(l.data),
+        getFuncNome(l.funcionarioId),
+        getCargoNome(l.funcionarioId),
+        getClienteNome(l.funcionarioId),
+        TIPO_ADVERTENCIA_LABELS[l.tipoAdvertencia || "verbal"],
+        l.motivo || "—",
+        l.observacao || "—",
+      ]),
+      theme: "striped",
+      styles: { fontSize: 8, cellPadding: 2.5 },
+      headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
+      columnStyles: { 5: { cellWidth: 50 }, 6: { cellWidth: 50 } },
     });
   }
 

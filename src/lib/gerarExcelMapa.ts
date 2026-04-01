@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { Lancamento, TipoFalta } from "@/contexts/LancamentosContext";
+import { Lancamento, TipoFalta, TipoAdvertencia } from "@/contexts/LancamentosContext";
 import { Funcionario } from "@/contexts/FuncionariosContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -9,6 +9,11 @@ const TIPO_FALTA_LABELS: Record<TipoFalta, string> = {
   injustificada: "Injustificada",
   atestado: "Atestado Médico",
   suspensao: "Suspensão",
+};
+
+const TIPO_ADVERTENCIA_LABELS: Record<TipoAdvertencia, string> = {
+  verbal: "Verbal",
+  escrita: "Escrita",
 };
 
 interface ExcelMapaParams {
@@ -68,6 +73,21 @@ export function exportarExcelMapa(params: ExcelMapaParams) {
   const wsHoras = XLSX.utils.json_to_sheet(horasData.length > 0 ? horasData : [{ "Data": "", "Funcionário": "", "Cargo": "", "Cliente": "", "Horas": "", "Percentual (%)": "", "Observação": "" }]);
   wsHoras["!cols"] = [{ wch: 12 }, { wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 10 }, { wch: 14 }, { wch: 40 }];
   XLSX.utils.book_append_sheet(wb, wsHoras, "Horas Extras");
+
+  // Advertências sheet
+  const advs = lancamentos.filter((l) => l.tipo === "advertencia").sort((a, b) => a.data.localeCompare(b.data));
+  const advsData = advs.map((l) => ({
+    "Data": formatData(l.data),
+    "Funcionário": getFuncNome(l.funcionarioId),
+    "Cargo": getCargoNome(l.funcionarioId),
+    "Cliente": getClienteNome(l.funcionarioId),
+    "Tipo": TIPO_ADVERTENCIA_LABELS[l.tipoAdvertencia || "verbal"],
+    "Motivo": l.motivo || "",
+    "Observação": l.observacao || "",
+  }));
+  const wsAdvs = XLSX.utils.json_to_sheet(advsData.length > 0 ? advsData : [{ "Data": "", "Funcionário": "", "Cargo": "", "Cliente": "", "Tipo": "", "Motivo": "", "Observação": "" }]);
+  wsAdvs["!cols"] = [{ wch: 12 }, { wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 12 }, { wch: 40 }, { wch: 40 }];
+  XLSX.utils.book_append_sheet(wb, wsAdvs, "Advertências");
 
   const mesLabel = filterMes.replace("-", "_");
   XLSX.writeFile(wb, `Mapa_Funcionarios_${mesLabel}.xlsx`);

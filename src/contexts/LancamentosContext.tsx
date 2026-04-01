@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
-export type TipoLancamento = "falta" | "hora_extra";
+export type TipoLancamento = "falta" | "hora_extra" | "advertencia";
 export type TipoFalta = "justificada" | "injustificada" | "atestado" | "suspensao";
+export type TipoAdvertencia = "verbal" | "escrita";
 
 export interface AnexoFalta { nome: string; tipo: string; base64: string; }
 
@@ -10,6 +11,7 @@ export interface Lancamento {
   id: string; funcionarioId: string; tipo: TipoLancamento; data: string;
   tipoFalta?: TipoFalta; diasFalta?: number; anexos?: AnexoFalta[];
   horasExtras?: number; percentual?: number; observacao: string; criadoEm: string;
+  tipoAdvertencia?: TipoAdvertencia; motivo?: string;
 }
 
 interface LancamentosContextType {
@@ -28,6 +30,7 @@ const rowToLancamento = (r: any): Lancamento => ({
   anexos: r.anexos ?? [], horasExtras: r.horas_extras ? Number(r.horas_extras) : undefined,
   percentual: r.percentual ? Number(r.percentual) : undefined,
   observacao: r.observacao ?? "", criadoEm: r.criado_em ?? "",
+  tipoAdvertencia: r.tipo_advertencia || undefined, motivo: r.motivo || undefined,
 });
 
 const lancamentoToRow = (l: Omit<Lancamento, "id">) => ({
@@ -35,6 +38,7 @@ const lancamentoToRow = (l: Omit<Lancamento, "id">) => ({
   tipo_falta: l.tipoFalta ?? "", dias_falta: l.diasFalta ?? 0,
   anexos: (l.anexos ?? []) as any, horas_extras: l.horasExtras ?? 0,
   percentual: l.percentual ?? 0, observacao: l.observacao, criado_em: l.criadoEm,
+  tipo_advertencia: l.tipoAdvertencia ?? "", motivo: l.motivo ?? "",
 });
 
 export function LancamentosProvider({ children }: { children: ReactNode }) {

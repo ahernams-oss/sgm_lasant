@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
-import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet } from "lucide-react";
+import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
-import { useLancamentos, TipoFalta, AnexoFalta } from "@/contexts/LancamentosContext";
+import { useLancamentos, TipoFalta, TipoAdvertencia, AnexoFalta } from "@/contexts/LancamentosContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
@@ -31,6 +31,11 @@ const TIPO_FALTA_LABELS: Record<TipoFalta, string> = {
   suspensao: "Suspensão",
 };
 
+const TIPO_ADVERTENCIA_LABELS: Record<TipoAdvertencia, string> = {
+  verbal: "Verbal",
+  escrita: "Escrita",
+};
+
 const PERCENTUAIS_HE = [50, 60, 70, 80, 100];
 
 const MapaFuncionarios = () => {
@@ -39,7 +44,7 @@ const MapaFuncionarios = () => {
   const { cargos } = useCargos();
   const { clientes } = useClientes();
 
-  const [activeTab, setActiveTab] = useState<"faltas" | "horas_extras">("faltas");
+  const [activeTab, setActiveTab] = useState<"faltas" | "horas_extras" | "advertencias">("faltas");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -52,6 +57,8 @@ const MapaFuncionarios = () => {
   const [percentual, setPercentual] = useState("50");
   const [observacao, setObservacao] = useState("");
   const [anexos, setAnexos] = useState<AnexoFalta[]>([]);
+  const [tipoAdvertencia, setTipoAdvertencia] = useState<TipoAdvertencia>("verbal");
+  const [motivo, setMotivo] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
@@ -74,6 +81,8 @@ const MapaFuncionarios = () => {
     setPercentual("50");
     setObservacao("");
     setAnexos([]);
+    setTipoAdvertencia("verbal");
+    setMotivo("");
     setEditingId(null);
     setShowForm(false);
   };
@@ -95,7 +104,7 @@ const MapaFuncionarios = () => {
         addLancamento(payload);
         toast.success("Falta registrada.");
       }
-    } else {
+    } else if (activeTab === "horas_extras") {
       if (!horasExtras || Number(horasExtras) <= 0) { toast.error("Informe as horas extras."); return; }
       const payload = {
         funcionarioId, tipo: "hora_extra" as const, data,
@@ -107,6 +116,19 @@ const MapaFuncionarios = () => {
       } else {
         addLancamento(payload);
         toast.success("Hora extra registrada.");
+      }
+    } else if (activeTab === "advertencias") {
+      if (!motivo.trim()) { toast.error("Informe o motivo da advertência."); return; }
+      const payload = {
+        funcionarioId, tipo: "advertencia" as const, data,
+        tipoAdvertencia, motivo, anexos, observacao,
+      };
+      if (editingId) {
+        updateLancamento(editingId, payload);
+        toast.success("Advertência atualizada.");
+      } else {
+        addLancamento(payload);
+        toast.success("Advertência registrada.");
       }
     }
     resetForm();
@@ -121,10 +143,15 @@ const MapaFuncionarios = () => {
       setTipoFalta(l.tipoFalta || "injustificada");
       setDiasFalta(String(l.diasFalta || 1));
       setAnexos(l.anexos || []);
-    } else {
+    } else if (l.tipo === "hora_extra") {
       setActiveTab("horas_extras");
       setHorasExtras(String(l.horasExtras || ""));
       setPercentual(String(l.percentual || 50));
+    } else if (l.tipo === "advertencia") {
+      setActiveTab("advertencias");
+      setTipoAdvertencia(l.tipoAdvertencia || "verbal");
+      setMotivo(l.motivo || "");
+      setAnexos(l.anexos || []);
     }
     setEditingId(l.id);
     setShowForm(true);
@@ -182,7 +209,7 @@ const MapaFuncionarios = () => {
   };
 
   const filteredLancamentos = useMemo(() => {
-    const tipo = activeTab === "faltas" ? "falta" : "hora_extra";
+    const tipo = activeTab === "faltas" ? "falta" : activeTab === "horas_extras" ? "hora_extra" : "advertencia";
     let result = lancamentos.filter((l) => l.tipo === tipo);
 
     if (filterMes) {
@@ -210,6 +237,7 @@ const MapaFuncionarios = () => {
     const mesLancamentos = lancamentos.filter((l) => l.data.startsWith(filterMes));
     const faltas = mesLancamentos.filter((l) => l.tipo === "falta");
     const horas = mesLancamentos.filter((l) => l.tipo === "hora_extra");
+    const advertencias = mesLancamentos.filter((l) => l.tipo === "advertencia");
     return {
       totalFaltas: faltas.reduce((sum, l) => sum + (l.diasFalta || 1), 0),
       totalFaltasJustificadas: faltas.filter((l) => l.tipoFalta === "justificada" || l.tipoFalta === "atestado").reduce((sum, l) => sum + (l.diasFalta || 1), 0),
@@ -217,6 +245,8 @@ const MapaFuncionarios = () => {
       totalHorasExtras: horas.reduce((sum, l) => sum + (l.horasExtras || 0), 0),
       funcionariosComFalta: new Set(faltas.map((l) => l.funcionarioId)).size,
       funcionariosComHE: new Set(horas.map((l) => l.funcionarioId)).size,
+      totalAdvertencias: advertencias.length,
+      funcionariosComAdvertencia: new Set(advertencias.map((l) => l.funcionarioId)).size,
     };
   }, [lancamentos, filterMes]);
 
@@ -240,7 +270,7 @@ const MapaFuncionarios = () => {
             <div>
               <h1 className="text-xl font-bold text-foreground mb-1">Mapa de Funcionários</h1>
               <p className="text-sm text-muted-foreground max-w-lg">
-                Lançamento e controle de faltas e horas extras.
+                Lançamento e controle de faltas, horas extras e advertências.
               </p>
             </div>
             {!showForm && (
@@ -282,7 +312,7 @@ const MapaFuncionarios = () => {
         </div>
 
         {/* Resumo cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 animate-fade-up" style={{ animationDelay: "50ms" }}>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 animate-fade-up" style={{ animationDelay: "50ms" }}>
           <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
             <p className="text-xs text-muted-foreground mb-1">Total Faltas (mês)</p>
             <p className="text-2xl font-bold text-foreground">{resumoMes.totalFaltas}</p>
@@ -301,18 +331,26 @@ const MapaFuncionarios = () => {
             <p className="text-2xl font-bold text-primary">{resumoMes.totalHorasExtras.toFixed(1)}h</p>
             <p className="text-xs text-muted-foreground">{resumoMes.funcionariosComHE} funcionário(s)</p>
           </div>
+          <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+            <p className="text-xs text-muted-foreground mb-1">Advertências (mês)</p>
+            <p className="text-2xl font-bold text-orange-600">{resumoMes.totalAdvertencias}</p>
+            <p className="text-xs text-muted-foreground">{resumoMes.funcionariosComAdvertencia} funcionário(s)</p>
+          </div>
         </div>
 
         {/* Formulário */}
         {showForm && (
           <form onSubmit={handleSubmit} className="mb-8 rounded-xl border border-border bg-card p-6 shadow-sm animate-fade-up">
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras")} className="w-full">
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras" | "advertencias")} className="w-full">
               <TabsList className="mb-6">
                 <TabsTrigger value="faltas" className="gap-1.5">
                   <XCircle className="h-3.5 w-3.5" /> Falta
                 </TabsTrigger>
                 <TabsTrigger value="horas_extras" className="gap-1.5">
                   <Clock className="h-3.5 w-3.5" /> Hora Extra
+                </TabsTrigger>
+                <TabsTrigger value="advertencias" className="gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Advertência
                 </TabsTrigger>
               </TabsList>
 
@@ -407,6 +445,61 @@ const MapaFuncionarios = () => {
                     </div>
                   </div>
                 </TabsContent>
+
+                <TabsContent value="advertencias" className="mt-0 p-0">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold text-foreground/80">Tipo de Advertência</Label>
+                        <Select value={tipoAdvertencia} onValueChange={(v) => setTipoAdvertencia(v as TipoAdvertencia)}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(TIPO_ADVERTENCIA_LABELS).map(([k, v]) => (
+                              <SelectItem key={k} value={k}>{v}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-foreground/80">Motivo *</Label>
+                      <Textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={2} placeholder="Descreva o motivo da advertência..." />
+                    </div>
+                    {/* Anexos */}
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold text-foreground/80">Documentos</Label>
+                      <div className="flex items-center gap-2">
+                        <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="gap-1.5">
+                          <Paperclip className="h-3.5 w-3.5" /> Anexar Arquivo
+                        </Button>
+                        <span className="text-xs text-muted-foreground">PDF, DOC, JPG, PNG (máx. 2MB)</span>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                          multiple
+                          className="hidden"
+                          onChange={handleFileUpload}
+                        />
+                      </div>
+                      {anexos.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {anexos.map((a, i) => (
+                            <div key={i} className="flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2.5 py-1.5 text-xs">
+                              <Paperclip className="h-3 w-3 text-muted-foreground" />
+                              <button type="button" onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline truncate max-w-[150px]">
+                                {a.nome}
+                              </button>
+                              <button type="button" onClick={() => handleRemoveAnexo(i)} className="text-muted-foreground hover:text-destructive ml-1">
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
               </div>
 
               <div className="space-y-1.5 mb-4">
@@ -427,13 +520,16 @@ const MapaFuncionarios = () => {
           <div className="px-6 py-4 border-b border-border bg-muted/30">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras")}>
+                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras" | "advertencias")}>
                   <TabsList className="h-9">
                     <TabsTrigger value="faltas" className="text-xs gap-1">
                       <XCircle className="h-3 w-3" /> Faltas
                     </TabsTrigger>
                     <TabsTrigger value="horas_extras" className="text-xs gap-1">
                       <Clock className="h-3 w-3" /> Horas Extras
+                    </TabsTrigger>
+                    <TabsTrigger value="advertencias" className="text-xs gap-1">
+                      <AlertTriangle className="h-3 w-3" /> Advertências
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
@@ -484,10 +580,16 @@ const MapaFuncionarios = () => {
                         <TableHead>Dias</TableHead>
                         <TableHead>Anexos</TableHead>
                       </>
-                    ) : (
+                    ) : activeTab === "horas_extras" ? (
                       <>
                         <TableHead>Horas</TableHead>
                         <TableHead>Percentual</TableHead>
+                      </>
+                    ) : (
+                      <>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Motivo</TableHead>
+                        <TableHead>Anexos</TableHead>
                       </>
                     )}
                     <TableHead>Observação</TableHead>
@@ -524,11 +626,34 @@ const MapaFuncionarios = () => {
                             )}
                           </TableCell>
                         </>
-                      ) : (
+                      ) : l.tipo === "hora_extra" ? (
                         <>
                           <TableCell className="font-medium">{l.horasExtras}h</TableCell>
                           <TableCell>
                             <Badge className="bg-primary/10 text-primary text-xs">{l.percentual}%</Badge>
+                          </TableCell>
+                        </>
+                      ) : (
+                        <>
+                          <TableCell>
+                            <Badge variant={l.tipoAdvertencia === "escrita" ? "destructive" : "secondary"} className="text-xs">
+                              {TIPO_ADVERTENCIA_LABELS[l.tipoAdvertencia || "verbal"]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="max-w-[200px] truncate text-xs">{l.motivo || "—"}</TableCell>
+                          <TableCell>
+                            {l.anexos && l.anexos.length > 0 ? (
+                              <div className="flex items-center gap-1">
+                                {l.anexos.map((a, i) => (
+                                  <button key={i} onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline text-xs flex items-center gap-0.5" title={a.nome}>
+                                    <Paperclip className="h-3 w-3" />
+                                  </button>
+                                ))}
+                                <span className="text-xs text-muted-foreground">({l.anexos.length})</span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                         </>
                       )}
