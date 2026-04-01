@@ -30,6 +30,7 @@ const rowToLancamento = (r: any): Lancamento => ({
   anexos: r.anexos ?? [], horasExtras: r.horas_extras ? Number(r.horas_extras) : undefined,
   percentual: r.percentual ? Number(r.percentual) : undefined,
   observacao: r.observacao ?? "", criadoEm: r.criado_em ?? "",
+  tipoAdvertencia: r.tipo_advertencia || undefined, motivo: r.motivo || undefined,
 });
 
 const lancamentoToRow = (l: Omit<Lancamento, "id">) => ({
