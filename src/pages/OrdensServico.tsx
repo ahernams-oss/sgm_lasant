@@ -410,7 +410,7 @@ export default function OrdensServicoPage() {
                         </DropdownMenuItem>
                         {!["Validada", "Cancelada"].includes(os.situacao) && (
                           <DropdownMenuItem onClick={() => handleEdit(os)}>
-                            <Pencil className="mr-2 h-4 w-4" /> Editar
+                            <Pencil className="mr-2 h-4 w-4" /> Preencher OS
                           </DropdownMenuItem>
                         )}
                         {/* Workflow actions */}
@@ -447,7 +447,7 @@ export default function OrdensServicoPage() {
       <Dialog open={formOpen} onOpenChange={o => { if (!o) { resetForm(); } setFormOpen(o); }}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? "Editar Ordem de Serviço" : "Nova Ordem de Serviço"}</DialogTitle>
+            <DialogTitle>{editingId ? "Preencher Ordem de Serviço" : "Nova Ordem de Serviço"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {/* Identificação */}
