@@ -22,6 +22,20 @@ export interface FotoOS {
   url: string;
 }
 
+export interface ProfissionalOS {
+  id: string;
+  funcionarioId: string;
+  nome: string;
+  cargo: string;
+}
+
+export interface ObservacaoOS {
+  id: string;
+  descricao: string;
+  usuario: string;
+  data: string;
+}
+
 export interface ObservacaoFiscalizacao {
   id: string;
   titulo: string;
