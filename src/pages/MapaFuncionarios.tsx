@@ -143,10 +143,15 @@ const MapaFuncionarios = () => {
       setTipoFalta(l.tipoFalta || "injustificada");
       setDiasFalta(String(l.diasFalta || 1));
       setAnexos(l.anexos || []);
-    } else {
+    } else if (l.tipo === "hora_extra") {
       setActiveTab("horas_extras");
       setHorasExtras(String(l.horasExtras || ""));
       setPercentual(String(l.percentual || 50));
+    } else if (l.tipo === "advertencia") {
+      setActiveTab("advertencias");
+      setTipoAdvertencia(l.tipoAdvertencia || "verbal");
+      setMotivo(l.motivo || "");
+      setAnexos(l.anexos || []);
     }
     setEditingId(l.id);
     setShowForm(true);
