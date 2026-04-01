@@ -103,7 +103,7 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
     head: [["Resumo do Período", "", "", ""]],
     body: [
       [`Total de Faltas: ${totalFaltas} dia(s)`, `Justificadas: ${faltasJust}`, `Injustificadas: ${faltasInjust}`, `Funcionários c/ falta: ${funcComFalta}`],
-      [`Total Horas Extras: ${totalHE.toFixed(1)}h`, `Funcionários c/ HE: ${funcComHE}`, "", ""],
+      [`Total Horas Extras: ${totalHE.toFixed(1)}h`, `Funcionários c/ HE: ${funcComHE}`, `Total Advertências: ${totalAdv}`, `Funcionários c/ adv: ${funcComAdv}`],
     ],
     theme: "plain",
     styles: { fontSize: 8.5, cellPadding: 3 },
