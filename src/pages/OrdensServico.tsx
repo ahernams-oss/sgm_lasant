@@ -214,6 +214,7 @@ export default function OrdensServicoPage() {
     setDescricaoServicos(""); setRessalvaAprovacao(""); setDescricaoConclusao("");
     setMateriais([]); setMateriaisEstoque([]); setProfissionais([]);
     setAnexos([]); setFotos([]); setObservacoes([]); setObservacoesFiscalizacao([]);
+    setScoBusca(""); setScoQtd(1); setScoResultPage(1);
     setEditingId(null);
   };
 
