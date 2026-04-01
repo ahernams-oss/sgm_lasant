@@ -484,15 +484,22 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
         <DialogFooter className="flex-col sm:flex-row gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Fechar</Button>
 
-          {/* Save / Update */}
-          {!isReadOnly && (
-            <Button onClick={handleSave} disabled={uploading}>
+          {/* Save as draft */}
+          {isRascunho && (
+            <Button variant="outline" onClick={handleSave} disabled={uploading}>
               {uploading ? "Salvando..." : existingOrcamento ? "Atualizar Orçamento" : "Salvar Orçamento"}
             </Button>
           )}
 
-          {/* Approval actions — only for existing pending/revision budgets */}
-          {existingOrcamento && (isPendente || isRevisao) && (
+          {/* Send budget — locks editing and changes SS status */}
+          {isRascunho && (
+            <Button onClick={handleEnviar} disabled={uploading}>
+              {uploading ? "Enviando..." : "Enviar Orçamento"}
+            </Button>
+          )}
+
+          {/* Approval actions — only for sent budgets */}
+          {existingOrcamento && existingOrcamento.status === "Enviado" && (
             <>
               <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10" onClick={handleSolicitarRevisao}>
                 <RotateCcw className="mr-2 h-4 w-4" /> Solicitar Revisão
