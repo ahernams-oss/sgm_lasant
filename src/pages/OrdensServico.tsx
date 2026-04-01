@@ -611,9 +611,13 @@ export default function OrdensServicoPage() {
                         <Search className="absolute right-2 top-2.5 h-4 w-4 text-muted-foreground" />
                       </div>
                     </div>
-                    <div className="w-[120px]">
-                      <Label>Qtd</Label>
-                      <Input type="number" min={1} value={scoQtd} onChange={e => setScoQtd(Number(e.target.value) || 1)} placeholder="Qtd" />
+                    <div className="w-[180px]">
+                      <Label>Qtd.</Label>
+                      <div className="flex items-center gap-1">
+                        <Button type="button" variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={() => setScoQtd(Math.max(1, scoQtd - 1))}>-</Button>
+                        <Input type="number" min={1} value={scoQtd} onChange={e => setScoQtd(Math.max(1, Number(e.target.value) || 1))} className="text-center text-base font-medium" />
+                        <Button type="button" variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={() => setScoQtd(scoQtd + 1)}>+</Button>
+                      </div>
                     </div>
                   </div>
                   {scosFiltered.length > 0 && (
