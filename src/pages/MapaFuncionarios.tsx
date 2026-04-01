@@ -104,7 +104,7 @@ const MapaFuncionarios = () => {
         addLancamento(payload);
         toast.success("Falta registrada.");
       }
-    } else {
+    } else if (activeTab === "horas_extras") {
       if (!horasExtras || Number(horasExtras) <= 0) { toast.error("Informe as horas extras."); return; }
       const payload = {
         funcionarioId, tipo: "hora_extra" as const, data,
@@ -116,6 +116,19 @@ const MapaFuncionarios = () => {
       } else {
         addLancamento(payload);
         toast.success("Hora extra registrada.");
+      }
+    } else if (activeTab === "advertencias") {
+      if (!motivo.trim()) { toast.error("Informe o motivo da advertência."); return; }
+      const payload = {
+        funcionarioId, tipo: "advertencia" as const, data,
+        tipoAdvertencia, motivo, anexos, observacao,
+      };
+      if (editingId) {
+        updateLancamento(editingId, payload);
+        toast.success("Advertência atualizada.");
+      } else {
+        addLancamento(payload);
+        toast.success("Advertência registrada.");
       }
     }
     resetForm();
