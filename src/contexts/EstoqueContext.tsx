@@ -47,6 +47,15 @@ export interface SaldoEstoque {
   materialDescricao: string;
   local: string;
   quantidade: number;
+  valorUnitarioFIFO: number;
+  valorTotal: number;
+}
+
+export interface LoteFIFO {
+  quantidade: number;
+  valorUnitario: number;
+  dataMovimentacao: string;
+  documentoRef: string;
 }
 
 interface EstoqueContextType {
