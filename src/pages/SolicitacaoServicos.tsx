@@ -649,6 +649,17 @@ export default function SolicitacaoServicosPage() {
                           <FileText className="mr-2 h-4 w-4 text-indigo-600" />Ver Orçamento
                         </DropdownMenuItem>
                       )}
+                      {["Aprovada", "Em execução", "Concluída"].includes(s.situacao) && orcamentos.some(o => o.solicitacaoId === s.id) && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleDownloadOrcamento(s, "pdf")}>
+                            <Download className="mr-2 h-4 w-4" />Orçamento PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadOrcamento(s, "excel")}>
+                            <Download className="mr-2 h-4 w-4" />Orçamento Excel
+                          </DropdownMenuItem>
+                        </>
+                      )}
                       {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleEdit(s)}>
                           <Pencil className="mr-2 h-4 w-4" />Editar
