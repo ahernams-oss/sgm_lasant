@@ -638,6 +638,15 @@ export default function SolicitacaoServicosPage() {
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
       <DoubleConfirmDelete open={!!cancelId} onOpenChange={o => !o && abortCancel()} onConfirm={handleCancelar} />
 
+      {/* Orcamento Dialog */}
+      <OrcamentoDialog
+        open={orcamentoDialogOpen}
+        onOpenChange={(o) => { setOrcamentoDialogOpen(o); if (!o) setOrcamentoTarget(null); }}
+        solicitacao={orcamentoTarget}
+        existingOrcamento={existingOrcamentoForTarget}
+        onApproved={handleOrcamentoApproved}
+      />
+
       {/* Approval Dialog */}
       <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
         <DialogContent className="sm:max-w-md">
