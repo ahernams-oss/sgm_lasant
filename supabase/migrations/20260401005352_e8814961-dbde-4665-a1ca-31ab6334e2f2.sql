@@ -1,0 +1,1 @@
+ALTER TABLE public.estoque_movimentacoes ADD COLUMN valor_unitario numeric DEFAULT 0;

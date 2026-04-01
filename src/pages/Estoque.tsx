@@ -219,7 +219,7 @@ export default function EstoquePage() {
       tipo: movTipo, quantidade: qty, local: movLocal,
       documentoRef: movDocRef, observacao: movObs,
       usuario: usuarioLogado?.nome || "",
-      lote: "", validade: "", depositoOrigem: "", depositoDestino: "", fornecedorNome: "",
+      lote: "", validade: "", depositoOrigem: "", depositoDestino: "", fornecedorNome: "", valorUnitario: 0,
     });
     toast({ title: `${movTipo === "entrada" ? "Entrada" : "Saída"} registrada com sucesso` });
     setMovDialogOpen(false);
@@ -360,11 +360,13 @@ export default function EstoquePage() {
                   <TableHead>Centro de Custo</TableHead>
                   <TableHead>Local</TableHead>
                   <TableHead className="text-right">Quantidade</TableHead>
+                  <TableHead className="text-right">Vlr Unit. (FIFO)</TableHead>
+                  <TableHead className="text-right">Vlr Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {saldos.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum saldo registrado</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum saldo registrado</TableCell></TableRow>
                 ) : paginate(saldos, pageSaldos).paginated.map((s, i) => (
                   <TableRow key={i}>
                     <TableCell className="font-mono">{s.materialCodigo}</TableCell>
@@ -372,6 +374,8 @@ export default function EstoquePage() {
                     <TableCell>{saldoCentroCusto.get(`${s.materialId}|${s.local}`) || "-"}</TableCell>
                     <TableCell>{s.local}</TableCell>
                     <TableCell className="text-right font-semibold">{s.quantidade.toLocaleString("pt-BR")}</TableCell>
+                    <TableCell className="text-right">{s.valorUnitarioFIFO > 0 ? s.valorUnitarioFIFO.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</TableCell>
+                    <TableCell className="text-right font-semibold">{s.valorTotal > 0 ? s.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -393,13 +397,14 @@ export default function EstoquePage() {
                   <TableHead>Centro de Custo</TableHead>
                   <TableHead>Local</TableHead>
                   <TableHead className="text-right">Qtd</TableHead>
+                  <TableHead className="text-right">Vlr Unit.</TableHead>
                   <TableHead>Documento</TableHead>
                   <TableHead>Usuário</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {movFiltered.length === 0 ? (
-                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma movimentação</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Nenhuma movimentação</TableCell></TableRow>
                 ) : paginate(movFiltered, pageMov).paginated.map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="text-xs">{m.dataMovimentacao ? new Date(m.dataMovimentacao).toLocaleDateString("pt-BR") : "-"}</TableCell>
@@ -409,6 +414,7 @@ export default function EstoquePage() {
                     <TableCell>{getCentroCustoFromDocRef(m.documentoRef)}</TableCell>
                     <TableCell>{m.local}</TableCell>
                     <TableCell className="text-right font-semibold">{m.quantidade.toLocaleString("pt-BR")}</TableCell>
+                    <TableCell className="text-right">{m.valorUnitario > 0 ? m.valorUnitario.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</TableCell>
                     <TableCell className="text-xs">{m.documentoRef || "-"}</TableCell>
                     <TableCell className="text-xs">{m.usuario}</TableCell>
                   </TableRow>

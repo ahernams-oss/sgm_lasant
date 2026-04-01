@@ -18,6 +18,7 @@ export interface MovimentacaoEstoque {
   depositoOrigem: string;
   depositoDestino: string;
   fornecedorNome: string;
+  valorUnitario: number;
 }
 
 export interface ItemInventario {
@@ -46,16 +47,26 @@ export interface SaldoEstoque {
   materialDescricao: string;
   local: string;
   quantidade: number;
+  valorUnitarioFIFO: number;
+  valorTotal: number;
+}
+
+export interface LoteFIFO {
+  quantidade: number;
+  valorUnitario: number;
+  dataMovimentacao: string;
+  documentoRef: string;
 }
 
 interface EstoqueContextType {
   movimentacoes: MovimentacaoEstoque[];
   inventarios: Inventario[];
   registrarMovimentacao: (data: Omit<MovimentacaoEstoque, "id" | "dataMovimentacao">) => Promise<void>;
-  registrarEntradaRecebimento: (itens: { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number; unidadeMedida: string }[], local: string, documentoRef: string, usuario: string) => Promise<void>;
+  registrarEntradaRecebimento: (itens: { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number; unidadeMedida: string; valorUnitario?: number }[], local: string, documentoRef: string, usuario: string) => Promise<void>;
   getSaldos: () => SaldoEstoque[];
   getSaldoPorMaterial: (materialId: string) => number;
   getSaldoPorLocal: (materialId: string, local: string) => number;
+  getLotesFIFO: (materialId: string, local: string) => LoteFIFO[];
   criarInventario: (data: Omit<Inventario, "id" | "dataInventario" | "status">) => Promise<void>;
   atualizarInventario: (id: string, itens: ItemInventario[], observacao: string) => Promise<void>;
   fecharInventario: (id: string, usuario: string) => Promise<void>;
@@ -73,6 +84,7 @@ const rowToMov = (r: any): MovimentacaoEstoque => ({
   lote: r.lote ?? "", validade: r.validade ?? "",
   depositoOrigem: r.deposito_origem ?? "", depositoDestino: r.deposito_destino ?? "",
   fornecedorNome: r.fornecedor_nome ?? "",
+  valorUnitario: Number(r.valor_unitario ?? 0),
 });
 
 const rowToInv = (r: any): Inventario => ({
@@ -106,12 +118,13 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
       lote: data.lote || "", validade: data.validade || null,
       deposito_origem: data.depositoOrigem || "", deposito_destino: data.depositoDestino || "",
       fornecedor_nome: data.fornecedorNome || "",
+      valor_unitario: data.valorUnitario || 0,
     });
     await load();
   };
 
   const registrarEntradaRecebimento = async (
-    itens: { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number; unidadeMedida: string }[],
+    itens: { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number; unidadeMedida: string; valorUnitario?: number }[],
     local: string, documentoRef: string, usuario: string
   ) => {
     for (const item of itens) {
@@ -122,14 +135,54 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
           quantidade: item.quantidade, local,
           documento_ref: documentoRef, observacao: "Entrada automática via recebimento",
           usuario, data_movimentacao: new Date().toISOString(),
+          valor_unitario: item.valorUnitario || 0,
         });
       }
     }
     await load();
   };
 
+  // FIFO: retorna lotes restantes ordenados por data (mais antigo primeiro)
+  const getLotesFIFO = useCallback((materialId: string, local: string): LoteFIFO[] => {
+    // Pegar todas as entradas e saídas para este material+local, ordenadas por data
+    const movs = movimentacoes
+      .filter(m => m.materialId === materialId && m.local === local)
+      .sort((a, b) => (a.dataMovimentacao || "").localeCompare(b.dataMovimentacao || ""));
+
+    const lotes: LoteFIFO[] = [];
+    let saidasPendentes = 0;
+
+    // Separar entradas como lotes
+    for (const m of movs) {
+      if (m.tipo === "entrada" || m.tipo === "ajuste") {
+        if (m.quantidade > 0) {
+          lotes.push({
+            quantidade: m.quantidade,
+            valorUnitario: m.valorUnitario,
+            dataMovimentacao: m.dataMovimentacao,
+            documentoRef: m.documentoRef,
+          });
+        } else if (m.quantidade < 0) {
+          saidasPendentes += Math.abs(m.quantidade);
+        }
+      } else if (m.tipo === "saida") {
+        saidasPendentes += m.quantidade;
+      }
+    }
+
+    // Consumir saídas dos lotes mais antigos (FIFO)
+    for (const lote of lotes) {
+      if (saidasPendentes <= 0) break;
+      const consumir = Math.min(saidasPendentes, lote.quantidade);
+      lote.quantidade -= consumir;
+      saidasPendentes -= consumir;
+    }
+
+    return lotes.filter(l => l.quantidade > 0);
+  }, [movimentacoes]);
+
   const getSaldos = useCallback((): SaldoEstoque[] => {
-    const map = new Map<string, SaldoEstoque>();
+    const map = new Map<string, { materialId: string; materialCodigo: string; materialDescricao: string; local: string; quantidade: number }>();
     for (const m of movimentacoes) {
       const key = `${m.materialId}__${m.local}`;
       if (!map.has(key)) {
@@ -138,10 +191,17 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
       const s = map.get(key)!;
       if (m.tipo === "entrada") s.quantidade += m.quantidade;
       else if (m.tipo === "saida") s.quantidade -= m.quantidade;
-      else s.quantidade += m.quantidade; // ajuste pode ser +/-
+      else s.quantidade += m.quantidade;
     }
-    return Array.from(map.values()).filter(s => s.quantidade !== 0);
-  }, [movimentacoes]);
+    return Array.from(map.values())
+      .filter(s => s.quantidade !== 0)
+      .map(s => {
+        const lotes = getLotesFIFO(s.materialId, s.local);
+        const valorTotal = lotes.reduce((sum, l) => sum + l.quantidade * l.valorUnitario, 0);
+        const valorUnitarioFIFO = s.quantidade > 0 ? valorTotal / s.quantidade : 0;
+        return { ...s, valorUnitarioFIFO, valorTotal };
+      });
+  }, [movimentacoes, getLotesFIFO]);
 
   const getSaldoPorMaterial = useCallback((materialId: string): number => {
     return movimentacoes
@@ -201,7 +261,7 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
   return (
     <EstoqueContext.Provider value={{
       movimentacoes, inventarios, registrarMovimentacao, registrarEntradaRecebimento,
-      getSaldos, getSaldoPorMaterial, getSaldoPorLocal, criarInventario, atualizarInventario, fecharInventario, reload: load,
+      getSaldos, getSaldoPorMaterial, getSaldoPorLocal, getLotesFIFO, criarInventario, atualizarInventario, fecharInventario, reload: load,
     }}>
       {children}
     </EstoqueContext.Provider>
