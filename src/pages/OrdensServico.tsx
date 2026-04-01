@@ -137,7 +137,7 @@ export default function OrdensServicoPage() {
     if (!clienteId) return [];
     const cliente = clientesFiltrados.find(c => c.id === clienteId);
     const nomeCliente = cliente?.nome || "";
-    const nomeFantasia = cliente?.nomeFantasia || cliente?.nome_fantasia || "";
+    const nomeFantasia = cliente?.nomeFantasia || "";
     const saldos = getSaldos();
     return saldos.filter(s => {
       if (s.quantidade <= 0) return false;
