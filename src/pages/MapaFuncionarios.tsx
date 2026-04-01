@@ -445,6 +445,61 @@ const MapaFuncionarios = () => {
                     </div>
                   </div>
                 </TabsContent>
+
+                <TabsContent value="advertencias" className="mt-0 p-0">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold text-foreground/80">Tipo de Advertência</Label>
+                        <Select value={tipoAdvertencia} onValueChange={(v) => setTipoAdvertencia(v as TipoAdvertencia)}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(TIPO_ADVERTENCIA_LABELS).map(([k, v]) => (
+                              <SelectItem key={k} value={k}>{v}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-foreground/80">Motivo *</Label>
+                      <Textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={2} placeholder="Descreva o motivo da advertência..." />
+                    </div>
+                    {/* Anexos */}
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold text-foreground/80">Documentos</Label>
+                      <div className="flex items-center gap-2">
+                        <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="gap-1.5">
+                          <Paperclip className="h-3.5 w-3.5" /> Anexar Arquivo
+                        </Button>
+                        <span className="text-xs text-muted-foreground">PDF, DOC, JPG, PNG (máx. 2MB)</span>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                          multiple
+                          className="hidden"
+                          onChange={handleFileUpload}
+                        />
+                      </div>
+                      {anexos.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {anexos.map((a, i) => (
+                            <div key={i} className="flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2.5 py-1.5 text-xs">
+                              <Paperclip className="h-3 w-3 text-muted-foreground" />
+                              <button type="button" onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline truncate max-w-[150px]">
+                                {a.nome}
+                              </button>
+                              <button type="button" onClick={() => handleRemoveAnexo(i)} className="text-muted-foreground hover:text-destructive ml-1">
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
               </div>
 
               <div className="space-y-1.5 mb-4">
