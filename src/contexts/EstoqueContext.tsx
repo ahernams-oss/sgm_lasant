@@ -202,7 +202,6 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
         return { ...s, valorUnitarioFIFO, valorTotal };
       });
   }, [movimentacoes, getLotesFIFO]);
-  }, [movimentacoes]);
 
   const getSaldoPorMaterial = useCallback((materialId: string): number => {
     return movimentacoes
