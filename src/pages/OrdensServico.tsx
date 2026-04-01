@@ -132,8 +132,13 @@ export default function OrdensServicoPage() {
 
   const saldosCliente = useMemo(() => {
     if (!clienteId) return [];
-    return getSaldos().filter(s => s.local === clienteId && s.quantidade > 0);
-  }, [getSaldos, clienteId]);
+    const nomeCliente = clientesFiltrados.find(c => c.id === clienteId)?.nome || "";
+    const saldos = getSaldos();
+    return saldos.filter(s => {
+      if (s.quantidade <= 0) return false;
+      return s.local === clienteId || s.local === nomeCliente;
+    });
+  }, [getSaldos, clienteId, clientesFiltrados]);
 
   const saldosFiltrados = useMemo(() => {
     if (!estoqueBusca.trim()) return saldosCliente;
