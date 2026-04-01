@@ -137,22 +137,65 @@ export default function OrdensServicoPage() {
   const [estoqueQtd, setEstoqueQtd] = useState(1);
   const [estoquePopoverOpen, setEstoquePopoverOpen] = useState(false);
 
+  // Map pedido número → centro de custo nome (same logic as Estoque page)
+  const centroCustoMap = useMemo(() => {
+    const map = new Map<number, string>();
+    pedidos.forEach(p => {
+      const rc = requisicoes.find(r => r.id === p.requisicaoId);
+      if (rc?.centroCustoNome) map.set(p.numero, rc.centroCustoNome);
+    });
+    return map;
+  }, [pedidos, requisicoes]);
+
+  const getCentroCustoFromDocRef = useCallback((docRef: string): string => {
+    const match = docRef.match(/Pedido\s+(\d+)/i);
+    if (match) {
+      const num = parseInt(match[1]);
+      return centroCustoMap.get(num) || "";
+    }
+    return "";
+  }, [centroCustoMap]);
+
   const saldosCliente = useMemo(() => {
     if (!clienteId) return [];
     const cliente = clientesFiltrados.find(c => c.id === clienteId);
     const nomeCliente = cliente?.nome || "";
     const nomeFantasia = cliente?.nomeFantasia || "";
-    const saldos = getSaldos();
-    return saldos.filter(s => {
-      if (s.quantidade <= 0) return false;
-      const loc = s.local;
-      return loc === clienteId || 
-             loc === nomeCliente || 
-             loc.startsWith(nomeCliente + " - ") ||
-             (nomeFantasia && loc === nomeFantasia) ||
-             (nomeFantasia && loc.startsWith(nomeFantasia + " - "));
+
+    // Build saldos filtered by centro de custo matching this client
+    // Group movements by materialId where centro de custo matches the client
+    const materialMap = new Map<string, { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number; local: string }>();
+    
+    movimentacoes.forEach(m => {
+      const cc = getCentroCustoFromDocRef(m.documentoRef);
+      // Also check if local matches client (for manual entries without pedido ref)
+      const ccMatch = cc === nomeCliente || cc === nomeFantasia || 
+                      (nomeFantasia && cc === nomeFantasia) ||
+                      m.local === clienteId || m.local === nomeCliente || 
+                      (nomeFantasia && m.local === nomeFantasia) ||
+                      m.local.startsWith(nomeCliente + " - ") ||
+                      (nomeFantasia && m.local.startsWith(nomeFantasia + " - "));
+      if (!ccMatch) return;
+
+      const key = `${m.materialId}__${m.local}`;
+      if (!materialMap.has(key)) {
+        materialMap.set(key, { materialId: m.materialId, materialCodigo: m.materialCodigo, materialDescricao: m.materialDescricao, quantidade: 0, local: m.local });
+      }
+      const s = materialMap.get(key)!;
+      if (m.tipo === "entrada") s.quantidade += m.quantidade;
+      else if (m.tipo === "saida") s.quantidade -= m.quantidade;
+      else s.quantidade += m.quantidade;
     });
-  }, [getSaldos, clienteId, clientesFiltrados]);
+
+    return Array.from(materialMap.values())
+      .filter(s => s.quantidade > 0)
+      .map(s => {
+        const lotes = getLotesFIFO(s.materialId, s.local);
+        const valorTotal = lotes.reduce((sum, l) => sum + l.quantidade * l.valorUnitario, 0);
+        const valorUnitarioFIFO = s.quantidade > 0 ? valorTotal / s.quantidade : 0;
+        return { ...s, valorUnitarioFIFO, valorTotal };
+      });
+  }, [movimentacoes, getCentroCustoFromDocRef, getLotesFIFO, clienteId, clientesFiltrados]);
 
   const saldosFiltrados = useMemo(() => {
     if (!estoqueBusca.trim()) return saldosCliente;
