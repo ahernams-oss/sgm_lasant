@@ -15,6 +15,7 @@ const CategoriasServicosPage = () => {
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
   const [search, setSearch] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState<string | null>(null);
 
   const resetForm = () => { setNome(""); setDescricao(""); setEditId(null); setShowForm(false); };
 
