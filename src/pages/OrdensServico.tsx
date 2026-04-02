@@ -472,6 +472,14 @@ export default function OrdensServicoPage() {
 
   const temFiltrosAtivos = busca || filtroSituacao !== "Todas" || filtroCliente !== "Todos" || filtroPrioridade !== "Todas" || filtroDataInicio || filtroDataFim;
 
+  const totalValorFiltrado = useMemo(() => {
+    return ordensFiltradas.reduce((acc, os) => {
+      const totalMat = (os.materiais || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
+      const totalEst = (os.materiaisEstoque || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
+      return acc + totalMat + totalEst;
+    }, 0);
+  }, [ordensFiltradas]);
+
   const { paginated: ordensPage, totalPages, safePage } = paginate(ordensFiltradas, page, ITEMS_PER_PAGE);
 
   return (
