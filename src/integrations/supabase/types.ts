@@ -1912,6 +1912,7 @@ export type Database = {
           descricao_conclusao: string | null
           descricao_servicos: string | null
           fotos: Json | null
+          historico: Json | null
           hora_inicio: string | null
           hora_termino: string | null
           id: string
@@ -1953,6 +1954,7 @@ export type Database = {
           descricao_conclusao?: string | null
           descricao_servicos?: string | null
           fotos?: Json | null
+          historico?: Json | null
           hora_inicio?: string | null
           hora_termino?: string | null
           id?: string
@@ -1994,6 +1996,7 @@ export type Database = {
           descricao_conclusao?: string | null
           descricao_servicos?: string | null
           fotos?: Json | null
+          historico?: Json | null
           hora_inicio?: string | null
           hora_termino?: string | null
           id?: string
@@ -2972,6 +2975,7 @@ export type Database = {
           descricao_servicos: string | null
           equipamento_id: string | null
           equipamento_nome: string | null
+          historico: Json | null
           id: string
           imagens: Json | null
           local_descricao: string | null
@@ -2997,6 +3001,7 @@ export type Database = {
           descricao_servicos?: string | null
           equipamento_id?: string | null
           equipamento_nome?: string | null
+          historico?: Json | null
           id?: string
           imagens?: Json | null
           local_descricao?: string | null
@@ -3022,6 +3027,7 @@ export type Database = {
           descricao_servicos?: string | null
           equipamento_id?: string | null
           equipamento_nome?: string | null
+          historico?: Json | null
           id?: string
           imagens?: Json | null
           local_descricao?: string | null
