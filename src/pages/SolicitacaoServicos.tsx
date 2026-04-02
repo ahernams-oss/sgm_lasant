@@ -298,7 +298,11 @@ export default function SolicitacaoServicosPage() {
 
   const handleCancelar = async () => {
     if (cancelId) {
-      await updateSolicitacao(cancelId, { situacao: "Cancelada" });
+      const ss = solicitacoes.find(s => s.id === cancelId);
+      await updateSolicitacao(cancelId, {
+        situacao: "Cancelada",
+        historico: buildHistoricoEntry("Cancelada", ss?.historico || []),
+      });
       toast({ title: "Solicitação cancelada" });
       abortCancel();
     }
