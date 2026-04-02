@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -101,6 +102,7 @@ export default function OrdensServicoPage() {
   const [filtroDataInicio, setFiltroDataInicio] = useState("");
   const [filtroDataFim, setFiltroDataFim] = useState("");
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Form fields
   const [clienteId, setClienteId] = useState("");
@@ -261,6 +263,7 @@ export default function OrdensServicoPage() {
     const q = scoBusca.toLowerCase();
     return scos.filter(s => s.codSco.toLowerCase().includes(q) || s.descricaoSco.toLowerCase().includes(q));
   }, [scos, scoBusca]);
+
 
   // Workflow action handler
   const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
@@ -486,6 +489,47 @@ export default function OrdensServicoPage() {
 
   const { paginated: ordensPage, totalPages, safePage } = paginate(ordensFiltradas, page, ITEMS_PER_PAGE);
 
+  const abertasNaPagina = ordensPage.filter(o => o.situacao === "Aberta");
+  const allAbertasSelected = abertasNaPagina.length > 0 && abertasNaPagina.every(o => selectedIds.has(o.id));
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (allAbertasSelected) {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        abertasNaPagina.forEach(o => next.delete(o.id));
+        return next;
+      });
+    } else {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        abertasNaPagina.forEach(o => next.add(o.id));
+        return next;
+      });
+    }
+  };
+
+  const handleBatchExecutar = async () => {
+    const ids = Array.from(selectedIds);
+    const abertasSelecionadas = ordens.filter(o => ids.includes(o.id) && o.situacao === "Aberta");
+    if (abertasSelecionadas.length === 0) {
+      toast.error("Nenhuma OS com situação 'Aberta' selecionada.");
+      return;
+    }
+    for (const os of abertasSelecionadas) {
+      await updateOrdem(os.id, { situacao: "Executada" });
+    }
+    toast.success(`${abertasSelecionadas.length} OS(s) alterada(s) para "Executada"`);
+    setSelectedIds(new Set());
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -558,12 +602,34 @@ export default function OrdensServicoPage() {
         </CardContent>
       </Card>
 
+      {/* Batch action bar */}
+      {selectedIds.size > 0 && (
+        <Card>
+          <CardContent className="py-3 flex items-center gap-4">
+            <span className="text-sm font-medium">{selectedIds.size} OS(s) selecionada(s)</span>
+            <Button size="sm" onClick={handleBatchExecutar}>
+              <Play className="mr-2 h-4 w-4" /> Executar em Lote
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+              Limpar seleção
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Table */}
       <Card>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[40px]">
+                  <Checkbox
+                    checked={allAbertasSelected}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Selecionar todas abertas"
+                  />
+                </TableHead>
                 <TableHead className="w-[80px]">Nº OS</TableHead>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Descrição</TableHead>
@@ -577,12 +643,21 @@ export default function OrdensServicoPage() {
             <TableBody>
               {ordensPage.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                     Nenhuma Ordem de Serviço encontrada.
                   </TableCell>
                 </TableRow>
               ) : ordensPage.map(os => (
-                <TableRow key={os.id}>
+                <TableRow key={os.id} className={selectedIds.has(os.id) ? "bg-accent" : ""}>
+                  <TableCell>
+                    {os.situacao === "Aberta" ? (
+                      <Checkbox
+                        checked={selectedIds.has(os.id)}
+                        onCheckedChange={() => toggleSelect(os.id)}
+                        aria-label={`Selecionar OS ${os.numero}`}
+                      />
+                    ) : null}
+                  </TableCell>
                   <TableCell className="font-bold">{os.numero}</TableCell>
                   <TableCell>{os.clienteNome}</TableCell>
                   <TableCell className="max-w-[250px] truncate">{os.descricaoServicos}</TableCell>
