@@ -545,7 +545,10 @@ export default function OrdensServicoPage() {
       return;
     }
     for (const os of abertasSelecionadas) {
-      await updateOrdem(os.id, { situacao: "Executada" });
+      await updateOrdem(os.id, {
+        situacao: "Executada",
+        historico: buildOSHistorico("Executada", os.historico || []),
+      });
     }
     toast.success(`${abertasSelecionadas.length} OS(s) alterada(s) para "Executada"`);
     setSelectedIds(new Set());
