@@ -399,7 +399,6 @@ export default function SolicitacaoServicosPage() {
   const { paginated, totalPages } = paginate(filtered, page);
 
   const showForm = formOpen && form.tipo !== "";
-  const [formCollapsed, setFormCollapsed] = useState(false);
 
   return (
     <div className="space-y-6 pt-[15px] pl-0 pr-[10px]">
