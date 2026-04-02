@@ -214,7 +214,7 @@ export default function SolicitacaoServicosPage() {
     setApprovalDialogOpen(true);
   };
 
-  const { addOrdem } = useOrdensServico();
+  const { ordens, addOrdem, updateOrdem } = useOrdensServico();
 
   const handleConfirmApproval = async () => {
     if (!approvalTargetId || !selectedPrioridade) {
