@@ -102,6 +102,7 @@ export default function OrdensServicoPage() {
   const [filtroDataInicio, setFiltroDataInicio] = useState("");
   const [filtroDataFim, setFiltroDataFim] = useState("");
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Form fields
   const [clienteId, setClienteId] = useState("");
