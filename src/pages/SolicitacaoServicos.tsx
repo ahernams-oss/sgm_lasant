@@ -657,6 +657,7 @@ export default function SolicitacaoServicosPage() {
                         <Eye className="mr-2 h-4 w-4" />Visualizar
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
+                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleOpenApproval(s.id)}>
                           <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
                         </DropdownMenuItem>
