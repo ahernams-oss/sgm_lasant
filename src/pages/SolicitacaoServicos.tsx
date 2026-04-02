@@ -1038,6 +1038,32 @@ export default function SolicitacaoServicosPage() {
                     )}
                   </div>
                 )}
+                {/* Workflow Timeline */}
+                <div className="border rounded-lg p-4 bg-muted/20">
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <History className="h-4 w-4" /> Workflow
+                  </h4>
+                  <WorkflowTimeline
+                    steps={viewTarget.situacao === "Cancelada"
+                      ? [...SS_WORKFLOW_STEPS, { label: "Cancelada" }]
+                      : (viewTarget.situacao === "Orçamento Solicitado" || viewTarget.situacao === "Orçamento Disponível")
+                        ? [{ label: "Aguardando aprovação" }, { label: "Orçamento Solicitado" }, { label: "Orçamento Disponível" }, { label: "Aprovada" }, { label: "Em execução" }, { label: "Concluída" }]
+                        : SS_WORKFLOW_STEPS
+                    }
+                    currentStep={viewTarget.situacao}
+                    historico={viewTarget.historico}
+                  />
+                </div>
+
+                {/* Histórico de Alterações */}
+                {viewTarget.historico && viewTarget.historico.length > 0 && (
+                  <div className="border rounded-lg p-4">
+                    <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                      <Clock className="h-4 w-4" /> Histórico de Alterações
+                    </h4>
+                    <WorkflowHistorico historico={viewTarget.historico} />
+                  </div>
+                )}
               </div>
             );
           })()}
