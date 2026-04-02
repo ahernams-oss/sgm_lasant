@@ -2,6 +2,8 @@ import { useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useOrdensServico, OrdemServico, MaterialOS, ProfissionalOS, AnexoOS, FotoOS, ObservacaoOS, ObservacaoFiscalizacao } from "@/contexts/OrdensServicoContext";
+import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
+import { useServicos } from "@/contexts/ServicosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSco } from "@/contexts/ScoContext";
@@ -76,6 +78,8 @@ export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
+  const { categorias: categoriasServicos } = useCategoriasServicos();
+  const { servicos: servicosCadastrados } = useServicos();
   const { scos } = useSco();
   const { items: i0Items } = useI0();
   const { funcionarios } = useFuncionarios();
@@ -787,11 +791,31 @@ export default function OrdensServicoPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Categoria</Label>
-                <Input value={categoria} onChange={e => setCategoria(e.target.value)} placeholder="Ex: Elétrica, Hidráulica..." />
+                <Select value={categoria} onValueChange={v => { setCategoria(v); setServico(""); }}>
+                  <SelectTrigger><SelectValue placeholder="Selecione a categoria..." /></SelectTrigger>
+                  <SelectContent>
+                    {categoriasServicos.map(c => (
+                      <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label>Serviço</Label>
-                <Input value={servico} onChange={e => setServico(e.target.value)} placeholder="Tipo de serviço" />
+                <Select value={servico} onValueChange={setServico}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o serviço..." /></SelectTrigger>
+                  <SelectContent>
+                    {servicosCadastrados
+                      .filter(s => {
+                        if (!categoria) return true;
+                        const cat = categoriasServicos.find(c => c.nome === categoria);
+                        return cat ? s.categoriaId === cat.id : true;
+                      })
+                      .map(s => (
+                        <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
