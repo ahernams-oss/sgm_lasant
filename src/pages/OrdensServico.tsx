@@ -530,6 +530,7 @@ export default function OrdensServicoPage() {
     setSelectedIds(new Set());
   };
 
+  return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold flex items-center gap-2 mx-[20px] my-[5px]">
