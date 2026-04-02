@@ -326,6 +326,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                             <span className="font-mono text-xs mr-2">{s.codSco}</span>
                             <span className="truncate flex-1">{s.descricaoSco}</span>
                             <span className="text-xs text-muted-foreground ml-2">{s.unidade}</span>
+                            <span className={`text-xs font-medium ml-2 ${s.tipo === "SCO" ? "text-primary" : s.tipo === "SINAPI" ? "text-accent-foreground" : "text-muted-foreground"}`}>{s.tipo}</span>
                           </CommandItem>
                         ))}
                       </CommandGroup>
