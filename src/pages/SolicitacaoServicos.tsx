@@ -299,6 +299,31 @@ export default function SolicitacaoServicosPage() {
       ss.prioridade === "Emergencial" ? "A: IMEDIATA" :
       ss.prioridade === "Urgente" ? "B: (24 a 72H)" : "C: PROGRAMADA";
 
+    // Map SCO items from budget to OS materiais format
+    const materiaisSco = (orcamento.itensSco || []).map((item: any) => ({
+      id: crypto.randomUUID(),
+      codigo: item.codSco || item.codigo || "",
+      descricao: item.descricao || "",
+      unidade: item.unidade || "",
+      valorUnitario: Number(item.valorUnitario) || 0,
+      quantidade: Number(item.quantidade) || 0,
+      valorTotal: Number(item.valorTotal) || 0,
+    }));
+
+    // Map material items from budget to OS materiaisEstoque format
+    const materiaisEstoque = (orcamento.itensMateriais || []).map((item: any) => ({
+      id: crypto.randomUUID(),
+      codigo: item.codigo || "",
+      descricao: item.descricao || "",
+      unidade: item.unidade || "",
+      valorUnitario: Number(item.valorUnitario) || 0,
+      quantidade: Number(item.quantidade) || 0,
+      valorTotal: Number(item.valorTotal) || 0,
+    }));
+
+    // Copy attachments from budget
+    const anexos = orcamento.anexos || [];
+
     await addOrdem({
       solicitacao_id: ss.id,
       solicitacao_numero: ss.numero,
@@ -319,6 +344,9 @@ export default function SolicitacaoServicosPage() {
       situacao: "Aberta",
       operador_id: usuarioLogado?.id || "",
       operador_nome: usuarioLogado?.nome || "",
+      materiais: materiaisSco,
+      materiais_estoque: materiaisEstoque,
+      anexos: anexos,
     });
 
     toast({ title: "Orçamento aprovado e Ordem de Serviço criada!" });
