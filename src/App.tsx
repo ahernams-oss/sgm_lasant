@@ -176,6 +176,8 @@ const App = () => (
     <ChecklistsProvider>
     <EquipamentosProvider>
     <PmocProvider>
+    <CategoriasServicosProvider>
+    <ServicosProvider>
     <AuthProvider> {/* auth wrapper */}
     <TooltipProvider>
       <Toaster />
