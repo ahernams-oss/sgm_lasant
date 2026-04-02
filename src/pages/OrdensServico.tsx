@@ -281,13 +281,20 @@ export default function OrdensServicoPage() {
 
   // Workflow action handler
   const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
-    await updateOrdem(os.id, { situacao: novaSituacao });
+    await updateOrdem(os.id, {
+      situacao: novaSituacao,
+      historico: buildOSHistorico(novaSituacao, os.historico || []),
+    });
     toast.success(`OS ${os.numero} alterada para "${novaSituacao}"`);
   };
 
   const handleCancelOS = async () => {
     if (cancelId) {
-      await updateOrdem(cancelId, { situacao: "Cancelada" });
+      const os = ordens.find(o => o.id === cancelId);
+      await updateOrdem(cancelId, {
+        situacao: "Cancelada",
+        historico: buildOSHistorico("Cancelada", os?.historico || []),
+      });
       toast.success("Ordem de Serviço cancelada!");
       cancelCancelAction();
     }
