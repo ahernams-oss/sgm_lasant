@@ -513,7 +513,7 @@ export default function OrdensServicoPage() {
             <TableBody>
               {ordensPage.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                     Nenhuma Ordem de Serviço encontrada.
                   </TableCell>
                 </TableRow>
