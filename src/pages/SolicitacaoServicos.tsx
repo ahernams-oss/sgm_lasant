@@ -56,6 +56,7 @@ export default function SolicitacaoServicosPage() {
   const [filterCliente, setFilterCliente] = useState(() => localStorage.getItem("ss_filtroCliente") || "all");
   const [filterTipo, setFilterTipo] = useState("all");
   const [filterSituacao, setFilterSituacao] = useState("all");
+  const [filterVisitado, setFilterVisitado] = useState("all");
   const [imagens, setImagens] = useState<{ file?: File; url: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -390,8 +391,9 @@ export default function SolicitacaoServicosPage() {
     if (filterCliente !== "all") result = result.filter(s => s.clienteId === filterCliente);
     if (filterTipo !== "all") result = result.filter(s => s.tipo === filterTipo);
     if (filterSituacao !== "all") result = result.filter(s => s.situacao === filterSituacao);
+    if (filterVisitado !== "all") result = result.filter(s => filterVisitado === "sim" ? s.visitado : !s.visitado);
     return result;
-  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao]);
+  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterVisitado]);
 
   const clientesUnicos = useMemo(() => {
     const map = new Map<string, string>();
@@ -587,6 +589,14 @@ export default function SolicitacaoServicosPage() {
           <SelectContent>
             <SelectItem value="all">Todas as Situações</SelectItem>
             {SITUACOES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterVisitado} onValueChange={v => { setFilterVisitado(v); setPage(1); }}>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Visitado" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="sim">Visitado</SelectItem>
+            <SelectItem value="nao">Não Visitado</SelectItem>
           </SelectContent>
         </Select>
       </div>
