@@ -49,6 +49,7 @@ export default function SolicitacaoServicosPage() {
   const [form, setForm] = useState({ ...emptyForm });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [formCollapsed, setFormCollapsed] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState(() => localStorage.getItem("ss_filtroCliente") || "all");
