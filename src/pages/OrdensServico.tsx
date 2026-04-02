@@ -264,9 +264,7 @@ export default function OrdensServicoPage() {
     return scos.filter(s => s.codSco.toLowerCase().includes(q) || s.descricaoSco.toLowerCase().includes(q));
   }, [scos, scoBusca]);
 
-  // Batch execute handler
-  const abertasNaPagina = useMemo(() => ordensPage.filter(o => o.situacao === "Aberta"), [ordensPage]);
-  const allAbertasSelected = abertasNaPagina.length > 0 && abertasNaPagina.every(o => selectedIds.has(o.id));
+  // Batch execute handler - computed values are after ordensPage declaration
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
