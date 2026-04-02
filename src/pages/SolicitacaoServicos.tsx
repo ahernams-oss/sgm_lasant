@@ -92,6 +92,7 @@ export default function SolicitacaoServicosPage() {
     setImagens([]);
     setEditingId(null);
     setFormOpen(true);
+    setFormCollapsed(false);
   };
 
   const handleAddImagem = (e: React.ChangeEvent<HTMLInputElement>) => {
