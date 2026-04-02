@@ -602,12 +602,34 @@ export default function OrdensServicoPage() {
         </CardContent>
       </Card>
 
+      {/* Batch action bar */}
+      {selectedIds.size > 0 && (
+        <Card>
+          <CardContent className="py-3 flex items-center gap-4">
+            <span className="text-sm font-medium">{selectedIds.size} OS(s) selecionada(s)</span>
+            <Button size="sm" onClick={handleBatchExecutar}>
+              <Play className="mr-2 h-4 w-4" /> Executar em Lote
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+              Limpar seleção
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Table */}
       <Card>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[40px]">
+                  <Checkbox
+                    checked={allAbertasSelected}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Selecionar todas abertas"
+                  />
+                </TableHead>
                 <TableHead className="w-[80px]">Nº OS</TableHead>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Descrição</TableHead>
@@ -621,12 +643,21 @@ export default function OrdensServicoPage() {
             <TableBody>
               {ordensPage.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                     Nenhuma Ordem de Serviço encontrada.
                   </TableCell>
                 </TableRow>
               ) : ordensPage.map(os => (
-                <TableRow key={os.id}>
+                <TableRow key={os.id} className={selectedIds.has(os.id) ? "bg-accent" : ""}>
+                  <TableCell>
+                    {os.situacao === "Aberta" ? (
+                      <Checkbox
+                        checked={selectedIds.has(os.id)}
+                        onCheckedChange={() => toggleSelect(os.id)}
+                        aria-label={`Selecionar OS ${os.numero}`}
+                      />
+                    ) : null}
+                  </TableCell>
                   <TableCell className="font-bold">{os.numero}</TableCell>
                   <TableCell>{os.clienteNome}</TableCell>
                   <TableCell className="max-w-[250px] truncate">{os.descricaoServicos}</TableCell>
