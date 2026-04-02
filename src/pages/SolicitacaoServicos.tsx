@@ -223,6 +223,16 @@ export default function SolicitacaoServicosPage() {
     }
     if (prioridadeOnly) {
       await updateSolicitacao(approvalTargetId, { prioridade: selectedPrioridade });
+
+      // Sync priority to linked OS
+      const prioridadeOS =
+        selectedPrioridade === "Emergencial" ? "A: IMEDIATA" :
+        selectedPrioridade === "Urgente" ? "B: URGENTE" : "C: NORMAL";
+      const osVinculada = ordens.find(o => o.solicitacaoId === approvalTargetId);
+      if (osVinculada) {
+        await updateOrdem(osVinculada.id, { prioridade: prioridadeOS });
+      }
+
       toast({ title: `Prioridade alterada para ${selectedPrioridade}` });
     } else {
       await updateSolicitacao(approvalTargetId, { situacao: "Aprovada", prioridade: selectedPrioridade });
