@@ -308,7 +308,11 @@ export default function SolicitacaoServicosPage() {
   };
 
   const handleSolicitarOrcamento = async (s: any) => {
-    await updateSolicitacao(s.id, { situacao: "Orçamento Solicitado" });
+    const full = solicitacoes.find(x => x.id === s.id);
+    await updateSolicitacao(s.id, {
+      situacao: "Orçamento Solicitado",
+      historico: buildHistoricoEntry("Orçamento Solicitado", full?.historico || []),
+    });
     toast({ title: "Orçamento solicitado", description: `SS nº ${s.numero} — Orçamento Solicitado` });
   };
 
