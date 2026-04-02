@@ -2,6 +2,12 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
+export interface HistoricoEntry {
+  situacao: string;
+  data: string;
+  usuario: string;
+}
+
 export interface SolicitacaoServico {
   id: string;
   numero: number;
@@ -26,6 +32,7 @@ export interface SolicitacaoServico {
   dataHoraSolicitacao: string;
   solicitanteId: string;
   solicitanteNome: string;
+  historico: HistoricoEntry[];
 }
 
 interface SolicitacoesServicosContextType {
