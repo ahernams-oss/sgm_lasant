@@ -563,7 +563,7 @@ export default function SolicitacaoServicosPage() {
           onChange={e => { setSearch(e.target.value); setPage(1); }}
           className="max-w-xs"
         />
-        <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); setPage(1); }}>
+        <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); localStorage.setItem("ss_filtroCliente", v); setPage(1); }}>
           <SelectTrigger className="w-[200px]"><SelectValue placeholder="Cliente" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os Clientes</SelectItem>
