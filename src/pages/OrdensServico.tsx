@@ -92,7 +92,7 @@ export default function OrdensServicoPage() {
   const [viewOS, setViewOS] = useState<OrdemServico | null>(null);
   const [busca, setBusca] = useState("");
   const [filtroSituacao, setFiltroSituacao] = useState("Todas");
-  const [filtroCliente, setFiltroCliente] = useState("Todos");
+  const [filtroCliente, setFiltroCliente] = useState(() => localStorage.getItem("os_filtroCliente") || "Todos");
   const [filtroPrioridade, setFiltroPrioridade] = useState("Todas");
   const [filtroDataInicio, setFiltroDataInicio] = useState("");
   const [filtroDataFim, setFiltroDataFim] = useState("");
