@@ -32,8 +32,17 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import {
   Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, ChevronDown, ChevronUp,
-  ClipboardList, Clock, CheckCircle2, XCircle, AlertTriangle, Wrench, Play, ShieldCheck, ShieldX, RotateCcw, BadgeCheck, Ban
+  ClipboardList, Clock, CheckCircle2, XCircle, AlertTriangle, Wrench, Play, ShieldCheck, ShieldX, RotateCcw, BadgeCheck, Ban, History
 } from "lucide-react";
+import WorkflowTimeline from "@/components/WorkflowTimeline";
+import WorkflowHistorico from "@/components/WorkflowHistorico";
+
+const OS_WORKFLOW_STEPS = [
+  { label: "Aberta" },
+  { label: "Executada" },
+  { label: "Serviço Confirmado" },
+  { label: "Validada" },
+];
 
 const SITUACOES_WORKFLOW = [
   "Aberta",
