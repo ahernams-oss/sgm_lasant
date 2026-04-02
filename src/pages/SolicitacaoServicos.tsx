@@ -232,7 +232,7 @@ export default function SolicitacaoServicosPage() {
       if (ss) {
         const prioridadeOS =
           selectedPrioridade === "Emergencial" ? "A: IMEDIATA" :
-          selectedPrioridade === "Urgente" ? "B: (24 a 72H)" : "C: PROGRAMADA";
+          selectedPrioridade === "Urgente" ? "B: URGENTE" : "C: NORMAL";
 
         await addOrdem({
           solicitacao_id: ss.id,
