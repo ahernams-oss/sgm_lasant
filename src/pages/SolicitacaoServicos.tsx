@@ -194,6 +194,7 @@ export default function SolicitacaoServicosPage() {
     setImagens((s.imagens || []).map((url: string) => ({ url })));
     setEditingId(s.id);
     setFormOpen(true);
+    setFormCollapsed(false);
   };
 
   const handleDelete = async () => {
