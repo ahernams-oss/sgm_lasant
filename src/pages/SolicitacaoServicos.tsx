@@ -56,6 +56,12 @@ export default function SolicitacaoServicosPage() {
   const { equipamentos } = useEquipamentos();
   const { toast } = useToast();
   const { usuarioLogado } = useAuth();
+
+  const buildHistoricoEntry = (situacao: string, existingHistorico: HistoricoEntry[] = []): HistoricoEntry[] => [
+    ...existingHistorico,
+    { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" },
+  ];
+
   const [form, setForm] = useState({ ...emptyForm });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
