@@ -2,6 +2,12 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
+export interface HistoricoEntry {
+  situacao: string;
+  data: string;
+  usuario: string;
+}
+
 export interface SolicitacaoServico {
   id: string;
   numero: number;
@@ -26,6 +32,7 @@ export interface SolicitacaoServico {
   dataHoraSolicitacao: string;
   solicitanteId: string;
   solicitanteNome: string;
+  historico: HistoricoEntry[];
 }
 
 interface SolicitacoesServicosContextType {
@@ -61,6 +68,7 @@ const rowToSolicitacao = (r: any): SolicitacaoServico => ({
   dataHoraSolicitacao: r.data_hora_solicitacao ?? "",
   solicitanteId: r.solicitante_id ?? "",
   solicitanteNome: r.solicitante_nome ?? "",
+  historico: Array.isArray(r.historico) ? r.historico : [],
 });
 
 export function SolicitacoesServicosProvider({ children }: { children: ReactNode }) {

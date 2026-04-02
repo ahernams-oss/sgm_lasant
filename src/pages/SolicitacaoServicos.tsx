@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from "react";
-import { useSolicitacoesServicos, SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
+import { useSolicitacoesServicos, SolicitacaoServico, HistoricoEntry } from "@/contexts/SolicitacoesServicosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,7 +25,16 @@ import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList, Download, Eye } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList, Download, Eye, History, Clock } from "lucide-react";
+import WorkflowTimeline from "@/components/WorkflowTimeline";
+import WorkflowHistorico from "@/components/WorkflowHistorico";
+
+const SS_WORKFLOW_STEPS = [
+  { label: "Aguardando aprovação" },
+  { label: "Aprovada" },
+  { label: "Em execução" },
+  { label: "Concluída" },
+];
 
 const SITUACOES = ["Aguardando aprovação", "Orçamento Solicitado", "Orçamento Disponível", "Aprovada", "Em execução", "Concluída", "Cancelada"];
 
@@ -47,6 +56,12 @@ export default function SolicitacaoServicosPage() {
   const { equipamentos } = useEquipamentos();
   const { toast } = useToast();
   const { usuarioLogado } = useAuth();
+
+  const buildHistoricoEntry = (situacao: string, existingHistorico: HistoricoEntry[] = []): HistoricoEntry[] => [
+    ...existingHistorico,
+    { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" },
+  ];
+
   const [form, setForm] = useState({ ...emptyForm });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -172,6 +187,7 @@ export default function SolicitacaoServicosPage() {
       await updateSolicitacao(editingId, payload);
       toast({ title: "Solicitação atualizada" });
     } else {
+      payload.historico = buildHistoricoEntry("Aguardando aprovação");
       await addSolicitacao(payload);
       toast({ title: "Solicitação cadastrada" });
     }
@@ -235,10 +251,14 @@ export default function SolicitacaoServicosPage() {
 
       toast({ title: `Prioridade alterada para ${selectedPrioridade}` });
     } else {
-      await updateSolicitacao(approvalTargetId, { situacao: "Aprovada", prioridade: selectedPrioridade });
+      const ss = solicitacoes.find(s => s.id === approvalTargetId);
+      await updateSolicitacao(approvalTargetId, {
+        situacao: "Aprovada",
+        prioridade: selectedPrioridade,
+        historico: buildHistoricoEntry("Aprovada", ss?.historico || []),
+      });
 
       // Auto-create OS linked to this SS
-      const ss = solicitacoes.find(s => s.id === approvalTargetId);
       if (ss) {
         const prioridadeOS =
           selectedPrioridade === "Emergencial" ? "A: IMEDIATA" :
@@ -262,6 +282,7 @@ export default function SolicitacaoServicosPage() {
           telefone: usuarioLogado?.telefone || "",
           prioridade: prioridadeOS,
           situacao: "Aberta",
+          historico: buildHistoricoEntry("Aberta"),
           operador_id: usuarioLogado?.id || "",
           operador_nome: usuarioLogado?.nome || "",
         });
@@ -277,14 +298,22 @@ export default function SolicitacaoServicosPage() {
 
   const handleCancelar = async () => {
     if (cancelId) {
-      await updateSolicitacao(cancelId, { situacao: "Cancelada" });
+      const ss = solicitacoes.find(s => s.id === cancelId);
+      await updateSolicitacao(cancelId, {
+        situacao: "Cancelada",
+        historico: buildHistoricoEntry("Cancelada", ss?.historico || []),
+      });
       toast({ title: "Solicitação cancelada" });
       abortCancel();
     }
   };
 
   const handleSolicitarOrcamento = async (s: any) => {
-    await updateSolicitacao(s.id, { situacao: "Orçamento Solicitado" });
+    const full = solicitacoes.find(x => x.id === s.id);
+    await updateSolicitacao(s.id, {
+      situacao: "Orçamento Solicitado",
+      historico: buildHistoricoEntry("Orçamento Solicitado", full?.historico || []),
+    });
     toast({ title: "Orçamento solicitado", description: `SS nº ${s.numero} — Orçamento Solicitado` });
   };
 
@@ -295,7 +324,11 @@ export default function SolicitacaoServicosPage() {
 
   const handleOrcamentoSent = async () => {
     if (!orcamentoTarget) return;
-    await updateSolicitacao(orcamentoTarget.id, { situacao: "Orçamento Disponível" });
+    const full = solicitacoes.find(x => x.id === orcamentoTarget.id);
+    await updateSolicitacao(orcamentoTarget.id, {
+      situacao: "Orçamento Disponível",
+      historico: buildHistoricoEntry("Orçamento Disponível", full?.historico || []),
+    });
     toast({ title: "Orçamento enviado", description: `SS nº ${orcamentoTarget.numero} — Orçamento Disponível` });
   };
 
@@ -309,7 +342,11 @@ export default function SolicitacaoServicosPage() {
     const ss = solicitacoes.find(s => s.id === orcamento.solicitacaoId);
     if (!ss) return;
 
-    await updateSolicitacao(ss.id, { situacao: "Aprovada", prioridade: ss.prioridade || "Normal" });
+    await updateSolicitacao(ss.id, {
+      situacao: "Aprovada",
+      prioridade: ss.prioridade || "Normal",
+      historico: buildHistoricoEntry("Aprovada", ss.historico || []),
+    });
 
     const prioridadeOS =
       ss.prioridade === "Emergencial" ? "A: IMEDIATA" :
@@ -358,6 +395,7 @@ export default function SolicitacaoServicosPage() {
       telefone: usuarioLogado?.telefone || "",
       prioridade: prioridadeOS,
       situacao: "Aberta",
+      historico: buildHistoricoEntry("Aberta"),
       operador_id: usuarioLogado?.id || "",
       operador_nome: usuarioLogado?.nome || "",
       materiais: materiaisSco,
@@ -811,6 +849,32 @@ export default function SolicitacaoServicosPage() {
             const orc = orcamentos.find(o => o.solicitacaoId === viewTarget.id);
             return (
               <div className="space-y-6 py-2">
+                {/* Workflow Timeline */}
+                <div className="border rounded-lg p-4 bg-muted/20">
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <History className="h-4 w-4" /> Workflow
+                  </h4>
+                  <WorkflowTimeline
+                    steps={viewTarget.situacao === "Cancelada"
+                      ? [...SS_WORKFLOW_STEPS, { label: "Cancelada" }]
+                      : (viewTarget.situacao === "Orçamento Solicitado" || viewTarget.situacao === "Orçamento Disponível")
+                        ? [{ label: "Aguardando aprovação" }, { label: "Orçamento Solicitado" }, { label: "Orçamento Disponível" }, { label: "Aprovada" }, { label: "Em execução" }, { label: "Concluída" }]
+                        : SS_WORKFLOW_STEPS
+                    }
+                    currentStep={viewTarget.situacao}
+                    historico={viewTarget.historico}
+                  />
+                </div>
+
+                {/* Histórico de Alterações */}
+                {viewTarget.historico && viewTarget.historico.length > 0 && (
+                  <div className="border rounded-lg p-4">
+                    <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                      <Clock className="h-4 w-4" /> Histórico de Alterações
+                    </h4>
+                    <WorkflowHistorico historico={viewTarget.historico} />
+                  </div>
+                )}
                 {/* Info geral */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>

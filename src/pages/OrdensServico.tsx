@@ -32,8 +32,17 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import {
   Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, ChevronDown, ChevronUp,
-  ClipboardList, Clock, CheckCircle2, XCircle, AlertTriangle, Wrench, Play, ShieldCheck, ShieldX, RotateCcw, BadgeCheck, Ban
+  ClipboardList, Clock, CheckCircle2, XCircle, AlertTriangle, Wrench, Play, ShieldCheck, ShieldX, RotateCcw, BadgeCheck, Ban, History
 } from "lucide-react";
+import WorkflowTimeline from "@/components/WorkflowTimeline";
+import WorkflowHistorico from "@/components/WorkflowHistorico";
+
+const OS_WORKFLOW_STEPS = [
+  { label: "Aberta" },
+  { label: "Executada" },
+  { label: "Serviço Confirmado" },
+  { label: "Validada" },
+];
 
 const SITUACOES_WORKFLOW = [
   "Aberta",
@@ -79,6 +88,11 @@ export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
+
+  const buildOSHistorico = (situacao: string, existing: any[] = []) => [
+    ...existing,
+    { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" },
+  ];
   const { categorias: categoriasServicos } = useCategoriasServicos();
   const { servicos: servicosCadastrados } = useServicos();
   const { scos } = useSco();
@@ -267,13 +281,20 @@ export default function OrdensServicoPage() {
 
   // Workflow action handler
   const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
-    await updateOrdem(os.id, { situacao: novaSituacao });
+    await updateOrdem(os.id, {
+      situacao: novaSituacao,
+      historico: buildOSHistorico(novaSituacao, os.historico || []),
+    });
     toast.success(`OS ${os.numero} alterada para "${novaSituacao}"`);
   };
 
   const handleCancelOS = async () => {
     if (cancelId) {
-      await updateOrdem(cancelId, { situacao: "Cancelada" });
+      const os = ordens.find(o => o.id === cancelId);
+      await updateOrdem(cancelId, {
+        situacao: "Cancelada",
+        historico: buildOSHistorico("Cancelada", os?.historico || []),
+      });
       toast.success("Ordem de Serviço cancelada!");
       cancelCancelAction();
     }
@@ -524,7 +545,10 @@ export default function OrdensServicoPage() {
       return;
     }
     for (const os of abertasSelecionadas) {
-      await updateOrdem(os.id, { situacao: "Executada" });
+      await updateOrdem(os.id, {
+        situacao: "Executada",
+        historico: buildOSHistorico("Executada", os.historico || []),
+      });
     }
     toast.success(`${abertasSelecionadas.length} OS(s) alterada(s) para "Executada"`);
     setSelectedIds(new Set());
@@ -1399,6 +1423,32 @@ export default function OrdensServicoPage() {
           </DialogHeader>
           {viewOS && (
             <div className="space-y-4">
+              {/* Workflow Timeline */}
+              <div className="border rounded-lg p-4 bg-muted/20">
+                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <History className="h-4 w-4" /> Workflow
+                </h4>
+                <WorkflowTimeline
+                  steps={viewOS.situacao === "Cancelada"
+                    ? [...OS_WORKFLOW_STEPS, { label: "Cancelada" }]
+                    : (viewOS.situacao === "Serviço Não Aprovado pela Fiscalização" || viewOS.situacao === "Serviço Re-executado")
+                      ? [{ label: "Aberta" }, { label: "Executada" }, { label: "Serviço Não Aprovado pela Fiscalização" }, { label: "Serviço Re-executado" }, { label: "Serviço Confirmado" }, { label: "Validada" }]
+                      : OS_WORKFLOW_STEPS
+                  }
+                  currentStep={viewOS.situacao}
+                  historico={viewOS.historico}
+                />
+              </div>
+
+              {/* Histórico de Alterações */}
+              {viewOS.historico && viewOS.historico.length > 0 && (
+                <div className="border rounded-lg p-4">
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <Clock className="h-4 w-4" /> Histórico de Alterações
+                  </h4>
+                  <WorkflowHistorico historico={viewOS.historico} situacaoCores={SITUACAO_CORES} />
+                </div>
+              )}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground">Nº OS</p>
