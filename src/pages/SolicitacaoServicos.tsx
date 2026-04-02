@@ -653,7 +653,10 @@ export default function SolicitacaoServicosPage() {
                       <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
+                      <DropdownMenuItem onClick={() => setViewTarget(s)}>
+                        <Eye className="mr-2 h-4 w-4" />Visualizar
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => handleOpenApproval(s.id)}>
                           <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
                         </DropdownMenuItem>
