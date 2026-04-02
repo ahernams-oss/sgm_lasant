@@ -591,6 +591,14 @@ export default function SolicitacaoServicosPage() {
             {SITUACOES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Select value={filterVisitado} onValueChange={v => { setFilterVisitado(v); setPage(1); }}>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Visitado" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="sim">Visitado</SelectItem>
+            <SelectItem value="nao">Não Visitado</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
