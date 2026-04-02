@@ -259,7 +259,6 @@ export default function SolicitacaoServicosPage() {
       });
 
       // Auto-create OS linked to this SS
-      const ss = solicitacoes.find(s => s.id === approvalTargetId);
       if (ss) {
         const prioridadeOS =
           selectedPrioridade === "Emergencial" ? "A: IMEDIATA" :
