@@ -92,6 +92,10 @@ export default function OrdensServicoPage() {
   const [viewOS, setViewOS] = useState<OrdemServico | null>(null);
   const [busca, setBusca] = useState("");
   const [filtroSituacao, setFiltroSituacao] = useState("Todas");
+  const [filtroCliente, setFiltroCliente] = useState("Todos");
+  const [filtroPrioridade, setFiltroPrioridade] = useState("Todas");
+  const [filtroDataInicio, setFiltroDataInicio] = useState("");
+  const [filtroDataFim, setFiltroDataFim] = useState("");
   const [page, setPage] = useState(1);
 
   // Form fields
@@ -452,9 +456,21 @@ export default function OrdensServicoPage() {
         o.localDescricao.toLowerCase().includes(q) ||
         o.categoria.toLowerCase().includes(q);
       const matchSituacao = filtroSituacao === "Todas" || o.situacao === filtroSituacao;
-      return matchBusca && matchSituacao;
+      const matchCliente = filtroCliente === "Todos" || o.clienteId === filtroCliente;
+      const matchPrioridade = filtroPrioridade === "Todas" || o.prioridade === filtroPrioridade;
+      const matchDataInicio = !filtroDataInicio || o.dataInicio >= filtroDataInicio;
+      const matchDataFim = !filtroDataFim || o.dataInicio <= filtroDataFim;
+      return matchBusca && matchSituacao && matchCliente && matchPrioridade && matchDataInicio && matchDataFim;
     });
-  }, [ordens, busca, filtroSituacao]);
+  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim]);
+
+  const limparFiltros = () => {
+    setBusca(""); setFiltroSituacao("Todas"); setFiltroCliente("Todos");
+    setFiltroPrioridade("Todas"); setFiltroDataInicio(""); setFiltroDataFim("");
+    setPage(1);
+  };
+
+  const temFiltrosAtivos = busca || filtroSituacao !== "Todas" || filtroCliente !== "Todos" || filtroPrioridade !== "Todas" || filtroDataInicio || filtroDataFim;
 
   const { paginated: ordensPage, totalPages, safePage } = paginate(ordensFiltradas, page, ITEMS_PER_PAGE);
 
@@ -470,7 +486,7 @@ export default function OrdensServicoPage() {
       </div>
 
       {/* Filters */}
-      <Card>
+       <Card>
         <CardContent className="pt-4">
           <div className="flex flex-wrap gap-3 items-end">
             <div className="flex-1 min-w-[200px]">
@@ -479,6 +495,26 @@ export default function OrdensServicoPage() {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Nº, cliente, descrição, local..." value={busca} onChange={e => { setBusca(e.target.value); setPage(1); }} className="pl-8" />
               </div>
+            </div>
+            <div className="w-[200px]">
+              <Label>Cliente</Label>
+              <Select value={filtroCliente} onValueChange={v => { setFiltroCliente(v); setPage(1); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todos">Todos</SelectItem>
+                  {clientesFiltrados.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-[180px]">
+              <Label>Prioridade</Label>
+              <Select value={filtroPrioridade} onValueChange={v => { setFiltroPrioridade(v); setPage(1); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todas">Todas</SelectItem>
+                  {PRIORIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div className="w-[180px]">
               <Label>Situação</Label>
@@ -490,7 +526,23 @@ export default function OrdensServicoPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="w-[150px]">
+              <Label>Data Início</Label>
+              <Input type="date" value={filtroDataInicio} onChange={e => { setFiltroDataInicio(e.target.value); setPage(1); }} />
+            </div>
+            <div className="w-[150px]">
+              <Label>Data Fim</Label>
+              <Input type="date" value={filtroDataFim} onChange={e => { setFiltroDataFim(e.target.value); setPage(1); }} />
+            </div>
+            {temFiltrosAtivos && (
+              <Button variant="ghost" size="sm" onClick={limparFiltros} className="text-muted-foreground">
+                <XCircle className="mr-1 h-4 w-4" /> Limpar
+              </Button>
+            )}
           </div>
+          {temFiltrosAtivos && (
+            <p className="text-xs text-muted-foreground mt-2">{ordensFiltradas.length} resultado(s) encontrado(s)</p>
+          )}
         </CardContent>
       </Card>
 
