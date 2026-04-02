@@ -187,6 +187,7 @@ export default function SolicitacaoServicosPage() {
       await updateSolicitacao(editingId, payload);
       toast({ title: "Solicitação atualizada" });
     } else {
+      payload.historico = buildHistoricoEntry("Aguardando aprovação");
       await addSolicitacao(payload);
       toast({ title: "Solicitação cadastrada" });
     }
