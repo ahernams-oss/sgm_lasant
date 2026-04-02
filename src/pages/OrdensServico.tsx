@@ -1423,32 +1423,6 @@ export default function OrdensServicoPage() {
           </DialogHeader>
           {viewOS && (
             <div className="space-y-4">
-              {/* Workflow Timeline */}
-              <div className="border rounded-lg p-4 bg-muted/20">
-                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                  <History className="h-4 w-4" /> Workflow
-                </h4>
-                <WorkflowTimeline
-                  steps={viewOS.situacao === "Cancelada"
-                    ? [...OS_WORKFLOW_STEPS, { label: "Cancelada" }]
-                    : (viewOS.situacao === "Serviço Não Aprovado pela Fiscalização" || viewOS.situacao === "Serviço Re-executado")
-                      ? [{ label: "Aberta" }, { label: "Executada" }, { label: "Serviço Não Aprovado pela Fiscalização" }, { label: "Serviço Re-executado" }, { label: "Serviço Confirmado" }, { label: "Validada" }]
-                      : OS_WORKFLOW_STEPS
-                  }
-                  currentStep={viewOS.situacao}
-                  historico={viewOS.historico}
-                />
-              </div>
-
-              {/* Histórico de Alterações */}
-              {viewOS.historico && viewOS.historico.length > 0 && (
-                <div className="border rounded-lg p-4">
-                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <Clock className="h-4 w-4" /> Histórico de Alterações
-                  </h4>
-                  <WorkflowHistorico historico={viewOS.historico} situacaoCores={SITUACAO_CORES} />
-                </div>
-              )}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground">Nº OS</p>
