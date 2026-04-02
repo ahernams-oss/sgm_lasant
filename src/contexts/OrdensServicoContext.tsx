@@ -84,6 +84,7 @@ export interface OrdemServico {
   operadorId: string;
   operadorNome: string;
   createdAt: string;
+  historico: { situacao: string; data: string; usuario: string }[];
 }
 
 interface OrdensServicoContextType {
