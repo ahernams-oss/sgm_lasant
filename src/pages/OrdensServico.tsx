@@ -637,6 +637,25 @@ export default function OrdensServicoPage() {
         </CardContent>
       </Card>
 
+      {temFiltrosAtivos && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="flex items-center justify-between py-4 px-6">
+            <div className="flex items-center gap-3">
+              <BadgeCheck className="h-5 w-5 text-primary" />
+              <span className="text-sm font-medium text-muted-foreground">
+                Total de {ordensFiltradas.length} OS filtrada(s)
+              </span>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">Valor Total</p>
+              <p className="text-xl font-bold text-primary">
+                {totalValorFiltrado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Form Dialog */}
       <Dialog open={formOpen} onOpenChange={o => { if (!o) { resetForm(); } setFormOpen(o); }}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
