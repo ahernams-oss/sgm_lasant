@@ -78,6 +78,8 @@ export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
+  const { categorias: categoriasServicos } = useCategoriasServicos();
+  const { servicos: servicosCadastrados } = useServicos();
   const { scos } = useSco();
   const { items: i0Items } = useI0();
   const { funcionarios } = useFuncionarios();
