@@ -20,6 +20,7 @@ export interface SolicitacaoServico {
   situacao: string;
   prioridade: string;
   observacoes: string;
+  visitado: boolean;
   imagens: string[];
   createdAt: string;
   dataHoraSolicitacao: string;
