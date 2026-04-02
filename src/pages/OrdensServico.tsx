@@ -489,7 +489,47 @@ export default function OrdensServicoPage() {
 
   const { paginated: ordensPage, totalPages, safePage } = paginate(ordensFiltradas, page, ITEMS_PER_PAGE);
 
-  return (
+  const abertasNaPagina = ordensPage.filter(o => o.situacao === "Aberta");
+  const allAbertasSelected = abertasNaPagina.length > 0 && abertasNaPagina.every(o => selectedIds.has(o.id));
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (allAbertasSelected) {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        abertasNaPagina.forEach(o => next.delete(o.id));
+        return next;
+      });
+    } else {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        abertasNaPagina.forEach(o => next.add(o.id));
+        return next;
+      });
+    }
+  };
+
+  const handleBatchExecutar = async () => {
+    const ids = Array.from(selectedIds);
+    const abertasSelecionadas = ordens.filter(o => ids.includes(o.id) && o.situacao === "Aberta");
+    if (abertasSelecionadas.length === 0) {
+      toast.error("Nenhuma OS com situação 'Aberta' selecionada.");
+      return;
+    }
+    for (const os of abertasSelecionadas) {
+      await updateOrdem(os.id, { situacao: "Executada" });
+    }
+    toast.success(`${abertasSelecionadas.length} OS(s) alterada(s) para "Executada"`);
+    setSelectedIds(new Set());
+  };
+
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold flex items-center gap-2 mx-[20px] my-[5px]">
