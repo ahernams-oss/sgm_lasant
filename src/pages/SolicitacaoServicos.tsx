@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from "react";
-import { useSolicitacoesServicos, SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
+import { useSolicitacoesServicos, SolicitacaoServico, HistoricoEntry } from "@/contexts/SolicitacoesServicosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useAuth } from "@/contexts/AuthContext";
