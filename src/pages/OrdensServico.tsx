@@ -88,6 +88,11 @@ export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
+
+  const buildOSHistorico = (situacao: string, existing: any[] = []) => [
+    ...existing,
+    { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" },
+  ];
   const { categorias: categoriasServicos } = useCategoriasServicos();
   const { servicos: servicosCadastrados } = useServicos();
   const { scos } = useSco();
