@@ -134,7 +134,8 @@ const ServicosPage = () => {
                   <TableCell>
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(s)}><Pencil className="h-4 w-4" /></Button>
-                      <DoubleConfirmDelete onConfirm={() => deleteServico(s.id)} />
+                      <Button variant="ghost" size="icon" onClick={() => setDeleteOpen(s.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      <DoubleConfirmDelete open={deleteOpen === s.id} onOpenChange={v => setDeleteOpen(v ? s.id : null)} onConfirm={() => { deleteServico(s.id); setDeleteOpen(null); }} />
                     </div>
                   </TableCell>
                 </TableRow>

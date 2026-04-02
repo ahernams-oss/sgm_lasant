@@ -103,7 +103,8 @@ const CategoriasServicosPage = () => {
                   <TableCell>
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(c)}><Pencil className="h-4 w-4" /></Button>
-                      <DoubleConfirmDelete onConfirm={() => deleteCategoria(c.id)} />
+                      <Button variant="ghost" size="icon" onClick={() => setDeleteOpen(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      <DoubleConfirmDelete open={deleteOpen === c.id} onOpenChange={v => setDeleteOpen(v ? c.id : null)} onConfirm={() => { deleteCategoria(c.id); setDeleteOpen(null); }} />
                     </div>
                   </TableCell>
                 </TableRow>
