@@ -251,7 +251,12 @@ export default function SolicitacaoServicosPage() {
 
       toast({ title: `Prioridade alterada para ${selectedPrioridade}` });
     } else {
-      await updateSolicitacao(approvalTargetId, { situacao: "Aprovada", prioridade: selectedPrioridade });
+      const ss = solicitacoes.find(s => s.id === approvalTargetId);
+      await updateSolicitacao(approvalTargetId, {
+        situacao: "Aprovada",
+        prioridade: selectedPrioridade,
+        historico: buildHistoricoEntry("Aprovada", ss?.historico || []),
+      });
 
       // Auto-create OS linked to this SS
       const ss = solicitacoes.find(s => s.id === approvalTargetId);
