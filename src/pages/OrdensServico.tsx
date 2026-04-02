@@ -506,13 +506,14 @@ export default function OrdensServicoPage() {
                 <TableHead>Prioridade</TableHead>
                 <TableHead>Situação</TableHead>
                 <TableHead>Data Início</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {ordensPage.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                     Nenhuma Ordem de Serviço encontrada.
                   </TableCell>
                 </TableRow>
@@ -524,6 +525,14 @@ export default function OrdensServicoPage() {
                   <TableCell>{prioridadeBadge(os.prioridade)}</TableCell>
                   <TableCell>{situacaoBadge(os.situacao)}</TableCell>
                   <TableCell>{os.dataInicio ? os.dataInicio.split("-").reverse().join("/") : "-"}</TableCell>
+                  <TableCell className="text-right font-medium">
+                    {(() => {
+                      const totalMat = (os.materiais || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
+                      const totalEst = (os.materiaisEstoque || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
+                      const total = totalMat + totalEst;
+                      return total > 0 ? total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-";
+                    })()}
+                  </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
