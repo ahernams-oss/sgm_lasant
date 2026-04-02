@@ -391,8 +391,9 @@ export default function SolicitacaoServicosPage() {
     if (filterCliente !== "all") result = result.filter(s => s.clienteId === filterCliente);
     if (filterTipo !== "all") result = result.filter(s => s.tipo === filterTipo);
     if (filterSituacao !== "all") result = result.filter(s => s.situacao === filterSituacao);
+    if (filterVisitado !== "all") result = result.filter(s => filterVisitado === "sim" ? s.visitado : !s.visitado);
     return result;
-  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao]);
+  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterVisitado]);
 
   const clientesUnicos = useMemo(() => {
     const map = new Map<string, string>();
