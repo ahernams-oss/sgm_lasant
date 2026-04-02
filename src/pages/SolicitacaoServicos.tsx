@@ -70,6 +70,7 @@ export default function SolicitacaoServicosPage() {
   const [approvalTargetId, setApprovalTargetId] = useState<string | null>(null);
   const [selectedPrioridade, setSelectedPrioridade] = useState<string>("");
   const [prioridadeOnly, setPrioridadeOnly] = useState(false);
+  const [viewTarget, setViewTarget] = useState<SolicitacaoServico | null>(null);
 
   const soClientes = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
 
