@@ -604,6 +604,7 @@ export default function SolicitacaoServicosPage() {
               <TableHead>Equipamento</TableHead>
               <TableHead>Descrição</TableHead>
               <TableHead>Situação</TableHead>
+              <TableHead className="w-20 text-center">Visitado</TableHead>
               <TableHead className="w-16">Ações</TableHead>
             </TableRow>
           </TableHeader>
