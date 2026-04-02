@@ -936,16 +936,30 @@ export default function SolicitacaoServicosPage() {
                           {orc.anexos.map((anexo: string, i: number) => {
                             const nome = decodeURIComponent(anexo.split("/").pop() || `Anexo ${i + 1}`);
                             return (
-                              <a
+                              <button
                                 key={i}
-                                href={anexo}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 text-sm text-primary hover:underline"
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    const res = await fetch(anexo);
+                                    const blob = await res.blob();
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement("a");
+                                    a.href = url;
+                                    a.download = nome;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    URL.revokeObjectURL(url);
+                                  } catch {
+                                    window.open(anexo, "_blank");
+                                  }
+                                }}
+                                className="flex items-center gap-2 text-sm text-primary hover:underline cursor-pointer bg-transparent border-none p-0 text-left"
                               >
                                 <Download className="h-4 w-4" />
                                 {nome}
-                              </a>
+                              </button>
                             );
                           })}
                         </div>
