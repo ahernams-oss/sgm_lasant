@@ -506,7 +506,7 @@ export default function OrdensServicoPage() {
             </div>
             <div className="w-[200px]">
               <Label>Cliente</Label>
-              <Select value={filtroCliente} onValueChange={v => { setFiltroCliente(v); setPage(1); }}>
+              <Select value={filtroCliente} onValueChange={v => { setFiltroCliente(v); localStorage.setItem("os_filtroCliente", v); setPage(1); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Todos">Todos</SelectItem>
