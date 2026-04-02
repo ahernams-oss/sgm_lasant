@@ -323,7 +323,11 @@ export default function SolicitacaoServicosPage() {
 
   const handleOrcamentoSent = async () => {
     if (!orcamentoTarget) return;
-    await updateSolicitacao(orcamentoTarget.id, { situacao: "Orçamento Disponível" });
+    const full = solicitacoes.find(x => x.id === orcamentoTarget.id);
+    await updateSolicitacao(orcamentoTarget.id, {
+      situacao: "Orçamento Disponível",
+      historico: buildHistoricoEntry("Orçamento Disponível", full?.historico || []),
+    });
     toast({ title: "Orçamento enviado", description: `SS nº ${orcamentoTarget.numero} — Orçamento Disponível` });
   };
 
