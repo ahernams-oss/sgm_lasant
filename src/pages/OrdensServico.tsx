@@ -92,7 +92,7 @@ export default function OrdensServicoPage() {
   const [viewOS, setViewOS] = useState<OrdemServico | null>(null);
   const [busca, setBusca] = useState("");
   const [filtroSituacao, setFiltroSituacao] = useState("Todas");
-  const [filtroCliente, setFiltroCliente] = useState("Todos");
+  const [filtroCliente, setFiltroCliente] = useState(() => localStorage.getItem("os_filtroCliente") || "Todos");
   const [filtroPrioridade, setFiltroPrioridade] = useState("Todas");
   const [filtroDataInicio, setFiltroDataInicio] = useState("");
   const [filtroDataFim, setFiltroDataFim] = useState("");
@@ -465,7 +465,7 @@ export default function OrdensServicoPage() {
   }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim]);
 
   const limparFiltros = () => {
-    setBusca(""); setFiltroSituacao("Todas"); setFiltroCliente("Todos");
+    setBusca(""); setFiltroSituacao("Todas"); setFiltroCliente("Todos"); localStorage.setItem("os_filtroCliente", "Todos");
     setFiltroPrioridade("Todas"); setFiltroDataInicio(""); setFiltroDataFim("");
     setPage(1);
   };
@@ -506,7 +506,7 @@ export default function OrdensServicoPage() {
             </div>
             <div className="w-[200px]">
               <Label>Cliente</Label>
-              <Select value={filtroCliente} onValueChange={v => { setFiltroCliente(v); setPage(1); }}>
+              <Select value={filtroCliente} onValueChange={v => { setFiltroCliente(v); localStorage.setItem("os_filtroCliente", v); setPage(1); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Todos">Todos</SelectItem>
