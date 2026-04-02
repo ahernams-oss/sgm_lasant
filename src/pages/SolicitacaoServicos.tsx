@@ -341,7 +341,11 @@ export default function SolicitacaoServicosPage() {
     const ss = solicitacoes.find(s => s.id === orcamento.solicitacaoId);
     if (!ss) return;
 
-    await updateSolicitacao(ss.id, { situacao: "Aprovada", prioridade: ss.prioridade || "Normal" });
+    await updateSolicitacao(ss.id, {
+      situacao: "Aprovada",
+      prioridade: ss.prioridade || "Normal",
+      historico: buildHistoricoEntry("Aprovada", ss.historico || []),
+    });
 
     const prioridadeOS =
       ss.prioridade === "Emergencial" ? "A: IMEDIATA" :
