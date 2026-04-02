@@ -2934,6 +2934,7 @@ export type Database = {
           solicitante_id: string | null
           solicitante_nome: string | null
           tipo: string | null
+          visitado: boolean
         }
         Insert: {
           cliente_id?: string | null
@@ -2958,6 +2959,7 @@ export type Database = {
           solicitante_id?: string | null
           solicitante_nome?: string | null
           tipo?: string | null
+          visitado?: boolean
         }
         Update: {
           cliente_id?: string | null
@@ -2982,6 +2984,7 @@ export type Database = {
           solicitante_id?: string | null
           solicitante_nome?: string | null
           tipo?: string | null
+          visitado?: boolean
         }
         Relationships: []
       }
