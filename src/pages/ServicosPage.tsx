@@ -20,6 +20,7 @@ const ServicosPage = () => {
   const [categoriaId, setCategoriaId] = useState("");
   const [search, setSearch] = useState("");
   const [filterCategoria, setFilterCategoria] = useState("all");
+  const [deleteOpen, setDeleteOpen] = useState<string | null>(null);
 
   const resetForm = () => { setNome(""); setDescricao(""); setCategoriaId(""); setEditId(null); setShowForm(false); };
 
