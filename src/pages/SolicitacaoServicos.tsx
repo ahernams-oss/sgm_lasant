@@ -428,7 +428,7 @@ export default function SolicitacaoServicosPage() {
 
       {/* Form */}
       {showForm && (
-        <Collapsible open={formOpen} onOpenChange={o => { if (!o) { setFormOpen(false); setForm({ ...emptyForm }); setImagens([]); setEditingId(null); } }}>
+        <Collapsible open={!formCollapsed} onOpenChange={o => setFormCollapsed(!o)}>
           <Card>
             <CollapsibleTrigger asChild>
               <CardHeader className="cursor-pointer flex flex-row items-center justify-between">
@@ -436,7 +436,7 @@ export default function SolicitacaoServicosPage() {
                   <AlertTriangle className="h-4 w-4 text-primary" />
                   {editingId ? "Editar Solicitação" : `Nova Solicitação — ${form.tipo}`}
                 </CardTitle>
-                {formOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                {!formCollapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
