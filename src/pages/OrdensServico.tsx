@@ -456,9 +456,21 @@ export default function OrdensServicoPage() {
         o.localDescricao.toLowerCase().includes(q) ||
         o.categoria.toLowerCase().includes(q);
       const matchSituacao = filtroSituacao === "Todas" || o.situacao === filtroSituacao;
-      return matchBusca && matchSituacao;
+      const matchCliente = filtroCliente === "Todos" || o.clienteId === filtroCliente;
+      const matchPrioridade = filtroPrioridade === "Todas" || o.prioridade === filtroPrioridade;
+      const matchDataInicio = !filtroDataInicio || o.dataInicio >= filtroDataInicio;
+      const matchDataFim = !filtroDataFim || o.dataInicio <= filtroDataFim;
+      return matchBusca && matchSituacao && matchCliente && matchPrioridade && matchDataInicio && matchDataFim;
     });
-  }, [ordens, busca, filtroSituacao]);
+  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim]);
+
+  const limparFiltros = () => {
+    setBusca(""); setFiltroSituacao("Todas"); setFiltroCliente("Todos");
+    setFiltroPrioridade("Todas"); setFiltroDataInicio(""); setFiltroDataFim("");
+    setPage(1);
+  };
+
+  const temFiltrosAtivos = busca || filtroSituacao !== "Todas" || filtroCliente !== "Todos" || filtroPrioridade !== "Todas" || filtroDataInicio || filtroDataFim;
 
   const { paginated: ordensPage, totalPages, safePage } = paginate(ordensFiltradas, page, ITEMS_PER_PAGE);
 
