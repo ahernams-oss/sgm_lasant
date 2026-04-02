@@ -525,6 +525,14 @@ export default function OrdensServicoPage() {
                   <TableCell>{prioridadeBadge(os.prioridade)}</TableCell>
                   <TableCell>{situacaoBadge(os.situacao)}</TableCell>
                   <TableCell>{os.dataInicio ? os.dataInicio.split("-").reverse().join("/") : "-"}</TableCell>
+                  <TableCell className="text-right font-medium">
+                    {(() => {
+                      const totalMat = (os.materiais || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
+                      const totalEst = (os.materiaisEstoque || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
+                      const total = totalMat + totalEst;
+                      return total > 0 ? total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-";
+                    })()}
+                  </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
