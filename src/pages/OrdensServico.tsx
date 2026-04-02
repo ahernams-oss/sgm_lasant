@@ -110,7 +110,7 @@ export default function OrdensServicoPage() {
   const [horaInicio, setHoraInicio] = useState("");
   const [dataTermino, setDataTermino] = useState("");
   const [horaTermino, setHoraTermino] = useState("");
-  const [prioridade, setPrioridade] = useState("C: PROGRAMADA");
+  const [prioridade, setPrioridade] = useState("C: NORMAL");
   const [solicitante, setSolicitante] = useState("");
   const [matricula, setMatricula] = useState("");
   const [ramal, setRamal] = useState("");
