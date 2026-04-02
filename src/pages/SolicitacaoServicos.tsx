@@ -51,7 +51,7 @@ export default function SolicitacaoServicosPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [filterCliente, setFilterCliente] = useState("all");
+  const [filterCliente, setFilterCliente] = useState(() => localStorage.getItem("ss_filtroCliente") || "all");
   const [filterTipo, setFilterTipo] = useState("all");
   const [filterSituacao, setFilterSituacao] = useState("all");
   const [imagens, setImagens] = useState<{ file?: File; url: string }[]>([]);
@@ -563,7 +563,7 @@ export default function SolicitacaoServicosPage() {
           onChange={e => { setSearch(e.target.value); setPage(1); }}
           className="max-w-xs"
         />
-        <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); setPage(1); }}>
+        <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); localStorage.setItem("ss_filtroCliente", v); setPage(1); }}>
           <SelectTrigger className="w-[200px]"><SelectValue placeholder="Cliente" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os Clientes</SelectItem>
