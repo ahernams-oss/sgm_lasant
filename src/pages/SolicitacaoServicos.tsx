@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from "react";
-import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
+import { useSolicitacoesServicos, SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,7 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList, Download } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList, Download, Eye } from "lucide-react";
 
 const SITUACOES = ["Aguardando aprovação", "Orçamento Solicitado", "Orçamento Disponível", "Aprovada", "Em execução", "Concluída", "Cancelada"];
 
@@ -70,6 +70,7 @@ export default function SolicitacaoServicosPage() {
   const [approvalTargetId, setApprovalTargetId] = useState<string | null>(null);
   const [selectedPrioridade, setSelectedPrioridade] = useState<string>("");
   const [prioridadeOnly, setPrioridadeOnly] = useState(false);
+  const [viewTarget, setViewTarget] = useState<SolicitacaoServico | null>(null);
 
   const soClientes = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
 
@@ -652,6 +653,10 @@ export default function SolicitacaoServicosPage() {
                       <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setViewTarget(s)}>
+                        <Eye className="mr-2 h-4 w-4" />Visualizar
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleOpenApproval(s.id)}>
                           <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
@@ -756,6 +761,181 @@ export default function SolicitacaoServicosPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setApprovalDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleConfirmApproval} disabled={!selectedPrioridade}>{prioridadeOnly ? "Confirmar Alteração" : "Confirmar Aprovação"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Dialog */}
+      <Dialog open={!!viewTarget} onOpenChange={(o) => { if (!o) setViewTarget(null); }}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Solicitação de Serviço nº {viewTarget?.numero}
+            </DialogTitle>
+          </DialogHeader>
+          {viewTarget && (() => {
+            const orc = orcamentos.find(o => o.solicitacaoId === viewTarget.id);
+            return (
+              <div className="space-y-6 py-2">
+                {/* Info geral */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Data/Hora</Label>
+                    <p className="text-sm font-medium">
+                      {viewTarget.dataHoraSolicitacao ? new Date(viewTarget.dataHoraSolicitacao).toLocaleString("pt-BR") : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Solicitante</Label>
+                    <p className="text-sm font-medium">{viewTarget.solicitanteNome || "-"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Tipo</Label>
+                    <p className="text-sm font-medium">{viewTarget.tipo}</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Situação</Label>
+                    <Badge variant="outline" className="mt-1">{viewTarget.situacao}</Badge>
+                  </div>
+                  {viewTarget.prioridade && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Prioridade</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`inline-block w-3 h-3 rounded-full ${
+                          viewTarget.prioridade === "Emergencial" ? "bg-destructive" :
+                          viewTarget.prioridade === "Urgente" ? "bg-yellow-500" : "bg-green-500"
+                        }`} />
+                        <span className="text-sm font-medium">{viewTarget.prioridade}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Localização */}
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground">Localização</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Cliente</Label>
+                      <p className="text-sm font-medium">{viewTarget.clienteNome || "-"}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Local</Label>
+                      <p className="text-sm font-medium">{viewTarget.localDescricao || "-"}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Pavimento</Label>
+                      <p className="text-sm font-medium">{viewTarget.pavimentoDescricao || "-"}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Setor</Label>
+                      <p className="text-sm font-medium">{viewTarget.setorDescricao || "-"}</p>
+                    </div>
+                    {viewTarget.tipo === "Equipamentos" && (
+                      <div className="col-span-2">
+                        <Label className="text-xs text-muted-foreground">Equipamento</Label>
+                        <p className="text-sm font-medium">{viewTarget.equipamentoNome || "-"}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Descrição */}
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Descrição dos Serviços</h4>
+                  <p className="text-sm whitespace-pre-wrap bg-muted/50 rounded-md p-3">{viewTarget.descricaoServicos || "-"}</p>
+                </div>
+
+                {/* Imagens */}
+                {viewTarget.imagens && viewTarget.imagens.length > 0 && (
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Imagens</h4>
+                    <div className="flex gap-3 flex-wrap">
+                      {viewTarget.imagens.map((url, i) => (
+                        <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                          <img src={url} alt={`Imagem ${i + 1}`} className="w-32 h-32 object-cover rounded-md border hover:opacity-80 transition" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Orçamento vinculado */}
+                {orc && (
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-semibold mb-3 text-muted-foreground">Orçamento nº {orc.numero}</h4>
+                    <div className="grid grid-cols-2 gap-4 mb-3">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Status</Label>
+                        <Badge variant="outline" className="mt-1">{orc.status}</Badge>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Valor Total</Label>
+                        <p className="text-sm font-bold">{orc.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                      </div>
+                    </div>
+                    {orc.itensSco.length > 0 && (
+                      <div className="mb-3">
+                        <Label className="text-xs text-muted-foreground mb-1 block">Itens SCO/SINAPI/EMOP</Label>
+                        <div className="border rounded-md text-xs">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="text-xs">Código</TableHead>
+                                <TableHead className="text-xs">Descrição</TableHead>
+                                <TableHead className="text-xs text-right">Qtd</TableHead>
+                                <TableHead className="text-xs text-right">Valor</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {orc.itensSco.map((item: any, i: number) => (
+                                <TableRow key={i}>
+                                  <TableCell className="text-xs font-mono">{item.codSco || item.codigo}</TableCell>
+                                  <TableCell className="text-xs">{item.descricao}</TableCell>
+                                  <TableCell className="text-xs text-right">{item.quantidade}</TableCell>
+                                  <TableCell className="text-xs text-right">{Number(item.valorTotal || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+                    )}
+                    {orc.itensMateriais.length > 0 && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">Materiais de Estoque</Label>
+                        <div className="border rounded-md text-xs">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="text-xs">Código</TableHead>
+                                <TableHead className="text-xs">Descrição</TableHead>
+                                <TableHead className="text-xs text-right">Qtd</TableHead>
+                                <TableHead className="text-xs text-right">Valor</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {orc.itensMateriais.map((item: any, i: number) => (
+                                <TableRow key={i}>
+                                  <TableCell className="text-xs font-mono">{item.codigo}</TableCell>
+                                  <TableCell className="text-xs">{item.descricao}</TableCell>
+                                  <TableCell className="text-xs text-right">{item.quantidade}</TableCell>
+                                  <TableCell className="text-xs text-right">{Number(item.valorTotal || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewTarget(null)}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
