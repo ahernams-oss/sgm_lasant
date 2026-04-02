@@ -651,6 +651,14 @@ export default function SolicitacaoServicosPage() {
                     }
                   >{s.situacao}</Badge>
                 </TableCell>
+                <TableCell className="text-center">
+                  <Checkbox
+                    checked={s.visitado}
+                    onCheckedChange={async (checked) => {
+                      await updateSolicitacao(s.id, { visitado: !!checked });
+                    }}
+                  />
+                </TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
