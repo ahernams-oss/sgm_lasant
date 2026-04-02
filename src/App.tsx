@@ -69,6 +69,10 @@ import EquipamentosPage from "./pages/Equipamentos.tsx";
 import { EquipamentosProvider } from "@/contexts/EquipamentosContext";
 import PmocPage from "./pages/Pmoc.tsx";
 import { PmocProvider } from "@/contexts/PmocContext";
+import { CategoriasServicosProvider } from "@/contexts/CategoriasServicosContext";
+import { ServicosProvider } from "@/contexts/ServicosContext";
+import CategoriasServicosPage from "./pages/CategoriasServicosPage.tsx";
+import ServicosPage from "./pages/ServicosPage.tsx";
 import SolicitacaoServicosPage from "@/pages/SolicitacaoServicos";
 import { SolicitacoesServicosProvider } from "@/contexts/SolicitacoesServicosContext";
 import OrdensServicoPage from "@/pages/OrdensServico";
@@ -116,6 +120,8 @@ function AppRoutes() {
         <Route path="/qualidade/checklists" element={<ChecklistsPage />} />
         <Route path="/cadastros/equipamentos" element={<EquipamentosPage />} />
         <Route path="/pmoc" element={<PmocPage />} />
+        <Route path="/cadastros/categorias-servicos" element={<CategoriasServicosPage />} />
+        <Route path="/cadastros/servicos" element={<ServicosPage />} />
         <Route
           path="/engenharia/solicitacao-servicos"
           element={
@@ -170,6 +176,8 @@ const App = () => (
     <ChecklistsProvider>
     <EquipamentosProvider>
     <PmocProvider>
+    <CategoriasServicosProvider>
+    <ServicosProvider>
     <AuthProvider> {/* auth wrapper */}
     <TooltipProvider>
       <Toaster />
@@ -183,6 +191,8 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </ServicosProvider>
+    </CategoriasServicosProvider>
     </PmocProvider>
     </EquipamentosProvider>
     </ChecklistsProvider>

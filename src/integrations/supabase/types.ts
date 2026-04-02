@@ -134,6 +134,27 @@ export type Database = {
         }
         Relationships: []
       }
+      categorias_servicos: {
+        Row: {
+          created_at: string | null
+          descricao: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+        }
+        Update: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
       checklist_preenchimentos: {
         Row: {
           checklist_id: string
@@ -2909,6 +2930,38 @@ export type Database = {
           unidade?: string | null
         }
         Relationships: []
+      }
+      servicos: {
+        Row: {
+          categoria_id: string | null
+          created_at: string | null
+          descricao: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          categoria_id?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+        }
+        Update: {
+          categoria_id?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servicos_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_servicos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       solicitacoes_servicos: {
         Row: {
