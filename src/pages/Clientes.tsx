@@ -340,6 +340,8 @@ const Clientes = () => {
                         <p className="text-muted-foreground">Base: {ct.valorBase || "—"}</p>
                         <p className="text-muted-foreground">Base 2: {ct.valorBase2 || "—"}</p>
                         <p className="text-muted-foreground">Base 3: {ct.valorBase3 || "—"}</p>
+                        <p className="text-muted-foreground">Mês SCO: {ct.mesSco || "—"}</p>
+                        <p className="text-muted-foreground">Ano SCO: {ct.anoSco || "—"}</p>
                       </div>
                       <div className="flex gap-1 shrink-0">
                         <Button variant="ghost" size="sm" onClick={() => handleEditContrato(ct)} className="text-xs">Editar</Button>
