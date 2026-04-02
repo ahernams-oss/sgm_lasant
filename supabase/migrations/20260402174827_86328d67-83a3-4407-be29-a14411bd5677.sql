@@ -1,0 +1,1 @@
+ALTER TABLE public.solicitacoes_servicos ADD COLUMN visitado boolean NOT NULL DEFAULT false;

@@ -20,6 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -604,13 +605,14 @@ export default function SolicitacaoServicosPage() {
               <TableHead>Equipamento</TableHead>
               <TableHead>Descrição</TableHead>
               <TableHead>Situação</TableHead>
+              <TableHead className="w-20 text-center">Visitado</TableHead>
               <TableHead className="w-16">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginated.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
                   Nenhuma solicitação cadastrada
                 </TableCell>
               </TableRow>
@@ -649,6 +651,14 @@ export default function SolicitacaoServicosPage() {
                       s.situacao === "Orçamento Disponível" ? "bg-indigo-500 border-indigo-500 hover:bg-indigo-600 text-white" : ""
                     }
                   >{s.situacao}</Badge>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Checkbox
+                    checked={s.visitado}
+                    onCheckedChange={async (checked) => {
+                      await updateSolicitacao(s.id, { visitado: !!checked });
+                    }}
+                  />
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
