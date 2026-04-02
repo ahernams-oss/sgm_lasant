@@ -64,7 +64,7 @@ const situacaoBadge = (s: string) => {
   return <Badge>{s}</Badge>;
 };
 
-const PRIORIDADES = ["A: IMEDIATA", "B: (24 a 72H)", "C: PROGRAMADA"];
+const PRIORIDADES = ["A: IMEDIATA", "B: URGENTE", "C: NORMAL"];
 
 const prioridadeBadge = (p: string) => {
   if (p.startsWith("A")) return <Badge className="bg-destructive text-destructive-foreground">{p}</Badge>;
@@ -110,7 +110,7 @@ export default function OrdensServicoPage() {
   const [horaInicio, setHoraInicio] = useState("");
   const [dataTermino, setDataTermino] = useState("");
   const [horaTermino, setHoraTermino] = useState("");
-  const [prioridade, setPrioridade] = useState("C: PROGRAMADA");
+  const [prioridade, setPrioridade] = useState("C: NORMAL");
   const [solicitante, setSolicitante] = useState("");
   const [matricula, setMatricula] = useState("");
   const [ramal, setRamal] = useState("");
@@ -350,7 +350,7 @@ export default function OrdensServicoPage() {
   const resetForm = () => {
     setClienteId(""); setNCliente(""); setSituacao("Aberta");
     setDataInicio(""); setHoraInicio(""); setDataTermino(""); setHoraTermino("");
-    setPrioridade("C: PROGRAMADA"); setSolicitante(""); setMatricula("");
+    setPrioridade("C: NORMAL"); setSolicitante(""); setMatricula("");
     setRamal(""); setTelefone(""); setLocalId(""); setPavimentoId("");
     setSetorId(""); setCategoria(""); setServico("");
     setDescricaoServicos(""); setRessalvaAprovacao(""); setDescricaoConclusao("");

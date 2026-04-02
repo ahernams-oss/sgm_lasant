@@ -232,7 +232,7 @@ export default function SolicitacaoServicosPage() {
       if (ss) {
         const prioridadeOS =
           selectedPrioridade === "Emergencial" ? "A: IMEDIATA" :
-          selectedPrioridade === "Urgente" ? "B: (24 a 72H)" : "C: PROGRAMADA";
+          selectedPrioridade === "Urgente" ? "B: URGENTE" : "C: NORMAL";
 
         await addOrdem({
           solicitacao_id: ss.id,
@@ -303,7 +303,7 @@ export default function SolicitacaoServicosPage() {
 
     const prioridadeOS =
       ss.prioridade === "Emergencial" ? "A: IMEDIATA" :
-      ss.prioridade === "Urgente" ? "B: (24 a 72H)" : "C: PROGRAMADA";
+      ss.prioridade === "Urgente" ? "B: URGENTE" : "C: NORMAL";
 
     // Map SCO items from budget to OS materiais format
     const materiaisSco = (orcamento.itensSco || []).map((item: any) => ({

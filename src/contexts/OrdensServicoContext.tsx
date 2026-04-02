@@ -109,7 +109,7 @@ const rowToOrdem = (r: any): OrdemServico => ({
   horaInicio: r.hora_inicio ?? "",
   dataTermino: r.data_termino ?? "",
   horaTermino: r.hora_termino ?? "",
-  prioridade: r.prioridade ?? "C: PROGRAMADA",
+  prioridade: r.prioridade ?? "C: NORMAL",
   solicitante: r.solicitante ?? "",
   matricula: r.matricula ?? "",
   ramal: r.ramal ?? "",
