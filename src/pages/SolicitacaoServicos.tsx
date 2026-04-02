@@ -929,6 +929,28 @@ export default function SolicitacaoServicosPage() {
                         </div>
                       </div>
                     )}
+                    {orc.anexos && orc.anexos.length > 0 && (
+                      <div className="mt-3">
+                        <Label className="text-xs text-muted-foreground mb-1 block">Anexos do Orçamento</Label>
+                        <div className="flex flex-col gap-1">
+                          {orc.anexos.map((anexo: string, i: number) => {
+                            const nome = decodeURIComponent(anexo.split("/").pop() || `Anexo ${i + 1}`);
+                            return (
+                              <a
+                                key={i}
+                                href={anexo}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 text-sm text-primary hover:underline"
+                              >
+                                <Download className="h-4 w-4" />
+                                {nome}
+                              </a>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
