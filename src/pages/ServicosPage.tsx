@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useServicos } from "@/contexts/ServicosContext";
 import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { toast } from "sonner";
-import DoubleConfirmDelete from "@/components/DoubleConfirmDelete";
+import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 
 const ServicosPage = () => {
   const { servicos, addServico, updateServico, deleteServico } = useServicos();

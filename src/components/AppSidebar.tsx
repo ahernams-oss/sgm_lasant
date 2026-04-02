@@ -113,6 +113,8 @@ const menuItems = [
       { title: "Equipamentos", url: "/cadastros/equipamentos", icon: Monitor },
       { title: "Fornecedores", url: "/fornecedores", icon: Truck },
       { title: "Cargos", url: "/cargos", icon: Briefcase },
+      { title: "Categorias de Serviços", url: "/cadastros/categorias-servicos", icon: Tags },
+      { title: "Serviços", url: "/cadastros/servicos", icon: Wrench },
       { title: "SCO", url: "/sco", icon: FileSpreadsheet },
       { title: "I0", url: "/i0", icon: DollarSign },
     ],

@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { toast } from "sonner";
-import DoubleConfirmDelete from "@/components/DoubleConfirmDelete";
+import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 
 const CategoriasServicosPage = () => {
   const { categorias, addCategoria, updateCategoria, deleteCategoria } = useCategoriasServicos();
