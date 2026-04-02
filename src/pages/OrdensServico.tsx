@@ -465,7 +465,7 @@ export default function OrdensServicoPage() {
   }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim]);
 
   const limparFiltros = () => {
-    setBusca(""); setFiltroSituacao("Todas"); setFiltroCliente("Todos");
+    setBusca(""); setFiltroSituacao("Todas"); setFiltroCliente("Todos"); localStorage.setItem("os_filtroCliente", "Todos");
     setFiltroPrioridade("Todas"); setFiltroDataInicio(""); setFiltroDataFim("");
     setPage(1);
   };
