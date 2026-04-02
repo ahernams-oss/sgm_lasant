@@ -49,6 +49,7 @@ export default function SolicitacaoServicosPage() {
   const [form, setForm] = useState({ ...emptyForm });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [formCollapsed, setFormCollapsed] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState(() => localStorage.getItem("ss_filtroCliente") || "all");
@@ -91,6 +92,7 @@ export default function SolicitacaoServicosPage() {
     setImagens([]);
     setEditingId(null);
     setFormOpen(true);
+    setFormCollapsed(false);
   };
 
   const handleAddImagem = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -192,6 +194,7 @@ export default function SolicitacaoServicosPage() {
     setImagens((s.imagens || []).map((url: string) => ({ url })));
     setEditingId(s.id);
     setFormOpen(true);
+    setFormCollapsed(false);
   };
 
   const handleDelete = async () => {
@@ -427,7 +430,7 @@ export default function SolicitacaoServicosPage() {
 
       {/* Form */}
       {showForm && (
-        <Collapsible open={formOpen} onOpenChange={o => { if (!o) { setFormOpen(false); setForm({ ...emptyForm }); setImagens([]); setEditingId(null); } }}>
+        <Collapsible open={!formCollapsed} onOpenChange={o => setFormCollapsed(!o)}>
           <Card>
             <CollapsibleTrigger asChild>
               <CardHeader className="cursor-pointer flex flex-row items-center justify-between">
@@ -435,7 +438,7 @@ export default function SolicitacaoServicosPage() {
                   <AlertTriangle className="h-4 w-4 text-primary" />
                   {editingId ? "Editar Solicitação" : `Nova Solicitação — ${form.tipo}`}
                 </CardTitle>
-                {formOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                {!formCollapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
