@@ -64,7 +64,7 @@ const situacaoBadge = (s: string) => {
   return <Badge>{s}</Badge>;
 };
 
-const PRIORIDADES = ["A: IMEDIATA", "B: (24 a 72H)", "C: PROGRAMADA"];
+const PRIORIDADES = ["A: IMEDIATA", "B: URGENTE", "C: NORMAL"];
 
 const prioridadeBadge = (p: string) => {
   if (p.startsWith("A")) return <Badge className="bg-destructive text-destructive-foreground">{p}</Badge>;
