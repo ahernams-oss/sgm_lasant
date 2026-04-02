@@ -486,7 +486,7 @@ export default function OrdensServicoPage() {
       </div>
 
       {/* Filters */}
-      <Card>
+       <Card>
         <CardContent className="pt-4">
           <div className="flex flex-wrap gap-3 items-end">
             <div className="flex-1 min-w-[200px]">
@@ -495,6 +495,26 @@ export default function OrdensServicoPage() {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Nº, cliente, descrição, local..." value={busca} onChange={e => { setBusca(e.target.value); setPage(1); }} className="pl-8" />
               </div>
+            </div>
+            <div className="w-[200px]">
+              <Label>Cliente</Label>
+              <Select value={filtroCliente} onValueChange={v => { setFiltroCliente(v); setPage(1); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todos">Todos</SelectItem>
+                  {clientesFiltrados.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-[180px]">
+              <Label>Prioridade</Label>
+              <Select value={filtroPrioridade} onValueChange={v => { setFiltroPrioridade(v); setPage(1); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todas">Todas</SelectItem>
+                  {PRIORIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div className="w-[180px]">
               <Label>Situação</Label>
@@ -506,7 +526,23 @@ export default function OrdensServicoPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="w-[150px]">
+              <Label>Data Início</Label>
+              <Input type="date" value={filtroDataInicio} onChange={e => { setFiltroDataInicio(e.target.value); setPage(1); }} />
+            </div>
+            <div className="w-[150px]">
+              <Label>Data Fim</Label>
+              <Input type="date" value={filtroDataFim} onChange={e => { setFiltroDataFim(e.target.value); setPage(1); }} />
+            </div>
+            {temFiltrosAtivos && (
+              <Button variant="ghost" size="sm" onClick={limparFiltros} className="text-muted-foreground">
+                <XCircle className="mr-1 h-4 w-4" /> Limpar
+              </Button>
+            )}
           </div>
+          {temFiltrosAtivos && (
+            <p className="text-xs text-muted-foreground mt-2">{ordensFiltradas.length} resultado(s) encontrado(s)</p>
+          )}
         </CardContent>
       </Card>
 
