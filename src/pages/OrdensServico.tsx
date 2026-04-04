@@ -1485,6 +1485,10 @@ export default function OrdensServicoPage() {
                   <p className="text-xs text-muted-foreground">Nº Cliente</p>
                   <p className="font-medium">{viewOS.nCliente || "-"}</p>
                 </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Tipo OS</p>
+                  <p className="font-medium">{viewOS.tipoOs?.descricao || "-"} ({viewOS.tipoOs?.sigla || "-"})</p>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
