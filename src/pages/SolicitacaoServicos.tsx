@@ -56,6 +56,7 @@ export default function SolicitacaoServicosPage() {
   const { solicitacoes, addSolicitacao, updateSolicitacao, deleteSolicitacao } = useSolicitacoesServicos();
   const { clientes } = useClientes();
   const { equipamentos } = useEquipamentos();
+  const { empresa } = useEmpresa();
   const { toast } = useToast();
   const { usuarioLogado } = useAuth();
 
