@@ -1986,6 +1986,8 @@ export type Database = {
           medicoes: Json | null
           numero: number
           observacoes: string | null
+          ordem_compra_id: string | null
+          ordem_compra_numero: number | null
           percentual_medido: number | null
           status: string | null
           valor_total_contratado: number | null
@@ -2005,6 +2007,8 @@ export type Database = {
           medicoes?: Json | null
           numero?: number
           observacoes?: string | null
+          ordem_compra_id?: string | null
+          ordem_compra_numero?: number | null
           percentual_medido?: number | null
           status?: string | null
           valor_total_contratado?: number | null
@@ -2024,6 +2028,8 @@ export type Database = {
           medicoes?: Json | null
           numero?: number
           observacoes?: string | null
+          ordem_compra_id?: string | null
+          ordem_compra_numero?: number | null
           percentual_medido?: number | null
           status?: string | null
           valor_total_contratado?: number | null
