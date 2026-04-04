@@ -331,7 +331,29 @@ const MedicoesServicos = () => {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Ordem de Compra (Serviço) *</Label>
+                  <Select value={ordemCompraId} onValueChange={(v) => {
+                    setOrdemCompraId(v);
+                    const oc = pedidosServico.find(p => p.id === v);
+                    if (oc) {
+                      setOrdemCompraNumero(oc.numero);
+                      // Auto-fill fornecedor from OC
+                      setFornecedorId(oc.fornecedorId);
+                      setFornecedorNome(oc.fornecedorNome);
+                    }
+                  }}>
+                    <SelectTrigger><SelectValue placeholder="Selecione a OC" /></SelectTrigger>
+                    <SelectContent>
+                      {pedidosServico.map(p => (
+                        <SelectItem key={p.id} value={p.id}>
+                          OC #{p.numero} — {p.fornecedorNome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <Label>Contrato</Label>
                   <Input value={contrato} onChange={e => setContrato(e.target.value)} placeholder="Nº do contrato" />
