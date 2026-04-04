@@ -22,6 +22,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { useMedicoes, MedicaoServico, ItemServico, LancamentoMedicao } from "@/contexts/MedicoesContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
+import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
+import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 
 const emptyItem = (): ItemServico => ({
   id: crypto.randomUUID(),
@@ -35,7 +38,21 @@ const emptyItem = (): ItemServico => ({
 const MedicoesServicos = () => {
   const { medicoes, loading, addMedicao, updateMedicao, deleteMedicao } = useMedicoes();
   const { clientes } = useClientes();
+  const { pedidos } = usePedidoCompra();
+  const { requisicoes } = useRequisicaoCompras();
+  const { materiais } = useMateriaisServicos();
   const { toast } = useToast();
+
+  // Filter pedidos that contain only services (not materials)
+  const pedidosServico = pedidos.filter(p => {
+    if (p.status === "Cancelado") return false;
+    const req = requisicoes.find(r => r.id === p.requisicaoId);
+    if (!req) return false;
+    // Check if ALL items in the requisition linked to this pedido are services
+    const materialIds = req.itens.map(i => i.materialId);
+    const tiposItems = materialIds.map(mid => materiais.find(m => m.id === mid)?.tipo);
+    return tiposItems.length > 0 && tiposItems.every(t => t === "Serviço");
+  });
 
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [showForm, setShowForm] = useState(false);
@@ -54,6 +71,8 @@ const MedicoesServicos = () => {
   const [fornecedorId, setFornecedorId] = useState("");
   const [fornecedorNome, setFornecedorNome] = useState("");
   const [dataPagamento, setDataPagamento] = useState<Date | undefined>(undefined);
+  const [ordemCompraId, setOrdemCompraId] = useState("");
+  const [ordemCompraNumero, setOrdemCompraNumero] = useState(0);
 
   // Lançamento state
   const [lancTipo, setLancTipo] = useState<"percentual" | "valor">("percentual");
@@ -67,6 +86,8 @@ const MedicoesServicos = () => {
     setFornecedorId("");
     setFornecedorNome("");
     setDataPagamento(undefined);
+    setOrdemCompraId("");
+    setOrdemCompraNumero(0);
     setContrato("");
     setDescricao("");
     setItens([emptyItem()]);
@@ -82,6 +103,8 @@ const MedicoesServicos = () => {
       setFornecedorId((m as any).fornecedor_id || "");
       setFornecedorNome((m as any).fornecedor_nome || "");
       setDataPagamento((m as any).data_pagamento ? new Date((m as any).data_pagamento) : undefined);
+      setOrdemCompraId((m as any).ordem_compra_id || "");
+      setOrdemCompraNumero((m as any).ordem_compra_numero || 0);
       setContrato(m.contrato);
       setDescricao(m.descricao);
       setItens(m.itens.length > 0 ? m.itens : [emptyItem()]);
@@ -93,6 +116,10 @@ const MedicoesServicos = () => {
   };
 
   const handleSave = async () => {
+    if (!ordemCompraId) {
+      toast({ title: "Selecione a Ordem de Compra de Serviço", variant: "destructive" });
+      return;
+    }
     if (!descricao.trim()) {
       toast({ title: "Preencha a descrição da obra/serviço", variant: "destructive" });
       return;
@@ -108,6 +135,8 @@ const MedicoesServicos = () => {
       fornecedor_id: fornecedorId,
       fornecedor_nome: fornecedorNome,
       data_pagamento: dataPagamento ? format(dataPagamento, "yyyy-MM-dd") : null,
+      ordem_compra_id: ordemCompraId,
+      ordem_compra_numero: ordemCompraNumero,
       contrato,
       descricao,
       itens: itensCalc,
@@ -302,7 +331,29 @@ const MedicoesServicos = () => {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Ordem de Compra (Serviço) *</Label>
+                  <Select value={ordemCompraId} onValueChange={(v) => {
+                    setOrdemCompraId(v);
+                    const oc = pedidosServico.find(p => p.id === v);
+                    if (oc) {
+                      setOrdemCompraNumero(oc.numero);
+                      // Auto-fill fornecedor from OC
+                      setFornecedorId(oc.fornecedorId);
+                      setFornecedorNome(oc.fornecedorNome);
+                    }
+                  }}>
+                    <SelectTrigger><SelectValue placeholder="Selecione a OC" /></SelectTrigger>
+                    <SelectContent>
+                      {pedidosServico.map(p => (
+                        <SelectItem key={p.id} value={p.id}>
+                          OC #{p.numero} — {p.fornecedorNome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <Label>Contrato</Label>
                   <Input value={contrato} onChange={e => setContrato(e.target.value)} placeholder="Nº do contrato" />
@@ -389,6 +440,7 @@ const MedicoesServicos = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nº</TableHead>
+                  <TableHead>OC</TableHead>
                   <TableHead>Cliente / Obra</TableHead>
                   <TableHead>Contrato</TableHead>
                   <TableHead>Descrição</TableHead>
@@ -403,6 +455,7 @@ const MedicoesServicos = () => {
                 {paginate(medicoes, pageMed).paginated.map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="font-mono">{m.numero}</TableCell>
+                    <TableCell className="font-mono">{(m as any).ordem_compra_numero || "—"}</TableCell>
                     <TableCell>{m.cliente_nome}</TableCell>
                     <TableCell>{m.contrato}</TableCell>
                     <TableCell>{m.descricao}</TableCell>
