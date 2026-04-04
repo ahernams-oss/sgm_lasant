@@ -31,6 +31,9 @@ import {
   ShieldCheck,
   Monitor,
   Fan,
+  MessageSquare,
+  Megaphone,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
