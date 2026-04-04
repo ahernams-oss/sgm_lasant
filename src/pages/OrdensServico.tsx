@@ -674,7 +674,7 @@ export default function OrdensServicoPage() {
                 <TableHead>Prioridade</TableHead>
                 <TableHead>Situação</TableHead>
                 <TableHead>Data Início</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="text-right">Valor (c/ BDI)</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
