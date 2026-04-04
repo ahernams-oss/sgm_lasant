@@ -61,6 +61,12 @@ const MedicoesServicos = () => {
   const [showLancamento, setShowLancamento] = useState(false);
   const [pageMed, setPageMed] = useState(1);
 
+  // Filter state
+  const [filterBusca, setFilterBusca] = useState("");
+  const [filterStatus, setFilterStatus] = useState("todos");
+  const [filterCliente, setFilterCliente] = useState("todos");
+  const [filterFornecedor, setFilterFornecedor] = useState("todos");
+
   // Form state
   const [clienteId, setClienteId] = useState("");
   const [clienteNome, setClienteNome] = useState("");
