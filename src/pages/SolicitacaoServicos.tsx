@@ -427,6 +427,25 @@ export default function SolicitacaoServicosPage() {
     return p?.color || "";
   };
 
+  const [sortField, setSortField] = useState<"numero" | "dataHora" | null>("numero");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  const handleSort = (field: "numero" | "dataHora") => {
+    if (sortField === field) {
+      setSortDir(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDir("desc");
+    }
+  };
+
+  const SortIcon = ({ field }: { field: "numero" | "dataHora" }) => {
+    if (sortField !== field) return <ArrowUpDown className="inline ml-1 h-3.5 w-3.5 opacity-40" />;
+    return sortDir === "asc"
+      ? <ArrowUp className="inline ml-1 h-3.5 w-3.5" />
+      : <ArrowDown className="inline ml-1 h-3.5 w-3.5" />;
+  };
+
   const filtered = useMemo(() => {
     let result = solicitacoes;
     if (search.trim()) {
@@ -443,8 +462,21 @@ export default function SolicitacaoServicosPage() {
     if (filterTipo !== "all") result = result.filter(s => s.tipo === filterTipo);
     if (filterSituacao !== "all") result = result.filter(s => s.situacao === filterSituacao);
     if (filterVisitado !== "all") result = result.filter(s => filterVisitado === "sim" ? s.visitado : !s.visitado);
+
+    if (sortField) {
+      result = [...result].sort((a, b) => {
+        let cmp = 0;
+        if (sortField === "numero") {
+          cmp = a.numero - b.numero;
+        } else {
+          cmp = (a.dataHoraSolicitacao || "").localeCompare(b.dataHoraSolicitacao || "");
+        }
+        return sortDir === "asc" ? cmp : -cmp;
+      });
+    }
+
     return result;
-  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterVisitado]);
+  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterVisitado, sortField, sortDir]);
 
   const clientesUnicos = useMemo(() => {
     const map = new Map<string, string>();
