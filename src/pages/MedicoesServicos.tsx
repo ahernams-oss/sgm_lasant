@@ -86,6 +86,8 @@ const MedicoesServicos = () => {
     setFornecedorId("");
     setFornecedorNome("");
     setDataPagamento(undefined);
+    setOrdemCompraId("");
+    setOrdemCompraNumero(0);
     setContrato("");
     setDescricao("");
     setItens([emptyItem()]);
@@ -101,6 +103,8 @@ const MedicoesServicos = () => {
       setFornecedorId((m as any).fornecedor_id || "");
       setFornecedorNome((m as any).fornecedor_nome || "");
       setDataPagamento((m as any).data_pagamento ? new Date((m as any).data_pagamento) : undefined);
+      setOrdemCompraId((m as any).ordem_compra_id || "");
+      setOrdemCompraNumero((m as any).ordem_compra_numero || 0);
       setContrato(m.contrato);
       setDescricao(m.descricao);
       setItens(m.itens.length > 0 ? m.itens : [emptyItem()]);
@@ -112,6 +116,10 @@ const MedicoesServicos = () => {
   };
 
   const handleSave = async () => {
+    if (!ordemCompraId) {
+      toast({ title: "Selecione a Ordem de Compra de Serviço", variant: "destructive" });
+      return;
+    }
     if (!descricao.trim()) {
       toast({ title: "Preencha a descrição da obra/serviço", variant: "destructive" });
       return;
@@ -127,6 +135,8 @@ const MedicoesServicos = () => {
       fornecedor_id: fornecedorId,
       fornecedor_nome: fornecedorNome,
       data_pagamento: dataPagamento ? format(dataPagamento, "yyyy-MM-dd") : null,
+      ordem_compra_id: ordemCompraId,
+      ordem_compra_numero: ordemCompraNumero,
       contrato,
       descricao,
       itens: itensCalc,
