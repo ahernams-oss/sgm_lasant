@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { format } from "date-fns";
-import { Plus, Ruler, Trash2, Edit, Eye, X, ChevronDown, ChevronUp, CalendarIcon, FileText, Download } from "lucide-react";
+import { Plus, Ruler, Trash2, Edit, Eye, X, ChevronDown, ChevronUp, CalendarIcon, FileText, Download, Search, Filter } from "lucide-react";
 import { downloadPdfMedicoes } from "@/lib/gerarPdfMedicoes";
 import { downloadExcelMedicoes } from "@/lib/gerarExcelMedicoes";
 import { downloadPdfHistoricoMedicao } from "@/lib/gerarPdfHistoricoMedicao";
@@ -60,6 +60,12 @@ const MedicoesServicos = () => {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [showLancamento, setShowLancamento] = useState(false);
   const [pageMed, setPageMed] = useState(1);
+
+  // Filter state
+  const [filterBusca, setFilterBusca] = useState("");
+  const [filterStatus, setFilterStatus] = useState("todos");
+  const [filterCliente, setFilterCliente] = useState("todos");
+  const [filterFornecedor, setFilterFornecedor] = useState("todos");
 
   // Form state
   const [clienteId, setClienteId] = useState("");
@@ -251,6 +257,23 @@ const MedicoesServicos = () => {
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   const fmtPerc = (v: number) => `${v.toFixed(2)}%`;
 
+  // Filtered list
+  const medicoesFiltradas = medicoes.filter(m => {
+    const busca = filterBusca.toLowerCase();
+    if (busca && !m.descricao.toLowerCase().includes(busca) && !m.cliente_nome.toLowerCase().includes(busca) && !m.contrato.toLowerCase().includes(busca) && !String(m.numero).includes(busca)) return false;
+    if (filterStatus !== "todos" && m.status !== filterStatus) return false;
+    if (filterCliente !== "todos" && m.cliente_id !== filterCliente) return false;
+    if (filterFornecedor !== "todos" && (m as any).fornecedor_id !== filterFornecedor) return false;
+    return true;
+  });
+
+  const statusOptions = [...new Set(medicoes.map(m => m.status))];
+  const clientesMedicao = [...new Map(medicoes.filter(m => m.cliente_id).map(m => [m.cliente_id, m.cliente_nome])).entries()];
+  const fornecedoresMedicao = [...new Map(medicoes.filter(m => (m as any).fornecedor_id).map(m => [(m as any).fornecedor_id, (m as any).fornecedor_nome])).entries()];
+
+  const hasActiveFilters = filterBusca || filterStatus !== "todos" || filterCliente !== "todos" || filterFornecedor !== "todos";
+  const clearFilters = () => { setFilterBusca(""); setFilterStatus("todos"); setFilterCliente("todos"); setFilterFornecedor("todos"); setPageMed(1); };
+
   const detailMedicao = medicoes.find(m => m.id === detailId);
 
   const statusColor = (s: string) => {
@@ -429,11 +452,71 @@ const MedicoesServicos = () => {
           </Card>
         )}
 
+        {/* Filters */}
+        {!showForm && (
+          <Card className="mb-4">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="flex-1 min-w-[200px] max-w-xs">
+                  <Label className="text-xs mb-1 block">Busca</Label>
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Nº, descrição, cliente, contrato..."
+                      value={filterBusca}
+                      onChange={e => { setFilterBusca(e.target.value); setPageMed(1); }}
+                      className="pl-9 h-9"
+                    />
+                  </div>
+                </div>
+                <div className="min-w-[140px]">
+                  <Label className="text-xs mb-1 block">Status</Label>
+                  <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPageMed(1); }}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      {statusOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="min-w-[160px]">
+                  <Label className="text-xs mb-1 block">Cliente</Label>
+                  <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); setPageMed(1); }}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      {clientesMedicao.map(([id, nome]) => <SelectItem key={id} value={id}>{nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="min-w-[160px]">
+                  <Label className="text-xs mb-1 block">Fornecedor</Label>
+                  <Select value={filterFornecedor} onValueChange={v => { setFilterFornecedor(v); setPageMed(1); }}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      {fornecedoresMedicao.map(([id, nome]) => <SelectItem key={id} value={id}>{nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 text-xs">
+                    <X className="h-3 w-3 mr-1" /> Limpar
+                  </Button>
+                )}
+                <span className="text-xs text-muted-foreground ml-auto">
+                  {medicoesFiltradas.length} de {medicoes.length} resultado(s)
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Grid */}
         {loading ? (
           <p className="text-sm text-muted-foreground">Carregando...</p>
-        ) : medicoes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhuma medição cadastrada.</p>
+        ) : medicoesFiltradas.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{medicoes.length === 0 ? "Nenhuma medição cadastrada." : "Nenhum resultado encontrado para os filtros aplicados."}</p>
         ) : (
           <div className="overflow-x-auto rounded-lg border">
             <Table>
@@ -452,7 +535,7 @@ const MedicoesServicos = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginate(medicoes, pageMed).paginated.map(m => (
+                {paginate(medicoesFiltradas, pageMed).paginated.map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="font-mono">{m.numero}</TableCell>
                     <TableCell className="font-mono">{(m as any).ordem_compra_numero || "—"}</TableCell>
