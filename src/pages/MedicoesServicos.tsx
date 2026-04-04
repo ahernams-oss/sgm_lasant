@@ -22,6 +22,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { useMedicoes, MedicaoServico, ItemServico, LancamentoMedicao } from "@/contexts/MedicoesContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
+import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
+import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 
 const emptyItem = (): ItemServico => ({
   id: crypto.randomUUID(),
@@ -35,7 +38,21 @@ const emptyItem = (): ItemServico => ({
 const MedicoesServicos = () => {
   const { medicoes, loading, addMedicao, updateMedicao, deleteMedicao } = useMedicoes();
   const { clientes } = useClientes();
+  const { pedidos } = usePedidoCompra();
+  const { requisicoes } = useRequisicaoCompras();
+  const { materiais } = useMateriaisServicos();
   const { toast } = useToast();
+
+  // Filter pedidos that contain only services (not materials)
+  const pedidosServico = pedidos.filter(p => {
+    if (p.status === "Cancelado") return false;
+    const req = requisicoes.find(r => r.id === p.requisicaoId);
+    if (!req) return false;
+    // Check if ALL items in the requisition linked to this pedido are services
+    const materialIds = req.itens.map(i => i.materialId);
+    const tiposItems = materialIds.map(mid => materiais.find(m => m.id === mid)?.tipo);
+    return tiposItems.length > 0 && tiposItems.every(t => t === "Serviço");
+  });
 
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [showForm, setShowForm] = useState(false);
@@ -54,6 +71,8 @@ const MedicoesServicos = () => {
   const [fornecedorId, setFornecedorId] = useState("");
   const [fornecedorNome, setFornecedorNome] = useState("");
   const [dataPagamento, setDataPagamento] = useState<Date | undefined>(undefined);
+  const [ordemCompraId, setOrdemCompraId] = useState("");
+  const [ordemCompraNumero, setOrdemCompraNumero] = useState(0);
 
   // Lançamento state
   const [lancTipo, setLancTipo] = useState<"percentual" | "valor">("percentual");
