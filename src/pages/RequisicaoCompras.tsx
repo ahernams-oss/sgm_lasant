@@ -168,7 +168,7 @@ export default function RequisicaoComprasPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Requisições de Compras</h1>
+        <h1 className="text-2xl font-bold text-foreground mx-[7px]">Requisições de Compras e Serviços</h1>
         <Button onClick={() => { resetForm(); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" />Nova Requisição</Button>
       </div>
 
