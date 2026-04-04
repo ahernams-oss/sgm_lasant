@@ -1,0 +1,1 @@
+ALTER TABLE public.ordens_servico ADD COLUMN IF NOT EXISTS tipo_os jsonb DEFAULT '{"cod": 1, "descricao": "Corretiva", "sigla": "C"}'::jsonb;
