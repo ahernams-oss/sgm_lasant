@@ -322,42 +322,6 @@ const MedicoesServicos = () => {
               </Button>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Cliente / Obra</Label>
-                  <Select value={clienteId} onValueChange={(v) => {
-                    setClienteId(v);
-                    const c = clientes.find(c => c.id === v);
-                    setClienteNome(c?.nome || "");
-                  }}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      {clientes.filter(c => c.tipo === "Cliente").map(c => (
-                        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Fornecedor</Label>
-                  {ordemCompraId ? (
-                    <Input value={fornecedorNome} disabled className="bg-muted" />
-                  ) : (
-                    <Select value={fornecedorId} onValueChange={(v) => {
-                      setFornecedorId(v);
-                      const f = clientes.find(c => c.id === v);
-                      setFornecedorNome(f?.nome || "");
-                    }}>
-                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                      <SelectContent>
-                        {clientes.filter(c => c.tipo === "Fornecedor").map(c => (
-                          <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Ordem de Compra (Serviço) *</Label>
@@ -366,10 +330,8 @@ const MedicoesServicos = () => {
                     const oc = pedidosServico.find(p => p.id === v);
                     if (oc) {
                       setOrdemCompraNumero(oc.numero);
-                      // Auto-fill fornecedor from OC
                       setFornecedorId(oc.fornecedorId);
                       setFornecedorNome(oc.fornecedorNome);
-                      // Auto-fill itens from OC
                       const ocItens: ItemServico[] = oc.itens.map(i => ({
                         id: crypto.randomUUID(),
                         descricao: i.descricao,
