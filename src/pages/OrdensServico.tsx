@@ -152,6 +152,10 @@ export default function OrdensServicoPage() {
 
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: cancelCancelAction } = useDoubleConfirmDelete();
+
+  // "Não Aprovar" justification dialog state
+  const [naoAprovarOS, setNaoAprovarOS] = useState<OrdemServico | null>(null);
+  const [naoAprovarJustificativa, setNaoAprovarJustificativa] = useState("");
   // SCO search state
   const [scoBusca, setScoBusca] = useState("");
   const [scoQtd, setScoQtd] = useState(1);
