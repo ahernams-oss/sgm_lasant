@@ -222,6 +222,13 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
   };
 
   const confirmarLeitura = async (data: any) => {
+    const { data: existing } = await (supabase as any)
+      .from("comunicacao_avisos_leitura")
+      .select("id")
+      .eq("aviso_id", data.aviso_id)
+      .eq("usuario_email", data.usuario_email)
+      .maybeSingle();
+    if (existing) return;
     await insertRow("comunicacao_avisos_leitura", data);
     await loadAvisos();
   };
