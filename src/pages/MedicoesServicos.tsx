@@ -257,6 +257,23 @@ const MedicoesServicos = () => {
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   const fmtPerc = (v: number) => `${v.toFixed(2)}%`;
 
+  // Filtered list
+  const medicoesFiltradas = medicoes.filter(m => {
+    const busca = filterBusca.toLowerCase();
+    if (busca && !m.descricao.toLowerCase().includes(busca) && !m.cliente_nome.toLowerCase().includes(busca) && !m.contrato.toLowerCase().includes(busca) && !String(m.numero).includes(busca)) return false;
+    if (filterStatus !== "todos" && m.status !== filterStatus) return false;
+    if (filterCliente !== "todos" && m.cliente_id !== filterCliente) return false;
+    if (filterFornecedor !== "todos" && (m as any).fornecedor_id !== filterFornecedor) return false;
+    return true;
+  });
+
+  const statusOptions = [...new Set(medicoes.map(m => m.status))];
+  const clientesMedicao = [...new Map(medicoes.filter(m => m.cliente_id).map(m => [m.cliente_id, m.cliente_nome])).entries()];
+  const fornecedoresMedicao = [...new Map(medicoes.filter(m => (m as any).fornecedor_id).map(m => [(m as any).fornecedor_id, (m as any).fornecedor_nome])).entries()];
+
+  const hasActiveFilters = filterBusca || filterStatus !== "todos" || filterCliente !== "todos" || filterFornecedor !== "todos";
+  const clearFilters = () => { setFilterBusca(""); setFilterStatus("todos"); setFilterCliente("todos"); setFilterFornecedor("todos"); setPageMed(1); };
+
   const detailMedicao = medicoes.find(m => m.id === detailId);
 
   const statusColor = (s: string) => {
