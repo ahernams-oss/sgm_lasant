@@ -258,32 +258,6 @@ export async function gerarPdfSolicitacao(
     y = (doc as any).lastAutoTable.finalY + 6;
   }
 
-  // ===== HISTÓRICO =====
-  if (ss.historico && ss.historico.length > 0) {
-    if (y + 40 > ph - 30) { doc.addPage(); y = 20; }
-
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(...DARK_BLUE);
-    doc.text("Histórico", ml, y);
-    y += 3;
-
-    autoTable(doc, {
-      startY: y,
-      theme: "striped",
-      styles: { fontSize: 8, cellPadding: 2.5 },
-      headStyles: { fillColor: [...DARK_BLUE], textColor: [255, 255, 255], fontStyle: "bold" },
-      head: [["Situação", "Data/Hora", "Usuário"]],
-      body: ss.historico.map((h) => [
-        h.situacao,
-        h.data ? new Date(h.data).toLocaleString("pt-BR") : "-",
-        h.usuario || "-",
-      ]),
-      margin: { left: ml, right: mr },
-    });
-
-    y = (doc as any).lastAutoTable.finalY + 8;
-  }
 
   // ===== IMAGENS =====
   if (comImagens && ss.imagens && ss.imagens.length > 0) {
