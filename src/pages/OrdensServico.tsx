@@ -460,6 +460,7 @@ export default function OrdensServicoPage() {
       fotos,
       observacoes,
       observacoes_fiscalizacao: observacoesFiscalizacao,
+      bdi: bdiPercentual,
     };
 
     if (editingId) {
