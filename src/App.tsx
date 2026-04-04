@@ -78,6 +78,10 @@ import { SolicitacoesServicosProvider } from "@/contexts/SolicitacoesServicosCon
 import OrdensServicoPage from "@/pages/OrdensServico";
 import { OrdensServicoProvider } from "@/contexts/OrdensServicoContext";
 import { OrcamentosProvider } from "@/contexts/OrcamentosContext";
+import { ComunicacaoProvider } from "@/contexts/ComunicacaoContext";
+import ComunicacaoMensagensPage from "./pages/ComunicacaoMensagens";
+import ComunicacaoAvisosPage from "./pages/ComunicacaoAvisos";
+import ComunicacaoNotificacoesPage from "./pages/ComunicacaoNotificacoes";
 
 const queryClient = new QueryClient();
 
