@@ -1712,6 +1712,36 @@ export default function OrdensServicoPage() {
 
       {/* Double Confirm Cancel OS */}
       <DoubleConfirmDelete open={!!cancelId} onOpenChange={o => !o && cancelCancelAction()} onConfirm={handleCancelOS} />
+
+      {/* Dialog: Justificativa para Não Aprovar */}
+      <Dialog open={!!naoAprovarOS} onOpenChange={o => { if (!o) { setNaoAprovarOS(null); setNaoAprovarJustificativa(""); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldX className="h-5 w-5 text-destructive" />
+              Serviço Não Aprovado pela Fiscalização
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              OS nº {naoAprovarOS?.numero} — Informe o motivo da não aprovação. Esta justificativa será registrada na aba Fiscalização da OS.
+            </p>
+            <div>
+              <Label>Justificativa *</Label>
+              <Textarea
+                value={naoAprovarJustificativa}
+                onChange={e => setNaoAprovarJustificativa(e.target.value)}
+                placeholder="Descreva o motivo da não aprovação..."
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setNaoAprovarOS(null); setNaoAprovarJustificativa(""); }}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleConfirmNaoAprovar}>Confirmar Não Aprovação</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
