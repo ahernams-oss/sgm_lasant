@@ -340,6 +340,20 @@ export default function OrdensServicoPage() {
   const pavimentoSelecionado = (pavimentos as any[]).find((p: any) => p.id === pavimentoId);
   const setores = pavimentoSelecionado?.setores || [];
 
+  // BDI from client's contract
+  const bdiPercentual = useMemo(() => {
+    const contratos = clienteSelecionado?.contratos || [];
+    const contrato = contratos[0];
+    return contrato?.bdi ? Number(contrato.bdi) : 0;
+  }, [clienteSelecionado]);
+
+  // Helper: calc total with BDI
+  const calcTotalComBDI = (matSCO: any[], matEstoque: any[], bdi: number) => {
+    const totalItens = matSCO.reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0)
+      + matEstoque.reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
+    return totalItens * (1 + bdi / 100);
+  };
+
   const getI0Valor = (codSco: string) => {
     const contratos = clienteSelecionado?.contratos || [];
     const contrato = contratos[0];
@@ -446,6 +460,7 @@ export default function OrdensServicoPage() {
       fotos,
       observacoes,
       observacoes_fiscalizacao: observacoesFiscalizacao,
+      bdi: bdiPercentual,
     };
 
     if (editingId) {
@@ -502,9 +517,8 @@ export default function OrdensServicoPage() {
 
   const totalValorFiltrado = useMemo(() => {
     return ordensFiltradas.reduce((acc, os) => {
-      const totalMat = (os.materiais || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
-      const totalEst = (os.materiaisEstoque || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
-      return acc + totalMat + totalEst;
+      const bdi = os.bdi || 0;
+      return acc + calcTotalComBDI(os.materiais || [], os.materiaisEstoque || [], bdi);
     }, 0);
   }, [ordensFiltradas]);
 
@@ -660,7 +674,7 @@ export default function OrdensServicoPage() {
                 <TableHead>Prioridade</TableHead>
                 <TableHead>Situação</TableHead>
                 <TableHead>Data Início</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="text-right">Valor (c/ BDI)</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -690,9 +704,7 @@ export default function OrdensServicoPage() {
                   <TableCell>{os.dataInicio ? os.dataInicio.split("-").reverse().join("/") : "-"}</TableCell>
                   <TableCell className="text-right font-medium">
                     {(() => {
-                      const totalMat = (os.materiais || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
-                      const totalEst = (os.materiaisEstoque || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
-                      const total = totalMat + totalEst;
+                      const total = calcTotalComBDI(os.materiais || [], os.materiaisEstoque || [], os.bdi || 0);
                       return total > 0 ? total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-";
                     })()}
                   </TableCell>
@@ -931,6 +943,36 @@ export default function OrdensServicoPage() {
               <div>
                 <Label>Descrição da Conclusão</Label>
                 <Textarea rows={3} value={descricaoConclusao} onChange={e => setDescricaoConclusao(e.target.value)} placeholder="Descreva a conclusão dos serviços" />
+              </div>
+            )}
+
+            {/* Resumo de Valores com BDI */}
+            {clienteId && (
+              <div className="bg-muted/30 border rounded-lg p-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Valor dos Itens (SCO + Estoque)</p>
+                    <p className="font-bold text-base">
+                      {(materiais.reduce((s, m) => s + (m.valorTotal || 0), 0) + materiaisEstoque.reduce((s, m) => s + (m.valorTotal || 0), 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">BDI (Contrato)</p>
+                    <p className="font-bold text-base">{bdiPercentual}%</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Valor BDI</p>
+                    <p className="font-bold text-base">
+                      {((materiais.reduce((s, m) => s + (m.valorTotal || 0), 0) + materiaisEstoque.reduce((s, m) => s + (m.valorTotal || 0), 0)) * (bdiPercentual / 100)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Valor Total (Itens + BDI)</p>
+                    <p className="font-bold text-base text-primary">
+                      {calcTotalComBDI(materiais, materiaisEstoque, bdiPercentual).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -1544,6 +1586,37 @@ export default function OrdensServicoPage() {
                   </Table>
                 </div>
               )}
+
+              {/* Resumo de Valores */}
+              {(() => {
+                const totalItens = (viewOS.materiais || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0)
+                  + (viewOS.materiaisEstoque || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
+                const bdi = viewOS.bdi || 0;
+                const valorBDI = totalItens * (bdi / 100);
+                const valorTotal = totalItens + valorBDI;
+                return totalItens > 0 ? (
+                  <div className="bg-muted/30 border rounded-lg p-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Valor dos Itens</p>
+                        <p className="font-bold">{totalItens.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">BDI</p>
+                        <p className="font-bold">{bdi}%</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Valor BDI</p>
+                        <p className="font-bold">{valorBDI.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Valor Total</p>
+                        <p className="font-bold text-primary">{valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
 
               <div>
                 <p className="text-xs text-muted-foreground font-semibold">Aprovador:</p>
