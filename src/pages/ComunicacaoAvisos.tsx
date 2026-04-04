@@ -23,7 +23,7 @@ export default function ComunicacaoAvisos() {
   const { usuarios } = useUsuarios();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
-  const confirmDelete = useDoubleConfirmDelete();
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDialog, setDetailDialog] = useState<string | null>(null);
