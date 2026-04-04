@@ -195,11 +195,14 @@ export default function ComunicacaoNotificacoes() {
       </Dialog>
 
       <DoubleConfirmDelete
-        {...confirmDelete.props}
-        onFinalConfirm={async () => {
-          await deleteNotificacao(confirmDelete.props.itemId);
-          confirmDelete.close();
-          toast({ title: "Notificação excluída" });
+        open={!!deleteId}
+        onOpenChange={(open) => { if (!open) cancelDelete(); }}
+        onConfirm={async () => {
+          if (deleteId) {
+            await deleteNotificacao(deleteId);
+            cancelDelete();
+            toast({ title: "Notificação excluída" });
+          }
         }}
       />
     </div>

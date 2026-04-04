@@ -244,11 +244,14 @@ export default function ComunicacaoAvisos() {
       </Dialog>
 
       <DoubleConfirmDelete
-        {...confirmDelete.props}
-        onFinalConfirm={async () => {
-          await deleteAviso(confirmDelete.props.itemId);
-          confirmDelete.close();
-          toast({ title: "Aviso excluído" });
+        open={!!deleteId}
+        onOpenChange={(open) => { if (!open) cancelDelete(); }}
+        onConfirm={async () => {
+          if (deleteId) {
+            await deleteAviso(deleteId);
+            cancelDelete();
+            toast({ title: "Aviso excluído" });
+          }
         }}
       />
     </div>
