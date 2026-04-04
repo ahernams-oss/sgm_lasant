@@ -459,7 +459,7 @@ export default function SolicitacaoServicosPage() {
   return (
     <div className="space-y-6 pt-[15px] pl-0 pr-[10px]">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Solicitação de Serviços</h1>
+        <h1 className="text-2xl font-bold mx-[7px]">Solicitação de Serviços</h1>
         {!formOpen && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
