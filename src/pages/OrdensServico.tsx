@@ -340,6 +340,20 @@ export default function OrdensServicoPage() {
   const pavimentoSelecionado = (pavimentos as any[]).find((p: any) => p.id === pavimentoId);
   const setores = pavimentoSelecionado?.setores || [];
 
+  // BDI from client's contract
+  const bdiPercentual = useMemo(() => {
+    const contratos = clienteSelecionado?.contratos || [];
+    const contrato = contratos[0];
+    return contrato?.bdi ? Number(contrato.bdi) : 0;
+  }, [clienteSelecionado]);
+
+  // Helper: calc total with BDI
+  const calcTotalComBDI = (matSCO: any[], matEstoque: any[], bdi: number) => {
+    const totalItens = matSCO.reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0)
+      + matEstoque.reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
+    return totalItens * (1 + bdi / 100);
+  };
+
   const getI0Valor = (codSco: string) => {
     const contratos = clienteSelecionado?.contratos || [];
     const contrato = contratos[0];
