@@ -21,6 +21,28 @@ async function loadImageAsDataUrl(url: string): Promise<string | null> {
   }
 }
 
+async function compressImage(dataUrl: string, maxWidth = 800, quality = 0.5): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let w = img.width;
+      let h = img.height;
+      if (w > maxWidth) {
+        h = Math.round((h * maxWidth) / w);
+        w = maxWidth;
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
 export async function gerarPdfSolicitacao(
   ss: SolicitacaoServico,
   comImagens: boolean,
@@ -273,24 +295,25 @@ export async function gerarPdfSolicitacao(
     for (let i = 0; i < ss.imagens.length; i++) {
       const dataUrl = await loadImageAsDataUrl(ss.imagens[i]);
       if (dataUrl) {
-        const imgWidth = cw;
-        const imgHeight = 100;
+      const compressed = await compressImage(dataUrl, 800, 0.45);
+      const imgWidth = cw;
+      const imgHeight = 100;
 
-        if (y + imgHeight + 10 > ph - 30) {
-          doc.addPage();
-          y = 20;
-        }
+      if (y + imgHeight + 10 > ph - 30) {
+        doc.addPage();
+        y = 20;
+      }
 
-        doc.setFontSize(8);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(100, 100, 100);
-        doc.text(`Imagem ${i + 1}`, ml, y);
-        y += 4;
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Imagem ${i + 1}`, ml, y);
+      y += 4;
 
-        try {
-          doc.addImage(dataUrl, "JPEG", ml, y, imgWidth, imgHeight);
-        } catch { /* ignore */ }
-        y += imgHeight + 10;
+      try {
+        doc.addImage(compressed, "JPEG", ml, y, imgWidth, imgHeight);
+      } catch { /* ignore */ }
+      y += imgHeight + 10;
       } else {
         doc.setFontSize(8);
         doc.setTextColor(200, 0, 0);
