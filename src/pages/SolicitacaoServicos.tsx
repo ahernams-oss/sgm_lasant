@@ -75,6 +75,8 @@ export default function SolicitacaoServicosPage() {
   const [filterTipo, setFilterTipo] = useState("all");
   const [filterSituacao, setFilterSituacao] = useState("all");
   const [filterVisitado, setFilterVisitado] = useState("all");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchPrinting, setBatchPrinting] = useState(false);
   const [imagens, setImagens] = useState<{ file?: File; url: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -486,6 +488,47 @@ export default function SolicitacaoServicosPage() {
 
   const { paginated, totalPages } = paginate(filtered, page, 7);
 
+  const allPageIds = paginated.map(s => s.id);
+  const allPageSelected = allPageIds.length > 0 && allPageIds.every(id => selectedIds.has(id));
+  const somePageSelected = allPageIds.some(id => selectedIds.has(id));
+
+  const toggleSelectAll = () => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (allPageSelected) {
+        allPageIds.forEach(id => next.delete(id));
+      } else {
+        allPageIds.forEach(id => next.add(id));
+      }
+      return next;
+    });
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBatchPrint = async (comImagens: boolean) => {
+    if (selectedIds.size === 0) return;
+    setBatchPrinting(true);
+    try {
+      const selected = solicitacoes.filter(s => selectedIds.has(s.id));
+      for (const s of selected) {
+        const eq = equipamentos.find(e => e.id === s.equipamentoId);
+        await gerarPdfSolicitacao(s, comImagens, empresa, eq);
+      }
+      toast({ title: `${selected.length} PDF(s) gerado(s) com sucesso` });
+    } catch {
+      toast({ title: "Erro ao gerar PDFs", variant: "destructive" });
+    } finally {
+      setBatchPrinting(false);
+    }
+  };
+
   const showForm = formOpen && form.tipo !== "";
 
   return (
@@ -681,11 +724,32 @@ export default function SolicitacaoServicosPage() {
         </Select>
       </div>
 
+      {/* Batch action bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 p-3 bg-accent rounded-lg border border-border">
+          <span className="text-sm font-medium">{selectedIds.size} solicitação(ões) selecionada(s)</span>
+          <Button size="sm" variant="outline" onClick={() => handleBatchPrint(false)} disabled={batchPrinting}>
+            <Download className="mr-2 h-4 w-4" />Imprimir sem imagem
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => handleBatchPrint(true)} disabled={batchPrinting}>
+            <Download className="mr-2 h-4 w-4" />Imprimir com imagem
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>Limpar seleção</Button>
+        </div>
+      )}
+
       {/* Table */}
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10 text-center">
+                <Checkbox
+                  checked={allPageSelected}
+                  onCheckedChange={toggleSelectAll}
+                  aria-label="Selecionar todos"
+                />
+              </TableHead>
               <TableHead className="cursor-pointer select-none" onClick={() => handleSort("numero")}>Nº <SortIcon field="numero" /></TableHead>
               <TableHead className="cursor-pointer select-none" onClick={() => handleSort("dataHora")}>Data/Hora <SortIcon field="dataHora" /></TableHead>
               <TableHead>Solicitante</TableHead>
@@ -702,12 +766,19 @@ export default function SolicitacaoServicosPage() {
           <TableBody>
             {paginated.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
                   Nenhuma solicitação cadastrada
                 </TableCell>
               </TableRow>
             ) : paginated.map(s => (
-              <TableRow key={s.id}>
+              <TableRow key={s.id} className={selectedIds.has(s.id) ? "bg-accent/50" : ""}>
+                <TableCell className="text-center">
+                  <Checkbox
+                    checked={selectedIds.has(s.id)}
+                    onCheckedChange={() => toggleSelect(s.id)}
+                    aria-label={`Selecionar SS ${s.numero}`}
+                  />
+                </TableCell>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
                     {s.prioridade && (
