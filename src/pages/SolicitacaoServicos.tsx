@@ -728,11 +728,17 @@ export default function SolicitacaoServicosPage() {
                         <Eye className="mr-2 h-4 w-4" />Visualizar
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => gerarPdfSolicitacao(s, false)}>
+                      <DropdownMenuItem onClick={() => {
+                        const eq = equipamentos.find(e => e.id === s.equipamentoId);
+                        gerarPdfSolicitacao(s, false, empresa, eq);
+                      }}>
                         <Download className="mr-2 h-4 w-4" />Imprimir SS (sem imagem)
                       </DropdownMenuItem>
                       {s.imagens && s.imagens.length > 0 && (
-                        <DropdownMenuItem onClick={() => gerarPdfSolicitacao(s, true)}>
+                        <DropdownMenuItem onClick={() => {
+                          const eq = equipamentos.find(e => e.id === s.equipamentoId);
+                          gerarPdfSolicitacao(s, true, empresa, eq);
+                        }}>
                           <Download className="mr-2 h-4 w-4" />Imprimir SS (com imagem)
                         </DropdownMenuItem>
                       )}
