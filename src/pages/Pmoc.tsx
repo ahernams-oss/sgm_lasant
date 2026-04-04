@@ -5,6 +5,8 @@ import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { supabase } from "@/integrations/supabase/client";
+import { downloadPdfPmoc } from "@/lib/gerarPdfPmoc";
+import { downloadExcelPmoc } from "@/lib/gerarExcelPmoc";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,8 +22,9 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Pencil, Trash2, Search, FileText, ClipboardList, Settings, Users,
   Wind, AlertTriangle, BookOpen, BarChart3, CalendarClock, Wrench, ShieldCheck,
-  ThermometerSun, Activity
+  ThermometerSun, Activity, Download, FileSpreadsheet
 } from "lucide-react";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const PERIODICIDADES = ["Diária", "Semanal", "Quinzenal", "Mensal", "Bimestral", "Trimestral", "Semestral", "Anual"];
 const TIPOS_ATIVIDADE = ["Preventiva", "Corretiva", "Inspeção", "Preditiva"];
