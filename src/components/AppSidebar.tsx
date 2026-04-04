@@ -31,6 +31,9 @@ import {
   ShieldCheck,
   Monitor,
   Fan,
+  MessageSquare,
+  Megaphone,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoLasant from "@/assets/Logo_Lasant.png";
@@ -93,6 +96,14 @@ const menuItems = [
   {
     group: "Licitações",
     items: [{ title: "Licitações", url: "/licitacoes", icon: Gavel }],
+  },
+  {
+    group: "Comunicação",
+    items: [
+      { title: "Mensagens", url: "/comunicacao/mensagens", icon: MessageSquare },
+      { title: "Avisos e Comunicados", url: "/comunicacao/avisos", icon: Megaphone },
+      { title: "Notificações de Tarefas", url: "/comunicacao/notificacoes", icon: Bell },
+    ],
   },
   {
     group: "PMOC",

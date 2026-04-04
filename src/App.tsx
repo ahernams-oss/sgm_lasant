@@ -78,6 +78,10 @@ import { SolicitacoesServicosProvider } from "@/contexts/SolicitacoesServicosCon
 import OrdensServicoPage from "@/pages/OrdensServico";
 import { OrdensServicoProvider } from "@/contexts/OrdensServicoContext";
 import { OrcamentosProvider } from "@/contexts/OrcamentosContext";
+import { ComunicacaoProvider } from "@/contexts/ComunicacaoContext";
+import ComunicacaoMensagensPage from "./pages/ComunicacaoMensagens";
+import ComunicacaoAvisosPage from "./pages/ComunicacaoAvisos";
+import ComunicacaoNotificacoesPage from "./pages/ComunicacaoNotificacoes";
 
 const queryClient = new QueryClient();
 
@@ -142,6 +146,9 @@ function AppRoutes() {
             </OrdensServicoProvider>
           }
         />
+        <Route path="/comunicacao/mensagens" element={<ComunicacaoMensagensPage />} />
+        <Route path="/comunicacao/avisos" element={<ComunicacaoAvisosPage />} />
+        <Route path="/comunicacao/notificacoes" element={<ComunicacaoNotificacoesPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -178,6 +185,7 @@ const App = () => (
     <PmocProvider>
     <CategoriasServicosProvider>
     <ServicosProvider>
+    <ComunicacaoProvider>
     <AuthProvider> {/* auth wrapper */}
     <TooltipProvider>
       <Toaster />
@@ -191,6 +199,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </ComunicacaoProvider>
     </ServicosProvider>
     </CategoriasServicosProvider>
     </PmocProvider>

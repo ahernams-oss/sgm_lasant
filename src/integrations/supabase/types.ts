@@ -374,6 +374,195 @@ export type Database = {
         }
         Relationships: []
       }
+      comunicacao_avisos: {
+        Row: {
+          ativo: boolean | null
+          conteudo: string
+          created_at: string | null
+          criado_por: string | null
+          id: string
+          prioridade: string | null
+          titulo: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          conteudo?: string
+          created_at?: string | null
+          criado_por?: string | null
+          id?: string
+          prioridade?: string | null
+          titulo?: string
+        }
+        Update: {
+          ativo?: boolean | null
+          conteudo?: string
+          created_at?: string | null
+          criado_por?: string | null
+          id?: string
+          prioridade?: string | null
+          titulo?: string
+        }
+        Relationships: []
+      }
+      comunicacao_avisos_leitura: {
+        Row: {
+          aviso_id: string
+          id: string
+          lido_em: string | null
+          usuario_email: string | null
+          usuario_nome: string
+        }
+        Insert: {
+          aviso_id: string
+          id?: string
+          lido_em?: string | null
+          usuario_email?: string | null
+          usuario_nome?: string
+        }
+        Update: {
+          aviso_id?: string
+          id?: string
+          lido_em?: string | null
+          usuario_email?: string | null
+          usuario_nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comunicacao_avisos_leitura_aviso_id_fkey"
+            columns: ["aviso_id"]
+            isOneToOne: false
+            referencedRelation: "comunicacao_avisos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comunicacao_conversas: {
+        Row: {
+          created_at: string | null
+          criado_por: string | null
+          id: string
+          tipo: string
+          titulo: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          criado_por?: string | null
+          id?: string
+          tipo?: string
+          titulo?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          criado_por?: string | null
+          id?: string
+          tipo?: string
+          titulo?: string | null
+        }
+        Relationships: []
+      }
+      comunicacao_mensagens: {
+        Row: {
+          conteudo: string
+          conversa_id: string
+          created_at: string | null
+          id: string
+          remetente_email: string | null
+          remetente_nome: string
+        }
+        Insert: {
+          conteudo?: string
+          conversa_id: string
+          created_at?: string | null
+          id?: string
+          remetente_email?: string | null
+          remetente_nome?: string
+        }
+        Update: {
+          conteudo?: string
+          conversa_id?: string
+          created_at?: string | null
+          id?: string
+          remetente_email?: string | null
+          remetente_nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comunicacao_mensagens_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "comunicacao_conversas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comunicacao_notificacoes: {
+        Row: {
+          created_at: string | null
+          criado_por: string | null
+          descricao: string | null
+          destinatario_email: string | null
+          destinatario_nome: string
+          id: string
+          lida: boolean | null
+          tipo: string | null
+          titulo: string
+        }
+        Insert: {
+          created_at?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          destinatario_email?: string | null
+          destinatario_nome?: string
+          id?: string
+          lida?: boolean | null
+          tipo?: string | null
+          titulo?: string
+        }
+        Update: {
+          created_at?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          destinatario_email?: string | null
+          destinatario_nome?: string
+          id?: string
+          lida?: boolean | null
+          tipo?: string | null
+          titulo?: string
+        }
+        Relationships: []
+      }
+      comunicacao_participantes: {
+        Row: {
+          conversa_id: string
+          created_at: string | null
+          id: string
+          usuario_email: string | null
+          usuario_nome: string
+        }
+        Insert: {
+          conversa_id: string
+          created_at?: string | null
+          id?: string
+          usuario_email?: string | null
+          usuario_nome?: string
+        }
+        Update: {
+          conversa_id?: string
+          created_at?: string | null
+          id?: string
+          usuario_email?: string | null
+          usuario_nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comunicacao_participantes_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "comunicacao_conversas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cotacao_convites: {
         Row: {
           comprador: string
