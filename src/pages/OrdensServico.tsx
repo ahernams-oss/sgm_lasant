@@ -946,6 +946,36 @@ export default function OrdensServicoPage() {
               </div>
             )}
 
+            {/* Resumo de Valores com BDI */}
+            {clienteId && (
+              <div className="bg-muted/30 border rounded-lg p-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Valor dos Itens (SCO + Estoque)</p>
+                    <p className="font-bold text-base">
+                      {(materiais.reduce((s, m) => s + (m.valorTotal || 0), 0) + materiaisEstoque.reduce((s, m) => s + (m.valorTotal || 0), 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">BDI (Contrato)</p>
+                    <p className="font-bold text-base">{bdiPercentual}%</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Valor BDI</p>
+                    <p className="font-bold text-base">
+                      {((materiais.reduce((s, m) => s + (m.valorTotal || 0), 0) + materiaisEstoque.reduce((s, m) => s + (m.valorTotal || 0), 0)) * (bdiPercentual / 100)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Valor Total (Itens + BDI)</p>
+                    <p className="font-bold text-base text-primary">
+                      {calcTotalComBDI(materiais, materiaisEstoque, bdiPercentual).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* === ABAS === */}
             <div className="border-t pt-4">
               <Tabs defaultValue="sco" className="w-full">
