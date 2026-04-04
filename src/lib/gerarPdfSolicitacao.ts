@@ -1,154 +1,308 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
+import { Empresa } from "@/contexts/EmpresaContext";
 
-export async function gerarPdfSolicitacao(ss: SolicitacaoServico, comImagens: boolean) {
+const ORANGE = [230, 150, 50] as const;
+const DARK_BLUE = [30, 58, 107] as const;
+const BORDER_COLOR = [180, 180, 180] as const;
+
+async function loadImageAsDataUrl(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function gerarPdfSolicitacao(
+  ss: SolicitacaoServico,
+  comImagens: boolean,
+  empresa?: Empresa,
+  equipamento?: any
+) {
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+  const ml = 14;
+  const mr = 14;
+  const cw = pw - ml - mr; // content width
 
-  // Header
-  doc.setFillColor(30, 58, 107);
-  doc.rect(0, 0, pw, 32, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(16);
-  doc.setFont("helvetica", "bold");
-  doc.text("Solicitação de Serviço", 14, 14);
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.text(`SS Nº ${ss.numero}`, 14, 22);
-  doc.setFontSize(9);
-  const dataFormatada = ss.dataHoraSolicitacao
-    ? new Date(ss.dataHoraSolicitacao).toLocaleString("pt-BR")
-    : "-";
-  doc.text(`Data: ${dataFormatada}`, pw - 14, 14, { align: "right" });
-  doc.text(`Situação: ${ss.situacao}`, pw - 14, 20, { align: "right" });
-  if (ss.prioridade) {
-    doc.text(`Prioridade: ${ss.prioridade}`, pw - 14, 26, { align: "right" });
+  let y = 14;
+
+  // ===== LOGO =====
+  if (empresa?.logoUrl) {
+    const logoData = await loadImageAsDataUrl(empresa.logoUrl);
+    if (logoData) {
+      try {
+        doc.addImage(logoData, "PNG", ml, y, 40, 18);
+      } catch { /* ignore */ }
+    }
   }
 
+  // ===== TITLE =====
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bolditalic");
+  doc.setTextColor(...DARK_BLUE);
+  doc.text("SOLICITAÇÃO DE SERVIÇO", pw / 2, y + 10, { align: "center" });
+
+  // Client name
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "italic");
+  doc.setTextColor(80, 80, 80);
+  doc.text(ss.clienteNome || "Cliente", pw / 2, y + 18, { align: "center" });
+
+  // Separator line
+  y += 24;
+  doc.setDrawColor(...BORDER_COLOR);
+  doc.setLineWidth(0.5);
+  doc.line(ml, y, pw - mr, y);
+  y += 8;
+
+  // ===== INFO TABLE (top section) =====
+  const dataFormatada = ss.dataHoraSolicitacao
+    ? new Date(ss.dataHoraSolicitacao).toLocaleDateString("pt-BR")
+    : "dd/mm/yyyy";
+
+  const cellBorder = { top: { lineWidth: 0.3 }, bottom: { lineWidth: 0.3 }, left: { lineWidth: 0.3 }, right: { lineWidth: 0.3 } };
+
+  autoTable(doc, {
+    startY: y,
+    theme: "plain",
+    styles: { fontSize: 8, cellPadding: 2.5, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30] },
+    columnStyles: {
+      0: { fontStyle: "bold", cellWidth: 32 },
+      1: { cellWidth: 48 },
+      2: { fontStyle: "bold", cellWidth: 28 },
+      3: { cellWidth: "auto" },
+    },
+    body: [
+      [
+        { content: "Número da SS:", styles: { fontStyle: "bold" } },
+        `SS-${ss.numero}`,
+        { content: "Prioridade:", styles: { fontStyle: "bold" } },
+        { content: ss.prioridade || "-", styles: { fontStyle: "bold", textColor: ss.prioridade === "Emergencial" ? [200, 0, 0] : ss.prioridade === "Urgente" ? [200, 150, 0] : [30, 30, 30] } },
+      ],
+      [
+        { content: "Data solicitação:", styles: { fontStyle: "bold" } },
+        dataFormatada,
+        { content: "Situação:", styles: { fontStyle: "bold" } },
+        { content: ss.situacao || "-", styles: { fontStyle: "bold", textColor: [...DARK_BLUE] } },
+      ],
+      [
+        { content: "Data aprovação:", styles: { fontStyle: "bold" } },
+        "-",
+        { content: "Solicitante:", styles: { fontStyle: "bold" } },
+        ss.solicitanteNome || "-",
+      ],
+    ],
+    margin: { left: ml, right: mr },
+  });
+
+  y = (doc as any).lastAutoTable.finalY;
+
+  // ===== LOCATION TABLE =====
+  autoTable(doc, {
+    startY: y,
+    theme: "plain",
+    styles: { fontSize: 8, cellPadding: 2.5, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30] },
+    columnStyles: {
+      0: { fontStyle: "bold", cellWidth: 24 },
+      1: { cellWidth: 56 },
+      2: { fontStyle: "bold", cellWidth: 28 },
+      3: { cellWidth: "auto" },
+    },
+    body: [
+      [
+        { content: "Local:", styles: { fontStyle: "bold" } },
+        ss.localDescricao || "-",
+        { content: "Pavimento:", styles: { fontStyle: "bold" } },
+        ss.pavimentoDescricao || "-",
+      ],
+      [
+        { content: "Setor:", styles: { fontStyle: "bold" } },
+        ss.setorDescricao || "-",
+        { content: "Autorizado por:", styles: { fontStyle: "bold" } },
+        "-",
+      ],
+      [
+        { content: "Visitado:", styles: { fontStyle: "bold" } },
+        ss.visitado ? "Sim" : "Não",
+        "",
+        "",
+      ],
+    ],
+    margin: { left: ml, right: mr },
+  });
+
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // ===== SERVIÇO SOLICITADO =====
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 30, 30);
-  let y = 44;
+  doc.text("Serviço solicitado:", ml, y);
+  y += 3;
 
-  const addSection = (title: string, rows: [string, string][]) => {
-    const filteredRows = rows.filter(([, val]) => val && val.trim() !== "");
-    if (filteredRows.length === 0) return;
+  // Box for description
+  const descHeight = 18;
+  doc.setDrawColor(...BORDER_COLOR);
+  doc.setLineWidth(0.3);
+  doc.rect(ml, y, cw, descHeight);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(40, 40, 40);
+  const descLines = doc.splitTextToSize(ss.descricaoServicos || "", cw - 4);
+  doc.text(descLines, ml + 2, y + 4);
+  y += descHeight + 6;
 
-    const estimatedHeight = filteredRows.length * 10 + 16;
-    const pageHeight = doc.internal.pageSize.getHeight();
-    if (y + estimatedHeight > pageHeight - 30) {
-      doc.addPage();
-      y = 20;
-    }
+  // ===== RESSALVA DA FISCALIZAÇÃO =====
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(30, 30, 30);
+  doc.text("Ressalva da fiscalização:", ml, y);
+  y += 3;
 
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 58, 107);
-    doc.text(title, 14, y);
-    y += 2;
+  const ressalvaHeight = 14;
+  doc.setDrawColor(...BORDER_COLOR);
+  doc.rect(ml, y, cw, ressalvaHeight);
+  if (ss.observacoes) {
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(40, 40, 40);
+    const obsLines = doc.splitTextToSize(ss.observacoes, cw - 4);
+    doc.text(obsLines, ml + 2, y + 4);
+  }
+  y += ressalvaHeight + 6;
 
+  // ===== MATERIAL / SERVIÇO UTILIZADO =====
+  autoTable(doc, {
+    startY: y,
+    theme: "grid",
+    styles: { fontSize: 8, cellPadding: 2.5, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30] },
+    headStyles: {
+      fillColor: [230, 150, 50],
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      halign: "center",
+    },
+    head: [
+      [
+        { content: "MATERIAL / SERVIÇO UTILIZADO", colSpan: 4, styles: { halign: "center" } },
+      ],
+    ],
+    body: [],
+    margin: { left: ml, right: mr },
+  });
+
+  y = (doc as any).lastAutoTable.finalY;
+
+  autoTable(doc, {
+    startY: y,
+    theme: "grid",
+    styles: { fontSize: 8, cellPadding: 2.5, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30], minCellHeight: 8 },
+    headStyles: {
+      fillColor: [255, 255, 255],
+      textColor: [30, 30, 30],
+      fontStyle: "bold",
+      halign: "center",
+    },
+    columnStyles: {
+      0: { cellWidth: 25, halign: "center" },
+      1: { cellWidth: "auto" },
+      2: { cellWidth: 22, halign: "center" },
+      3: { cellWidth: 28, halign: "center" },
+    },
+    head: [["Código", "Descrição", "Unid.", "Quantidade"]],
+    body: [
+      ["", "", "", ""],
+      ["", "", "", ""],
+      ["", "", "", ""],
+      ["", "", "", ""],
+      ["", "", "", ""],
+      ["", "", "", ""],
+    ],
+    margin: { left: ml, right: mr },
+  });
+
+  y = (doc as any).lastAutoTable.finalY + 6;
+
+  // ===== EQUIPMENT INFO (bottom section with orange header) =====
+  if (ss.tipo === "Equipamentos" || equipamento) {
+    const eqData = equipamento || {};
     autoTable(doc, {
       startY: y,
-      head: [],
-      body: filteredRows,
       theme: "plain",
-      styles: { fontSize: 9, cellPadding: 3, textColor: [40, 40, 40] },
+      styles: { fontSize: 8, cellPadding: 2, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30] },
       columnStyles: {
-        0: { fontStyle: "bold", cellWidth: 55, textColor: [80, 80, 80] },
+        0: { fontStyle: "bold", cellWidth: 30, fillColor: [230, 150, 50], textColor: [255, 255, 255] },
         1: { cellWidth: "auto" },
       },
-      margin: { left: 14, right: 14 },
+      body: [
+        ["Modelo:", eqData.modelo || ""],
+        ["Serie:", eqData.serie || ""],
+        ["Amperagem:", eqData.corrente || ""],
+        ["Pressão:", ""],
+        ["Tipo de Gás:", ""],
+        ["Voltagem:", eqData.tensao || ""],
+      ],
+      margin: { left: ml, right: ml + 80 },
     });
 
-    y = (doc as any).lastAutoTable.finalY + 8;
-  };
-
-  addSection("Informações Gerais", [
-    ["Nº SS", String(ss.numero)],
-    ["Data/Hora", dataFormatada],
-    ["Solicitante", ss.solicitanteNome || "-"],
-    ["Tipo", ss.tipo || "-"],
-    ["Situação", ss.situacao],
-    ["Prioridade", ss.prioridade || "-"],
-    ["Visitado", ss.visitado ? "Sim" : "Não"],
-  ]);
-
-  addSection("Localização", [
-    ["Cliente", ss.clienteNome || "-"],
-    ["Local", ss.localDescricao || "-"],
-    ["Pavimento", ss.pavimentoDescricao || "-"],
-    ["Setor", ss.setorDescricao || "-"],
-    ...(ss.tipo === "Equipamentos" ? [["Equipamento", ss.equipamentoNome || "-"] as [string, string]] : []),
-  ]);
-
-  addSection("Descrição dos Serviços", [
-    ["Descrição", ss.descricaoServicos || "-"],
-  ]);
-
-  if (ss.observacoes) {
-    addSection("Observações", [
-      ["Observações", ss.observacoes],
-    ]);
+    y = (doc as any).lastAutoTable.finalY + 6;
   }
 
-  // Histórico
+  // ===== HISTÓRICO =====
   if (ss.historico && ss.historico.length > 0) {
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const estimatedHeight = ss.historico.length * 10 + 20;
-    if (y + estimatedHeight > pageHeight - 30) {
-      doc.addPage();
-      y = 20;
-    }
+    if (y + 40 > ph - 30) { doc.addPage(); y = 20; }
 
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 58, 107);
-    doc.text("Histórico", 14, y);
-    y += 2;
+    doc.setTextColor(...DARK_BLUE);
+    doc.text("Histórico", ml, y);
+    y += 3;
 
     autoTable(doc, {
       startY: y,
+      theme: "striped",
+      styles: { fontSize: 8, cellPadding: 2.5 },
+      headStyles: { fillColor: [...DARK_BLUE], textColor: [255, 255, 255], fontStyle: "bold" },
       head: [["Situação", "Data/Hora", "Usuário"]],
       body: ss.historico.map((h) => [
         h.situacao,
         h.data ? new Date(h.data).toLocaleString("pt-BR") : "-",
         h.usuario || "-",
       ]),
-      theme: "striped",
-      styles: { fontSize: 8, cellPadding: 3 },
-      headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
-      margin: { left: 14, right: 14 },
+      margin: { left: ml, right: mr },
     });
 
     y = (doc as any).lastAutoTable.finalY + 8;
   }
 
-  // Imagens
+  // ===== IMAGENS =====
   if (comImagens && ss.imagens && ss.imagens.length > 0) {
-    const pageHeight = doc.internal.pageSize.getHeight();
-
     doc.addPage();
     y = 20;
 
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 58, 107);
-    doc.text("Imagens", 14, y);
+    doc.setTextColor(...DARK_BLUE);
+    doc.text("Imagens", ml, y);
     y += 8;
 
     for (let i = 0; i < ss.imagens.length; i++) {
-      try {
-        const response = await fetch(ss.imagens[i]);
-        const blob = await response.blob();
-        const dataUrl = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(blob);
-        });
-
-        const imgWidth = pw - 28;
+      const dataUrl = await loadImageAsDataUrl(ss.imagens[i]);
+      if (dataUrl) {
+        const imgWidth = cw;
         const imgHeight = 100;
 
-        if (y + imgHeight + 10 > pageHeight - 30) {
+        if (y + imgHeight + 10 > ph - 30) {
           doc.addPage();
           y = 20;
         }
@@ -156,34 +310,36 @@ export async function gerarPdfSolicitacao(ss: SolicitacaoServico, comImagens: bo
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(100, 100, 100);
-        doc.text(`Imagem ${i + 1}`, 14, y);
+        doc.text(`Imagem ${i + 1}`, ml, y);
         y += 4;
 
-        doc.addImage(dataUrl, "JPEG", 14, y, imgWidth, imgHeight);
+        try {
+          doc.addImage(dataUrl, "JPEG", ml, y, imgWidth, imgHeight);
+        } catch { /* ignore */ }
         y += imgHeight + 10;
-      } catch (err) {
-        console.error("Erro ao carregar imagem para PDF:", err);
+      } else {
         doc.setFontSize(8);
         doc.setTextColor(200, 0, 0);
-        doc.text(`Erro ao carregar imagem ${i + 1}`, 14, y);
+        doc.text(`Erro ao carregar imagem ${i + 1}`, ml, y);
         y += 10;
       }
     }
   }
 
-  // Footer
+  // ===== FOOTER =====
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
-    const pageHeight = doc.internal.pageSize.getHeight();
+    const pageH = doc.internal.pageSize.getHeight();
     doc.setDrawColor(200, 200, 200);
-    doc.line(14, pageHeight - 20, pw - 14, pageHeight - 20);
+    doc.line(ml, pageH - 20, pw - mr, pageH - 20);
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    doc.text("Documento gerado automaticamente — SGM Lasant", 14, pageHeight - 14);
-    doc.text(`Página ${i} de ${pageCount}`, pw / 2, pageHeight - 14, { align: "center" });
-    doc.text(`SS Nº ${ss.numero}`, pw - 14, pageHeight - 14, { align: "right" });
+    const empresaNome = empresa?.nomeFantasia || empresa?.razaoSocial || "SGM Lasant";
+    doc.text(`Documento gerado automaticamente — ${empresaNome}`, ml, pageH - 14);
+    doc.text(`Página ${i} de ${pageCount}`, pw / 2, pageH - 14, { align: "center" });
+    doc.text(`SS Nº ${ss.numero}`, pw - mr, pageH - 14, { align: "right" });
   }
 
   doc.save(`SS_${ss.numero}_${ss.clienteNome?.replace(/\s+/g, "_") || "sem_cliente"}.pdf`);

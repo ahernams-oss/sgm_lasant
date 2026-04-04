@@ -5,6 +5,7 @@ import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useOrcamentos } from "@/contexts/OrcamentosContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import OrcamentoDialog from "@/components/OrcamentoDialog";
@@ -55,6 +56,7 @@ export default function SolicitacaoServicosPage() {
   const { solicitacoes, addSolicitacao, updateSolicitacao, deleteSolicitacao } = useSolicitacoesServicos();
   const { clientes } = useClientes();
   const { equipamentos } = useEquipamentos();
+  const { empresa } = useEmpresa();
   const { toast } = useToast();
   const { usuarioLogado } = useAuth();
 
@@ -726,11 +728,17 @@ export default function SolicitacaoServicosPage() {
                         <Eye className="mr-2 h-4 w-4" />Visualizar
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => gerarPdfSolicitacao(s, false)}>
+                      <DropdownMenuItem onClick={() => {
+                        const eq = equipamentos.find(e => e.id === s.equipamentoId);
+                        gerarPdfSolicitacao(s, false, empresa, eq);
+                      }}>
                         <Download className="mr-2 h-4 w-4" />Imprimir SS (sem imagem)
                       </DropdownMenuItem>
                       {s.imagens && s.imagens.length > 0 && (
-                        <DropdownMenuItem onClick={() => gerarPdfSolicitacao(s, true)}>
+                        <DropdownMenuItem onClick={() => {
+                          const eq = equipamentos.find(e => e.id === s.equipamentoId);
+                          gerarPdfSolicitacao(s, true, empresa, eq);
+                        }}>
                           <Download className="mr-2 h-4 w-4" />Imprimir SS (com imagem)
                         </DropdownMenuItem>
                       )}
