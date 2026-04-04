@@ -9,6 +9,7 @@ import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/Double
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import OrcamentoDialog from "@/components/OrcamentoDialog";
 import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
+import { gerarPdfSolicitacao } from "@/lib/gerarPdfSolicitacao";
 import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -724,6 +725,15 @@ export default function SolicitacaoServicosPage() {
                       <DropdownMenuItem onClick={() => setViewTarget(s)}>
                         <Eye className="mr-2 h-4 w-4" />Visualizar
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => gerarPdfSolicitacao(s, false)}>
+                        <Download className="mr-2 h-4 w-4" />Imprimir SS (sem imagem)
+                      </DropdownMenuItem>
+                      {s.imagens && s.imagens.length > 0 && (
+                        <DropdownMenuItem onClick={() => gerarPdfSolicitacao(s, true)}>
+                          <Download className="mr-2 h-4 w-4" />Imprimir SS (com imagem)
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
                       {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleOpenApproval(s.id)}>
