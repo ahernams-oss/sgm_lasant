@@ -1587,6 +1587,37 @@ export default function OrdensServicoPage() {
                 </div>
               )}
 
+              {/* Resumo de Valores */}
+              {(() => {
+                const totalItens = (viewOS.materiais || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0)
+                  + (viewOS.materiaisEstoque || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
+                const bdi = viewOS.bdi || 0;
+                const valorBDI = totalItens * (bdi / 100);
+                const valorTotal = totalItens + valorBDI;
+                return totalItens > 0 ? (
+                  <div className="bg-muted/30 border rounded-lg p-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Valor dos Itens</p>
+                        <p className="font-bold">{totalItens.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">BDI</p>
+                        <p className="font-bold">{bdi}%</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Valor BDI</p>
+                        <p className="font-bold">{valorBDI.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Valor Total</p>
+                        <p className="font-bold text-primary">{valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
+
               <div>
                 <p className="text-xs text-muted-foreground font-semibold">Aprovador:</p>
                 <p>{viewOS.operadorNome || "-"}</p>
