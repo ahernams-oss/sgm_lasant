@@ -5,6 +5,8 @@ import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { supabase } from "@/integrations/supabase/client";
+import { downloadPdfPmoc } from "@/lib/gerarPdfPmoc";
+import { downloadExcelPmoc } from "@/lib/gerarExcelPmoc";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,8 +22,9 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Pencil, Trash2, Search, FileText, ClipboardList, Settings, Users,
   Wind, AlertTriangle, BookOpen, BarChart3, CalendarClock, Wrench, ShieldCheck,
-  ThermometerSun, Activity
+  ThermometerSun, Activity, Download, FileSpreadsheet
 } from "lucide-react";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const PERIODICIDADES = ["Diária", "Semanal", "Quinzenal", "Mensal", "Bimestral", "Trimestral", "Semestral", "Anual"];
 const TIPOS_ATIVIDADE = ["Preventiva", "Corretiva", "Inspeção", "Preditiva"];
@@ -1047,6 +1050,8 @@ function BibliotecaTab() {
 // ====================== DASHBOARD TAB ======================
 function DashboardTab() {
   const { planos, atividades, ordensServico, inconformidades, medicoesQA, responsaveisTecnicos } = usePmoc();
+  const { clientes } = useClientes();
+  const [filtroCliente, setFiltroCliente] = useState("");
 
   const planosAtivos = planos.filter(p => p.status === "Ativo").length;
   const osAbertas = ordensServico.filter(o => o.status === "Aberta").length;
@@ -1062,8 +1067,68 @@ function DashboardTab() {
   const atividadesComExecucao = atividades.filter(a => a.ultimaExecucao).length;
   const percentualExec = totalAtividades > 0 ? Math.round((atividadesComExecucao / totalAtividades) * 100) : 0;
 
+  // Chart data
+  const osStatusData = [
+    { name: "Abertas", value: osAbertas, color: "#3b82f6" },
+    { name: "Em Execução", value: osExecucao, color: "#f59e0b" },
+    { name: "Concluídas", value: osConcluidas, color: "#22c55e" },
+    { name: "Vencidas", value: osVencidas, color: "#ef4444" },
+  ].filter(d => d.value > 0);
+
+  const tipoAtivData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    atividades.forEach(a => { counts[a.tipo] = (counts[a.tipo] || 0) + 1; });
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  }, [atividades]);
+
+  const clientesUnicos = useMemo(() => {
+    const names = new Set(planos.map(p => p.clienteNome).filter(Boolean));
+    return Array.from(names).sort();
+  }, [planos]);
+
+  const reportData = {
+    planos, atividades, ordensServico, inconformidades,
+    filtroCliente: filtroCliente || undefined,
+  };
+
   return (
     <div className="space-y-6">
+      {/* Export controls */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <Select value={filtroCliente} onValueChange={v => setFiltroCliente(v === "__all" ? "" : v)}>
+          <SelectTrigger className="w-56"><SelectValue placeholder="Filtrar por cliente" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all">Todos os clientes</SelectItem>
+            {clientesUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <div className="flex gap-2 ml-auto">
+          <Button variant="outline" size="sm" onClick={() => downloadPdfPmoc({ ...reportData, tipo: "geral" })}>
+            <Download className="mr-2 h-4 w-4" />PDF Geral
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => downloadExcelPmoc({ ...reportData, tipo: "geral" })}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />Excel Geral
+          </Button>
+          {filtroCliente && (
+            <>
+              <Button variant="outline" size="sm" onClick={() => downloadPdfPmoc({ ...reportData, tipo: "cliente" })}>
+                <Download className="mr-2 h-4 w-4" />PDF Cliente
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => downloadExcelPmoc({ ...reportData, tipo: "cliente" })}>
+                <FileSpreadsheet className="mr-2 h-4 w-4" />Excel Cliente
+              </Button>
+            </>
+          )}
+          <Button variant="outline" size="sm" onClick={() => downloadPdfPmoc({ ...reportData, tipo: "conformidade" })}>
+            <Download className="mr-2 h-4 w-4" />PDF Conformidade
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => downloadExcelPmoc({ ...reportData, tipo: "conformidade" })}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />Excel Conformidade
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Cards Row 1 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Planos Ativos</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold">{planosAtivos}</p></CardContent></Card>
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Atividades Programadas</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold">{totalAtividades}</p></CardContent></Card>
@@ -1071,6 +1136,7 @@ function DashboardTab() {
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">RTs Cadastrados</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold">{responsaveisTecnicos.length}</p></CardContent></Card>
       </div>
 
+      {/* KPI Cards Row 2 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="border-blue-200 dark:border-blue-800"><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-1"><Wrench className="h-4 w-4" />OS Abertas</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-blue-600">{osAbertas}</p></CardContent></Card>
         <Card className="border-amber-200 dark:border-amber-800"><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-1"><Activity className="h-4 w-4" />OS em Execução</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-amber-600">{osExecucao}</p></CardContent></Card>
@@ -1078,6 +1144,43 @@ function DashboardTab() {
         <Card className={osVencidas > 0 ? "border-red-500 bg-red-50 dark:bg-red-950/20" : ""}><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-1"><AlertTriangle className="h-4 w-4" />OS Vencidas</CardTitle></CardHeader><CardContent><p className={`text-2xl font-bold ${osVencidas > 0 ? "text-red-600" : ""}`}>{osVencidas}</p></CardContent></Card>
       </div>
 
+      {/* Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Ordens de Serviço por Status</CardTitle></CardHeader>
+          <CardContent>
+            {osStatusData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie data={osStatusData} cx="50%" cy="50%" outerRadius={90} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                    {osStatusData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : <p className="text-center text-muted-foreground py-12">Nenhuma OS cadastrada</p>}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Atividades por Tipo</CardTitle></CardHeader>
+          <CardContent>
+            {tipoAtivData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={tipoAtivData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" fontSize={12} />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : <p className="text-center text-muted-foreground py-12">Nenhuma atividade cadastrada</p>}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Bottom cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className={incAbertas > 0 ? "border-amber-500" : ""}>
           <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4" />Inconformidades Abertas</CardTitle></CardHeader>
