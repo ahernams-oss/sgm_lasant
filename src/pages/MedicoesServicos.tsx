@@ -371,18 +371,22 @@ const MedicoesServicos = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Cliente / Obra</Label>
-                  <Select value={clienteId} onValueChange={(v) => {
-                    setClienteId(v);
-                    const c = clientes.find(c => c.id === v);
-                    setClienteNome(c?.nome || "");
-                  }}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      {clientes.filter(c => c.tipo === "Cliente").map(c => (
-                        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {ordemCompraId ? (
+                    <Input value={clienteNome} disabled className="bg-muted" />
+                  ) : (
+                    <Select value={clienteId} onValueChange={(v) => {
+                      setClienteId(v);
+                      const c = clientes.find(c => c.id === v);
+                      setClienteNome(c?.nome || "");
+                    }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {clientes.filter(c => c.tipo === "Cliente").map(c => (
+                          <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Fornecedor</Label>
