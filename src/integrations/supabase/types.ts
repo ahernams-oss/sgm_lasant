@@ -1941,6 +1941,7 @@ export type Database = {
           solicitacao_numero: number | null
           solicitante: string | null
           telefone: string | null
+          tipo_os: Json | null
         }
         Insert: {
           anexos?: Json | null
@@ -1983,6 +1984,7 @@ export type Database = {
           solicitacao_numero?: number | null
           solicitante?: string | null
           telefone?: string | null
+          tipo_os?: Json | null
         }
         Update: {
           anexos?: Json | null
@@ -2025,6 +2027,7 @@ export type Database = {
           solicitacao_numero?: number | null
           solicitante?: string | null
           telefone?: string | null
+          tipo_os?: Json | null
         }
         Relationships: []
       }

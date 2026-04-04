@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { useOrdensServico, OrdemServico, MaterialOS, ProfissionalOS, AnexoOS, FotoOS, ObservacaoOS, ObservacaoFiscalizacao } from "@/contexts/OrdensServicoContext";
+import { useOrdensServico, OrdemServico, MaterialOS, ProfissionalOS, AnexoOS, FotoOS, ObservacaoOS, ObservacaoFiscalizacao, TIPOS_OS, TipoOS } from "@/contexts/OrdensServicoContext";
 import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { useServicos } from "@/contexts/ServicosContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -122,6 +122,7 @@ export default function OrdensServicoPage() {
   const [clienteId, setClienteId] = useState("");
   const [nCliente, setNCliente] = useState("");
   const [situacao, setSituacao] = useState("Aberta");
+  const [tipoOs, setTipoOs] = useState<TipoOS>(TIPOS_OS[0]);
   const [dataInicio, setDataInicio] = useState("");
   const [horaInicio, setHoraInicio] = useState("");
   const [dataTermino, setDataTermino] = useState("");
@@ -386,7 +387,7 @@ export default function OrdensServicoPage() {
   };
 
   const resetForm = () => {
-    setClienteId(""); setNCliente(""); setSituacao("Aberta");
+    setClienteId(""); setNCliente(""); setSituacao("Aberta"); setTipoOs(TIPOS_OS[0]);
     setDataInicio(""); setHoraInicio(""); setDataTermino(""); setHoraTermino("");
     setPrioridade("C: NORMAL"); setSolicitante(""); setMatricula("");
     setRamal(""); setTelefone(""); setLocalId(""); setPavimentoId("");
@@ -404,7 +405,7 @@ export default function OrdensServicoPage() {
 
   const handleEdit = (os: OrdemServico) => {
     setEditingId(os.id);
-    setClienteId(os.clienteId); setNCliente(os.nCliente); setSituacao(os.situacao);
+    setClienteId(os.clienteId); setNCliente(os.nCliente); setSituacao(os.situacao); setTipoOs(os.tipoOs);
     setDataInicio(os.dataInicio); setHoraInicio(os.horaInicio);
     setDataTermino(os.dataTermino); setHoraTermino(os.horaTermino);
     setPrioridade(os.prioridade); setSolicitante(os.solicitante);
@@ -461,6 +462,7 @@ export default function OrdensServicoPage() {
       observacoes,
       observacoes_fiscalizacao: observacoesFiscalizacao,
       bdi: bdiPercentual,
+      tipo_os: tipoOs,
     };
 
     if (editingId) {
@@ -779,7 +781,7 @@ export default function OrdensServicoPage() {
           </DialogHeader>
           <div className="space-y-4">
             {/* Identificação */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <Label>Nº Cliente</Label>
                 <Input value={nCliente} onChange={e => setNCliente(e.target.value)} placeholder="Nº do cliente" />
@@ -796,6 +798,18 @@ export default function OrdensServicoPage() {
                     </SelectContent>
                   </Select>
                 )}
+              </div>
+              <div>
+                <Label>Tipo OS *</Label>
+                <Select value={String(tipoOs.cod)} onValueChange={v => {
+                  const found = TIPOS_OS.find(t => String(t.cod) === v);
+                  if (found) setTipoOs(found);
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {TIPOS_OS.map(t => <SelectItem key={t.cod} value={String(t.cod)}>{t.descricao}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -1470,6 +1484,10 @@ export default function OrdensServicoPage() {
                 <div>
                   <p className="text-xs text-muted-foreground">Nº Cliente</p>
                   <p className="font-medium">{viewOS.nCliente || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Tipo OS</p>
+                  <p className="font-medium">{viewOS.tipoOs?.descricao || "-"} ({viewOS.tipoOs?.sigla || "-"})</p>
                 </div>
               </div>
 
