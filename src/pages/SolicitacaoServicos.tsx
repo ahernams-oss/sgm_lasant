@@ -686,8 +686,8 @@ export default function SolicitacaoServicosPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nº</TableHead>
-              <TableHead>Data/Hora</TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("numero")}>Nº <SortIcon field="numero" /></TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("dataHora")}>Data/Hora <SortIcon field="dataHora" /></TableHead>
               <TableHead>Solicitante</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Cliente</TableHead>
