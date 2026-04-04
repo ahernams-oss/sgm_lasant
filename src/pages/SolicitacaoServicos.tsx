@@ -452,7 +452,7 @@ export default function SolicitacaoServicosPage() {
     return Array.from(map.entries());
   }, [solicitacoes]);
 
-  const { paginated, totalPages } = paginate(filtered, page);
+  const { paginated, totalPages } = paginate(filtered, page, 7);
 
   const showForm = formOpen && form.tipo !== "";
 
