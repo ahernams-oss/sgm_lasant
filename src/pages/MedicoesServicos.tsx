@@ -322,6 +322,46 @@ const MedicoesServicos = () => {
               </Button>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Ordem de Compra (Serviço) *</Label>
+                  <Select value={ordemCompraId} onValueChange={(v) => {
+                    setOrdemCompraId(v);
+                    const oc = pedidosServico.find(p => p.id === v);
+                    if (oc) {
+                      setOrdemCompraNumero(oc.numero);
+                      setFornecedorId(oc.fornecedorId);
+                      setFornecedorNome(oc.fornecedorNome);
+                      const ocItens: ItemServico[] = oc.itens.map(i => ({
+                        id: crypto.randomUUID(),
+                        descricao: i.descricao,
+                        unidade: i.unidadeMedida,
+                        quantidade_contratada: i.quantidade,
+                        valor_unitario: i.precoUnitario,
+                        valor_total_contratado: i.valorTotal,
+                      }));
+                      setItens(ocItens.length > 0 ? ocItens : [emptyItem()]);
+                    }
+                  }}>
+                    <SelectTrigger><SelectValue placeholder="Selecione a OC" /></SelectTrigger>
+                    <SelectContent>
+                      {pedidosServico.map(p => (
+                        <SelectItem key={p.id} value={p.id}>
+                          OC #{p.numero} — {p.fornecedorNome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Contrato</Label>
+                  <Input value={contrato} onChange={e => setContrato(e.target.value)} placeholder="Nº do contrato" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Descrição</Label>
+                  <Input value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Descrição do serviço" />
+                </div>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Cliente / Obra</Label>
@@ -356,48 +396,6 @@ const MedicoesServicos = () => {
                       </SelectContent>
                     </Select>
                   )}
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Ordem de Compra (Serviço) *</Label>
-                  <Select value={ordemCompraId} onValueChange={(v) => {
-                    setOrdemCompraId(v);
-                    const oc = pedidosServico.find(p => p.id === v);
-                    if (oc) {
-                      setOrdemCompraNumero(oc.numero);
-                      // Auto-fill fornecedor from OC
-                      setFornecedorId(oc.fornecedorId);
-                      setFornecedorNome(oc.fornecedorNome);
-                      // Auto-fill itens from OC
-                      const ocItens: ItemServico[] = oc.itens.map(i => ({
-                        id: crypto.randomUUID(),
-                        descricao: i.descricao,
-                        unidade: i.unidadeMedida,
-                        quantidade_contratada: i.quantidade,
-                        valor_unitario: i.precoUnitario,
-                        valor_total_contratado: i.valorTotal,
-                      }));
-                      setItens(ocItens.length > 0 ? ocItens : [emptyItem()]);
-                    }
-                  }}>
-                    <SelectTrigger><SelectValue placeholder="Selecione a OC" /></SelectTrigger>
-                    <SelectContent>
-                      {pedidosServico.map(p => (
-                        <SelectItem key={p.id} value={p.id}>
-                          OC #{p.numero} — {p.fornecedorNome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Contrato</Label>
-                  <Input value={contrato} onChange={e => setContrato(e.target.value)} placeholder="Nº do contrato" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Descrição</Label>
-                  <Input value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Descrição do serviço" />
                 </div>
               </div>
 
