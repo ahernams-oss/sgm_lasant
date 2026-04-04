@@ -362,6 +362,42 @@ const MedicoesServicos = () => {
                   <Input value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Descrição do serviço" />
                 </div>
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Cliente / Obra</Label>
+                  <Select value={clienteId} onValueChange={(v) => {
+                    setClienteId(v);
+                    const c = clientes.find(c => c.id === v);
+                    setClienteNome(c?.nome || "");
+                  }}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {clientes.filter(c => c.tipo === "Cliente").map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Fornecedor</Label>
+                  {ordemCompraId ? (
+                    <Input value={fornecedorNome} disabled className="bg-muted" />
+                  ) : (
+                    <Select value={fornecedorId} onValueChange={(v) => {
+                      setFornecedorId(v);
+                      const f = clientes.find(c => c.id === v);
+                      setFornecedorNome(f?.nome || "");
+                    }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {clientes.filter(c => c.tipo === "Fornecedor").map(c => (
+                          <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              </div>
 
               {/* Itens de serviço */}
               <div>
