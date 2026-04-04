@@ -44,6 +44,18 @@ export interface ObservacaoFiscalizacao {
   data: string;
 }
 
+export interface TipoOS {
+  cod: number;
+  descricao: string;
+  sigla: string;
+}
+
+export const TIPOS_OS: TipoOS[] = [
+  { cod: 1, descricao: "Corretiva", sigla: "C" },
+  { cod: 2, descricao: "Preventiva", sigla: "P" },
+  { cod: 3, descricao: "Preditiva", sigla: "D" },
+];
+
 export interface OrdemServico {
   id: string;
   numero: number;
@@ -81,6 +93,7 @@ export interface OrdemServico {
   observacoes: ObservacaoOS[];
   observacoesFiscalizacao: ObservacaoFiscalizacao[];
   bdi: number;
+  tipoOs: TipoOS;
   operadorId: string;
   operadorNome: string;
   createdAt: string;
