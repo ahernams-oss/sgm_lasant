@@ -504,7 +504,7 @@ export default function SolicitacaoServicosPage() {
                   </div>
                   <div>
                     <Label className="font-bold">Situação</Label>
-                    {editId ? (
+                    {editingId ? (
                       <Select value={form.situacao} onValueChange={v => setForm(f => ({ ...f, situacao: v }))}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>{SITUACOES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
