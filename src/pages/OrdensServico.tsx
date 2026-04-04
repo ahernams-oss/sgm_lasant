@@ -405,7 +405,7 @@ export default function OrdensServicoPage() {
 
   const handleEdit = (os: OrdemServico) => {
     setEditingId(os.id);
-    setClienteId(os.clienteId); setNCliente(os.nCliente); setSituacao(os.situacao);
+    setClienteId(os.clienteId); setNCliente(os.nCliente); setSituacao(os.situacao); setTipoOs(os.tipoOs);
     setDataInicio(os.dataInicio); setHoraInicio(os.horaInicio);
     setDataTermino(os.dataTermino); setHoraTermino(os.horaTermino);
     setPrioridade(os.prioridade); setSolicitante(os.solicitante);
