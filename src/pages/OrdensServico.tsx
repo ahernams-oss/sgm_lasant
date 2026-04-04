@@ -517,9 +517,8 @@ export default function OrdensServicoPage() {
 
   const totalValorFiltrado = useMemo(() => {
     return ordensFiltradas.reduce((acc, os) => {
-      const totalMat = (os.materiais || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
-      const totalEst = (os.materiaisEstoque || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
-      return acc + totalMat + totalEst;
+      const bdi = os.bdi || 0;
+      return acc + calcTotalComBDI(os.materiais || [], os.materiaisEstoque || [], bdi);
     }, 0);
   }, [ordensFiltradas]);
 
