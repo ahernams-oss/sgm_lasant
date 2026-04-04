@@ -146,6 +146,9 @@ function AppRoutes() {
             </OrdensServicoProvider>
           }
         />
+        <Route path="/comunicacao/mensagens" element={<ComunicacaoMensagensPage />} />
+        <Route path="/comunicacao/avisos" element={<ComunicacaoAvisosPage />} />
+        <Route path="/comunicacao/notificacoes" element={<ComunicacaoNotificacoesPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
