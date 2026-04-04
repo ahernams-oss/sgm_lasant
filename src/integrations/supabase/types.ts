@@ -1990,6 +1990,8 @@ export type Database = {
           ordem_compra_numero: number | null
           percentual_medido: number | null
           status: string | null
+          valor_empreiteiro: number | null
+          valor_lasant: number | null
           valor_total_contratado: number | null
           valor_total_medido: number | null
         }
@@ -2011,6 +2013,8 @@ export type Database = {
           ordem_compra_numero?: number | null
           percentual_medido?: number | null
           status?: string | null
+          valor_empreiteiro?: number | null
+          valor_lasant?: number | null
           valor_total_contratado?: number | null
           valor_total_medido?: number | null
         }
@@ -2032,6 +2036,8 @@ export type Database = {
           ordem_compra_numero?: number | null
           percentual_medido?: number | null
           status?: string | null
+          valor_empreiteiro?: number | null
+          valor_lasant?: number | null
           valor_total_contratado?: number | null
           valor_total_medido?: number | null
         }

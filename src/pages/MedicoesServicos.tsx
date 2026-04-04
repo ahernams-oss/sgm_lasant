@@ -79,6 +79,8 @@ const MedicoesServicos = () => {
   const [dataPagamento, setDataPagamento] = useState<Date | undefined>(undefined);
   const [ordemCompraId, setOrdemCompraId] = useState("");
   const [ordemCompraNumero, setOrdemCompraNumero] = useState(0);
+  const [valorLasant, setValorLasant] = useState(0);
+  const [valorEmpreiteiro, setValorEmpreiteiro] = useState(0);
 
   // Lançamento state
   const [lancTipo, setLancTipo] = useState<"percentual" | "valor">("percentual");
@@ -98,6 +100,8 @@ const MedicoesServicos = () => {
     setDescricao("");
     setItens([emptyItem()]);
     setObservacoes("");
+    setValorLasant(0);
+    setValorEmpreiteiro(0);
     setEditId(null);
   };
 
@@ -115,6 +119,8 @@ const MedicoesServicos = () => {
       setDescricao(m.descricao);
       setItens(m.itens.length > 0 ? m.itens : [emptyItem()]);
       setObservacoes(m.observacoes);
+      setValorLasant((m as any).valor_lasant || 0);
+      setValorEmpreiteiro((m as any).valor_empreiteiro || 0);
     } else {
       resetForm();
     }
@@ -147,6 +153,8 @@ const MedicoesServicos = () => {
       descricao,
       itens: itensCalc,
       valor_total_contratado: valorTotal,
+      valor_lasant: valorLasant,
+      valor_empreiteiro: valorEmpreiteiro,
       observacoes,
     };
     if (nextNum !== undefined) payload.numero = nextNum;
@@ -406,6 +414,25 @@ const MedicoesServicos = () => {
                       </SelectContent>
                     </Select>
                   )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label>Valor Lasant</Label>
+                  <Input type="number" min="0" step="0.01" value={valorLasant || ""} onChange={e => setValorLasant(Number(e.target.value))} placeholder="0,00" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Valor Empreiteiro</Label>
+                  <Input type="number" min="0" step="0.01" value={valorEmpreiteiro || ""} onChange={e => setValorEmpreiteiro(Number(e.target.value))} placeholder="0,00" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Diferença</Label>
+                  <Input value={fmt(valorLasant - valorEmpreiteiro)} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-2">
+                  <Label>BDI (%)</Label>
+                  <Input value={valorEmpreiteiro > 0 ? `${(((valorLasant - valorEmpreiteiro) / valorEmpreiteiro) * 100).toFixed(2)}%` : "0.00%"} disabled className="bg-muted" />
                 </div>
               </div>
 
