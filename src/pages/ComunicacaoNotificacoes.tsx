@@ -137,7 +137,7 @@ export default function ComunicacaoNotificacoes() {
                         <CheckCircle2 className="h-4 w-4" />
                       </Button>
                     )}
-                    <Button size="icon" variant="ghost" className="text-destructive" onClick={() => confirmDelete.open(n.id)}>
+                    <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(n.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
