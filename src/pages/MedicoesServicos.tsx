@@ -452,11 +452,71 @@ const MedicoesServicos = () => {
           </Card>
         )}
 
+        {/* Filters */}
+        {!showForm && (
+          <Card className="mb-4">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="flex-1 min-w-[200px] max-w-xs">
+                  <Label className="text-xs mb-1 block">Busca</Label>
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Nº, descrição, cliente, contrato..."
+                      value={filterBusca}
+                      onChange={e => { setFilterBusca(e.target.value); setPageMed(1); }}
+                      className="pl-9 h-9"
+                    />
+                  </div>
+                </div>
+                <div className="min-w-[140px]">
+                  <Label className="text-xs mb-1 block">Status</Label>
+                  <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPageMed(1); }}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      {statusOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="min-w-[160px]">
+                  <Label className="text-xs mb-1 block">Cliente</Label>
+                  <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); setPageMed(1); }}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      {clientesMedicao.map(([id, nome]) => <SelectItem key={id} value={id}>{nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="min-w-[160px]">
+                  <Label className="text-xs mb-1 block">Fornecedor</Label>
+                  <Select value={filterFornecedor} onValueChange={v => { setFilterFornecedor(v); setPageMed(1); }}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      {fornecedoresMedicao.map(([id, nome]) => <SelectItem key={id} value={id}>{nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 text-xs">
+                    <X className="h-3 w-3 mr-1" /> Limpar
+                  </Button>
+                )}
+                <span className="text-xs text-muted-foreground ml-auto">
+                  {medicoesFiltradas.length} de {medicoes.length} resultado(s)
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Grid */}
         {loading ? (
           <p className="text-sm text-muted-foreground">Carregando...</p>
-        ) : medicoes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhuma medição cadastrada.</p>
+        ) : medicoesFiltradas.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{medicoes.length === 0 ? "Nenhuma medição cadastrada." : "Nenhum resultado encontrado para os filtros aplicados."}</p>
         ) : (
           <div className="overflow-x-auto rounded-lg border">
             <Table>
