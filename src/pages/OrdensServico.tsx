@@ -781,7 +781,7 @@ export default function OrdensServicoPage() {
           </DialogHeader>
           <div className="space-y-4">
             {/* Identificação */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <Label>Nº Cliente</Label>
                 <Input value={nCliente} onChange={e => setNCliente(e.target.value)} placeholder="Nº do cliente" />
@@ -798,6 +798,18 @@ export default function OrdensServicoPage() {
                     </SelectContent>
                   </Select>
                 )}
+              </div>
+              <div>
+                <Label>Tipo OS *</Label>
+                <Select value={String(tipoOs.cod)} onValueChange={v => {
+                  const found = TIPOS_OS.find(t => String(t.cod) === v);
+                  if (found) setTipoOs(found);
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {TIPOS_OS.map(t => <SelectItem key={t.cod} value={String(t.cod)}>{t.descricao}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
