@@ -425,7 +425,7 @@ export default function RequisicaoComprasPage() {
       <Dialog open={!!viewReq} onOpenChange={() => setViewReq(null)}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>RC-{viewReq && String(viewReq.numero).padStart(4, "0")}</DialogTitle>
+            <DialogTitle>RCS-{viewReq && String(viewReq.numero).padStart(4, "0")}</DialogTitle>
             <DialogDescription>Detalhes da requisição de compras</DialogDescription>
           </DialogHeader>
           {viewReq && (
@@ -479,7 +479,7 @@ export default function RequisicaoComprasPage() {
       <Dialog open={!!historicoReq} onOpenChange={() => setHistoricoReq(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Histórico - RC-{historicoReq && String(historicoReq.numero).padStart(4, "0")}</DialogTitle>
+            <DialogTitle>Histórico - RCS-{historicoReq && String(historicoReq.numero).padStart(4, "0")}</DialogTitle>
             <DialogDescription>Linha do tempo de alterações de status</DialogDescription>
           </DialogHeader>
           {historicoReq && (
