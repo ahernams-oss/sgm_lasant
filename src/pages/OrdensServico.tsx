@@ -286,11 +286,42 @@ export default function OrdensServicoPage() {
 
   // Workflow action handler
   const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
+    // If rejecting, open justification dialog instead
+    if (novaSituacao === "Serviço Não Aprovado pela Fiscalização") {
+      setNaoAprovarOS(os);
+      setNaoAprovarJustificativa("");
+      return;
+    }
     await updateOrdem(os.id, {
       situacao: novaSituacao,
       historico: buildOSHistorico(novaSituacao, os.historico || []),
     });
     toast.success(`OS ${os.numero} alterada para "${novaSituacao}"`);
+  };
+
+  const handleConfirmNaoAprovar = async () => {
+    if (!naoAprovarOS) return;
+    if (!naoAprovarJustificativa.trim()) {
+      toast.error("A justificativa é obrigatória.");
+      return;
+    }
+    const novaObsFisc: ObservacaoFiscalizacao = {
+      id: crypto.randomUUID(),
+      titulo: "Serviço Não Aprovado",
+      descricao: naoAprovarJustificativa.trim(),
+      usuario: usuarioLogado?.nome || "Sistema",
+      data: new Date().toISOString().split("T")[0],
+    };
+    const obsExistentes: ObservacaoFiscalizacao[] = Array.isArray(naoAprovarOS.observacoesFiscalizacao)
+      ? naoAprovarOS.observacoesFiscalizacao : [];
+    await updateOrdem(naoAprovarOS.id, {
+      situacao: "Serviço Não Aprovado pela Fiscalização",
+      historico: buildOSHistorico("Serviço Não Aprovado pela Fiscalização", naoAprovarOS.historico || []),
+      observacoes_fiscalizacao: [...obsExistentes, novaObsFisc],
+    });
+    toast.success(`OS ${naoAprovarOS.numero} alterada para "Serviço Não Aprovado pela Fiscalização"`);
+    setNaoAprovarOS(null);
+    setNaoAprovarJustificativa("");
   };
 
   const handleCancelOS = async () => {
