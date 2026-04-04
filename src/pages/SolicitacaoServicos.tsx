@@ -452,7 +452,7 @@ export default function SolicitacaoServicosPage() {
     return Array.from(map.entries());
   }, [solicitacoes]);
 
-  const { paginated, totalPages } = paginate(filtered, page);
+  const { paginated, totalPages } = paginate(filtered, page, 7);
 
   const showForm = formOpen && form.tipo !== "";
 
@@ -804,7 +804,7 @@ export default function SolicitacaoServicosPage() {
         </Table>
       </div>
 
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={7} />
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
       <DoubleConfirmDelete open={!!cancelId} onOpenChange={o => !o && abortCancel()} onConfirm={handleCancelar} />
 
