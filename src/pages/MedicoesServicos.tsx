@@ -332,6 +332,12 @@ const MedicoesServicos = () => {
                       setOrdemCompraNumero(oc.numero);
                       setFornecedorId(oc.fornecedorId);
                       setFornecedorNome(oc.fornecedorNome);
+                      // Auto-fill cliente from requisição vinculada
+                      const req = requisicoes.find(r => r.id === oc.requisicaoId);
+                      if (req) {
+                        setClienteId(req.centroCusto);
+                        setClienteNome(req.centroCustoNome);
+                      }
                       const ocItens: ItemServico[] = oc.itens.map(i => ({
                         id: crypto.randomUUID(),
                         descricao: i.descricao,
