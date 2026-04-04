@@ -517,13 +517,14 @@ export default function SolicitacaoServicosPage() {
     setBatchPrinting(true);
     try {
       const selected = solicitacoes.filter(s => selectedIds.has(s.id));
-      for (const s of selected) {
-        const eq = equipamentos.find(e => e.id === s.equipamentoId);
-        await gerarPdfSolicitacao(s, comImagens, empresa, eq);
-      }
-      toast({ title: `${selected.length} PDF(s) gerado(s) com sucesso` });
+      const lista = selected.map(s => ({
+        ss: s,
+        equipamento: equipamentos.find(e => e.id === s.equipamentoId),
+      }));
+      await gerarPdfSolicitacaoLote(lista, comImagens, empresa);
+      toast({ title: `PDF gerado com ${selected.length} solicitação(ões)` });
     } catch {
-      toast({ title: "Erro ao gerar PDFs", variant: "destructive" });
+      toast({ title: "Erro ao gerar PDF", variant: "destructive" });
     } finally {
       setBatchPrinting(false);
     }
