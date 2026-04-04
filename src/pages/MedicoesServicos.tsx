@@ -340,18 +340,22 @@ const MedicoesServicos = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Fornecedor</Label>
-                  <Select value={fornecedorId} onValueChange={(v) => {
-                    setFornecedorId(v);
-                    const f = clientes.find(c => c.id === v);
-                    setFornecedorNome(f?.nome || "");
-                  }}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      {clientes.filter(c => c.tipo === "Fornecedor").map(c => (
-                        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {ordemCompraId ? (
+                    <Input value={fornecedorNome} disabled className="bg-muted" />
+                  ) : (
+                    <Select value={fornecedorId} onValueChange={(v) => {
+                      setFornecedorId(v);
+                      const f = clientes.find(c => c.id === v);
+                      setFornecedorNome(f?.nome || "");
+                    }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {clientes.filter(c => c.tipo === "Fornecedor").map(c => (
+                          <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -365,6 +369,16 @@ const MedicoesServicos = () => {
                       // Auto-fill fornecedor from OC
                       setFornecedorId(oc.fornecedorId);
                       setFornecedorNome(oc.fornecedorNome);
+                      // Auto-fill itens from OC
+                      const ocItens: ItemServico[] = oc.itens.map(i => ({
+                        id: crypto.randomUUID(),
+                        descricao: i.descricao,
+                        unidade: i.unidadeMedida,
+                        quantidade_contratada: i.quantidade,
+                        valor_unitario: i.precoUnitario,
+                        valor_total_contratado: i.valorTotal,
+                      }));
+                      setItens(ocItens.length > 0 ? ocItens : [emptyItem()]);
                     }
                   }}>
                     <SelectTrigger><SelectValue placeholder="Selecione a OC" /></SelectTrigger>
@@ -391,9 +405,11 @@ const MedicoesServicos = () => {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <Label className="text-sm font-semibold">Itens de Serviço</Label>
-                  <Button type="button" variant="outline" size="sm" onClick={addItem}>
-                    <Plus className="h-3 w-3 mr-1" /> Adicionar Item
-                  </Button>
+                  {!ordemCompraId && (
+                    <Button type="button" variant="outline" size="sm" onClick={addItem}>
+                      <Plus className="h-3 w-3 mr-1" /> Adicionar Item
+                    </Button>
+                  )}
                 </div>
                 <div className="overflow-x-auto">
                   <Table>
@@ -411,22 +427,22 @@ const MedicoesServicos = () => {
                       {itens.map((item, idx) => (
                         <TableRow key={item.id}>
                           <TableCell>
-                            <Input value={item.descricao} onChange={e => updateItem(idx, "descricao", e.target.value)} />
+                            <Input value={item.descricao} onChange={e => updateItem(idx, "descricao", e.target.value)} disabled={!!ordemCompraId} className={ordemCompraId ? "bg-muted" : ""} />
                           </TableCell>
                           <TableCell>
-                            <Input className="w-20" value={item.unidade} onChange={e => updateItem(idx, "unidade", e.target.value)} />
+                            <Input className={cn("w-20", ordemCompraId && "bg-muted")} value={item.unidade} onChange={e => updateItem(idx, "unidade", e.target.value)} disabled={!!ordemCompraId} />
                           </TableCell>
                           <TableCell>
-                            <Input type="number" className="w-28" value={item.quantidade_contratada} onChange={e => updateItem(idx, "quantidade_contratada", Number(e.target.value))} />
+                            <Input type="number" className={cn("w-28", ordemCompraId && "bg-muted")} value={item.quantidade_contratada} onChange={e => updateItem(idx, "quantidade_contratada", Number(e.target.value))} disabled={!!ordemCompraId} />
                           </TableCell>
                           <TableCell>
-                            <Input type="number" className="w-28" value={item.valor_unitario} onChange={e => updateItem(idx, "valor_unitario", Number(e.target.value))} />
+                            <Input type="number" className={cn("w-28", ordemCompraId && "bg-muted")} value={item.valor_unitario} onChange={e => updateItem(idx, "valor_unitario", Number(e.target.value))} disabled={!!ordemCompraId} />
                           </TableCell>
                           <TableCell className="font-medium">
                             {fmt(item.quantidade_contratada * item.valor_unitario)}
                           </TableCell>
                           <TableCell>
-                            {itens.length > 1 && (
+                            {!ordemCompraId && itens.length > 1 && (
                               <Button variant="ghost" size="icon" onClick={() => removeItem(idx)}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
