@@ -122,6 +122,7 @@ export default function OrdensServicoPage() {
   const [clienteId, setClienteId] = useState("");
   const [nCliente, setNCliente] = useState("");
   const [situacao, setSituacao] = useState("Aberta");
+  const [tipoOs, setTipoOs] = useState<TipoOS>(TIPOS_OS[0]);
   const [dataInicio, setDataInicio] = useState("");
   const [horaInicio, setHoraInicio] = useState("");
   const [dataTermino, setDataTermino] = useState("");
