@@ -147,6 +147,7 @@ const rowToOrdem = (r: any): OrdemServico => ({
   observacoes: Array.isArray(r.observacoes) ? r.observacoes : [],
   observacoesFiscalizacao: Array.isArray(r.observacoes_fiscalizacao) ? r.observacoes_fiscalizacao : [],
   bdi: r.bdi ?? 0,
+  tipoOs: r.tipo_os && typeof r.tipo_os === "object" ? r.tipo_os : { cod: 1, descricao: "Corretiva", sigla: "C" },
   operadorId: r.operador_id ?? "",
   operadorNome: r.operador_nome ?? "",
   createdAt: r.created_at ?? "",
