@@ -208,7 +208,9 @@ export default function MateriaisServicosPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div><Label>Estoque Mínimo</Label><Input type="number" min="0" value={form.estoqueMinimo} onChange={e => setForm(f => ({ ...f, estoqueMinimo: Number(e.target.value) }))} placeholder="0" /></div>
+            {form.tipo !== "Serviço" && (
+              <div><Label>Estoque Mínimo</Label><Input type="number" min="0" value={form.estoqueMinimo} onChange={e => setForm(f => ({ ...f, estoqueMinimo: Number(e.target.value) }))} placeholder="0" /></div>
+            )}
             <div>
               <Label className="flex items-center gap-2"><Camera className="h-4 w-4" />Fotos ({form.fotos.length}/5)</Label>
               <div className="flex flex-wrap gap-2 mt-2">
