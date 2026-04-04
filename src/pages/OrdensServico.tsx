@@ -26,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
@@ -934,16 +934,21 @@ export default function OrdensServicoPage() {
               </div>
             )}
 
-            {/* === ABAS COLAPSÁVEIS === */}
-            <div className="space-y-2 border-t pt-4">
+            {/* === ABAS === */}
+            <div className="border-t pt-4">
+              <Tabs defaultValue="sco" className="w-full">
+                <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/40 p-1">
+                  <TabsTrigger value="sco" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> SCO</TabsTrigger>
+                  <TabsTrigger value="estoque" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> Estoque</TabsTrigger>
+                  <TabsTrigger value="profissionais" className="flex items-center gap-1.5 text-xs"><Wrench className="h-3.5 w-3.5" /> Profissionais</TabsTrigger>
+                  <TabsTrigger value="anexos" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> Anexos ({anexos.length}/5)</TabsTrigger>
+                  <TabsTrigger value="fotos" className="flex items-center gap-1.5 text-xs"><Eye className="h-3.5 w-3.5" /> Fotos ({fotos.length}/5)</TabsTrigger>
+                  <TabsTrigger value="observacoes" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> Observações</TabsTrigger>
+                  <TabsTrigger value="fiscalizacao" className="flex items-center gap-1.5 text-xs"><AlertTriangle className="h-3.5 w-3.5" /> Fiscalização</TabsTrigger>
+                </TabsList>
 
-              {/* 1. Materiais e Serviços - SCO */}
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
-                  <ClipboardList className="h-4 w-4" /> Materiais e Serviços - SCO
-                  <ChevronDown className="h-4 w-4 ml-auto" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="p-3 space-y-3">
+                {/* 1. Materiais e Serviços - SCO */}
+                <TabsContent value="sco" className="space-y-3 p-3">
                   <div className="flex gap-2 items-end">
                     <div className="flex-1">
                       <Label>Código</Label>
@@ -1037,16 +1042,10 @@ export default function OrdensServicoPage() {
                       </Table>
                     </>
                   )}
-                </CollapsibleContent>
-              </Collapsible>
+                </TabsContent>
 
-              {/* 2. Materiais do Estoque */}
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
-                  <ClipboardList className="h-4 w-4" /> Materiais do Estoque
-                  <ChevronDown className="h-4 w-4 ml-auto" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="p-3 space-y-3">
+                {/* 2. Materiais do Estoque */}
+                <TabsContent value="estoque" className="space-y-3 p-3">
                   {!clienteId ? (
                     <p className="text-sm text-muted-foreground">Selecione um cliente para visualizar o estoque disponível.</p>
                   ) : saldosCliente.length === 0 ? (
@@ -1157,16 +1156,10 @@ export default function OrdensServicoPage() {
                       </TableBody>
                     </Table>
                   )}
-                </CollapsibleContent>
-              </Collapsible>
+                </TabsContent>
 
-              {/* 3. Profissionais */}
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
-                  <Wrench className="h-4 w-4" /> Profissionais
-                  <ChevronDown className="h-4 w-4 ml-auto" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="p-3 space-y-3">
+                {/* 3. Profissionais */}
+                <TabsContent value="profissionais" className="space-y-3 p-3">
                   <div className="flex gap-2 items-end">
                     <div className="flex-1">
                       <Label>Funcionário</Label>
@@ -1200,16 +1193,10 @@ export default function OrdensServicoPage() {
                       </TableBody>
                     </Table>
                   )}
-                </CollapsibleContent>
-              </Collapsible>
+                </TabsContent>
 
-              {/* 4. Anexos */}
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
-                  <ClipboardList className="h-4 w-4" /> Anexos ({anexos.length}/5)
-                  <ChevronDown className="h-4 w-4 ml-auto" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="p-3 space-y-3">
+                {/* 4. Anexos */}
+                <TabsContent value="anexos" className="space-y-3 p-3">
                   {anexos.length < 5 && (
                     <div className="flex gap-2 items-end">
                       <div className="flex-1">
@@ -1260,16 +1247,10 @@ export default function OrdensServicoPage() {
                       ))}
                     </div>
                   )}
-                </CollapsibleContent>
-              </Collapsible>
+                </TabsContent>
 
-              {/* 5. Fotos */}
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
-                  <Eye className="h-4 w-4" /> Fotos ({fotos.length}/5)
-                  <ChevronDown className="h-4 w-4 ml-auto" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="p-3 space-y-3">
+                {/* 5. Fotos */}
+                <TabsContent value="fotos" className="space-y-3 p-3">
                   {fotos.length < 5 && (
                     <div className="flex gap-2 items-end">
                       <div className="flex-1">
@@ -1318,16 +1299,10 @@ export default function OrdensServicoPage() {
                       ))}
                     </div>
                   )}
-                </CollapsibleContent>
-              </Collapsible>
+                </TabsContent>
 
-              {/* 6. Observações */}
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
-                  <ClipboardList className="h-4 w-4" /> Observações
-                  <ChevronDown className="h-4 w-4 ml-auto" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="p-3 space-y-3">
+                {/* 6. Observações */}
+                <TabsContent value="observacoes" className="space-y-3 p-3">
                   <div className="flex gap-2 items-end">
                     <div className="flex-1">
                       <Label>Observação</Label>
@@ -1353,16 +1328,10 @@ export default function OrdensServicoPage() {
                       ))}
                     </div>
                   )}
-                </CollapsibleContent>
-              </Collapsible>
+                </TabsContent>
 
-              {/* 7. Observações (Fiscalização) */}
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors font-semibold text-sm">
-                  <AlertTriangle className="h-4 w-4" /> Observações (Fiscalização)
-                  <ChevronDown className="h-4 w-4 ml-auto" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="p-3 space-y-3">
+                {/* 7. Observações (Fiscalização) */}
+                <TabsContent value="fiscalizacao" className="space-y-3 p-3">
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <div className="flex-1">
@@ -1400,9 +1369,8 @@ export default function OrdensServicoPage() {
                       ))}
                     </div>
                   )}
-                </CollapsibleContent>
-              </Collapsible>
-
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
           <DialogFooter>
