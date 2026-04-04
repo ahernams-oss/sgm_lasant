@@ -5,6 +5,7 @@ import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useOrcamentos } from "@/contexts/OrcamentosContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import OrcamentoDialog from "@/components/OrcamentoDialog";
