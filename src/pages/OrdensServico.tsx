@@ -1452,8 +1452,7 @@ export default function OrdensServicoPage() {
                       {observacoesFiscalizacao.map(o => (
                         <div key={o.id} className="p-2 bg-muted/30 rounded text-sm space-y-1">
                           <div className="flex justify-between items-center">
-                            <span className="font-medium text-xs">{o.titulo && `${o.titulo} — `}{o.usuario} - {o.data.split("-").reverse().join("/")}</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setObservacoesFiscalizacao(observacoesFiscalizacao.filter(x => x.id !== o.id))}><Trash2 className="h-3 w-3" /></Button>
+                          <span className="font-medium text-xs">{o.titulo && `${o.titulo} — `}{o.usuario} - {o.data.split("-").reverse().join("/")}</span>
                           </div>
                           <p className="text-xs">{o.descricao}</p>
                         </div>
