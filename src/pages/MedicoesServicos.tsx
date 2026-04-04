@@ -440,6 +440,7 @@ const MedicoesServicos = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nº</TableHead>
+                  <TableHead>OC</TableHead>
                   <TableHead>Cliente / Obra</TableHead>
                   <TableHead>Contrato</TableHead>
                   <TableHead>Descrição</TableHead>
@@ -454,6 +455,7 @@ const MedicoesServicos = () => {
                 {paginate(medicoes, pageMed).paginated.map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="font-mono">{m.numero}</TableCell>
+                    <TableCell className="font-mono">{(m as any).ordem_compra_numero || "—"}</TableCell>
                     <TableCell>{m.cliente_nome}</TableCell>
                     <TableCell>{m.contrato}</TableCell>
                     <TableCell>{m.descricao}</TableCell>
