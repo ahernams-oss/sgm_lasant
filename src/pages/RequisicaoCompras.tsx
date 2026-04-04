@@ -205,7 +205,7 @@ export default function RequisicaoComprasPage() {
               <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma requisição encontrada</TableCell></TableRow>
             ) : filtered.map(r => (
               <TableRow key={r.id}>
-                <TableCell className="font-mono font-bold">RC-{String(r.numero).padStart(4, "0")}</TableCell>
+                <TableCell className="font-mono font-bold">RCS-{String(r.numero).padStart(4, "0")}</TableCell>
                 <TableCell>{format(new Date(r.dataCriacao), "dd/MM/yyyy HH:mm")}</TableCell>
                 <TableCell>{r.solicitante}</TableCell>
                 <TableCell>{r.centroCustoNome}</TableCell>
