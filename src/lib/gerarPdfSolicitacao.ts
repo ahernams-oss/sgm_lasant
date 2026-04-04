@@ -43,18 +43,19 @@ async function compressImage(dataUrl: string, maxWidth = 800, quality = 0.5): Pr
   });
 }
 
-export async function gerarPdfSolicitacao(
+/** Renders a single SS into an existing jsPDF doc (starting on current page). */
+async function renderSolicitacao(
+  doc: jsPDF,
   ss: SolicitacaoServico,
   comImagens: boolean,
   empresa?: Empresa,
   equipamento?: any
 ) {
-  const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 14;
   const mr = 14;
-  const cw = pw - ml - mr; // content width
+  const cw = pw - ml - mr;
 
   let y = 14;
 
@@ -74,25 +75,21 @@ export async function gerarPdfSolicitacao(
   doc.setTextColor(...DARK_BLUE);
   doc.text("SOLICITAÇÃO DE SERVIÇO", pw / 2, y + 10, { align: "center" });
 
-  // Client name
   doc.setFontSize(11);
   doc.setFont("helvetica", "italic");
   doc.setTextColor(80, 80, 80);
   doc.text(ss.clienteNome || "Cliente", pw / 2, y + 18, { align: "center" });
 
-  // Separator line
   y += 24;
   doc.setDrawColor(...BORDER_COLOR);
   doc.setLineWidth(0.5);
   doc.line(ml, y, pw - mr, y);
   y += 8;
 
-  // ===== INFO TABLE (top section) =====
+  // ===== INFO TABLE =====
   const dataFormatada = ss.dataHoraSolicitacao
     ? new Date(ss.dataHoraSolicitacao).toLocaleDateString("pt-BR")
     : "dd/mm/yyyy";
-
-  const cellBorder = { top: { lineWidth: 0.3 }, bottom: { lineWidth: 0.3 }, left: { lineWidth: 0.3 }, right: { lineWidth: 0.3 } };
 
   autoTable(doc, {
     startY: y,
@@ -172,7 +169,6 @@ export async function gerarPdfSolicitacao(
   doc.text("Serviço solicitado:", ml, y);
   y += 3;
 
-  // Box for description
   const descHeight = 18;
   doc.setDrawColor(...BORDER_COLOR);
   doc.setLineWidth(0.3);
@@ -208,17 +204,8 @@ export async function gerarPdfSolicitacao(
     startY: y,
     theme: "grid",
     styles: { fontSize: 8, cellPadding: 2.5, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30] },
-    headStyles: {
-      fillColor: [230, 150, 50],
-      textColor: [255, 255, 255],
-      fontStyle: "bold",
-      halign: "center",
-    },
-    head: [
-      [
-        { content: "MATERIAL / SERVIÇO UTILIZADO", colSpan: 4, styles: { halign: "center" } },
-      ],
-    ],
+    headStyles: { fillColor: [230, 150, 50], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
+    head: [[{ content: "MATERIAL / SERVIÇO UTILIZADO", colSpan: 4, styles: { halign: "center" } }]],
     body: [],
     margin: { left: ml, right: mr },
   });
@@ -229,12 +216,7 @@ export async function gerarPdfSolicitacao(
     startY: y,
     theme: "grid",
     styles: { fontSize: 8, cellPadding: 2.5, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30], minCellHeight: 8 },
-    headStyles: {
-      fillColor: [255, 255, 255],
-      textColor: [30, 30, 30],
-      fontStyle: "bold",
-      halign: "center",
-    },
+    headStyles: { fillColor: [255, 255, 255], textColor: [30, 30, 30], fontStyle: "bold", halign: "center" },
     columnStyles: {
       0: { cellWidth: 25, halign: "center" },
       1: { cellWidth: "auto" },
@@ -242,20 +224,13 @@ export async function gerarPdfSolicitacao(
       3: { cellWidth: 28, halign: "center" },
     },
     head: [["Código", "Descrição", "Unid.", "Quantidade"]],
-    body: [
-      ["", "", "", ""],
-      ["", "", "", ""],
-      ["", "", "", ""],
-      ["", "", "", ""],
-      ["", "", "", ""],
-      ["", "", "", ""],
-    ],
+    body: [["", "", "", ""], ["", "", "", ""], ["", "", "", ""], ["", "", "", ""], ["", "", "", ""], ["", "", "", ""]],
     margin: { left: ml, right: mr },
   });
 
   y = (doc as any).lastAutoTable.finalY + 6;
 
-  // ===== EQUIPMENT INFO (bottom section with orange header) =====
+  // ===== EQUIPMENT INFO =====
   if (ss.tipo === "Equipamentos" || equipamento) {
     const eqData = equipamento || {};
     autoTable(doc, {
@@ -276,10 +251,8 @@ export async function gerarPdfSolicitacao(
       ],
       margin: { left: ml, right: ml + 80 },
     });
-
     y = (doc as any).lastAutoTable.finalY + 6;
   }
-
 
   // ===== IMAGENS =====
   if (comImagens && ss.imagens && ss.imagens.length > 0) {
@@ -295,25 +268,25 @@ export async function gerarPdfSolicitacao(
     for (let i = 0; i < ss.imagens.length; i++) {
       const dataUrl = await loadImageAsDataUrl(ss.imagens[i]);
       if (dataUrl) {
-      const compressed = await compressImage(dataUrl, 800, 0.45);
-      const imgWidth = cw;
-      const imgHeight = 100;
+        const compressed = await compressImage(dataUrl, 800, 0.45);
+        const imgWidth = cw;
+        const imgHeight = 100;
 
-      if (y + imgHeight + 10 > ph - 30) {
-        doc.addPage();
-        y = 20;
-      }
+        if (y + imgHeight + 10 > ph - 30) {
+          doc.addPage();
+          y = 20;
+        }
 
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Imagem ${i + 1}`, ml, y);
-      y += 4;
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Imagem ${i + 1}`, ml, y);
+        y += 4;
 
-      try {
-        doc.addImage(compressed, "JPEG", ml, y, imgWidth, imgHeight);
-      } catch { /* ignore */ }
-      y += imgHeight + 10;
+        try {
+          doc.addImage(compressed, "JPEG", ml, y, imgWidth, imgHeight);
+        } catch { /* ignore */ }
+        y += imgHeight + 10;
       } else {
         doc.setFontSize(8);
         doc.setTextColor(200, 0, 0);
@@ -322,9 +295,16 @@ export async function gerarPdfSolicitacao(
       }
     }
   }
+}
 
-  // ===== FOOTER =====
+/** Adds footers to all pages of the doc. */
+function addFooters(doc: jsPDF, empresa?: Empresa, ssNumero?: string) {
+  const pw = doc.internal.pageSize.getWidth();
+  const ml = 14;
+  const mr = 14;
   const pageCount = doc.getNumberOfPages();
+  const empresaNome = empresa?.nomeFantasia || empresa?.razaoSocial || "SGM Lasant";
+
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     const pageH = doc.internal.pageSize.getHeight();
@@ -333,11 +313,62 @@ export async function gerarPdfSolicitacao(
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    const empresaNome = empresa?.nomeFantasia || empresa?.razaoSocial || "SGM Lasant";
     doc.text(`Documento gerado automaticamente — ${empresaNome}`, ml, pageH - 14);
     doc.text(`Página ${i} de ${pageCount}`, pw / 2, pageH - 14, { align: "center" });
-    doc.text(`SS Nº ${ss.numero}`, pw - mr, pageH - 14, { align: "right" });
+    if (ssNumero) {
+      doc.text(`SS Nº ${ssNumero}`, pw - mr, pageH - 14, { align: "right" });
+    }
+  }
+}
+
+/** Generates a single PDF for one SS. */
+export async function gerarPdfSolicitacao(
+  ss: SolicitacaoServico,
+  comImagens: boolean,
+  empresa?: Empresa,
+  equipamento?: any
+) {
+  const doc = new jsPDF();
+  await renderSolicitacao(doc, ss, comImagens, empresa, equipamento);
+  addFooters(doc, empresa, String(ss.numero));
+  doc.save(`SS_${ss.numero}_${ss.clienteNome?.replace(/\s+/g, "_") || "sem_cliente"}.pdf`);
+}
+
+/** Generates a single PDF containing multiple SS (one per page group). */
+export async function gerarPdfSolicitacaoLote(
+  lista: { ss: SolicitacaoServico; equipamento?: any }[],
+  comImagens: boolean,
+  empresa?: Empresa
+) {
+  if (lista.length === 0) return;
+
+  const doc = new jsPDF();
+
+  for (let idx = 0; idx < lista.length; idx++) {
+    if (idx > 0) doc.addPage();
+    const { ss, equipamento } = lista[idx];
+    await renderSolicitacao(doc, ss, comImagens, empresa, equipamento);
   }
 
-  doc.save(`SS_${ss.numero}_${ss.clienteNome?.replace(/\s+/g, "_") || "sem_cliente"}.pdf`);
+  // Footers on all pages
+  const pw = doc.internal.pageSize.getWidth();
+  const ml = 14;
+  const mr = 14;
+  const pageCount = doc.getNumberOfPages();
+  const empresaNome = empresa?.nomeFantasia || empresa?.razaoSocial || "SGM Lasant";
+
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    const pageH = doc.internal.pageSize.getHeight();
+    doc.setDrawColor(200, 200, 200);
+    doc.line(ml, pageH - 20, pw - mr, pageH - 20);
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Documento gerado automaticamente — ${empresaNome}`, ml, pageH - 14);
+    doc.text(`Página ${i} de ${pageCount}`, pw / 2, pageH - 14, { align: "center" });
+  }
+
+  const numeros = lista.map(l => l.ss.numero).join("_");
+  doc.save(`SS_Lote_${numeros}.pdf`);
 }
