@@ -387,7 +387,7 @@ export default function OrdensServicoPage() {
   };
 
   const resetForm = () => {
-    setClienteId(""); setNCliente(""); setSituacao("Aberta");
+    setClienteId(""); setNCliente(""); setSituacao("Aberta"); setTipoOs(TIPOS_OS[0]);
     setDataInicio(""); setHoraInicio(""); setDataTermino(""); setHoraTermino("");
     setPrioridade("C: NORMAL"); setSolicitante(""); setMatricula("");
     setRamal(""); setTelefone(""); setLocalId(""); setPavimentoId("");
