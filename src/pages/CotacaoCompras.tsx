@@ -642,7 +642,7 @@ export default function CotacaoComprasPage() {
             <TableRow>
               <TableHead>Nº Cotação</TableHead>
               <TableHead>Centro de Custo</TableHead>
-              <TableHead>RC Vinculada</TableHead>
+              <TableHead>RCS Vinculada</TableHead>
               <TableHead>Data</TableHead>
               <TableHead>Comprador</TableHead>
               <TableHead>Propostas</TableHead>
@@ -775,7 +775,7 @@ export default function CotacaoComprasPage() {
                 <SelectContent>
                   {reqFiltradas.map(r => (
                     <SelectItem key={r.id} value={r.id}>
-                      RC-{String(r.numero).padStart(4, "0")} — {r.centroCustoNome} ({r.itens.length} itens) [{r.urgencia}]
+                      RCS-{String(r.numero).padStart(4, "0")} — {r.centroCustoNome} ({r.itens.length} itens) [{r.urgencia}]
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1164,7 +1164,7 @@ export default function CotacaoComprasPage() {
           {viewCotacao && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="text-muted-foreground">RC Vinculada:</span> RC-{String(viewCotacao.requisicaoNumero).padStart(4, "0")}</div>
+                <div><span className="text-muted-foreground">RCS Vinculada:</span> RCS-{String(viewCotacao.requisicaoNumero).padStart(4, "0")}</div>
                 <div><span className="text-muted-foreground">Comprador:</span> {viewCotacao.comprador}</div>
                 <div><span className="text-muted-foreground">Data:</span> {format(new Date(viewCotacao.dataCriacao), "dd/MM/yyyy HH:mm")}</div>
                 <div><span className="text-muted-foreground">Status:</span> <Badge className={statusColors[viewCotacao.status]}>{viewCotacao.status}</Badge></div>

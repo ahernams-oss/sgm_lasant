@@ -238,7 +238,7 @@ export default function RecebimentoComprasPage() {
               return (
                 <TableRow key={p.id}>
                   <TableCell className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</TableCell>
-                  <TableCell className="font-mono">RC-{String(p.requisicaoNumero).padStart(4, "0")}</TableCell>
+                  <TableCell className="font-mono">RCS-{String(p.requisicaoNumero).padStart(4, "0")}</TableCell>
                   <TableCell>{p.fornecedorNome}</TableCell>
                   <TableCell className="text-sm">{p.localEntrega || "-"}</TableCell>
                   <TableCell className="font-medium">{formatCurrency(p.valorTotal)}</TableCell>
@@ -454,7 +454,7 @@ export default function RecebimentoComprasPage() {
           {viewPedido && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="text-muted-foreground">RC:</span> RC-{String(viewPedido.requisicaoNumero).padStart(4, "0")}</div>
+                <div><span className="text-muted-foreground">RC:</span> RCS-{String(viewPedido.requisicaoNumero).padStart(4, "0")}</div>
                 <div><span className="text-muted-foreground">Fornecedor:</span> {viewPedido.fornecedorNome}</div>
                 <div><span className="text-muted-foreground">Comprador:</span> {viewPedido.comprador}</div>
                 <div><span className="text-muted-foreground">Data:</span> {format(new Date(viewPedido.dataCriacao), "dd/MM/yyyy")}</div>

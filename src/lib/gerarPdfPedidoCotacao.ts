@@ -146,7 +146,7 @@ async function gerarPdfPedidoCotacao(data: PedidoCotacaoData): Promise<jsPDF> {
   y = fieldRow(doc, [
     { label: "DATA", value: cotacao.dataCriacao ? format(new Date(cotacao.dataCriacao), "dd/MM/yyyy") : "—", w: fullW * 0.2 },
     { label: "COMPRADOR", value: cotacao.comprador, w: fullW * 0.3 },
-    { label: "REQUISIÇÃO", value: requisicao ? `RC-${String(requisicao.numero).padStart(4, "0")}` : `RC-${String(cotacao.requisicaoNumero).padStart(4, "0")}`, w: fullW * 0.2 },
+    { label: "REQUISIÇÃO", value: requisicao ? `RCS-${String(requisicao.numero).padStart(4, "0")}` : `RCS-${String(cotacao.requisicaoNumero).padStart(4, "0")}`, w: fullW * 0.2 },
     { label: "PRAZO DESEJADO", value: requisicao?.prazoDesejado ? format(new Date(requisicao.prazoDesejado), "dd/MM/yyyy") : "—", w: fullW * 0.3 },
   ], ml, y, rowH);
   y += 3;

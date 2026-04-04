@@ -128,7 +128,7 @@ async function gerarPdfCotacaoAsync(data: CotacaoPdfData): Promise<jsPDF> {
   ], ml, y, rowH);
 
   y = fieldRow(doc, [
-    { label: "REQUISIÇÃO", value: requisicao ? `RC-${String(requisicao.numero).padStart(4, "0")}` : `RC-${String(cotacao.requisicaoNumero).padStart(4, "0")}`, w: fullW * 0.3 },
+    { label: "REQUISIÇÃO", value: requisicao ? `RCS-${String(requisicao.numero).padStart(4, "0")}` : `RCS-${String(cotacao.requisicaoNumero).padStart(4, "0")}`, w: fullW * 0.3 },
     { label: "SOLICITANTE", value: requisicao?.solicitante || "—", w: fullW * 0.35 },
     { label: "CENTRO DE CUSTO", value: requisicao?.centroCustoNome || "—", w: fullW * 0.35 },
   ], ml, y, rowH);
