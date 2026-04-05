@@ -299,15 +299,13 @@ export default function OrdensServicoPage() {
     });
     // Ao confirmar o serviço, concluir a Solicitação vinculada
     if (novaSituacao === "Serviço Confirmado" && os.solicitacaoId) {
+      // Buscar histórico atual da SS
+      const { data: ssData } = await (supabase as any).from("solicitacoes_servicos").select("historico").eq("id", os.solicitacaoId).single();
+      const histAtual = Array.isArray(ssData?.historico) ? ssData.historico : [];
+      const novoHist = [...histAtual, { situacao: "Concluída", data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" }];
       await updateRow("solicitacoes_servicos", os.solicitacaoId, {
         situacao: "Concluída",
-        historico: JSON.stringify([
-          ...(() => {
-            try {
-              const res = (await (await fetch("")).json()); return [];
-            } catch { return []; }
-          })(),
-        ]),
+        historico: novoHist,
       });
     }
     toast.success(`OS ${os.numero} alterada para "${novaSituacao}"`);
