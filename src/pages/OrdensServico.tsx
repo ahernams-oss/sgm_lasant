@@ -286,7 +286,7 @@ export default function OrdensServicoPage() {
 
 
   // Workflow action handler
-  const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
+   const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
     // If rejecting, open justification dialog instead
     if (novaSituacao === "Serviço Não Aprovado pela Fiscalização") {
       setNaoAprovarOS(os);
@@ -297,6 +297,19 @@ export default function OrdensServicoPage() {
       situacao: novaSituacao,
       historico: buildOSHistorico(novaSituacao, os.historico || []),
     });
+    // Ao confirmar o serviço, concluir a Solicitação vinculada
+    if (novaSituacao === "Serviço Confirmado" && os.solicitacaoId) {
+      await updateRow("solicitacoes_servicos", os.solicitacaoId, {
+        situacao: "Concluída",
+        historico: JSON.stringify([
+          ...(() => {
+            try {
+              const res = (await (await fetch("")).json()); return [];
+            } catch { return []; }
+          })(),
+        ]),
+      });
+    }
     toast.success(`OS ${os.numero} alterada para "${novaSituacao}"`);
   };
 
