@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react"; // OS page
+import { updateRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useOrdensServico, OrdemServico, MaterialOS, ProfissionalOS, AnexoOS, FotoOS, ObservacaoOS, ObservacaoFiscalizacao, TIPOS_OS, TipoOS } from "@/contexts/OrdensServicoContext";
@@ -285,7 +286,7 @@ export default function OrdensServicoPage() {
 
 
   // Workflow action handler
-  const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
+   const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
     // If rejecting, open justification dialog instead
     if (novaSituacao === "Serviço Não Aprovado pela Fiscalização") {
       setNaoAprovarOS(os);
@@ -296,6 +297,17 @@ export default function OrdensServicoPage() {
       situacao: novaSituacao,
       historico: buildOSHistorico(novaSituacao, os.historico || []),
     });
+    // Ao confirmar o serviço, concluir a Solicitação vinculada
+    if (novaSituacao === "Serviço Confirmado" && os.solicitacaoId) {
+      // Buscar histórico atual da SS
+      const { data: ssData } = await (supabase as any).from("solicitacoes_servicos").select("historico").eq("id", os.solicitacaoId).single();
+      const histAtual = Array.isArray(ssData?.historico) ? ssData.historico : [];
+      const novoHist = [...histAtual, { situacao: "Concluída", data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" }];
+      await updateRow("solicitacoes_servicos", os.solicitacaoId, {
+        situacao: "Concluída",
+        historico: novoHist,
+      });
+    }
     toast.success(`OS ${os.numero} alterada para "${novaSituacao}"`);
   };
 
