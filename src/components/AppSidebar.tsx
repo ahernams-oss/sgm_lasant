@@ -141,7 +141,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         <div className="flex items-center gap-3">
-          <img src="/d3d32c81-5ce8-4ca3-8aae-e9968c15a016.png" alt="Lasant Construções" className="h-8 w-auto shrink-0 object-fill rounded-lg opacity-100 mx-[7px]" />
+          <img src="/4da02e3d-e322-46e9-8bac-24478f332bb6.png" alt="Lasant Construções" className="h-8 w-auto shrink-0 object-fill rounded-lg opacity-100 mx-[7px]" />
           {!collapsed && (
             <div className="overflow-hidden">
               <p className="truncate text-2xl my-0 mx-[6px] font-[serif] text-left text-secondary-foreground">SGM</p>
