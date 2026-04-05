@@ -36,7 +36,7 @@ import {
   Bell,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import logoLasant from "@/assets/Logo_Lasant.png";
+
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -141,10 +141,10 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         <div className="flex items-center gap-3">
-          <img src={logoLasant} alt="Lasant Construções" className="h-8 w-auto shrink-0 object-contain" />
+          <img src="/d3d32c81-5ce8-4ca3-8aae-e9968c15a016.png" alt="Lasant Construções" className="h-8 w-auto shrink-0 object-fill rounded-lg opacity-100 mx-[7px]" />
           {!collapsed && (
             <div className="overflow-hidden">
-              <p className="text-[12px] text-muted-foreground truncate">SGM</p>
+              <p className="truncate text-2xl my-0 mx-[6px] font-[serif] text-left text-secondary-foreground">SGM</p>
             </div>
           )}
         </div>
