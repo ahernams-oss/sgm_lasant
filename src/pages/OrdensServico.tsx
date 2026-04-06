@@ -85,7 +85,7 @@ const prioridadeBadge = (p: string) => {
   return <Badge className="bg-green-600 text-white">{p}</Badge>;
 };
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 7;
 
 export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
