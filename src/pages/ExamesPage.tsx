@@ -180,7 +180,7 @@ const ExamesPage = () => {
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           {vencidos > 0 && (
             <Badge variant="destructive" className="text-xs">
               {vencidos} vencido(s)
@@ -194,6 +194,12 @@ const ExamesPage = () => {
           <Badge variant="secondary" className="text-xs">
             {filtered.length} registro(s)
           </Badge>
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => gerarPdfExames(filtered)}>
+            <FileDown className="h-4 w-4" /> PDF
+          </Button>
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => gerarExcelExames(filtered)}>
+            <FileSpreadsheet className="h-4 w-4" /> Excel
+          </Button>
         </div>
       </div>
 
