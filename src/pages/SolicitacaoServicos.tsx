@@ -922,11 +922,7 @@ export default function SolicitacaoServicosPage() {
       <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {prioridadeOnly ? "Alterar Prioridade" : batchApprovalMode
-                ? `Aprovar ${solicitacoes.filter(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação").length} Solicitação(ões) em Lote`
-                : "Aprovar Solicitação"}
-            </DialogTitle>
+            <DialogTitle>{prioridadeOnly ? "Alterar Prioridade" : "Aprovar Solicitação"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Label className="font-bold">Selecione o nível de prioridade:</Label>
