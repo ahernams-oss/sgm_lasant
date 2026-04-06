@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { useClientes, type Cliente } from "@/contexts/ClientesContext";
 import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
 import ImportClientesFornecedores from "@/components/ImportClientesFornecedores";
+import DadosBancariosTab from "@/components/DadosBancariosTab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Fornecedores = () => {
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
@@ -19,8 +21,14 @@ const Fornecedores = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const [activeTab, setActiveTab] = useState("cadastro");
 
   const fornecedores = useMemo(() => clientes.filter((c) => c.tipo === "Fornecedor"), [clientes]);
+
+  const editingFornecedor = useMemo(
+    () => (editingId ? clientes.find((c) => c.id === editingId) : null),
+    [editingId, clientes]
+  );
 
   const handleSubmit = (data: FormData, id: string | null) => {
     if (!data.nome.trim()) {
@@ -48,6 +56,7 @@ const Fornecedores = () => {
   const resetForm = () => {
     setEditingId(null);
     setEditingData(undefined);
+    setActiveTab("cadastro");
   };
 
   const handleEdit = (fornecedor: Cliente) => {
@@ -81,6 +90,11 @@ const Fornecedores = () => {
     } else {
       toast.error(`Enviada para ${successCount}/${fornecedor.telefones.length} números.`, { id: "whatsapp-send" });
     }
+  };
+
+  const handleDadosBancariosChange = (dados: any[]) => {
+    if (!editingId) return;
+    updateCliente(editingId, { informacoesFinanceiras: dados });
   };
 
   const filteredFornecedores = useMemo(() => {
@@ -130,15 +144,41 @@ const Fornecedores = () => {
           </button>
           {formOpen && (
             <div className="mt-4">
-              <ClienteForm
-                key={editingId || "new"}
-                editingId={editingId}
-                initialData={editingData || defaultData}
-                onSubmit={handleSubmit}
-                onCancel={resetForm}
-                tipoFixo="Fornecedor"
-                embedded
-              />
+              {editingId ? (
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                  <TabsList>
+                    <TabsTrigger value="cadastro">Cadastro</TabsTrigger>
+                    <TabsTrigger value="dados-bancarios">Dados Bancários</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="cadastro" className="mt-4">
+                    <ClienteForm
+                      key={editingId}
+                      editingId={editingId}
+                      initialData={editingData || defaultData}
+                      onSubmit={handleSubmit}
+                      onCancel={resetForm}
+                      tipoFixo="Fornecedor"
+                      embedded
+                    />
+                  </TabsContent>
+                  <TabsContent value="dados-bancarios" className="mt-4">
+                    <DadosBancariosTab
+                      dados={editingFornecedor?.informacoesFinanceiras || []}
+                      onChange={handleDadosBancariosChange}
+                    />
+                  </TabsContent>
+                </Tabs>
+              ) : (
+                <ClienteForm
+                  key="new"
+                  editingId={null}
+                  initialData={defaultData}
+                  onSubmit={handleSubmit}
+                  onCancel={resetForm}
+                  tipoFixo="Fornecedor"
+                  embedded
+                />
+              )}
             </div>
           )}
         </div>
