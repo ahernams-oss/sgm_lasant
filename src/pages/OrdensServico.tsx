@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback } from "react"; // OS page
-import { updateRow } from "@/lib/supabaseHelper";
+import { updateRow, fetchAll } from "@/lib/supabaseHelper";
+import { SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
+import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useOrdensServico, OrdemServico, MaterialOS, ProfissionalOS, AnexoOS, FotoOS, ObservacaoOS, ObservacaoFiscalizacao, TIPOS_OS, TipoOS } from "@/contexts/OrdensServicoContext";
@@ -110,6 +112,8 @@ export default function OrdensServicoPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [viewOS, setViewOS] = useState<OrdemServico | null>(null);
+  const [viewSSTarget, setViewSSTarget] = useState<SolicitacaoServico | null>(null);
+  const { orcamentos: orcamentosAll } = useOrcamentos();
   const [busca, setBusca] = useState("");
   const [filtroSituacao, setFiltroSituacao] = useState("Todas");
   const [filtroCliente, setFiltroCliente] = useState(() => localStorage.getItem("os_filtroCliente") || "Todos");
@@ -1504,7 +1508,29 @@ export default function OrdensServicoPage() {
                     <button
                       type="button"
                       className="font-medium text-primary underline hover:text-primary/80 cursor-pointer"
-                      onClick={() => { setViewOS(null); navigate("/engenharia/solicitacao-servicos"); }}
+                      onClick={async () => {
+                        if (viewOS.solicitacaoId) {
+                          try {
+                            const data = await fetchAll("solicitacoes_servicos", "numero");
+                            const rowToSS = (r: any): SolicitacaoServico => ({
+                              id: r.id, numero: r.numero ?? 0, tipo: r.tipo ?? "Predial",
+                              clienteId: r.cliente_id ?? "", clienteNome: r.cliente_nome ?? "",
+                              localId: r.local_id ?? "", localDescricao: r.local_descricao ?? "",
+                              pavimentoId: r.pavimento_id ?? "", pavimentoDescricao: r.pavimento_descricao ?? "",
+                              setorId: r.setor_id ?? "", setorDescricao: r.setor_descricao ?? "",
+                              equipamentoId: r.equipamento_id ?? "", equipamentoNome: r.equipamento_nome ?? "",
+                              descricaoServicos: r.descricao_servicos ?? "", situacao: r.situacao ?? "Aguardando aprovação",
+                              prioridade: r.prioridade ?? "", observacoes: r.observacoes ?? "",
+                              visitado: r.visitado ?? false, imagens: Array.isArray(r.imagens) ? r.imagens : [],
+                              createdAt: r.created_at ?? "", dataHoraSolicitacao: r.data_hora_solicitacao ?? "",
+                              solicitanteId: r.solicitante_id ?? "", solicitanteNome: r.solicitante_nome ?? "",
+                              historico: Array.isArray(r.historico) ? r.historico : [],
+                            });
+                            const found = data.find((r: any) => r.id === viewOS.solicitacaoId);
+                            if (found) setViewSSTarget(rowToSS(found));
+                          } catch { /* ignore */ }
+                        }
+                      }}
                     >
                       SS {viewOS.solicitacaoNumero}
                     </button>
@@ -1750,6 +1776,152 @@ export default function OrdensServicoPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => { setNaoAprovarOS(null); setNaoAprovarJustificativa(""); }}>Cancelar</Button>
             <Button variant="destructive" onClick={handleConfirmNaoAprovar}>Confirmar Não Aprovação</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* SS Viewer Dialog */}
+      <Dialog open={!!viewSSTarget} onOpenChange={(o) => { if (!o) setViewSSTarget(null); }}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Solicitação de Serviço nº {viewSSTarget?.numero}
+            </DialogTitle>
+          </DialogHeader>
+          {viewSSTarget && (() => {
+            const orc = orcamentosAll.find((o: any) => o.solicitacaoId === viewSSTarget.id);
+            const SS_WORKFLOW_STEPS = [
+              { label: "Aguardando aprovação" },
+              { label: "Aprovada" },
+              { label: "Em execução" },
+              { label: "Concluída" },
+            ];
+            return (
+              <div className="space-y-6 py-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Data/Hora</Label>
+                    <p className="text-sm font-medium">
+                      {viewSSTarget.dataHoraSolicitacao ? new Date(viewSSTarget.dataHoraSolicitacao).toLocaleString("pt-BR") : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Solicitante</Label>
+                    <p className="text-sm font-medium">{viewSSTarget.solicitanteNome || "-"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Tipo</Label>
+                    <p className="text-sm font-medium">{viewSSTarget.tipo}</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Situação</Label>
+                    <Badge variant="outline" className="mt-1">{viewSSTarget.situacao}</Badge>
+                  </div>
+                  {viewSSTarget.prioridade && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Prioridade</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`inline-block w-3 h-3 rounded-full ${
+                          viewSSTarget.prioridade === "Emergencial" ? "bg-destructive" :
+                          viewSSTarget.prioridade === "Urgente" ? "bg-yellow-500" : "bg-green-500"
+                        }`} />
+                        <span className="text-sm font-medium">{viewSSTarget.prioridade}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground">Localização</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Cliente</Label>
+                      <p className="text-sm font-medium">{viewSSTarget.clienteNome || "-"}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Local</Label>
+                      <p className="text-sm font-medium">{viewSSTarget.localDescricao || "-"}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Pavimento</Label>
+                      <p className="text-sm font-medium">{viewSSTarget.pavimentoDescricao || "-"}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Setor</Label>
+                      <p className="text-sm font-medium">{viewSSTarget.setorDescricao || "-"}</p>
+                    </div>
+                    {viewSSTarget.tipo === "Equipamentos" && (
+                      <div className="col-span-2">
+                        <Label className="text-xs text-muted-foreground">Equipamento</Label>
+                        <p className="text-sm font-medium">{viewSSTarget.equipamentoNome || "-"}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Descrição dos Serviços</h4>
+                  <p className="text-sm whitespace-pre-wrap bg-muted/50 rounded-md p-3">{viewSSTarget.descricaoServicos || "-"}</p>
+                </div>
+
+                {viewSSTarget.imagens && viewSSTarget.imagens.length > 0 && (
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Imagens</h4>
+                    <div className="flex gap-3 flex-wrap">
+                      {viewSSTarget.imagens.map((url, i) => (
+                        <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                          <img src={url} alt={`Imagem ${i + 1}`} className="w-32 h-32 object-cover rounded-md border hover:opacity-80 transition" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {orc && (
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-semibold mb-3 text-muted-foreground">Orçamento nº {(orc as any).numero}</h4>
+                    <div className="grid grid-cols-2 gap-4 mb-3">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Status</Label>
+                        <Badge variant="outline" className="mt-1">{(orc as any).status}</Badge>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Valor Total</Label>
+                        <p className="text-sm font-bold">{(orc as any).valorTotal?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="border rounded-lg p-4 bg-muted/20">
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <History className="h-4 w-4" /> Workflow
+                  </h4>
+                  <WorkflowTimeline
+                    steps={viewSSTarget.situacao === "Cancelada"
+                      ? [...SS_WORKFLOW_STEPS, { label: "Cancelada" }]
+                      : (viewSSTarget.situacao === "Orçamento Solicitado" || viewSSTarget.situacao === "Orçamento Disponível")
+                        ? [{ label: "Aguardando aprovação" }, { label: "Orçamento Solicitado" }, { label: "Orçamento Disponível" }, { label: "Aprovada" }, { label: "Em execução" }, { label: "Concluída" }]
+                        : SS_WORKFLOW_STEPS
+                    }
+                    currentStep={viewSSTarget.situacao}
+                    historico={viewSSTarget.historico}
+                  />
+                </div>
+
+                {viewSSTarget.historico && viewSSTarget.historico.length > 0 && (
+                  <div className="border rounded-lg p-4">
+                    <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                      <Clock className="h-4 w-4" /> Histórico de Alterações
+                    </h4>
+                    <WorkflowHistorico historico={viewSSTarget.historico} />
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewSSTarget(null)}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
