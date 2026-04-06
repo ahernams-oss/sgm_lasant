@@ -254,37 +254,23 @@ export default function SolicitacaoServicosPage() {
   const { ordens, addOrdem, updateOrdem } = useOrdensServico();
 
   const handleConfirmApproval = async () => {
-    if (!approvalTargetId || !selectedPrioridade) {
+    if (!selectedPrioridade) {
       toast({ title: "Selecione o nível de prioridade", variant: "destructive" });
       return;
     }
-    if (prioridadeOnly) {
-      await updateSolicitacao(approvalTargetId, { prioridade: selectedPrioridade });
 
-      // Sync priority to linked OS
+    if (batchApprovalMode) {
+      const aguardando = solicitacoes.filter(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação");
       const prioridadeOS =
         selectedPrioridade === "Emergencial" ? "A: IMEDIATA" :
         selectedPrioridade === "Urgente" ? "B: URGENTE" : "C: NORMAL";
-      const osVinculada = ordens.find(o => o.solicitacaoId === approvalTargetId);
-      if (osVinculada) {
-        await updateOrdem(osVinculada.id, { prioridade: prioridadeOS });
-      }
 
-      toast({ title: `Prioridade alterada para ${selectedPrioridade}` });
-    } else {
-      const ss = solicitacoes.find(s => s.id === approvalTargetId);
-      await updateSolicitacao(approvalTargetId, {
-        situacao: "Aprovada",
-        prioridade: selectedPrioridade,
-        historico: buildHistoricoEntry("Aprovada", ss?.historico || []),
-      });
-
-      // Auto-create OS linked to this SS
-      if (ss) {
-        const prioridadeOS =
-          selectedPrioridade === "Emergencial" ? "A: IMEDIATA" :
-          selectedPrioridade === "Urgente" ? "B: URGENTE" : "C: NORMAL";
-
+      for (const ss of aguardando) {
+        await updateSolicitacao(ss.id, {
+          situacao: "Aprovada",
+          prioridade: selectedPrioridade,
+          historico: buildHistoricoEntry("Aprovada", ss.historico || []),
+        });
         await addOrdem({
           solicitacao_id: ss.id,
           solicitacao_numero: ss.numero,
@@ -308,13 +294,61 @@ export default function SolicitacaoServicosPage() {
           operador_nome: usuarioLogado?.nome || "",
         });
       }
-
+      toast({ title: `${aguardando.length} solicitação(ões) aprovada(s) e OS criada(s)` });
+      setSelectedIds(new Set());
+    } else if (!approvalTargetId) {
+      return;
+    } else if (prioridadeOnly) {
+      await updateSolicitacao(approvalTargetId, { prioridade: selectedPrioridade });
+      const prioridadeOS =
+        selectedPrioridade === "Emergencial" ? "A: IMEDIATA" :
+        selectedPrioridade === "Urgente" ? "B: URGENTE" : "C: NORMAL";
+      const osVinculada = ordens.find(o => o.solicitacaoId === approvalTargetId);
+      if (osVinculada) {
+        await updateOrdem(osVinculada.id, { prioridade: prioridadeOS });
+      }
+      toast({ title: `Prioridade alterada para ${selectedPrioridade}` });
+    } else {
+      const ss = solicitacoes.find(s => s.id === approvalTargetId);
+      await updateSolicitacao(approvalTargetId, {
+        situacao: "Aprovada",
+        prioridade: selectedPrioridade,
+        historico: buildHistoricoEntry("Aprovada", ss?.historico || []),
+      });
+      if (ss) {
+        const prioridadeOS =
+          selectedPrioridade === "Emergencial" ? "A: IMEDIATA" :
+          selectedPrioridade === "Urgente" ? "B: URGENTE" : "C: NORMAL";
+        await addOrdem({
+          solicitacao_id: ss.id,
+          solicitacao_numero: ss.numero,
+          cliente_id: ss.clienteId,
+          cliente_nome: ss.clienteNome,
+          local_id: ss.localId,
+          local_descricao: ss.localDescricao,
+          pavimento_id: ss.pavimentoId,
+          pavimento_descricao: ss.pavimentoDescricao,
+          setor_id: ss.setorId,
+          setor_descricao: ss.setorDescricao,
+          descricao_servicos: ss.descricaoServicos,
+          solicitante: ss.solicitanteNome,
+          matricula: usuarioLogado?.matricula || "",
+          ramal: usuarioLogado?.ramal || "",
+          telefone: usuarioLogado?.telefone || "",
+          prioridade: prioridadeOS,
+          situacao: "Aberta",
+          historico: buildHistoricoEntry("Aberta"),
+          operador_id: usuarioLogado?.id || "",
+          operador_nome: usuarioLogado?.nome || "",
+        });
+      }
       toast({ title: `Solicitação aprovada e Ordem de Serviço criada` });
     }
     setApprovalDialogOpen(false);
     setApprovalTargetId(null);
     setSelectedPrioridade("");
     setPrioridadeOnly(false);
+    setBatchApprovalMode(false);
   };
 
   const handleCancelar = async () => {
