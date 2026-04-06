@@ -55,6 +55,9 @@ const RequisicaoGrid = () => {
   const { processos } = useProcessoSeletivo();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
+  const [filterUnidade, setFilterUnidade] = useState<string>("todos");
+  const [filterDataDe, setFilterDataDe] = useState<string>("");
+  const [filterDataAte, setFilterDataAte] = useState<string>("");
   const [editingReq, setEditingReq] = useState<Requisicao | null>(null);
   const [historicoReq, setHistoricoReq] = useState<Requisicao | null>(null);
   const [editForm, setEditForm] = useState({
