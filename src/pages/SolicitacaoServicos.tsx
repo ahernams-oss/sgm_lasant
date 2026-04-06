@@ -94,7 +94,7 @@ export default function SolicitacaoServicosPage() {
   const [approvalTargetId, setApprovalTargetId] = useState<string | null>(null);
   const [selectedPrioridade, setSelectedPrioridade] = useState<string>("");
   const [prioridadeOnly, setPrioridadeOnly] = useState(false);
-  const [batchApprovalMode, setBatchApprovalMode] = useState(false);
+  
   const [viewTarget, setViewTarget] = useState<SolicitacaoServico | null>(null);
 
   const soClientes = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
@@ -234,71 +234,18 @@ export default function SolicitacaoServicosPage() {
     setApprovalTargetId(id);
     setSelectedPrioridade("");
     setPrioridadeOnly(onlyPriority);
-    setBatchApprovalMode(false);
     setApprovalDialogOpen(true);
   };
 
-  const handleOpenBatchApproval = () => {
-    const aguardando = solicitacoes.filter(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação");
-    if (aguardando.length === 0) {
-      toast({ title: "Nenhuma solicitação selecionada com situação 'Aguardando aprovação'", variant: "destructive" });
-      return;
-    }
-    setApprovalTargetId(null);
-    setSelectedPrioridade("");
-    setPrioridadeOnly(false);
-    setBatchApprovalMode(true);
-    setApprovalDialogOpen(true);
-  };
 
   const { ordens, addOrdem, updateOrdem } = useOrdensServico();
 
   const handleConfirmApproval = async () => {
-    if (!selectedPrioridade) {
+    if (!approvalTargetId || !selectedPrioridade) {
       toast({ title: "Selecione o nível de prioridade", variant: "destructive" });
       return;
     }
-
-    if (batchApprovalMode) {
-      const aguardando = solicitacoes.filter(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação");
-      const prioridadeOS =
-        selectedPrioridade === "Emergencial" ? "A: IMEDIATA" :
-        selectedPrioridade === "Urgente" ? "B: URGENTE" : "C: NORMAL";
-
-      for (const ss of aguardando) {
-        await updateSolicitacao(ss.id, {
-          situacao: "Aprovada",
-          prioridade: selectedPrioridade,
-          historico: buildHistoricoEntry("Aprovada", ss.historico || []),
-        });
-        await addOrdem({
-          solicitacao_id: ss.id,
-          solicitacao_numero: ss.numero,
-          cliente_id: ss.clienteId,
-          cliente_nome: ss.clienteNome,
-          local_id: ss.localId,
-          local_descricao: ss.localDescricao,
-          pavimento_id: ss.pavimentoId,
-          pavimento_descricao: ss.pavimentoDescricao,
-          setor_id: ss.setorId,
-          setor_descricao: ss.setorDescricao,
-          descricao_servicos: ss.descricaoServicos,
-          solicitante: ss.solicitanteNome,
-          matricula: usuarioLogado?.matricula || "",
-          ramal: usuarioLogado?.ramal || "",
-          telefone: usuarioLogado?.telefone || "",
-          prioridade: prioridadeOS,
-          situacao: "Aberta",
-          historico: buildHistoricoEntry("Aberta"),
-          operador_id: usuarioLogado?.id || "",
-          operador_nome: usuarioLogado?.nome || "",
-        });
-      }
-      toast({ title: `${aguardando.length} solicitação(ões) aprovada(s) e OS criada(s)` });
-      setSelectedIds(new Set());
-    } else if (!approvalTargetId) {
-      return;
-    } else if (prioridadeOnly) {
+    if (prioridadeOnly) {
       await updateSolicitacao(approvalTargetId, { prioridade: selectedPrioridade });
       const prioridadeOS =
         selectedPrioridade === "Emergencial" ? "A: IMEDIATA" :
@@ -348,7 +295,6 @@ export default function SolicitacaoServicosPage() {
     setApprovalTargetId(null);
     setSelectedPrioridade("");
     setPrioridadeOnly(false);
-    setBatchApprovalMode(false);
   };
 
   const handleCancelar = async () => {
@@ -785,11 +731,6 @@ export default function SolicitacaoServicosPage() {
           <Button size="sm" variant="outline" onClick={() => handleBatchPrint(true)} disabled={batchPrinting}>
             <Download className="mr-2 h-4 w-4" />Imprimir com imagem
           </Button>
-          {solicitacoes.some(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação") && (
-            <Button size="sm" variant="default" onClick={handleOpenBatchApproval}>
-              <CheckCircle2 className="mr-2 h-4 w-4" />Aprovar em lote
-            </Button>
-          )}
           <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>Limpar seleção</Button>
         </div>
       )}
@@ -981,11 +922,7 @@ export default function SolicitacaoServicosPage() {
       <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {prioridadeOnly ? "Alterar Prioridade" : batchApprovalMode
-                ? `Aprovar ${solicitacoes.filter(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação").length} Solicitação(ões) em Lote`
-                : "Aprovar Solicitação"}
-            </DialogTitle>
+            <DialogTitle>{prioridadeOnly ? "Alterar Prioridade" : "Aprovar Solicitação"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Label className="font-bold">Selecione o nível de prioridade:</Label>

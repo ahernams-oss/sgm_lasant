@@ -76,6 +76,7 @@ import ServicosPage from "./pages/ServicosPage.tsx";
 import SolicitacaoServicosPage from "@/pages/SolicitacaoServicos";
 import { SolicitacoesServicosProvider } from "@/contexts/SolicitacoesServicosContext";
 import OrdensServicoPage from "@/pages/OrdensServico";
+import AprovarLoteSS from "@/pages/AprovarLoteSS";
 import { OrdensServicoProvider } from "@/contexts/OrdensServicoContext";
 import { OrcamentosProvider } from "@/contexts/OrcamentosContext";
 import { ComunicacaoProvider } from "@/contexts/ComunicacaoContext";
@@ -134,6 +135,16 @@ function AppRoutes() {
                 <OrcamentosProvider>
                   <SolicitacaoServicosPage />
                 </OrcamentosProvider>
+              </OrdensServicoProvider>
+            </SolicitacoesServicosProvider>
+          }
+        />
+        <Route
+          path="/engenharia/aprovar-lote-ss"
+          element={
+            <SolicitacoesServicosProvider>
+              <OrdensServicoProvider>
+                <AprovarLoteSS />
               </OrdensServicoProvider>
             </SolicitacoesServicosProvider>
           }
