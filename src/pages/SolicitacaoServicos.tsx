@@ -94,7 +94,7 @@ export default function SolicitacaoServicosPage() {
   const [approvalTargetId, setApprovalTargetId] = useState<string | null>(null);
   const [selectedPrioridade, setSelectedPrioridade] = useState<string>("");
   const [prioridadeOnly, setPrioridadeOnly] = useState(false);
-  const [batchApprovalMode, setBatchApprovalMode] = useState(false);
+  
   const [viewTarget, setViewTarget] = useState<SolicitacaoServico | null>(null);
 
   const soClientes = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
@@ -238,18 +238,6 @@ export default function SolicitacaoServicosPage() {
     setApprovalDialogOpen(true);
   };
 
-  const handleOpenBatchApproval = () => {
-    const aguardando = solicitacoes.filter(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação");
-    if (aguardando.length === 0) {
-      toast({ title: "Nenhuma solicitação selecionada com situação 'Aguardando aprovação'", variant: "destructive" });
-      return;
-    }
-    setApprovalTargetId(null);
-    setSelectedPrioridade("");
-    setPrioridadeOnly(false);
-    setBatchApprovalMode(true);
-    setApprovalDialogOpen(true);
-  };
 
   const { ordens, addOrdem, updateOrdem } = useOrdensServico();
 
@@ -785,11 +773,6 @@ export default function SolicitacaoServicosPage() {
           <Button size="sm" variant="outline" onClick={() => handleBatchPrint(true)} disabled={batchPrinting}>
             <Download className="mr-2 h-4 w-4" />Imprimir com imagem
           </Button>
-          {solicitacoes.some(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação") && (
-            <Button size="sm" variant="default" onClick={handleOpenBatchApproval}>
-              <CheckCircle2 className="mr-2 h-4 w-4" />Aprovar em lote
-            </Button>
-          )}
           <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>Limpar seleção</Button>
         </div>
       )}
