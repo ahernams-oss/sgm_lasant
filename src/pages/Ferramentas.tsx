@@ -452,7 +452,7 @@ export default function FerramentasPage() {
                         );
                       }}
                     />
-                    <span className="text-sm">{f.codigo} - {f.descricao}</span>
+                    <span className="text-sm">{f.codigo} - {f.descricao}{f.numeroSerie ? ` | NS: ${f.numeroSerie}` : ""}{f.patrimonio ? ` | Pat: ${f.patrimonio}` : ""}</span>
                   </label>
                 ))}
               </div>
