@@ -727,6 +727,7 @@ export default function OrdensServicoPage() {
                 <TableHead>Descrição</TableHead>
                 <TableHead>Prioridade</TableHead>
                 <TableHead>Situação</TableHead>
+                <TableHead>Data Abertura</TableHead>
                 <TableHead>Data Início</TableHead>
                 <TableHead className="text-right">Valor (c/ BDI)</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
@@ -735,7 +736,7 @@ export default function OrdensServicoPage() {
             <TableBody>
               {ordensPage.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                     Nenhuma Ordem de Serviço encontrada.
                   </TableCell>
                 </TableRow>
@@ -755,6 +756,7 @@ export default function OrdensServicoPage() {
                   <TableCell className="max-w-[250px] truncate">{os.descricaoServicos}</TableCell>
                   <TableCell>{prioridadeBadge(os.prioridade)}</TableCell>
                   <TableCell>{situacaoBadge(os.situacao)}</TableCell>
+                  <TableCell className="text-sm">{os.createdAt ? new Date(os.createdAt).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-"}</TableCell>
                   <TableCell>{os.dataInicio ? os.dataInicio.split("-").reverse().join("/") : "-"}</TableCell>
                   <TableCell className="text-right font-medium">
                     {(() => {
