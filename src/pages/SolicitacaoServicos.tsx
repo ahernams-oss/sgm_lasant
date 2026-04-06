@@ -234,6 +234,20 @@ export default function SolicitacaoServicosPage() {
     setApprovalTargetId(id);
     setSelectedPrioridade("");
     setPrioridadeOnly(onlyPriority);
+    setBatchApprovalMode(false);
+    setApprovalDialogOpen(true);
+  };
+
+  const handleOpenBatchApproval = () => {
+    const aguardando = solicitacoes.filter(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação");
+    if (aguardando.length === 0) {
+      toast({ title: "Nenhuma solicitação selecionada com situação 'Aguardando aprovação'", variant: "destructive" });
+      return;
+    }
+    setApprovalTargetId(null);
+    setSelectedPrioridade("");
+    setPrioridadeOnly(false);
+    setBatchApprovalMode(true);
     setApprovalDialogOpen(true);
   };
 
