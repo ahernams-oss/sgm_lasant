@@ -785,6 +785,11 @@ export default function SolicitacaoServicosPage() {
           <Button size="sm" variant="outline" onClick={() => handleBatchPrint(true)} disabled={batchPrinting}>
             <Download className="mr-2 h-4 w-4" />Imprimir com imagem
           </Button>
+          {solicitacoes.some(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação") && (
+            <Button size="sm" variant="default" onClick={handleOpenBatchApproval}>
+              <CheckCircle2 className="mr-2 h-4 w-4" />Aprovar em lote
+            </Button>
+          )}
           <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>Limpar seleção</Button>
         </div>
       )}
@@ -976,7 +981,11 @@ export default function SolicitacaoServicosPage() {
       <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{prioridadeOnly ? "Alterar Prioridade" : "Aprovar Solicitação"}</DialogTitle>
+            <DialogTitle>
+              {prioridadeOnly ? "Alterar Prioridade" : batchApprovalMode
+                ? `Aprovar ${solicitacoes.filter(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação").length} Solicitação(ões) em Lote`
+                : "Aprovar Solicitação"}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Label className="font-bold">Selecione o nível de prioridade:</Label>
