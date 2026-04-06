@@ -192,6 +192,7 @@ function AtividadesTab() {
   const [search, setSearch] = useState("");
   const [filterPlano, setFilterPlano] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [form, setForm] = useState({
     plano_id: "", equipamento_id: "", equipamento_nome: "", descricao: "",
@@ -344,6 +345,7 @@ function OrdensServicoTab() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("Todos");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [form, setForm] = useState({
     plano_id: "", equipamento_id: "", equipamento_nome: "", descricao: "",
@@ -508,6 +510,7 @@ function ResponsaveisTecnicosTab() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [form, setForm] = useState({
     nome: "", registro_profissional: "", tipo_registro: "CREA",
@@ -653,6 +656,7 @@ function QualidadeArTab() {
   const [dialogType, setDialogType] = useState<"ponto" | "medicao">("ponto");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const [pontoForm, setPontoForm] = useState({ descricao: "", cliente_id: "", local_id: "", pavimento_id: "", setor_id: "", tipo_ambiente: "", periodicidade_coleta: "Mensal" });
@@ -877,6 +881,7 @@ function InconformidadesTab() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [form, setForm] = useState({
     descricao: "", gravidade: "Moderada", causa_provavel: "", plano_acao: "",
@@ -970,6 +975,7 @@ function BibliotecaTab() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [form, setForm] = useState({
     titulo: "", tipo_equipamento: "", tipo_atividade: "Preventiva",
