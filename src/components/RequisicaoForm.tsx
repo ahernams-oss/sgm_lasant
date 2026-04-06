@@ -186,7 +186,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                   <SelectValue placeholder="Selecione o cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clientes.map((c) => (
+                  {clientes.filter((c) => c.tipo === "Cliente").map((c) => (
                     <SelectItem key={c.id} value={c.nome}>
                       {c.nome}
                     </SelectItem>
