@@ -146,8 +146,8 @@ export default function ChecklistsPage() {
     );
   }, [preenchimentos, search]);
 
-  const paginatedTemplates = filteredTemplates.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-  const paginatedPreench = filteredPreench.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const paginatedTemplates = filteredTemplates.slice((page - 1) * pageSize, page * pageSize);
+  const paginatedPreench = filteredPreench.slice((page - 1) * pageSize, page * pageSize);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -229,7 +229,7 @@ export default function ChecklistsPage() {
               </TableBody>
             </Table>
           </div>
-          {filteredTemplates.length > ITEMS_PER_PAGE && <PaginationControls currentPage={page} totalItems={filteredTemplates.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />}
+          {filteredTemplates.length > pageSize && <PaginationControls currentPage={page} totalItems={filteredTemplates.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />}
         </TabsContent>
 
         {/* === PREENCHIMENTOS TAB === */}
@@ -276,7 +276,7 @@ export default function ChecklistsPage() {
               </TableBody>
             </Table>
           </div>
-          {filteredPreench.length > ITEMS_PER_PAGE && <PaginationControls currentPage={page} totalItems={filteredPreench.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />}
+          {filteredPreench.length > pageSize && <PaginationControls currentPage={page} totalItems={filteredPreench.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />}
         </TabsContent>
       </Tabs>
 

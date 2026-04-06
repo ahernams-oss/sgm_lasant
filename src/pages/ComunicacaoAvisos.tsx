@@ -29,6 +29,7 @@ export default function ComunicacaoAvisos() {
   const [detailDialog, setDetailDialog] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(7);
   const [form, setForm] = useState({ titulo: "", conteudo: "", prioridade: "Normal" });
 
   const filtered = avisos.filter(a => {
@@ -154,7 +155,7 @@ export default function ComunicacaoAvisos() {
         </Table>
       </div>
 
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={7} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       {/* Dialog novo aviso */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

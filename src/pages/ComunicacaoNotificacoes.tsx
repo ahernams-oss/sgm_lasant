@@ -27,6 +27,7 @@ export default function ComunicacaoNotificacoes() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(7);
   const [filterLida, setFilterLida] = useState("all");
   const [form, setForm] = useState({ destinatarioId: "", titulo: "", descricao: "", tipo: "tarefa" });
 
@@ -148,7 +149,7 @@ export default function ComunicacaoNotificacoes() {
         </Table>
       </div>
 
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={7} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
