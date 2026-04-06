@@ -172,14 +172,28 @@ const ProcessoSeletivoPage = () => {
     updateCandidato(processo!.id, candidatoId, { [field]: value });
   };
 
-  const handleAprovarEtapa = (candidato: Candidato, statusField: string, status: "aprovado" | "neutro" | "reprovado") => {
+  const handleAprovarEtapa = async (candidato: Candidato, statusField: string, status: "aprovado" | "neutro" | "reprovado") => {
     const updates: Partial<Candidato> = { [statusField]: status };
 
     if (statusField === "statusLiberacao" && status === "aprovado") {
       updates.liberadoPor = "Usuário Autorizado";
     }
 
-    updateCandidato(processo!.id, candidato.id, updates);
+    // Se aprovado ou neutro, avançar etapa na mesma atualização
+    if (status === "aprovado" || status === "neutro") {
+      const etapas: EtapaCandidato[] = ["entrevista_psicologica", "entrevista_tecnica", "liberacao", "contratacao"];
+      const idx = etapas.indexOf(candidato.etapaAtual);
+      if (idx < etapas.length - 1) {
+        const nextEtapa = etapas[idx + 1];
+        updates.etapaAtual = nextEtapa;
+        const dateNow = new Date().toLocaleDateString("pt-BR");
+        if (nextEtapa === "entrevista_tecnica") updates.dataEntrevistaTecnica = dateNow;
+        else if (nextEtapa === "liberacao") updates.dataLiberacao = dateNow;
+        else if (nextEtapa === "contratacao") updates.dataContratacao = dateNow;
+      }
+    }
+
+    await updateCandidato(processo!.id, candidato.id, updates);
 
     // Mapeamento de etapa para label
     const etapaMap: Record<string, string> = {
@@ -206,10 +220,8 @@ const ProcessoSeletivoPage = () => {
     }
 
     if (status === "aprovado") {
-      avancarEtapa(processo!.id, candidato.id);
       toast.success(`Candidato ${candidato.nome} aprovado nesta etapa.`);
     } else if (status === "neutro") {
-      avancarEtapa(processo!.id, candidato.id);
       toast.info(`Candidato ${candidato.nome} marcado como neutro e avançou para próxima etapa.`);
     } else {
       toast.info(`Candidato ${candidato.nome} reprovado nesta etapa.`);
