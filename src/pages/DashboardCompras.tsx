@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { format } from "date-fns";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
@@ -547,7 +548,7 @@ export default function DashboardCompras() {
                     }
                     return allEvents.map((ev, i) => (
                       <TableRow key={i}>
-                        <TableCell className="text-xs">{new Date(ev.dataHora).toLocaleString("pt-BR")}</TableCell>
+                        <TableCell className="text-xs">{format(new Date(ev.dataHora), "dd-MM-yyyy HH:mm")}</TableCell>
                         <TableCell className="font-mono font-bold">{ev.reqNumero}</TableCell>
                         <TableCell>{ev.usuario}</TableCell>
                         <TableCell><Badge variant="outline">{ev.status}</Badge></TableCell>
