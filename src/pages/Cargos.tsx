@@ -261,6 +261,7 @@ const Cargos = () => {
   };
 
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const resetPage = () => setPage(1);
 
   const filteredCargos = useMemo(() => {
@@ -393,7 +394,7 @@ const Cargos = () => {
             </p>
           ) : (
             <div className="divide-y divide-border">
-              {paginate(filteredCargos, page).paginated.map((cargo) => {
+              {paginate(filteredCargos, page, pageSize).paginated.map((cargo) => {
                 const salarioAtual = getSalarioAtual(cargo.salarios);
                 return (
                   <div key={cargo.id} className="py-3">
@@ -680,7 +681,7 @@ const Cargos = () => {
               })}
             </div>
            )}
-          <PaginationControls currentPage={page} totalItems={filteredCargos.length} onPageChange={setPage} />
+          <PaginationControls currentPage={page} totalItems={filteredCargos.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
         </div>
       </div>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />

@@ -30,6 +30,7 @@ export default function MateriaisServicosPage() {
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("Todos");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const filtered = useMemo(() => {
@@ -159,9 +160,9 @@ export default function MateriaisServicosPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-             {paginate(filtered, page).paginated.length === 0 ? (
+             {paginate(filtered, page, pageSize).paginated.length === 0 ? (
               <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum item cadastrado</TableCell></TableRow>
-            ) : paginate(filtered, page).paginated.map(m => (
+            ) : paginate(filtered, page, pageSize).paginated.map(m => (
               <TableRow key={m.id}>
                 <TableCell className="font-mono">{m.codigo}</TableCell>
                 <TableCell>{m.descricao}</TableCell>
@@ -181,7 +182,7 @@ export default function MateriaisServicosPage() {
         </Table>
       </div>
 
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>

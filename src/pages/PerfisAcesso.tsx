@@ -30,6 +30,7 @@ const PerfisAcesso = () => {
   const [search, setSearch] = useState("");
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const togglePermissao = (key: string) => {
@@ -368,7 +369,7 @@ const PerfisAcesso = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginate(filteredPerfis, page).paginated.map(p => (
+                {paginate(filteredPerfis, page, pageSize).paginated.map(p => (
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.nome}</TableCell>
                     <TableCell className="text-muted-foreground">{p.descricao || "—"}</TableCell>
@@ -395,7 +396,7 @@ const PerfisAcesso = () => {
               </TableBody>
             </Table>
           )}
-          <PaginationControls currentPage={page} totalItems={filteredPerfis.length} onPageChange={setPage} />
+          <PaginationControls currentPage={page} totalItems={filteredPerfis.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
         </div>
       </div>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />

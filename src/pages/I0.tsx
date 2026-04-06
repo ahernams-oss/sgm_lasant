@@ -42,6 +42,7 @@ export default function I0Page() {
   const [filterMes, setFilterMes] = useState<string>("todos");
   const [filterAno, setFilterAno] = useState<string>("todos");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
@@ -196,7 +197,7 @@ export default function I0Page() {
                 </TableCell>
               </TableRow>
             ) : (
-              paginate(filtered, page).paginated.map((item) => (
+              paginate(filtered, page, pageSize).paginated.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>{mesLabel(item.mes)}</TableCell>
                   <TableCell>{item.ano}</TableCell>
@@ -220,7 +221,7 @@ export default function I0Page() {
         </Table>
       </div>
 
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

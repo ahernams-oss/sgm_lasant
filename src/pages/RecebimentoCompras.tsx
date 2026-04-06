@@ -35,6 +35,7 @@ export default function RecebimentoComprasPage() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("Pendentes");
   const [pageRec, setPageRec] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Recebimento dialog
   const [recDialogOpen, setRecDialogOpen] = useState(false);
@@ -227,7 +228,7 @@ export default function RecebimentoComprasPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
-            ) : paginate(filtered, pageRec).paginated.map(p => {
+            ) : paginate(filtered, pageRec, pageSize).paginated.map(p => {
               const recsPedido = getRecebimentosByPedido(p.id);
               const totalItens = p.itens.length;
               const itensCompletos = p.itens.filter(i => {
@@ -293,7 +294,7 @@ export default function RecebimentoComprasPage() {
           </TableBody>
         </Table>
       </div>
-      <PaginationControls currentPage={pageRec} totalItems={filtered.length} onPageChange={setPageRec} />
+      <PaginationControls currentPage={pageRec} totalItems={filtered.length} onPageChange={setPageRec} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageRec(1); }} />
 
       {/* Dialog Registrar Recebimento */}
       <Dialog open={recDialogOpen} onOpenChange={setRecDialogOpen}>

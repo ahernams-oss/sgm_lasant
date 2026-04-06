@@ -19,7 +19,6 @@ import PaginationControls from "@/components/PaginationControls";
 
 const TIPOS = ["Operacional", "Qualidade", "Inspeção", "Treinamento", "Auditoria"];
 const STATUS_LIST = ["Pendente", "Em Análise", "Aprovada", "Reprovada", "Em Revisão", "Encerrada"];
-const ITEMS_PER_PAGE = 15;
 
 const statusColor = (s: string) => {
   switch (s) {
@@ -59,6 +58,7 @@ export default function EvidenciasPage() {
   const [filterTipo, setFilterTipo] = useState("Todos");
   const [filterStatus, setFilterStatus] = useState("Todos");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -288,7 +288,7 @@ export default function EvidenciasPage() {
         </Table>
       </div>
 
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={ITEMS_PER_PAGE} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       <DoubleConfirmDelete
         open={!!deleteId}

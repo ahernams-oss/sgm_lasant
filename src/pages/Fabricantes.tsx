@@ -18,6 +18,7 @@ export default function FabricantesPage() {
   const [nome, setNome] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const filtered = useMemo(() => {
     if (!search) return fabricantes;
@@ -63,7 +64,7 @@ export default function FabricantesPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground py-8">Nenhum fabricante cadastrado</TableCell></TableRow>
-            ) : paginate(filtered, page).paginated.map(f => (
+            ) : paginate(filtered, page, pageSize).paginated.map(f => (
               <TableRow key={f.id}>
                 <TableCell>{f.nome}</TableCell>
                 <TableCell>
@@ -78,7 +79,7 @@ export default function FabricantesPage() {
         </Table>
       </div>
 
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>

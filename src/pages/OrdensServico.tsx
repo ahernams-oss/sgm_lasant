@@ -798,22 +798,9 @@ export default function OrdensServicoPage() {
               ))}
             </TableBody>
           </Table>
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Mostrando</span>
-              <select
-                value={pageSize}
-                onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
-                className="border border-border rounded px-2 py-1 bg-background text-foreground text-sm"
-              >
-                {[7, 10, 20, 50].map(n => <option key={n} value={n}>{n}</option>)}
-              </select>
-              <span>registros</span>
-            </div>
-          </div>
           {totalPages > 1 && (
             <div className="px-4 pb-4">
-              <PaginationControls currentPage={safePage} totalItems={ordensFiltradas.length} onPageChange={setPage} pageSize={pageSize} />
+              <PaginationControls currentPage={safePage} totalItems={ordensFiltradas.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}/>
             </div>
           )}
         </CardContent>

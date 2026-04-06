@@ -60,6 +60,7 @@ const ExamesPage = () => {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [uploading, setUploading] = useState(false);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
@@ -148,7 +149,7 @@ const ExamesPage = () => {
     return result;
   }, [exames, search, filtroStatus, filtroTipo]);
 
-  const { paginated, totalPages, safePage } = paginate(filtered, page);
+  const { paginated, totalPages, safePage } = paginate(filtered, page, pageSize);
   const resetPage = () => setPage(1);
 
   const getNotificacaoStatus = (exame: ExamePeriodico) => {
@@ -322,7 +323,7 @@ const ExamesPage = () => {
         </div>
       )}
 
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       <div className="bg-muted/50 rounded-lg p-4 text-xs text-muted-foreground space-y-1">
         <p className="font-semibold flex items-center gap-1">

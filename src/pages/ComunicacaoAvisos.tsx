@@ -37,7 +37,7 @@ export default function ComunicacaoAvisos() {
     return a.titulo.toLowerCase().includes(q) || a.conteudo.toLowerCase().includes(q);
   });
 
-  const { paginated, totalPages } = paginate(filtered, page, 7);
+  const { paginated, totalPages } = paginate(filtered, page, pageSize);
 
   const handleSalvar = async () => {
     if (!form.titulo.trim() || !form.conteudo.trim()) {

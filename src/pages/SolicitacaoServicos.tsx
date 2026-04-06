@@ -909,20 +909,7 @@ export default function SolicitacaoServicosPage() {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between pt-2">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>Mostrando</span>
-          <select
-            value={pageSize}
-            onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
-            className="border border-border rounded px-2 py-1 bg-background text-foreground text-sm"
-          >
-            {[7, 10, 20, 50].map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
-          <span>registros</span>
-        </div>
-      </div>
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}/>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
       <DoubleConfirmDelete open={!!cancelId} onOpenChange={o => !o && abortCancel()} onConfirm={handleCancelar} />
 

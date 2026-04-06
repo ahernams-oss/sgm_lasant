@@ -65,6 +65,7 @@ const MapaFuncionarios = () => {
   // Filters
   const [search, setSearch] = useState("");
   const [pageLanc, setPageLanc] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [filterFuncionario, setFilterFuncionario] = useState("todos");
   const [filterCliente, setFilterCliente] = useState("todos");
   const [filterMes, setFilterMes] = useState(() => {
@@ -597,7 +598,7 @@ const MapaFuncionarios = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginate(filteredLancamentos, pageLanc).paginated.map((l) => (
+                  {paginate(filteredLancamentos, pageLanc, pageSize).paginated.map((l) => (
                     <TableRow key={l.id}>
                       <TableCell className="font-medium">{formatData(l.data)}</TableCell>
                       <TableCell>{getFuncionarioNome(l.funcionarioId)}</TableCell>
@@ -675,7 +676,7 @@ const MapaFuncionarios = () => {
             </div>
           )}
         </div>
-        <PaginationControls currentPage={pageLanc} totalItems={filteredLancamentos.length} onPageChange={setPageLanc} />
+        <PaginationControls currentPage={pageLanc} totalItems={filteredLancamentos.length} onPageChange={setPageLanc} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageLanc(1); }} />
       </div>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>

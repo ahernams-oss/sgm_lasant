@@ -15,6 +15,7 @@ const ProcessosSeletivos = () => {
   const { requisicoes } = useRequisicoes();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const processosComReq = processos.map((p) => ({
     ...p,
@@ -63,7 +64,7 @@ const ProcessosSeletivos = () => {
           </Card>
         ) : (
           <div className="grid gap-3">
-            {paginate(filtered, page).paginated.map((p) => {
+            {paginate(filtered, page, pageSize).paginated.map((p) => {
               const total = p.candidatos.length;
               const contratados = p.candidatos.filter((c) => c.etapaAtual === "contratacao").length;
               return (
@@ -95,7 +96,7 @@ const ProcessosSeletivos = () => {
             })}
           </div>
         )}
-        <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+        <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
       </div>
     </div>
   );

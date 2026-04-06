@@ -40,6 +40,7 @@ export default function Equipamentos() {
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [viewEquip, setViewEquip] = useState<Equipamento | null>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [uploadingFoto, setUploadingFoto] = useState(false);
@@ -132,7 +133,7 @@ export default function Equipamentos() {
     return list;
   }, [equipamentos, search, filterCliente]);
 
-  const { paginated: paginatedItems, totalPages } = paginate(filtered, page);
+  const { paginated: paginatedItems, totalPages } = paginate(filtered, page, pageSize);
 
   return (
     <div className="space-y-6">
@@ -343,7 +344,7 @@ export default function Equipamentos() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+          <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
         </CardContent>
       </Card>
 

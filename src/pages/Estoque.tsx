@@ -33,6 +33,7 @@ export default function EstoquePage() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("saldos");
   const [pageSaldos, setPageSaldos] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [pageMov, setPageMov] = useState(1);
   const [pageAlertas, setPageAlertas] = useState(1);
   const [pageInv, setPageInv] = useState(1);
@@ -367,7 +368,7 @@ export default function EstoquePage() {
               <TableBody>
                 {saldos.length === 0 ? (
                   <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum saldo registrado</TableCell></TableRow>
-                ) : paginate(saldos, pageSaldos).paginated.map((s, i) => (
+                ) : paginate(saldos, pageSaldos, pageSize).paginated.map((s, i) => (
                   <TableRow key={i}>
                     <TableCell className="font-mono">{s.materialCodigo}</TableCell>
                     <TableCell>{s.materialDescricao}</TableCell>
@@ -381,7 +382,7 @@ export default function EstoquePage() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={pageSaldos} totalItems={saldos.length} onPageChange={setPageSaldos} />
+          <PaginationControls currentPage={pageSaldos} totalItems={saldos.length} onPageChange={setPageSaldos} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageSaldos(1); }} />
         </TabsContent>
 
         {/* MOVIMENTAÇÕES */}
@@ -405,7 +406,7 @@ export default function EstoquePage() {
               <TableBody>
                 {movFiltered.length === 0 ? (
                   <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Nenhuma movimentação</TableCell></TableRow>
-                ) : paginate(movFiltered, pageMov).paginated.map(m => (
+                ) : paginate(movFiltered, pageMov, pageSize).paginated.map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="text-xs">{m.dataMovimentacao ? new Date(m.dataMovimentacao).toLocaleDateString("pt-BR") : "-"}</TableCell>
                     <TableCell><Badge className={tipoColor(m.tipo)}>{m.tipo === "entrada" ? "Entrada" : m.tipo === "saida" ? "Saída" : "Ajuste"}</Badge></TableCell>
@@ -422,7 +423,7 @@ export default function EstoquePage() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={pageMov} totalItems={movFiltered.length} onPageChange={setPageMov} />
+          <PaginationControls currentPage={pageMov} totalItems={movFiltered.length} onPageChange={setPageMov} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageMov(1); }} />
         </TabsContent>
 
         {/* ALERTAS */}
@@ -441,7 +442,7 @@ export default function EstoquePage() {
               <TableBody>
                 {alertas.length === 0 ? (
                   <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum alerta – todos os itens estão acima do mínimo</TableCell></TableRow>
-                ) : paginate(alertas, pageAlertas).paginated.map(a => (
+                ) : paginate(alertas, pageAlertas, pageSize).paginated.map(a => (
                   <TableRow key={a.id}>
                     <TableCell className="font-mono">{a.codigo}</TableCell>
                     <TableCell>{a.descricao}</TableCell>
@@ -458,7 +459,7 @@ export default function EstoquePage() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={pageAlertas} totalItems={alertas.length} onPageChange={setPageAlertas} />
+          <PaginationControls currentPage={pageAlertas} totalItems={alertas.length} onPageChange={setPageAlertas} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageAlertas(1); }} />
         </TabsContent>
 
         {/* INVENTÁRIOS */}
@@ -478,7 +479,7 @@ export default function EstoquePage() {
               <TableBody>
                 {inventarios.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum inventário registrado</TableCell></TableRow>
-                ) : paginate([...inventarios].reverse(), pageInv).paginated.map(inv => (
+                ) : paginate([...inventarios].reverse(), pageInv, pageSize).paginated.map(inv => (
                   <TableRow key={inv.id}>
                     <TableCell>{inv.dataInventario ? new Date(inv.dataInventario).toLocaleDateString("pt-BR") : "-"}</TableCell>
                     <TableCell>{inv.local}</TableCell>
@@ -506,7 +507,7 @@ export default function EstoquePage() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={pageInv} totalItems={inventarios.length} onPageChange={setPageInv} />
+          <PaginationControls currentPage={pageInv} totalItems={inventarios.length} onPageChange={setPageInv} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageInv(1); }} />
         </TabsContent>
       </Tabs>
 

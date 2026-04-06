@@ -30,6 +30,7 @@ const EpisPage = () => {
   const [search, setSearch] = useState("");
   const [filtroCliente, setFiltroCliente] = useState("todos");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const todosEpis = useMemo(() => {
     const lista: EpiComFuncionario[] = [];
@@ -67,7 +68,7 @@ const EpisPage = () => {
     return result;
   }, [todosEpis, search, filtroCliente]);
 
-  const { paginated, totalPages, safePage } = paginate(filtered, page);
+  const { paginated, totalPages, safePage } = paginate(filtered, page, pageSize);
 
   const resetPage = () => setPage(1);
 
@@ -156,7 +157,7 @@ const EpisPage = () => {
         </div>
       )}
 
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
     </div>
   );
 };
