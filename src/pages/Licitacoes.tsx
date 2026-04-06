@@ -192,6 +192,7 @@ export default function LicitacoesPage() {
   const [viewLicId, setViewLicId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [pageLic, setPageLic] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [pageDoc, setPageDoc] = useState(1);
   const [pageAna, setPageAna] = useState(1);
 
@@ -432,7 +433,7 @@ export default function LicitacoesPage() {
               <TableBody>
                 {filteredLicitacoes.length === 0 ? (
                   <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma licitação encontrada</TableCell></TableRow>
-                ) : paginate(filteredLicitacoes, pageLic).paginated.map(l => (
+                ) : paginate(filteredLicitacoes, pageLic, pageSize).paginated.map(l => (
                   <TableRow key={l.id}>
                     <TableCell className="font-medium whitespace-nowrap">{l.numeroProcesso}</TableCell>
                     <TableCell className="whitespace-nowrap">{l.modalidade}</TableCell>
@@ -452,7 +453,7 @@ export default function LicitacoesPage() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={pageLic} totalItems={filteredLicitacoes.length} onPageChange={setPageLic} />
+          <PaginationControls currentPage={pageLic} totalItems={filteredLicitacoes.length} onPageChange={setPageLic} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageLic(1); }} />
         </TabsContent>
 
         {/* =============== TAB DOCUMENTOS =============== */}
@@ -521,7 +522,7 @@ export default function LicitacoesPage() {
               <TableBody>
                 {filteredDocumentos.length === 0 ? (
                   <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhum documento encontrado</TableCell></TableRow>
-                ) : paginate(filteredDocumentos, pageDoc).paginated.map(d => (
+                ) : paginate(filteredDocumentos, pageDoc, pageSize).paginated.map(d => (
                   <TableRow key={d.id}>
                     <TableCell className="font-medium">{d.nome}</TableCell>
                     <TableCell>{d.categoria}</TableCell>

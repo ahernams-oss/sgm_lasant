@@ -43,6 +43,7 @@ function PlanosTab() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [form, setForm] = useState({
     titulo: "", descricao: "", cliente_id: "", cliente_nome: "", unidade: "",
@@ -121,9 +122,9 @@ function PlanosTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginate(filtered, page).paginated.length === 0 ? (
+            {paginate(filtered, page, pageSize).paginated.length === 0 ? (
               <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum plano cadastrado</TableCell></TableRow>
-            ) : paginate(filtered, page).paginated.map(p => (
+            ) : paginate(filtered, page, pageSize).paginated.map(p => (
               <TableRow key={p.id}>
                 <TableCell className="font-medium">{p.titulo}</TableCell>
                 <TableCell>{p.clienteNome || "-"}</TableCell>
@@ -143,7 +144,7 @@ function PlanosTab() {
           </TableBody>
         </Table>
       </div>
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -262,9 +263,9 @@ function AtividadesTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginate(filtered, page).paginated.length === 0 ? (
+            {paginate(filtered, page, pageSize).paginated.length === 0 ? (
               <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhuma atividade</TableCell></TableRow>
-            ) : paginate(filtered, page).paginated.map(a => (
+            ) : paginate(filtered, page, pageSize).paginated.map(a => (
               <TableRow key={a.id}>
                 <TableCell className="font-medium">{a.descricao}</TableCell>
                 <TableCell>{a.equipamentoNome || "-"}</TableCell>
@@ -283,7 +284,7 @@ function AtividadesTab() {
           </TableBody>
         </Table>
       </div>
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -425,9 +426,9 @@ function OrdensServicoTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginate(filtered, page).paginated.length === 0 ? (
+            {paginate(filtered, page, pageSize).paginated.length === 0 ? (
               <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma OS</TableCell></TableRow>
-            ) : paginate(filtered, page).paginated.map(o => (
+            ) : paginate(filtered, page, pageSize).paginated.map(o => (
               <TableRow key={o.id}>
                 <TableCell className="font-mono">{o.numero}</TableCell>
                 <TableCell className="font-medium">{o.descricao}</TableCell>
@@ -448,7 +449,7 @@ function OrdensServicoTab() {
           </TableBody>
         </Table>
       </div>
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -584,9 +585,9 @@ function ResponsaveisTecnicosTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginate(responsaveisTecnicos, page).paginated.length === 0 ? (
+            {paginate(responsaveisTecnicos, page, pageSize).paginated.length === 0 ? (
               <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum RT cadastrado</TableCell></TableRow>
-            ) : paginate(responsaveisTecnicos, page).paginated.map(rt => (
+            ) : paginate(responsaveisTecnicos, page, pageSize).paginated.map(rt => (
               <TableRow key={rt.id}>
                 <TableCell className="font-medium">{rt.nome}</TableCell>
                 <TableCell className="font-mono">{rt.registroProfissional || "-"}</TableCell>
@@ -605,7 +606,7 @@ function ResponsaveisTecnicosTab() {
           </TableBody>
         </Table>
       </div>
-      <PaginationControls currentPage={page} totalItems={responsaveisTecnicos.length} onPageChange={setPage} />
+      <PaginationControls currentPage={page} totalItems={responsaveisTecnicos.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
@@ -734,9 +735,9 @@ function QualidadeArTab() {
             <Table>
               <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Cliente</TableHead><TableHead>Local</TableHead><TableHead>Pavimento</TableHead><TableHead>Setor</TableHead><TableHead>Periodicidade</TableHead><TableHead>Status</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
               <TableBody>
-                {paginate(pontosQA, page).paginated.length === 0 ? (
+                {paginate(pontosQA, page, pageSize).paginated.length === 0 ? (
                   <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum ponto</TableCell></TableRow>
-                ) : paginate(pontosQA, page).paginated.map(p => {
+                ) : paginate(pontosQA, page, pageSize).paginated.map(p => {
                   const cli = soClientes.find(c => c.id === p.clienteId);
                   const loc = (cli?.locais || []).find((l: any) => l.id === p.ambiente);
                   const pav = (loc?.pavimentos || []).find((pv: any) => pv.id === p.pavimento);
@@ -762,7 +763,7 @@ function QualidadeArTab() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={page} totalItems={pontosQA.length} onPageChange={setPage} />
+          <PaginationControls currentPage={page} totalItems={pontosQA.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
         </>
       ) : (
         <>
@@ -771,9 +772,9 @@ function QualidadeArTab() {
             <Table>
               <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Ponto</TableHead><TableHead>Temp °C</TableHead><TableHead>Umid %</TableHead><TableHead>CO₂ ppm</TableHead><TableHead>Conforme</TableHead><TableHead>Responsável</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
               <TableBody>
-                {paginate(medicoesQA, page).paginated.length === 0 ? (
+                {paginate(medicoesQA, page, pageSize).paginated.length === 0 ? (
                   <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma medição</TableCell></TableRow>
-                ) : paginate(medicoesQA, page).paginated.map(m => (
+                ) : paginate(medicoesQA, page, pageSize).paginated.map(m => (
                   <TableRow key={m.id}>
                     <TableCell>{m.dataMedicao}</TableCell>
                     <TableCell>{m.pontoDescricao || "-"}</TableCell>
@@ -793,7 +794,7 @@ function QualidadeArTab() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={page} totalItems={medicoesQA.length} onPageChange={setPage} />
+          <PaginationControls currentPage={page} totalItems={medicoesQA.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
         </>
       )}
 
@@ -905,9 +906,9 @@ function InconformidadesTab() {
         <Table>
           <TableHeader><TableRow><TableHead>Nº</TableHead><TableHead>Descrição</TableHead><TableHead>Gravidade</TableHead><TableHead>Ambiente</TableHead><TableHead>Responsável</TableHead><TableHead>Prazo</TableHead><TableHead>Status</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
           <TableBody>
-            {paginate(inconformidades, page).paginated.length === 0 ? (
+            {paginate(inconformidades, page, pageSize).paginated.length === 0 ? (
               <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma inconformidade</TableCell></TableRow>
-            ) : paginate(inconformidades, page).paginated.map(i => (
+            ) : paginate(inconformidades, page, pageSize).paginated.map(i => (
               <TableRow key={i.id}>
                 <TableCell className="font-mono">{i.numero}</TableCell>
                 <TableCell className="font-medium">{i.descricao}</TableCell>
@@ -927,7 +928,7 @@ function InconformidadesTab() {
           </TableBody>
         </Table>
       </div>
-      <PaginationControls currentPage={page} totalItems={inconformidades.length} onPageChange={setPage} />
+      <PaginationControls currentPage={page} totalItems={inconformidades.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
@@ -995,9 +996,9 @@ function BibliotecaTab() {
         <Table>
           <TableHeader><TableRow><TableHead>Título</TableHead><TableHead>Tipo Equipamento</TableHead><TableHead>Tipo Atividade</TableHead><TableHead>Periodicidade</TableHead><TableHead>Duração</TableHead><TableHead>Versão</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
           <TableBody>
-            {paginate(biblioteca, page).paginated.length === 0 ? (
+            {paginate(biblioteca, page, pageSize).paginated.length === 0 ? (
               <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhuma rotina</TableCell></TableRow>
-            ) : paginate(biblioteca, page).paginated.map(b => (
+            ) : paginate(biblioteca, page, pageSize).paginated.map(b => (
               <TableRow key={b.id}>
                 <TableCell className="font-medium">{b.titulo}</TableCell>
                 <TableCell>{b.tipoEquipamento || "-"}</TableCell>
@@ -1016,7 +1017,7 @@ function BibliotecaTab() {
           </TableBody>
         </Table>
       </div>
-      <PaginationControls currentPage={page} totalItems={biblioteca.length} onPageChange={setPage} />
+      <PaginationControls currentPage={page} totalItems={biblioteca.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">

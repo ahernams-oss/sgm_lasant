@@ -25,6 +25,7 @@ export default function CategoriasCompras() {
   const [activeTab, setActiveTab] = useState("grupos");
   const [search, setSearch] = useState("");
   const [pageGrupos, setPageGrupos] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [pageSubs, setPageSubs] = useState(1);
   const [pageClasses, setPageClasses] = useState(1);
 
@@ -149,7 +150,7 @@ export default function CategoriasCompras() {
               <TableBody>
                 {filteredGrupos.length === 0 ? (
                   <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum grupo cadastrado</TableCell></TableRow>
-                ) : paginate(filteredGrupos, pageGrupos).paginated.map(g => (
+                ) : paginate(filteredGrupos, pageGrupos, pageSize).paginated.map(g => (
                   <TableRow key={g.id}>
                     <TableCell><Badge variant="outline" className="font-mono">{g.codigo}</Badge></TableCell>
                     <TableCell className="font-medium">{g.nome}</TableCell>
@@ -165,7 +166,7 @@ export default function CategoriasCompras() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={pageGrupos} totalItems={filteredGrupos.length} onPageChange={setPageGrupos} />
+          <PaginationControls currentPage={pageGrupos} totalItems={filteredGrupos.length} onPageChange={setPageGrupos} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageGrupos(1); }} />
         </TabsContent>
 
         {/* === SUBGRUPOS === */}
@@ -194,7 +195,7 @@ export default function CategoriasCompras() {
               <TableBody>
                 {filteredSubs.length === 0 ? (
                   <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum subgrupo cadastrado</TableCell></TableRow>
-                ) : paginate(filteredSubs, pageSubs).paginated.map(s => (
+                ) : paginate(filteredSubs, pageSubs, pageSize).paginated.map(s => (
                   <TableRow key={s.id}>
                     <TableCell><Badge variant="outline" className="font-mono">{s.codigo}</Badge></TableCell>
                     <TableCell className="font-medium">{s.nome}</TableCell>
@@ -211,7 +212,7 @@ export default function CategoriasCompras() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={pageSubs} totalItems={filteredSubs.length} onPageChange={setPageSubs} />
+          <PaginationControls currentPage={pageSubs} totalItems={filteredSubs.length} onPageChange={setPageSubs} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageSubs(1); }} />
         </TabsContent>
 
         {/* === CLASSES === */}
@@ -252,7 +253,7 @@ export default function CategoriasCompras() {
               <TableBody>
                 {filteredClasses.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma classe cadastrada</TableCell></TableRow>
-                ) : paginate(filteredClasses, pageClasses).paginated.map(c => (
+                ) : paginate(filteredClasses, pageClasses, pageSize).paginated.map(c => (
                   <TableRow key={c.id}>
                     <TableCell><Badge variant="secondary" className="font-mono">{getCodigoCompleto(c.id)}</Badge></TableCell>
                     <TableCell><Badge variant="outline" className="font-mono">{c.codigo}</Badge></TableCell>
@@ -270,7 +271,7 @@ export default function CategoriasCompras() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={pageClasses} totalItems={filteredClasses.length} onPageChange={setPageClasses} />
+          <PaginationControls currentPage={pageClasses} totalItems={filteredClasses.length} onPageChange={setPageClasses} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageClasses(1); }} />
         </TabsContent>
 
         {/* === VISÃO GERAL (ÁRVORE) === */}

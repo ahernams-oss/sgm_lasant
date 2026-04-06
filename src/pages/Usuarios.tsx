@@ -38,6 +38,7 @@ const Usuarios = () => {
   const [search, setSearch] = useState("");
   const [filterCargo, setFilterCargo] = useState<string>("todos");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const update = (field: string, value: string) =>
@@ -324,7 +325,7 @@ const Usuarios = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginate(filteredUsuarios, page).paginated.map((u) => (
+                {paginate(filteredUsuarios, page, pageSize).paginated.map((u) => (
                   <TableRow key={u.id}>
                     <TableCell className="font-medium">{u.nome}</TableCell>
                     <TableCell>{getCargoNome(u.cargoId)}</TableCell>
@@ -347,7 +348,7 @@ const Usuarios = () => {
               </TableBody>
             </Table>
           )}
-          <PaginationControls currentPage={page} totalItems={filteredUsuarios.length} onPageChange={setPage} />
+          <PaginationControls currentPage={page} totalItems={filteredUsuarios.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
         </div>
       </div>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />

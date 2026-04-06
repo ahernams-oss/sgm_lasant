@@ -19,7 +19,6 @@ import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
 
 const CATEGORIAS = ["Inspeção", "Qualidade", "Segurança", "Meio Ambiente", "Operacional", "Auditoria"];
-const ITEMS_PER_PAGE = 15;
 
 function calcPercentual(itens: PreenchimentoItem[]): number {
   const avaliados = itens.filter(i => i.status === "Conforme" || i.status === "Não Conforme");
@@ -36,6 +35,7 @@ export default function ChecklistsPage() {
   const [activeTab, setActiveTab] = useState("templates");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
 
   // Template dialog
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
@@ -229,7 +229,7 @@ export default function ChecklistsPage() {
               </TableBody>
             </Table>
           </div>
-          {filteredTemplates.length > ITEMS_PER_PAGE && <PaginationControls currentPage={page} totalItems={filteredTemplates.length} onPageChange={setPage} pageSize={ITEMS_PER_PAGE} />}
+          {filteredTemplates.length > ITEMS_PER_PAGE && <PaginationControls currentPage={page} totalItems={filteredTemplates.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />}
         </TabsContent>
 
         {/* === PREENCHIMENTOS TAB === */}
@@ -276,7 +276,7 @@ export default function ChecklistsPage() {
               </TableBody>
             </Table>
           </div>
-          {filteredPreench.length > ITEMS_PER_PAGE && <PaginationControls currentPage={page} totalItems={filteredPreench.length} onPageChange={setPage} pageSize={ITEMS_PER_PAGE} />}
+          {filteredPreench.length > ITEMS_PER_PAGE && <PaginationControls currentPage={page} totalItems={filteredPreench.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />}
         </TabsContent>
       </Tabs>
 

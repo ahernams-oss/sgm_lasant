@@ -23,6 +23,7 @@ const Clientes = () => {
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [locaisClienteId, setLocaisClienteId] = useState<string | null>(null);
    const [locaisEntregaClienteId, setLocaisEntregaClienteId] = useState<string | null>(null);
    const [contratosClienteId, setContratosClienteId] = useState<string | null>(null);
@@ -177,7 +178,7 @@ const Clientes = () => {
             </p>
           ) : (
             <div className="divide-y divide-border">
-              {paginate(filteredClientes, page).paginated.map((cliente) => (
+              {paginate(filteredClientes, page, pageSize).paginated.map((cliente) => (
                 <div key={cliente.id} className="flex items-center justify-between py-3 gap-4">
                   <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
                     <p className="text-sm font-medium text-foreground truncate">{cliente.nome}</p>
@@ -225,7 +226,7 @@ const Clientes = () => {
               ))}
             </div>
           )}
-          <PaginationControls currentPage={page} totalItems={filteredClientes.length} onPageChange={setPage} />
+          <PaginationControls currentPage={page} totalItems={filteredClientes.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
         </div>
 
         {locaisClienteId && (

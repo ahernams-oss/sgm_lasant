@@ -50,6 +50,7 @@ export default function PedidoCompraPage() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("Todos");
   const [pagePed, setPagePed] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [viewPedido, setViewPedido] = useState<PedidoCompra | null>(null);
   const [historicoPedido, setHistoricoPedido] = useState<PedidoCompra | null>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
@@ -272,7 +273,7 @@ export default function PedidoCompraPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
-            ) : paginate(filtered, pagePed).paginated.map(p => {
+            ) : paginate(filtered, pagePed, pageSize).paginated.map(p => {
               const rcVinculada = requisicoes.find(r => r.id === p.requisicaoId);
               const canUpdate = getNextStatuses(p.status).length > 0;
               return (
@@ -307,7 +308,7 @@ export default function PedidoCompraPage() {
           </TableBody>
         </Table>
       </div>
-      <PaginationControls currentPage={pagePed} totalItems={filtered.length} onPageChange={setPagePed} />
+      <PaginationControls currentPage={pagePed} totalItems={filtered.length} onPageChange={setPagePed} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPagePed(1); }} />
 
       {/* Dialog Detalhes */}
       <Dialog open={!!viewPedido} onOpenChange={() => setViewPedido(null)}>

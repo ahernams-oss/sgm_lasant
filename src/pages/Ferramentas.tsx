@@ -38,6 +38,7 @@ export default function FerramentasPage() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("cadastro");
   const [pageCad, setPageCad] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [pageVinc, setPageVinc] = useState(1);
   const [pageEmp, setPageEmp] = useState(1);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
@@ -195,7 +196,7 @@ export default function FerramentasPage() {
                 {filteredFerramentas.length === 0 && (
                   <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma ferramenta cadastrada.</TableCell></TableRow>
                 )}
-                {paginate(filteredFerramentas, pageCad).paginated.map(f => (
+                {paginate(filteredFerramentas, pageCad, pageSize).paginated.map(f => (
                   <TableRow key={f.id}>
                     <TableCell className="font-mono text-xs">{f.codigo}</TableCell>
                     <TableCell className="font-medium">{f.descricao}</TableCell>
@@ -219,7 +220,7 @@ export default function FerramentasPage() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={pageCad} totalItems={filteredFerramentas.length} onPageChange={setPageCad} />
+          <PaginationControls currentPage={pageCad} totalItems={filteredFerramentas.length} onPageChange={setPageCad} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageCad(1); }} />
         </TabsContent>
 
         {/* VÍNCULOS */}
@@ -244,7 +245,7 @@ export default function FerramentasPage() {
                 {vinculos.length === 0 && (
                   <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum vínculo registrado.</TableCell></TableRow>
                 )}
-                {paginate(vinculos, pageVinc).paginated.map(v => (
+                {paginate(vinculos, pageVinc, pageSize).paginated.map(v => (
                   <TableRow key={v.id}>
                     <TableCell className="text-sm max-w-[300px]">
                       {v.ferramentasDescricoes.length > 0 ? (
@@ -271,7 +272,7 @@ export default function FerramentasPage() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={pageVinc} totalItems={vinculos.length} onPageChange={setPageVinc} />
+          <PaginationControls currentPage={pageVinc} totalItems={vinculos.length} onPageChange={setPageVinc} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageVinc(1); }} />
         </TabsContent>
 
         {/* EMPRÉSTIMOS */}
@@ -297,7 +298,7 @@ export default function FerramentasPage() {
                 {emprestimos.length === 0 && (
                   <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum empréstimo registrado.</TableCell></TableRow>
                 )}
-                {paginate(emprestimos, pageEmp).paginated.map(e => (
+                {paginate(emprestimos, pageEmp, pageSize).paginated.map(e => (
                   <TableRow key={e.id}>
                     <TableCell className="text-sm">{e.ferramentaDescricao}</TableCell>
                     <TableCell className="text-sm">{e.centroCustoOrigemNome}</TableCell>
@@ -324,7 +325,7 @@ export default function FerramentasPage() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={pageEmp} totalItems={emprestimos.length} onPageChange={setPageEmp} />
+          <PaginationControls currentPage={pageEmp} totalItems={emprestimos.length} onPageChange={setPageEmp} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageEmp(1); }} />
         </TabsContent>
 
         {/* HISTÓRICO */}
@@ -344,7 +345,7 @@ export default function FerramentasPage() {
                 {historico.length === 0 && (
                   <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum registro no histórico.</TableCell></TableRow>
                 )}
-                {paginate(historico, pageHist).paginated.map(h => (
+                {paginate(historico, pageHist, pageSize).paginated.map(h => (
                   <TableRow key={h.id}>
                     <TableCell className="text-sm">{h.dataEvento}</TableCell>
                     <TableCell className="text-sm">{h.ferramentaDescricao}</TableCell>
@@ -356,7 +357,7 @@ export default function FerramentasPage() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls currentPage={pageHist} totalItems={historico.length} onPageChange={setPageHist} />
+          <PaginationControls currentPage={pageHist} totalItems={historico.length} onPageChange={setPageHist} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageHist(1); }} />
         </TabsContent>
       </Tabs>
 

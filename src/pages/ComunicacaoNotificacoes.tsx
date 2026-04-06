@@ -38,7 +38,7 @@ export default function ComunicacaoNotificacoes() {
     return n.titulo.toLowerCase().includes(q) || n.destinatarioNome.toLowerCase().includes(q);
   });
 
-  const { paginated, totalPages } = paginate(filtered, page, 7);
+  const { paginated, totalPages } = paginate(filtered, page, pageSize);
 
   const handleSalvar = async () => {
     const dest = usuarios.find(u => u.id === form.destinatarioId);

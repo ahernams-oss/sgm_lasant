@@ -27,6 +27,7 @@ export default function Sco() {
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("todos");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
@@ -193,7 +194,7 @@ export default function Sco() {
                 </TableCell>
               </TableRow>
             ) : (
-              paginate(filtered, page).paginated.map((s) => (
+              paginate(filtered, page, pageSize).paginated.map((s) => (
                 <TableRow key={s.id}>
                   <TableCell className="font-mono">{s.codSco}</TableCell>
                   <TableCell>{s.descricaoSco}</TableCell>
@@ -224,7 +225,7 @@ export default function Sco() {
         </Table>
       </div>
 
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} />
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

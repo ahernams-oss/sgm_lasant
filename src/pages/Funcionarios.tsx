@@ -315,6 +315,7 @@ const Funcionarios = () => {
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [filterCliente, setFilterCliente] = useState<string>("todos");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const update = (field: string, value: string | boolean | PassagemDiaria[] | Dependente[] | EpiItem[] | NrFuncionario[]) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -895,7 +896,7 @@ const Funcionarios = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginate(filteredFuncionarios, page).paginated.map((f) => {
+                  {paginate(filteredFuncionarios, page, pageSize).paginated.map((f) => {
                     const expBadge = (() => {
                       if (!f.experienciaFim) return null;
                       const hoje = new Date();
@@ -947,7 +948,7 @@ const Funcionarios = () => {
               </Table>
             </div>
           )}
-          <PaginationControls currentPage={page} totalItems={filteredFuncionarios.length} onPageChange={setPage} />
+          <PaginationControls currentPage={page} totalItems={filteredFuncionarios.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
         </div>
       </div>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
