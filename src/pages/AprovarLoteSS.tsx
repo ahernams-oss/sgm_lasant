@@ -252,7 +252,7 @@ export default function AprovarLoteSS() {
                   {[s.localDescricao, s.pavimentoDescricao, s.setorDescricao].filter(Boolean).join(" › ") || "—"}
                 </TableCell>
                 <TableCell className="text-sm max-w-[300px] truncate">{s.descricaoServicos || "—"}</TableCell>
-                <TableCell className="text-sm">{s.dataHora || "—"}</TableCell>
+                <TableCell className="text-sm">{s.dataHoraSolicitacao || s.createdAt?.slice(0, 16).replace("T", " ") || "—"}</TableCell>
                 <TableCell className="text-center">
                   <Badge variant="outline">{s.tipo || "—"}</Badge>
                 </TableCell>
