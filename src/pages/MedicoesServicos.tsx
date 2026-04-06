@@ -47,8 +47,8 @@ const MedicoesServicos = () => {
   // Also exclude OCs already used in another medição (unless editing that same medição)
   const ocsJaUtilizadas = new Set(
     medicoes
-      .filter(m => m.ordem_compra_id && m.id !== editId)
-      .map(m => m.ordem_compra_id)
+      .filter(m => (m as any).ordem_compra_id && m.id !== editId)
+      .map(m => (m as any).ordem_compra_id as string)
   );
   const pedidosServico = pedidos.filter(p => {
     if (p.status === "Cancelado") return false;
