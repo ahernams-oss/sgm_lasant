@@ -207,7 +207,18 @@ const RequisicaoGrid = () => {
     <div className="section-card animate-fade-up overflow-hidden" style={{ animationDelay: "600ms" }}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
         <h2 className="section-title mb-0">Acompanhamento de Requisições</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={filterUnidade} onValueChange={setFilterUnidade}>
+            <SelectTrigger className="h-9 w-[180px] text-xs">
+              <SelectValue placeholder="Unidade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas Unidades</SelectItem>
+              {clientes.filter(c => c.tipo === "Cliente").map((c) => (
+                <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="h-9 w-[140px] text-xs">
               <SelectValue placeholder="Status" />
@@ -219,6 +230,8 @@ const RequisicaoGrid = () => {
               ))}
             </SelectContent>
           </Select>
+          <Input type="date" value={filterDataDe} onChange={(e) => setFilterDataDe(e.target.value)} className="h-9 w-[140px] text-xs" placeholder="De" title="Data inicial" />
+          <Input type="date" value={filterDataAte} onChange={(e) => setFilterDataAte(e.target.value)} className="h-9 w-[140px] text-xs" placeholder="Até" title="Data final" />
           <div className="relative w-52">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Pesquisar requisições..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
