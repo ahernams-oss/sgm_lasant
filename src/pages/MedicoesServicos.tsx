@@ -44,8 +44,15 @@ const MedicoesServicos = () => {
   const { toast } = useToast();
 
   // Filter pedidos that contain only services (not materials)
+  // Also exclude OCs already used in another medição (unless editing that same medição)
+  const ocsJaUtilizadas = new Set(
+    medicoes
+      .filter(m => (m as any).ordem_compra_id && m.id !== editId)
+      .map(m => (m as any).ordem_compra_id as string)
+  );
   const pedidosServico = pedidos.filter(p => {
     if (p.status === "Cancelado") return false;
+    if (ocsJaUtilizadas.has(p.id)) return false;
     const req = requisicoes.find(r => r.id === p.requisicaoId);
     if (!req) return false;
     // Check if ALL items in the requisition linked to this pedido are services
