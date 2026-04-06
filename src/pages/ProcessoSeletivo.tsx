@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useClientes } from "@/contexts/ClientesContext";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle, Paperclip, FileText, Trash2, Pencil, CalendarDays, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,39 @@ import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { toast } from "sonner";
+
+// Debounced Input to avoid saving on every keystroke
+function DebouncedInput({ value: externalValue, onChange, delay = 600, ...props }: React.ComponentProps<"input"> & { delay?: number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
+  const [localValue, setLocalValue] = useState(externalValue ?? "");
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => { setLocalValue(externalValue ?? ""); }, [externalValue]);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalValue(e.target.value);
+    clearTimeout(timerRef.current);
+    const val = e.target.value;
+    timerRef.current = setTimeout(() => {
+      onChange({ target: { value: val } } as React.ChangeEvent<HTMLInputElement>);
+    }, delay);
+  };
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+  return <Input {...props} value={localValue} onChange={handleChange} />;
+}
+
+function DebouncedTextarea({ value: externalValue, onChange, delay = 600, ...props }: React.ComponentProps<typeof Textarea> & { delay?: number; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void }) {
+  const [localValue, setLocalValue] = useState(externalValue ?? "");
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => { setLocalValue(externalValue ?? ""); }, [externalValue]);
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setLocalValue(e.target.value);
+    clearTimeout(timerRef.current);
+    const val = e.target.value;
+    timerRef.current = setTimeout(() => {
+      onChange({ target: { value: val } } as React.ChangeEvent<HTMLTextAreaElement>);
+    }, delay);
+  };
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+  return <Textarea {...props} value={localValue} onChange={handleChange} />;
+}
 
 const etapaLabels: Record<EtapaCandidato, string> = {
   entrevista_psicologica: "Entrevista Psicológica",
@@ -427,7 +460,7 @@ const ProcessoSeletivoPage = () => {
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <label className="text-xs font-medium text-muted-foreground">Idade</label>
-                            <Input
+                            <DebouncedInput
                               value={c.idade}
                               onChange={(e) => handleSalvarParecer(c.id, "idade", e.target.value)}
                               placeholder="Ex: 28"
@@ -437,7 +470,7 @@ const ProcessoSeletivoPage = () => {
                           </div>
                           <div>
                             <label className="text-xs font-medium text-muted-foreground">Estado Civil</label>
-                            <Input
+                            <DebouncedInput
                               value={c.estadoCivil}
                               onChange={(e) => handleSalvarParecer(c.id, "estadoCivil", e.target.value)}
                               placeholder="Ex: Solteiro(a)"
@@ -448,7 +481,7 @@ const ProcessoSeletivoPage = () => {
                         </div>
                         <div>
                           <label className="text-xs font-medium text-muted-foreground">Experiências Anteriores</label>
-                          <Textarea
+                          <DebouncedTextarea
                             value={c.experienciasAnteriores}
                             onChange={(e) => handleSalvarParecer(c.id, "experienciasAnteriores", e.target.value)}
                             placeholder="Descreva as experiências anteriores do candidato..."
@@ -459,7 +492,7 @@ const ProcessoSeletivoPage = () => {
                         </div>
                         <div>
                           <label className="text-xs font-medium text-muted-foreground">Parecer da Psicóloga</label>
-                          <Textarea
+                          <DebouncedTextarea
                             value={c.parecerPsicologo}
                             onChange={(e) => handleSalvarParecer(c.id, "parecerPsicologo", e.target.value)}
                             placeholder="Descreva a avaliação psicológica do candidato..."
@@ -543,7 +576,7 @@ const ProcessoSeletivoPage = () => {
                           <CardContent className="space-y-3">
                             <div>
                               <label className="text-xs font-medium text-muted-foreground">Nome do Avaliador</label>
-                              <Input
+                              <DebouncedInput
                                 value={c.avaliadorTecnico}
                                 onChange={(e) => handleSalvarParecer(c.id, "avaliadorTecnico", e.target.value)}
                                 placeholder="Nome do avaliador técnico"
@@ -553,7 +586,7 @@ const ProcessoSeletivoPage = () => {
                             </div>
                             <div>
                               <label className="text-xs font-medium text-muted-foreground">Parecer Técnico</label>
-                              <Textarea
+                              <DebouncedTextarea
                                 value={c.parecerTecnico}
                                 onChange={(e) => handleSalvarParecer(c.id, "parecerTecnico", e.target.value)}
                                 placeholder="Descreva a avaliação técnica do candidato..."
