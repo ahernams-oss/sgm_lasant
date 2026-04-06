@@ -55,6 +55,9 @@ const RequisicaoGrid = () => {
   const { processos } = useProcessoSeletivo();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
+  const [filterUnidade, setFilterUnidade] = useState<string>("todos");
+  const [filterDataDe, setFilterDataDe] = useState<string>("");
+  const [filterDataAte, setFilterDataAte] = useState<string>("");
   const [editingReq, setEditingReq] = useState<Requisicao | null>(null);
   const [historicoReq, setHistoricoReq] = useState<Requisicao | null>(null);
   const [editForm, setEditForm] = useState({
@@ -155,6 +158,12 @@ const RequisicaoGrid = () => {
     }
   };
 
+  const parseDataBR = (d: string): Date | null => {
+    const parts = d.split("/");
+    if (parts.length !== 3) return null;
+    return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+  };
+
   const filteredRequisicoes = useMemo(() => {
     let result = requisicoes;
     if (search.trim()) {
@@ -171,8 +180,20 @@ const RequisicaoGrid = () => {
     if (filterStatus !== "todos") {
       result = result.filter((r) => r.status === filterStatus);
     }
+    if (filterUnidade !== "todos") {
+      result = result.filter((r) => r.unidade === filterUnidade);
+    }
+    if (filterDataDe) {
+      const de = new Date(filterDataDe);
+      result = result.filter((r) => { const d = parseDataBR(r.dataCriacao); return d && d >= de; });
+    }
+    if (filterDataAte) {
+      const ate = new Date(filterDataAte);
+      ate.setHours(23, 59, 59, 999);
+      result = result.filter((r) => { const d = parseDataBR(r.dataCriacao); return d && d <= ate; });
+    }
     return result;
-  }, [requisicoes, search, filterStatus]);
+  }, [requisicoes, search, filterStatus, filterUnidade, filterDataDe, filterDataAte]);
 
   if (requisicoes.length === 0) {
     return (
@@ -186,7 +207,18 @@ const RequisicaoGrid = () => {
     <div className="section-card animate-fade-up overflow-hidden" style={{ animationDelay: "600ms" }}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
         <h2 className="section-title mb-0">Acompanhamento de Requisições</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={filterUnidade} onValueChange={setFilterUnidade}>
+            <SelectTrigger className="h-9 w-[180px] text-xs">
+              <SelectValue placeholder="Unidade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas Unidades</SelectItem>
+              {clientes.filter(c => c.tipo === "Cliente").map((c) => (
+                <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="h-9 w-[140px] text-xs">
               <SelectValue placeholder="Status" />
@@ -198,6 +230,8 @@ const RequisicaoGrid = () => {
               ))}
             </SelectContent>
           </Select>
+          <Input type="date" value={filterDataDe} onChange={(e) => setFilterDataDe(e.target.value)} className="h-9 w-[140px] text-xs" placeholder="De" title="Data inicial" />
+          <Input type="date" value={filterDataAte} onChange={(e) => setFilterDataAte(e.target.value)} className="h-9 w-[140px] text-xs" placeholder="Até" title="Data final" />
           <div className="relative w-52">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Pesquisar requisições..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
