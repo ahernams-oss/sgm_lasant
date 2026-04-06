@@ -43,6 +43,10 @@ const MedicoesServicos = () => {
   const { materiais } = useMateriaisServicos();
   const { toast } = useToast();
 
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+
   // Filter pedidos that contain only services (not materials)
   // Also exclude OCs already used in another medição (unless editing that same medição)
   const ocsJaUtilizadas = new Set(
@@ -55,15 +59,10 @@ const MedicoesServicos = () => {
     if (ocsJaUtilizadas.has(p.id)) return false;
     const req = requisicoes.find(r => r.id === p.requisicaoId);
     if (!req) return false;
-    // Check if ALL items in the requisition linked to this pedido are services
     const materialIds = req.itens.map(i => i.materialId);
     const tiposItems = materialIds.map(mid => materiais.find(m => m.id === mid)?.tipo);
     return tiposItems.length > 0 && tiposItems.every(t => t === "Serviço");
   });
-
-  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
-  const [showForm, setShowForm] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [showLancamento, setShowLancamento] = useState(false);
   const [pageMed, setPageMed] = useState(1);
