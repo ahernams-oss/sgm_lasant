@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
-import { Stethoscope, Search, Trash2, Upload, FileText, Bell, AlertTriangle, Plus } from "lucide-react";
+import { Stethoscope, Search, Trash2, Upload, FileText, Bell, AlertTriangle, Plus, FileDown, FileSpreadsheet } from "lucide-react";
+import { gerarPdfExames } from "@/lib/gerarPdfExames";
+import { gerarExcelExames } from "@/lib/gerarExcelExames";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -178,7 +180,7 @@ const ExamesPage = () => {
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           {vencidos > 0 && (
             <Badge variant="destructive" className="text-xs">
               {vencidos} vencido(s)
@@ -192,6 +194,12 @@ const ExamesPage = () => {
           <Badge variant="secondary" className="text-xs">
             {filtered.length} registro(s)
           </Badge>
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => gerarPdfExames(filtered)}>
+            <FileDown className="h-4 w-4" /> PDF
+          </Button>
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => gerarExcelExames(filtered)}>
+            <FileSpreadsheet className="h-4 w-4" /> Excel
+          </Button>
         </div>
       </div>
 
