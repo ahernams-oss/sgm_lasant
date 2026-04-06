@@ -31,6 +31,39 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { toast } from "sonner";
 
+// Debounced Input to avoid saving on every keystroke
+function DebouncedInput({ value: externalValue, onChange, delay = 600, ...props }: React.ComponentProps<"input"> & { delay?: number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
+  const [localValue, setLocalValue] = useState(externalValue ?? "");
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => { setLocalValue(externalValue ?? ""); }, [externalValue]);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalValue(e.target.value);
+    clearTimeout(timerRef.current);
+    const val = e.target.value;
+    timerRef.current = setTimeout(() => {
+      onChange({ target: { value: val } } as React.ChangeEvent<HTMLInputElement>);
+    }, delay);
+  };
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+  return <Input {...props} value={localValue} onChange={handleChange} />;
+}
+
+function DebouncedTextarea({ value: externalValue, onChange, delay = 600, ...props }: React.ComponentProps<typeof Textarea> & { delay?: number; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void }) {
+  const [localValue, setLocalValue] = useState(externalValue ?? "");
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => { setLocalValue(externalValue ?? ""); }, [externalValue]);
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setLocalValue(e.target.value);
+    clearTimeout(timerRef.current);
+    const val = e.target.value;
+    timerRef.current = setTimeout(() => {
+      onChange({ target: { value: val } } as React.ChangeEvent<HTMLTextAreaElement>);
+    }, delay);
+  };
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+  return <Textarea {...props} value={localValue} onChange={handleChange} />;
+}
+
 const etapaLabels: Record<EtapaCandidato, string> = {
   entrevista_psicologica: "Entrevista Psicológica",
   entrevista_tecnica: "Entrevista Técnica",
