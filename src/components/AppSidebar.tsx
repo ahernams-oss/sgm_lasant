@@ -76,6 +76,7 @@ const menuItems = [
       { title: "Dashboard Engenharia", url: "/engenharia/dashboard", icon: BarChart3 },
       { title: "Medição de Serviços", url: "/engenharia/medicoes", icon: Ruler },
       { title: "Solicitação de Serviços", url: "/engenharia/solicitacao-servicos", icon: ClipboardList },
+      { title: "Aprovar SS em Lote", url: "/engenharia/aprovar-lote-ss", icon: ClipboardCheck },
       { title: "Ordem de Serviço", url: "/engenharia/ordem-servico", icon: Wrench },
     ],
   },
