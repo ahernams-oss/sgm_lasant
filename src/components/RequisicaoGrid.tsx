@@ -158,6 +158,12 @@ const RequisicaoGrid = () => {
     }
   };
 
+  const parseDataBR = (d: string): Date | null => {
+    const parts = d.split("/");
+    if (parts.length !== 3) return null;
+    return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+  };
+
   const filteredRequisicoes = useMemo(() => {
     let result = requisicoes;
     if (search.trim()) {
@@ -174,8 +180,20 @@ const RequisicaoGrid = () => {
     if (filterStatus !== "todos") {
       result = result.filter((r) => r.status === filterStatus);
     }
+    if (filterUnidade !== "todos") {
+      result = result.filter((r) => r.unidade === filterUnidade);
+    }
+    if (filterDataDe) {
+      const de = new Date(filterDataDe);
+      result = result.filter((r) => { const d = parseDataBR(r.dataCriacao); return d && d >= de; });
+    }
+    if (filterDataAte) {
+      const ate = new Date(filterDataAte);
+      ate.setHours(23, 59, 59, 999);
+      result = result.filter((r) => { const d = parseDataBR(r.dataCriacao); return d && d <= ate; });
+    }
     return result;
-  }, [requisicoes, search, filterStatus]);
+  }, [requisicoes, search, filterStatus, filterUnidade, filterDataDe, filterDataAte]);
 
   if (requisicoes.length === 0) {
     return (
