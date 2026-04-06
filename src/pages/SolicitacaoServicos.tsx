@@ -70,6 +70,7 @@ export default function SolicitacaoServicosPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [formCollapsed, setFormCollapsed] = useState(false);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(7);
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState(() => localStorage.getItem("ss_filtroCliente") || "all");
   const [filterTipo, setFilterTipo] = useState("all");
@@ -486,7 +487,7 @@ export default function SolicitacaoServicosPage() {
     return Array.from(map.entries());
   }, [solicitacoes]);
 
-  const { paginated, totalPages } = paginate(filtered, page, 7);
+  const { paginated, totalPages } = paginate(filtered, page, pageSize);
 
   const allPageIds = paginated.map(s => s.id);
   const allPageSelected = allPageIds.length > 0 && allPageIds.every(id => selectedIds.has(id));
@@ -908,7 +909,20 @@ export default function SolicitacaoServicosPage() {
         </Table>
       </div>
 
-      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={7} />
+      <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>Mostrando</span>
+          <select
+            value={pageSize}
+            onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
+            className="border border-border rounded px-2 py-1 bg-background text-foreground text-sm"
+          >
+            {[7, 10, 20, 50].map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+          <span>registros</span>
+        </div>
+      </div>
+      <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} />
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
       <DoubleConfirmDelete open={!!cancelId} onOpenChange={o => !o && abortCancel()} onConfirm={handleCancelar} />
 

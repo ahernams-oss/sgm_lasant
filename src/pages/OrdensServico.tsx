@@ -85,7 +85,7 @@ const prioridadeBadge = (p: string) => {
   return <Badge className="bg-green-600 text-white">{p}</Badge>;
 };
 
-const ITEMS_PER_PAGE = 7;
+const DEFAULT_PAGE_SIZE = 7;
 
 export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
@@ -121,6 +121,7 @@ export default function OrdensServicoPage() {
   const [filtroDataInicio, setFiltroDataInicio] = useState("");
   const [filtroDataFim, setFiltroDataFim] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Form fields
@@ -575,7 +576,7 @@ export default function OrdensServicoPage() {
     }, 0);
   }, [ordensFiltradas]);
 
-  const { paginated: ordensPage, totalPages, safePage } = paginate(ordensFiltradas, page, ITEMS_PER_PAGE);
+  const { paginated: ordensPage, totalPages, safePage } = paginate(ordensFiltradas, page, pageSize);
 
   const abertasNaPagina = ordensPage.filter(o => o.situacao === "Aberta");
   const allAbertasSelected = abertasNaPagina.length > 0 && abertasNaPagina.every(o => selectedIds.has(o.id));
@@ -797,9 +798,22 @@ export default function OrdensServicoPage() {
               ))}
             </TableBody>
           </Table>
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Mostrando</span>
+              <select
+                value={pageSize}
+                onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
+                className="border border-border rounded px-2 py-1 bg-background text-foreground text-sm"
+              >
+                {[7, 10, 20, 50].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+              <span>registros</span>
+            </div>
+          </div>
           {totalPages > 1 && (
-            <div className="p-4">
-              <PaginationControls currentPage={safePage} totalItems={ordensFiltradas.length} onPageChange={setPage} pageSize={ITEMS_PER_PAGE} />
+            <div className="px-4 pb-4">
+              <PaginationControls currentPage={safePage} totalItems={ordensFiltradas.length} onPageChange={setPage} pageSize={pageSize} />
             </div>
           )}
         </CardContent>
