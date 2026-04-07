@@ -371,9 +371,11 @@ export default function OrdensServicoPage() {
   const handleCancelOS = async () => {
     if (cancelId) {
       const os = ordens.find(o => o.id === cancelId);
+      const financeiro = os ? recalcFinanceiro(os) : {};
       await updateOrdem(cancelId, {
         situacao: "Cancelada",
         historico: buildOSHistorico("Cancelada", os?.historico || []),
+        ...financeiro,
       });
       toast.success("Ordem de Serviço cancelada!");
       cancelCancelAction();
