@@ -1724,7 +1724,7 @@ export default function OrdensServicoPage() {
               {(() => {
                 const totalItens = (viewOS.materiais || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0)
                   + (viewOS.materiaisEstoque || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
-                const bdi = isNaN(Number(viewOS.bdi)) ? 0 : Number(viewOS.bdi);
+                const bdi = (() => { const n = Number(String(viewOS.bdi || 0).replace(",", ".")); return isNaN(n) ? 0 : n; })();
                 const valorBDI = totalItens * (bdi / 100);
                 const valorTotal = totalItens + valorBDI;
                 return totalItens > 0 ? (
