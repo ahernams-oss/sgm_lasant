@@ -433,7 +433,8 @@ export default function OrdensServicoPage() {
   const calcTotalComBDI = (matSCO: any[], matEstoque: any[], bdi: number) => {
     const totalItens = matSCO.reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0)
       + matEstoque.reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
-    return totalItens * (1 + bdi / 100);
+    const safeBdi = isNaN(bdi) ? 0 : bdi;
+    return totalItens * (1 + safeBdi / 100);
   };
 
   const getI0Valor = (codSco: string) => {
