@@ -76,10 +76,11 @@ export default function EmpresaDados() {
       toast({ title: "Informe a Razão Social", variant: "destructive" });
       return;
     }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     setSaving(true);
     try {
       await saveEmpresa(form);
-      toast({ title: "Dados da empresa salvos com sucesso" });
+      dirtyRef.current = false;
     } catch {
       toast({ title: "Erro ao salvar dados", variant: "destructive" });
     } finally {
