@@ -235,10 +235,12 @@ export default function EmpresaDados() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <Field label="Banco" field="banco" placeholder="Nome do banco" icon={Landmark} />
             <Field label="Agência" field="agencia" placeholder="0000" />
             <Field label="Conta" field="conta" placeholder="00000-0" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-muted-foreground">Tipo de Conta</Label>
               <select
@@ -251,9 +253,9 @@ export default function EmpresaDados() {
                 <option value="Poupança">Poupança</option>
               </select>
             </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Chave PIX" field="chavePix" placeholder="CPF, CNPJ, e-mail, celular ou chave aleatória" />
+            <div className="sm:col-span-2">
+              <Field label="Chave PIX" field="chavePix" placeholder="CPF, CNPJ, e-mail, celular ou chave aleatória" />
+            </div>
           </div>
         </CardContent>
       </Card>
