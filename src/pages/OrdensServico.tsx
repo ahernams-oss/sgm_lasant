@@ -295,7 +295,7 @@ export default function OrdensServicoPage() {
     const cliente = clientes.find(c => c.id === os.clienteId);
     const contratos = (cliente as any)?.contratos || [];
     const contrato = contratos[0];
-    const bdi = contrato?.bdi ? Number(contrato.bdi) : 0;
+    const bdi = contrato?.bdi ? Number(String(contrato.bdi).replace(",", ".")) : 0;
     const safeBdi = isNaN(bdi) ? 0 : bdi;
 
     const recalcMateriais = (mats: MaterialOS[]) =>
@@ -423,10 +423,15 @@ export default function OrdensServicoPage() {
   const setores = pavimentoSelecionado?.setores || [];
 
   // BDI from client's contract
+  const parseBdi = (val: any): number => {
+    if (!val) return 0;
+    const n = Number(String(val).replace(",", "."));
+    return isNaN(n) ? 0 : n;
+  };
   const bdiPercentual = useMemo(() => {
     const contratos = clienteSelecionado?.contratos || [];
     const contrato = contratos[0];
-    return contrato?.bdi ? Number(contrato.bdi) : 0;
+    return parseBdi(contrato?.bdi);
   }, [clienteSelecionado]);
 
   // Helper: calc total with BDI
