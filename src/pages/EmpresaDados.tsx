@@ -16,11 +16,16 @@ export default function EmpresaDados() {
   const [form, setForm] = useState<Empresa>(empresa);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "pending" | "saving" | "saved">("idle");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dirtyRef = useRef(false);
+  const initialLoadDone = useRef(false);
 
   useEffect(() => {
-    if (!loading) setForm(empresa);
+    if (!loading && !dirtyRef.current) {
+      setForm(empresa);
+      initialLoadDone.current = true;
+    }
   }, [empresa, loading]);
 
   const autoSave = useCallback(async (updatedForm: Empresa) => {
@@ -28,6 +33,7 @@ export default function EmpresaDados() {
     setAutoSaveStatus("saving");
     try {
       await saveEmpresa(updatedForm);
+      dirtyRef.current = false;
       setAutoSaveStatus("saved");
       setTimeout(() => setAutoSaveStatus("idle"), 2000);
     } catch {
@@ -36,6 +42,7 @@ export default function EmpresaDados() {
   }, [saveEmpresa]);
 
   const update = (field: keyof Empresa, value: string) => {
+    dirtyRef.current = true;
     setForm(prev => {
       const next = { ...prev, [field]: value };
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -69,10 +76,11 @@ export default function EmpresaDados() {
       toast({ title: "Informe a Razão Social", variant: "destructive" });
       return;
     }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     setSaving(true);
     try {
       await saveEmpresa(form);
-      toast({ title: "Dados da empresa salvos com sucesso" });
+      dirtyRef.current = false;
     } catch {
       toast({ title: "Erro ao salvar dados", variant: "destructive" });
     } finally {
