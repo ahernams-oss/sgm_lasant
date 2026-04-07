@@ -13,6 +13,7 @@ const emptyDado: Omit<InformacaoFinanceira, "id"> = {
   banco: "",
   agencia: "",
   conta: "",
+  chavePix: "",
 };
 
 export default function DadosBancariosTab({ dados, onChange }: DadosBancariosTabProps) {
@@ -28,7 +29,7 @@ export default function DadosBancariosTab({ dados, onChange }: DadosBancariosTab
 
   const startEdit = (index: number) => {
     const item = dados[index];
-    setForm({ banco: item.banco, agencia: item.agencia, conta: item.conta });
+    setForm({ banco: item.banco, agencia: item.agencia, conta: item.conta, chavePix: item.chavePix ?? "" });
     setEditingIndex(index);
     setIsAdding(true);
   };
@@ -63,7 +64,7 @@ export default function DadosBancariosTab({ dados, onChange }: DadosBancariosTab
           <h4 className="text-sm font-semibold text-foreground">
             {editingIndex !== null ? "Editar Dados Bancários" : "Novo Dados Bancários"}
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="field-label">Banco</label>
               <Input
@@ -88,6 +89,14 @@ export default function DadosBancariosTab({ dados, onChange }: DadosBancariosTab
                 onChange={(e) => setForm((p) => ({ ...p, conta: e.target.value }))}
               />
             </div>
+            <div>
+              <label className="field-label">Chave PIX</label>
+              <Input
+                placeholder="CPF, e-mail, telefone ou chave aleatória"
+                value={form.chavePix}
+                onChange={(e) => setForm((p) => ({ ...p, chavePix: e.target.value }))}
+              />
+            </div>
           </div>
           <div className="flex gap-2">
             <Button type="button" size="sm" onClick={save} className="gap-1">
@@ -109,10 +118,11 @@ export default function DadosBancariosTab({ dados, onChange }: DadosBancariosTab
         <div className="divide-y divide-border">
           {dados.map((d, idx) => (
             <div key={d.id} className="flex items-center justify-between py-3 gap-4">
-              <div className="min-w-0 flex-1 grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1">
+              <div className="min-w-0 flex-1 grid grid-cols-1 sm:grid-cols-4 gap-x-4 gap-y-1">
                 <p className="text-sm font-medium text-foreground truncate">{d.banco || "—"}</p>
                 <p className="text-sm text-muted-foreground truncate">Ag: {d.agencia || "—"}</p>
                 <p className="text-sm text-muted-foreground truncate">Conta: {d.conta || "—"}</p>
+                <p className="text-sm text-muted-foreground truncate">PIX: {d.chavePix || "—"}</p>
               </div>
               <div className="flex gap-1 shrink-0">
                 <Button variant="ghost" size="sm" onClick={() => startEdit(idx)} className="text-xs">

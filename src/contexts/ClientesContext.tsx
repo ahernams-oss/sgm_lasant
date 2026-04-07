@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
-export interface InformacaoFinanceira { id: string; banco: string; agencia: string; conta: string; }
+export interface InformacaoFinanceira { id: string; banco: string; agencia: string; conta: string; chavePix: string; }
 export interface Setor { id: string; descricao: string; ativo: boolean; }
 export interface Pavimento { id: string; descricao: string; ativo: boolean; setores: Setor[]; }
 export interface LocalCliente {
