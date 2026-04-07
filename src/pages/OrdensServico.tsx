@@ -1169,9 +1169,11 @@ export default function OrdensServicoPage() {
                               <TableCell>
                                 <Input type="number" className="h-8 text-xs bg-muted cursor-not-allowed" value={m.valorUnitario} disabled />
                               </TableCell>
-                              <TableCell>
-                                <Input type="number" className="h-8 text-xs" value={m.quantidade} onChange={e => {
-                                  const updated = [...materiais]; updated[idx] = { ...m, quantidade: Number(e.target.value), valorTotal: m.valorUnitario * Number(e.target.value) }; setMateriais(updated);
+                              <TableCell className="w-[180px]">
+                                <Input type="number" className="h-8 text-xs w-[160px]" max={9999999} value={m.quantidade} onChange={e => {
+                                  const val = e.target.value.slice(0, 7);
+                                  const qty = Number(val);
+                                  const updated = [...materiais]; updated[idx] = { ...m, quantidade: qty, valorTotal: m.valorUnitario * qty }; setMateriais(updated);
                                 }} onBlur={() => autoSaveMateriais(materiais)} />
                               </TableCell>
                               <TableCell className="text-xs font-medium">R$ {m.valorTotal.toFixed(2)}</TableCell>
@@ -1278,9 +1280,10 @@ export default function OrdensServicoPage() {
                           <TableRow key={m.id}>
                             <TableCell className="text-xs">{m.codigo}</TableCell>
                             <TableCell className="text-xs">{m.descricao}</TableCell>
-                            <TableCell className="text-xs w-[100px]">
-                              <Input type="number" className="h-8 text-xs text-center" min={1} value={m.quantidade} onChange={e => {
-                                const qtd = Number(e.target.value) || 1;
+                            <TableCell className="text-xs w-[180px]">
+                              <Input type="number" className="h-8 text-xs text-center w-[160px]" min={1} max={9999999} value={m.quantidade} onChange={e => {
+                                const val = e.target.value.slice(0, 7);
+                                const qtd = Number(val) || 1;
                                 const updated = [...materiaisEstoque];
                                 updated[idx] = { ...m, quantidade: qtd, valorTotal: m.valorUnitario * qtd };
                                 setMateriaisEstoque(updated);
