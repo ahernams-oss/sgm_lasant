@@ -130,10 +130,21 @@ export default function EmpresaDados() {
             Configure as informações da sua empresa que serão usadas em documentos e relatórios
           </p>
         </div>
-        <Button onClick={handleSave} disabled={saving} className="gap-2">
-          <Save className="h-4 w-4" />
-          {saving ? "Salvando..." : "Salvar"}
-        </Button>
+        <div className="flex items-center gap-3">
+          {autoSaveStatus === "pending" && (
+            <span className="text-xs text-muted-foreground animate-pulse">Alterações pendentes...</span>
+          )}
+          {autoSaveStatus === "saving" && (
+            <span className="text-xs text-muted-foreground animate-pulse">Salvando...</span>
+          )}
+          {autoSaveStatus === "saved" && (
+            <span className="text-xs text-emerald-600">✓ Salvo</span>
+          )}
+          <Button onClick={handleSave} disabled={saving} className="gap-2">
+            <Save className="h-4 w-4" />
+            {saving ? "Salvando..." : "Salvar"}
+          </Button>
+        </div>
       </div>
 
       {/* Logo Section */}
