@@ -138,7 +138,7 @@ export default function EmpresaDados() {
             <span className="text-xs text-muted-foreground animate-pulse">Salvando...</span>
           )}
           {autoSaveStatus === "saved" && (
-            <span className="text-xs text-emerald-600">✓ Salvo</span>
+            <span className="text-xs text-primary">✓ Salvo</span>
           )}
           <Button onClick={handleSave} disabled={saving} className="gap-2">
             <Save className="h-4 w-4" />
