@@ -786,12 +786,16 @@ export type Database = {
       }
       empresa: {
         Row: {
+          agencia: string | null
           bairro: string | null
+          banco: string | null
           celular: string | null
           cep: string | null
+          chave_pix: string | null
           cidade: string | null
           cnpj: string | null
           complemento: string | null
+          conta: string | null
           contato: string | null
           created_at: string | null
           email: string | null
@@ -810,15 +814,20 @@ export type Database = {
           razao_social: string
           site: string | null
           telefone: string | null
+          tipo_conta: string | null
           uf: string | null
         }
         Insert: {
+          agencia?: string | null
           bairro?: string | null
+          banco?: string | null
           celular?: string | null
           cep?: string | null
+          chave_pix?: string | null
           cidade?: string | null
           cnpj?: string | null
           complemento?: string | null
+          conta?: string | null
           contato?: string | null
           created_at?: string | null
           email?: string | null
@@ -837,15 +846,20 @@ export type Database = {
           razao_social?: string
           site?: string | null
           telefone?: string | null
+          tipo_conta?: string | null
           uf?: string | null
         }
         Update: {
+          agencia?: string | null
           bairro?: string | null
+          banco?: string | null
           celular?: string | null
           cep?: string | null
+          chave_pix?: string | null
           cidade?: string | null
           cnpj?: string | null
           complemento?: string | null
+          conta?: string | null
           contato?: string | null
           created_at?: string | null
           email?: string | null
@@ -864,6 +878,7 @@ export type Database = {
           razao_social?: string
           site?: string | null
           telefone?: string | null
+          tipo_conta?: string | null
           uf?: string | null
         }
         Relationships: []

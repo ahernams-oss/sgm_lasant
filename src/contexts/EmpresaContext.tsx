@@ -27,6 +27,11 @@ export interface Empresa {
   contato: string;
   site: string;
   logoUrl: string;
+  banco: string;
+  agencia: string;
+  conta: string;
+  tipoConta: string;
+  chavePix: string;
 }
 
 const EMPTY: Empresa = {
@@ -34,7 +39,8 @@ const EMPTY: Empresa = {
   inscricaoMunicipal: "", logradouro: "", numero: "", complemento: "", bairro: "",
   cidade: "", uf: "", cep: "", telefone: "", celular: "", email: "", emailCompras: "",
   contato: "", site: "", logoUrl: "", emailRh: "", emailEngenharia: "",
-  emailEstoque: "", emailRelatorios: "",
+  emailEstoque: "", emailRelatorios: "", banco: "", agencia: "", conta: "",
+  tipoConta: "", chavePix: "",
 };
 
 interface EmpresaContextType {
@@ -71,6 +77,11 @@ const rowToEmpresa = (r: any): Empresa => ({
   contato: r.contato ?? "",
   site: r.site ?? "",
   logoUrl: r.logo_url ?? "",
+  banco: r.banco ?? "",
+  agencia: r.agencia ?? "",
+  conta: r.conta ?? "",
+  tipoConta: r.tipo_conta ?? "",
+  chavePix: r.chave_pix ?? "",
 });
 
 const empresaToRow = (e: Empresa) => ({
@@ -97,6 +108,11 @@ const empresaToRow = (e: Empresa) => ({
   contato: e.contato,
   site: e.site,
   logo_url: e.logoUrl,
+  banco: e.banco,
+  agencia: e.agencia,
+  conta: e.conta,
+  tipo_conta: e.tipoConta,
+  chave_pix: e.chavePix,
 });
 
 export function EmpresaProvider({ children }: { children: ReactNode }) {

@@ -1,0 +1,1 @@
+ALTER TABLE public.empresa ADD COLUMN IF NOT EXISTS banco text, ADD COLUMN IF NOT EXISTS agencia text, ADD COLUMN IF NOT EXISTS conta text, ADD COLUMN IF NOT EXISTS tipo_conta text, ADD COLUMN IF NOT EXISTS chave_pix text;
