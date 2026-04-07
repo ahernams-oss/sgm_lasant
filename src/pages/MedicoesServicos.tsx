@@ -7,6 +7,8 @@ import { downloadPdfMedicoes } from "@/lib/gerarPdfMedicoes";
 import { downloadExcelMedicoes } from "@/lib/gerarExcelMedicoes";
 import { downloadPdfHistoricoMedicao } from "@/lib/gerarPdfHistoricoMedicao";
 import { downloadExcelHistoricoMedicao } from "@/lib/gerarExcelHistoricoMedicao";
+import { downloadExcelPagamento } from "@/lib/gerarExcelPagamento";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +40,7 @@ const emptyItem = (): ItemServico => ({
 const MedicoesServicos = () => {
   const { medicoes, loading, addMedicao, updateMedicao, deleteMedicao } = useMedicoes();
   const { clientes } = useClientes();
+  const { empresa } = useEmpresa();
   const { pedidos } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
   const { materiais } = useMateriaisServicos();
@@ -317,6 +320,9 @@ const MedicoesServicos = () => {
               </Button>
               <Button variant="outline" size="sm" onClick={() => downloadExcelMedicoes(medicoes)}>
                 <Download className="mr-1 h-4 w-4" /> Excel
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => downloadExcelPagamento(medicoesFiltradas, clientes.filter(c => c.tipo === "Fornecedor"), empresa)}>
+                <Download className="mr-1 h-4 w-4" /> Pagamento
               </Button>
               <Button onClick={() => handleOpenForm()} className="gap-2">
                 <Plus className="h-4 w-4" />
