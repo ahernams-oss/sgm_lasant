@@ -101,7 +101,7 @@ export default function OrdensServicoPage() {
   const { scos } = useSco();
   const { items: i0Items } = useI0();
   const { funcionarios } = useFuncionarios();
-  const { movimentacoes } = useEstoque();
+  const { movimentacoes, registrarMovimentacao } = useEstoque();
   const { pedidos } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
   const { cargos } = useCargos();
@@ -328,15 +328,42 @@ export default function OrdensServicoPage() {
       historico: buildOSHistorico(novaSituacao, os.historico || []),
       ...financeiro,
     });
-    // Ao confirmar o serviço, concluir a Solicitação vinculada
-    if (novaSituacao === "Serviço Confirmado" && os.solicitacaoId) {
-      const { data: ssData } = await (supabase as any).from("solicitacoes_servicos").select("historico").eq("id", os.solicitacaoId).single();
-      const histAtual = Array.isArray(ssData?.historico) ? ssData.historico : [];
-      const novoHist = [...histAtual, { situacao: "Concluída", data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" }];
-      await updateRow("solicitacoes_servicos", os.solicitacaoId, {
-        situacao: "Concluída",
-        historico: novoHist,
-      });
+    // Ao confirmar o serviço, dar saída automática no estoque e concluir SS vinculada
+    if (novaSituacao === "Serviço Confirmado") {
+      // Saída automática dos materiais de estoque utilizados na OS
+      if (Array.isArray(os.materiaisEstoque) && os.materiaisEstoque.length > 0) {
+        for (const mat of os.materiaisEstoque) {
+          if ((Number(mat.quantidade) || 0) > 0) {
+            await registrarMovimentacao({
+              materialId: mat.id,
+              materialCodigo: mat.codigo,
+              materialDescricao: mat.descricao,
+              tipo: "saida",
+              quantidade: Number(mat.quantidade) || 0,
+              local: os.clienteNome || "",
+              documentoRef: `OS ${os.numero}`,
+              observacao: `Saída automática - Ordem de Serviço nº ${os.numero}`,
+              usuario: usuarioLogado?.nome || "Sistema",
+              lote: "",
+              validade: "",
+              depositoOrigem: "",
+              depositoDestino: "",
+              fornecedorNome: "",
+              valorUnitario: Number(mat.valorUnitario) || 0,
+            });
+          }
+        }
+      }
+      // Concluir a Solicitação vinculada
+      if (os.solicitacaoId) {
+        const { data: ssData } = await (supabase as any).from("solicitacoes_servicos").select("historico").eq("id", os.solicitacaoId).single();
+        const histAtual = Array.isArray(ssData?.historico) ? ssData.historico : [];
+        const novoHist = [...histAtual, { situacao: "Concluída", data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" }];
+        await updateRow("solicitacoes_servicos", os.solicitacaoId, {
+          situacao: "Concluída",
+          historico: novoHist,
+        });
+      }
     }
     toast.success(`OS ${os.numero} alterada para "${novaSituacao}"`);
   };
