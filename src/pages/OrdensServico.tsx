@@ -356,10 +356,12 @@ export default function OrdensServicoPage() {
     };
     const obsExistentes: ObservacaoFiscalizacao[] = Array.isArray(naoAprovarOS.observacoesFiscalizacao)
       ? naoAprovarOS.observacoesFiscalizacao : [];
+    const financeiro = recalcFinanceiro(naoAprovarOS);
     await updateOrdem(naoAprovarOS.id, {
       situacao: "Serviço Não Aprovado pela Fiscalização",
       historico: buildOSHistorico("Serviço Não Aprovado pela Fiscalização", naoAprovarOS.historico || []),
       observacoes_fiscalizacao: [...obsExistentes, novaObsFisc],
+      ...financeiro,
     });
     toast.success(`OS ${naoAprovarOS.numero} alterada para "Serviço Não Aprovado pela Fiscalização"`);
     setNaoAprovarOS(null);
@@ -638,9 +640,11 @@ export default function OrdensServicoPage() {
       return;
     }
     for (const os of abertasSelecionadas) {
+      const financeiro = recalcFinanceiro(os);
       await updateOrdem(os.id, {
         situacao: "Executada",
         historico: buildOSHistorico("Executada", os.historico || []),
+        ...financeiro,
       });
     }
     toast.success(`${abertasSelecionadas.length} OS(s) alterada(s) para "Executada"`);
