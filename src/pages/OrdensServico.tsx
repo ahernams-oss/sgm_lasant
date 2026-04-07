@@ -290,6 +290,30 @@ export default function OrdensServicoPage() {
   }, [scos, scoBusca]);
 
 
+  // Recalculate financial values for an OS based on current client contract
+  const recalcFinanceiro = (os: OrdemServico) => {
+    const cliente = clientes.find(c => c.id === os.clienteId);
+    const contratos = (cliente as any)?.contratos || [];
+    const contrato = contratos[0];
+    const bdi = contrato?.bdi ? Number(contrato.bdi) : 0;
+    const safeBdi = isNaN(bdi) ? 0 : bdi;
+
+    const recalcMateriais = (mats: MaterialOS[]) =>
+      mats.map(m => {
+        const vt = (Number(m.valorUnitario) || 0) * (Number(m.quantidade) || 0);
+        return { ...m, valorTotal: isNaN(vt) ? 0 : vt };
+      });
+
+    const matSCO = recalcMateriais(os.materiais || []);
+    const matEstoque = recalcMateriais(os.materiaisEstoque || []);
+
+    return {
+      bdi: safeBdi,
+      materiais: matSCO,
+      materiais_estoque: matEstoque,
+    };
+  };
+
   // Workflow action handler
    const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
     // If rejecting, open justification dialog instead
@@ -298,13 +322,14 @@ export default function OrdensServicoPage() {
       setNaoAprovarJustificativa("");
       return;
     }
+    const financeiro = recalcFinanceiro(os);
     await updateOrdem(os.id, {
       situacao: novaSituacao,
       historico: buildOSHistorico(novaSituacao, os.historico || []),
+      ...financeiro,
     });
     // Ao confirmar o serviço, concluir a Solicitação vinculada
     if (novaSituacao === "Serviço Confirmado" && os.solicitacaoId) {
-      // Buscar histórico atual da SS
       const { data: ssData } = await (supabase as any).from("solicitacoes_servicos").select("historico").eq("id", os.solicitacaoId).single();
       const histAtual = Array.isArray(ssData?.historico) ? ssData.historico : [];
       const novoHist = [...histAtual, { situacao: "Concluída", data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" }];
