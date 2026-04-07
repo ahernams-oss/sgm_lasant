@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useEmpresa, Empresa } from "@/contexts/EmpresaContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,13 +16,34 @@ export default function EmpresaDados() {
   const [form, setForm] = useState<Empresa>(empresa);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "pending" | "saving" | "saved">("idle");
 
   useEffect(() => {
     if (!loading) setForm(empresa);
   }, [empresa, loading]);
 
-  const update = (field: keyof Empresa, value: string) =>
-    setForm(prev => ({ ...prev, [field]: value }));
+  const autoSave = useCallback(async (updatedForm: Empresa) => {
+    if (!updatedForm.razaoSocial?.trim()) return;
+    setAutoSaveStatus("saving");
+    try {
+      await saveEmpresa(updatedForm);
+      setAutoSaveStatus("saved");
+      setTimeout(() => setAutoSaveStatus("idle"), 2000);
+    } catch {
+      setAutoSaveStatus("idle");
+    }
+  }, [saveEmpresa]);
+
+  const update = (field: keyof Empresa, value: string) => {
+    setForm(prev => {
+      const next = { ...prev, [field]: value };
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      setAutoSaveStatus("pending");
+      debounceRef.current = setTimeout(() => autoSave(next), 1500);
+      return next;
+    });
+  };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
