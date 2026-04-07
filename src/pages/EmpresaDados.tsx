@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2 } from "lucide-react";
+import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark } from "lucide-react";
 
 
 export default function EmpresaDados() {
@@ -223,6 +223,37 @@ export default function EmpresaDados() {
                 maxLength={2}
               />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Banking */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Landmark className="h-4 w-4" /> Dados Bancários
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Field label="Banco" field="banco" placeholder="Nome do banco" icon={Landmark} />
+            <Field label="Agência" field="agencia" placeholder="0000" />
+            <Field label="Conta" field="conta" placeholder="00000-0" />
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Tipo de Conta</Label>
+              <select
+                value={form.tipoConta}
+                onChange={e => update("tipoConta", e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="">Selecione...</option>
+                <option value="Corrente">Corrente</option>
+                <option value="Poupança">Poupança</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Chave PIX" field="chavePix" placeholder="CPF, CNPJ, e-mail, celular ou chave aleatória" />
           </div>
         </CardContent>
       </Card>
