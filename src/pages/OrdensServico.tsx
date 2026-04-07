@@ -290,6 +290,30 @@ export default function OrdensServicoPage() {
   }, [scos, scoBusca]);
 
 
+  // Recalculate financial values for an OS based on current client contract
+  const recalcFinanceiro = (os: OrdemServico) => {
+    const cliente = clientes.find(c => c.id === os.clienteId);
+    const contratos = (cliente as any)?.contratos || [];
+    const contrato = contratos[0];
+    const bdi = contrato?.bdi ? Number(contrato.bdi) : 0;
+    const safeBdi = isNaN(bdi) ? 0 : bdi;
+
+    const recalcMateriais = (mats: MaterialOS[]) =>
+      mats.map(m => {
+        const vt = (Number(m.valorUnitario) || 0) * (Number(m.quantidade) || 0);
+        return { ...m, valorTotal: isNaN(vt) ? 0 : vt };
+      });
+
+    const matSCO = recalcMateriais(os.materiais || []);
+    const matEstoque = recalcMateriais(os.materiaisEstoque || []);
+
+    return {
+      bdi: safeBdi,
+      materiais: matSCO,
+      materiais_estoque: matEstoque,
+    };
+  };
+
   // Workflow action handler
    const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
     // If rejecting, open justification dialog instead
@@ -298,13 +322,14 @@ export default function OrdensServicoPage() {
       setNaoAprovarJustificativa("");
       return;
     }
+    const financeiro = recalcFinanceiro(os);
     await updateOrdem(os.id, {
       situacao: novaSituacao,
       historico: buildOSHistorico(novaSituacao, os.historico || []),
+      ...financeiro,
     });
     // Ao confirmar o serviço, concluir a Solicitação vinculada
     if (novaSituacao === "Serviço Confirmado" && os.solicitacaoId) {
-      // Buscar histórico atual da SS
       const { data: ssData } = await (supabase as any).from("solicitacoes_servicos").select("historico").eq("id", os.solicitacaoId).single();
       const histAtual = Array.isArray(ssData?.historico) ? ssData.historico : [];
       const novoHist = [...histAtual, { situacao: "Concluída", data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" }];
@@ -331,10 +356,12 @@ export default function OrdensServicoPage() {
     };
     const obsExistentes: ObservacaoFiscalizacao[] = Array.isArray(naoAprovarOS.observacoesFiscalizacao)
       ? naoAprovarOS.observacoesFiscalizacao : [];
+    const financeiro = recalcFinanceiro(naoAprovarOS);
     await updateOrdem(naoAprovarOS.id, {
       situacao: "Serviço Não Aprovado pela Fiscalização",
       historico: buildOSHistorico("Serviço Não Aprovado pela Fiscalização", naoAprovarOS.historico || []),
       observacoes_fiscalizacao: [...obsExistentes, novaObsFisc],
+      ...financeiro,
     });
     toast.success(`OS ${naoAprovarOS.numero} alterada para "Serviço Não Aprovado pela Fiscalização"`);
     setNaoAprovarOS(null);
@@ -344,9 +371,11 @@ export default function OrdensServicoPage() {
   const handleCancelOS = async () => {
     if (cancelId) {
       const os = ordens.find(o => o.id === cancelId);
+      const financeiro = os ? recalcFinanceiro(os) : {};
       await updateOrdem(cancelId, {
         situacao: "Cancelada",
         historico: buildOSHistorico("Cancelada", os?.historico || []),
+        ...financeiro,
       });
       toast.success("Ordem de Serviço cancelada!");
       cancelCancelAction();
@@ -404,7 +433,8 @@ export default function OrdensServicoPage() {
   const calcTotalComBDI = (matSCO: any[], matEstoque: any[], bdi: number) => {
     const totalItens = matSCO.reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0)
       + matEstoque.reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
-    return totalItens * (1 + bdi / 100);
+    const safeBdi = isNaN(bdi) ? 0 : bdi;
+    return totalItens * (1 + safeBdi / 100);
   };
 
   const getI0Valor = (codSco: string) => {
@@ -613,9 +643,11 @@ export default function OrdensServicoPage() {
       return;
     }
     for (const os of abertasSelecionadas) {
+      const financeiro = recalcFinanceiro(os);
       await updateOrdem(os.id, {
         situacao: "Executada",
         historico: buildOSHistorico("Executada", os.historico || []),
+        ...financeiro,
       });
     }
     toast.success(`${abertasSelecionadas.length} OS(s) alterada(s) para "Executada"`);
@@ -1684,7 +1716,7 @@ export default function OrdensServicoPage() {
               {(() => {
                 const totalItens = (viewOS.materiais || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0)
                   + (viewOS.materiaisEstoque || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
-                const bdi = viewOS.bdi || 0;
+                const bdi = isNaN(Number(viewOS.bdi)) ? 0 : Number(viewOS.bdi);
                 const valorBDI = totalItens * (bdi / 100);
                 const valorTotal = totalItens + valorBDI;
                 return totalItens > 0 ? (
