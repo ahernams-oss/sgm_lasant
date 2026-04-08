@@ -11,14 +11,14 @@ serve(async (req) => {
   }
 
   try {
-    const CHATPRO_TOKEN = Deno.env.get('CHATPRO_TOKEN');
-    if (!CHATPRO_TOKEN) {
-      throw new Error('CHATPRO_TOKEN is not configured');
+    const ZAPI_TOKEN = Deno.env.get('CHATPRO_TOKEN');
+    if (!ZAPI_TOKEN) {
+      throw new Error('CHATPRO_TOKEN (Z-API Token) is not configured');
     }
 
-    const CHATPRO_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
-    if (!CHATPRO_INSTANCE) {
-      throw new Error('CHATPRO_INSTANCE is not configured');
+    const ZAPI_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
+    if (!ZAPI_INSTANCE) {
+      throw new Error('CHATPRO_INSTANCE (Z-API Instance) is not configured');
     }
 
     const { telefone, mensagem, documentUrl, documentFilename } = await req.json();
@@ -32,22 +32,22 @@ serve(async (req) => {
 
     // Limpar telefone: remover tudo que não é dígito
     const telefoneLimpo = telefone.replace(/\D/g, '');
+    const baseUrl = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}`;
 
     // Se tiver documento, envia como arquivo
     if (documentUrl) {
-      const chatproUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}/api/v1/send_message_file_from_url`;
+      const ext = (documentFilename || 'documento.pdf').split('.').pop() || 'pdf';
+      const zapiUrl = `${baseUrl}/send-document/${ext}`;
 
-      const response = await fetch(chatproUrl, {
+      const response = await fetch(zapiUrl, {
         method: 'POST',
         headers: {
-          'accept': 'application/json',
-          'content-type': 'application/json',
-          'Authorization': CHATPRO_TOKEN,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          url: documentUrl,
-          number: telefoneLimpo,
-          filename: documentFilename || 'documento.pdf',
+          phone: telefoneLimpo,
+          document: documentUrl,
+          fileName: documentFilename || 'documento.pdf',
           caption: mensagem || '',
         }),
       });
@@ -57,11 +57,11 @@ serve(async (req) => {
       try {
         data = JSON.parse(responseText);
       } catch {
-        throw new Error(`ChatPro retornou resposta inválida [${response.status}]: ${responseText.substring(0, 200)}`);
+        throw new Error(`Z-API retornou resposta inválida [${response.status}]: ${responseText.substring(0, 200)}`);
       }
 
       if (!response.ok) {
-        throw new Error(`ChatPro API error [${response.status}]: ${JSON.stringify(data)}`);
+        throw new Error(`Z-API error [${response.status}]: ${JSON.stringify(data)}`);
       }
 
       return new Response(
@@ -71,18 +71,16 @@ serve(async (req) => {
     }
 
     // Envio de mensagem de texto normal
-    const chatproUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}/api/v1/send_message`;
+    const zapiUrl = `${baseUrl}/send-text`;
 
-    const response = await fetch(chatproUrl, {
+    const response = await fetch(zapiUrl, {
       method: 'POST',
       headers: {
-        'accept': 'application/json',
-        'content-type': 'application/json',
-        'Authorization': CHATPRO_TOKEN,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        phone: telefoneLimpo,
         message: mensagem,
-        number: telefoneLimpo,
       }),
     });
 
@@ -91,11 +89,11 @@ serve(async (req) => {
     try {
       data = JSON.parse(responseText);
     } catch {
-      throw new Error(`ChatPro retornou resposta inválida [${response.status}]: ${responseText.substring(0, 200)}`);
+      throw new Error(`Z-API retornou resposta inválida [${response.status}]: ${responseText.substring(0, 200)}`);
     }
 
     if (!response.ok) {
-      throw new Error(`ChatPro API error [${response.status}]: ${JSON.stringify(data)}`);
+      throw new Error(`Z-API error [${response.status}]: ${JSON.stringify(data)}`);
     }
 
     return new Response(

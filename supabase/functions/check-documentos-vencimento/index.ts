@@ -16,10 +16,10 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const CHATPRO_TOKEN = Deno.env.get('CHATPRO_TOKEN');
-    const CHATPRO_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
+    const ZAPI_TOKEN = Deno.env.get('CHATPRO_TOKEN');
+    const ZAPI_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
 
-    if (!CHATPRO_TOKEN || !CHATPRO_INSTANCE) {
+    if (!ZAPI_TOKEN || !ZAPI_INSTANCE) {
       throw new Error('CHATPRO_TOKEN ou CHATPRO_INSTANCE não configurados');
     }
 
@@ -69,7 +69,8 @@ serve(async (req) => {
     }
 
     const results: any[] = [];
-    const chatproUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}/api/v1/send_message`;
+    const baseUrl = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}`;
+    const zapiUrl = `${baseUrl}/send-text`;
 
     for (const doc of documentos) {
       const vencimento = new Date(doc.data_validade);
@@ -82,14 +83,12 @@ serve(async (req) => {
         const telefoneLimpo = numero.replace(/\D/g, '');
         if (telefoneLimpo.length >= 10) {
           try {
-            await fetch(chatproUrl, {
+            await fetch(zapiUrl, {
               method: 'POST',
               headers: {
-                'accept': 'application/json',
-                'content-type': 'application/json',
-                'Authorization': CHATPRO_TOKEN,
+                'Content-Type': 'application/json',
               },
-              body: JSON.stringify({ message: mensagem, number: telefoneLimpo }),
+              body: JSON.stringify({ phone: telefoneLimpo, message: mensagem }),
             });
           } catch (whatsErr) {
             console.error('WhatsApp error:', whatsErr);
