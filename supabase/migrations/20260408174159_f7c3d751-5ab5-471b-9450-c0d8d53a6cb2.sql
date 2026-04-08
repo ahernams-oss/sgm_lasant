@@ -1,0 +1,1 @@
+UPDATE juridico_audiencias SET notificado_5d = false, notificado_2d = false WHERE observacoes = 'Teste Juridico';
