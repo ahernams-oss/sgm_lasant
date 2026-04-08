@@ -318,7 +318,7 @@ const Funcionarios = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const update = (field: string, value: string | boolean | PassagemDiaria[] | Dependente[] | EpiItem[] | NrFuncionario[]) =>
+  const update = (field: string, value: any) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const resetForm = () => {
@@ -841,7 +841,7 @@ const Funcionarios = () => {
                 <AnexosDocumentosTab
                   anexos={form.anexosDocumentos}
                   onChange={(a) => update("anexosDocumentos", a)}
-                  funcionarioId={editId || undefined}
+                  funcionarioId={editingId || undefined}
                 />
               </TabsContent>
 
