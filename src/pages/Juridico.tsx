@@ -13,8 +13,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useProcessosTrabalhistas, ProcessoTrabalhista, Andamento } from "@/contexts/ProcessosTrabalhistas";
 import { useClientes } from "@/contexts/ClientesContext";
-import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
-import PaginationControls from "@/components/PaginationControls";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 const STATUS_OPTIONS = ["Ativo", "Recurso", "Acordo", "Encerrado", "Arquivado"];
 const RISCO_OPTIONS = ["Baixo", "Médio", "Alto"];
