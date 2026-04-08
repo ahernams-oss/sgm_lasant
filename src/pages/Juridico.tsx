@@ -665,9 +665,23 @@ export default function JuridicoPage() {
               </div>
               <div className="md:col-span-2"><Label>Observações</Label><Textarea value={contatoForm.observacoes} onChange={e => setContatoForm({ ...contatoForm, observacoes: e.target.value })} rows={2} /></div>
             </div>
-            <div className="flex justify-end gap-2 mt-4">
-              <Button variant="outline" onClick={() => { setShowContatoForm(false); setContatoEditId(null); }}>Cancelar</Button>
-              <Button onClick={handleSaveContato}>{contatoEditId ? "Salvar" : "Cadastrar"}</Button>
+            <div className="flex justify-between items-center mt-4">
+              {contatoEditId ? (
+                <Button variant="outline" size="sm" onClick={async () => {
+                  toast.info("Enviando mensagem de teste...");
+                  try {
+                    const { data, error } = await supabase.functions.invoke('check-audiencias-vencimento');
+                    if (error) throw error;
+                    toast.success(`Teste concluído: ${data?.enviados ?? 0} mensagem(ns) enviada(s)`);
+                  } catch (err: any) {
+                    toast.error("Erro: " + (err.message || "Erro desconhecido"));
+                  }
+                }} className="gap-2"><Send className="h-4 w-4" /> Testar Envio</Button>
+              ) : <div />}
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => { setShowContatoForm(false); setContatoEditId(null); }}>Cancelar</Button>
+                <Button onClick={handleSaveContato}>{contatoEditId ? "Salvar" : "Cadastrar"}</Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
