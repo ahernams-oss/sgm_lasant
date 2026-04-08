@@ -1654,6 +1654,93 @@ export type Database = {
         }
         Relationships: []
       }
+      juridico_audiencias: {
+        Row: {
+          created_at: string | null
+          data_audiencia: string
+          hora: string | null
+          id: string
+          local: string | null
+          notificado_2d: boolean
+          notificado_5d: boolean
+          observacoes: string | null
+          processo_id: string
+          processo_numero: string
+          status: string | null
+          tipo: string | null
+          vara: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_audiencia: string
+          hora?: string | null
+          id?: string
+          local?: string | null
+          notificado_2d?: boolean
+          notificado_5d?: boolean
+          observacoes?: string | null
+          processo_id: string
+          processo_numero?: string
+          status?: string | null
+          tipo?: string | null
+          vara?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_audiencia?: string
+          hora?: string | null
+          id?: string
+          local?: string | null
+          notificado_2d?: boolean
+          notificado_5d?: boolean
+          observacoes?: string | null
+          processo_id?: string
+          processo_numero?: string
+          status?: string | null
+          tipo?: string | null
+          vara?: string | null
+        }
+        Relationships: []
+      }
+      juridico_contatos_notificacao: {
+        Row: {
+          ativo: boolean
+          crc: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          nome: string
+          oab: string | null
+          observacoes: string | null
+          telefone_whatsapp: string
+          tipo: string
+        }
+        Insert: {
+          ativo?: boolean
+          crc?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          nome?: string
+          oab?: string | null
+          observacoes?: string | null
+          telefone_whatsapp?: string
+          tipo?: string
+        }
+        Update: {
+          ativo?: boolean
+          crc?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          nome?: string
+          oab?: string | null
+          observacoes?: string | null
+          telefone_whatsapp?: string
+          tipo?: string
+        }
+        Relationships: []
+      }
       lancamentos: {
         Row: {
           anexos: Json | null
