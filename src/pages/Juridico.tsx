@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, Users, Phone } from "lucide-react";
+import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, Users, Phone, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -474,7 +474,19 @@ export default function JuridicoPage() {
                 <h2 className="text-lg font-semibold">Contatos para Notificação</h2>
                 <p className="text-sm text-muted-foreground">Advogados e contadores que receberão avisos de audiências via WhatsApp</p>
               </div>
-              <Button onClick={() => { setContatoForm(emptyContato); setContatoEditId(null); setShowContatoForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Novo Contato</Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={async () => {
+                  toast.info("Enviando notificações de teste...");
+                  try {
+                    const { data, error } = await supabase.functions.invoke('check-audiencias-vencimento');
+                    if (error) throw error;
+                    toast.success(`Teste concluído: ${data?.enviados ?? 0} mensagem(ns) enviada(s)`);
+                  } catch (err: any) {
+                    toast.error("Erro ao testar envio: " + (err.message || "Erro desconhecido"));
+                  }
+                }} className="gap-2"><Send className="h-4 w-4" /> Testar Envio WhatsApp</Button>
+                <Button onClick={() => { setContatoForm(emptyContato); setContatoEditId(null); setShowContatoForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Novo Contato</Button>
+              </div>
             </div>
 
             <div className="rounded-md border overflow-auto">
