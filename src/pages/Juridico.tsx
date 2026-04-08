@@ -567,6 +567,46 @@ export default function JuridicoPage() {
                 </Select>
               </div>
               <div className="md:col-span-2"><Label>Observações</Label><Textarea value={form.observacoes} onChange={e => setForm({ ...form, observacoes: e.target.value })} rows={2} /></div>
+              {/* Anexos */}
+              <div className="md:col-span-2">
+                <Label>Anexos</Label>
+                <div className="mt-1 space-y-2">
+                  {form.anexos.length > 0 && (
+                    <div className="space-y-1">
+                      {form.anexos.map((a: any, idx: number) => (
+                        <div key={idx} className="flex items-center gap-2 p-2 rounded border bg-muted/50 text-sm">
+                          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <span className="flex-1 truncate">{a.nome}</span>
+                          <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => {
+                            const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/processos-trabalhistas-anexos/${a.path}`;
+                            window.open(url, "_blank");
+                          }}><Download className="h-3 w-3" /></Button>
+                          <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => {
+                            setForm({ ...form, anexos: form.anexos.filter((_: any, i: number) => i !== idx) });
+                          }}><X className="h-3 w-3 text-destructive" /></Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-primary hover:underline">
+                    <Upload className="h-4 w-4" />
+                    <span>Adicionar arquivo</span>
+                    <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 10 * 1024 * 1024) { toast.error("Arquivo muito grande (máx. 10MB)"); return; }
+                      const ts = Date.now();
+                      const path = `${editId || "novo"}/${ts}_${file.name}`;
+                      toast.info("Enviando arquivo...");
+                      const { error } = await supabase.storage.from("processos-trabalhistas-anexos").upload(path, file);
+                      if (error) { toast.error("Erro ao enviar arquivo"); console.error(error); return; }
+                      setForm(prev => ({ ...prev, anexos: [...prev.anexos, { nome: file.name, path, tamanho: file.size }] }));
+                      toast.success("Arquivo anexado");
+                      e.target.value = "";
+                    }} />
+                  </label>
+                </div>
+              </div>
             </div>
             <div className="flex justify-end gap-2 mt-4">
               <Button variant="outline" onClick={() => setShowForm(false)}>Cancelar</Button>
