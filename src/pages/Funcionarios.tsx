@@ -16,6 +16,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, Dependente, AnexoDependente, EpiItem, NrFuncionario, tiposTransporte, grausParentesco } from "@/contexts/FuncionariosContext";
+import { AnexosDocumentosTab } from "@/components/AnexosDocumentosTab";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
@@ -317,7 +318,7 @@ const Funcionarios = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const update = (field: string, value: string | boolean | PassagemDiaria[] | Dependente[] | EpiItem[] | NrFuncionario[]) =>
+  const update = (field: string, value: any) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const resetForm = () => {
@@ -448,6 +449,7 @@ const Funcionarios = () => {
                 <TabsTrigger value="nrs">NRs</TabsTrigger>
                 <TabsTrigger value="exames">Exames Periódicos</TabsTrigger>
                 <TabsTrigger value="promocoes">Promoções</TabsTrigger>
+                <TabsTrigger value="anexos_docs">Anexos</TabsTrigger>
                 <TabsTrigger value="observacoes">Observações</TabsTrigger>
               </TabsList>
 
@@ -831,6 +833,15 @@ const Funcionarios = () => {
                     update("salario", dados.salario);
                     update("clienteId", dados.clienteId);
                   }}
+                />
+              </TabsContent>
+
+              {/* ANEXOS DOCUMENTOS */}
+              <TabsContent value="anexos_docs">
+                <AnexosDocumentosTab
+                  anexos={form.anexosDocumentos}
+                  onChange={(a) => update("anexosDocumentos", a)}
+                  funcionarioId={editingId || undefined}
                 />
               </TabsContent>
 

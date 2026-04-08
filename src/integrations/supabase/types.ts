@@ -1433,6 +1433,7 @@ export type Database = {
         Row: {
           agencia: string | null
           altura: string | null
+          anexos_documentos: Json | null
           bairro: string | null
           banco: string | null
           cargo_id: string | null
@@ -1498,6 +1499,7 @@ export type Database = {
         Insert: {
           agencia?: string | null
           altura?: string | null
+          anexos_documentos?: Json | null
           bairro?: string | null
           banco?: string | null
           cargo_id?: string | null
@@ -1563,6 +1565,7 @@ export type Database = {
         Update: {
           agencia?: string | null
           altura?: string | null
+          anexos_documentos?: Json | null
           bairro?: string | null
           banco?: string | null
           cargo_id?: string | null
