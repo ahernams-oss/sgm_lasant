@@ -42,7 +42,8 @@ export default function JuridicoPage() {
   const [filterStatus, setFilterStatus] = useState("Todos");
   const [filterRisco, setFilterRisco] = useState("Todos");
   const [page, setPage] = useState(1);
-  const perPage = 15;
+  const [pageSize, setPageSize] = useState(15);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   // View/Andamentos
   const [viewProcesso, setViewProcesso] = useState<ProcessoTrabalhista | null>(null);
@@ -71,8 +72,7 @@ export default function JuridicoPage() {
     });
   }, [processos, search, filterStatus, filterRisco]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
-  const paged = filtered.slice((page - 1) * perPage, page * perPage);
+  const { paginated: paged, totalPages } = paginate(filtered, page, pageSize);
 
   const openNew = () => { setForm(emptyProcesso); setEditId(null); setShowForm(true); };
   const openEdit = (p: ProcessoTrabalhista) => { setForm({ ...p }); setEditId(p.id); setShowForm(true); };
