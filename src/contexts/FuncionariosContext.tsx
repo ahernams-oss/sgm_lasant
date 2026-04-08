@@ -28,7 +28,7 @@ export interface Funcionario {
   certificadoReservista: string; tamanhoCamisa: string; tamanhoCalca: string;
   tamanhoCalcado: string; peso: string; altura: string;
   passagens: PassagemDiaria[]; dependentes: Dependente[]; epis: EpiItem[];
-  nrs: NrFuncionario[]; observacoes: string;
+  nrs: NrFuncionario[]; anexosDocumentos: AnexoDocumento[]; observacoes: string;
   status: "Ativo" | "Inativo" | "Afastado" | "Férias";
   experienciaInicio: string; experienciaPrimeiraEtapa: string;
   experienciaFim: string; experienciaRenovado: boolean;
@@ -46,7 +46,7 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   tituloEleitor: "", zonaEleitoral: "", secaoEleitoral: "",
   cnh: "", categoriaCnh: "", validadeCnh: "", certificadoReservista: "",
   tamanhoCamisa: "", tamanhoCalca: "", tamanhoCalcado: "", peso: "", altura: "",
-  passagens: [], dependentes: [], epis: [], nrs: [],
+  passagens: [], dependentes: [], epis: [], nrs: [], anexosDocumentos: [],
   observacoes: "", status: "Ativo",
   experienciaInicio: "", experienciaPrimeiraEtapa: "", experienciaFim: "",
   experienciaRenovado: false, experienciaNotificado10dPrimeira: false,
