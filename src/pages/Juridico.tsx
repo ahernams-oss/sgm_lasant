@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -245,7 +246,7 @@ export default function JuridicoPage() {
                         <div className="flex gap-1 justify-end">
                           <Button variant="ghost" size="icon" onClick={() => openView(p)}><Eye className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Edit className="h-4 w-4" /></Button>
-                          <DoubleConfirmDelete onConfirm={() => { deleteProcesso(p.id); toast.success("Processo removido"); }} />
+                          <Button variant="ghost" size="icon" onClick={() => setDeleteId(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -253,7 +254,7 @@ export default function JuridicoPage() {
                 </TableBody>
               </Table>
             </div>
-            {totalPages > 1 && <div className="mt-4"><PaginationControls currentPage={page} totalPages={totalPages} onPageChange={setPage} /></div>}
+            {totalPages > 1 && <div className="mt-4"><PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={setPageSize} /></div>}
           </TabsContent>
         </Tabs>
 
