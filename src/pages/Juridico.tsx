@@ -755,7 +755,21 @@ export default function JuridicoPage() {
                   <div className="mt-2"><p className="text-xs text-muted-foreground mb-1">Observações</p><p className="text-sm bg-muted p-2 rounded">{viewProcesso.observacoes}</p></div>
                 )}
 
-                {/* Andamentos */}
+                {viewProcesso.anexos && viewProcesso.anexos.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs text-muted-foreground mb-1">Anexos</p>
+                    <div className="space-y-1">
+                      {viewProcesso.anexos.map((a: any, idx: number) => (
+                        <a key={idx} href={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/processos-trabalhistas-anexos/${a.path}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 rounded border bg-muted/50 text-sm hover:bg-muted transition-colors">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <span className="flex-1 truncate text-primary underline">{a.nome}</span>
+                          <Download className="h-3 w-3 text-muted-foreground" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-sm flex items-center gap-1"><Calendar className="h-4 w-4" /> Andamentos</h3>
