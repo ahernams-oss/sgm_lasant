@@ -16,8 +16,8 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const CHATPRO_TOKEN = Deno.env.get('CHATPRO_TOKEN');
-    const CHATPRO_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
+    const ZAPI_TOKEN = Deno.env.get('CHATPRO_TOKEN');
+    const ZAPI_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
 
     const today = new Date();
     const d10 = new Date(today);
@@ -51,7 +51,7 @@ serve(async (req) => {
           const vencFormatado = func.experiencia_primeira_etapa.split('-').reverse().join('/');
           const mensagem = `⚠️ AVISO - Período de Experiência\n\nO 1º período de experiência (45 dias) do funcionário ${func.nome} vence em ${diff1} dias (${vencFormatado}).\n\nProvidenciar avaliação e decisão sobre renovação.`;
 
-          await sendWhatsApp(CHATPRO_TOKEN, CHATPRO_INSTANCE, func.telefone, mensagem);
+          await sendWhatsApp(ZAPI_TOKEN, ZAPI_INSTANCE, func.telefone, mensagem);
 
           await supabase
             .from('funcionarios')
@@ -71,7 +71,7 @@ serve(async (req) => {
           const vencFormatado = func.experiencia_fim.split('-').reverse().join('/');
           const mensagem = `⚠️ AVISO - Período de Experiência\n\nO 2º período de experiência (90 dias) do funcionário ${func.nome} vence em ${diffFinal} dias (${vencFormatado}).\n\nProvidenciar efetivação ou desligamento.`;
 
-          await sendWhatsApp(CHATPRO_TOKEN, CHATPRO_INSTANCE, func.telefone, mensagem);
+          await sendWhatsApp(ZAPI_TOKEN, ZAPI_INSTANCE, func.telefone, mensagem);
 
           await supabase
             .from('funcionarios')
@@ -101,15 +101,13 @@ async function sendWhatsApp(token: string | undefined, instance: string | undefi
   const telefoneLimpo = telefone.replace(/\D/g, '');
   if (telefoneLimpo.length < 10) return;
   try {
-    const url = `https://v5.chatpro.com.br/${instance}/api/v1/send_message`;
+    const url = `https://api.z-api.io/instances/${instance}/token/${token}/send-text`;
     await fetch(url, {
       method: 'POST',
       headers: {
-        'accept': 'application/json',
-        'content-type': 'application/json',
-        'Authorization': token,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message: mensagem, number: telefoneLimpo }),
+      body: JSON.stringify({ phone: telefoneLimpo, message: mensagem }),
     });
   } catch (err) {
     console.error('WhatsApp error:', err);

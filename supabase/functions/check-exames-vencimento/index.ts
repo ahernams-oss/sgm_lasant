@@ -16,8 +16,8 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const CHATPRO_TOKEN = Deno.env.get('CHATPRO_TOKEN');
-    const CHATPRO_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
+    const ZAPI_TOKEN = Deno.env.get('CHATPRO_TOKEN');
+    const ZAPI_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
 
     const today = new Date();
     const d10 = new Date(today); d10.setDate(d10.getDate() + 10);
@@ -70,19 +70,17 @@ serve(async (req) => {
       const mensagem = `⚠️ AVISO - Exame Periódico\n\nO exame "${exame.tipo_exame}" do funcionário ${exame.funcionario_nome} vence em ${diasLabel} (${vencFormatado}).\n\nProvidenciar agendamento com urgência.`;
 
       // Send WhatsApp notification
-      if (CHATPRO_TOKEN && CHATPRO_INSTANCE && exame.funcionario_telefone) {
+      if (ZAPI_TOKEN && ZAPI_INSTANCE && exame.funcionario_telefone) {
         const telefoneLimpo = exame.funcionario_telefone.replace(/\D/g, '');
         if (telefoneLimpo.length >= 10) {
           try {
-            const chatproUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}/api/v1/send_message`;
-            await fetch(chatproUrl, {
+            const zapiUrl = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`;
+            await fetch(zapiUrl, {
               method: 'POST',
               headers: {
-                'accept': 'application/json',
-                'content-type': 'application/json',
-                'Authorization': CHATPRO_TOKEN,
+                'Content-Type': 'application/json',
               },
-              body: JSON.stringify({ message: mensagem, number: telefoneLimpo }),
+              body: JSON.stringify({ phone: telefoneLimpo, message: mensagem }),
             });
           } catch (whatsErr) {
             console.error('WhatsApp error:', whatsErr);
@@ -93,10 +91,8 @@ serve(async (req) => {
       // Send email notification via edge function
       if (exame.funcionario_email) {
         try {
-          // Use a simple email via a fetch to ourselves
           const emailBody = mensagem.replace(/\n/g, '<br>');
           console.log(`Email para ${exame.funcionario_email}: ${emailBody}`);
-          // Email will be sent when email infrastructure is configured
         } catch (emailErr) {
           console.error('Email error:', emailErr);
         }
