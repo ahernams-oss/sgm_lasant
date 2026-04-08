@@ -128,7 +128,6 @@ interface FuncionariosContextType {
   deleteFuncionario: (id: string) => void;
 }
 
-
 const FuncionariosContext = createContext<FuncionariosContextType | undefined>(undefined);
 
 export function FuncionariosProvider({ children }: { children: ReactNode }) {
