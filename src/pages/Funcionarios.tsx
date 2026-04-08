@@ -449,6 +449,7 @@ const Funcionarios = () => {
                 <TabsTrigger value="nrs">NRs</TabsTrigger>
                 <TabsTrigger value="exames">Exames Periódicos</TabsTrigger>
                 <TabsTrigger value="promocoes">Promoções</TabsTrigger>
+                <TabsTrigger value="anexos_docs">Anexos</TabsTrigger>
                 <TabsTrigger value="observacoes">Observações</TabsTrigger>
               </TabsList>
 
