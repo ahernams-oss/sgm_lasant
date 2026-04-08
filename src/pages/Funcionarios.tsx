@@ -836,6 +836,15 @@ const Funcionarios = () => {
                 />
               </TabsContent>
 
+              {/* ANEXOS DOCUMENTOS */}
+              <TabsContent value="anexos_docs">
+                <AnexosDocumentosTab
+                  anexos={form.anexosDocumentos}
+                  onChange={(a) => update("anexosDocumentos", a)}
+                  funcionarioId={editId || undefined}
+                />
+              </TabsContent>
+
               {/* OBSERVAÇÕES */}
               <TabsContent value="observacoes">
                 <Field label="Observações">
