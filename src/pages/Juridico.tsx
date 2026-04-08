@@ -274,7 +274,7 @@ export default function JuridicoPage() {
                 <Label>Centro de Custo (Cliente)</Label>
                 <Select value={form.cliente_id} onValueChange={v => { const c = clientes.find(x => x.id === v); setForm({ ...form, cliente_id: v, cliente_nome: c?.nome || "" }); }}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>{clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
+                  <SelectContent>{clientes.filter(c => c.tipo === "Cliente").map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div><Label>Advogado do Autor</Label><Input value={form.advogado_autor} onChange={e => setForm({ ...form, advogado_autor: e.target.value })} /></div>
