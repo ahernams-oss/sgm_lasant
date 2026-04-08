@@ -83,7 +83,8 @@ import { ComunicacaoProvider } from "@/contexts/ComunicacaoContext";
 import ComunicacaoMensagensPage from "./pages/ComunicacaoMensagens";
 import ComunicacaoAvisosPage from "./pages/ComunicacaoAvisos";
 import ComunicacaoNotificacoesPage from "./pages/ComunicacaoNotificacoes";
-
+import JuridicoPage from "./pages/Juridico";
+import { ProcessosTrabalhalistasProvider } from "@/contexts/ProcessosTrabalhistas";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
@@ -162,6 +163,7 @@ function AppRoutes() {
         <Route path="/comunicacao/mensagens" element={<ComunicacaoMensagensPage />} />
         <Route path="/comunicacao/avisos" element={<ComunicacaoAvisosPage />} />
         <Route path="/comunicacao/notificacoes" element={<ComunicacaoNotificacoesPage />} />
+        <Route path="/juridico" element={<JuridicoPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -199,6 +201,7 @@ const App = () => (
     <CategoriasServicosProvider>
     <ServicosProvider>
     <ComunicacaoProvider>
+    <ProcessosTrabalhalistasProvider>
     <AuthProvider> {/* auth wrapper */}
     <TooltipProvider>
       <Toaster />
@@ -212,6 +215,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </ProcessosTrabalhalistasProvider>
     </ComunicacaoProvider>
     </ServicosProvider>
     </CategoriasServicosProvider>

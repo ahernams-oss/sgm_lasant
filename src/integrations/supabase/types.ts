@@ -2862,6 +2862,131 @@ export type Database = {
         }
         Relationships: []
       }
+      processos_trabalhistas: {
+        Row: {
+          advogado_autor: string | null
+          advogado_empresa: string | null
+          anexos: Json | null
+          autor_cpf: string | null
+          autor_nome: string
+          cliente_id: string | null
+          cliente_nome: string | null
+          comarca: string | null
+          created_at: string | null
+          data_distribuicao: string | null
+          estado: string | null
+          fase_processual: string | null
+          honorarios: number | null
+          id: string
+          numero_processo: string
+          objeto_acao: string | null
+          observacoes: string | null
+          provisao_contabil: number | null
+          risco: string | null
+          status: string | null
+          valor_acordo: number | null
+          valor_causa: number | null
+          valor_condenacao: number | null
+          vara: string | null
+        }
+        Insert: {
+          advogado_autor?: string | null
+          advogado_empresa?: string | null
+          anexos?: Json | null
+          autor_cpf?: string | null
+          autor_nome?: string
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          comarca?: string | null
+          created_at?: string | null
+          data_distribuicao?: string | null
+          estado?: string | null
+          fase_processual?: string | null
+          honorarios?: number | null
+          id?: string
+          numero_processo?: string
+          objeto_acao?: string | null
+          observacoes?: string | null
+          provisao_contabil?: number | null
+          risco?: string | null
+          status?: string | null
+          valor_acordo?: number | null
+          valor_causa?: number | null
+          valor_condenacao?: number | null
+          vara?: string | null
+        }
+        Update: {
+          advogado_autor?: string | null
+          advogado_empresa?: string | null
+          anexos?: Json | null
+          autor_cpf?: string | null
+          autor_nome?: string
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          comarca?: string | null
+          created_at?: string | null
+          data_distribuicao?: string | null
+          estado?: string | null
+          fase_processual?: string | null
+          honorarios?: number | null
+          id?: string
+          numero_processo?: string
+          objeto_acao?: string | null
+          observacoes?: string | null
+          provisao_contabil?: number | null
+          risco?: string | null
+          status?: string | null
+          valor_acordo?: number | null
+          valor_causa?: number | null
+          valor_condenacao?: number | null
+          vara?: string | null
+        }
+        Relationships: []
+      }
+      processos_trabalhistas_andamentos: {
+        Row: {
+          created_at: string | null
+          data_andamento: string | null
+          descricao: string | null
+          id: string
+          prazo_limite: string | null
+          processo_id: string
+          responsavel: string | null
+          status_prazo: string | null
+          tipo: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_andamento?: string | null
+          descricao?: string | null
+          id?: string
+          prazo_limite?: string | null
+          processo_id: string
+          responsavel?: string | null
+          status_prazo?: string | null
+          tipo?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_andamento?: string | null
+          descricao?: string | null
+          id?: string
+          prazo_limite?: string | null
+          processo_id?: string
+          responsavel?: string | null
+          status_prazo?: string | null
+          tipo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "processos_trabalhistas_andamentos_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos_trabalhistas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       promocoes: {
         Row: {
           cargo_anterior_id: string | null

@@ -99,6 +99,10 @@ const menuItems = [
     items: [{ title: "Licitações", url: "/licitacoes", icon: Gavel }],
   },
   {
+    group: "Jurídico",
+    items: [{ title: "Contencioso Trabalhista", url: "/juridico", icon: Scale }],
+  },
+  {
     group: "Comunicação",
     items: [
       { title: "Mensagens", url: "/comunicacao/mensagens", icon: MessageSquare },
