@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, ChevronDown, ChevronUp } from "lucide-react";
+import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, Users, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,17 +11,48 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useProcessosTrabalhistas, ProcessoTrabalhista, Andamento } from "@/contexts/ProcessosTrabalhistas";
 import { useClientes } from "@/contexts/ClientesContext";
+import { supabase } from "@/integrations/supabase/client";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 const STATUS_OPTIONS = ["Ativo", "Recurso", "Acordo", "Encerrado", "Arquivado"];
 const RISCO_OPTIONS = ["Baixo", "Médio", "Alto"];
 const FASE_OPTIONS = ["Inicial", "Instrução", "Julgamento", "Recursal", "Execução", "Encerrado"];
 const TIPO_ANDAMENTO = ["Audiência", "Petição", "Decisão", "Prazo", "Outros"];
+const TIPO_AUDIENCIA = ["Audiência Inicial", "Audiência de Instrução", "Audiência de Julgamento", "Audiência de Conciliação", "Audiência UNA", "Outros"];
+const TIPO_CONTATO = ["Advogado", "Contador"];
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+interface Audiencia {
+  id: string;
+  processo_id: string;
+  processo_numero: string;
+  data_audiencia: string;
+  hora: string;
+  tipo: string;
+  local: string;
+  vara: string;
+  observacoes: string;
+  status: string;
+  notificado_5d: boolean;
+  notificado_2d: boolean;
+}
+
+interface ContatoNotificacao {
+  id: string;
+  nome: string;
+  tipo: string;
+  telefone_whatsapp: string;
+  email: string;
+  oab: string;
+  crc: string;
+  ativo: boolean;
+  observacoes: string;
+}
 
 const emptyProcesso: Omit<ProcessoTrabalhista, "id"> = {
   numero_processo: "", vara: "", comarca: "", estado: "", autor_nome: "", autor_cpf: "",
@@ -29,6 +60,15 @@ const emptyProcesso: Omit<ProcessoTrabalhista, "id"> = {
   valor_causa: 0, provisao_contabil: 0, valor_acordo: 0, valor_condenacao: 0, honorarios: 0,
   risco: "Médio", status: "Ativo", fase_processual: "Inicial", observacoes: "", anexos: [],
   cliente_id: "", cliente_nome: "",
+};
+
+const emptyAudiencia: Omit<Audiencia, "id"> = {
+  processo_id: "", processo_numero: "", data_audiencia: "", hora: "", tipo: "Audiência Inicial",
+  local: "", vara: "", observacoes: "", status: "Agendada", notificado_5d: false, notificado_2d: false,
+};
+
+const emptyContato: Omit<ContatoNotificacao, "id"> = {
+  nome: "", tipo: "Advogado", telefone_whatsapp: "", email: "", oab: "", crc: "", ativo: true, observacoes: "",
 };
 
 export default function JuridicoPage() {
@@ -46,10 +86,46 @@ export default function JuridicoPage() {
   const [pageSize, setPageSize] = useState(15);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // View/Andamentos
   const [viewProcesso, setViewProcesso] = useState<ProcessoTrabalhista | null>(null);
   const [showAndamentoForm, setShowAndamentoForm] = useState(false);
   const [andForm, setAndForm] = useState<Omit<Andamento, "id">>({ processo_id: "", tipo: "Outros", data_andamento: "", descricao: "", responsavel: "", prazo_limite: null, status_prazo: "Pendente" });
+
+  // Audiências
+  const [audiencias, setAudiencias] = useState<Audiencia[]>([]);
+  const [showAudForm, setShowAudForm] = useState(false);
+  const [audEditId, setAudEditId] = useState<string | null>(null);
+  const [audForm, setAudForm] = useState(emptyAudiencia);
+  const [audDeleteId, setAudDeleteId] = useState<string | null>(null);
+
+  // Contatos
+  const [contatos, setContatos] = useState<ContatoNotificacao[]>([]);
+  const [showContatoForm, setShowContatoForm] = useState(false);
+  const [contatoEditId, setContatoEditId] = useState<string | null>(null);
+  const [contatoForm, setContatoForm] = useState(emptyContato);
+  const [contatoDeleteId, setContatoDeleteId] = useState<string | null>(null);
+
+  const loadAudiencias = useCallback(async () => {
+    const { data, error } = await (supabase as any).from("juridico_audiencias").select("*").order("data_audiencia", { ascending: true });
+    if (error) { console.error(error); return; }
+    setAudiencias((data || []).map((r: any) => ({
+      id: r.id, processo_id: r.processo_id ?? "", processo_numero: r.processo_numero ?? "",
+      data_audiencia: r.data_audiencia ?? "", hora: r.hora ?? "", tipo: r.tipo ?? "",
+      local: r.local ?? "", vara: r.vara ?? "", observacoes: r.observacoes ?? "",
+      status: r.status ?? "Agendada", notificado_5d: r.notificado_5d ?? false, notificado_2d: r.notificado_2d ?? false,
+    })));
+  }, []);
+
+  const loadContatos = useCallback(async () => {
+    const { data, error } = await (supabase as any).from("juridico_contatos_notificacao").select("*").order("nome", { ascending: true });
+    if (error) { console.error(error); return; }
+    setContatos((data || []).map((r: any) => ({
+      id: r.id, nome: r.nome ?? "", tipo: r.tipo ?? "Advogado",
+      telefone_whatsapp: r.telefone_whatsapp ?? "", email: r.email ?? "",
+      oab: r.oab ?? "", crc: r.crc ?? "", ativo: r.ativo ?? true, observacoes: r.observacoes ?? "",
+    })));
+  }, []);
+
+  useEffect(() => { loadAudiencias(); loadContatos(); }, [loadAudiencias, loadContatos]);
 
   // Dashboard stats
   const stats = useMemo(() => {
@@ -61,8 +137,9 @@ export default function JuridicoPage() {
     const riscoAlto = processos.filter(p => p.risco === "Alto" && p.status === "Ativo").length;
     const porStatus = STATUS_OPTIONS.map(st => ({ status: st, count: processos.filter(p => p.status === st).length }));
     const porRisco = RISCO_OPTIONS.map(r => ({ risco: r, count: processos.filter(p => p.risco === r && p.status === "Ativo").length }));
-    return { ativos, emRecurso, encerrados, totalProvisao, totalValorCausa, riscoAlto, porStatus, porRisco };
-  }, [processos]);
+    const proximasAudiencias = audiencias.filter(a => a.status === "Agendada" && new Date(a.data_audiencia + "T23:59:59") >= new Date()).slice(0, 5);
+    return { ativos, emRecurso, encerrados, totalProvisao, totalValorCausa, riscoAlto, porStatus, porRisco, proximasAudiencias };
+  }, [processos, audiencias]);
 
   const filtered = useMemo(() => {
     return processos.filter(p => {
@@ -94,6 +171,56 @@ export default function JuridicoPage() {
     toast.success("Andamento adicionado");
   };
 
+  // Audiências CRUD
+  const handleSaveAudiencia = async () => {
+    if (!audForm.processo_id || !audForm.data_audiencia) { toast.error("Processo e data são obrigatórios"); return; }
+    const proc = processos.find(p => p.id === audForm.processo_id);
+    const payload = { ...audForm, processo_numero: proc?.numero_processo || "" };
+    if (audEditId) {
+      await (supabase as any).from("juridico_audiencias").update(payload).eq("id", audEditId);
+      toast.success("Audiência atualizada");
+    } else {
+      await (supabase as any).from("juridico_audiencias").insert(payload);
+      toast.success("Audiência agendada");
+    }
+    setShowAudForm(false);
+    setAudEditId(null);
+    setAudForm(emptyAudiencia);
+    await loadAudiencias();
+  };
+
+  const handleDeleteAudiencia = async () => {
+    if (!audDeleteId) return;
+    await (supabase as any).from("juridico_audiencias").delete().eq("id", audDeleteId);
+    toast.success("Audiência removida");
+    setAudDeleteId(null);
+    await loadAudiencias();
+  };
+
+  // Contatos CRUD
+  const handleSaveContato = async () => {
+    if (!contatoForm.nome.trim() || !contatoForm.telefone_whatsapp.trim()) { toast.error("Nome e WhatsApp são obrigatórios"); return; }
+    if (contatoEditId) {
+      await (supabase as any).from("juridico_contatos_notificacao").update(contatoForm).eq("id", contatoEditId);
+      toast.success("Contato atualizado");
+    } else {
+      await (supabase as any).from("juridico_contatos_notificacao").insert(contatoForm);
+      toast.success("Contato cadastrado");
+    }
+    setShowContatoForm(false);
+    setContatoEditId(null);
+    setContatoForm(emptyContato);
+    await loadContatos();
+  };
+
+  const handleDeleteContato = async () => {
+    if (!contatoDeleteId) return;
+    await (supabase as any).from("juridico_contatos_notificacao").delete().eq("id", contatoDeleteId);
+    toast.success("Contato removido");
+    setContatoDeleteId(null);
+    await loadContatos();
+  };
+
   const riscoBadge = (r: string) => {
     const cls = r === "Alto" ? "bg-destructive text-destructive-foreground" : r === "Médio" ? "bg-yellow-500 text-white" : "bg-green-600 text-white";
     return <Badge className={cls}>{r}</Badge>;
@@ -121,6 +248,8 @@ export default function JuridicoPage() {
           <TabsList className="mb-4">
             <TabsTrigger value="dashboard"><BarChart3 className="h-4 w-4 mr-1" /> Dashboard</TabsTrigger>
             <TabsTrigger value="processos"><FileText className="h-4 w-4 mr-1" /> Processos</TabsTrigger>
+            <TabsTrigger value="audiencias"><Calendar className="h-4 w-4 mr-1" /> Audiências</TabsTrigger>
+            <TabsTrigger value="contatos"><Users className="h-4 w-4 mr-1" /> Contatos</TabsTrigger>
           </TabsList>
 
           {/* ============ DASHBOARD ============ */}
@@ -168,7 +297,29 @@ export default function JuridicoPage() {
               </Card>
             </div>
 
-            {/* Processos com risco alto */}
+            {/* Próximas audiências */}
+            {stats.proximasAudiencias.length > 0 && (
+              <Card className="mt-4 border-primary/30">
+                <CardHeader><CardTitle className="text-sm flex items-center gap-1"><Calendar className="h-4 w-4 text-primary" /> Próximas Audiências</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {stats.proximasAudiencias.map(a => (
+                      <div key={a.id} className="flex justify-between items-center p-2 rounded bg-primary/5">
+                        <div>
+                          <span className="font-medium text-sm">{a.processo_numero}</span>
+                          <span className="text-xs text-muted-foreground ml-2">{a.tipo}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-sm font-medium">{new Date(a.data_audiencia + "T12:00:00").toLocaleDateString("pt-BR")}</span>
+                          {a.hora && <span className="text-xs text-muted-foreground ml-1">{a.hora}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {stats.riscoAlto > 0 && (
               <Card className="mt-4 border-destructive/30">
                 <CardHeader><CardTitle className="text-sm text-destructive flex items-center gap-1"><AlertTriangle className="h-4 w-4" /> Processos com Risco Alto</CardTitle></CardHeader>
@@ -256,9 +407,118 @@ export default function JuridicoPage() {
             </div>
             {totalPages > 1 && <div className="mt-4"><PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={setPageSize} /></div>}
           </TabsContent>
+
+          {/* ============ AUDIÊNCIAS ============ */}
+          <TabsContent value="audiencias">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Agenda de Audiências</h2>
+              <Button onClick={() => { setAudForm(emptyAudiencia); setAudEditId(null); setShowAudForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Nova Audiência</Button>
+            </div>
+
+            <div className="rounded-md border overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Processo</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Hora</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Local</TableHead>
+                    <TableHead>Vara</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Notificações</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {audiencias.length === 0 && (
+                    <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma audiência agendada</TableCell></TableRow>
+                  )}
+                  {audiencias.map(a => (
+                    <TableRow key={a.id}>
+                      <TableCell className="font-medium">{a.processo_numero}</TableCell>
+                      <TableCell>{a.data_audiencia ? new Date(a.data_audiencia + "T12:00:00").toLocaleDateString("pt-BR") : "-"}</TableCell>
+                      <TableCell>{a.hora || "-"}</TableCell>
+                      <TableCell><Badge variant="outline">{a.tipo}</Badge></TableCell>
+                      <TableCell>{a.local || "-"}</TableCell>
+                      <TableCell>{a.vara || "-"}</TableCell>
+                      <TableCell>
+                        <Badge className={a.status === "Agendada" ? "bg-primary" : a.status === "Realizada" ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"}>
+                          {a.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {a.notificado_5d && <Badge variant="outline" className="text-xs">5d ✓</Badge>}
+                          {a.notificado_2d && <Badge variant="outline" className="text-xs">2d ✓</Badge>}
+                          {!a.notificado_5d && !a.notificado_2d && <span className="text-xs text-muted-foreground">Pendente</span>}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex gap-1 justify-end">
+                          <Button variant="ghost" size="icon" onClick={() => { setAudForm({ ...a }); setAudEditId(a.id); setShowAudForm(true); }}><Edit className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => setAudDeleteId(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+
+          {/* ============ CONTATOS ============ */}
+          <TabsContent value="contatos">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-lg font-semibold">Contatos para Notificação</h2>
+                <p className="text-sm text-muted-foreground">Advogados e contadores que receberão avisos de audiências via WhatsApp</p>
+              </div>
+              <Button onClick={() => { setContatoForm(emptyContato); setContatoEditId(null); setShowContatoForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Novo Contato</Button>
+            </div>
+
+            <div className="rounded-md border overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>WhatsApp</TableHead>
+                    <TableHead>E-mail</TableHead>
+                    <TableHead>OAB/CRC</TableHead>
+                    <TableHead>Ativo</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {contatos.length === 0 && (
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum contato cadastrado</TableCell></TableRow>
+                  )}
+                  {contatos.map(c => (
+                    <TableRow key={c.id}>
+                      <TableCell className="font-medium">{c.nome}</TableCell>
+                      <TableCell><Badge variant="outline">{c.tipo}</Badge></TableCell>
+                      <TableCell><span className="flex items-center gap-1"><Phone className="h-3 w-3" />{c.telefone_whatsapp}</span></TableCell>
+                      <TableCell>{c.email || "-"}</TableCell>
+                      <TableCell>{c.tipo === "Advogado" ? c.oab || "-" : c.crc || "-"}</TableCell>
+                      <TableCell>
+                        <Badge className={c.ativo ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"}>{c.ativo ? "Sim" : "Não"}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex gap-1 justify-end">
+                          <Button variant="ghost" size="icon" onClick={() => { setContatoForm({ ...c }); setContatoEditId(c.id); setShowContatoForm(true); }}><Edit className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => setContatoDeleteId(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
         </Tabs>
 
-        {/* ============ FORM DIALOG ============ */}
+        {/* ============ FORM PROCESSO ============ */}
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>{editId ? "Editar Processo" : "Novo Processo Trabalhista"}</DialogTitle></DialogHeader>
@@ -315,7 +575,92 @@ export default function JuridicoPage() {
           </DialogContent>
         </Dialog>
 
-        {/* ============ VIEW DIALOG ============ */}
+        {/* ============ FORM AUDIÊNCIA ============ */}
+        <Dialog open={showAudForm} onOpenChange={v => { if (!v) { setShowAudForm(false); setAudEditId(null); } }}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader><DialogTitle>{audEditId ? "Editar Audiência" : "Nova Audiência"}</DialogTitle></DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <Label>Processo *</Label>
+                <Select value={audForm.processo_id} onValueChange={v => {
+                  const proc = processos.find(p => p.id === v);
+                  setAudForm({ ...audForm, processo_id: v, processo_numero: proc?.numero_processo || "", vara: proc?.vara || audForm.vara });
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o processo" /></SelectTrigger>
+                  <SelectContent>
+                    {processos.filter(p => p.status === "Ativo" || p.status === "Recurso").map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.numero_processo} - {p.autor_nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div><Label>Data *</Label><Input type="date" value={audForm.data_audiencia} onChange={e => setAudForm({ ...audForm, data_audiencia: e.target.value })} /></div>
+              <div><Label>Hora</Label><Input type="time" value={audForm.hora} onChange={e => setAudForm({ ...audForm, hora: e.target.value })} /></div>
+              <div>
+                <Label>Tipo</Label>
+                <Select value={audForm.tipo} onValueChange={v => setAudForm({ ...audForm, tipo: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{TIPO_AUDIENCIA.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Status</Label>
+                <Select value={audForm.status} onValueChange={v => setAudForm({ ...audForm, status: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Agendada">Agendada</SelectItem>
+                    <SelectItem value="Realizada">Realizada</SelectItem>
+                    <SelectItem value="Cancelada">Cancelada</SelectItem>
+                    <SelectItem value="Adiada">Adiada</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div><Label>Local</Label><Input value={audForm.local} onChange={e => setAudForm({ ...audForm, local: e.target.value })} /></div>
+              <div><Label>Vara</Label><Input value={audForm.vara} onChange={e => setAudForm({ ...audForm, vara: e.target.value })} /></div>
+              <div className="md:col-span-2"><Label>Observações</Label><Textarea value={audForm.observacoes} onChange={e => setAudForm({ ...audForm, observacoes: e.target.value })} rows={2} /></div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => { setShowAudForm(false); setAudEditId(null); }}>Cancelar</Button>
+              <Button onClick={handleSaveAudiencia}>{audEditId ? "Salvar" : "Agendar"}</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* ============ FORM CONTATO ============ */}
+        <Dialog open={showContatoForm} onOpenChange={v => { if (!v) { setShowContatoForm(false); setContatoEditId(null); } }}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader><DialogTitle>{contatoEditId ? "Editar Contato" : "Novo Contato"}</DialogTitle></DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2"><Label>Nome *</Label><Input value={contatoForm.nome} onChange={e => setContatoForm({ ...contatoForm, nome: e.target.value })} /></div>
+              <div>
+                <Label>Tipo</Label>
+                <Select value={contatoForm.tipo} onValueChange={v => setContatoForm({ ...contatoForm, tipo: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{TIPO_CONTATO.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div><Label>WhatsApp *</Label><Input value={contatoForm.telefone_whatsapp} onChange={e => setContatoForm({ ...contatoForm, telefone_whatsapp: e.target.value })} placeholder="+55 11 99999-9999" /></div>
+              <div><Label>E-mail</Label><Input type="email" value={contatoForm.email} onChange={e => setContatoForm({ ...contatoForm, email: e.target.value })} /></div>
+              {contatoForm.tipo === "Advogado" && (
+                <div><Label>OAB</Label><Input value={contatoForm.oab} onChange={e => setContatoForm({ ...contatoForm, oab: e.target.value })} placeholder="UF 000000" /></div>
+              )}
+              {contatoForm.tipo === "Contador" && (
+                <div><Label>CRC</Label><Input value={contatoForm.crc} onChange={e => setContatoForm({ ...contatoForm, crc: e.target.value })} /></div>
+              )}
+              <div className="flex items-center gap-2">
+                <Switch checked={contatoForm.ativo} onCheckedChange={v => setContatoForm({ ...contatoForm, ativo: v })} />
+                <Label>Ativo (receber notificações)</Label>
+              </div>
+              <div className="md:col-span-2"><Label>Observações</Label><Textarea value={contatoForm.observacoes} onChange={e => setContatoForm({ ...contatoForm, observacoes: e.target.value })} rows={2} /></div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => { setShowContatoForm(false); setContatoEditId(null); }}>Cancelar</Button>
+              <Button onClick={handleSaveContato}>{contatoEditId ? "Salvar" : "Cadastrar"}</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* ============ VIEW PROCESSO ============ */}
         <Dialog open={!!viewProcesso} onOpenChange={() => setViewProcesso(null)}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             {viewProcesso && (
@@ -425,7 +770,7 @@ export default function JuridicoPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Delete confirmation */}
+        {/* Delete processo */}
         <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -435,6 +780,34 @@ export default function JuridicoPage() {
             <AlertDialogFooter>
               <Button variant="outline" onClick={() => setDeleteId(null)}>Cancelar</Button>
               <Button variant="destructive" onClick={() => { if (deleteId) { deleteProcesso(deleteId); toast.success("Processo removido"); setDeleteId(null); } }}>Excluir</Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete audiência */}
+        <AlertDialog open={!!audDeleteId} onOpenChange={() => setAudDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir audiência?</AlertDialogTitle>
+              <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button variant="outline" onClick={() => setAudDeleteId(null)}>Cancelar</Button>
+              <Button variant="destructive" onClick={handleDeleteAudiencia}>Excluir</Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete contato */}
+        <AlertDialog open={!!contatoDeleteId} onOpenChange={() => setContatoDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir contato?</AlertDialogTitle>
+              <AlertDialogDescription>Este contato não receberá mais notificações de audiências.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button variant="outline" onClick={() => setContatoDeleteId(null)}>Cancelar</Button>
+              <Button variant="destructive" onClick={handleDeleteContato}>Excluir</Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
