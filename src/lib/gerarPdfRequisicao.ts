@@ -1,97 +1,144 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Requisicao } from "@/contexts/RequisicaoContext";
+import { Empresa } from "@/contexts/EmpresaContext";
 
-export function gerarPdfRequisicao(req: Requisicao) {
+const DARK_BLUE: [number, number, number] = [30, 58, 107];
+const BORDER_COLOR: [number, number, number] = [180, 180, 180];
+
+async function loadImageAsDataUrl(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function gerarPdfRequisicao(req: Requisicao, empresa?: Empresa) {
   const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+  const ml = 14;
+  const mr = 14;
 
-  // Header
-  doc.setFillColor(30, 58, 107);
-  doc.rect(0, 0, pageWidth, 32, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(16);
-  doc.setFont("helvetica", "bold");
-  doc.text("Requisição de Colaborador", 14, 14);
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.text(`RC Nº ${req.numero}`, 14, 22);
-  doc.setFontSize(9);
-  doc.text(`Data: ${req.dataCriacao}`, pageWidth - 14, 14, { align: "right" });
-  doc.text(`Status: ${req.status}`, pageWidth - 14, 20, { align: "right" });
-  if (req.aprovadoPor) {
-    doc.text(`Aprovador: ${req.aprovadoPor}`, pageWidth - 14, 26, { align: "right" });
+  let y = 10;
+
+  // ===== HEADER =====
+  // Logo on the left
+  if (empresa?.logoUrl) {
+    const logoData = await loadImageAsDataUrl(empresa.logoUrl);
+    if (logoData) {
+      try {
+        doc.addImage(logoData, "PNG", ml, y, 40, 18);
+      } catch { /* ignore */ }
+    }
   }
 
-  doc.setTextColor(30, 30, 30);
-  let y = 44;
+  // Dark blue banner in the center
+  const bannerX = 70;
+  const bannerW = 90;
+  const bannerH = 24;
+  doc.setFillColor(...DARK_BLUE);
+  doc.rect(bannerX, y, bannerW, bannerH, "F");
 
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text("Requisição de Colaborador", bannerX + bannerW / 2, y + 10, { align: "center" });
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text(`RC Nº ${req.numero}`, bannerX + bannerW / 2, y + 18, { align: "center" });
+
+  // Date & Status on the right
+  doc.setTextColor(80, 80, 80);
+  doc.setFontSize(9);
+  doc.text(`Data: ${req.dataCriacao}`, pw - mr, y + 8, { align: "right" });
+  doc.text(`Status: ${req.status}`, pw - mr, y + 15, { align: "right" });
+
+  y += bannerH + 14;
+
+  // ===== HELPER: Section with bordered table =====
   const addSection = (title: string, rows: [string, string][]) => {
     const filteredRows = rows.filter(([, val]) => val && val.trim() !== "");
     if (filteredRows.length === 0) return;
 
-    const estimatedHeight = filteredRows.length * 10 + 16;
-    const pageHeight = doc.internal.pageSize.getHeight();
-    if (y + estimatedHeight > pageHeight - 30) {
+    const estimatedHeight = filteredRows.length * 10 + 18;
+    if (y + estimatedHeight > ph - 30) {
       doc.addPage();
       y = 20;
     }
 
-    doc.setFontSize(11);
+    doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 58, 107);
-    doc.text(title, 14, y);
-    y += 2;
+    doc.setTextColor(...DARK_BLUE);
+    doc.text(title, ml, y);
+    y += 4;
 
     autoTable(doc, {
       startY: y,
       head: [],
       body: filteredRows,
-      theme: "plain",
-      styles: { fontSize: 9, cellPadding: 3, textColor: [40, 40, 40] },
+      theme: "grid",
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+        lineColor: BORDER_COLOR,
+        lineWidth: 0.3,
+        textColor: [40, 40, 40],
+      },
       columnStyles: {
-        0: { fontStyle: "bold", cellWidth: 55, textColor: [80, 80, 80] },
+        0: { fontStyle: "bold", cellWidth: 55, textColor: [60, 60, 60] },
         1: { cellWidth: "auto" },
       },
-      margin: { left: 14, right: 14 },
+      tableWidth: 130,
+      margin: { left: ml, right: mr },
     });
 
     y = (doc as any).lastAutoTable.finalY + 8;
   };
 
-  // Classificação da Vaga
+  // ===== UNIDADE =====
+  addSection("", [["Unidade", req.unidade]]);
+
+  // ===== CLASSIFICAÇÃO DA VAGA =====
   addSection("Classificação da Vaga", [
     ["Headcount", req.headcount],
     ["Orçamento", req.orcamento],
     ["Tipo de Vaga", req.tipoVaga],
   ]);
 
-  // Especificação da Vaga
+  // ===== ESPECIFICAÇÃO DA VAGA =====
+  const cargoLabel = req.cargoNome || "";
   addSection("Especificação da Vaga", [
-    ["Unidade", req.unidade],
-    ["Cargo", req.cargoNome],
+    ["Cargo", cargoLabel],
     ["Salário", req.salarioVaga ? `R$ ${req.salarioVaga}` : ""],
   ]);
 
-  // Jornada de Trabalho
+  // ===== JORNADA DE TRABALHO =====
   addSection("Jornada de Trabalho", [
     ["Jornada", req.jornada],
     ["Carga Horária", req.cargaHoraria],
   ]);
 
-  // Contratação
+  // ===== CONTRATAÇÃO =====
   addSection("Contratação", [
     ["Modalidade", req.tipoContratacao?.join(", ") || ""],
     ["Recrutamento", req.internoExterno],
   ]);
 
-  // Origem da Vaga
+  // ===== ORIGEM DA VAGA =====
   addSection("Origem da Vaga", [
     ["Origem", req.origemVaga],
     ["Motivo (Outros)", req.motivoOutros],
   ]);
 
-  // Colaborador Substituído
+  // ===== COLABORADOR SUBSTITUÍDO =====
   addSection("Colaborador Substituído", [
     ["Nome", req.nomeSubstituido],
     ["Matrícula", req.matricula],
@@ -100,7 +147,7 @@ export function gerarPdfRequisicao(req: Requisicao) {
     ["Data Desligamento", req.dataDesligamento],
   ]);
 
-  // Qualificação
+  // ===== QUALIFICAÇÃO =====
   addSection("Qualificação", [
     ["Formação", req.formacao?.join(", ") || ""],
     ["Detalhe Formação", req.formacaoDetalhe],
@@ -108,42 +155,40 @@ export function gerarPdfRequisicao(req: Requisicao) {
     ["Informática", req.conhecimentoInformatica],
   ]);
 
-  // Atividades do Cargo
+  // ===== ATIVIDADES DO CARGO =====
   addSection("Atividades do Cargo", [
     ["Atividades", req.atividadesCargo],
   ]);
 
-  // Anexos
-  const temAnexos = false; // Modelo atual não persiste anexos
-  const pageHeight = doc.internal.pageSize.getHeight();
-  if (y + 20 > pageHeight - 30) {
+  // ===== ANEXOS =====
+  if (y + 20 > ph - 30) {
     doc.addPage();
     y = 20;
   }
-  doc.setFontSize(11);
+  doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(30, 58, 107);
-  doc.text("Anexos", 14, y);
+  doc.setTextColor(...DARK_BLUE);
+  doc.text("Anexos", ml, y);
   y += 6;
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(40, 40, 40);
-  doc.text(temAnexos ? "Sim — Possui anexos vinculados" : "Não possui anexos vinculados", 14, y);
-  y += 10;
+  doc.text("Não possui anexos vinculados", ml, y);
+  y += 12;
 
-  // Histórico de Status
+  // ===== HISTÓRICO DE STATUS =====
   if (req.historicoStatus && req.historicoStatus.length > 0) {
-    const estHeight = req.historicoStatus.length * 10 + 20;
-    if (y + estHeight > pageHeight - 30) {
+    const estHeight = req.historicoStatus.length * 10 + 24;
+    if (y + estHeight > ph - 30) {
       doc.addPage();
       y = 20;
     }
 
-    doc.setFontSize(11);
+    doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 58, 107);
-    doc.text("Histórico de Status", 14, y);
-    y += 2;
+    doc.setTextColor(...DARK_BLUE);
+    doc.text("Histórico de Status", ml, y);
+    y += 4;
 
     autoTable(doc, {
       startY: y,
@@ -154,27 +199,33 @@ export function gerarPdfRequisicao(req: Requisicao) {
         h.usuario || "—",
       ]),
       theme: "striped",
-      styles: { fontSize: 8, cellPadding: 3 },
-      headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
-      margin: { left: 14, right: 14 },
+      styles: { fontSize: 9, cellPadding: 4, textColor: [40, 40, 40] },
+      headStyles: {
+        fillColor: DARK_BLUE,
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+        fontSize: 9,
+      },
+      margin: { left: ml, right: mr },
     });
 
     y = (doc as any).lastAutoTable.finalY + 8;
   }
 
-  // Footer
+  // ===== FOOTER =====
+  const empresaNome = empresa?.nomeFantasia || empresa?.razaoSocial || "SGM Lasant";
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
-    const ph = doc.internal.pageSize.getHeight();
+    const pageH = doc.internal.pageSize.getHeight();
     doc.setDrawColor(200, 200, 200);
-    doc.line(14, ph - 20, pageWidth - 14, ph - 20);
+    doc.line(ml, pageH - 20, pw - mr, pageH - 20);
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    doc.text("Documento gerado automaticamente — SGM Lasant", 14, ph - 14);
-    doc.text(`Página ${i} de ${pageCount}`, pageWidth / 2, ph - 14, { align: "center" });
-    doc.text(`RC Nº ${req.numero}`, pageWidth - 14, ph - 14, { align: "right" });
+    doc.text(`Documento gerado automaticamente — ${empresaNome}`, ml, pageH - 14);
+    doc.text(`Página ${i} de ${pageCount}`, pw / 2, pageH - 14, { align: "center" });
+    doc.text(`RC Nº ${req.numero}`, pw - mr, pageH - 14, { align: "right" });
   }
 
   doc.save(`RC_${req.numero}_${req.unidade.replace(/\s+/g, "_")}_${req.dataCriacao.replace(/\//g, "-")}.pdf`);
