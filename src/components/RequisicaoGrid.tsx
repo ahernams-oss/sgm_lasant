@@ -294,7 +294,7 @@ const RequisicaoGrid = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => gerarPdfRequisicao(req)}>
+                        <DropdownMenuItem onClick={() => gerarPdfRequisicao(req, empresa)}>
                           <FileDown className="mr-2 h-4 w-4" /> Baixar PDF
                         </DropdownMenuItem>
                         {canEdit(req) && (
