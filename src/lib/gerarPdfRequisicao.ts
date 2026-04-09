@@ -30,7 +30,6 @@ export function gerarPdfRequisicao(req: Requisicao) {
     const filteredRows = rows.filter(([, val]) => val && val.trim() !== "");
     if (filteredRows.length === 0) return;
 
-    // Check if section fits on current page
     const estimatedHeight = filteredRows.length * 10 + 16;
     const pageHeight = doc.internal.pageSize.getHeight();
     if (y + estimatedHeight > pageHeight - 30) {
@@ -60,24 +59,39 @@ export function gerarPdfRequisicao(req: Requisicao) {
     y = (doc as any).lastAutoTable.finalY + 8;
   };
 
+  // Classificação da Vaga
+  addSection("Classificação da Vaga", [
+    ["Headcount", req.headcount],
+    ["Orçamento", req.orcamento],
+    ["Tipo de Vaga", req.tipoVaga],
+  ]);
+
+  // Especificação da Vaga
   addSection("Especificação da Vaga", [
     ["Unidade", req.unidade],
     ["Cargo", req.cargoNome],
     ["Salário", req.salarioVaga ? `R$ ${req.salarioVaga}` : ""],
   ]);
 
+  // Jornada de Trabalho
   addSection("Jornada de Trabalho", [
     ["Jornada", req.jornada],
     ["Carga Horária", req.cargaHoraria],
   ]);
 
+  // Contratação
   addSection("Contratação", [
-    ["Tipo", req.tipoContratacao?.join(", ") || ""],
+    ["Modalidade", req.tipoContratacao?.join(", ") || ""],
     ["Recrutamento", req.internoExterno],
-    ["Origem da Vaga", req.origemVaga],
+  ]);
+
+  // Origem da Vaga
+  addSection("Origem da Vaga", [
+    ["Origem", req.origemVaga],
     ["Motivo (Outros)", req.motivoOutros],
   ]);
 
+  // Colaborador Substituído
   addSection("Colaborador Substituído", [
     ["Nome", req.nomeSubstituido],
     ["Matrícula", req.matricula],
@@ -86,6 +100,7 @@ export function gerarPdfRequisicao(req: Requisicao) {
     ["Data Desligamento", req.dataDesligamento],
   ]);
 
+  // Qualificação
   addSection("Qualificação", [
     ["Formação", req.formacao?.join(", ") || ""],
     ["Detalhe Formação", req.formacaoDetalhe],
@@ -93,15 +108,33 @@ export function gerarPdfRequisicao(req: Requisicao) {
     ["Informática", req.conhecimentoInformatica],
   ]);
 
+  // Atividades do Cargo
   addSection("Atividades do Cargo", [
     ["Atividades", req.atividadesCargo],
   ]);
 
+  // Anexos
+  const temAnexos = false; // Modelo atual não persiste anexos
+  const pageHeight = doc.internal.pageSize.getHeight();
+  if (y + 20 > pageHeight - 30) {
+    doc.addPage();
+    y = 20;
+  }
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(30, 58, 107);
+  doc.text("Anexos", 14, y);
+  y += 6;
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(40, 40, 40);
+  doc.text(temAnexos ? "Sim — Possui anexos vinculados" : "Não possui anexos vinculados", 14, y);
+  y += 10;
+
   // Histórico de Status
   if (req.historicoStatus && req.historicoStatus.length > 0) {
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const estimatedHeight = req.historicoStatus.length * 10 + 20;
-    if (y + estimatedHeight > pageHeight - 30) {
+    const estHeight = req.historicoStatus.length * 10 + 20;
+    if (y + estHeight > pageHeight - 30) {
       doc.addPage();
       y = 20;
     }
@@ -133,15 +166,15 @@ export function gerarPdfRequisicao(req: Requisicao) {
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
-    const pageHeight = doc.internal.pageSize.getHeight();
+    const ph = doc.internal.pageSize.getHeight();
     doc.setDrawColor(200, 200, 200);
-    doc.line(14, pageHeight - 20, pageWidth - 14, pageHeight - 20);
+    doc.line(14, ph - 20, pageWidth - 14, ph - 20);
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    doc.text("Documento gerado automaticamente — SGM Lasant", 14, pageHeight - 14);
-    doc.text(`Página ${i} de ${pageCount}`, pageWidth / 2, pageHeight - 14, { align: "center" });
-    doc.text(`RC Nº ${req.numero}`, pageWidth - 14, pageHeight - 14, { align: "right" });
+    doc.text("Documento gerado automaticamente — SGM Lasant", 14, ph - 14);
+    doc.text(`Página ${i} de ${pageCount}`, pageWidth / 2, ph - 14, { align: "center" });
+    doc.text(`RC Nº ${req.numero}`, pageWidth - 14, ph - 14, { align: "right" });
   }
 
   doc.save(`RC_${req.numero}_${req.unidade.replace(/\s+/g, "_")}_${req.dataCriacao.replace(/\//g, "-")}.pdf`);
