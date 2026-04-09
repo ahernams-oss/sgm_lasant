@@ -14,16 +14,15 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const zapiToken = Deno.env.get('CHATPRO_TOKEN');
-    const zapiInstance = Deno.env.get('CHATPRO_INSTANCE');
+    const chatproToken = Deno.env.get('CHATPRO_TOKEN');
+    const chatproInstance = Deno.env.get('CHATPRO_INSTANCE');
 
-    if (!zapiToken || !zapiInstance) {
+    if (!chatproToken || !chatproInstance) {
       throw new Error('CHATPRO_TOKEN ou CHATPRO_INSTANCE não configurados');
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get active contacts
     const { data: contatos, error: errContatos } = await supabase
       .from('juridico_contatos_notificacao')
       .select('*')
@@ -46,7 +45,6 @@ serve(async (req) => {
 
     const fmt = (d: Date) => d.toISOString().split('T')[0];
 
-    // Get audiências that need 5-day notification
     const { data: aud5d } = await supabase
       .from('juridico_audiencias')
       .select('*')
@@ -55,7 +53,6 @@ serve(async (req) => {
       .lte('data_audiencia', fmt(em5d))
       .gte('data_audiencia', fmt(hoje));
 
-    // Get audiências that need 2-day notification
     const { data: aud2d } = await supabase
       .from('juridico_audiencias')
       .select('*')
@@ -65,24 +62,24 @@ serve(async (req) => {
       .gte('data_audiencia', fmt(hoje));
 
     let enviados = 0;
-    const baseUrl = `https://api.z-api.io/instances/${zapiInstance}/token/${zapiToken}`;
+    const baseUrl = `https://v5.chatpro.com.br/${chatproInstance}`;
 
     const enviarWhatsApp = async (telefone: string, mensagem: string) => {
       const telefoneLimpo = telefone.replace(/\D/g, '');
       if (!telefoneLimpo) return;
 
-      const url = `${baseUrl}/send-text`;
+      const url = `${baseUrl}/api/v1/send_message`;
       await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': chatproToken,
         },
-        body: JSON.stringify({ phone: telefoneLimpo, message: mensagem }),
+        body: JSON.stringify({ number: telefoneLimpo, message: mensagem }),
       });
       enviados++;
     };
 
-    // Send 5-day notifications
     for (const aud of (aud5d || [])) {
       const dataFormatada = new Date(aud.data_audiencia + 'T12:00:00').toLocaleDateString('pt-BR');
       const msg = `⚖️ *LEMBRETE DE AUDIÊNCIA - 5 DIAS*\n\n` +
@@ -105,7 +102,6 @@ serve(async (req) => {
         .eq('id', aud.id);
     }
 
-    // Send 2-day notifications
     for (const aud of (aud2d || [])) {
       const dataFormatada = new Date(aud.data_audiencia + 'T12:00:00').toLocaleDateString('pt-BR');
       const msg = `⚖️ *URGENTE - AUDIÊNCIA EM 2 DIAS*\n\n` +

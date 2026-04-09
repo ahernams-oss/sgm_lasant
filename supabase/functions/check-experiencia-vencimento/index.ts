@@ -16,16 +16,13 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const ZAPI_TOKEN = Deno.env.get('CHATPRO_TOKEN');
-    const ZAPI_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
+    const CHATPRO_TOKEN = Deno.env.get('CHATPRO_TOKEN');
+    const CHATPRO_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
 
     const today = new Date();
     const d10 = new Date(today);
     d10.setDate(d10.getDate() + 10);
 
-    const formatDate = (d: Date) => d.toISOString().split('T')[0];
-
-    // Fetch active employees with experience period ending within 10 days
     const { data: funcionarios, error } = await supabase
       .from('funcionarios')
       .select('*')
@@ -42,7 +39,6 @@ serve(async (req) => {
     const results: any[] = [];
 
     for (const func of funcionarios) {
-      // Check 1st stage (45 days)
       if (func.experiencia_primeira_etapa && !func.experiencia_notificado_10d_primeira) {
         const fim1 = new Date(func.experiencia_primeira_etapa);
         const diff1 = Math.ceil((fim1.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -51,7 +47,7 @@ serve(async (req) => {
           const vencFormatado = func.experiencia_primeira_etapa.split('-').reverse().join('/');
           const mensagem = `⚠️ AVISO - Período de Experiência\n\nO 1º período de experiência (45 dias) do funcionário ${func.nome} vence em ${diff1} dias (${vencFormatado}).\n\nProvidenciar avaliação e decisão sobre renovação.`;
 
-          await sendWhatsApp(ZAPI_TOKEN, ZAPI_INSTANCE, func.telefone, mensagem);
+          await sendWhatsApp(CHATPRO_TOKEN, CHATPRO_INSTANCE, func.telefone, mensagem);
 
           await supabase
             .from('funcionarios')
@@ -62,7 +58,6 @@ serve(async (req) => {
         }
       }
 
-      // Check 2nd stage (90 days) - only if renewed
       if (func.experiencia_renovado && func.experiencia_fim && !func.experiencia_notificado_10d_final) {
         const fimFinal = new Date(func.experiencia_fim);
         const diffFinal = Math.ceil((fimFinal.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -71,7 +66,7 @@ serve(async (req) => {
           const vencFormatado = func.experiencia_fim.split('-').reverse().join('/');
           const mensagem = `⚠️ AVISO - Período de Experiência\n\nO 2º período de experiência (90 dias) do funcionário ${func.nome} vence em ${diffFinal} dias (${vencFormatado}).\n\nProvidenciar efetivação ou desligamento.`;
 
-          await sendWhatsApp(ZAPI_TOKEN, ZAPI_INSTANCE, func.telefone, mensagem);
+          await sendWhatsApp(CHATPRO_TOKEN, CHATPRO_INSTANCE, func.telefone, mensagem);
 
           await supabase
             .from('funcionarios')
@@ -101,13 +96,14 @@ async function sendWhatsApp(token: string | undefined, instance: string | undefi
   const telefoneLimpo = telefone.replace(/\D/g, '');
   if (telefoneLimpo.length < 10) return;
   try {
-    const url = `https://api.z-api.io/instances/${instance}/token/${token}/send-text`;
+    const url = `https://v5.chatpro.com.br/${instance}/api/v1/send_message`;
     await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': token,
       },
-      body: JSON.stringify({ phone: telefoneLimpo, message: mensagem }),
+      body: JSON.stringify({ number: telefoneLimpo, message: mensagem }),
     });
   } catch (err) {
     console.error('WhatsApp error:', err);

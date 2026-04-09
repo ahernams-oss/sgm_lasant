@@ -16,10 +16,10 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const ZAPI_TOKEN = Deno.env.get('CHATPRO_TOKEN');
-    const ZAPI_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
+    const CHATPRO_TOKEN = Deno.env.get('CHATPRO_TOKEN');
+    const CHATPRO_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
 
-    if (!ZAPI_TOKEN || !ZAPI_INSTANCE) {
+    if (!CHATPRO_TOKEN || !CHATPRO_INSTANCE) {
       throw new Error('CHATPRO_TOKEN ou CHATPRO_INSTANCE não configurados');
     }
 
@@ -29,7 +29,6 @@ serve(async (req) => {
 
     const formatDate = (d: Date) => d.toISOString().split('T')[0];
 
-    // Fetch documents expiring within 15 days
     const { data: documentos, error } = await supabase
       .from('licitacoes_documentos')
       .select('*')
@@ -49,7 +48,6 @@ serve(async (req) => {
       });
     }
 
-    // Fetch notification phone numbers from DB
     const { data: telefones, error: telError } = await supabase
       .from('licitacoes_telefones_notificacao')
       .select('telefone');
@@ -69,8 +67,8 @@ serve(async (req) => {
     }
 
     const results: any[] = [];
-    const baseUrl = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}`;
-    const zapiUrl = `${baseUrl}/send-text`;
+    const baseUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}`;
+    const chatproUrl = `${baseUrl}/api/v1/send_message`;
 
     for (const doc of documentos) {
       const vencimento = new Date(doc.data_validade);
@@ -83,12 +81,13 @@ serve(async (req) => {
         const telefoneLimpo = numero.replace(/\D/g, '');
         if (telefoneLimpo.length >= 10) {
           try {
-            await fetch(zapiUrl, {
+            await fetch(chatproUrl, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'Authorization': CHATPRO_TOKEN,
               },
-              body: JSON.stringify({ phone: telefoneLimpo, message: mensagem }),
+              body: JSON.stringify({ number: telefoneLimpo, message: mensagem }),
             });
           } catch (whatsErr) {
             console.error('WhatsApp error:', whatsErr);
