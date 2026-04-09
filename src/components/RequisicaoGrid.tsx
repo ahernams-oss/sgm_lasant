@@ -52,6 +52,7 @@ const RequisicaoGrid = () => {
   const { clientes } = useClientes();
   const { cargos } = useCargos();
   const { usuarioLogado } = useAuth();
+  const { empresa } = useEmpresa();
   const navigate = useNavigate();
   const { processos } = useProcessoSeletivo();
   const [search, setSearch] = useState("");
