@@ -4,6 +4,7 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProcessoSeletivo } from "@/contexts/ProcessoSeletivoContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +52,7 @@ const RequisicaoGrid = () => {
   const { clientes } = useClientes();
   const { cargos } = useCargos();
   const { usuarioLogado } = useAuth();
+  const { empresa } = useEmpresa();
   const navigate = useNavigate();
   const { processos } = useProcessoSeletivo();
   const [search, setSearch] = useState("");
@@ -292,7 +294,7 @@ const RequisicaoGrid = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => gerarPdfRequisicao(req)}>
+                        <DropdownMenuItem onClick={() => gerarPdfRequisicao(req, empresa)}>
                           <FileDown className="mr-2 h-4 w-4" /> Baixar PDF
                         </DropdownMenuItem>
                         {canEdit(req) && (
