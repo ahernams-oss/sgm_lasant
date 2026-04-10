@@ -1,58 +1,104 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Requisicao } from "@/contexts/RequisicaoContext";
+import { Empresa } from "@/contexts/EmpresaContext";
 
 interface DashboardReportData {
   requisicoes: Requisicao[];
   dateFrom?: string;
   dateTo?: string;
+  empresa?: Empresa;
+  funcionarios?: any[];
+  exames?: any[];
+  processos?: any[];
+  lancamentos?: any[];
 }
 
-export function gerarPdfDashboard({ requisicoes, dateFrom, dateTo }: DashboardReportData): jsPDF {
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
+const DARK_BLUE: [number, number, number] = [30, 58, 107];
+const WHITE: [number, number, number] = [255, 255, 255];
 
-  // Header
-  doc.setFillColor(30, 58, 107);
-  doc.rect(0, 0, pageWidth, 36, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(16);
+function addHeader(doc: jsPDF, empresa?: Empresa) {
+  const pw = doc.internal.pageSize.getWidth();
+  doc.setFillColor(...DARK_BLUE);
+  doc.rect(0, 0, pw, 36, "F");
+  doc.setTextColor(...WHITE);
+  doc.setFontSize(15);
   doc.setFont("helvetica", "bold");
-  doc.text("Relatório de Requisições", 14, 16);
-  doc.setFontSize(10);
+  const title = empresa?.nomeFantasia || empresa?.razaoSocial || "SGM Lasant";
+  doc.text(title, 14, 14);
+  doc.setFontSize(11);
+  doc.text("Relatório — Dashboard Gestão de Pessoas", 14, 22);
+  doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
+  doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pw - 14, 14, { align: "right" });
+  if (empresa?.cnpj) doc.text(`CNPJ: ${empresa.cnpj}`, pw - 14, 20, { align: "right" });
+}
+
+function addFooter(doc: jsPDF, empresa?: Empresa) {
+  const pageCount = doc.getNumberOfPages();
+  const pw = doc.internal.pageSize.getWidth();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    const ph = doc.internal.pageSize.getHeight();
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, ph - 20, pw - 14, ph - 20);
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.setFont("helvetica", "normal");
+    const label = empresa?.nomeFantasia || empresa?.razaoSocial || "SGM Lasant";
+    doc.text(`Relatório gerado automaticamente — ${label}`, 14, ph - 14);
+    doc.text(`Página ${i} de ${pageCount}`, pw / 2, ph - 14, { align: "center" });
+  }
+}
+
+function checkPageBreak(doc: jsPDF, y: number, needed: number): number {
+  if (y + needed > doc.internal.pageSize.getHeight() - 30) {
+    doc.addPage();
+    return 20;
+  }
+  return y;
+}
+
+function sectionTitle(doc: jsPDF, text: string, y: number): number {
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...DARK_BLUE);
+  doc.text(text, 14, y);
+  return y + 3;
+}
+
+export function gerarPdfDashboard(data: DashboardReportData): jsPDF {
+  const { requisicoes, dateFrom, dateTo, empresa, funcionarios, exames, processos, lancamentos } = data;
+  const doc = new jsPDF();
+
+  addHeader(doc, empresa);
+
+  doc.setTextColor(30, 30, 30);
+  let y = 42;
+
+  // Period info
   const periodo = dateFrom || dateTo
     ? `Período: ${dateFrom || "—"} a ${dateTo || "—"}`
     : "Período: Todos";
-  doc.text(periodo, 14, 24);
   doc.setFontSize(9);
-  doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pageWidth - 14, 16, { align: "right" });
-  doc.text(`Total de requisições: ${requisicoes.length}`, pageWidth - 14, 24, { align: "right" });
-
-  doc.setTextColor(30, 30, 30);
-  let y = 46;
+  doc.setFont("helvetica", "normal");
+  doc.text(`${periodo}  |  Total de requisições: ${requisicoes.length}`, 14, y);
+  y += 8;
 
   // --- Resumo por Status ---
+  y = sectionTitle(doc, "Resumo por Status", y);
   const statusCounts: Record<string, number> = {};
   requisicoes.forEach((r) => { statusCounts[r.status] = (statusCounts[r.status] || 0) + 1; });
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(30, 58, 107);
-  doc.text("Resumo por Status", 14, y);
-  y += 3;
 
   autoTable(doc, {
     startY: y,
     head: [["Status", "Quantidade", "Percentual"]],
     body: Object.entries(statusCounts).map(([status, count]) => [
-      status,
-      count.toString(),
-      `${((count / requisicoes.length) * 100).toFixed(1)}%`,
+      status, count.toString(), `${((count / requisicoes.length) * 100).toFixed(1)}%`,
     ]),
     theme: "striped",
     styles: { fontSize: 9, cellPadding: 3 },
-    headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
+    headStyles: { fillColor: DARK_BLUE, textColor: WHITE, fontStyle: "bold" },
     margin: { left: 14, right: 14 },
   });
   y = (doc as any).lastAutoTable.finalY + 10;
@@ -62,26 +108,17 @@ export function gerarPdfDashboard({ requisicoes, dateFrom, dateTo }: DashboardRe
   requisicoes.forEach((r) => { clienteCounts[r.unidade || "Sem unidade"] = (clienteCounts[r.unidade || "Sem unidade"] || 0) + 1; });
   const clienteSorted = Object.entries(clienteCounts).sort((a, b) => b[1] - a[1]);
 
-  const pageHeight = doc.internal.pageSize.getHeight();
-  if (y + clienteSorted.length * 10 + 20 > pageHeight - 30) { doc.addPage(); y = 20; }
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(30, 58, 107);
-  doc.text("Solicitações por Cliente/Unidade", 14, y);
-  y += 3;
-
+  y = checkPageBreak(doc, y, clienteSorted.length * 10 + 20);
+  y = sectionTitle(doc, "Solicitações por Cliente/Unidade", y);
   autoTable(doc, {
     startY: y,
     head: [["Cliente/Unidade", "Quantidade", "Percentual"]],
     body: clienteSorted.map(([name, count]) => [
-      name,
-      count.toString(),
-      `${((count / requisicoes.length) * 100).toFixed(1)}%`,
+      name, count.toString(), `${((count / requisicoes.length) * 100).toFixed(1)}%`,
     ]),
     theme: "striped",
     styles: { fontSize: 9, cellPadding: 3 },
-    headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
+    headStyles: { fillColor: DARK_BLUE, textColor: WHITE, fontStyle: "bold" },
     margin: { left: 14, right: 14 },
   });
   y = (doc as any).lastAutoTable.finalY + 10;
@@ -91,73 +128,142 @@ export function gerarPdfDashboard({ requisicoes, dateFrom, dateTo }: DashboardRe
   requisicoes.forEach((r) => { cargoCounts[r.cargoNome || "Sem cargo"] = (cargoCounts[r.cargoNome || "Sem cargo"] || 0) + 1; });
   const cargoSorted = Object.entries(cargoCounts).sort((a, b) => b[1] - a[1]);
 
-  if (y + cargoSorted.length * 10 + 20 > pageHeight - 30) { doc.addPage(); y = 20; }
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(30, 58, 107);
-  doc.text("Solicitações por Cargo", 14, y);
-  y += 3;
-
+  y = checkPageBreak(doc, y, cargoSorted.length * 10 + 20);
+  y = sectionTitle(doc, "Solicitações por Cargo", y);
   autoTable(doc, {
     startY: y,
     head: [["Cargo", "Quantidade", "Percentual"]],
     body: cargoSorted.map(([name, count]) => [
-      name,
-      count.toString(),
-      `${((count / requisicoes.length) * 100).toFixed(1)}%`,
+      name, count.toString(), `${((count / requisicoes.length) * 100).toFixed(1)}%`,
     ]),
     theme: "striped",
     styles: { fontSize: 9, cellPadding: 3 },
-    headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
+    headStyles: { fillColor: DARK_BLUE, textColor: WHITE, fontStyle: "bold" },
     margin: { left: 14, right: 14 },
   });
   y = (doc as any).lastAutoTable.finalY + 10;
 
-  // --- Lista detalhada das requisições ---
-  if (y + 30 > pageHeight - 30) { doc.addPage(); y = 20; }
+  // --- Funcionários ---
+  if (funcionarios && funcionarios.length > 0) {
+    y = checkPageBreak(doc, y, 60);
+    y = sectionTitle(doc, "Resumo de Funcionários", y);
+    const funcStatusCounts: Record<string, number> = {};
+    funcionarios.forEach((f: any) => { funcStatusCounts[f.status || "Indefinido"] = (funcStatusCounts[f.status || "Indefinido"] || 0) + 1; });
+    autoTable(doc, {
+      startY: y,
+      head: [["Status", "Quantidade", "Percentual"]],
+      body: Object.entries(funcStatusCounts).map(([status, count]) => [
+        status, count.toString(), `${((count / funcionarios.length) * 100).toFixed(1)}%`,
+      ]),
+      theme: "striped",
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: DARK_BLUE, textColor: WHITE, fontStyle: "bold" },
+      margin: { left: 14, right: 14 },
+    });
+    y = (doc as any).lastAutoTable.finalY + 10;
+  }
 
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(30, 58, 107);
-  doc.text("Lista Detalhada das Requisições", 14, y);
-  y += 3;
+  // --- Exames ---
+  if (exames && exames.length > 0) {
+    y = checkPageBreak(doc, y, 60);
+    y = sectionTitle(doc, "Exames Periódicos", y);
+    const hoje = new Date();
+    let vencidos = 0, aVencer = 0, emDia = 0;
+    exames.forEach((e: any) => {
+      if (!e.data_vencimento) return;
+      const dias = Math.floor((new Date(e.data_vencimento).getTime() - hoje.getTime()) / 86400000);
+      if (dias < 0) vencidos++;
+      else if (dias <= 30) aVencer++;
+      else emDia++;
+    });
+    autoTable(doc, {
+      startY: y,
+      head: [["Situação", "Quantidade"]],
+      body: [
+        ["Em Dia", emDia.toString()],
+        ["A Vencer (30 dias)", aVencer.toString()],
+        ["Vencidos", vencidos.toString()],
+        ["Total", exames.length.toString()],
+      ],
+      theme: "striped",
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: DARK_BLUE, textColor: WHITE, fontStyle: "bold" },
+      margin: { left: 14, right: 14 },
+    });
+    y = (doc as any).lastAutoTable.finalY + 10;
+  }
+
+  // --- Processos Seletivos ---
+  if (processos && processos.length > 0) {
+    y = checkPageBreak(doc, y, 60);
+    y = sectionTitle(doc, "Processos Seletivos", y);
+    let totalCandidatos = 0, contratados = 0;
+    processos.forEach((p: any) => {
+      const cands = p.candidatos || [];
+      totalCandidatos += cands.length;
+      contratados += cands.filter((c: any) => c.contratacaoFinalizada).length;
+    });
+    autoTable(doc, {
+      startY: y,
+      head: [["Indicador", "Valor"]],
+      body: [
+        ["Total de Processos", processos.length.toString()],
+        ["Total de Candidatos", totalCandidatos.toString()],
+        ["Contratados", contratados.toString()],
+        ["Taxa de Conversão", totalCandidatos > 0 ? `${((contratados / totalCandidatos) * 100).toFixed(1)}%` : "N/A"],
+      ],
+      theme: "striped",
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: DARK_BLUE, textColor: WHITE, fontStyle: "bold" },
+      margin: { left: 14, right: 14 },
+    });
+    y = (doc as any).lastAutoTable.finalY + 10;
+  }
+
+  // --- Atestados / Faltas ---
+  if (lancamentos && lancamentos.length > 0) {
+    y = checkPageBreak(doc, y, 60);
+    y = sectionTitle(doc, "Atestados e Faltas", y);
+    const atestados = lancamentos.filter((l: any) => l.tipoFalta === "atestado");
+    const faltasJust = lancamentos.filter((l: any) => l.tipo === "falta" && l.tipoFalta === "justificada");
+    const faltasInjust = lancamentos.filter((l: any) => l.tipo === "falta" && l.tipoFalta === "injustificada");
+    const diasAfastado = atestados.reduce((acc: number, l: any) => acc + (l.diasFalta || 0), 0);
+    autoTable(doc, {
+      startY: y,
+      head: [["Tipo", "Quantidade"]],
+      body: [
+        ["Atestados", atestados.length.toString()],
+        ["Dias Afastados (atestado)", diasAfastado.toString()],
+        ["Faltas Justificadas", faltasJust.length.toString()],
+        ["Faltas Injustificadas", faltasInjust.length.toString()],
+      ],
+      theme: "striped",
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: DARK_BLUE, textColor: WHITE, fontStyle: "bold" },
+      margin: { left: 14, right: 14 },
+    });
+    y = (doc as any).lastAutoTable.finalY + 10;
+  }
+
+  // --- Lista detalhada das requisições ---
+  y = checkPageBreak(doc, y, 30);
+  y = sectionTitle(doc, "Lista Detalhada das Requisições", y);
 
   autoTable(doc, {
     startY: y,
     head: [["RC Nº", "Data", "Unidade", "Cargo", "Status", "Tipo Contratação"]],
     body: requisicoes.map((r) => [
-      `RC ${r.numero}`,
-      r.dataCriacao,
-      r.unidade,
-      r.cargoNome,
-      r.status,
+      `RC ${r.numero}`, r.dataCriacao, r.unidade, r.cargoNome, r.status,
       r.tipoContratacao?.join(", ") || "",
     ]),
     theme: "striped",
     styles: { fontSize: 8, cellPadding: 2.5 },
-    headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
-    columnStyles: {
-      0: { cellWidth: 18 },
-      1: { cellWidth: 22 },
-    },
+    headStyles: { fillColor: DARK_BLUE, textColor: WHITE, fontStyle: "bold" },
+    columnStyles: { 0: { cellWidth: 18 }, 1: { cellWidth: 22 } },
     margin: { left: 14, right: 14 },
   });
 
-  // Footer
-  const pageCount = doc.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    const ph = doc.internal.pageSize.getHeight();
-    doc.setDrawColor(200, 200, 200);
-    doc.line(14, ph - 20, pageWidth - 14, ph - 20);
-    doc.setFontSize(7);
-    doc.setTextColor(150, 150, 150);
-    doc.setFont("helvetica", "normal");
-    doc.text("Relatório gerado automaticamente — SGM Lasant", 14, ph - 14);
-    doc.text(`Página ${i} de ${pageCount}`, pageWidth / 2, ph - 14, { align: "center" });
-  }
-
+  addFooter(doc, empresa);
   return doc;
 }
 
@@ -166,7 +272,7 @@ export function downloadPdfDashboard(data: DashboardReportData) {
   const periodoLabel = data.dateFrom || data.dateTo
     ? `${(data.dateFrom || "").replace(/\//g, "-")}_${(data.dateTo || "").replace(/\//g, "-")}`
     : "completo";
-  doc.save(`Relatorio_Requisicoes_${periodoLabel}_${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.pdf`);
+  doc.save(`Relatorio_Dashboard_GP_${periodoLabel}_${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.pdf`);
 }
 
 export function gerarTextoDashboard(requisicoes: Requisicao[], dateFrom?: string, dateTo?: string): string {
