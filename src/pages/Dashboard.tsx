@@ -4,7 +4,7 @@ import { ptBR } from "date-fns/locale";
 import {
   LayoutDashboard, CalendarIcon, X, FileDown, Send, MessageSquare, Loader2,
   Users, UserCheck, HardHat, Stethoscope, ClipboardCheck, Clock,
-  TrendingUp, ClipboardList, FileText,
+  TrendingUp, ClipboardList, FileText, AlertTriangle, ArrowUpRight, ArrowDownRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +20,7 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useProcessoSeletivo } from "@/contexts/ProcessoSeletivoContext";
 import { useLancamentos } from "@/contexts/LancamentosContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import { supabase } from "@/integrations/supabase/client";
 import { downloadPdfDashboard, gerarTextoDashboard } from "@/lib/gerarPdfDashboard";
 import { enviarWhatsApp } from "@/lib/whatsapp";
@@ -51,6 +52,15 @@ const CHART_COLORS = [
   "hsl(30, 80%, 55%)", "hsl(340, 75%, 55%)",
 ];
 
+const GRADIENT_STYLES = [
+  { bg: "from-blue-500/10 to-blue-600/5", icon: "text-blue-600", border: "border-blue-200/50" },
+  { bg: "from-amber-500/10 to-amber-600/5", icon: "text-amber-600", border: "border-amber-200/50" },
+  { bg: "from-emerald-500/10 to-emerald-600/5", icon: "text-emerald-600", border: "border-emerald-200/50" },
+  { bg: "from-red-500/10 to-red-600/5", icon: "text-red-600", border: "border-red-200/50" },
+  { bg: "from-purple-500/10 to-purple-600/5", icon: "text-purple-600", border: "border-purple-200/50" },
+  { bg: "from-cyan-500/10 to-cyan-600/5", icon: "text-cyan-600", border: "border-cyan-200/50" },
+];
+
 function parseDataCriacao(dateStr: string): Date | null {
   const parts = dateStr.split("/");
   if (parts.length !== 3) return null;
@@ -58,21 +68,30 @@ function parseDataCriacao(dateStr: string): Date | null {
   return new Date(y, m - 1, d);
 }
 
-const KpiCard = ({ icon: Icon, label, value, color }: { icon: any; label: string; value: number | string; color?: string }) => (
-  <Card>
-    <CardContent className="pt-4 pb-3 px-4">
-      <div className="flex items-center gap-3">
-        <div className="rounded-lg p-2 bg-muted">
-          <Icon className="h-4 w-4 text-muted-foreground" />
+const GradientKpiCard = ({
+  icon: Icon, label, value, color, gradientIdx = 0, subtitle,
+}: {
+  icon: any; label: string; value: number | string; color?: string;
+  gradientIdx?: number; subtitle?: string;
+}) => {
+  const style = GRADIENT_STYLES[gradientIdx % GRADIENT_STYLES.length];
+  return (
+    <Card className={cn("overflow-hidden border", style.border)}>
+      <CardContent className="pt-4 pb-3 px-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-2xl font-bold" style={color ? { color } : undefined}>{value}</p>
+            <p className="text-xs font-medium text-muted-foreground mt-0.5">{label}</p>
+            {subtitle && <p className="text-[10px] text-muted-foreground/70 mt-0.5">{subtitle}</p>}
+          </div>
+          <div className={cn("rounded-xl p-2.5 bg-gradient-to-br", style.bg)}>
+            <Icon className={cn("h-4 w-4", style.icon)} />
+          </div>
         </div>
-        <div>
-          <p className="text-2xl font-bold" style={color ? { color } : undefined}>{value}</p>
-          <p className="text-xs text-muted-foreground">{label}</p>
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
+      </CardContent>
+    </Card>
+  );
+};
 
 const Dashboard = () => {
   const { requisicoes } = useRequisicoes();
@@ -80,6 +99,7 @@ const Dashboard = () => {
   const { funcionarios } = useFuncionarios();
   const { processos } = useProcessoSeletivo();
   const { lancamentos } = useLancamentos();
+  const { empresa } = useEmpresa();
   const { toast } = useToast();
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
@@ -158,7 +178,6 @@ const Dashboard = () => {
     return { total, candidatosTotal, contratados, emAndamento };
   }, [processos]);
 
-  // Processos por etapa
   const psCandidatosPorEtapa = useMemo(() => {
     const counts = { "Entrevista Psicológica": 0, "Entrevista Técnica": 0, "Liberação Final": 0, "Contratação": 0 };
     processos.forEach(p => {
@@ -207,10 +226,33 @@ const Dashboard = () => {
     return { totalAtestados: atestados.length, totalDiasAtestado, faltasJust: faltasJust.length, faltasInjust: faltasInjust.length };
   }, [lancamentos]);
 
-  // ---- Férias (funcionários em férias) ----
+  // ---- Férias ----
   const funcionariosFerias = useMemo(() => {
     return funcionarios.filter(f => f.status === "Férias");
   }, [funcionarios]);
+
+  // ---- Taxa de aprovação ----
+  const taxaAprovacao = useMemo(() => {
+    const total = filteredReqs.filter(r => ["Aprovada", "Reprovada"].includes(r.status)).length;
+    if (total === 0) return 0;
+    return (filteredReqs.filter(r => r.status === "Aprovada").length / total) * 100;
+  }, [filteredReqs]);
+
+  // ---- Tempo médio de análise ----
+  const tempoMedioAnalise = useMemo(() => {
+    const tempos: number[] = [];
+    filteredReqs.forEach(r => {
+      if (r.historicoStatus && r.historicoStatus.length >= 2) {
+        const pendente = r.historicoStatus.find(h => h.status === "Pendente");
+        const decisao = r.historicoStatus.find(h => ["Aprovada", "Reprovada"].includes(h.status));
+        if (pendente && decisao) {
+          const diff = new Date(decisao.dataHora).getTime() - new Date(pendente.dataHora).getTime();
+          if (diff > 0) tempos.push(diff / (1000 * 60 * 60 * 24));
+        }
+      }
+    });
+    return tempos.length > 0 ? (tempos.reduce((a, b) => a + b, 0) / tempos.length) : 0;
+  }, [filteredReqs]);
 
   // ---- Charts requisições ----
   const statusData = useMemo(() => {
@@ -254,6 +296,13 @@ const Dashboard = () => {
     return Object.entries(counts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [exames]);
 
+  // Cargo distribution
+  const cargoPorReq = useMemo(() => {
+    const counts: Record<string, number> = {};
+    filteredReqs.forEach(r => { counts[r.cargoNome || "Sem cargo"] = (counts[r.cargoNome || "Sem cargo"] || 0) + 1; });
+    return Object.entries(counts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 8);
+  }, [filteredReqs]);
+
   // WhatsApp phones
   const allPhones = useMemo(() => {
     const phones: { label: string; phone: string }[] = [];
@@ -268,7 +317,16 @@ const Dashboard = () => {
   }, [clientes]);
 
   const handleDownloadPdf = () => {
-    downloadPdfDashboard({ requisicoes: filteredReqs, dateFrom: dateFrom ? format(dateFrom, "dd/MM/yyyy") : undefined, dateTo: dateTo ? format(dateTo, "dd/MM/yyyy") : undefined });
+    downloadPdfDashboard({
+      requisicoes: filteredReqs,
+      dateFrom: dateFrom ? format(dateFrom, "dd/MM/yyyy") : undefined,
+      dateTo: dateTo ? format(dateTo, "dd/MM/yyyy") : undefined,
+      empresa,
+      funcionarios,
+      exames,
+      processos,
+      lancamentos,
+    });
     toast({ title: "PDF gerado com sucesso!" });
   };
 
@@ -362,24 +420,35 @@ const Dashboard = () => {
               <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-primary" /> Requisições de Colaboradores
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                <Card>
-                  <CardContent className="pt-4 pb-3 px-4 text-center">
-                    <p className="text-2xl font-bold text-foreground">{totalReqs}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Total</p>
-                  </CardContent>
-                </Card>
-                {["Pendente", "Em Análise", "Aprovada", "Reprovada", "Concluída"].map((status) => {
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+                <GradientKpiCard icon={ClipboardList} label="Total" value={totalReqs} gradientIdx={0} />
+                {["Pendente", "Em Análise", "Aprovada", "Reprovada", "Concluída"].map((status, i) => {
                   const count = filteredReqs.filter((r) => r.status === status).length;
                   return (
-                    <Card key={status}>
-                      <CardContent className="pt-4 pb-3 px-4 text-center">
-                        <p className="text-2xl font-bold" style={{ color: STATUS_COLORS[status] }}>{count}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{status}</p>
-                      </CardContent>
-                    </Card>
+                    <GradientKpiCard
+                      key={status}
+                      icon={status === "Aprovada" ? UserCheck : status === "Reprovada" ? X : Clock}
+                      label={status}
+                      value={count}
+                      color={STATUS_COLORS[status]}
+                      gradientIdx={i + 1}
+                    />
                   );
                 })}
+                <GradientKpiCard
+                  icon={ArrowUpRight}
+                  label="Taxa Aprovação"
+                  value={`${taxaAprovacao.toFixed(0)}%`}
+                  gradientIdx={2}
+                  subtitle="Aprovadas / Decididas"
+                />
+                <GradientKpiCard
+                  icon={Clock}
+                  label="Tempo Médio"
+                  value={tempoMedioAnalise > 0 ? `${tempoMedioAnalise.toFixed(1)}d` : "N/A"}
+                  gradientIdx={5}
+                  subtitle="Pendente → Decisão"
+                />
               </div>
             </div>
 
@@ -389,16 +458,15 @@ const Dashboard = () => {
                 <ClipboardCheck className="h-4 w-4 text-primary" /> Processos Seletivos
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <KpiCard icon={ClipboardCheck} label="Processos" value={psStats.total} />
-                <KpiCard icon={Users} label="Candidatos" value={psStats.candidatosTotal} />
-                <KpiCard icon={UserCheck} label="Contratados" value={psStats.contratados} color="hsl(160, 84%, 39%)" />
-                <KpiCard icon={Clock} label="Em Andamento" value={psStats.emAndamento} color="hsl(217, 91%, 50%)" />
+                <GradientKpiCard icon={ClipboardCheck} label="Processos" value={psStats.total} gradientIdx={0} />
+                <GradientKpiCard icon={Users} label="Candidatos" value={psStats.candidatosTotal} gradientIdx={1} />
+                <GradientKpiCard icon={UserCheck} label="Contratados" value={psStats.contratados} color="hsl(160, 84%, 39%)" gradientIdx={2} />
+                <GradientKpiCard icon={Clock} label="Em Andamento" value={psStats.emAndamento} color="hsl(217, 91%, 50%)" gradientIdx={0} />
               </div>
             </div>
 
             {/* Gráficos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Requisições por Status */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold">Requisições por Status</CardTitle>
@@ -420,7 +488,6 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Candidatos por Etapa */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold">Candidatos por Etapa</CardTitle>
@@ -444,7 +511,6 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Requisições por Cliente */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold">Requisições por Cliente/Unidade</CardTitle>
@@ -468,7 +534,6 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Evolução Temporal */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold">Evolução Temporal das Requisições</CardTitle>
@@ -495,6 +560,30 @@ const Dashboard = () => {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Requisições por Cargo */}
+              <Card className="lg:col-span-2">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold">Requisições por Cargo</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {cargoPorReq.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-10">Nenhuma requisição no período.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={260}>
+                      <BarChart data={cargoPorReq} margin={{ left: 10, right: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={60} />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip />
+                        <Bar dataKey="value" name="Requisições" radius={[4, 4, 0, 0]}>
+                          {cargoPorReq.map((_, i) => (<Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -506,11 +595,11 @@ const Dashboard = () => {
                 <UserCheck className="h-4 w-4 text-primary" /> Funcionários
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                <KpiCard icon={Users} label="Total" value={funcStats.total} />
-                <KpiCard icon={UserCheck} label="Ativos" value={funcStats.ativos} color="hsl(160, 84%, 39%)" />
-                <KpiCard icon={Users} label="Inativos" value={funcStats.inativos} color="hsl(0, 72%, 51%)" />
-                <KpiCard icon={Users} label="Afastados" value={funcStats.afastados} color="hsl(38, 92%, 50%)" />
-                <KpiCard icon={Users} label="Férias" value={funcStats.ferias} color="hsl(217, 91%, 50%)" />
+                <GradientKpiCard icon={Users} label="Total" value={funcStats.total} gradientIdx={0} />
+                <GradientKpiCard icon={UserCheck} label="Ativos" value={funcStats.ativos} color="hsl(160, 84%, 39%)" gradientIdx={2} />
+                <GradientKpiCard icon={Users} label="Inativos" value={funcStats.inativos} color="hsl(0, 72%, 51%)" gradientIdx={3} />
+                <GradientKpiCard icon={Users} label="Afastados" value={funcStats.afastados} color="hsl(38, 92%, 50%)" gradientIdx={1} />
+                <GradientKpiCard icon={Users} label="Férias" value={funcStats.ferias} color="hsl(217, 91%, 50%)" gradientIdx={0} />
               </div>
             </div>
 
@@ -518,7 +607,7 @@ const Dashboard = () => {
             {experienciaAlerts.length > 0 && (
               <div>
                 <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-destructive" /> Período de Experiência — Atenção
+                  <AlertTriangle className="h-4 w-4 text-destructive" /> Período de Experiência — Atenção ({experienciaAlerts.length})
                 </h2>
                 <Card className="border-destructive/30">
                   <CardContent className="pt-4 pb-3">
@@ -661,7 +750,6 @@ const Dashboard = () => {
 
             {/* Gráficos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Funcionários por Status */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold">Funcionários por Status</CardTitle>
@@ -683,7 +771,6 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Funcionários por Unidade */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold">Funcionários Ativos por Unidade</CardTitle>
@@ -707,7 +794,6 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Exames por Tipo */}
               <Card className="lg:col-span-2">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold">Exames por Tipo</CardTitle>
