@@ -331,40 +331,42 @@ const Clientes = () => {
               ) : (
                 <div className="divide-y divide-border">
                   {contratos.map(ct => (
-                    <div key={ct.id} className="py-3 flex items-start justify-between gap-4">
-                      <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-sm">
-                        <p className="font-medium text-foreground">{ct.numero}</p>
-                        <p className="text-muted-foreground truncate sm:col-span-2">{ct.descricao || "—"}</p>
-                        <p className="text-muted-foreground tabular-nums">
-                          {ct.dataInicio ? new Date(ct.dataInicio + "T00:00:00").toLocaleDateString("pt-BR") : "—"} a {ct.dataFim ? new Date(ct.dataFim + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
-                        </p>
-                        <p className="text-muted-foreground">BDI: {ct.bdi || "—"}</p>
-                        <p className="text-muted-foreground">Base: {ct.valorBase || "—"}</p>
-                        <p className="text-muted-foreground">Base 2: {ct.valorBase2 || "—"}</p>
-                        <p className="text-muted-foreground">Base 3: {ct.valorBase3 || "—"}</p>
-                        <p className="text-muted-foreground">Mês SCO: {ct.mesSco || "—"}</p>
-                        <p className="text-muted-foreground">Ano SCO: {ct.anoSco || "—"}</p>
+                    <div key={ct.id}>
+                      <div className="py-3 flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-sm">
+                          <p className="font-medium text-foreground">{ct.numero}</p>
+                          <p className="text-muted-foreground truncate sm:col-span-2">{ct.descricao || "—"}</p>
+                          <p className="text-muted-foreground tabular-nums">
+                            {ct.dataInicio ? new Date(ct.dataInicio + "T00:00:00").toLocaleDateString("pt-BR") : "—"} a {ct.dataFim ? new Date(ct.dataFim + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
+                          </p>
+                          <p className="text-muted-foreground">BDI: {ct.bdi || "—"}</p>
+                          <p className="text-muted-foreground">Base: {ct.valorBase || "—"}</p>
+                          <p className="text-muted-foreground">Base 2: {ct.valorBase2 || "—"}</p>
+                          <p className="text-muted-foreground">Base 3: {ct.valorBase3 || "—"}</p>
+                          <p className="text-muted-foreground">Mês SCO: {ct.mesSco || "—"}</p>
+                          <p className="text-muted-foreground">Ano SCO: {ct.anoSco || "—"}</p>
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          <Button variant="ghost" size="sm" type="button" onClick={() => setFaturamentoContratoId(faturamentoContratoId === ct.id ? null : ct.id)} className="text-xs gap-1" title="Faturamento">
+                            <DollarSign className="h-3.5 w-3.5" /> Faturamento
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleEditContrato(ct)} className="text-xs">Editar</Button>
+                          <Button variant="ghost" size="sm" onClick={() => requestDeleteContrato(ct.id)} className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-1 shrink-0">
-                        <Button variant="ghost" size="sm" type="button" onClick={() => setFaturamentoContratoId(faturamentoContratoId === ct.id ? null : ct.id)} className="text-xs gap-1" title="Faturamento">
-                          <DollarSign className="h-3.5 w-3.5" /> Faturamento
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleEditContrato(ct)} className="text-xs">Editar</Button>
-                        <Button variant="ghost" size="sm" onClick={() => requestDeleteContrato(ct.id)} className="text-destructive hover:text-destructive">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
+                      {faturamentoContratoId === ct.id && (
+                        <FaturamentoSection
+                          faturamentos={ct.faturamentos || []}
+                          onChange={(faturamentos) => {
+                            const updated = contratos.map(c => c.id === ct.id ? { ...c, faturamentos } : c);
+                            updateCliente(contratosClienteId!, { contratos: updated });
+                          }}
+                          contratoNumero={ct.numero}
+                        />
+                      )}
                     </div>
-                    {faturamentoContratoId === ct.id && (
-                      <FaturamentoSection
-                        faturamentos={ct.faturamentos || []}
-                        onChange={(faturamentos) => {
-                          const updated = contratos.map(c => c.id === ct.id ? { ...c, faturamentos } : c);
-                          updateCliente(contratosClienteId!, { contratos: updated });
-                        }}
-                        contratoNumero={ct.numero}
-                      />
-                    )}
                   ))}
                 </div>
               )}
