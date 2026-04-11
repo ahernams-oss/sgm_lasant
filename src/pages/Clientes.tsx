@@ -30,6 +30,7 @@ const Clientes = () => {
   const emptyContrato = { numero: "", descricao: "", dataInicio: "", dataFim: "", bdi: "", valorBase: "", valorBase2: "", valorBase3: "", mesSco: "", anoSco: "" };
   const [contratoForm, setContratoForm] = useState(emptyContrato);
   const [editingContratoId, setEditingContratoId] = useState<string | null>(null);
+  const [faturamentoContratoId, setFaturamentoContratoId] = useState<string | null>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { deleteId: deleteContratoId, requestDelete: requestDeleteContrato, cancelDelete: cancelDeleteContrato } = useDoubleConfirmDelete();
 
