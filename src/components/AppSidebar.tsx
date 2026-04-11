@@ -83,6 +83,7 @@ const menuItems = [
   {
     group: "Compras e Suprimentos",
     items: [
+      { title: "Dashboard Compras", url: "/compras/dashboard", icon: LayoutDashboard },
       { title: "Requisições de Compras", url: "/compras/requisicoes", icon: ShoppingCart },
       { title: "Cotações", url: "/compras/cotacoes", icon: Scale },
       { title: "Pedidos de Compra", url: "/compras/pedidos", icon: FileCheck },
