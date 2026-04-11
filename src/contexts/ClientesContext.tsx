@@ -18,10 +18,27 @@ export interface LocalEntrega {
   contato: string; telContato: string;
   relLinha1: string; relLinha2: string; relLinha3: string; relLinha4: string;
 }
+export interface Faturamento {
+  id: string;
+  periodoInicio: string;
+  periodoFim: string;
+  dataEmissaoNf: string;
+  xmlNfNome: string;
+  xmlNfConteudo: string;
+  numeroMedicao: string;
+  descricao: string;
+  valorBruto: string;
+  valorLiquido: string;
+  anexoNfUrl: string;
+  anexoNfNome: string;
+  pago: boolean;
+  dataPagamento: string;
+}
 export interface Contrato {
   id: string; numero: string; descricao: string; dataInicio: string; dataFim: string;
   bdi: string; valorBase: string; valorBase2: string; valorBase3: string;
   mesSco: string; anoSco: string;
+  faturamentos: Faturamento[];
 }
 export interface Cliente {
   id: string; tipo: "Cliente" | "Fornecedor"; nome: string; nomeFantasia: string;
