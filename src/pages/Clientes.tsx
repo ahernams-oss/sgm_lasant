@@ -346,12 +346,25 @@ const Clientes = () => {
                         <p className="text-muted-foreground">Ano SCO: {ct.anoSco || "—"}</p>
                       </div>
                       <div className="flex gap-1 shrink-0">
+                        <Button variant="ghost" size="sm" type="button" onClick={() => setFaturamentoContratoId(faturamentoContratoId === ct.id ? null : ct.id)} className="text-xs gap-1" title="Faturamento">
+                          <DollarSign className="h-3.5 w-3.5" /> Faturamento
+                        </Button>
                         <Button variant="ghost" size="sm" onClick={() => handleEditContrato(ct)} className="text-xs">Editar</Button>
                         <Button variant="ghost" size="sm" onClick={() => requestDeleteContrato(ct.id)} className="text-destructive hover:text-destructive">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
+                    {faturamentoContratoId === ct.id && (
+                      <FaturamentoSection
+                        faturamentos={ct.faturamentos || []}
+                        onChange={(faturamentos) => {
+                          const updated = contratos.map(c => c.id === ct.id ? { ...c, faturamentos } : c);
+                          updateCliente(contratosClienteId!, { contratos: updated });
+                        }}
+                        contratoNumero={ct.numero}
+                      />
+                    )}
                   ))}
                 </div>
               )}
