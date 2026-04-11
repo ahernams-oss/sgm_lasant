@@ -260,7 +260,7 @@ const Clientes = () => {
               updateCliente(contratosClienteId, { contratos: updated });
               toast.success("Contrato atualizado!");
             } else {
-              const novo: Contrato = { id: crypto.randomUUID(), ...contratoForm };
+              const novo: Contrato = { id: crypto.randomUUID(), ...contratoForm, faturamentos: [] };
               updateCliente(contratosClienteId, { contratos: [...contratos, novo] });
               toast.success("Contrato adicionado!");
             }
