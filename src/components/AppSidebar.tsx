@@ -59,7 +59,7 @@ const menuItems = [
     group: "Gestão de Pessoas",
     items: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-      { title: "Requisição de Colaboradores", url: "/", icon: ClipboardList },
+      { title: "Requisição de Pessoal", url: "/", icon: ClipboardList },
       { title: "Processos Seletivos", url: "/processos-seletivos", icon: ClipboardCheck },
       { title: "Funcionários", url: "/funcionarios", icon: UserCheck },
       { title: "EPIs", url: "/epis", icon: HardHat },

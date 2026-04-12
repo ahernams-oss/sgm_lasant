@@ -31,7 +31,7 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
       },
       {
         key: "requisicao_colaboradores",
-        label: "Requisição de Colaboradores",
+        label: "Requisição de Pessoal",
         acoes: [
           { key: "requisicao_colaboradores.criar", label: "Criar requisição" },
           { key: "requisicao_colaboradores.editar", label: "Editar requisição" },

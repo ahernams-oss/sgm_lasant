@@ -16,7 +16,7 @@ const Index = () => {
               <FileText className="h-4 w-4" />
               <span className="text-xs font-medium uppercase tracking-wider">Requisições</span>
             </div>
-            <h1 className="text-xl font-bold text-foreground mb-1">RC — Requisição de Colaboradores</h1>
+            <h1 className="text-xl font-bold text-foreground mb-1">RP — Requisição de Pessoal</h1>
             <p className="text-sm text-muted-foreground max-w-lg">
               Gerencie as solicitações de contratação de novos colaboradores.
             </p>
