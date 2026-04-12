@@ -34,6 +34,7 @@ import {
   MessageSquare,
   Megaphone,
   Bell,
+  BotMessageSquare,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -121,6 +122,10 @@ const menuItems = [
       { title: "Registro de Evidências", url: "/qualidade/evidencias", icon: ShieldCheck },
       { title: "Checklists", url: "/qualidade/checklists", icon: ClipboardCheck },
     ],
+  },
+  {
+    group: "Assistente IA",
+    items: [{ title: "Duda - Assistente", url: "/chat-duda", icon: BotMessageSquare }],
   },
   {
     group: "Cadastros",
