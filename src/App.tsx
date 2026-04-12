@@ -85,6 +85,7 @@ import ComunicacaoAvisosPage from "./pages/ComunicacaoAvisos";
 import ComunicacaoNotificacoesPage from "./pages/ComunicacaoNotificacoes";
 import JuridicoPage from "./pages/Juridico";
 import { ProcessosTrabalhalistasProvider } from "@/contexts/ProcessosTrabalhistas";
+import ChatDudaPage from "./pages/ChatDuda";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
@@ -164,6 +165,7 @@ function AppRoutes() {
         <Route path="/comunicacao/avisos" element={<ComunicacaoAvisosPage />} />
         <Route path="/comunicacao/notificacoes" element={<ComunicacaoNotificacoesPage />} />
         <Route path="/juridico" element={<JuridicoPage />} />
+        <Route path="/chat-duda" element={<ChatDudaPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
