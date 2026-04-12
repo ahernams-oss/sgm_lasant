@@ -679,6 +679,11 @@ const MapaFuncionarios = () => {
                       <TableCell className="max-w-[200px] truncate text-muted-foreground text-xs">{l.observacao || "—"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
+                          {l.tipo === "advertencia" && (
+                            <Button size="icon" variant="ghost" onClick={() => handlePrintAdvertencia(l)} className="h-8 w-8" title="Imprimir Advertência">
+                              <Printer className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                           <Button size="icon" variant="ghost" onClick={() => handleEdit(l)} className="h-8 w-8">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
