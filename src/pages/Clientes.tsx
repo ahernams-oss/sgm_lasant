@@ -153,7 +153,7 @@ const Clientes = () => {
   const i0Meses = useMemo(() => [...new Set(i0Items.map(i => i.mes))].sort((a, b) => a - b), [i0Items]);
   const i0Anos = useMemo(() => [...new Set(i0Items.map(i => i.ano))].sort((a, b) => a - b), [i0Items]);
 
-  if (tab === "faturamento") return <FaturamentoView />;
+
 
   const handleSubmit = (data: FormData, id: string | null) => {
     if (!data.nome.trim()) {
