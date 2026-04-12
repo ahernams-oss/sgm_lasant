@@ -256,6 +256,21 @@ const MapaFuncionarios = () => {
 
   const funcionariosAtivos = funcionarios.filter((f) => !f.status || f.status === "Ativo");
 
+  const handlePrintAdvertencia = (l: any) => {
+    const func = funcionarios.find((f) => f.id === l.funcionarioId);
+    const cargoNome = func?.cargoId ? cargos.find((c) => c.id === func.cargoId)?.nome || "—" : "—";
+    gerarPdfAdvertencia({
+      funcionarioNome: func?.nome || "—",
+      funcionarioCpf: func?.cpf || "—",
+      cargoNome,
+      dataAdvertencia: l.data,
+      motivo: l.motivo || "",
+      observacoes: l.observacao || "",
+      empresaRazaoSocial: empresa.razaoSocial || "EMPRESA",
+    });
+    toast.success("PDF de advertência gerado com sucesso.");
+  };
+
   const formatData = (d: string) => {
     try { return format(new Date(d + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR }); }
     catch { return d; }
