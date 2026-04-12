@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
-import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle } from "lucide-react";
+import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle, Printer } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -18,9 +18,11 @@ import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useLancamentos, TipoFalta, TipoAdvertencia, AnexoFalta } from "@/contexts/LancamentosContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import { toast } from "sonner";
 import { gerarPdfMapaFuncionarios } from "@/lib/gerarPdfMapa";
 import { exportarExcelMapa } from "@/lib/gerarExcelMapa";
+import { gerarPdfAdvertencia } from "@/lib/gerarPdfAdvertencia";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -43,6 +45,7 @@ const MapaFuncionarios = () => {
   const { lancamentos, addLancamento, updateLancamento, deleteLancamento } = useLancamentos();
   const { cargos } = useCargos();
   const { clientes } = useClientes();
+  const { empresa } = useEmpresa();
 
   const [activeTab, setActiveTab] = useState<"faltas" | "horas_extras" | "advertencias">("faltas");
   const [showForm, setShowForm] = useState(false);
@@ -252,6 +255,21 @@ const MapaFuncionarios = () => {
   }, [lancamentos, filterMes]);
 
   const funcionariosAtivos = funcionarios.filter((f) => !f.status || f.status === "Ativo");
+
+  const handlePrintAdvertencia = (l: any) => {
+    const func = funcionarios.find((f) => f.id === l.funcionarioId);
+    const cargoNome = func?.cargoId ? cargos.find((c) => c.id === func.cargoId)?.nome || "—" : "—";
+    gerarPdfAdvertencia({
+      funcionarioNome: func?.nome || "—",
+      funcionarioCpf: func?.cpf || "—",
+      cargoNome,
+      dataAdvertencia: l.data,
+      motivo: l.motivo || "",
+      observacoes: l.observacao || "",
+      empresaRazaoSocial: empresa.razaoSocial || "EMPRESA",
+    });
+    toast.success("PDF de advertência gerado com sucesso.");
+  };
 
   const formatData = (d: string) => {
     try { return format(new Date(d + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR }); }
@@ -661,6 +679,11 @@ const MapaFuncionarios = () => {
                       <TableCell className="max-w-[200px] truncate text-muted-foreground text-xs">{l.observacao || "—"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
+                          {l.tipo === "advertencia" && (
+                            <Button size="icon" variant="ghost" onClick={() => handlePrintAdvertencia(l)} className="h-8 w-8" title="Imprimir Advertência">
+                              <Printer className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                           <Button size="icon" variant="ghost" onClick={() => handleEdit(l)} className="h-8 w-8">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
