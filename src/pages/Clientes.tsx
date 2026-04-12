@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
@@ -15,7 +16,122 @@ import LocaisEntregaSection from "@/components/LocaisEntregaSection";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ImportClientesFornecedores from "@/components/ImportClientesFornecedores";
 import FaturamentoSection from "@/components/FaturamentoSection";
+
+const FaturamentoView = () => {
+  const { clientes, updateCliente } = useClientes();
+  const [searchFat, setSearchFat] = useState("");
+  const [openContratoId, setOpenContratoId] = useState<string | null>(null);
+  const [openClienteId, setOpenClienteId] = useState<string | null>(null);
+
+  const apenasClientes = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
+
+  const clientesComContratos = useMemo(() => {
+    const list = apenasClientes.filter(c => (c.contratos || []).length > 0);
+    if (!searchFat.trim()) return list;
+    const term = searchFat.toLowerCase();
+    return list.filter(c =>
+      c.nome.toLowerCase().includes(term) ||
+      c.nomeFantasia?.toLowerCase().includes(term) ||
+      (c.contratos || []).some(ct => ct.numero.toLowerCase().includes(term) || ct.descricao?.toLowerCase().includes(term))
+    );
+  }, [apenasClientes, searchFat]);
+
+  return (
+    <div className="bg-background">
+      <div className="container max-w-full mx-auto px-4 py-8">
+        <div className="mb-8 animate-fade-up">
+          <div className="flex items-center gap-2 text-primary mb-1">
+            <DollarSign className="h-4 w-4" />
+            <span className="text-xs font-medium uppercase tracking-wider">Financeiro</span>
+          </div>
+          <h1 className="text-xl font-bold text-foreground mb-1">Faturamento</h1>
+          <p className="text-sm text-muted-foreground max-w-lg">
+            Selecione o contrato para gerenciar o faturamento.
+          </p>
+        </div>
+
+        <div className="section-card animate-fade-up">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="section-title mb-0">Clientes e Contratos</h2>
+            <div className="relative w-64">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Pesquisar cliente ou contrato..."
+                value={searchFat}
+                onChange={(e) => setSearchFat(e.target.value)}
+                className="pl-9 h-9"
+              />
+            </div>
+          </div>
+
+          {clientesComContratos.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground py-10">
+              Nenhum cliente com contratos cadastrados.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {clientesComContratos.map(cliente => (
+                <div key={cliente.id} className="border border-border rounded-lg overflow-hidden">
+                  <div className="bg-muted/30 px-4 py-3">
+                    <p className="text-sm font-semibold text-foreground">{cliente.nome}</p>
+                    {cliente.cnpj && <p className="text-xs text-muted-foreground">{cliente.cnpj}</p>}
+                  </div>
+                  <div className="divide-y divide-border">
+                    {(cliente.contratos || []).map(ct => {
+                      const isOpen = openContratoId === ct.id && openClienteId === cliente.id;
+                      return (
+                        <div key={ct.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (isOpen) { setOpenContratoId(null); setOpenClienteId(null); }
+                              else { setOpenContratoId(ct.id); setOpenClienteId(cliente.id); }
+                            }}
+                            className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/20 transition-colors text-left"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <DollarSign className="h-4 w-4 text-primary shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-foreground">Contrato {ct.numero}</p>
+                                <p className="text-xs text-muted-foreground truncate">{ct.descricao || "Sem descrição"}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="text-xs text-muted-foreground tabular-nums">
+                                {(ct.faturamentos || []).length} lançamento(s)
+                              </span>
+                              {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                            </div>
+                          </button>
+                          {isOpen && (
+                            <div className="px-4 pb-4">
+                              <FaturamentoSection
+                                faturamentos={ct.faturamentos || []}
+                                onChange={(faturamentos) => {
+                                  const contratos = (cliente.contratos || []).map(c => c.id === ct.id ? { ...c, faturamentos } : c);
+                                  updateCliente(cliente.id, { contratos });
+                                }}
+                                contratoNumero={ct.numero}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Clientes = () => {
+  const [searchParams] = useSearchParams();
+  const tab = searchParams.get("tab");
   const [formOpen, setFormOpen] = useState(true);
   const { items: i0Items } = useI0();
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
@@ -36,6 +152,9 @@ const Clientes = () => {
 
   const i0Meses = useMemo(() => [...new Set(i0Items.map(i => i.mes))].sort((a, b) => a - b), [i0Items]);
   const i0Anos = useMemo(() => [...new Set(i0Items.map(i => i.ano))].sort((a, b) => a - b), [i0Items]);
+
+
+
   const handleSubmit = (data: FormData, id: string | null) => {
     if (!data.nome.trim()) {
       toast.error("Informe o nome do cliente.");
@@ -116,6 +235,8 @@ const Clientes = () => {
         c.telefones.some((t) => t.toLowerCase().includes(term))
     );
   }, [apenasClientes, search]);
+
+  if (tab === "faturamento") return <FaturamentoView />;
 
   return (
     <div className="bg-background">
