@@ -127,6 +127,7 @@ const menuItems = [
     items: [
       { title: "Dados da Empresa", url: "/empresa", icon: Building2 },
       { title: "Clientes", url: "/clientes", icon: Users },
+      { title: "Faturamento", url: "/clientes?tab=faturamento", icon: DollarSign },
       { title: "Equipamentos", url: "/cadastros/equipamentos", icon: Monitor },
       { title: "Fornecedores", url: "/fornecedores", icon: Truck },
       { title: "Cargos", url: "/cargos", icon: Briefcase },
