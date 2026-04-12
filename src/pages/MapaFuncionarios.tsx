@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
-import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle } from "lucide-react";
+import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle, Printer } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -18,9 +18,11 @@ import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useLancamentos, TipoFalta, TipoAdvertencia, AnexoFalta } from "@/contexts/LancamentosContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import { toast } from "sonner";
 import { gerarPdfMapaFuncionarios } from "@/lib/gerarPdfMapa";
 import { exportarExcelMapa } from "@/lib/gerarExcelMapa";
+import { gerarPdfAdvertencia } from "@/lib/gerarPdfAdvertencia";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
