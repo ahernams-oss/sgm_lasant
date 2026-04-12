@@ -45,6 +45,7 @@ const MapaFuncionarios = () => {
   const { lancamentos, addLancamento, updateLancamento, deleteLancamento } = useLancamentos();
   const { cargos } = useCargos();
   const { clientes } = useClientes();
+  const { empresa } = useEmpresa();
 
   const [activeTab, setActiveTab] = useState<"faltas" | "horas_extras" | "advertencias">("faltas");
   const [showForm, setShowForm] = useState(false);
