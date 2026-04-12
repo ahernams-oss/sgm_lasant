@@ -236,6 +236,8 @@ const Clientes = () => {
     );
   }, [apenasClientes, search]);
 
+  if (tab === "faturamento") return <FaturamentoView />;
+
   return (
     <div className="bg-background">
       <div className="container max-w-full mx-auto px-4 py-8">
