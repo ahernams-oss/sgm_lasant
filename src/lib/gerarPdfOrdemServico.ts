@@ -208,9 +208,9 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
       [
         {
           content: fiscalizada ? "Autorizado pelo Departamento de Engenharia / Fiscalização" : "",
-          styles: { fontStyle: "bold", halign: "center", valign: "middle", minCellHeight: 18, fontSize: 9 },
+          styles: { fontStyle: "bold", halign: "center", valign: "middle", minCellHeight: 8, fontSize: 9 },
         },
-        { content: "", styles: { minCellHeight: 18 } },
+        { content: "", styles: { minCellHeight: 8 } },
       ],
     ],
     columnStyles: { 0: { cellWidth: cw * 0.75 }, 1: { cellWidth: cw * 0.25 } },
