@@ -301,6 +301,46 @@ export default function CotacaoComprasPage() {
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+  const toggleSelect = (id: string) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const allSelected = filtered.length > 0 && filtered.every(c => selectedIds.includes(c.id));
+  const toggleSelectAll = () => setSelectedIds(allSelected ? [] : filtered.map(c => c.id));
+
+  const handlePrintCotacoes = async () => {
+    const lista = cotacoes.filter(c => selectedIds.includes(c.id));
+    if (lista.length === 0) return;
+    toast({ title: `Gerando ${lista.length} PDF${lista.length > 1 ? "s" : ""} de cotação...` });
+    for (const c of lista) {
+      const req = requisicoes.find(r => r.id === c.requisicaoId) || null;
+      await downloadPdfCotacao({ cotacao: c, requisicao: req, empresa });
+    }
+    toast({ title: `${lista.length} PDF${lista.length > 1 ? "s gerados" : " gerado"} com sucesso` });
+  };
+
+  const handlePrintPedidosCotacao = async () => {
+    const lista = cotacoes.filter(c => selectedIds.includes(c.id));
+    if (lista.length === 0) return;
+    let total = 0;
+    toast({ title: `Gerando pedidos de cotação...` });
+    for (const c of lista) {
+      const req = requisicoes.find(r => r.id === c.requisicaoId) || null;
+      const fornsComProposta = c.propostas.map(p => {
+        const fData = fornecedores.find(f => f.id === p.fornecedorId);
+        return {
+          id: p.fornecedorId,
+          nome: p.fornecedorNome,
+          cnpj: fData?.cnpj || "",
+          email: fData?.emailCompras || fData?.email || "",
+          telefone: fData?.telefoneCelular || (fData?.telefones?.[0]) || "",
+        };
+      });
+      const fornsUnicos = fornsComProposta.filter((f, i, arr) => arr.findIndex(a => a.id === f.id) === i);
+      if (fornsUnicos.length === 0) continue;
+      await downloadPdfPedidoCotacaoTodos(c, req, empresa, fornsUnicos);
+      total += fornsUnicos.length;
+    }
+    toast({ title: `${total} PDF(s) de pedido de cotação gerado(s)` });
+  };
+
   // === Enviar link para fornecedor ===
   const openEnviarDialog = (cotacaoId: string) => {
     setEnviarCotacaoId(cotacaoId);
