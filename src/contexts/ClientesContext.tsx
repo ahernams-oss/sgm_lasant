@@ -51,6 +51,7 @@ export interface Cliente {
   dataInicioContrato: string;
   relLinha1: string; relLinha2: string; relLinha3: string; relLinha4: string;
   contato: string; grupoWhatsapp: string;
+  logoUrl: string;
   informacoesFinanceiras: InformacaoFinanceira[];
   locais: LocalCliente[];
   locaisEntrega: LocalEntrega[];
@@ -80,6 +81,7 @@ const rowToCliente = (r: any): Cliente => ({
   relLinha1: r.rel_linha1 ?? "", relLinha2: r.rel_linha2 ?? "",
   relLinha3: r.rel_linha3 ?? "", relLinha4: r.rel_linha4 ?? "",
   contato: r.contato ?? "", grupoWhatsapp: r.grupo_whatsapp ?? "",
+  logoUrl: r.logo_url ?? "",
   informacoesFinanceiras: r.informacoes_financeiras ?? [],
   locais: r.locais ?? [], locaisEntrega: r.locais_entrega ?? [], contratos: r.contratos ?? [],
 });
@@ -98,6 +100,7 @@ const clienteToRow = (c: Omit<Cliente, "id">) => ({
   endereco: c.endereco, data_inicio_contrato: c.dataInicioContrato,
   rel_linha1: c.relLinha1, rel_linha2: c.relLinha2, rel_linha3: c.relLinha3, rel_linha4: c.relLinha4,
   contato: c.contato, grupo_whatsapp: c.grupoWhatsapp,
+  logo_url: c.logoUrl,
   informacoes_financeiras: c.informacoesFinanceiras as any,
   locais: c.locais as any, locais_entrega: c.locaisEntrega as any, contratos: c.contratos as any,
 });
