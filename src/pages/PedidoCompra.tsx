@@ -214,11 +214,31 @@ export default function PedidoCompraPage() {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
-  const selectableFiltered = filtered.filter(p => getNextStatuses(p.status).length > 0);
+  const selectableFiltered = filtered;
   const allSelectableSelected = selectableFiltered.length > 0 && selectableFiltered.every(p => selectedIds.includes(p.id));
   const toggleSelectAll = () => {
     if (allSelectableSelected) setSelectedIds([]);
     else setSelectedIds(selectableFiltered.map(p => p.id));
+  };
+
+  const selectedCanUpdate = selectedIds.some(id => {
+    const p = pedidos.find(x => x.id === id);
+    return p ? getNextStatuses(p.status).length > 0 : false;
+  });
+
+  const handlePrintSelected = async () => {
+    const lista = pedidos.filter(p => selectedIds.includes(p.id));
+    if (lista.length === 0) return;
+    toast({ title: `Gerando ${lista.length} PDF${lista.length > 1 ? "s" : ""}...` });
+    for (const p of lista) {
+      await downloadPdfOrdemCompra({
+        pedido: p,
+        empresa: empresa.id ? empresa : null,
+        fornecedor: getFornecedor(p.fornecedorId),
+        autorizadoPor: usuarioLogado?.nome || "Usuário",
+      });
+    }
+    toast({ title: `${lista.length} PDF${lista.length > 1 ? "s gerados" : " gerado"} com sucesso` });
   };
 
   return (
