@@ -19,7 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText } from "lucide-react";
+import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText, CheckSquare } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { downloadPdfCotacao } from "@/lib/gerarPdfCotacao";
 import { downloadPdfPedidoCotacaoTodos } from "@/lib/gerarPdfPedidoCotacao";
 import { Switch } from "@/components/ui/switch";
@@ -49,6 +50,7 @@ export default function CotacaoComprasPage() {
   const [filterPeriodo, setFilterPeriodo] = useState("Todos");
   const [filterComprador, setFilterComprador] = useState("Todos");
   const [pageCot, setPageCot] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Dialog states
   const [novaDialogOpen, setNovaDialogOpen] = useState(false);
@@ -298,6 +300,46 @@ export default function CotacaoComprasPage() {
   const openMapa = (cot: CotacaoCompras) => { setMapaCotacao(cot); setMapaDialogOpen(true); };
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  const toggleSelect = (id: string) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const allSelected = filtered.length > 0 && filtered.every(c => selectedIds.includes(c.id));
+  const toggleSelectAll = () => setSelectedIds(allSelected ? [] : filtered.map(c => c.id));
+
+  const handlePrintCotacoes = async () => {
+    const lista = cotacoes.filter(c => selectedIds.includes(c.id));
+    if (lista.length === 0) return;
+    toast({ title: `Gerando ${lista.length} PDF${lista.length > 1 ? "s" : ""} de cotação...` });
+    for (const c of lista) {
+      const req = requisicoes.find(r => r.id === c.requisicaoId) || null;
+      await downloadPdfCotacao({ cotacao: c, requisicao: req, empresa });
+    }
+    toast({ title: `${lista.length} PDF${lista.length > 1 ? "s gerados" : " gerado"} com sucesso` });
+  };
+
+  const handlePrintPedidosCotacao = async () => {
+    const lista = cotacoes.filter(c => selectedIds.includes(c.id));
+    if (lista.length === 0) return;
+    let total = 0;
+    toast({ title: `Gerando pedidos de cotação...` });
+    for (const c of lista) {
+      const req = requisicoes.find(r => r.id === c.requisicaoId) || null;
+      const fornsComProposta = c.propostas.map(p => {
+        const fData = fornecedores.find(f => f.id === p.fornecedorId);
+        return {
+          id: p.fornecedorId,
+          nome: p.fornecedorNome,
+          cnpj: fData?.cnpj || "",
+          email: fData?.emailCompras || fData?.email || "",
+          telefone: fData?.telefoneCelular || (fData?.telefones?.[0]) || "",
+        };
+      });
+      const fornsUnicos = fornsComProposta.filter((f, i, arr) => arr.findIndex(a => a.id === f.id) === i);
+      if (fornsUnicos.length === 0) continue;
+      await downloadPdfPedidoCotacaoTodos(c, req, empresa, fornsUnicos);
+      total += fornsUnicos.length;
+    }
+    toast({ title: `${total} PDF(s) de pedido de cotação gerado(s)` });
+  };
 
   // === Enviar link para fornecedor ===
   const openEnviarDialog = (cotacaoId: string) => {
@@ -636,10 +678,29 @@ export default function CotacaoComprasPage() {
         </p>
       </div>
 
+      {selectedIds.length > 0 && (
+        <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50 flex-wrap">
+          <CheckSquare className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">
+            {selectedIds.length} cotação{selectedIds.length > 1 ? "ões" : ""} selecionada{selectedIds.length > 1 ? "s" : ""}
+          </span>
+          <Button size="sm" variant="outline" onClick={handlePrintCotacoes}>
+            <FileDown className="h-4 w-4 mr-1" /> Imprimir Cotações (PDF)
+          </Button>
+          <Button size="sm" variant="outline" onClick={handlePrintPedidosCotacao}>
+            <FileText className="h-4 w-4 mr-1" /> Imprimir Pedidos de Cotação
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>Limpar Seleção</Button>
+        </div>
+      )}
+
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox checked={allSelected && filtered.length > 0} onCheckedChange={toggleSelectAll} />
+              </TableHead>
               <TableHead>Nº Cotação</TableHead>
               <TableHead>Centro de Custo</TableHead>
               <TableHead>RCS Vinculada</TableHead>
@@ -652,11 +713,14 @@ export default function CotacaoComprasPage() {
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma cotação encontrada</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma cotação encontrada</TableCell></TableRow>
             ) : paginate(filtered, pageCot).paginated.map(c => {
               const rcVinculada = requisicoes.find(r => r.id === c.requisicaoId);
               return (
-              <TableRow key={c.id}>
+              <TableRow key={c.id} className={selectedIds.includes(c.id) ? "bg-primary/5" : ""}>
+                <TableCell>
+                  <Checkbox checked={selectedIds.includes(c.id)} onCheckedChange={() => toggleSelect(c.id)} />
+                </TableCell>
                 <TableCell className="font-mono font-bold">COT-{String(c.numero).padStart(4, "0")}</TableCell>
                 <TableCell className="text-sm">{rcVinculada?.centroCustoNome || "-"}</TableCell>
                 <TableCell>{format(new Date(c.dataCriacao), "dd/MM/yyyy")}</TableCell>
