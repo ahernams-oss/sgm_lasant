@@ -147,7 +147,7 @@ export default function RdoPage() {
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
   const { porRdo } = useRdoAssinaturas();
-  const { responsaveis } = useResponsaveisTecnicos();
+  const { responsaveis = [] } = useResponsaveisTecnicos();
 
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("Todos");
