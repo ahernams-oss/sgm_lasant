@@ -553,8 +553,6 @@ export default function RdoPage() {
         open={!!deleteId}
         onOpenChange={(o) => !o && setDeleteId(null)}
         onConfirm={async () => { if (deleteId) { await deleteRdo(deleteId); setDeleteId(null); } }}
-        title="Excluir RDO"
-        description="Esta ação removerá permanentemente o RDO selecionado."
       />
     </div>
   );
