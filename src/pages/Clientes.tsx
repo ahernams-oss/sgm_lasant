@@ -327,15 +327,53 @@ const Clientes = () => {
               {apenasClientes.length === 0 ? "Nenhum cliente cadastrado ainda." : "Nenhum resultado encontrado."}
             </p>
           ) : (
-            <div className="divide-y divide-border">
-              {paginate(filteredClientes, page, pageSize).paginated.map((cliente) => (
-                <div key={cliente.id} className="flex items-center justify-between py-3 gap-4">
-                  <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
-                    <p className="text-sm font-medium text-foreground truncate">{cliente.nome}</p>
-                    <p className="text-sm text-muted-foreground truncate tabular-nums">{cliente.cnpj || "—"}</p>
-                    <p className="text-sm text-muted-foreground truncate">{cliente.contato || "—"}</p>
-                    <p className="text-sm text-muted-foreground truncate">{cliente.cidade ? `${cliente.cidade}/${cliente.uf}` : "—"}</p>
+            <>
+              {(() => {
+                const pageItems = paginate(filteredClientes, page, pageSize).paginated;
+                const pageIds = pageItems.map(c => c.id);
+                const allChecked = pageIds.length > 0 && pageIds.every(id => selectedIds.includes(id));
+                const someChecked = pageIds.some(id => selectedIds.includes(id));
+                return (
+                  <div className="flex items-center justify-between gap-3 px-1 py-2 mb-1 border-b border-border">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={allChecked ? true : someChecked ? "indeterminate" : false}
+                        onCheckedChange={(v) => {
+                          if (v) setSelectedIds(prev => Array.from(new Set([...prev, ...pageIds])));
+                          else setSelectedIds(prev => prev.filter(id => !pageIds.includes(id)));
+                        }}
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        {selectedIds.length > 0 ? `${selectedIds.length} selecionado(s)` : "Selecionar página"}
+                      </span>
+                    </div>
+                    {selectedIds.length > 0 && (
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="outline" onClick={handleBulkWhatsApp} className="text-emerald-600 hover:text-emerald-700">
+                          <MessageCircle className="h-3.5 w-3.5 mr-1" /> WhatsApp
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setBulkDeleteOpen(true)} className="text-destructive hover:text-destructive">
+                          <Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>Limpar</Button>
+                      </div>
+                    )}
                   </div>
+                );
+              })()}
+              <div className="divide-y divide-border">
+                {paginate(filteredClientes, page, pageSize).paginated.map((cliente) => (
+                  <div key={cliente.id} className="flex items-center justify-between py-3 gap-4">
+                    <Checkbox
+                      checked={selectedIds.includes(cliente.id)}
+                      onCheckedChange={() => toggleOne(cliente.id)}
+                    />
+                    <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
+                      <p className="text-sm font-medium text-foreground truncate">{cliente.nome}</p>
+                      <p className="text-sm text-muted-foreground truncate tabular-nums">{cliente.cnpj || "—"}</p>
+                      <p className="text-sm text-muted-foreground truncate">{cliente.contato || "—"}</p>
+                      <p className="text-sm text-muted-foreground truncate">{cliente.cidade ? `${cliente.cidade}/${cliente.uf}` : "—"}</p>
+                    </div>
                   <div className="flex gap-1 shrink-0">
                     <Button variant="ghost" size="sm" onClick={() => handleEnviarWhatsApp(cliente)} className="text-emerald-600 hover:text-emerald-700" title="Enviar WhatsApp">
                       <MessageCircle className="h-3.5 w-3.5" />
