@@ -382,7 +382,7 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
     startY: y,
     theme: "grid",
     styles: { fontSize: 8, cellPadding: 2, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30] },
-    body: [[{ content: obsTexto, styles: { minCellHeight: 28, valign: "top" } }]],
+    body: [[{ content: obsTexto, styles: { minCellHeight: 8, valign: "top" } }]],
     columnStyles: { 0: { cellWidth: cw } },
     margin: { left: ml, right: mr },
   });
