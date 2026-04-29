@@ -248,6 +248,7 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "clientes.gerenciar_locais", label: "Gerenciar locais" },
           { key: "clientes.gerenciar_contratos", label: "Gerenciar contratos" },
           { key: "clientes.importar", label: "Importar clientes" },
+          { key: "clientes.ver_valor_folha", label: "Visualizar Valor Folha (Faturamento)" },
         ],
       },
       {

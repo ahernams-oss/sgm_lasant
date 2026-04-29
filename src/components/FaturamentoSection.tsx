@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, Upload, FileText, X } from "lucide-react";
+import { Plus, Trash2, Upload, FileText, X, Lock } from "lucide-react";
 import type { Faturamento } from "@/contexts/ClientesContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const emptyFaturamento: Omit<Faturamento, "id"> = {
   periodoInicio: "",
@@ -18,6 +19,7 @@ const emptyFaturamento: Omit<Faturamento, "id"> = {
   descricao: "",
   valorBruto: "",
   valorLiquido: "",
+  valorFolha: "",
   anexoNfUrl: "",
   anexoNfNome: "",
   pago: false,
@@ -34,6 +36,8 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
   const [form, setForm] = useState<Omit<Faturamento, "id">>(emptyFaturamento);
   const [editingId, setEditingId] = useState<string | null>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { tem } = usePermissao();
+  const podeVerValorFolha = tem("clientes.ver_valor_folha");
 
   const update = (field: string, value: any) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -183,6 +187,14 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
           <label className="field-label">Valor Líquido</label>
           <Input placeholder="0,00" value={form.valorLiquido} onChange={(e) => update("valorLiquido", e.target.value)} />
         </div>
+        {podeVerValorFolha && (
+          <div>
+            <label className="field-label flex items-center gap-1">
+              <Lock className="h-3 w-3 text-primary" /> Valor Folha
+            </label>
+            <Input placeholder="0,00" value={form.valorFolha} onChange={(e) => update("valorFolha", e.target.value)} />
+          </div>
+        )}
         <div>
           <label className="field-label">Anexar NF</label>
           <label className="cursor-pointer">
@@ -240,6 +252,11 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
                 </p>
                 <p className="text-muted-foreground">Bruto: {formatCurrency(f.valorBruto)}</p>
                 <p className="text-muted-foreground">Líquido: {formatCurrency(f.valorLiquido)}</p>
+                {podeVerValorFolha && (
+                  <p className="text-primary font-medium flex items-center gap-1">
+                    <Lock className="h-3 w-3" /> Folha: {formatCurrency(f.valorFolha)}
+                  </p>
+                )}
                 <p className="text-muted-foreground">
                   Emissão: {f.dataEmissaoNf ? new Date(f.dataEmissaoNf + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
                 </p>
