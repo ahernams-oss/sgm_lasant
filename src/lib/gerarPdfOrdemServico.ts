@@ -72,39 +72,45 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
     }
   }
 
-  // Centro: nome cliente + título
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
+  // Centro: Linhas 1-4 do cadastro do cliente
   doc.setTextColor(...DARK);
-  const clienteNome = cliente?.nome || cliente?.nomeFantasia || os.clienteNome || "";
-  const cap = cliente?.cap ? `CAP ${cliente.cap}` : "";
+  const c: any = cliente || {};
+  const linha1 = c.relLinha1 || "";
+  const linha2 = c.relLinha2 || "";
+  const linha3 = c.relLinha3 || "";
+  const linha4 = c.relLinha4 || "";
 
-  doc.text(clienteNome, pw / 2, y + 4, { align: "center" });
-  if (cap) doc.text(cap, pw / 2, y + 9, { align: "center" });
+  // Linha 1 (8pt normal)
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  if (linha1) doc.text(linha1, pw / 2, y + 3.5, { align: "center" });
+  // Linha 2 (7.5pt)
+  doc.setFontSize(7.5);
+  if (linha2) doc.text(linha2, pw / 2, y + 7.5, { align: "center" });
+  // Linha 3 (7.5pt)
+  if (linha3) doc.text(linha3, pw / 2, y + 11.5, { align: "center" });
 
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.text("ORDEM DE SERVIÇO DE MANUTENÇÃO", pw / 2, y + 17, { align: "center" });
-
-  // Número da OS (direita) — formato: CAP-NUMERO/ANO-TIPO
+  // Número da OS (esquerda, abaixo da logo) — formato: CAP-NUMERO/ANO-TIPO
   const anoOS = (() => {
     const d = os.createdAt ? new Date(os.createdAt) : new Date();
     return isNaN(d.getTime()) ? new Date().getFullYear() : d.getFullYear();
   })();
   const numeroFormatado = `${cliente?.cap || "—"}-${os.numero}/${anoOS}-${os.tipoOs?.sigla || ""}`;
-  const boxW = 55, boxH = 10;
-  const boxX = pw - mr - boxW;
-  const boxY = y + 11;
-  doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.text("Nº", boxX - 4, boxY + 6, { align: "right" });
-  doc.setDrawColor(...BORDER);
-  doc.setLineWidth(0.4);
-  doc.rect(boxX, boxY, boxW, boxH);
-  doc.setFontSize(10);
-  doc.text(numeroFormatado, boxX + boxW / 2, boxY + 7, { align: "center" });
+  doc.setFontSize(11);
+  doc.text(numeroFormatado, ml + 2, y + 22, { align: "left" });
 
-  y += 24;
+  // Linha 4 (7.5pt) — centralizada na linha do número
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  if (linha4) doc.text(linha4, pw / 2, y + 16, { align: "center" });
+
+  // Título principal
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.text("ORDEM DE SERVIÇO DE MANUTENÇÃO", pw / 2, y + 26, { align: "center" });
+
+  y += 32;
 
   // ===== INFO TABLE: Unidade Requisitante / Data Aprovação =====
   const localText = os.localDescricao || "";
