@@ -713,11 +713,14 @@ export default function CotacaoComprasPage() {
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma cotação encontrada</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma cotação encontrada</TableCell></TableRow>
             ) : paginate(filtered, pageCot).paginated.map(c => {
               const rcVinculada = requisicoes.find(r => r.id === c.requisicaoId);
               return (
-              <TableRow key={c.id}>
+              <TableRow key={c.id} className={selectedIds.includes(c.id) ? "bg-primary/5" : ""}>
+                <TableCell>
+                  <Checkbox checked={selectedIds.includes(c.id)} onCheckedChange={() => toggleSelect(c.id)} />
+                </TableCell>
                 <TableCell className="font-mono font-bold">COT-{String(c.numero).padStart(4, "0")}</TableCell>
                 <TableCell className="text-sm">{rcVinculada?.centroCustoNome || "-"}</TableCell>
                 <TableCell>{format(new Date(c.dataCriacao), "dd/MM/yyyy")}</TableCell>
