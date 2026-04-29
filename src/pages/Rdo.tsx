@@ -242,7 +242,8 @@ export default function RdoPage() {
 
   const onExportPdf = async (r: Rdo) => {
     const cliente = clientes.find((c) => c.id === r.cliente_id);
-    await gerarPdfRdo({ rdo: r, empresa, cliente });
+    const assinaturas = porRdo(r.id);
+    await gerarPdfRdo({ rdo: r, empresa, cliente, assinaturas });
   };
 
   return (
