@@ -153,10 +153,10 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         <div className="flex items-center gap-3">
-          <img src="/ced07ef5-714e-4ba9-a157-840424788064.png" alt="Lasant Construções" className="h-8 w-auto shrink-0 opacity-100 mx-[7px] object-fill border rounded-sm" />
+          <img src="/Logo_Lasant.png" alt="Lasant Construções" className="h-8 w-auto shrink-0 border rounded-sm bg-white object-contain" />
           {!collapsed && (
             <div className="overflow-hidden">
-              <p className="truncate text-2xl my-0 mx-[6px] font-[serif] text-left text-secondary-foreground">SGM</p>
+              <p className="truncate text-2xl font-serif font-semibold text-sidebar-foreground leading-none mx-[6px]">SGM</p>
             </div>
           )}
         </div>
