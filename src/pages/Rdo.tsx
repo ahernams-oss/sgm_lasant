@@ -326,9 +326,9 @@ export default function RdoPage() {
             </TableBody>
           </Table>
           <PaginationControls
-            page={page}
+            currentPage={page}
             pageSize={pageSize}
-            total={filtered.length}
+            totalItems={filtered.length}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
           />
