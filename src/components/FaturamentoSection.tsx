@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, Upload, FileText, X } from "lucide-react";
+import { Plus, Trash2, Upload, FileText, X, Lock } from "lucide-react";
 import type { Faturamento } from "@/contexts/ClientesContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const emptyFaturamento: Omit<Faturamento, "id"> = {
   periodoInicio: "",
@@ -18,6 +19,7 @@ const emptyFaturamento: Omit<Faturamento, "id"> = {
   descricao: "",
   valorBruto: "",
   valorLiquido: "",
+  valorFolha: "",
   anexoNfUrl: "",
   anexoNfNome: "",
   pago: false,
