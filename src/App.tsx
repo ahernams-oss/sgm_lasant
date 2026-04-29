@@ -163,6 +163,7 @@ function AppRoutes() {
             </OrdensServicoProvider>
           }
         />
+        <Route path="/engenharia/rdo" element={<RdoPage />} />
         <Route path="/comunicacao/mensagens" element={<ComunicacaoMensagensPage />} />
         <Route path="/comunicacao/avisos" element={<ComunicacaoAvisosPage />} />
         <Route path="/comunicacao/notificacoes" element={<ComunicacaoNotificacoesPage />} />
