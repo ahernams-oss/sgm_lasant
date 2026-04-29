@@ -321,34 +321,50 @@ const ProcessoSeletivoPage = () => {
                         c.dataLiberacao,
                         c.dataContratacao,
                       ];
+                      // Detecta a etapa onde o candidato foi reprovado (encerra o processo)
+                      const reprovadoIdx = etapaOrder.findIndex(et => getEtapaStatus(c, et) === "reprovado");
+                      const isEncerrado = reprovadoIdx !== -1;
                       return (
-                        <tr key={c.id} className="border-b last:border-0">
-                          <td className="py-2.5 pr-4 font-medium text-foreground whitespace-nowrap">{c.nome}</td>
+                        <tr key={c.id} className={`border-b last:border-0 ${isEncerrado ? "opacity-90" : ""}`}>
+                          <td className="py-2.5 pr-4 font-medium text-foreground whitespace-nowrap">
+                            {c.nome}
+                            {isEncerrado && (
+                              <span className="ml-2 text-[10px] font-semibold text-red-600 uppercase">Reprovado</span>
+                            )}
+                          </td>
                           {etapaOrder.map((etapa, idx) => {
-                            const isCompleted = idx < currentIdx;
-                            const isCurrent = idx === currentIdx;
                             const status = getEtapaStatus(c, etapa);
+                            const isReprovadoAqui = status === "reprovado";
+                            const isAfterReprovado = isEncerrado && idx > reprovadoIdx;
+                            const isCompleted = !isEncerrado && idx < currentIdx;
+                            const isCurrent = !isEncerrado && idx === currentIdx;
                             return (
                               <td key={etapa} className="text-center py-2.5 px-3">
                                 <div className="flex flex-col items-center gap-1">
                                   <div className={`h-6 w-6 rounded-full flex items-center justify-center ${
-                                    isCompleted
-                                      ? status === "reprovado"
-                                        ? "bg-red-100 text-red-600"
-                                        : "bg-emerald-100 text-emerald-600"
-                                      : isCurrent
-                                        ? "bg-primary/10 text-primary ring-2 ring-primary/30"
-                                        : "bg-muted text-muted-foreground"
+                                    isReprovadoAqui
+                                      ? "bg-red-100 text-red-600 ring-2 ring-red-300"
+                                      : isAfterReprovado
+                                        ? "bg-red-50 text-red-400"
+                                        : isCompleted
+                                          ? "bg-emerald-100 text-emerald-600"
+                                          : isCurrent
+                                            ? "bg-primary/10 text-primary ring-2 ring-primary/30"
+                                            : "bg-muted text-muted-foreground"
                                   }`}>
-                                    {isCompleted ? (
-                                      status === "reprovado" ? <XCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />
+                                    {isReprovadoAqui || isAfterReprovado ? (
+                                      <XCircle className="h-3.5 w-3.5" />
+                                    ) : isCompleted ? (
+                                      <CheckCircle2 className="h-3.5 w-3.5" />
                                     ) : isCurrent ? (
                                       <Clock className="h-3.5 w-3.5" />
                                     ) : (
                                       <span className="text-[10px] font-medium">{idx + 1}</span>
                                     )}
                                   </div>
-                                  {dates[idx] ? (
+                                  {isAfterReprovado ? (
+                                    <span className="text-[10px] text-red-400">Encerrado</span>
+                                  ) : dates[idx] ? (
                                     <span className="text-[10px] text-muted-foreground">{dates[idx]}</span>
                                   ) : (
                                     <span className="text-[10px] text-muted-foreground/40">—</span>
