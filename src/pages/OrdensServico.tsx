@@ -35,8 +35,10 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import {
   Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, ChevronDown, ChevronUp,
-  ClipboardList, Clock, CheckCircle2, XCircle, AlertTriangle, Wrench, Play, ShieldCheck, ShieldX, RotateCcw, BadgeCheck, Ban, History
+  ClipboardList, Clock, CheckCircle2, XCircle, AlertTriangle, Wrench, Play, ShieldCheck, ShieldX, RotateCcw, BadgeCheck, Ban, History, Printer
 } from "lucide-react";
+import { useEmpresa } from "@/contexts/EmpresaContext";
+import { gerarPdfOrdemServico, gerarPdfOrdemServicoLote } from "@/lib/gerarPdfOrdemServico";
 import WorkflowTimeline from "@/components/WorkflowTimeline";
 import WorkflowHistorico from "@/components/WorkflowHistorico";
 
@@ -90,6 +92,7 @@ const DEFAULT_PAGE_SIZE = 7;
 export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
   const { clientes } = useClientes();
+  const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
 
   const buildOSHistorico = (situacao: string, existing: any[] = []) => [
@@ -759,10 +762,20 @@ export default function OrdensServicoPage() {
       {/* Batch action bar */}
       {selectedIds.size > 0 && (
         <Card>
-          <CardContent className="py-3 flex items-center gap-4">
+          <CardContent className="py-3 flex items-center gap-4 flex-wrap">
             <span className="text-sm font-medium">{selectedIds.size} OS(s) selecionada(s)</span>
             <Button size="sm" onClick={handleBatchExecutar}>
               <Play className="mr-2 h-4 w-4" /> Executar em Lote
+            </Button>
+            <Button size="sm" variant="outline" onClick={async () => {
+              const lista = ordens
+                .filter(o => selectedIds.has(o.id))
+                .map(o => ({ os: o, empresa, cliente: clientes.find(c => c.id === o.clienteId) }));
+              if (lista.length === 0) return;
+              await gerarPdfOrdemServicoLote(lista);
+              toast.success(`${lista.length} OS(s) impressas`);
+            }}>
+              <Printer className="mr-2 h-4 w-4" /> Imprimir em Lote
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
               Limpar seleção
