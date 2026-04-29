@@ -169,6 +169,7 @@ function AppRoutes() {
         />
         <Route path="/engenharia/rdo" element={<RdoPage />} />
         <Route path="/engenharia/responsaveis-tecnicos" element={<ResponsaveisTecnicosPage />} />
+        <Route path="/cadastros/responsaveis-tecnicos" element={<ResponsaveisTecnicosPage />} />
         <Route path="/comunicacao/mensagens" element={<ComunicacaoMensagensPage />} />
         <Route path="/comunicacao/avisos" element={<ComunicacaoAvisosPage />} />
         <Route path="/comunicacao/notificacoes" element={<ComunicacaoNotificacoesPage />} />
