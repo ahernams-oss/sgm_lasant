@@ -29,6 +29,7 @@ export interface Faturamento {
   descricao: string;
   valorBruto: string;
   valorLiquido: string;
+  valorFolha: string;
   anexoNfUrl: string;
   anexoNfNome: string;
   pago: boolean;
