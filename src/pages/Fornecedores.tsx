@@ -3,6 +3,7 @@ import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/Double
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import { Truck, Trash2, Search, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,33 @@ const Fornecedores = () => {
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [activeTab, setActiveTab] = useState("cadastro");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+
+  const toggleOne = (id: string) =>
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const handleBulkDelete = async () => {
+    for (const id of selectedIds) await deleteCliente(id);
+    toast.success(`${selectedIds.length} fornecedor(es) removido(s).`);
+    setSelectedIds([]);
+    setBulkDeleteOpen(false);
+  };
+
+  const handleBulkWhatsApp = async () => {
+    const alvos = clientes.filter(c => selectedIds.includes(c.id) && c.telefones?.length);
+    if (alvos.length === 0) { toast.error("Nenhum selecionado tem telefone."); return; }
+    toast.loading(`Enviando para ${alvos.length} fornecedor(es)...`, { id: "bulk-wpp-f" });
+    let ok = 0;
+    for (const c of alvos) {
+      const msg = `Olá ${c.contato || c.nome}!`;
+      for (const tel of c.telefones) {
+        const r = await enviarWhatsApp(tel, msg);
+        if (r.success) ok++;
+      }
+    }
+    toast.success(`${ok} mensagem(ns) enviada(s).`, { id: "bulk-wpp-f" });
+  };
 
   const fornecedores = useMemo(() => clientes.filter((c) => c.tipo === "Fornecedor"), [clientes]);
 
