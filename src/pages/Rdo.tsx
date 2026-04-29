@@ -146,7 +146,6 @@ export default function RdoPage() {
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
   const { porRdo } = useRdoAssinaturas();
-  const assinaturasDoRdo = useMemo(() => editing ? porRdo(editing.id) : [], [editing, porRdo]);
 
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("Todos");
@@ -159,6 +158,7 @@ export default function RdoPage() {
   const [form, setForm] = useState<Partial<Rdo>>(emptyForm());
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const assinaturasDoRdo = useMemo(() => editing ? porRdo(editing.id) : [], [editing, porRdo]);
 
   const clientesAtivos = useMemo(() => clientes.filter((c) => c.tipo === "Cliente"), [clientes]);
 
