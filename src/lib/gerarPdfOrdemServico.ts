@@ -150,6 +150,19 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
         { content: "Setor:", styles: { fontStyle: "bold" } },
         { content: os.setorDescricao || "-", styles: { fontStyle: "bold" } },
       ],
+      [
+        { content: "Processo:", styles: { fontStyle: "bold" } },
+        {
+          content: (() => {
+            const contratos = (cliente as any)?.contratos || [];
+            const ativo = contratos.find((c: any) => c?.numero) || contratos[0];
+            return ativo?.numero || "-";
+          })(),
+          styles: { fontStyle: "bold" },
+        },
+        { content: "Tipo de serviço:", styles: { fontStyle: "bold" } },
+        { content: os.categoria || os.servico || "-", styles: { fontStyle: "bold" } },
+      ],
     ],
     columnStyles: {
       0: { cellWidth: cw * 0.22 }, 1: { cellWidth: cw * 0.28 },
