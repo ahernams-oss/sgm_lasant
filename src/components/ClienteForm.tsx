@@ -1,10 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Upload, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
 import type { Cliente } from "@/contexts/ClientesContext";
 
 const UF_OPTIONS = [
@@ -23,7 +24,7 @@ const emptyForm: FormData = {
   telefones: [""], telefoneCelular: "", celulares: "", telefonesWhatsapp: "",
   cep: "", bairro: "", logradouro: "", numero: "", complemento: "", uf: "", cidade: "",
   endereco: "", dataInicioContrato: "", relLinha1: "", relLinha2: "", relLinha3: "",
-  relLinha4: "", contato: "", grupoWhatsapp: "",
+  relLinha4: "", contato: "", grupoWhatsapp: "", logoUrl: "",
 };
 
 interface ClienteFormProps {
@@ -37,6 +38,37 @@ interface ClienteFormProps {
 
 export default function ClienteForm({ editingId, initialData, onSubmit, onCancel, tipoFixo, embedded }: ClienteFormProps) {
   const [form, setForm] = useState<FormData>(initialData || emptyForm);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 500 * 1024) {
+      toast.error("A logo deve ter no máximo 500KB.");
+      if (logoInputRef.current) logoInputRef.current.value = "";
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione um arquivo de imagem.");
+      return;
+    }
+    setUploadingLogo(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `cliente-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("empresa-logo").upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from("empresa-logo").getPublicUrl(path);
+      setForm((prev) => ({ ...prev, logoUrl: data.publicUrl }));
+      toast.success("Logo carregada com sucesso.");
+    } catch (err: any) {
+      toast.error("Erro ao enviar logo: " + (err?.message || "desconhecido"));
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = "";
+    }
+  };
 
   const update = (field: keyof FormData, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -271,6 +303,25 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
       {tipoFixo !== "Fornecedor" && (
         <>
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 mt-6">Impressão de OS - Cabeçalho</h3>
+          <div className="mb-4">
+            <label className="field-label">Logo do Cliente (máx. 500KB)</label>
+            <div className="flex items-center gap-3">
+              {form.logoUrl ? (
+                <img src={form.logoUrl} alt="Logo" className="h-16 w-auto max-w-[160px] object-contain border rounded bg-white p-1" />
+              ) : (
+                <div className="h-16 w-32 border border-dashed rounded flex items-center justify-center text-xs text-muted-foreground">Sem logo</div>
+              )}
+              <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+              <Button type="button" variant="outline" size="sm" className="gap-1" disabled={uploadingLogo} onClick={() => logoInputRef.current?.click()}>
+                <Upload className="h-3 w-3" /> {uploadingLogo ? "Enviando..." : (form.logoUrl ? "Trocar logo" : "Enviar logo")}
+              </Button>
+              {form.logoUrl && (
+                <Button type="button" variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive" onClick={() => setForm((p) => ({ ...p, logoUrl: "" }))}>
+                  <Trash2 className="h-3 w-3" /> Remover
+                </Button>
+              )}
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="field-label">Linha 1</label>

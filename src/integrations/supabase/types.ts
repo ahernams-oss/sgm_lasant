@@ -272,6 +272,7 @@ export type Database = {
           inscricao_municipal: string | null
           locais: Json | null
           locais_entrega: Json | null
+          logo_url: string | null
           logradouro: string | null
           nome: string
           nome_fantasia: string | null
@@ -315,6 +316,7 @@ export type Database = {
           inscricao_municipal?: string | null
           locais?: Json | null
           locais_entrega?: Json | null
+          logo_url?: string | null
           logradouro?: string | null
           nome?: string
           nome_fantasia?: string | null
@@ -358,6 +360,7 @@ export type Database = {
           inscricao_municipal?: string | null
           locais?: Json | null
           locais_entrega?: Json | null
+          logo_url?: string | null
           logradouro?: string | null
           nome?: string
           nome_fantasia?: string | null
