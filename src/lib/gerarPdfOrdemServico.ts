@@ -179,7 +179,7 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
     styles: { fontSize: 7.5, cellPadding: 1.8, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30] },
     body: [
       [
-        { content: "Descrição do Serviço Pretendido", styles: { fontSize: 6.5 } },
+        { content: `Descrição do Serviço Pretendido — Nº da SS: ${os.solicitacaoNumero || "-"}`, styles: { fontSize: 6.5 } },
         { content: "Nome do solicitante:", styles: { fontSize: 6.5 } },
       ],
       [
