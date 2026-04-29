@@ -52,7 +52,7 @@ export default function VerificarAssinatura() {
       setTodasAssinaturas(outras || []);
 
       if (r) {
-        const h = await gerarHashRdo(r);
+        const h = await gerarHashRdo(r as any);
         setHashAtual(h);
       }
     } finally {
