@@ -40,6 +40,8 @@ const Usuarios = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const [searchClientes, setSearchClientes] = useState("");
+  const [searchFornecedores, setSearchFornecedores] = useState("");
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -51,6 +53,15 @@ const Usuarios = () => {
         ? prev.clientesPermitidos.filter((id) => id !== clienteId)
         : [...prev.clientesPermitidos, clienteId],
     }));
+  };
+
+  const setMany = (ids: string[], add: boolean) => {
+    setForm((prev) => {
+      const set = new Set(prev.clientesPermitidos);
+      if (add) ids.forEach((id) => set.add(id));
+      else ids.forEach((id) => set.delete(id));
+      return { ...prev, clientesPermitidos: Array.from(set) };
+    });
   };
 
   const resetForm = () => {
@@ -230,50 +241,98 @@ const Usuarios = () => {
                 ) : (
                   <div className="space-y-6">
                     {/* Clientes */}
-                    <div>
-                      <h3 className="text-sm font-semibold text-foreground mb-3">Clientes</h3>
-                      {clientes.filter(c => c.tipo !== "Fornecedor").length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Nenhum cliente cadastrado.</p>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {clientes.filter(c => c.tipo !== "Fornecedor").map((c) => {
-                            const checked = form.clientesPermitidos.includes(c.id);
-                            return (
-                              <label key={c.id} className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-all ${checked ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-muted-foreground/30"}`}>
-                                <Checkbox checked={checked} onCheckedChange={() => toggleCliente(c.id)} className="mt-0.5" />
-                                <div className="min-w-0">
-                                  <p className="text-sm font-medium text-foreground truncate">{c.nome}</p>
-                                  {c.cnpj && <p className="text-xs text-muted-foreground">{c.cnpj}</p>}
-                                </div>
-                              </label>
-                            );
-                          })}
+                    {(() => {
+                      const lista = clientes.filter(c => c.tipo !== "Fornecedor");
+                      const term = searchClientes.trim().toLowerCase();
+                      const filtrados = term
+                        ? lista.filter(c => c.nome.toLowerCase().includes(term) || c.cnpj?.toLowerCase().includes(term))
+                        : lista;
+                      const filtradosIds = filtrados.map(c => c.id);
+                      const marcados = filtradosIds.filter(id => form.clientesPermitidos.includes(id)).length;
+                      return (
+                        <div>
+                          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                            <div className="flex items-center gap-3">
+                              <h3 className="text-sm font-semibold text-foreground">Clientes</h3>
+                              <span className="text-xs text-muted-foreground">{marcados}/{filtrados.length} selecionados</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="relative w-56">
+                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                                <Input value={searchClientes} onChange={(e) => setSearchClientes(e.target.value)} placeholder="Buscar cliente..." className="pl-8 h-8 text-xs" />
+                              </div>
+                              <Button type="button" size="sm" variant="outline" className="h-8" onClick={() => setMany(filtradosIds, true)}>Selecionar todos</Button>
+                              <Button type="button" size="sm" variant="ghost" className="h-8" onClick={() => setMany(filtradosIds, false)}>Limpar</Button>
+                            </div>
+                          </div>
+                          {filtrados.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">Nenhum cliente encontrado.</p>
+                          ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {filtrados.map((c) => {
+                                const checked = form.clientesPermitidos.includes(c.id);
+                                return (
+                                  <label key={c.id} className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-all ${checked ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-muted-foreground/30"}`}>
+                                    <Checkbox checked={checked} onCheckedChange={() => toggleCliente(c.id)} className="mt-0.5" />
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-medium text-foreground truncate">{c.nome}</p>
+                                      {c.cnpj && <p className="text-xs text-muted-foreground">{c.cnpj}</p>}
+                                    </div>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      );
+                    })()}
 
                     {/* Fornecedores */}
-                    <div>
-                      <h3 className="text-sm font-semibold text-foreground mb-3">Fornecedores</h3>
-                      {clientes.filter(c => c.tipo === "Fornecedor").length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Nenhum fornecedor cadastrado.</p>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {clientes.filter(c => c.tipo === "Fornecedor").map((c) => {
-                            const checked = form.clientesPermitidos.includes(c.id);
-                            return (
-                              <label key={c.id} className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-all ${checked ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-muted-foreground/30"}`}>
-                                <Checkbox checked={checked} onCheckedChange={() => toggleCliente(c.id)} className="mt-0.5" />
-                                <div className="min-w-0">
-                                  <p className="text-sm font-medium text-foreground truncate">{c.nome}</p>
-                                  {c.cnpj && <p className="text-xs text-muted-foreground">{c.cnpj}</p>}
-                                </div>
-                              </label>
-                            );
-                          })}
+                    {(() => {
+                      const lista = clientes.filter(c => c.tipo === "Fornecedor");
+                      const term = searchFornecedores.trim().toLowerCase();
+                      const filtrados = term
+                        ? lista.filter(c => c.nome.toLowerCase().includes(term) || c.cnpj?.toLowerCase().includes(term))
+                        : lista;
+                      const filtradosIds = filtrados.map(c => c.id);
+                      const marcados = filtradosIds.filter(id => form.clientesPermitidos.includes(id)).length;
+                      return (
+                        <div>
+                          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                            <div className="flex items-center gap-3">
+                              <h3 className="text-sm font-semibold text-foreground">Fornecedores</h3>
+                              <span className="text-xs text-muted-foreground">{marcados}/{filtrados.length} selecionados</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="relative w-56">
+                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                                <Input value={searchFornecedores} onChange={(e) => setSearchFornecedores(e.target.value)} placeholder="Buscar fornecedor..." className="pl-8 h-8 text-xs" />
+                              </div>
+                              <Button type="button" size="sm" variant="outline" className="h-8" onClick={() => setMany(filtradosIds, true)}>Selecionar todos</Button>
+                              <Button type="button" size="sm" variant="ghost" className="h-8" onClick={() => setMany(filtradosIds, false)}>Limpar</Button>
+                            </div>
+                          </div>
+                          {filtrados.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">Nenhum fornecedor encontrado.</p>
+                          ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {filtrados.map((c) => {
+                                const checked = form.clientesPermitidos.includes(c.id);
+                                return (
+                                  <label key={c.id} className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-all ${checked ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-muted-foreground/30"}`}>
+                                    <Checkbox checked={checked} onCheckedChange={() => toggleCliente(c.id)} className="mt-0.5" />
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-medium text-foreground truncate">{c.nome}</p>
+                                      {c.cnpj && <p className="text-xs text-muted-foreground">{c.cnpj}</p>}
+                                    </div>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      );
+                    })()}
                   </div>
                 )}
               </TabsContent>
