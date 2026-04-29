@@ -3,6 +3,7 @@ import { useUsuarios, Usuario } from "./UsuariosContext";
 import { useCargos } from "./CargosContext";
 import { useClientes } from "./ClientesContext";
 
+// Cargos com acesso total ao sistema
 const CARGOS_ACESSO_TOTAL = ["Diretor", "Gerente Executivo", "Coordenador de Departamento"];
 
 interface AuthContextType {
