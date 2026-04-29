@@ -80,7 +80,6 @@ const menuItems = [
       { title: "Aprovar SS em Lote", url: "/engenharia/aprovar-lote-ss", icon: ClipboardCheck },
       { title: "Ordem de Serviço", url: "/engenharia/ordem-servico", icon: Wrench },
       { title: "RDO - Diário de Obras", url: "/engenharia/rdo", icon: FileSpreadsheet },
-      { title: "Responsáveis Técnicos", url: "/engenharia/responsaveis-tecnicos", icon: UserCheck },
     ],
   },
   {
@@ -140,6 +139,7 @@ const menuItems = [
       { title: "Cargos", url: "/cargos", icon: Briefcase },
       { title: "Categorias de Serviços", url: "/cadastros/categorias-servicos", icon: Tags },
       { title: "Serviços", url: "/cadastros/servicos", icon: Wrench },
+      { title: "Responsáveis Técnicos", url: "/engenharia/responsaveis-tecnicos", icon: UserCheck },
       { title: "SCO", url: "/sco", icon: FileSpreadsheet },
       { title: "I0", url: "/i0", icon: DollarSign },
     ],
