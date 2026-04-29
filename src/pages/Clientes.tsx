@@ -412,7 +412,8 @@ const Clientes = () => {
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            </>
           )}
           <PaginationControls currentPage={page} totalItems={filteredClientes.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
         </div>
