@@ -221,6 +221,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </RdosProvider>
     </ProcessosTrabalhalistasProvider>
     </ComunicacaoProvider>
     </ServicosProvider>
