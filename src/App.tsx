@@ -86,6 +86,8 @@ import ComunicacaoNotificacoesPage from "./pages/ComunicacaoNotificacoes";
 import JuridicoPage from "./pages/Juridico";
 import { ProcessosTrabalhalistasProvider } from "@/contexts/ProcessosTrabalhistas";
 import ChatDudaPage from "./pages/ChatDuda";
+import RdoPage from "./pages/Rdo.tsx";
+import { RdosProvider } from "@/contexts/RdosContext";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
