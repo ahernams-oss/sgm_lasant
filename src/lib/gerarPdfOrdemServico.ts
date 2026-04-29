@@ -67,7 +67,7 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...DARK);
-  const clienteNome = cliente?.razaoSocial || cliente?.nomeFantasia || os.clienteNome || "";
+  const clienteNome = cliente?.nome || cliente?.nomeFantasia || os.clienteNome || "";
   const cap = cliente?.cap ? `CAP ${cliente.cap}` : "";
 
   doc.text(clienteNome, pw / 2, y + 4, { align: "center" });
