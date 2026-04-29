@@ -262,12 +262,20 @@ export default function PedidoCompraPage() {
       </div>
 
       {selectedIds.length > 0 && (
-        <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50">
+        <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50 flex-wrap">
           <CheckSquare className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium">{selectedIds.length} pedido{selectedIds.length > 1 ? "s" : ""} selecionado{selectedIds.length > 1 ? "s" : ""}</span>
-          <Button size="sm" onClick={() => openStatusDialog(selectedIds)}>
-            <ArrowRight className="h-4 w-4 mr-1" /> Atualizar Status em Lote
+          <Button size="sm" variant="outline" onClick={handlePrintSelected}>
+            <FileDown className="h-4 w-4 mr-1" /> Imprimir PDFs
           </Button>
+          {selectedCanUpdate && (
+            <Button size="sm" onClick={() => openStatusDialog(selectedIds.filter(id => {
+              const p = pedidos.find(x => x.id === id);
+              return p ? getNextStatuses(p.status).length > 0 : false;
+            }))}>
+              <ArrowRight className="h-4 w-4 mr-1" /> Atualizar Status em Lote
+            </Button>
+          )}
           <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>Limpar Seleção</Button>
         </div>
       )}
