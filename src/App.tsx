@@ -86,6 +86,8 @@ import ComunicacaoNotificacoesPage from "./pages/ComunicacaoNotificacoes";
 import JuridicoPage from "./pages/Juridico";
 import { ProcessosTrabalhalistasProvider } from "@/contexts/ProcessosTrabalhistas";
 import ChatDudaPage from "./pages/ChatDuda";
+import RdoPage from "./pages/Rdo.tsx";
+import { RdosProvider } from "@/contexts/RdosContext";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
@@ -161,6 +163,7 @@ function AppRoutes() {
             </OrdensServicoProvider>
           }
         />
+        <Route path="/engenharia/rdo" element={<RdoPage />} />
         <Route path="/comunicacao/mensagens" element={<ComunicacaoMensagensPage />} />
         <Route path="/comunicacao/avisos" element={<ComunicacaoAvisosPage />} />
         <Route path="/comunicacao/notificacoes" element={<ComunicacaoNotificacoesPage />} />
@@ -204,6 +207,7 @@ const App = () => (
     <ServicosProvider>
     <ComunicacaoProvider>
     <ProcessosTrabalhalistasProvider>
+    <RdosProvider>
     <AuthProvider> {/* auth wrapper */}
     <TooltipProvider>
       <Toaster />
@@ -217,6 +221,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </RdosProvider>
     </ProcessosTrabalhalistasProvider>
     </ComunicacaoProvider>
     </ServicosProvider>

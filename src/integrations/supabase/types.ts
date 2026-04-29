@@ -3137,6 +3137,96 @@ export type Database = {
         }
         Relationships: []
       }
+      rdos: {
+        Row: {
+          anexos: Json | null
+          assinatura_fiscalizacao: string | null
+          assinatura_fiscalizacao_nome: string | null
+          assinatura_responsavel: string | null
+          assinatura_responsavel_nome: string | null
+          atividades: Json | null
+          avanco_fisico_geral: number | null
+          cliente_id: string
+          cliente_nome: string
+          clima_manha: string | null
+          clima_noite: string | null
+          clima_tarde: string | null
+          condicao_manha: string | null
+          condicao_noite: string | null
+          condicao_tarde: string | null
+          created_at: string | null
+          data_rdo: string
+          efetivo: Json | null
+          equipamentos: Json | null
+          id: string
+          numero: number
+          obra: string
+          observacoes: string | null
+          ocorrencias: string | null
+          responsavel: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          anexos?: Json | null
+          assinatura_fiscalizacao?: string | null
+          assinatura_fiscalizacao_nome?: string | null
+          assinatura_responsavel?: string | null
+          assinatura_responsavel_nome?: string | null
+          atividades?: Json | null
+          avanco_fisico_geral?: number | null
+          cliente_id?: string
+          cliente_nome?: string
+          clima_manha?: string | null
+          clima_noite?: string | null
+          clima_tarde?: string | null
+          condicao_manha?: string | null
+          condicao_noite?: string | null
+          condicao_tarde?: string | null
+          created_at?: string | null
+          data_rdo?: string
+          efetivo?: Json | null
+          equipamentos?: Json | null
+          id?: string
+          numero?: number
+          obra?: string
+          observacoes?: string | null
+          ocorrencias?: string | null
+          responsavel?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          anexos?: Json | null
+          assinatura_fiscalizacao?: string | null
+          assinatura_fiscalizacao_nome?: string | null
+          assinatura_responsavel?: string | null
+          assinatura_responsavel_nome?: string | null
+          atividades?: Json | null
+          avanco_fisico_geral?: number | null
+          cliente_id?: string
+          cliente_nome?: string
+          clima_manha?: string | null
+          clima_noite?: string | null
+          clima_tarde?: string | null
+          condicao_manha?: string | null
+          condicao_noite?: string | null
+          condicao_tarde?: string | null
+          created_at?: string | null
+          data_rdo?: string
+          efetivo?: Json | null
+          equipamentos?: Json | null
+          id?: string
+          numero?: number
+          obra?: string
+          observacoes?: string | null
+          ocorrencias?: string | null
+          responsavel?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       recebimentos: {
         Row: {
           anexos_nf: Json | null
