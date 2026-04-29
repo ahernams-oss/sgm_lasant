@@ -183,8 +183,8 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
         { content: "Nome do solicitante:", styles: { fontSize: 6.5 } },
       ],
       [
-        { content: os.descricaoServicos || "", styles: { fontStyle: "bold", minCellHeight: 24, valign: "middle" } },
-        { content: os.solicitante || "-", styles: { fontStyle: "bold", fontSize: 10, halign: "center", valign: "middle", minCellHeight: 24 } },
+        { content: os.descricaoServicos || "", styles: { fontStyle: "bold", minCellHeight: 14, valign: "middle" } },
+        { content: os.solicitante || "-", styles: { fontStyle: "bold", fontSize: 10, halign: "center", valign: "middle", minCellHeight: 14 } },
       ],
     ],
     columnStyles: { 0: { cellWidth: cw * 0.75 }, 1: { cellWidth: cw * 0.25 } },
