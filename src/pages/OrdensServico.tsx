@@ -848,6 +848,15 @@ export default function OrdensServicoPage() {
                         <DropdownMenuItem onClick={() => setViewOS(os)}>
                           <Eye className="mr-2 h-4 w-4" /> Visualizar
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={async () => {
+                          await gerarPdfOrdemServico({
+                            os,
+                            empresa,
+                            cliente: clientes.find(c => c.id === os.clienteId),
+                          });
+                        }}>
+                          <Printer className="mr-2 h-4 w-4" /> Imprimir OS
+                        </DropdownMenuItem>
                         {!["Validada", "Cancelada"].includes(os.situacao) && (
                           <DropdownMenuItem onClick={() => handleEdit(os)}>
                             <Pencil className="mr-2 h-4 w-4" /> Preencher OS
