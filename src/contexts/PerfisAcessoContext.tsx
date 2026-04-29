@@ -294,6 +294,23 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
     ],
   },
   {
+    grupo: "Engenharia",
+    modulos: [
+      {
+        key: "rdo",
+        label: "RDO - Diário de Obras",
+        acoes: [
+          { key: "rdo.criar", label: "Criar RDO" },
+          { key: "rdo.editar", label: "Editar RDO" },
+          { key: "rdo.excluir", label: "Excluir RDO" },
+          { key: "rdo.exportar_pdf", label: "Exportar PDF" },
+          { key: "rdo.assinar_responsavel", label: "Assinar como Responsável Técnico" },
+          { key: "rdo.assinar_fiscalizacao", label: "Assinar como Fiscalização" },
+        ],
+      },
+    ],
+  },
+  {
     grupo: "Administração",
     modulos: [
       {
