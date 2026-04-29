@@ -307,9 +307,7 @@ export default function PedidoCompraPage() {
               return (
                 <TableRow key={p.id} className={selectedIds.includes(p.id) ? "bg-primary/5" : ""}>
                   <TableCell>
-                    {canUpdate ? (
-                      <Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggleSelect(p.id)} />
-                    ) : <div className="w-4" />}
+                    <Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggleSelect(p.id)} />
                   </TableCell>
                   <TableCell className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</TableCell>
                   <TableCell className="text-sm">{rcVinculada?.centroCustoNome || "-"}</TableCell>
