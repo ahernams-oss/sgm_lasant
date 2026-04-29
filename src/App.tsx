@@ -88,6 +88,8 @@ import { ProcessosTrabalhalistasProvider } from "@/contexts/ProcessosTrabalhista
 import ChatDudaPage from "./pages/ChatDuda";
 import RdoPage from "./pages/Rdo.tsx";
 import { RdosProvider } from "@/contexts/RdosContext";
+import { RdoAssinaturasProvider } from "@/contexts/RdoAssinaturasContext";
+import VerificarAssinaturaPage from "./pages/VerificarAssinatura.tsx";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
@@ -208,6 +210,7 @@ const App = () => (
     <ComunicacaoProvider>
     <ProcessosTrabalhalistasProvider>
     <RdosProvider>
+    <RdoAssinaturasProvider>
     <AuthProvider> {/* auth wrapper */}
     <TooltipProvider>
       <Toaster />
@@ -216,11 +219,14 @@ const App = () => (
         <Routes>
           <Route path="/cotacao/proposta/:token" element={<PropostaFornecedorPage />} />
           <Route path="/unsubscribe" element={<UnsubscribePage />} />
+          <Route path="/verificar-assinatura" element={<VerificarAssinaturaPage />} />
+          <Route path="/verificar-assinatura/:codigo" element={<VerificarAssinaturaPage />} />
           <Route path="/*" element={<AppRoutes />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </RdoAssinaturasProvider>
     </RdosProvider>
     </ProcessosTrabalhalistasProvider>
     </ComunicacaoProvider>

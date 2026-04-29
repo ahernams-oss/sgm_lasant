@@ -3137,6 +3137,63 @@ export type Database = {
         }
         Relationships: []
       }
+      rdo_assinaturas: {
+        Row: {
+          base_legal: string
+          codigo_verificador: string
+          created_at: string
+          hash_documento: string
+          id: string
+          ip_origem: string | null
+          papel: string
+          rdo_id: string
+          rdo_numero: number
+          signatario_cargo: string | null
+          signatario_email: string | null
+          signatario_matricula: string | null
+          signatario_nome: string
+          signatario_user_id: string
+          signed_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          base_legal?: string
+          codigo_verificador?: string
+          created_at?: string
+          hash_documento: string
+          id?: string
+          ip_origem?: string | null
+          papel: string
+          rdo_id: string
+          rdo_numero: number
+          signatario_cargo?: string | null
+          signatario_email?: string | null
+          signatario_matricula?: string | null
+          signatario_nome: string
+          signatario_user_id: string
+          signed_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          base_legal?: string
+          codigo_verificador?: string
+          created_at?: string
+          hash_documento?: string
+          id?: string
+          ip_origem?: string | null
+          papel?: string
+          rdo_id?: string
+          rdo_numero?: number
+          signatario_cargo?: string | null
+          signatario_email?: string | null
+          signatario_matricula?: string | null
+          signatario_nome?: string
+          signatario_user_id?: string
+          signed_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       rdos: {
         Row: {
           anexos: Json | null

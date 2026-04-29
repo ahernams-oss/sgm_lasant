@@ -3,6 +3,8 @@ import { useRdos, Rdo, RdoEfetivoItem, RdoEquipamentoItem, RdoAtividadeItem } fr
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRdoAssinaturas } from "@/contexts/RdoAssinaturasContext";
+import { AssinaturaEletronicaOficial } from "@/components/AssinaturaEletronicaOficial";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -143,6 +145,7 @@ export default function RdoPage() {
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
+  const { porRdo } = useRdoAssinaturas();
 
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("Todos");
@@ -155,6 +158,7 @@ export default function RdoPage() {
   const [form, setForm] = useState<Partial<Rdo>>(emptyForm());
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const assinaturasDoRdo = useMemo(() => editing ? porRdo(editing.id) : [], [editing, porRdo]);
 
   const clientesAtivos = useMemo(() => clientes.filter((c) => c.tipo === "Cliente"), [clientes]);
 
@@ -238,7 +242,8 @@ export default function RdoPage() {
 
   const onExportPdf = async (r: Rdo) => {
     const cliente = clientes.find((c) => c.id === r.cliente_id);
-    await gerarPdfRdo({ rdo: r, empresa, cliente });
+    const assinaturas = porRdo(r.id);
+    await gerarPdfRdo({ rdo: r, empresa, cliente, assinaturas });
   };
 
   return (
@@ -519,26 +524,20 @@ export default function RdoPage() {
             </TabsContent>
 
             <TabsContent value="assinaturas" className="space-y-4 mt-4">
-              <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-base">Responsável Técnico</CardTitle></CardHeader>
-                <CardContent className="space-y-2">
-                  <div>
-                    <Label>Nome do Responsável</Label>
-                    <Input value={form.assinatura_responsavel_nome || ""} onChange={(e) => setForm({ ...form, assinatura_responsavel_nome: e.target.value })} />
-                  </div>
-                  <SignaturePad value={form.assinatura_responsavel || ""} onChange={(v) => setForm({ ...form, assinatura_responsavel: v })} />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-base">Fiscalização</CardTitle></CardHeader>
-                <CardContent className="space-y-2">
-                  <div>
-                    <Label>Nome do Fiscal</Label>
-                    <Input value={form.assinatura_fiscalizacao_nome || ""} onChange={(e) => setForm({ ...form, assinatura_fiscalizacao_nome: e.target.value })} />
-                  </div>
-                  <SignaturePad value={form.assinatura_fiscalizacao || ""} onChange={(v) => setForm({ ...form, assinatura_fiscalizacao: v })} />
-                </CardContent>
-              </Card>
+              <div className="bg-muted/30 border rounded p-3 text-xs text-muted-foreground">
+                As assinaturas são <strong>eletrônicas oficiais</strong>, com validade jurídica conforme Art. 6º, § 1º do Decreto nº 8.539/2015.
+                Cada assinatura registra automaticamente o signatário autenticado, data/hora, IP, hash do documento e gera um código verificador único, consultável publicamente.
+              </div>
+              <AssinaturaEletronicaOficial
+                rdo={editing ? { ...editing, ...form } : form as any}
+                papel="responsavel"
+                assinaturaExistente={editing ? assinaturasDoRdo.find(a => a.papel === "responsavel") : undefined}
+              />
+              <AssinaturaEletronicaOficial
+                rdo={editing ? { ...editing, ...form } : form as any}
+                papel="fiscalizacao"
+                assinaturaExistente={editing ? assinaturasDoRdo.find(a => a.papel === "fiscalizacao") : undefined}
+              />
             </TabsContent>
           </Tabs>
 
