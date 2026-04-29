@@ -201,7 +201,19 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
   y = (doc as any).lastAutoTable.finalY + 4;
 
   // ===== MATERIAIS SCO =====
-  const bdi = Number(os.bdi) || 0;
+  // BDI: prioriza o contrato do cliente; cai para os.bdi se não houver
+  const parseBdi = (v: any): number => {
+    if (v === null || v === undefined || v === "") return NaN;
+    const n = Number(String(v).replace(",", "."));
+    return isNaN(n) ? NaN : n;
+  };
+  const contratoBdi = (() => {
+    const contratos = (cliente as any)?.contratos || [];
+    if (contratos.length === 0) return NaN;
+    const ativo = contratos.find((c: any) => parseBdi(c?.bdi) > 0) || contratos[0];
+    return parseBdi(ativo?.bdi);
+  })();
+  const bdi = !isNaN(contratoBdi) ? contratoBdi : (Number(os.bdi) || 0);
   const totalSCO = (os.materiais || []).reduce((s, m) => s + (Number(m.valorTotal) || 0), 0);
   const bdiSCO = totalSCO * (bdi / 100);
   const totalSCOcomBDI = totalSCO + bdiSCO;
