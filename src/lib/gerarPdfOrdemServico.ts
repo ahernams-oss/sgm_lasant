@@ -55,62 +55,58 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
   let y = 12;
 
   // ===== HEADER =====
-  // Logo empresa (esquerda)
-  if (empresa?.logoUrl) {
-    const data = await loadImageAsDataUrl(empresa.logoUrl);
-    if (data) {
-      try { doc.addImage(data, "PNG", ml, y, 32, 18); } catch { /* ignore */ }
-    }
-  }
-
-  // Logo cliente (direita) — se houver, acima da caixa do Nº
+  // Logo cliente (esquerda)
   const clienteLogoUrl = (cliente as any)?.logoUrl;
   if (clienteLogoUrl) {
     const data = await loadImageAsDataUrl(clienteLogoUrl);
     if (data) {
-      try { doc.addImage(data, "PNG", pw - mr - 28, y, 28, 10); } catch { /* ignore */ }
+      try { doc.addImage(data, "PNG", ml, y, 30, 16); } catch { /* ignore */ }
     }
   }
 
-  // Centro: Linhas 1-4 do cadastro do cliente
+  // Logo empresa (direita)
+  if (empresa?.logoUrl) {
+    const data = await loadImageAsDataUrl(empresa.logoUrl);
+    if (data) {
+      try { doc.addImage(data, "PNG", pw - mr - 32, y, 32, 16); } catch { /* ignore */ }
+    }
+  }
+
+  // Centro: Linhas 1-4 do cadastro do cliente (empilhadas)
   doc.setTextColor(...DARK);
   const c: any = cliente || {};
-  const linha1 = c.relLinha1 || "";
-  const linha2 = c.relLinha2 || "";
-  const linha3 = c.relLinha3 || "";
-  const linha4 = c.relLinha4 || "";
+  const linhas = [c.relLinha1, c.relLinha2, c.relLinha3, c.relLinha4].map((s) => s || "");
 
-  // Linha 1 (8pt normal)
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-  if (linha1) doc.text(linha1, pw / 2, y + 3.5, { align: "center" });
-  // Linha 2 (7.5pt)
+  if (linhas[0]) doc.text(linhas[0], pw / 2, y + 3.5, { align: "center" });
   doc.setFontSize(7.5);
-  if (linha2) doc.text(linha2, pw / 2, y + 7.5, { align: "center" });
-  // Linha 3 (7.5pt)
-  if (linha3) doc.text(linha3, pw / 2, y + 11.5, { align: "center" });
-
-  // Número da OS (esquerda, abaixo da logo) — formato: CAP-NUMERO/ANO-TIPO
-  const anoOS = (() => {
-    const d = os.createdAt ? new Date(os.createdAt) : new Date();
-    return isNaN(d.getTime()) ? new Date().getFullYear() : d.getFullYear();
-  })();
-  const numeroFormatado = `${cliente?.cap || "—"}-${os.numero}/${anoOS}-${os.tipoOs?.sigla || ""}`;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text(numeroFormatado, ml + 2, y + 22, { align: "left" });
-
-  // Linha 4 (7.5pt) — centralizada na linha do número
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
-  if (linha4) doc.text(linha4, pw / 2, y + 16, { align: "center" });
+  if (linhas[1]) doc.text(linhas[1], pw / 2, y + 7.5, { align: "center" });
+  if (linhas[2]) doc.text(linhas[2], pw / 2, y + 11.5, { align: "center" });
+  if (linhas[3]) doc.text(linhas[3], pw / 2, y + 16, { align: "center" });
 
   // Título principal
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.text("ORDEM DE SERVIÇO DE MANUTENÇÃO", pw / 2, y + 26, { align: "center" });
+  doc.text("ORDEM DE SERVIÇO DE MANUTENÇÃO", pw / 2, y + 23, { align: "center" });
 
-  y += 32;
+  // Caixa do número da OS (direita) — formato: NUMERO-CAP/ANO-TIPO
+  const anoOS = (() => {
+    const d = os.createdAt ? new Date(os.createdAt) : new Date();
+    return isNaN(d.getTime()) ? new Date().getFullYear() : d.getFullYear();
+  })();
+  const numeroFormatado = `${os.numero}-${cliente?.cap || "0"}/${anoOS}-${os.tipoOs?.sigla || ""}`;
+  const boxW = 38, boxH = 8;
+  const boxX = pw - mr - boxW;
+  const boxY = y + 19;
+  doc.setDrawColor(...BORDER);
+  doc.setLineWidth(0.4);
+  doc.rect(boxX, boxY, boxW, boxH);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.text(numeroFormatado, boxX + boxW / 2, boxY + 5.5, { align: "center" });
+
+  y += 30;
 
   // ===== INFO TABLE: Unidade Requisitante / Data Aprovação =====
   const localText = os.localDescricao || "";
