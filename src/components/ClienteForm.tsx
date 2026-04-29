@@ -303,6 +303,25 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
       {tipoFixo !== "Fornecedor" && (
         <>
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 mt-6">Impressão de OS - Cabeçalho</h3>
+          <div className="mb-4">
+            <label className="field-label">Logo do Cliente (máx. 500KB)</label>
+            <div className="flex items-center gap-3">
+              {form.logoUrl ? (
+                <img src={form.logoUrl} alt="Logo" className="h-16 w-auto max-w-[160px] object-contain border rounded bg-white p-1" />
+              ) : (
+                <div className="h-16 w-32 border border-dashed rounded flex items-center justify-center text-xs text-muted-foreground">Sem logo</div>
+              )}
+              <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+              <Button type="button" variant="outline" size="sm" className="gap-1" disabled={uploadingLogo} onClick={() => logoInputRef.current?.click()}>
+                <Upload className="h-3 w-3" /> {uploadingLogo ? "Enviando..." : (form.logoUrl ? "Trocar logo" : "Enviar logo")}
+              </Button>
+              {form.logoUrl && (
+                <Button type="button" variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive" onClick={() => setForm((p) => ({ ...p, logoUrl: "" }))}>
+                  <Trash2 className="h-3 w-3" /> Remover
+                </Button>
+              )}
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="field-label">Linha 1</label>
