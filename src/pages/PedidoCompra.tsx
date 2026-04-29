@@ -214,11 +214,31 @@ export default function PedidoCompraPage() {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
-  const selectableFiltered = filtered.filter(p => getNextStatuses(p.status).length > 0);
+  const selectableFiltered = filtered;
   const allSelectableSelected = selectableFiltered.length > 0 && selectableFiltered.every(p => selectedIds.includes(p.id));
   const toggleSelectAll = () => {
     if (allSelectableSelected) setSelectedIds([]);
     else setSelectedIds(selectableFiltered.map(p => p.id));
+  };
+
+  const selectedCanUpdate = selectedIds.some(id => {
+    const p = pedidos.find(x => x.id === id);
+    return p ? getNextStatuses(p.status).length > 0 : false;
+  });
+
+  const handlePrintSelected = async () => {
+    const lista = pedidos.filter(p => selectedIds.includes(p.id));
+    if (lista.length === 0) return;
+    toast({ title: `Gerando ${lista.length} PDF${lista.length > 1 ? "s" : ""}...` });
+    for (const p of lista) {
+      await downloadPdfOrdemCompra({
+        pedido: p,
+        empresa: empresa.id ? empresa : null,
+        fornecedor: getFornecedor(p.fornecedorId),
+        autorizadoPor: usuarioLogado?.nome || "Usuário",
+      });
+    }
+    toast({ title: `${lista.length} PDF${lista.length > 1 ? "s gerados" : " gerado"} com sucesso` });
   };
 
   return (
@@ -242,12 +262,20 @@ export default function PedidoCompraPage() {
       </div>
 
       {selectedIds.length > 0 && (
-        <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50">
+        <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50 flex-wrap">
           <CheckSquare className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium">{selectedIds.length} pedido{selectedIds.length > 1 ? "s" : ""} selecionado{selectedIds.length > 1 ? "s" : ""}</span>
-          <Button size="sm" onClick={() => openStatusDialog(selectedIds)}>
-            <ArrowRight className="h-4 w-4 mr-1" /> Atualizar Status em Lote
+          <Button size="sm" variant="outline" onClick={handlePrintSelected}>
+            <FileDown className="h-4 w-4 mr-1" /> Imprimir PDFs
           </Button>
+          {selectedCanUpdate && (
+            <Button size="sm" onClick={() => openStatusDialog(selectedIds.filter(id => {
+              const p = pedidos.find(x => x.id === id);
+              return p ? getNextStatuses(p.status).length > 0 : false;
+            }))}>
+              <ArrowRight className="h-4 w-4 mr-1" /> Atualizar Status em Lote
+            </Button>
+          )}
           <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>Limpar Seleção</Button>
         </div>
       )}
@@ -279,9 +307,7 @@ export default function PedidoCompraPage() {
               return (
                 <TableRow key={p.id} className={selectedIds.includes(p.id) ? "bg-primary/5" : ""}>
                   <TableCell>
-                    {canUpdate ? (
-                      <Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggleSelect(p.id)} />
-                    ) : <div className="w-4" />}
+                    <Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggleSelect(p.id)} />
                   </TableCell>
                   <TableCell className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</TableCell>
                   <TableCell className="text-sm">{rcVinculada?.centroCustoNome || "-"}</TableCell>
