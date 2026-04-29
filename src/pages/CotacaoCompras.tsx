@@ -50,6 +50,7 @@ export default function CotacaoComprasPage() {
   const [filterPeriodo, setFilterPeriodo] = useState("Todos");
   const [filterComprador, setFilterComprador] = useState("Todos");
   const [pageCot, setPageCot] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Dialog states
   const [novaDialogOpen, setNovaDialogOpen] = useState(false);
