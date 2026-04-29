@@ -197,9 +197,8 @@ export default function ResponsaveisTecnicosPage() {
 
       <DoubleConfirmDelete
         open={!!delId}
-        onCancel={() => setDelId(null)}
+        onOpenChange={(v) => { if (!v) setDelId(null); }}
         onConfirm={async () => { if (delId) await remove(delId); setDelId(null); }}
-        itemName="responsável técnico"
       />
     </div>
   );
