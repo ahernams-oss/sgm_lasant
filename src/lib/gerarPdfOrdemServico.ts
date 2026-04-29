@@ -77,8 +77,13 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
   doc.setFont("helvetica", "bold");
   doc.text("ORDEM DE SERVIÇO DE MANUTENÇÃO", pw / 2, y + 17, { align: "center" });
 
-  // Número da OS (direita)
-  const boxW = 30, boxH = 10;
+  // Número da OS (direita) — formato: CAP-NUMERO/ANO-TIPO
+  const anoOS = (() => {
+    const d = os.createdAt ? new Date(os.createdAt) : new Date();
+    return isNaN(d.getTime()) ? new Date().getFullYear() : d.getFullYear();
+  })();
+  const numeroFormatado = `${cliente?.cap || "—"}-${os.numero}/${anoOS}-${os.tipoOs?.sigla || ""}`;
+  const boxW = 55, boxH = 10;
   const boxX = pw - mr - boxW;
   const boxY = y + 11;
   doc.setFontSize(9);
@@ -87,8 +92,8 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
   doc.setDrawColor(...BORDER);
   doc.setLineWidth(0.4);
   doc.rect(boxX, boxY, boxW, boxH);
-  doc.setFontSize(11);
-  doc.text(String(os.numero), boxX + boxW / 2, boxY + 7, { align: "center" });
+  doc.setFontSize(10);
+  doc.text(numeroFormatado, boxX + boxW / 2, boxY + 7, { align: "center" });
 
   y += 24;
 
