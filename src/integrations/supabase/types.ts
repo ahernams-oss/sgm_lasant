@@ -3221,6 +3221,7 @@ export type Database = {
           observacoes: string | null
           ocorrencias: string | null
           responsavel: string
+          responsavel_tecnico_id: string | null
           status: string | null
           updated_at: string | null
         }
@@ -3250,6 +3251,7 @@ export type Database = {
           observacoes?: string | null
           ocorrencias?: string | null
           responsavel?: string
+          responsavel_tecnico_id?: string | null
           status?: string | null
           updated_at?: string | null
         }
@@ -3279,10 +3281,19 @@ export type Database = {
           observacoes?: string | null
           ocorrencias?: string | null
           responsavel?: string
+          responsavel_tecnico_id?: string | null
           status?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rdos_responsavel_tecnico_id_fkey"
+            columns: ["responsavel_tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "responsaveis_tecnicos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recebimentos: {
         Row: {
@@ -3488,6 +3499,42 @@ export type Database = {
           solicitante?: string | null
           status?: string | null
           urgencia?: string | null
+        }
+        Relationships: []
+      }
+      responsaveis_tecnicos: {
+        Row: {
+          carteira_crea_nome: string | null
+          carteira_crea_url: string | null
+          cpf: string
+          crea: string
+          created_at: string
+          id: string
+          nome: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          carteira_crea_nome?: string | null
+          carteira_crea_url?: string | null
+          cpf: string
+          crea: string
+          created_at?: string
+          id?: string
+          nome: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          carteira_crea_nome?: string | null
+          carteira_crea_url?: string | null
+          cpf?: string
+          crea?: string
+          created_at?: string
+          id?: string
+          nome?: string
+          titulo?: string
+          updated_at?: string
         }
         Relationships: []
       }
