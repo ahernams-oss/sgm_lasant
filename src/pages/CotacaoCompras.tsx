@@ -698,6 +698,9 @@ export default function CotacaoComprasPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox checked={allSelected && filtered.length > 0} onCheckedChange={toggleSelectAll} />
+              </TableHead>
               <TableHead>Nº Cotação</TableHead>
               <TableHead>Centro de Custo</TableHead>
               <TableHead>RCS Vinculada</TableHead>
