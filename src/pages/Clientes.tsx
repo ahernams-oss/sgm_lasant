@@ -4,6 +4,7 @@ import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/Double
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin, FileText, Plus, ChevronDown, ChevronUp, Truck, DollarSign } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
