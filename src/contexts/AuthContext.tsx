@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
 import { useUsuarios, Usuario } from "./UsuariosContext";
 import { useCargos } from "./CargosContext";
-import { useClientes } from "./ClientesContext";
 
 // Cargos com acesso total ao sistema
 const CARGOS_ACESSO_TOTAL = ["Diretor", "Gerente Executivo", "Coordenador de Departamento"];
@@ -20,7 +19,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { usuarios } = useUsuarios();
   const { cargos } = useCargos();
-  const { clientes } = useClientes();
   const [usuarioLogado, setUsuarioLogado] = useState<Usuario | null>(() => {
     const saved = localStorage.getItem("usuarioLogado");
     return saved ? JSON.parse(saved) : null;
@@ -52,9 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const clientesPermitidosIds = useMemo(() => {
     if (!usuarioLogado) return [];
-    if (temAcessoTotal) return clientes.map((c) => c.id);
     return usuarioLogado.clientesPermitidos;
-  }, [usuarioLogado, temAcessoTotal, clientes]);
+  }, [usuarioLogado]);
 
   const login = (email: string, senha: string): boolean => {
     const found = usuarios.find(
