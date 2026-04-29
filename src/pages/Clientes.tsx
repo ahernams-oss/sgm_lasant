@@ -150,6 +150,33 @@ const Clientes = () => {
   const [faturamentoContratoId, setFaturamentoContratoId] = useState<string | null>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { deleteId: deleteContratoId, requestDelete: requestDeleteContrato, cancelDelete: cancelDeleteContrato } = useDoubleConfirmDelete();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+
+  const toggleOne = (id: string) =>
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const handleBulkDelete = async () => {
+    for (const id of selectedIds) await deleteCliente(id);
+    toast.success(`${selectedIds.length} cliente(s) removido(s).`);
+    setSelectedIds([]);
+    setBulkDeleteOpen(false);
+  };
+
+  const handleBulkWhatsApp = async () => {
+    const alvos = clientes.filter(c => selectedIds.includes(c.id) && c.telefones?.length);
+    if (alvos.length === 0) { toast.error("Nenhum selecionado tem telefone."); return; }
+    toast.loading(`Enviando para ${alvos.length} cliente(s)...`, { id: "bulk-wpp" });
+    let ok = 0;
+    for (const c of alvos) {
+      const msg = `Olá ${c.contato || c.nome}! Aqui é da equipe de RH.`;
+      for (const tel of c.telefones) {
+        const r = await enviarWhatsApp(tel, msg);
+        if (r.success) ok++;
+      }
+    }
+    toast.success(`${ok} mensagem(ns) enviada(s).`, { id: "bulk-wpp" });
+  };
 
   const i0Meses = useMemo(() => [...new Set(i0Items.map(i => i.mes))].sort((a, b) => a - b), [i0Items]);
   const i0Anos = useMemo(() => [...new Set(i0Items.map(i => i.ano))].sort((a, b) => a - b), [i0Items]);
