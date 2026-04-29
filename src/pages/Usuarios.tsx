@@ -40,6 +40,8 @@ const Usuarios = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const [searchClientes, setSearchClientes] = useState("");
+  const [searchFornecedores, setSearchFornecedores] = useState("");
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -51,6 +53,15 @@ const Usuarios = () => {
         ? prev.clientesPermitidos.filter((id) => id !== clienteId)
         : [...prev.clientesPermitidos, clienteId],
     }));
+  };
+
+  const setMany = (ids: string[], add: boolean) => {
+    setForm((prev) => {
+      const set = new Set(prev.clientesPermitidos);
+      if (add) ids.forEach((id) => set.add(id));
+      else ids.forEach((id) => set.delete(id));
+      return { ...prev, clientesPermitidos: Array.from(set) };
+    });
   };
 
   const resetForm = () => {
