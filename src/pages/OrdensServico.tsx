@@ -63,7 +63,7 @@ const SITUACOES_WORKFLOW = [
 const SITUACAO_CORES: Record<string, string> = {
   "Aberta": "#e7b73b",
   "Executada": "#26379e",
-  "Serviço Confirmado": "#ff0000",
+  "Serviço Confirmado": "#7dd3fc",
   "Validada": "#2a8819",
   "Serviço Não Aprovado pela Fiscalização": "#400040",
   "Serviço Re-executado": "#6acfff",
