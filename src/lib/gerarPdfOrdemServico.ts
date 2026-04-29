@@ -55,11 +55,20 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
   let y = 12;
 
   // ===== HEADER =====
-  // Logo empresa (esquerda), nome cliente centralizado, número OS à direita
+  // Logo empresa (esquerda)
   if (empresa?.logoUrl) {
     const data = await loadImageAsDataUrl(empresa.logoUrl);
     if (data) {
       try { doc.addImage(data, "PNG", ml, y, 32, 18); } catch { /* ignore */ }
+    }
+  }
+
+  // Logo cliente (direita-acima do nome) — se houver
+  const clienteLogoUrl = (cliente as any)?.logoUrl;
+  if (clienteLogoUrl) {
+    const data = await loadImageAsDataUrl(clienteLogoUrl);
+    if (data) {
+      try { doc.addImage(data, "PNG", pw - mr - 32, y, 32, 18); } catch { /* ignore */ }
     }
   }
 
