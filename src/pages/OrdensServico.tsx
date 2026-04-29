@@ -65,7 +65,7 @@ const SITUACAO_CORES: Record<string, string> = {
   "Executada": "#26379e",
   "Serviço Confirmado": "#7dd3fc",
   "Validada": "#2a8819",
-  "Serviço Não Aprovado pela Fiscalização": "#400040",
+  "Serviço Não Aprovado pela Fiscalização": "#8b4513",
   "Serviço Re-executado": "#6acfff",
   "OS com Orçamento": "#6b7280",
   "Cancelada": "#dc2626",
