@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import type { Rdo } from "@/contexts/RdosContext";
 import type { Empresa } from "@/contexts/EmpresaContext";
 import type { Cliente } from "@/contexts/ClientesContext";
+import type { RdoAssinatura } from "@/contexts/RdoAssinaturasContext";
 
 const DARK = [60, 60, 60] as const;
 const BORDER: [number, number, number] = [60, 60, 60];
@@ -32,9 +33,10 @@ export interface RenderRdoOptions {
   rdo: Rdo;
   empresa?: Empresa;
   cliente?: Cliente;
+  assinaturas?: RdoAssinatura[];
 }
 
-export async function gerarPdfRdo({ rdo, empresa, cliente }: RenderRdoOptions) {
+export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [] }: RenderRdoOptions) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
