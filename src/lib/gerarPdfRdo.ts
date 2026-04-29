@@ -186,34 +186,63 @@ export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [] }: R
   y = (doc as any).lastAutoTable.finalY + 4;
 
   // ===== ASSINATURAS =====
-  if (y > 230) { doc.addPage(); y = 15; }
-  const sigW = (cw - 4) / 2;
-  const sigH = 28;
-  doc.setDrawColor(...BORDER);
-  doc.setLineWidth(0.3);
-  doc.rect(ml, y, sigW, sigH);
-  doc.rect(ml + sigW + 4, y, sigW, sigH);
+  const assResp = assinaturas.find(a => a.papel === "responsavel");
+  const assFisc = assinaturas.find(a => a.papel === "fiscalizacao");
+  const temEletronica = !!(assResp || assFisc);
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(7);
-  doc.text("Responsável Técnico", ml + 2, y + 4);
-  doc.text("Fiscalização", ml + sigW + 6, y + 4);
+  if (temEletronica) {
+    // === ESTILO ASSINATURA ELETRÔNICA OFICIAL (SEI) ===
+    if (y > 220) { doc.addPage(); y = 15; }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...DARK);
+    doc.text("ASSINATURAS ELETRÔNICAS OFICIAIS", pw / 2, y + 4, { align: "center" });
+    y += 7;
 
-  // Assinaturas (data URLs)
-  if (rdo.assinatura_responsavel) {
-    try { doc.addImage(rdo.assinatura_responsavel, "PNG", ml + 4, y + 6, sigW - 8, 14); } catch {}
+    const fmtDt = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+
+    const renderBloco = (a: typeof assResp, papelLabel: string) => {
+      if (!a) return;
+      doc.setDrawColor(...BORDER);
+      doc.setLineWidth(0.3);
+      doc.rect(ml, y, cw, 22);
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      const linha1 = `Documento assinado eletronicamente por ${a.signatario_nome}${a.signatario_cargo ? ", " + a.signatario_cargo : ""},`;
+      const linha2 = `como ${papelLabel}, em ${fmtDt(a.signed_at)}, conforme ${a.base_legal}.`;
+      doc.text(linha1, ml + 2, y + 5);
+      doc.text(linha2, ml + 2, y + 9);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.text(`A autenticidade do documento pode ser conferida em ${baseUrl}/verificar-assinatura`, ml + 2, y + 14);
+      doc.text(`informando o código verificador: ${a.codigo_verificador}`, ml + 2, y + 18);
+      y += 24;
+    };
+
+    if (assResp) renderBloco(assResp, "Responsável Técnico");
+    if (assFisc) renderBloco(assFisc, "Fiscalização");
+  } else {
+    // === FALLBACK: Linhas para assinatura manual ===
+    if (y > 230) { doc.addPage(); y = 15; }
+    const sigW = (cw - 4) / 2;
+    const sigH = 28;
+    doc.setDrawColor(...BORDER);
+    doc.setLineWidth(0.3);
+    doc.rect(ml, y, sigW, sigH);
+    doc.rect(ml + sigW + 4, y, sigW, sigH);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.text("Responsável Técnico", ml + 2, y + 4);
+    doc.text("Fiscalização", ml + sigW + 6, y + 4);
+    doc.setLineWidth(0.2);
+    doc.line(ml + 4, y + 22, ml + sigW - 4, y + 22);
+    doc.line(ml + sigW + 8, y + 22, ml + sigW * 2 - 4, y + 22);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text(rdo.assinatura_responsavel_nome || "_______________________", ml + sigW / 2, y + 26, { align: "center" });
+    doc.text(rdo.assinatura_fiscalizacao_nome || "_______________________", ml + sigW + 4 + sigW / 2, y + 26, { align: "center" });
   }
-  if (rdo.assinatura_fiscalizacao) {
-    try { doc.addImage(rdo.assinatura_fiscalizacao, "PNG", ml + sigW + 8, y + 6, sigW - 8, 14); } catch {}
-  }
-
-  doc.setLineWidth(0.2);
-  doc.line(ml + 4, y + 22, ml + sigW - 4, y + 22);
-  doc.line(ml + sigW + 8, y + 22, ml + sigW * 2 - 4, y + 22);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.text(rdo.assinatura_responsavel_nome || "_______________________", ml + sigW / 2, y + 26, { align: "center" });
-  doc.text(rdo.assinatura_fiscalizacao_nome || "_______________________", ml + sigW + 4 + sigW / 2, y + 26, { align: "center" });
 
   // Footer
   const pages = doc.getNumberOfPages();
