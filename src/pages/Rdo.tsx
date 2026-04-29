@@ -4,6 +4,7 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRdoAssinaturas } from "@/contexts/RdoAssinaturasContext";
+import { useResponsaveisTecnicos } from "@/contexts/ResponsaveisTecnicosContext";
 import { AssinaturaEletronicaOficial } from "@/components/AssinaturaEletronicaOficial";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -146,6 +147,7 @@ export default function RdoPage() {
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
   const { porRdo } = useRdoAssinaturas();
+  const { responsaveis } = useResponsaveisTecnicos();
 
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("Todos");
@@ -384,8 +386,29 @@ export default function RdoPage() {
                   <Input value={form.obra || ""} onChange={(e) => setForm({ ...form, obra: e.target.value })} />
                 </div>
                 <div>
-                  <Label>Responsável</Label>
-                  <Input value={form.responsavel || ""} onChange={(e) => setForm({ ...form, responsavel: e.target.value })} />
+                  <Label>Responsável Técnico</Label>
+                  <Select
+                    value={(form as any).responsavel_tecnico_id || ""}
+                    onValueChange={(id) => {
+                      const r = responsaveis.find(x => x.id === id);
+                      setForm({
+                        ...form,
+                        ...( { responsavel_tecnico_id: id } as any),
+                        responsavel: r ? `${r.nome} - ${r.titulo} - CREA ${r.crea}` : "",
+                      });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={responsaveis.length === 0 ? "Cadastre um Responsável Técnico" : "Selecione o responsável"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {responsaveis.map(r => (
+                        <SelectItem key={r.id} value={r.id}>
+                          {r.nome} — {r.titulo} (CREA {r.crea})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label>Avanço Físico Geral (%)</Label>

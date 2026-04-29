@@ -80,6 +80,7 @@ const menuItems = [
       { title: "Aprovar SS em Lote", url: "/engenharia/aprovar-lote-ss", icon: ClipboardCheck },
       { title: "Ordem de Serviço", url: "/engenharia/ordem-servico", icon: Wrench },
       { title: "RDO - Diário de Obras", url: "/engenharia/rdo", icon: FileSpreadsheet },
+      { title: "Responsáveis Técnicos", url: "/engenharia/responsaveis-tecnicos", icon: UserCheck },
     ],
   },
   {

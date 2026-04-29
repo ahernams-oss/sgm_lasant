@@ -90,6 +90,8 @@ import RdoPage from "./pages/Rdo.tsx";
 import { RdosProvider } from "@/contexts/RdosContext";
 import { RdoAssinaturasProvider } from "@/contexts/RdoAssinaturasContext";
 import VerificarAssinaturaPage from "./pages/VerificarAssinatura.tsx";
+import ResponsaveisTecnicosPage from "./pages/ResponsaveisTecnicos.tsx";
+import { ResponsaveisTecnicosProvider } from "@/contexts/ResponsaveisTecnicosContext";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
@@ -166,6 +168,7 @@ function AppRoutes() {
           }
         />
         <Route path="/engenharia/rdo" element={<RdoPage />} />
+        <Route path="/engenharia/responsaveis-tecnicos" element={<ResponsaveisTecnicosPage />} />
         <Route path="/comunicacao/mensagens" element={<ComunicacaoMensagensPage />} />
         <Route path="/comunicacao/avisos" element={<ComunicacaoAvisosPage />} />
         <Route path="/comunicacao/notificacoes" element={<ComunicacaoNotificacoesPage />} />
@@ -209,6 +212,7 @@ const App = () => (
     <ServicosProvider>
     <ComunicacaoProvider>
     <ProcessosTrabalhalistasProvider>
+    <ResponsaveisTecnicosProvider>
     <RdosProvider>
     <RdoAssinaturasProvider>
     <AuthProvider> {/* auth wrapper */}
@@ -228,6 +232,7 @@ const App = () => (
     </AuthProvider>
     </RdoAssinaturasProvider>
     </RdosProvider>
+    </ResponsaveisTecnicosProvider>
     </ProcessosTrabalhalistasProvider>
     </ComunicacaoProvider>
     </ServicosProvider>
