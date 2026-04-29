@@ -678,6 +678,22 @@ export default function CotacaoComprasPage() {
         </p>
       </div>
 
+      {selectedIds.length > 0 && (
+        <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50 flex-wrap">
+          <CheckSquare className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">
+            {selectedIds.length} cotação{selectedIds.length > 1 ? "ões" : ""} selecionada{selectedIds.length > 1 ? "s" : ""}
+          </span>
+          <Button size="sm" variant="outline" onClick={handlePrintCotacoes}>
+            <FileDown className="h-4 w-4 mr-1" /> Imprimir Cotações (PDF)
+          </Button>
+          <Button size="sm" variant="outline" onClick={handlePrintPedidosCotacao}>
+            <FileText className="h-4 w-4 mr-1" /> Imprimir Pedidos de Cotação
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>Limpar Seleção</Button>
+        </div>
+      )}
+
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
