@@ -365,12 +365,12 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
         { content: "", rowSpan: 4, styles: { minCellHeight: 30 } },
       ],
       [
-        { content: validada ? "X" : "", styles: { halign: "center", valign: "middle", fontStyle: "bold", fontSize: 14, minCellHeight: 8 } },
-        { content: "A CONTENTO", styles: { fontStyle: "bold", valign: "middle" } },
+        { content: validada ? "X" : "", styles: { halign: "center", valign: "middle", fontStyle: "bold", fontSize: 14, minCellHeight: 7 } },
+        { content: "A CONTENTO", styles: { fontStyle: "bold", valign: "middle", minCellHeight: 7 } },
       ],
       [
-        { content: "", styles: { halign: "center", valign: "middle", fontStyle: "bold", fontSize: 14, minCellHeight: 8 } },
-        { content: "NÃO A CONTENTO", styles: { fontStyle: "bold", valign: "middle" } },
+        { content: "", styles: { halign: "center", valign: "middle", fontStyle: "bold", fontSize: 14, minCellHeight: 7 } },
+        { content: "NÃO A CONTENTO", styles: { fontStyle: "bold", valign: "middle", minCellHeight: 7 } },
       ],
       [
         { content: "OBSERVAÇÕES:", colSpan: 2, styles: { fontSize: 7, fontStyle: "bold" } },
