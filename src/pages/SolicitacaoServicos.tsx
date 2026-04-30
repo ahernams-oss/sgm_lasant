@@ -537,7 +537,7 @@ export default function SolicitacaoServicosPage() {
       let cmp = 0;
       if (sortField === "numero") {
         cmp = a.numero - b.numero;
-      } else if (sortField === "data") {
+      } else if (sortField === "dataHora") {
         cmp = (a.dataHoraSolicitacao || "").localeCompare(b.dataHoraSolicitacao || "");
       } else {
         cmp = b.numero - a.numero;
