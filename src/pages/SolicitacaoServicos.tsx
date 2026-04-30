@@ -258,6 +258,11 @@ export default function SolicitacaoServicosPage() {
       }
       toast({ title: `Prioridade alterada para ${selectedPrioridade}` });
     } else {
+      // Valida limite de aprovação (valor da SS, geralmente sem orçamento ainda = 0)
+      const ssAux = solicitacoes.find(s => s.id === approvalTargetId);
+      const orcVinc = orcamentos.find(o => o.solicitacaoId === approvalTargetId);
+      const valorSS = Number(orcVinc?.valorTotal ?? (ssAux as any)?.valorTotal ?? 0);
+      if (!podeAprovar(valorSS, "os")) return;
       const ss = solicitacoes.find(s => s.id === approvalTargetId);
       await updateSolicitacao(approvalTargetId, {
         situacao: "Aprovada",
