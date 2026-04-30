@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { usePlanosManutencao, type PlanoManutencao, type PlanoAtividade, type ChecklistItem } from "@/contexts/PlanosManutencaoContext";
+import RelatorioPlanosManutencaoDialog from "@/components/RelatorioPlanosManutencaoDialog";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useResponsaveisTecnicos } from "@/contexts/ResponsaveisTecnicosContext";
@@ -65,6 +66,7 @@ function PlanoManutencaoContent() {
   });
 
   const [detailPlano, setDetailPlano] = useState<PlanoManutencao | null>(null);
+  const [relatorioOpen, setRelatorioOpen] = useState(false);
 
   const planosFiltrados = useMemo(() => {
     return planos.filter(p => {
@@ -139,9 +141,14 @@ function PlanoManutencaoContent() {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
-      <div className="flex items-center gap-3">
-        <Wrench className="h-7 w-7 text-primary" />
-        <h1 className="text-2xl md:text-3xl font-serif font-bold">Plano de Manutenção Preventiva</h1>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <Wrench className="h-7 w-7 text-primary" />
+          <h1 className="text-2xl md:text-3xl font-serif font-bold">Plano de Manutenção Preventiva</h1>
+        </div>
+        <Button variant="outline" onClick={() => setRelatorioOpen(true)} className="gap-2">
+          <FileBarChart className="h-4 w-4" /> Relatórios
+        </Button>
       </div>
 
       {/* Formulário */}
@@ -321,6 +328,14 @@ function PlanoManutencaoContent() {
         open={!!deleteId}
         onOpenChange={(o) => !o && cancelDelete()}
         onConfirm={confirmDelete}
+      />
+
+      <RelatorioPlanosManutencaoDialog
+        open={relatorioOpen}
+        onOpenChange={setRelatorioOpen}
+        planos={planos}
+        atividades={atividades}
+        execucoes={execucoes}
       />
     </div>
   );
