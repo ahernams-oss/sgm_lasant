@@ -2023,6 +2023,12 @@ export default function OrdensServicoPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <RelatorioFechamentoOSDialog
+        open={relatorioOpen}
+        onOpenChange={setRelatorioOpen}
+        ordens={ordens}
+        clientes={clientesFiltrados.map(c => ({ id: c.id, nome: c.nome }))}
+      />
     </div>
   );
 }
