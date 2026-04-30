@@ -24,6 +24,7 @@ const Fornecedores = () => {
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [activeTab, setActiveTab] = useState("cadastro");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [relatorioOpen, setRelatorioOpen] = useState(false);
 
