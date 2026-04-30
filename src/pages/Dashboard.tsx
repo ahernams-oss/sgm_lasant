@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import DashboardFilters, { type DashboardFiltersState, loadDashboardFilters } from "@/components/DashboardFilters";
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
@@ -101,8 +102,9 @@ const Dashboard = () => {
   const { lancamentos } = useLancamentos();
   const { empresa } = useEmpresa();
   const { toast } = useToast();
-  const [dateFrom, setDateFrom] = useState<Date | undefined>();
-  const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [filters, setFilters] = useState<DashboardFiltersState>(() => loadDashboardFilters("dashboard:filters"));
+  const dateFrom = filters.dateFrom;
+  const dateTo = filters.dateTo;
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [selectedPhones, setSelectedPhones] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
@@ -116,15 +118,16 @@ const Dashboard = () => {
 
   // ---- Requisições filtradas ----
   const filteredReqs = useMemo(() => {
-    if (!dateFrom && !dateTo) return requisicoes;
     return requisicoes.filter((r) => {
       const d = parseDataCriacao(r.dataCriacao);
-      if (!d) return true;
-      if (dateFrom && d < dateFrom) return false;
-      if (dateTo) { const end = new Date(dateTo); end.setHours(23, 59, 59, 999); if (d > end) return false; }
+      if ((dateFrom || dateTo) && !d) return false;
+      if (dateFrom && d && d < dateFrom) return false;
+      if (dateTo && d) { const end = new Date(dateTo); end.setHours(23, 59, 59, 999); if (d > end) return false; }
+      if (filters.clienteId !== "todos" && (r as any).clienteId !== filters.clienteId) return false;
+      if (filters.status !== "todos" && r.status !== filters.status) return false;
       return true;
     });
-  }, [requisicoes, dateFrom, dateTo]);
+  }, [requisicoes, dateFrom, dateTo, filters.clienteId, filters.status]);
 
   // ---- Funcionários KPIs ----
   const funcStats = useMemo(() => {
@@ -344,7 +347,7 @@ const Dashboard = () => {
   };
 
   const totalReqs = filteredReqs.length;
-  const hasFilter = dateFrom || dateTo;
+  
 
   return (
     <div className="bg-background">
@@ -361,34 +364,13 @@ const Dashboard = () => {
               <p className="text-sm text-muted-foreground">Visão consolidada de todos os módulos de gestão de pessoas.</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className={cn("h-9 gap-2 text-xs", !dateFrom && "text-muted-foreground")}>
-                    <CalendarIcon className="h-3.5 w-3.5" />
-                    {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Data início"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} locale={ptBR} initialFocus className="p-3 pointer-events-auto" />
-                </PopoverContent>
-              </Popover>
-              <span className="text-xs text-muted-foreground">até</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className={cn("h-9 gap-2 text-xs", !dateTo && "text-muted-foreground")}>
-                    <CalendarIcon className="h-3.5 w-3.5" />
-                    {dateTo ? format(dateTo, "dd/MM/yyyy") : "Data fim"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar mode="single" selected={dateTo} onSelect={setDateTo} locale={ptBR} initialFocus className="p-3 pointer-events-auto" />
-                </PopoverContent>
-              </Popover>
-              {hasFilter && (
-                <Button variant="ghost" size="sm" className="h-9 text-xs gap-1" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
-                  <X className="h-3.5 w-3.5" /> Limpar
-                </Button>
-              )}
+              <DashboardFilters
+                storageKey="dashboard:filters"
+                value={filters}
+                onChange={setFilters}
+                clienteOptions={clientes.filter(c => c.tipo === "Cliente").map(c => ({ value: c.id, label: c.nomeFantasia || c.nome }))}
+                statusOptions={["Pendente", "Em Análise", "Aprovada", "Reprovada", "Concluída"].map(s => ({ value: s, label: s }))}
+              />
               <div className="border-l border-border h-6 mx-1 hidden sm:block" />
               <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={handleDownloadPdf}>
                 <FileDown className="h-3.5 w-3.5" /> PDF

@@ -16,6 +16,7 @@ import {
   PieChart, Pie, Cell, Legend, LineChart, Line,
 } from "recharts";
 import { FileText, ShoppingCart, Clock, AlertTriangle, CheckCircle, XCircle, Package, TrendingUp, LayoutDashboard, DollarSign } from "lucide-react";
+import DashboardFilters, { type DashboardFiltersState, loadDashboardFilters } from "@/components/DashboardFilters";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -85,15 +86,34 @@ export default function DashboardCompras() {
   const { materiais } = useMateriaisServicos();
   const { getDescricaoCompleta } = useCategoriasCompras();
   const { empresa } = useEmpresa();
-  const [periodo, setPeriodo] = useState("todos");
+  const [filters, setFilters] = useState<DashboardFiltersState>(() => loadDashboardFilters("dashboard-compras:filters"));
+
+  const centroCustoOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    requisicoes.forEach(r => {
+      if (r.centroCusto && r.centroCustoNome && !map.has(r.centroCusto)) {
+        map.set(r.centroCusto, r.centroCustoNome);
+      }
+    });
+    return Array.from(map.entries()).map(([value, label]) => ({ value, label })).sort((a, b) => a.label.localeCompare(b.label));
+  }, [requisicoes]);
+
+  const statusOptions = useMemo(() => {
+    const set = new Set<string>();
+    requisicoes.forEach(r => set.add(r.status));
+    return Array.from(set).sort().map(s => ({ value: s, label: s }));
+  }, [requisicoes]);
 
   const filtered = useMemo(() => {
-    if (periodo === "todos") return requisicoes;
-    const now = new Date();
-    const days = periodo === "7" ? 7 : periodo === "30" ? 30 : periodo === "90" ? 90 : 365;
-    const cutoff = new Date(now.getTime() - days * 86400000);
-    return requisicoes.filter(r => new Date(r.dataCriacao) >= cutoff);
-  }, [requisicoes, periodo]);
+    return requisicoes.filter(r => {
+      const d = new Date(r.dataCriacao);
+      if (filters.dateFrom && d < filters.dateFrom) return false;
+      if (filters.dateTo) { const end = new Date(filters.dateTo); end.setHours(23, 59, 59, 999); if (d > end) return false; }
+      if (filters.clienteId !== "todos" && r.centroCusto !== filters.clienteId) return false;
+      if (filters.status !== "todos" && r.status !== filters.status) return false;
+      return true;
+    });
+  }, [requisicoes, filters]);
 
   // KPIs
   const totalReqs = filtered.length;
@@ -195,7 +215,7 @@ export default function DashboardCompras() {
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pw - 14, 14, { align: "right" });
-    doc.text(`Período: ${periodo === "todos" ? "Todos" : `Últimos ${periodo} dias`}`, pw - 14, 22, { align: "right" });
+    doc.text(`Período: ${filters.dateFrom || filters.dateTo ? `${filters.dateFrom ? format(filters.dateFrom, "dd/MM/yyyy") : "—"} a ${filters.dateTo ? format(filters.dateTo, "dd/MM/yyyy") : "—"}` : "Todos"}`, pw - 14, 22, { align: "right" });
     if (empresa?.cnpj) doc.text(`CNPJ: ${empresa.cnpj}`, pw - 14, 28, { align: "right" });
 
     doc.setTextColor(30, 30, 30);
@@ -338,17 +358,15 @@ export default function DashboardCompras() {
           <h1 className="text-xl font-bold text-foreground">Dashboard de Compras</h1>
           <p className="text-sm text-muted-foreground">Indicadores de desempenho do processo de compras.</p>
         </div>
-        <div className="flex gap-3 items-center">
-          <Select value={periodo} onValueChange={setPeriodo}>
-            <SelectTrigger className="w-44 h-9"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os períodos</SelectItem>
-              <SelectItem value="7">Últimos 7 dias</SelectItem>
-              <SelectItem value="30">Últimos 30 dias</SelectItem>
-              <SelectItem value="90">Últimos 90 dias</SelectItem>
-              <SelectItem value="365">Último ano</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex gap-3 items-center flex-wrap">
+          <DashboardFilters
+            storageKey="dashboard-compras:filters"
+            value={filters}
+            onChange={setFilters}
+            clienteOptions={centroCustoOptions}
+            clienteLabel="Centro de Custo"
+            statusOptions={statusOptions}
+          />
           <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={exportPdf}>
             <FileText className="h-3.5 w-3.5" />Relatório PDF
           </Button>
