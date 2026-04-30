@@ -3,6 +3,7 @@ import { useSolicitacoesServicos, SolicitacaoServico, HistoricoEntry } from "@/c
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
