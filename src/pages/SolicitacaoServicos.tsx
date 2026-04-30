@@ -53,6 +53,27 @@ const emptyForm = {
   equipamento_id: "", descricao_servicos: "", situacao: "Aguardando aprovação",
 };
 
+// Normaliza texto e calcula similaridade Jaccard entre tokens (0..1)
+const STOPWORDS = new Set(["de","da","do","das","dos","a","o","e","em","para","com","no","na","nos","nas","um","uma","por","que","ao","aos","as","os","ou","se","sem"]);
+function tokenize(text: string): Set<string> {
+  return new Set(
+    (text || "")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter(t => t.length >= 3 && !STOPWORDS.has(t))
+  );
+}
+function jaccardSimilarity(a: string, b: string): number {
+  const A = tokenize(a), B = tokenize(b);
+  if (A.size === 0 || B.size === 0) return 0;
+  let inter = 0;
+  A.forEach(t => { if (B.has(t)) inter++; });
+  const uni = A.size + B.size - inter;
+  return uni === 0 ? 0 : inter / uni;
+}
+
 export default function SolicitacaoServicosPage() {
   const { solicitacoes, addSolicitacao, updateSolicitacao, deleteSolicitacao } = useSolicitacoesServicos();
   const { clientes } = useClientes();
@@ -98,6 +119,10 @@ export default function SolicitacaoServicosPage() {
   const [prioridadeOnly, setPrioridadeOnly] = useState(false);
   
   const [viewTarget, setViewTarget] = useState<SolicitacaoServico | null>(null);
+
+  // Diálogo de duplicidade (mesmo setor, últimos 5 dias, descrição similar)
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+  const [duplicateMatches, setDuplicateMatches] = useState<SolicitacaoServico[]>([]);
 
   const soClientes = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
 
@@ -155,11 +180,38 @@ export default function SolicitacaoServicosPage() {
     return urls;
   };
 
+  const checkDuplicates = (): SolicitacaoServico[] => {
+    if (editingId) return [];
+    if (!form.setor_id || !form.descricao_servicos.trim()) return [];
+    const cincoDiasMs = 5 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    return solicitacoes.filter(s => {
+      if (s.clienteId !== form.cliente_id) return false;
+      if (s.setorId !== form.setor_id) return false;
+      if (s.situacao === "Cancelada") return false;
+      const ref = s.dataHoraSolicitacao || s.createdAt;
+      if (!ref) return false;
+      const t = new Date(ref).getTime();
+      if (isNaN(t) || (now - t) > cincoDiasMs) return false;
+      return jaccardSimilarity(s.descricaoServicos, form.descricao_servicos) >= 0.4;
+    });
+  };
+
   const handleSave = async () => {
     if (!form.cliente_id) { toast({ title: "Selecione um cliente", variant: "destructive" }); return; }
     if (!form.descricao_servicos.trim()) { toast({ title: "Descrição dos serviços obrigatória", variant: "destructive" }); return; }
     if (form.tipo === "Equipamentos" && !form.equipamento_id) { toast({ title: "Selecione um equipamento", variant: "destructive" }); return; }
 
+    const matches = checkDuplicates();
+    if (matches.length > 0) {
+      setDuplicateMatches(matches);
+      setDuplicateDialogOpen(true);
+      return;
+    }
+    await persistSave();
+  };
+
+  const persistSave = async () => {
     setUploading(true);
     const imagensUrls = await uploadImagens();
 
@@ -1194,6 +1246,48 @@ export default function SolicitacaoServicosPage() {
           })()}
           <DialogFooter>
             <Button variant="outline" onClick={() => setViewTarget(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de aviso de duplicidade */}
+      <Dialog open={duplicateDialogOpen} onOpenChange={setDuplicateDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-yellow-700">
+              <AlertTriangle className="h-5 w-5" />
+              Solicitação similar já existe
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Foram encontradas {duplicateMatches.length} solicitação(ões) abertas nos últimos 5 dias para o mesmo setor com descrição similar:
+            </p>
+            <div className="max-h-72 overflow-y-auto space-y-2">
+              {duplicateMatches.map(m => (
+                <div key={m.id} className="border rounded-md p-3 bg-muted/30">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold text-sm">SS Nº {m.numero}</span>
+                    <Badge variant="outline">{m.situacao}</Badge>
+                  </div>
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Setor: {m.setorDescricao} • Solicitante: {m.solicitanteNome || "-"} • {m.dataHoraSolicitacao ? new Date(m.dataHoraSolicitacao).toLocaleString("pt-BR") : "-"}
+                  </div>
+                  <p className="text-sm whitespace-pre-wrap">{m.descricaoServicos}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDuplicateDialogOpen(false)}>Cancelar</Button>
+            <Button
+              onClick={async () => {
+                setDuplicateDialogOpen(false);
+                await persistSave();
+              }}
+            >
+              Abrir mesmo assim
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
