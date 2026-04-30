@@ -22,12 +22,16 @@ const rowToUsuario = (r: any): Usuario => ({
   clientesPermitidos: r.clientes_permitidos ?? [],
   perfilAcessoId: r.perfil_acesso_id ?? "",
   matricula: r.matricula ?? "", ramal: r.ramal ?? "",
+  limiteAprovacaoCompras: Number(r.limite_aprovacao_compras ?? 0),
+  limiteAprovacaoOS: Number(r.limite_aprovacao_os ?? 0),
 });
 
 const usuarioToRow = (u: Omit<Usuario, "id">) => ({
   nome: u.nome, cargo_id: u.cargoId, telefone: u.telefone,
   email: u.email, senha: u.senha, clientes_permitidos: u.clientesPermitidos as any,
   perfil_acesso_id: u.perfilAcessoId, matricula: u.matricula, ramal: u.ramal,
+  limite_aprovacao_compras: u.limiteAprovacaoCompras ?? 0,
+  limite_aprovacao_os: u.limiteAprovacaoOS ?? 0,
 });
 
 export function UsuariosProvider({ children }: { children: ReactNode }) {
