@@ -232,6 +232,9 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
           a.descricao, a.equipamento_nome || "-", a.periodicidade || "-", a.responsavel || "-",
         ];
       });
+    const atrasadasTot = rows.filter(r => r[1] === "ATRASADA").length;
+    const aVencerTot = rows.filter(r => r[1] === "A vencer").length;
+    rows.push(["TOTAL", `${atrasadasTot} atrasada(s) / ${aVencerTot} a vencer`, `${rows.length} atividade(s)`, "", "", "", "", ""]);
     return {
       titulo: `Próximos Vencimentos (${janelaDias} dias)`,
       columns: ["Próx. Execução", "Situação", "Plano", "Cliente", "Atividade", "Equipamento", "Periodicidade", "Responsável"],
