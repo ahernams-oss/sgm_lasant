@@ -53,6 +53,27 @@ const emptyForm = {
   equipamento_id: "", descricao_servicos: "", situacao: "Aguardando aprovação",
 };
 
+// Normaliza texto e calcula similaridade Jaccard entre tokens (0..1)
+const STOPWORDS = new Set(["de","da","do","das","dos","a","o","e","em","para","com","no","na","nos","nas","um","uma","por","que","ao","aos","as","os","ou","se","sem"]);
+function tokenize(text: string): Set<string> {
+  return new Set(
+    (text || "")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter(t => t.length >= 3 && !STOPWORDS.has(t))
+  );
+}
+function jaccardSimilarity(a: string, b: string): number {
+  const A = tokenize(a), B = tokenize(b);
+  if (A.size === 0 || B.size === 0) return 0;
+  let inter = 0;
+  A.forEach(t => { if (B.has(t)) inter++; });
+  const uni = A.size + B.size - inter;
+  return uni === 0 ? 0 : inter / uni;
+}
+
 export default function SolicitacaoServicosPage() {
   const { solicitacoes, addSolicitacao, updateSolicitacao, deleteSolicitacao } = useSolicitacoesServicos();
   const { clientes } = useClientes();
