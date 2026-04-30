@@ -297,7 +297,7 @@ function PlanoManutencaoContent() {
             </TableBody>
           </Table>
           <PaginationControls
-            page={page} pageSize={pageSize} total={planosFiltrados.length}
+            currentPage={page} pageSize={pageSize} totalItems={planosFiltrados.length}
             onPageChange={setPage} onPageSizeChange={setPageSize}
           />
         </CardContent>
