@@ -92,6 +92,8 @@ import { RdoAssinaturasProvider } from "@/contexts/RdoAssinaturasContext";
 import VerificarAssinaturaPage from "./pages/VerificarAssinatura.tsx";
 import ResponsaveisTecnicosPage from "./pages/ResponsaveisTecnicos.tsx";
 import { ResponsaveisTecnicosProvider } from "@/contexts/ResponsaveisTecnicosContext";
+import { PlanosManutencaoProvider } from "@/contexts/PlanosManutencaoContext";
+import PlanoManutencaoPage from "./pages/PlanoManutencao.tsx";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
