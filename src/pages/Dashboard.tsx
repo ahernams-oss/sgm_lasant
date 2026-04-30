@@ -347,7 +347,7 @@ const Dashboard = () => {
   };
 
   const totalReqs = filteredReqs.length;
-  const hasFilter = dateFrom || dateTo;
+  
 
   return (
     <div className="bg-background">
