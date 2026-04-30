@@ -203,6 +203,9 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         const media = v.tempos.length === 0 ? 0 : v.tempos.reduce((s, t) => s + t, 0) / v.tempos.length;
         return [nome, String(v.qtd), `${media.toFixed(1)} dias`];
       });
+      const totalQtd = rows.reduce((s, r) => s + (Number(r[1]) || 0), 0);
+      const mediaGeral = rows.length === 0 ? 0 : rows.reduce((s, r) => s + parseFloat(r[2]), 0) / rows.length;
+      rows.push(["TOTAL", String(totalQtd), `${mediaGeral.toFixed(1)} dias (média)`]);
       return { titulo: `${tituloBase} — Produtividade`, columns: ["Operador", "Qtd OSs", "Tempo Médio"], rows, orientation: "p" };
     }
 
