@@ -21,7 +21,26 @@ serve(async (req) => {
       throw new Error('CHATPRO_INSTANCE is not configured');
     }
 
-    const { telefone, mensagem, documentUrl, documentFilename } = await req.json();
+    const body = await req.json();
+    const { telefone, mensagem, documentUrl, documentFilename, _probe } = body;
+
+    const telefoneLimpo = (telefone || '').replace(/\D/g, '');
+    const baseUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}`;
+
+    if (_probe) {
+      const endpoints = ['send_message_file','send_image','send_link','send_attachment','send_document','send_file','send_media','sendDocument','sendFile','send_doc'];
+      const results: Record<string, { status: number; body: string }> = {};
+      for (const ep of endpoints) {
+        const r = await fetch(`${baseUrl}/api/v1/${ep}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': CHATPRO_TOKEN },
+          body: JSON.stringify({ number: telefoneLimpo, url: 'https://example.com/x.pdf', file_name: 'x.pdf', caption: '' }),
+        });
+        const t = await r.text();
+        results[ep] = { status: r.status, body: t.substring(0, 150) };
+      }
+      return new Response(JSON.stringify({ success: true, results }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     if (!telefone || (!mensagem && !documentUrl)) {
       return new Response(
@@ -29,9 +48,6 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const telefoneLimpo = telefone.replace(/\D/g, '');
-    const baseUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}`;
 
     // Se tiver documento, envia como arquivo
     if (documentUrl) {
