@@ -159,7 +159,12 @@ const Fornecedores = () => {
                 Cadastre e gerencie os fornecedores do sistema.
               </p>
             </div>
-            <ImportClientesFornecedores tipo="Fornecedor" />
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setRelatorioOpen(true)} className="gap-2">
+                <FileBarChart className="h-4 w-4" /> Relatório
+              </Button>
+              <ImportClientesFornecedores tipo="Fornecedor" />
+            </div>
           </div>
         </div>
 
