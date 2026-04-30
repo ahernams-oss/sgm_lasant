@@ -314,14 +314,13 @@ function PlanoManutencaoContent() {
         onUpdateAtividade={updateAtividade}
         onDeleteAtividade={deleteAtividade}
         onAddExecucao={addExecucao}
-        addOrdemServico={addOrdemServico}
+        addOrdemServico={addOrdem}
       />
 
       <DoubleConfirmDelete
         open={!!deleteId}
+        onOpenChange={(o) => !o && cancelDelete()}
         onConfirm={confirmDelete}
-        onCancel={cancelDelete}
-        itemName="este plano de manutenção (e todas suas atividades/execuções)"
       />
     </div>
   );
