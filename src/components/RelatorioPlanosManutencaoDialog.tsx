@@ -163,6 +163,8 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
           e.observacoes || "-",
         ];
       });
+      const mediaConfExec = rows.length === 0 ? 0 : Math.round(rows.reduce((s, r) => s + parseInt(r[5]), 0) / rows.length);
+      rows.push(["", "", "", "", `TOTAL: ${rows.length} execução(ões)`, `${mediaConfExec}% (média)`, "", ""]);
       return {
         titulo: "Histórico de Execuções",
         columns: ["Data", "Plano", "Cliente", "Atividade", "Responsável", "Conform.", "Nº OS", "Observações"],
