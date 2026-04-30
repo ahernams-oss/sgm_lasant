@@ -45,7 +45,7 @@ function PlanoManutencaoContent() {
   const { clientes } = useClientes();
   const { equipamentos } = useEquipamentos();
   const { responsaveis } = useResponsaveisTecnicos();
-  const { ordensServico, addOrdemServico } = useOrdensServico();
+  const { addOrdem } = useOrdensServico();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const clientesList = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
