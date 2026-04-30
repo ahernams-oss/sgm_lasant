@@ -39,7 +39,7 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
   const { tem } = usePermissao();
   const podeVerValorFolha = tem("clientes.ver_valor_folha");
 
-  const update = (field: string, value: any) =>
+  const update = <K extends keyof Omit<Faturamento, "id">>(field: K, value: Omit<Faturamento, "id">[K]) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleImportXml = (e: React.ChangeEvent<HTMLInputElement>) => {
