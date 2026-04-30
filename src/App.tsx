@@ -237,6 +237,7 @@ const App = () => (
     </AuthProvider>
     </RdoAssinaturasProvider>
     </RdosProvider>
+    </PlanosManutencaoProvider>
     </ResponsaveisTecnicosProvider>
     </ProcessosTrabalhalistasProvider>
     </ComunicacaoProvider>
