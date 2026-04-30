@@ -3900,6 +3900,8 @@ export type Database = {
           created_at: string | null
           email: string
           id: string
+          limite_aprovacao_compras: number
+          limite_aprovacao_os: number
           matricula: string | null
           nome: string
           perfil_acesso_id: string | null
@@ -3913,6 +3915,8 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
+          limite_aprovacao_compras?: number
+          limite_aprovacao_os?: number
           matricula?: string | null
           nome?: string
           perfil_acesso_id?: string | null
@@ -3926,6 +3930,8 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
+          limite_aprovacao_compras?: number
+          limite_aprovacao_os?: number
           matricula?: string | null
           nome?: string
           perfil_acesso_id?: string | null

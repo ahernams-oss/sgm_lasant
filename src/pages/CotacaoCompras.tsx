@@ -5,6 +5,7 @@ import { useRequisicaoCompras, RequisicaoCompras } from "@/contexts/RequisicaoCo
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ export default function CotacaoComprasPage() {
   const { addPedido } = usePedidoCompra();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
+  const { podeAprovar } = useLimiteAprovacao();
   const { empresa } = useEmpresa();
   const { toast } = useToast();
 
@@ -224,6 +226,23 @@ export default function CotacaoComprasPage() {
     if (!cot) return;
     const req = requisicoes.find(r => r.id === cot.requisicaoId);
     if (!req) return;
+
+    // Calcula valor total da aprovação para validar limite do usuário
+    const valorAprovacao = (() => {
+      if (finModoItemizado) {
+        return req.itens.reduce((sum, item) => {
+          const fornId = finItensVencedores[item.id];
+          if (!fornId) return sum;
+          const prop = cot.propostas.find(p => p.fornecedorId === fornId);
+          const it = prop?.itens.find(i => i.itemId === item.id);
+          return sum + (it ? it.precoUnitario * it.quantidade : 0);
+        }, 0);
+      }
+      const prop = cot.propostas.find(p => p.fornecedorId === finVencedorId);
+      return prop?.valorTotal ?? 0;
+    })();
+
+    if (!podeAprovar(valorAprovacao, "compras")) return;
 
     if (finModoItemizado) {
       const allAssigned = req.itens.every(i => finItensVencedores[i.id]);

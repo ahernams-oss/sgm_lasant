@@ -3,6 +3,7 @@ import { useSolicitacoesServicos, SolicitacaoServico, HistoricoEntry } from "@/c
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
@@ -59,6 +60,7 @@ export default function SolicitacaoServicosPage() {
   const { empresa } = useEmpresa();
   const { toast } = useToast();
   const { usuarioLogado } = useAuth();
+  const { podeAprovar } = useLimiteAprovacao();
 
   const buildHistoricoEntry = (situacao: string, existingHistorico: HistoricoEntry[] = []): HistoricoEntry[] => [
     ...existingHistorico,
@@ -256,6 +258,11 @@ export default function SolicitacaoServicosPage() {
       }
       toast({ title: `Prioridade alterada para ${selectedPrioridade}` });
     } else {
+      // Valida limite de aprovação (valor da SS, geralmente sem orçamento ainda = 0)
+      const ssAux = solicitacoes.find(s => s.id === approvalTargetId);
+      const orcVinc = orcamentos.find(o => o.solicitacaoId === approvalTargetId);
+      const valorSS = Number(orcVinc?.valorTotal ?? (ssAux as any)?.valorTotal ?? 0);
+      if (!podeAprovar(valorSS, "os")) return;
       const ss = solicitacoes.find(s => s.id === approvalTargetId);
       await updateSolicitacao(approvalTargetId, {
         situacao: "Aprovada",
@@ -342,6 +349,9 @@ export default function SolicitacaoServicosPage() {
     // When budget is approved, create OS linked to it
     const ss = solicitacoes.find(s => s.id === orcamento.solicitacaoId);
     if (!ss) return;
+
+    const valorOrc = Number(orcamento?.valorTotal ?? 0);
+    if (!podeAprovar(valorOrc, "os")) return;
 
     await updateSolicitacao(ss.id, {
       situacao: "Aprovada",

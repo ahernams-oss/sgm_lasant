@@ -23,6 +23,7 @@ const emptyForm = {
   nome: "", cargoId: "", telefone: "+55 ", email: "", senha: "",
   clientesPermitidos: [] as string[], perfilAcessoId: "",
   matricula: "", ramal: "",
+  limiteAprovacaoCompras: 0, limiteAprovacaoOS: 0,
 };
 
 const Usuarios = () => {
@@ -43,7 +44,7 @@ const Usuarios = () => {
   const [searchClientes, setSearchClientes] = useState("");
   const [searchFornecedores, setSearchFornecedores] = useState("");
 
-  const update = (field: string, value: string) =>
+  const update = (field: string, value: string | number) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const toggleCliente = (clienteId: string) => {
@@ -93,6 +94,8 @@ const Usuarios = () => {
       nome: u.nome, cargoId: u.cargoId, telefone: u.telefone,
       email: u.email, senha: "", clientesPermitidos: [...u.clientesPermitidos],
       perfilAcessoId: u.perfilAcessoId, matricula: u.matricula, ramal: u.ramal,
+      limiteAprovacaoCompras: u.limiteAprovacaoCompras ?? 0,
+      limiteAprovacaoOS: u.limiteAprovacaoOS ?? 0,
     });
     setEditingId(u.id);
     setShowForm(true);
@@ -226,6 +229,30 @@ const Usuarios = () => {
                         {perfis.map((p) => (<SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>))}
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-foreground/80">Limite Aprovação Compras (R$)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={form.limiteAprovacaoCompras}
+                      onChange={(e) => update("limiteAprovacaoCompras", parseFloat(e.target.value.replace(",", ".")) || 0)}
+                      placeholder="0,00"
+                    />
+                    <p className="text-[11px] text-muted-foreground">Valor máximo que o usuário pode aprovar em cotações de compras. 0 = sem permissão.</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-foreground/80">Limite Aprovação OS / SS (R$)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={form.limiteAprovacaoOS}
+                      onChange={(e) => update("limiteAprovacaoOS", parseFloat(e.target.value.replace(",", ".")) || 0)}
+                      placeholder="0,00"
+                    />
+                    <p className="text-[11px] text-muted-foreground">Valor máximo que o usuário pode aprovar em Ordens e Solicitações de Serviço. 0 = sem permissão.</p>
                   </div>
                 </div>
               </TabsContent>

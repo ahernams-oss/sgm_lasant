@@ -3,6 +3,7 @@ import { useSolicitacoesServicos, SolicitacaoServico, HistoricoEntry } from "@/c
 import { useClientes } from "@/contexts/ClientesContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ export default function AprovarLoteSS() {
   const { clientes } = useClientes();
   const { addOrdem } = useOrdensServico();
   const { usuarioLogado } = useAuth();
+  const { podeAprovar } = useLimiteAprovacao();
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
@@ -105,6 +107,8 @@ export default function AprovarLoteSS() {
       toast({ title: "Selecione o nível de prioridade", variant: "destructive" });
       return;
     }
+    // Valida limite de aprovação OS (lote sem orçamento = valor 0; basta limite > 0)
+    if (!podeAprovar(0, "os")) return;
     setApproving(true);
     try {
       const toApprove = solicitacoes.filter(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação");
