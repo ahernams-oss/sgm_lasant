@@ -584,6 +584,14 @@ const Clientes = () => {
       </div>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
       <DoubleConfirmDelete open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen} onConfirm={handleBulkDelete} />
+      <RelatorioClienteFornecedorDialog
+        open={relatorioOpen}
+        onOpenChange={setRelatorioOpen}
+        tipo="Cliente"
+        todos={apenasClientes}
+        filtrados={filteredClientes}
+        selecionados={apenasClientes.filter(c => selectedIds.includes(c.id))}
+      />
     </div>
   );
 };
