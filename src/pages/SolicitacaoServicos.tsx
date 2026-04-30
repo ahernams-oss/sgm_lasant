@@ -1249,6 +1249,48 @@ export default function SolicitacaoServicosPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo de aviso de duplicidade */}
+      <Dialog open={duplicateDialogOpen} onOpenChange={setDuplicateDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-yellow-700">
+              <AlertTriangle className="h-5 w-5" />
+              Solicitação similar já existe
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Foram encontradas {duplicateMatches.length} solicitação(ões) abertas nos últimos 5 dias para o mesmo setor com descrição similar:
+            </p>
+            <div className="max-h-72 overflow-y-auto space-y-2">
+              {duplicateMatches.map(m => (
+                <div key={m.id} className="border rounded-md p-3 bg-muted/30">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold text-sm">SS Nº {m.numero}</span>
+                    <Badge variant="outline">{m.situacao}</Badge>
+                  </div>
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Setor: {m.setorDescricao} • Solicitante: {m.solicitanteNome || "-"} • {m.dataHoraSolicitacao ? new Date(m.dataHoraSolicitacao).toLocaleString("pt-BR") : "-"}
+                  </div>
+                  <p className="text-sm whitespace-pre-wrap">{m.descricaoServicos}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDuplicateDialogOpen(false)}>Cancelar</Button>
+            <Button
+              onClick={async () => {
+                setDuplicateDialogOpen(false);
+                await persistSave();
+              }}
+            >
+              Abrir mesmo assim
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
