@@ -184,6 +184,10 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
           String(total), String(exec), String(pendentes), String(atrasadas), `${conf}%`,
         ];
       });
+      const sumIdx = (i: number) => rows.reduce((s, r) => s + (Number(r[i]) || 0), 0);
+      const tTot = sumIdx(3), tExec = sumIdx(4), tPend = sumIdx(5), tAtr = sumIdx(6);
+      const confGeral = tTot === 0 ? 0 : Math.round((tExec / tTot) * 100);
+      rows.push(["TOTAL", `${rows.length} plano(s)`, "", String(tTot), String(tExec), String(tPend), String(tAtr), `${confGeral}%`]);
       return {
         titulo: "Relatório de Conformidade",
         columns: ["Plano", "Cliente", "Status", "Total Atv.", "Executadas", "Pendentes", "Atrasadas", "Conform."],
