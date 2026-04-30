@@ -153,6 +153,7 @@ const Clientes = () => {
   const { deleteId: deleteContratoId, requestDelete: requestDeleteContrato, cancelDelete: cancelDeleteContrato } = useDoubleConfirmDelete();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [relatorioOpen, setRelatorioOpen] = useState(false);
 
   const toggleOne = (id: string) =>
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
