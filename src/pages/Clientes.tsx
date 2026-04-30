@@ -378,6 +378,18 @@ const Clientes = () => {
                     <Button variant="ghost" size="sm" onClick={() => handleEnviarWhatsApp(cliente)} className="text-emerald-600 hover:text-emerald-700" title="Enviar WhatsApp">
                       <MessageCircle className="h-3.5 w-3.5" />
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setContratosClienteId(contratosClienteId === cliente.id ? null : cliente.id);
+                        setContratoForm(emptyContrato);
+                        setEditingContratoId(null);
+                      }}
+                      className="text-xs gap-1"
+                    >
+                      <FileText className="h-3.5 w-3.5" /> Contratos
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(cliente)} className="text-xs">Editar</Button>
                     <Button variant="ghost" size="sm" onClick={() => requestDelete(cliente.id)} className="text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />
@@ -535,8 +547,8 @@ const Clientes = () => {
                           <p className="text-muted-foreground">Ano SCO: {ct.anoSco || "—"}</p>
                         </div>
                         <div className="flex gap-1 shrink-0">
-                          <Button variant="ghost" size="sm" type="button" onClick={() => setFaturamentoContratoId(faturamentoContratoId === ct.id ? null : ct.id)} className="text-xs gap-1" title="Faturamento">
-                            <DollarSign className="h-3.5 w-3.5" /> Faturamento
+                          <Button variant="outline" size="sm" type="button" onClick={() => setFaturamentoContratoId(faturamentoContratoId === ct.id ? null : ct.id)} className="text-xs gap-1" title="Gerenciar Faturamento">
+                            <DollarSign className="h-3.5 w-3.5" /> Gerenciar Faturamento
                           </Button>
                           <Button variant="ghost" size="sm" onClick={() => handleEditContrato(ct)} className="text-xs">Editar</Button>
                           <Button variant="ghost" size="sm" onClick={() => requestDeleteContrato(ct.id)} className="text-destructive hover:text-destructive">
