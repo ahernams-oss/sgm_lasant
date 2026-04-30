@@ -44,7 +44,7 @@ const Usuarios = () => {
   const [searchClientes, setSearchClientes] = useState("");
   const [searchFornecedores, setSearchFornecedores] = useState("");
 
-  const update = (field: string, value: string) =>
+  const update = (field: string, value: string | number) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const toggleCliente = (clienteId: string) => {
