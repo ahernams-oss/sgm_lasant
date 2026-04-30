@@ -350,6 +350,9 @@ export default function SolicitacaoServicosPage() {
     const ss = solicitacoes.find(s => s.id === orcamento.solicitacaoId);
     if (!ss) return;
 
+    const valorOrc = Number(orcamento?.valorTotal ?? 0);
+    if (!podeAprovar(valorOrc, "os")) return;
+
     await updateSolicitacao(ss.id, {
       situacao: "Aprovada",
       prioridade: ss.prioridade || "Normal",
