@@ -283,7 +283,12 @@ const Clientes = () => {
                 Cadastre e gerencie os clientes do sistema.
               </p>
             </div>
-            <ImportClientesFornecedores tipo="Cliente" />
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setRelatorioOpen(true)} className="gap-2">
+                <FileBarChart className="h-4 w-4" /> Relatório
+              </Button>
+              <ImportClientesFornecedores tipo="Cliente" />
+            </div>
           </div>
         </div>
 
