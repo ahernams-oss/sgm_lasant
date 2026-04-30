@@ -94,6 +94,8 @@ const Usuarios = () => {
       nome: u.nome, cargoId: u.cargoId, telefone: u.telefone,
       email: u.email, senha: "", clientesPermitidos: [...u.clientesPermitidos],
       perfilAcessoId: u.perfilAcessoId, matricula: u.matricula, ramal: u.ramal,
+      limiteAprovacaoCompras: u.limiteAprovacaoCompras ?? 0,
+      limiteAprovacaoOS: u.limiteAprovacaoOS ?? 0,
     });
     setEditingId(u.id);
     setShowForm(true);
