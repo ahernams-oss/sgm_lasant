@@ -523,17 +523,28 @@ export default function SolicitacaoServicosPage() {
     if (filterSituacao !== "all") result = result.filter(s => s.situacao === filterSituacao);
     if (filterVisitado !== "all") result = result.filter(s => filterVisitado === "sim" ? s.visitado : !s.visitado);
 
-    if (sortField) {
-      result = [...result].sort((a, b) => {
-        let cmp = 0;
-        if (sortField === "numero") {
-          cmp = a.numero - b.numero;
-        } else {
-          cmp = (a.dataHoraSolicitacao || "").localeCompare(b.dataHoraSolicitacao || "");
-        }
-        return sortDir === "asc" ? cmp : -cmp;
-      });
-    }
+    // Ordenação primária SEMPRE por prioridade: Emergencial (vermelho) → Urgente (amarelo) → Normal (verde) → sem prioridade
+    const prioridadeRank = (p: string) => {
+      if (p === "Emergencial") return 1;
+      if (p === "Urgente") return 2;
+      if (p === "Normal") return 3;
+      return 4;
+    };
+    result = [...result].sort((a, b) => {
+      const rankCmp = prioridadeRank(a.prioridade) - prioridadeRank(b.prioridade);
+      if (rankCmp !== 0) return rankCmp;
+      // Desempate pelo sort do usuário (ou número decrescente por padrão)
+      let cmp = 0;
+      if (sortField === "numero") {
+        cmp = a.numero - b.numero;
+      } else if (sortField === "dataHora") {
+        cmp = (a.dataHoraSolicitacao || "").localeCompare(b.dataHoraSolicitacao || "");
+      } else {
+        cmp = b.numero - a.numero;
+        return cmp;
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
 
     return result;
   }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterVisitado, sortField, sortDir]);
