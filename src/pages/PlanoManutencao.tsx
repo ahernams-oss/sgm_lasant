@@ -66,6 +66,7 @@ function PlanoManutencaoContent() {
   });
 
   const [detailPlano, setDetailPlano] = useState<PlanoManutencao | null>(null);
+  const [relatorioOpen, setRelatorioOpen] = useState(false);
 
   const planosFiltrados = useMemo(() => {
     return planos.filter(p => {
