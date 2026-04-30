@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { usePlanosManutencao, type PlanoManutencao, type PlanoAtividade, type ChecklistItem } from "@/contexts/PlanosManutencaoContext";
+import RelatorioPlanosManutencaoDialog from "@/components/RelatorioPlanosManutencaoDialog";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useResponsaveisTecnicos } from "@/contexts/ResponsaveisTecnicosContext";
