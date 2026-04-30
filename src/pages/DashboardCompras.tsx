@@ -91,8 +91,8 @@ export default function DashboardCompras() {
   const centroCustoOptions = useMemo(() => {
     const map = new Map<string, string>();
     requisicoes.forEach(r => {
-      if (r.centroCustoId && r.centroCustoNome && !map.has(r.centroCustoId)) {
-        map.set(r.centroCustoId, r.centroCustoNome);
+      if (r.centroCusto && r.centroCustoNome && !map.has(r.centroCusto)) {
+        map.set(r.centroCusto, r.centroCustoNome);
       }
     });
     return Array.from(map.entries()).map(([value, label]) => ({ value, label })).sort((a, b) => a.label.localeCompare(b.label));
@@ -109,7 +109,7 @@ export default function DashboardCompras() {
       const d = new Date(r.dataCriacao);
       if (filters.dateFrom && d < filters.dateFrom) return false;
       if (filters.dateTo) { const end = new Date(filters.dateTo); end.setHours(23, 59, 59, 999); if (d > end) return false; }
-      if (filters.clienteId !== "todos" && r.centroCustoId !== filters.clienteId) return false;
+      if (filters.clienteId !== "todos" && r.centroCusto !== filters.clienteId) return false;
       if (filters.status !== "todos" && r.status !== filters.status) return false;
       return true;
     });
