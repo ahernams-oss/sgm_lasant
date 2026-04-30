@@ -208,6 +208,7 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
           });
         }
       });
+      rows.push(["", "", "", `TOTAL: ${rows.length} item(ns) de checklist`, ""]);
       return {
         titulo: "Checklists das Atividades",
         columns: ["Plano", "Atividade", "Item de Checklist", "Obrigatório"],
