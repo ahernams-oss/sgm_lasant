@@ -180,11 +180,6 @@ export default function SolicitacaoServicosPage() {
     return urls;
   };
 
-  const handleSave = async () => {
-    if (!form.cliente_id) { toast({ title: "Selecione um cliente", variant: "destructive" }); return; }
-    if (!form.descricao_servicos.trim()) { toast({ title: "Descrição dos serviços obrigatória", variant: "destructive" }); return; }
-    if (form.tipo === "Equipamentos" && !form.equipamento_id) { toast({ title: "Selecione um equipamento", variant: "destructive" }); return; }
-
   const checkDuplicates = (): SolicitacaoServico[] => {
     if (editingId) return [];
     if (!form.setor_id || !form.descricao_servicos.trim()) return [];
