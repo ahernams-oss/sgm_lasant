@@ -120,6 +120,10 @@ export default function SolicitacaoServicosPage() {
   
   const [viewTarget, setViewTarget] = useState<SolicitacaoServico | null>(null);
 
+  // Diálogo de duplicidade (mesmo setor, últimos 5 dias, descrição similar)
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+  const [duplicateMatches, setDuplicateMatches] = useState<SolicitacaoServico[]>([]);
+
   const soClientes = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
 
   const selectedCliente = useMemo(() => soClientes.find(c => c.id === form.cliente_id), [soClientes, form.cliente_id]);
