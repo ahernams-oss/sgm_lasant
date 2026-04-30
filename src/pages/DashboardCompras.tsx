@@ -358,17 +358,15 @@ export default function DashboardCompras() {
           <h1 className="text-xl font-bold text-foreground">Dashboard de Compras</h1>
           <p className="text-sm text-muted-foreground">Indicadores de desempenho do processo de compras.</p>
         </div>
-        <div className="flex gap-3 items-center">
-          <Select value={periodo} onValueChange={setPeriodo}>
-            <SelectTrigger className="w-44 h-9"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os períodos</SelectItem>
-              <SelectItem value="7">Últimos 7 dias</SelectItem>
-              <SelectItem value="30">Últimos 30 dias</SelectItem>
-              <SelectItem value="90">Últimos 90 dias</SelectItem>
-              <SelectItem value="365">Último ano</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex gap-3 items-center flex-wrap">
+          <DashboardFilters
+            storageKey="dashboard-compras:filters"
+            value={filters}
+            onChange={setFilters}
+            clienteOptions={centroCustoOptions}
+            clienteLabel="Centro de Custo"
+            statusOptions={statusOptions}
+          />
           <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={exportPdf}>
             <FileText className="h-3.5 w-3.5" />Relatório PDF
           </Button>
