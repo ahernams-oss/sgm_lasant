@@ -329,6 +329,14 @@ function PlanoManutencaoContent() {
         onOpenChange={(o) => !o && cancelDelete()}
         onConfirm={confirmDelete}
       />
+
+      <RelatorioPlanosManutencaoDialog
+        open={relatorioOpen}
+        onOpenChange={setRelatorioOpen}
+        planos={planos}
+        atividades={atividades}
+        execucoes={execucoes}
+      />
     </div>
   );
 }
