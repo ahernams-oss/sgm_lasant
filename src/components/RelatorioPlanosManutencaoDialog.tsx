@@ -122,6 +122,9 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
           String(ats.length), `${conf}%`, p.status,
         ];
       });
+      const totAtv = rows.reduce((s, r) => s + (Number(r[6]) || 0), 0);
+      const mediaConf = rows.length === 0 ? 0 : Math.round(rows.reduce((s, r) => s + parseInt(r[7]), 0) / rows.length);
+      rows.push(["TOTAL", `${rows.length} plano(s)`, "", "", "", "", String(totAtv), `${mediaConf}% (média)`, ""]);
       return {
         titulo: "Relatório de Planos de Manutenção",
         columns: ["Título", "Cliente", "Contrato", "Início", "Fim", "Resp. Técnico", "Atividades", "Conform.", "Status"],
@@ -139,6 +142,7 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
           a.responsavel || "-", fmtData(a.ultima_execucao), fmtData(a.proxima_execucao), a.status || "-",
         ];
       });
+      rows.push(["", "", "", "", "", "", "", "", "", "", `TOTAL: ${rows.length} atividade(s)`]);
       return {
         titulo: "Relatório de Atividades dos Planos",
         columns: ["Plano", "Cliente", "Descrição", "Equipamento", "Tipo", "Periodicidade", "Prioridade", "Responsável", "Últ. Execução", "Próx. Execução", "Status"],
@@ -159,6 +163,8 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
           e.observacoes || "-",
         ];
       });
+      const mediaConfExec = rows.length === 0 ? 0 : Math.round(rows.reduce((s, r) => s + parseInt(r[5]), 0) / rows.length);
+      rows.push(["", "", "", "", `TOTAL: ${rows.length} execução(ões)`, `${mediaConfExec}% (média)`, "", ""]);
       return {
         titulo: "Histórico de Execuções",
         columns: ["Data", "Plano", "Cliente", "Atividade", "Responsável", "Conform.", "Nº OS", "Observações"],
@@ -178,6 +184,10 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
           String(total), String(exec), String(pendentes), String(atrasadas), `${conf}%`,
         ];
       });
+      const sumIdx = (i: number) => rows.reduce((s, r) => s + (Number(r[i]) || 0), 0);
+      const tTot = sumIdx(3), tExec = sumIdx(4), tPend = sumIdx(5), tAtr = sumIdx(6);
+      const confGeral = tTot === 0 ? 0 : Math.round((tExec / tTot) * 100);
+      rows.push(["TOTAL", `${rows.length} plano(s)`, "", String(tTot), String(tExec), String(tPend), String(tAtr), `${confGeral}%`]);
       return {
         titulo: "Relatório de Conformidade",
         columns: ["Plano", "Cliente", "Status", "Total Atv.", "Executadas", "Pendentes", "Atrasadas", "Conform."],
@@ -198,6 +208,7 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
           });
         }
       });
+      rows.push(["", "", `TOTAL: ${rows.length} item(ns)`, ""]);
       return {
         titulo: "Checklists das Atividades",
         columns: ["Plano", "Atividade", "Item de Checklist", "Obrigatório"],
@@ -221,6 +232,9 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
           a.descricao, a.equipamento_nome || "-", a.periodicidade || "-", a.responsavel || "-",
         ];
       });
+    const atrasadasTot = rows.filter(r => r[1] === "ATRASADA").length;
+    const aVencerTot = rows.filter(r => r[1] === "A vencer").length;
+    rows.push(["TOTAL", `${atrasadasTot} atrasada(s) / ${aVencerTot} a vencer`, `${rows.length} atividade(s)`, "", "", "", "", ""]);
     return {
       titulo: `Próximos Vencimentos (${janelaDias} dias)`,
       columns: ["Próx. Execução", "Situação", "Plano", "Cliente", "Atividade", "Equipamento", "Periodicidade", "Responsável"],
