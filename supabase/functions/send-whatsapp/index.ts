@@ -35,7 +35,7 @@ serve(async (req) => {
 
     // Se tiver documento, envia como arquivo
     if (documentUrl) {
-      const chatproUrl = `${baseUrl}/api/v1/send_document`;
+      const chatproUrl = `${baseUrl}/api/v1/send_file`;
 
       const response = await fetch(chatproUrl, {
         method: 'POST',
@@ -46,7 +46,7 @@ serve(async (req) => {
         body: JSON.stringify({
           number: telefoneLimpo,
           url: documentUrl,
-          filename: documentFilename || 'documento.pdf',
+          file_name: documentFilename || 'documento.pdf',
           caption: mensagem || '',
         }),
       });
