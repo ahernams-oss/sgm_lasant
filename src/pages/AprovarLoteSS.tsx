@@ -107,6 +107,8 @@ export default function AprovarLoteSS() {
       toast({ title: "Selecione o nível de prioridade", variant: "destructive" });
       return;
     }
+    // Valida limite de aprovação OS (lote sem orçamento = valor 0; basta limite > 0)
+    if (!podeAprovar(0, "os")) return;
     setApproving(true);
     try {
       const toApprove = solicitacoes.filter(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação");
