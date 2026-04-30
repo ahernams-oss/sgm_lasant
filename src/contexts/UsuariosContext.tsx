@@ -5,6 +5,7 @@ export interface Usuario {
   id: string; nome: string; cargoId: string; telefone: string;
   email: string; senha: string; clientesPermitidos: string[];
   perfilAcessoId: string; matricula: string; ramal: string;
+  limiteAprovacaoCompras: number; limiteAprovacaoOS: number;
 }
 
 interface UsuariosContextType {
