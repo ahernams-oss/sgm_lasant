@@ -3,7 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
-import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin, FileText, Plus, ChevronDown, ChevronUp, Truck, DollarSign } from "lucide-react";
+import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin, FileText, Plus, ChevronDown, ChevronUp, Truck, DollarSign, FileBarChart } from "lucide-react";
+import RelatorioClienteFornecedorDialog from "@/components/RelatorioClienteFornecedorDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Input } from "@/components/ui/input";
@@ -152,6 +153,7 @@ const Clientes = () => {
   const { deleteId: deleteContratoId, requestDelete: requestDeleteContrato, cancelDelete: cancelDeleteContrato } = useDoubleConfirmDelete();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [relatorioOpen, setRelatorioOpen] = useState(false);
 
   const toggleOne = (id: string) =>
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -281,7 +283,12 @@ const Clientes = () => {
                 Cadastre e gerencie os clientes do sistema.
               </p>
             </div>
-            <ImportClientesFornecedores tipo="Cliente" />
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setRelatorioOpen(true)} className="gap-2">
+                <FileBarChart className="h-4 w-4" /> Relatório
+              </Button>
+              <ImportClientesFornecedores tipo="Cliente" />
+            </div>
           </div>
         </div>
 
@@ -577,6 +584,14 @@ const Clientes = () => {
       </div>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
       <DoubleConfirmDelete open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen} onConfirm={handleBulkDelete} />
+      <RelatorioClienteFornecedorDialog
+        open={relatorioOpen}
+        onOpenChange={setRelatorioOpen}
+        tipo="Cliente"
+        todos={apenasClientes}
+        filtrados={filteredClientes}
+        selecionados={apenasClientes.filter(c => selectedIds.includes(c.id))}
+      />
     </div>
   );
 };
