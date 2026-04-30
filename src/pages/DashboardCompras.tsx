@@ -86,15 +86,34 @@ export default function DashboardCompras() {
   const { materiais } = useMateriaisServicos();
   const { getDescricaoCompleta } = useCategoriasCompras();
   const { empresa } = useEmpresa();
-  const [periodo, setPeriodo] = useState("todos");
+  const [filters, setFilters] = useState<DashboardFiltersState>(() => loadDashboardFilters("dashboard-compras:filters"));
+
+  const centroCustoOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    requisicoes.forEach(r => {
+      if (r.centroCustoId && r.centroCustoNome && !map.has(r.centroCustoId)) {
+        map.set(r.centroCustoId, r.centroCustoNome);
+      }
+    });
+    return Array.from(map.entries()).map(([value, label]) => ({ value, label })).sort((a, b) => a.label.localeCompare(b.label));
+  }, [requisicoes]);
+
+  const statusOptions = useMemo(() => {
+    const set = new Set<string>();
+    requisicoes.forEach(r => set.add(r.status));
+    return Array.from(set).sort().map(s => ({ value: s, label: s }));
+  }, [requisicoes]);
 
   const filtered = useMemo(() => {
-    if (periodo === "todos") return requisicoes;
-    const now = new Date();
-    const days = periodo === "7" ? 7 : periodo === "30" ? 30 : periodo === "90" ? 90 : 365;
-    const cutoff = new Date(now.getTime() - days * 86400000);
-    return requisicoes.filter(r => new Date(r.dataCriacao) >= cutoff);
-  }, [requisicoes, periodo]);
+    return requisicoes.filter(r => {
+      const d = new Date(r.dataCriacao);
+      if (filters.dateFrom && d < filters.dateFrom) return false;
+      if (filters.dateTo) { const end = new Date(filters.dateTo); end.setHours(23, 59, 59, 999); if (d > end) return false; }
+      if (filters.clienteId !== "todos" && r.centroCustoId !== filters.clienteId) return false;
+      if (filters.status !== "todos" && r.status !== filters.status) return false;
+      return true;
+    });
+  }, [requisicoes, filters]);
 
   // KPIs
   const totalReqs = filtered.length;
