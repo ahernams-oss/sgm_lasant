@@ -77,7 +77,7 @@ function PlanoManutencaoContent() {
     });
   }, [planos, search, filtroCliente, filtroStatus]);
 
-  const paginated = paginate(planosFiltrados, page, pageSize);
+  const { paginated } = paginate(planosFiltrados, page, pageSize);
 
   const resetForm = () => {
     setForm({
