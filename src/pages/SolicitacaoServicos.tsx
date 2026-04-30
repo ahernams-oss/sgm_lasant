@@ -60,6 +60,7 @@ export default function SolicitacaoServicosPage() {
   const { empresa } = useEmpresa();
   const { toast } = useToast();
   const { usuarioLogado } = useAuth();
+  const { podeAprovar } = useLimiteAprovacao();
 
   const buildHistoricoEntry = (situacao: string, existingHistorico: HistoricoEntry[] = []): HistoricoEntry[] => [
     ...existingHistorico,
