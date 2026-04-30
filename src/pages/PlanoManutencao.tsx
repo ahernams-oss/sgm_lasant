@@ -141,9 +141,14 @@ function PlanoManutencaoContent() {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
-      <div className="flex items-center gap-3">
-        <Wrench className="h-7 w-7 text-primary" />
-        <h1 className="text-2xl md:text-3xl font-serif font-bold">Plano de Manutenção Preventiva</h1>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <Wrench className="h-7 w-7 text-primary" />
+          <h1 className="text-2xl md:text-3xl font-serif font-bold">Plano de Manutenção Preventiva</h1>
+        </div>
+        <Button variant="outline" onClick={() => setRelatorioOpen(true)} className="gap-2">
+          <FileBarChart className="h-4 w-4" /> Relatórios
+        </Button>
       </div>
 
       {/* Formulário */}
