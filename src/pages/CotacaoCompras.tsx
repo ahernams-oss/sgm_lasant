@@ -5,6 +5,7 @@ import { useRequisicaoCompras, RequisicaoCompras } from "@/contexts/RequisicaoCo
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
