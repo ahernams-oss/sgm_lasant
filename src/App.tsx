@@ -92,6 +92,8 @@ import { RdoAssinaturasProvider } from "@/contexts/RdoAssinaturasContext";
 import VerificarAssinaturaPage from "./pages/VerificarAssinatura.tsx";
 import ResponsaveisTecnicosPage from "./pages/ResponsaveisTecnicos.tsx";
 import { ResponsaveisTecnicosProvider } from "@/contexts/ResponsaveisTecnicosContext";
+import { PlanosManutencaoProvider } from "@/contexts/PlanosManutencaoContext";
+import PlanoManutencaoPage from "./pages/PlanoManutencao.tsx";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
@@ -133,6 +135,7 @@ function AppRoutes() {
         <Route path="/qualidade/checklists" element={<ChecklistsPage />} />
         <Route path="/cadastros/equipamentos" element={<EquipamentosPage />} />
         <Route path="/pmoc" element={<PmocPage />} />
+        <Route path="/engenharia/plano-manutencao" element={<PlanoManutencaoPage />} />
         <Route path="/cadastros/categorias-servicos" element={<CategoriasServicosPage />} />
         <Route path="/cadastros/servicos" element={<ServicosPage />} />
         <Route
@@ -214,6 +217,7 @@ const App = () => (
     <ComunicacaoProvider>
     <ProcessosTrabalhalistasProvider>
     <ResponsaveisTecnicosProvider>
+    <PlanosManutencaoProvider>
     <RdosProvider>
     <RdoAssinaturasProvider>
     <AuthProvider> {/* auth wrapper */}
@@ -233,6 +237,7 @@ const App = () => (
     </AuthProvider>
     </RdoAssinaturasProvider>
     </RdosProvider>
+    </PlanosManutencaoProvider>
     </ResponsaveisTecnicosProvider>
     </ProcessosTrabalhalistasProvider>
     </ComunicacaoProvider>

@@ -2427,6 +2427,197 @@ export type Database = {
         }
         Relationships: []
       }
+      plano_manutencao_atividades: {
+        Row: {
+          anexos: Json | null
+          checklist: Json | null
+          created_at: string | null
+          descricao: string
+          equipamento_id: string | null
+          equipamento_nome: string | null
+          id: string
+          notificado_15d: boolean | null
+          notificado_5d: boolean | null
+          observacoes: string | null
+          periodicidade: string | null
+          plano_id: string
+          prioridade: string | null
+          proxima_execucao: string | null
+          responsavel: string | null
+          status: string | null
+          tipo: string | null
+          ultima_execucao: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          anexos?: Json | null
+          checklist?: Json | null
+          created_at?: string | null
+          descricao?: string
+          equipamento_id?: string | null
+          equipamento_nome?: string | null
+          id?: string
+          notificado_15d?: boolean | null
+          notificado_5d?: boolean | null
+          observacoes?: string | null
+          periodicidade?: string | null
+          plano_id: string
+          prioridade?: string | null
+          proxima_execucao?: string | null
+          responsavel?: string | null
+          status?: string | null
+          tipo?: string | null
+          ultima_execucao?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          anexos?: Json | null
+          checklist?: Json | null
+          created_at?: string | null
+          descricao?: string
+          equipamento_id?: string | null
+          equipamento_nome?: string | null
+          id?: string
+          notificado_15d?: boolean | null
+          notificado_5d?: boolean | null
+          observacoes?: string | null
+          periodicidade?: string | null
+          plano_id?: string
+          prioridade?: string | null
+          proxima_execucao?: string | null
+          responsavel?: string | null
+          status?: string | null
+          tipo?: string | null
+          ultima_execucao?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plano_manutencao_atividades_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "planos_manutencao"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plano_manutencao_execucoes: {
+        Row: {
+          atividade_id: string
+          checklist_resultado: Json | null
+          created_at: string | null
+          data_execucao: string | null
+          evidencias: Json | null
+          id: string
+          observacoes: string | null
+          os_id: string | null
+          os_numero: number | null
+          percentual_conformidade: number | null
+          plano_id: string
+          responsavel: string | null
+        }
+        Insert: {
+          atividade_id: string
+          checklist_resultado?: Json | null
+          created_at?: string | null
+          data_execucao?: string | null
+          evidencias?: Json | null
+          id?: string
+          observacoes?: string | null
+          os_id?: string | null
+          os_numero?: number | null
+          percentual_conformidade?: number | null
+          plano_id: string
+          responsavel?: string | null
+        }
+        Update: {
+          atividade_id?: string
+          checklist_resultado?: Json | null
+          created_at?: string | null
+          data_execucao?: string | null
+          evidencias?: Json | null
+          id?: string
+          observacoes?: string | null
+          os_id?: string | null
+          os_numero?: number | null
+          percentual_conformidade?: number | null
+          plano_id?: string
+          responsavel?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plano_manutencao_execucoes_atividade_id_fkey"
+            columns: ["atividade_id"]
+            isOneToOne: false
+            referencedRelation: "plano_manutencao_atividades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plano_manutencao_execucoes_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "planos_manutencao"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planos_manutencao: {
+        Row: {
+          anexos: Json | null
+          cliente_id: string
+          cliente_nome: string
+          contrato: string | null
+          created_at: string | null
+          equipamentos_cobertos: Json | null
+          escopo: string | null
+          id: string
+          observacoes: string | null
+          responsavel_tecnico_id: string | null
+          responsavel_tecnico_nome: string | null
+          status: string | null
+          titulo: string
+          updated_at: string | null
+          vigencia_fim: string | null
+          vigencia_inicio: string | null
+        }
+        Insert: {
+          anexos?: Json | null
+          cliente_id?: string
+          cliente_nome?: string
+          contrato?: string | null
+          created_at?: string | null
+          equipamentos_cobertos?: Json | null
+          escopo?: string | null
+          id?: string
+          observacoes?: string | null
+          responsavel_tecnico_id?: string | null
+          responsavel_tecnico_nome?: string | null
+          status?: string | null
+          titulo?: string
+          updated_at?: string | null
+          vigencia_fim?: string | null
+          vigencia_inicio?: string | null
+        }
+        Update: {
+          anexos?: Json | null
+          cliente_id?: string
+          cliente_nome?: string
+          contrato?: string | null
+          created_at?: string | null
+          equipamentos_cobertos?: Json | null
+          escopo?: string | null
+          id?: string
+          observacoes?: string | null
+          responsavel_tecnico_id?: string | null
+          responsavel_tecnico_nome?: string | null
+          status?: string | null
+          titulo?: string
+          updated_at?: string | null
+          vigencia_fim?: string | null
+          vigencia_inicio?: string | null
+        }
+        Relationships: []
+      }
       pmoc_atividades: {
         Row: {
           ativa: boolean | null
