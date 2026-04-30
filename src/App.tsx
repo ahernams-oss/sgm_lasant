@@ -217,6 +217,7 @@ const App = () => (
     <ComunicacaoProvider>
     <ProcessosTrabalhalistasProvider>
     <ResponsaveisTecnicosProvider>
+    <PlanosManutencaoProvider>
     <RdosProvider>
     <RdoAssinaturasProvider>
     <AuthProvider> {/* auth wrapper */}
