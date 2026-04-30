@@ -122,6 +122,9 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
           String(ats.length), `${conf}%`, p.status,
         ];
       });
+      const totAtv = rows.reduce((s, r) => s + (Number(r[6]) || 0), 0);
+      const mediaConf = rows.length === 0 ? 0 : Math.round(rows.reduce((s, r) => s + parseInt(r[7]), 0) / rows.length);
+      rows.push(["TOTAL", `${rows.length} plano(s)`, "", "", "", "", String(totAtv), `${mediaConf}% (média)`, ""]);
       return {
         titulo: "Relatório de Planos de Manutenção",
         columns: ["Título", "Cliente", "Contrato", "Início", "Fim", "Resp. Técnico", "Atividades", "Conform.", "Status"],
