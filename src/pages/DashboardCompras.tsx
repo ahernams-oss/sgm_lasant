@@ -215,7 +215,7 @@ export default function DashboardCompras() {
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pw - 14, 14, { align: "right" });
-    doc.text(`Período: ${periodo === "todos" ? "Todos" : `Últimos ${periodo} dias`}`, pw - 14, 22, { align: "right" });
+    doc.text(`Período: ${filters.dateFrom || filters.dateTo ? `${filters.dateFrom ? format(filters.dateFrom, "dd/MM/yyyy") : "—"} a ${filters.dateTo ? format(filters.dateTo, "dd/MM/yyyy") : "—"}` : "Todos"}`, pw - 14, 22, { align: "right" });
     if (empresa?.cnpj) doc.text(`CNPJ: ${empresa.cnpj}`, pw - 14, 28, { align: "right" });
 
     doc.setTextColor(30, 30, 30);
