@@ -17,6 +17,8 @@ export function usePermissao() {
   const tem = (key: string): boolean => {
     if (!usuarioLogado) return false;
     if (acessoTotal) return true;
+    // TEMP: liberado para testes — remover depois
+    if (key === "clientes.ver_valor_folha") return true;
     return !!perfil?.permissoes?.[key];
   };
 
