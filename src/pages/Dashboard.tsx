@@ -101,8 +101,9 @@ const Dashboard = () => {
   const { lancamentos } = useLancamentos();
   const { empresa } = useEmpresa();
   const { toast } = useToast();
-  const [dateFrom, setDateFrom] = useState<Date | undefined>();
-  const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [filters, setFilters] = useState<DashboardFiltersState>(() => loadDashboardFilters("dashboard:filters"));
+  const dateFrom = filters.dateFrom;
+  const dateTo = filters.dateTo;
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [selectedPhones, setSelectedPhones] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
@@ -116,15 +117,16 @@ const Dashboard = () => {
 
   // ---- Requisições filtradas ----
   const filteredReqs = useMemo(() => {
-    if (!dateFrom && !dateTo) return requisicoes;
     return requisicoes.filter((r) => {
       const d = parseDataCriacao(r.dataCriacao);
-      if (!d) return true;
-      if (dateFrom && d < dateFrom) return false;
-      if (dateTo) { const end = new Date(dateTo); end.setHours(23, 59, 59, 999); if (d > end) return false; }
+      if ((dateFrom || dateTo) && !d) return false;
+      if (dateFrom && d && d < dateFrom) return false;
+      if (dateTo && d) { const end = new Date(dateTo); end.setHours(23, 59, 59, 999); if (d > end) return false; }
+      if (filters.clienteId !== "todos" && (r as any).clienteId !== filters.clienteId) return false;
+      if (filters.status !== "todos" && r.status !== filters.status) return false;
       return true;
     });
-  }, [requisicoes, dateFrom, dateTo]);
+  }, [requisicoes, dateFrom, dateTo, filters.clienteId, filters.status]);
 
   // ---- Funcionários KPIs ----
   const funcStats = useMemo(() => {
