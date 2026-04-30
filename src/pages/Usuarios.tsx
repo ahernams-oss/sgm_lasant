@@ -23,6 +23,7 @@ const emptyForm = {
   nome: "", cargoId: "", telefone: "+55 ", email: "", senha: "",
   clientesPermitidos: [] as string[], perfilAcessoId: "",
   matricula: "", ramal: "",
+  limiteAprovacaoCompras: 0, limiteAprovacaoOS: 0,
 };
 
 const Usuarios = () => {
