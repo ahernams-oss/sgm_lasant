@@ -3,6 +3,7 @@ import { useSolicitacoesServicos, SolicitacaoServico, HistoricoEntry } from "@/c
 import { useClientes } from "@/contexts/ClientesContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 import { Button } from "@/components/ui/button";
