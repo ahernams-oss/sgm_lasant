@@ -41,6 +41,8 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfOrdemServico, gerarPdfOrdemServicoLote } from "@/lib/gerarPdfOrdemServico";
 import WorkflowTimeline from "@/components/WorkflowTimeline";
 import WorkflowHistorico from "@/components/WorkflowHistorico";
+import RelatorioFechamentoOSDialog from "@/components/RelatorioFechamentoOSDialog";
+import { BarChart3 } from "lucide-react";
 
 const OS_WORKFLOW_STEPS = [
   { label: "Aberta" },
@@ -113,6 +115,7 @@ export default function OrdensServicoPage() {
   const clientesFiltrados = clientes.filter(c => c.tipo === "Cliente");
 
   const [formOpen, setFormOpen] = useState(false);
+  const [relatorioOpen, setRelatorioOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [viewOS, setViewOS] = useState<OrdemServico | null>(null);
   const [viewSSTarget, setViewSSTarget] = useState<SolicitacaoServico | null>(null);
@@ -693,9 +696,14 @@ export default function OrdensServicoPage() {
         <h1 className="text-2xl font-bold flex items-center gap-2 mx-[20px] my-[5px]">
           <Wrench className="h-6 w-6" /> Ordem de Serviço
         </h1>
-        <Button onClick={() => { resetForm(); setFormOpen(true); }} className="mx-[24px] my-[2px]">
-          <Plus className="mr-2 h-4 w-4" /> Nova OS
-        </Button>
+        <div className="flex items-center gap-2 mx-[24px] my-[2px]">
+          <Button variant="outline" onClick={() => setRelatorioOpen(true)}>
+            <BarChart3 className="mr-2 h-4 w-4" /> Relatórios
+          </Button>
+          <Button onClick={() => { resetForm(); setFormOpen(true); }}>
+            <Plus className="mr-2 h-4 w-4" /> Nova OS
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -2015,6 +2023,12 @@ export default function OrdensServicoPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <RelatorioFechamentoOSDialog
+        open={relatorioOpen}
+        onOpenChange={setRelatorioOpen}
+        ordens={ordens}
+        clientes={clientesFiltrados.map(c => ({ id: c.id, nome: c.nome }))}
+      />
     </div>
   );
 }
