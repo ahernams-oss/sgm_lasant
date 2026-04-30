@@ -133,8 +133,10 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     const tituloBase = `Fechamento ${periodoLabel} de OS`;
 
     if (tipo === "analitico") {
+      let tTotal = 0;
       const rows = ordensFiltradas.map(o => {
         const { total } = totalOS(o);
+        tTotal += total;
         return [
           String(o.numero), o.clienteNome || "-", o.setorDescricao || "-",
           o.tipoOs?.descricao || "-", o.prioridade || "-", o.situacao || "-",
@@ -142,6 +144,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
           o.solicitante || "-", fmtBRL(total),
         ];
       });
+      rows.push(["", "", "", "", "", "", "", "", "", `TOTAL (${ordensFiltradas.length} OS)`, fmtBRL(tTotal)]);
       return {
         titulo: `${tituloBase} — Analítico`,
         columns: ["Nº", "Cliente", "Setor", "Tipo", "Prioridade", "Situação", "Abertura", "Início", "Término", "Solicitante", "Total"],
