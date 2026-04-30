@@ -40,6 +40,7 @@ export default function CotacaoComprasPage() {
   const { addPedido } = usePedidoCompra();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
+  const { podeAprovar } = useLimiteAprovacao();
   const { empresa } = useEmpresa();
   const { toast } = useToast();
 
