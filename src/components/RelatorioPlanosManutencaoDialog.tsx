@@ -142,6 +142,7 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
           a.responsavel || "-", fmtData(a.ultima_execucao), fmtData(a.proxima_execucao), a.status || "-",
         ];
       });
+      rows.push(["", "", "", "", "", "", "", "", "", "", `TOTAL: ${rows.length} atividade(s)`]);
       return {
         titulo: "Relatório de Atividades dos Planos",
         columns: ["Plano", "Cliente", "Descrição", "Equipamento", "Tipo", "Periodicidade", "Prioridade", "Responsável", "Últ. Execução", "Próx. Execução", "Status"],
