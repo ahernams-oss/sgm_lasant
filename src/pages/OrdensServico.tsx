@@ -41,6 +41,8 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfOrdemServico, gerarPdfOrdemServicoLote } from "@/lib/gerarPdfOrdemServico";
 import WorkflowTimeline from "@/components/WorkflowTimeline";
 import WorkflowHistorico from "@/components/WorkflowHistorico";
+import RelatorioFechamentoOSDialog from "@/components/RelatorioFechamentoOSDialog";
+import { BarChart3 } from "lucide-react";
 
 const OS_WORKFLOW_STEPS = [
   { label: "Aberta" },
