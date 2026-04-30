@@ -33,9 +33,10 @@ serve(async (req) => {
     const telefoneLimpo = telefone.replace(/\D/g, '');
     const baseUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}`;
 
-    // Se tiver documento, envia como arquivo
+    // Envio de documento: enviamos o link como texto (instância atual não suporta upload de arquivo)
     if (documentUrl) {
-      const chatproUrl = `${baseUrl}/api/v1/send_document`;
+      const chatproUrl = `${baseUrl}/api/v1/send_message`;
+      const textoComLink = `${mensagem ? mensagem + '\n\n' : ''}📎 ${documentFilename || 'Documento'}: ${documentUrl}`;
 
       const response = await fetch(chatproUrl, {
         method: 'POST',
@@ -45,9 +46,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           number: telefoneLimpo,
-          url: documentUrl,
-          filename: documentFilename || 'documento.pdf',
-          caption: mensagem || '',
+          message: textoComLink,
         }),
       });
 
