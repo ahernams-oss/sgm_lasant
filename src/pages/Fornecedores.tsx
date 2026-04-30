@@ -303,6 +303,14 @@ const Fornecedores = () => {
       </div>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
       <DoubleConfirmDelete open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen} onConfirm={handleBulkDelete} />
+      <RelatorioClienteFornecedorDialog
+        open={relatorioOpen}
+        onOpenChange={setRelatorioOpen}
+        tipo="Fornecedor"
+        todos={fornecedores}
+        filtrados={filteredFornecedores}
+        selecionados={fornecedores.filter(f => selectedIds.includes(f.id))}
+      />
     </div>
   );
 };
