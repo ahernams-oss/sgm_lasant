@@ -185,6 +185,38 @@ export default function SolicitacaoServicosPage() {
     if (!form.descricao_servicos.trim()) { toast({ title: "Descrição dos serviços obrigatória", variant: "destructive" }); return; }
     if (form.tipo === "Equipamentos" && !form.equipamento_id) { toast({ title: "Selecione um equipamento", variant: "destructive" }); return; }
 
+  const checkDuplicates = (): SolicitacaoServico[] => {
+    if (editingId) return [];
+    if (!form.setor_id || !form.descricao_servicos.trim()) return [];
+    const cincoDiasMs = 5 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    return solicitacoes.filter(s => {
+      if (s.clienteId !== form.cliente_id) return false;
+      if (s.setorId !== form.setor_id) return false;
+      if (s.situacao === "Cancelada") return false;
+      const ref = s.dataHoraSolicitacao || s.createdAt;
+      if (!ref) return false;
+      const t = new Date(ref).getTime();
+      if (isNaN(t) || (now - t) > cincoDiasMs) return false;
+      return jaccardSimilarity(s.descricaoServicos, form.descricao_servicos) >= 0.4;
+    });
+  };
+
+  const handleSave = async () => {
+    if (!form.cliente_id) { toast({ title: "Selecione um cliente", variant: "destructive" }); return; }
+    if (!form.descricao_servicos.trim()) { toast({ title: "Descrição dos serviços obrigatória", variant: "destructive" }); return; }
+    if (form.tipo === "Equipamentos" && !form.equipamento_id) { toast({ title: "Selecione um equipamento", variant: "destructive" }); return; }
+
+    const matches = checkDuplicates();
+    if (matches.length > 0) {
+      setDuplicateMatches(matches);
+      setDuplicateDialogOpen(true);
+      return;
+    }
+    await persistSave();
+  };
+
+  const persistSave = async () => {
     setUploading(true);
     const imagensUrls = await uploadImagens();
 
