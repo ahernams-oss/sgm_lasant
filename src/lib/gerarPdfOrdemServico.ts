@@ -135,7 +135,7 @@ async function renderAssinaturas(doc: jsPDF, assinaturas: OsAssinatura[], y: num
   return y;
 }
 
-async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
+async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: RenderOSOptions) {
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
   const cw = pw - ml - mr;
