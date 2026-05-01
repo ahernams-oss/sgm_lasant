@@ -80,53 +80,26 @@ Se a busca não retornar resultados relevantes, responda com seu conhecimento ge
 
 Assine como "Duda 💡" no final da primeira mensagem de cada conversa.`;
 
-const TOOLS = [
-  {
-    type: "function",
-    function: {
-      name: "buscar_base_conhecimento",
-      description: "Busca semântica na Base de Conhecimento de Manutenção (artigos técnicos e FAQs). Use sempre que a pergunta envolver procedimentos, defeitos, manuais ou dúvidas técnicas de manutenção/engenharia.",
-      parameters: {
-        type: "object",
-        properties: {
-          query: { type: "string", description: "Texto ou pergunta a buscar na base" },
-          limit: { type: "number", description: "Máximo de resultados (padrão 5)" },
-        },
-        required: ["query"],
-      },
-    },
-  },
-];
-
-async function executeToolCall(name: string, args: any, supabaseUrl: string, serviceRole: string): Promise<string> {
-  if (name === "buscar_base_conhecimento") {
-    try {
-      const res = await fetch(`${supabaseUrl}/functions/v1/kb-search`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRole}` },
-        body: JSON.stringify({ query: args.query, limit: args.limit ?? 5, threshold: 0.3 }),
-      });
-      const data = await res.json();
-      const results = data?.results ?? [];
-      if (results.length === 0) return JSON.stringify({ encontrados: 0, mensagem: "Nenhum artigo ou FAQ relacionado." });
-      return JSON.stringify({
-        encontrados: results.length,
-        resultados: results.map((r: any) => ({
-          tipo: r.tipo,
-          titulo: r.titulo,
-          categoria: r.categoria_nome,
-          conteudo: String(r.conteudo || "").slice(0, 1500),
-          relevancia: Math.round(r.similarity * 100) + "%",
-        })),
-      });
-    } catch (e) {
-      return JSON.stringify({ erro: e instanceof Error ? e.message : "Erro na busca" });
-    }
+async function buscarKB(query: string, supabaseUrl: string, serviceRole: string): Promise<string> {
+  try {
+    const res = await fetch(`${supabaseUrl}/functions/v1/kb-search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRole}` },
+      body: JSON.stringify({ query, limit: 5, threshold: 0.3 }),
+    });
+    if (!res.ok) return "";
+    const data = await res.json();
+    const results = data?.results ?? [];
+    if (results.length === 0) return "";
+    const blocos = results.map((r: any, i: number) =>
+      `[${i + 1}] (${r.tipo === "faq" ? "FAQ" : "Artigo"}) ${r.titulo}${r.categoria_nome ? " — " + r.categoria_nome : ""}\n${String(r.conteudo || "").slice(0, 1200)}`
+    ).join("\n\n---\n\n");
+    return `\n\n📚 RESULTADOS DA BASE DE CONHECIMENTO DE MANUTENÇÃO (use para fundamentar sua resposta e cite os títulos):\n\n${blocos}\n\n`;
+  } catch (e) {
+    console.error("buscarKB error", e);
+    return "";
   }
-  return JSON.stringify({ erro: "Tool desconhecida" });
 }
-
-const placeholder1 = `
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -141,7 +114,18 @@ serve(async (req) => {
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY não configurada");
+
+    // Pré-busca semântica na Base de Conhecimento usando a última mensagem do usuário
+    const lastUser = [...messages].reverse().find((m: any) => m.role === "user");
+    let kbContext = "";
+    if (lastUser?.content && typeof lastUser.content === "string" && lastUser.content.length > 5) {
+      kbContext = await buscarKB(lastUser.content, SUPABASE_URL, SERVICE_ROLE);
+    }
+
+    const systemContent = SYSTEM_PROMPT + kbContext;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -151,7 +135,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+        messages: [{ role: "system", content: systemContent }, ...messages],
         stream: true,
       }),
     });
