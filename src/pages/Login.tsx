@@ -38,7 +38,23 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-white">
+    <div
+      className="min-h-screen w-full flex items-center justify-center p-4 sm:p-8 lg:p-12 relative overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(135deg, #5fc4e8 0%, #3a9fd6 35%, #2563c4 70%, #1e3a8a 100%)",
+      }}
+    >
+      {/* Listras diagonais sutis no fundo */}
+      <div
+        className="absolute inset-0 opacity-20 pointer-events-none"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(135deg, transparent 0, transparent 60px, rgba(255,255,255,0.08) 60px, rgba(255,255,255,0.08) 120px)",
+        }}
+      />
+
+      <div className="relative w-full max-w-6xl flex bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[640px]">
       {/* Coluna esquerda - Formulário */}
       <div className="flex-1 flex flex-col px-6 sm:px-12 lg:px-20 py-8 lg:py-10 overflow-y-auto">
         {/* Topo: Logo + LOG IN */}
@@ -191,6 +207,7 @@ const Login = () => {
             <div className="text-4xl xl:text-5xl font-light pl-24">Muito +</div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
