@@ -221,7 +221,7 @@ export default function AssinarLoteOs() {
               Assinar OS em Lote
             </h1>
             <p className="text-sm text-muted-foreground">
-              Ordens de Serviço Validadas pendentes de assinatura
+              Ordens de Serviço pendentes de assinatura <span className="text-amber-600">(modo testes — qualquer situação)</span>
             </p>
           </div>
         </div>
