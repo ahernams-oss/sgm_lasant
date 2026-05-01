@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   ClipboardList,
   Users,
   Briefcase,
@@ -81,6 +82,7 @@ const menuItems = [
       { title: "Ordem de Serviço", url: "/engenharia/ordem-servico", icon: Wrench },
       { title: "RDO - Diário de Obras", url: "/engenharia/rdo", icon: FileSpreadsheet },
       { title: "Plano de Manutenção", url: "/engenharia/plano-manutencao", icon: Wrench },
+      { title: "Base de Conhecimento", url: "/engenharia/base-conhecimento", icon: BookOpen },
     ],
   },
   {

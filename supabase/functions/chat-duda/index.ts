@@ -65,7 +65,41 @@ O relatório foi gerado com sucesso! Clique no botão abaixo para fazer o downlo
 - Seja objetiva, clara e amigável.
 - Use formatação markdown quando útil (listas, negrito, tabelas).
 - Se não souber algo específico, oriente o usuário a consultar o módulo adequado.
-- Assine como "Duda 💡" no final da primeira mensagem de cada conversa.`;
+## BASE DE CONHECIMENTO DE MANUTENÇÃO 📚
+Você tem acesso à ferramenta **buscar_base_conhecimento** que consulta artigos técnicos e FAQs da equipe de manutenção (procedimentos, soluções, manuais).
+
+**SEMPRE use essa ferramenta** quando o usuário fizer perguntas sobre:
+- Como executar procedimentos de manutenção (ex: "como trocar o filtro do split?")
+- Defeitos comuns e soluções (ex: "ar-condicionado está pingando água, o que fazer?")
+- Manuais, especificações ou referências técnicas de equipamentos
+- Dúvidas operacionais sobre engenharia/manutenção
+
+Após buscar, cite as fontes encontradas (título do artigo/FAQ) e diga que estão disponíveis no módulo **Base de Conhecimento** (Engenharia → Base de Conhecimento).
+
+Se a busca não retornar resultados relevantes, responda com seu conhecimento geral mas avise que **não há artigo específico cadastrado** e sugira que o usuário registre um artigo na base.
+
+Assine como "Duda 💡" no final da primeira mensagem de cada conversa.`;
+
+async function buscarKB(query: string, supabaseUrl: string, serviceRole: string): Promise<string> {
+  try {
+    const res = await fetch(`${supabaseUrl}/functions/v1/kb-search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRole}` },
+      body: JSON.stringify({ query, limit: 5, threshold: 0.3 }),
+    });
+    if (!res.ok) return "";
+    const data = await res.json();
+    const results = data?.results ?? [];
+    if (results.length === 0) return "";
+    const blocos = results.map((r: any, i: number) =>
+      `[${i + 1}] (${r.tipo === "faq" ? "FAQ" : "Artigo"}) ${r.titulo}${r.categoria_nome ? " — " + r.categoria_nome : ""}\n${String(r.conteudo || "").slice(0, 1200)}`
+    ).join("\n\n---\n\n");
+    return `\n\n📚 RESULTADOS DA BASE DE CONHECIMENTO DE MANUTENÇÃO (use para fundamentar sua resposta e cite os títulos):\n\n${blocos}\n\n`;
+  } catch (e) {
+    console.error("buscarKB error", e);
+    return "";
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -80,7 +114,18 @@ serve(async (req) => {
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY não configurada");
+
+    // Pré-busca semântica na Base de Conhecimento usando a última mensagem do usuário
+    const lastUser = [...messages].reverse().find((m: any) => m.role === "user");
+    let kbContext = "";
+    if (lastUser?.content && typeof lastUser.content === "string" && lastUser.content.length > 5) {
+      kbContext = await buscarKB(lastUser.content, SUPABASE_URL, SERVICE_ROLE);
+    }
+
+    const systemContent = SYSTEM_PROMPT + kbContext;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -90,7 +135,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+        messages: [{ role: "system", content: systemContent }, ...messages],
         stream: true,
       }),
     });
