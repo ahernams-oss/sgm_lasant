@@ -193,7 +193,8 @@ export function AssinaturaEletronicaOs({
     }
   };
 
-  const desabilitado = !os.id || os.situacao !== "Validada";
+  // [TESTES] Liberado para qualquer status. Em produção: voltar para `!os.id || os.situacao !== "Validada"`.
+  const desabilitado = !os.id;
 
   return (
     <>
