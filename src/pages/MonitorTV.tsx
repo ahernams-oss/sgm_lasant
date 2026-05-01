@@ -10,7 +10,7 @@ import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext"
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
-import { useRequisicao } from "@/contexts/RequisicaoContext";
+import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useLicitacoes } from "@/contexts/LicitacoesContext";
 import { Settings, Maximize2, Minimize2, ClipboardList, ShoppingCart, Users, Gavel, Clock } from "lucide-react";
 
@@ -89,7 +89,7 @@ const MonitorTV = () => {
   const { ordens } = useOrdensServico();
   const { requisicoes: rcs } = useRequisicaoCompras();
   const { pedidos } = usePedidoCompra();
-  const { requisicoes: rps } = useRequisicao();
+  const { requisicoes: rps } = useRequisicoes();
   const { licitacoes } = useLicitacoes();
 
   // ====== Seleção de clientes para rotação ======
