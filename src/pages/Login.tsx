@@ -44,9 +44,9 @@ const Login = () => {
         {/* Topo: Logo + LOG IN */}
         <div className="flex items-center justify-between w-full max-w-2xl mx-auto">
           <img
-            src="/Logo_Lasant.png"
+            src={logoLasant}
             alt="Lasant Construções"
-            className="h-16 w-auto"
+            className="h-20 w-auto"
           />
           <span className="text-base font-semibold tracking-[0.2em] text-foreground border-b-2 border-foreground pb-1">
             LOG IN
