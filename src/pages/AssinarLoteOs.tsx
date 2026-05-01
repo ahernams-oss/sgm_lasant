@@ -55,7 +55,8 @@ export default function AssinarLoteOs() {
   const [signing, setSigning] = useState(false);
 
   // Permissões para cada papel
-  const podeFiscal = tem("os.assinar_fiscal");
+  // [TESTES] Liberado para qualquer usuário. Em produção: `const podeFiscal = tem("os.assinar_fiscal");`
+  const podeFiscal = true;
 
   // [TESTES] Filtro por "Validada" temporariamente removido para testes.
   // Em produção: restaurar `if (os.situacao !== "Validada") return false;`
@@ -136,10 +137,11 @@ export default function AssinarLoteOs() {
       toast.error("Senha incorreta.");
       return;
     }
-    if (papel === "fiscal" && !podeFiscal) {
-      toast.error("Sem permissão para assinar como Fiscal do Contrato.");
-      return;
-    }
+    // [TESTES] Checagem de permissão Fiscal desativada.
+    // if (papel === "fiscal" && !podeFiscal) {
+    //   toast.error("Sem permissão para assinar como Fiscal do Contrato.");
+    //   return;
+    // }
     setSigning(true);
     const ip = await obterIpOrigem();
     const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
