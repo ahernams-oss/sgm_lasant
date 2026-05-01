@@ -677,8 +677,6 @@ export default function BaseConhecimentoPage() {
       {/* Confirmações de exclusão */}
       {delArtigo && (
         <DoubleConfirmDelete
-          itemName={delArtigo.titulo}
-          itemType="o artigo"
           open={!!delArtigo}
           onOpenChange={(o) => !o && setDelArtigo(null)}
           onConfirm={async () => { await deleteArtigo(delArtigo.id); toast.success("Artigo removido"); setDelArtigo(null); }}
@@ -686,8 +684,6 @@ export default function BaseConhecimentoPage() {
       )}
       {delFaq && (
         <DoubleConfirmDelete
-          itemName={delFaq.pergunta}
-          itemType="a FAQ"
           open={!!delFaq}
           onOpenChange={(o) => !o && setDelFaq(null)}
           onConfirm={async () => { await deleteFaq(delFaq.id); toast.success("FAQ removida"); setDelFaq(null); }}
@@ -695,8 +691,6 @@ export default function BaseConhecimentoPage() {
       )}
       {delCat && (
         <DoubleConfirmDelete
-          itemName={delCat.nome}
-          itemType="a categoria"
           open={!!delCat}
           onOpenChange={(o) => !o && setDelCat(null)}
           onConfirm={async () => { await deleteCategoria(delCat.id); toast.success("Categoria removida"); setDelCat(null); }}
