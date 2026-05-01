@@ -90,6 +90,8 @@ import ChatDudaPage from "./pages/ChatDuda";
 import RdoPage from "./pages/Rdo.tsx";
 import { RdosProvider } from "@/contexts/RdosContext";
 import { RdoAssinaturasProvider } from "@/contexts/RdoAssinaturasContext";
+import { OsAssinaturasProvider } from "@/contexts/OsAssinaturasContext";
+import AssinarLoteOsPage from "./pages/AssinarLoteOs.tsx";
 import VerificarAssinaturaPage from "./pages/VerificarAssinatura.tsx";
 import ResponsaveisTecnicosPage from "./pages/ResponsaveisTecnicos.tsx";
 import { ResponsaveisTecnicosProvider } from "@/contexts/ResponsaveisTecnicosContext";
@@ -226,6 +228,7 @@ const App = () => (
     <KnowledgeBaseProvider>
     <RdosProvider>
     <RdoAssinaturasProvider>
+    <OsAssinaturasProvider>
     <AuthProvider> {/* auth wrapper */}
     <TooltipProvider>
       <Toaster />
@@ -236,11 +239,13 @@ const App = () => (
           <Route path="/unsubscribe" element={<UnsubscribePage />} />
           <Route path="/verificar-assinatura" element={<VerificarAssinaturaPage />} />
           <Route path="/verificar-assinatura/:codigo" element={<VerificarAssinaturaPage />} />
+          <Route path="/assinar-lote-os" element={<AppRoutes />} />
           <Route path="/*" element={<AppRoutes />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </OsAssinaturasProvider>
     </RdoAssinaturasProvider>
     </RdosProvider>
     </KnowledgeBaseProvider>
