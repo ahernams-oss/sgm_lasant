@@ -90,6 +90,8 @@ import ChatDudaPage from "./pages/ChatDuda";
 import RdoPage from "./pages/Rdo.tsx";
 import { RdosProvider } from "@/contexts/RdosContext";
 import { RdoAssinaturasProvider } from "@/contexts/RdoAssinaturasContext";
+import { OsAssinaturasProvider } from "@/contexts/OsAssinaturasContext";
+import AssinarLoteOsPage from "./pages/AssinarLoteOs.tsx";
 import VerificarAssinaturaPage from "./pages/VerificarAssinatura.tsx";
 import ResponsaveisTecnicosPage from "./pages/ResponsaveisTecnicos.tsx";
 import { ResponsaveisTecnicosProvider } from "@/contexts/ResponsaveisTecnicosContext";
@@ -166,6 +168,14 @@ function AppRoutes() {
           }
         />
         <Route
+          path="/engenharia/assinar-lote-os"
+          element={
+            <OrdensServicoProvider>
+              <AssinarLoteOsPage />
+            </OrdensServicoProvider>
+          }
+        />
+        <Route
           path="/engenharia/ordem-servico"
           element={
             <OrdensServicoProvider>
@@ -226,6 +236,7 @@ const App = () => (
     <KnowledgeBaseProvider>
     <RdosProvider>
     <RdoAssinaturasProvider>
+    <OsAssinaturasProvider>
     <AuthProvider> {/* auth wrapper */}
     <TooltipProvider>
       <Toaster />
@@ -241,6 +252,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </OsAssinaturasProvider>
     </RdoAssinaturasProvider>
     </RdosProvider>
     </KnowledgeBaseProvider>

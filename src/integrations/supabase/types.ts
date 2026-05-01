@@ -2552,6 +2552,63 @@ export type Database = {
         }
         Relationships: []
       }
+      os_assinaturas: {
+        Row: {
+          base_legal: string
+          codigo_verificador: string
+          created_at: string
+          hash_documento: string
+          id: string
+          ip_origem: string | null
+          os_id: string
+          os_numero: number
+          papel: string
+          signatario_cargo: string | null
+          signatario_email: string | null
+          signatario_matricula: string | null
+          signatario_nome: string
+          signatario_user_id: string
+          signed_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          base_legal?: string
+          codigo_verificador?: string
+          created_at?: string
+          hash_documento: string
+          id?: string
+          ip_origem?: string | null
+          os_id: string
+          os_numero: number
+          papel: string
+          signatario_cargo?: string | null
+          signatario_email?: string | null
+          signatario_matricula?: string | null
+          signatario_nome: string
+          signatario_user_id: string
+          signed_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          base_legal?: string
+          codigo_verificador?: string
+          created_at?: string
+          hash_documento?: string
+          id?: string
+          ip_origem?: string | null
+          os_id?: string
+          os_numero?: number
+          papel?: string
+          signatario_cargo?: string | null
+          signatario_email?: string | null
+          signatario_matricula?: string | null
+          signatario_nome?: string
+          signatario_user_id?: string
+          signed_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       pedidos_compra: {
         Row: {
           comprador: string | null
