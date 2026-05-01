@@ -57,11 +57,11 @@ export default function AssinarLoteOs() {
   // Permissões para cada papel
   const podeFiscal = tem("os.assinar_fiscal");
 
-  // OS Validadas filtradas por acesso ao cliente do usuário e que ainda
-  // não tenham assinatura para o papel selecionado
+  // [TESTES] Filtro por "Validada" temporariamente removido para testes.
+  // Em produção: restaurar `if (os.situacao !== "Validada") return false;`
   const validadasDisponiveis = useMemo(() => {
     return ordens.filter((os) => {
-      if (os.situacao !== "Validada") return false;
+      // if (os.situacao !== "Validada") return false;
       if (
         !temAcessoTotal &&
         os.clienteId &&
@@ -150,7 +150,8 @@ export default function AssinarLoteOs() {
 
     for (const id of selectedIds) {
       const os = ordens.find((o) => o.id === id);
-      if (!os || os.situacao !== "Validada") {
+      // [TESTES] Bloqueio por status removido. Em produção, restaurar checagem `os.situacao !== "Validada"`.
+      if (!os) {
         fail++;
         continue;
       }
@@ -220,7 +221,7 @@ export default function AssinarLoteOs() {
               Assinar OS em Lote
             </h1>
             <p className="text-sm text-muted-foreground">
-              Ordens de Serviço Validadas pendentes de assinatura
+              Ordens de Serviço pendentes de assinatura <span className="text-amber-600">(modo testes — qualquer situação)</span>
             </p>
           </div>
         </div>
@@ -339,7 +340,7 @@ export default function AssinarLoteOs() {
                   className="text-center text-muted-foreground py-12"
                 >
                   <ShieldCheck className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                  Nenhuma OS Validada disponível para assinatura
+                  Nenhuma OS disponível para assinatura
                 </TableCell>
               </TableRow>
             ) : (

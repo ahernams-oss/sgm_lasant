@@ -145,10 +145,12 @@ export function AssinaturaEletronicaOs({
       toast.error("Salve a OS antes de assiná-la.");
       return;
     }
-    if (os.situacao !== "Validada") {
-      toast.error("A OS precisa estar Validada para ser assinada.");
-      return;
-    }
+    // [TESTES] Bloqueio por status "Validada" temporariamente desativado.
+    // Reativar antes de produção: descomentar o bloco abaixo.
+    // if (os.situacao !== "Validada") {
+    //   toast.error("A OS precisa estar Validada para ser assinada.");
+    //   return;
+    // }
     if (senha !== usuarioLogado.senha) {
       toast.error("Senha incorreta. A autenticação falhou.");
       return;
@@ -191,7 +193,8 @@ export function AssinaturaEletronicaOs({
     }
   };
 
-  const desabilitado = !os.id || os.situacao !== "Validada";
+  // [TESTES] Liberado para qualquer status. Em produção: voltar para `!os.id || os.situacao !== "Validada"`.
+  const desabilitado = !os.id;
 
   return (
     <>
@@ -219,7 +222,7 @@ export function AssinaturaEletronicaOs({
           )}
           {desabilitado && podeAssinar && (
             <p className="text-xs text-muted-foreground mt-2">
-              A OS precisa estar com situação <strong>Validada</strong> para receber assinatura.
+              Salve a OS antes de assiná-la.
             </p>
           )}
         </CardContent>
