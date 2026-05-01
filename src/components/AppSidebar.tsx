@@ -133,6 +133,10 @@ const menuItems = [
     items: [{ title: "Duda - Assistente", url: "/chat-duda", icon: BotMessageSquare }],
   },
   {
+    group: "Gerencial",
+    items: [{ title: "Painel TV (Tempo Real)", url: "/monitor-tv", icon: Monitor }],
+  },
+  {
     group: "Cadastros",
     items: [
       { title: "Dados da Empresa", url: "/empresa", icon: Building2 },
