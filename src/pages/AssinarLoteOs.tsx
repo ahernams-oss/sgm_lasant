@@ -57,11 +57,11 @@ export default function AssinarLoteOs() {
   // Permissões para cada papel
   const podeFiscal = tem("os.assinar_fiscal");
 
-  // OS Validadas filtradas por acesso ao cliente do usuário e que ainda
-  // não tenham assinatura para o papel selecionado
+  // [TESTES] Filtro por "Validada" temporariamente removido para testes.
+  // Em produção: restaurar `if (os.situacao !== "Validada") return false;`
   const validadasDisponiveis = useMemo(() => {
     return ordens.filter((os) => {
-      if (os.situacao !== "Validada") return false;
+      // if (os.situacao !== "Validada") return false;
       if (
         !temAcessoTotal &&
         os.clienteId &&
