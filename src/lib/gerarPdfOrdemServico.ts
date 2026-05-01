@@ -484,6 +484,19 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
     columnStyles: { 0: { cellWidth: cw } },
     margin: { left: ml, right: mr },
   });
+  y = (doc as any).lastAutoTable.finalY + 4;
+
+  // ===== ASSINATURAS ELETRÔNICAS =====
+  if (assinaturas && assinaturas.length > 0) {
+    // Quebra de página se não couber
+    const ph = doc.internal.pageSize.getHeight();
+    const espacoNecessario = 8 + assinaturas.length * 34;
+    if (y + espacoNecessario > ph - 15) {
+      doc.addPage();
+      y = 12;
+    }
+    y = await renderAssinaturas(doc, assinaturas, y, ml, mr, cw);
+  }
 }
 
 function addFooter(doc: jsPDF, empresa?: Empresa, osNumero?: number) {
