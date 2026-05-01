@@ -239,7 +239,6 @@ const App = () => (
           <Route path="/unsubscribe" element={<UnsubscribePage />} />
           <Route path="/verificar-assinatura" element={<VerificarAssinaturaPage />} />
           <Route path="/verificar-assinatura/:codigo" element={<VerificarAssinaturaPage />} />
-          <Route path="/assinar-lote-os" element={<AppRoutes />} />
           <Route path="/*" element={<AppRoutes />} />
         </Routes>
       </BrowserRouter>
