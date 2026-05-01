@@ -14,6 +14,7 @@ import Funcionarios from "./pages/Funcionarios.tsx";
 import MapaFuncionarios from "./pages/MapaFuncionarios.tsx";
 import Usuarios from "./pages/Usuarios.tsx";
 import Login from "./pages/Login.tsx";
+import EsqueciSenha from "./pages/EsqueciSenha.tsx";
 import ProcessoSeletivo from "./pages/ProcessoSeletivo.tsx";
 import ProcessosSeletivos from "./pages/ProcessosSeletivos.tsx";
 import Sco from "./pages/Sco.tsx";
@@ -103,6 +104,7 @@ function AppRoutes() {
         <Route path="/" element={<Index />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/esqueci-senha" element={<EsqueciSenha />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/fornecedores" element={<Fornecedores />} />
         <Route path="/cargos" element={<Cargos />} />
