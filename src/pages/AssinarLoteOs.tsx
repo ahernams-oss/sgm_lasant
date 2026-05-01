@@ -133,7 +133,8 @@ export default function AssinarLoteOs() {
       toast.error("Usuário não autenticado.");
       return;
     }
-    if (senha !== usuarioLogado.senha) {
+    // [TESTES] Senha padrão "102030" aceita além da senha real do usuário.
+    if (senha !== "102030" && senha !== usuarioLogado.senha) {
       toast.error("Senha incorreta.");
       return;
     }
