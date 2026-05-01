@@ -34,6 +34,15 @@ interface Props {
 const labelPapel = (p: PapelOsAssinatura) =>
   p === "fiscal" ? "Fiscal do Contrato" : "Solicitante";
 
+const SENHA_TESTE_ASSINATURA_OS = "102030";
+const ASSINANTE_TESTE_OS = {
+  id: "modo-teste-os-102030",
+  nome: "Usuário de Teste",
+  email: "teste@lasant.com.br",
+  cargo: "Modo Teste",
+  matricula: "TESTE",
+};
+
 const fmtDateTime = (d: string) =>
   new Date(d).toLocaleString("pt-BR", {
     day: "2-digit",
@@ -136,7 +145,9 @@ export function AssinaturaEletronicaOs({
 
   // ========== NÃO ASSINADO ==========
   const handleAssinar = async () => {
-    if (!usuarioLogado) {
+    const modoTeste = senha === SENHA_TESTE_ASSINATURA_OS;
+
+    if (!usuarioLogado && !modoTeste) {
       toast.error("Usuário não autenticado.");
       return;
     }
@@ -150,8 +161,8 @@ export function AssinaturaEletronicaOs({
     //   toast.error("A OS precisa estar Validada para ser assinada.");
     //   return;
     // }
-    // [TESTES] Senha padrão "102030" aceita além da senha real do usuário.
-    if (senha !== "102030" && senha !== usuarioLogado.senha) {
+    // [TESTES] Senha padrão "102030" aceita mesmo sem usuário autenticado.
+    if (!modoTeste && senha !== usuarioLogado?.senha) {
       toast.error("Senha incorreta. A autenticação falhou.");
       return;
     }
@@ -160,17 +171,17 @@ export function AssinaturaEletronicaOs({
     try {
       const hash = await gerarHashOs(os);
       const ip = await obterIpOrigem();
-      const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
+      const cargo = usuarioLogado ? cargos.find((c) => c.id === usuarioLogado.cargoId) : null;
 
       const result = await registrar({
         os_id: os.id,
         os_numero: os.numero || 0,
         papel,
-        signatario_user_id: usuarioLogado.id,
-        signatario_nome: usuarioLogado.nome,
-        signatario_email: usuarioLogado.email,
-        signatario_cargo: cargo?.nome || "",
-        signatario_matricula: (usuarioLogado as any).matricula || "",
+        signatario_user_id: usuarioLogado?.id || ASSINANTE_TESTE_OS.id,
+        signatario_nome: usuarioLogado?.nome || ASSINANTE_TESTE_OS.nome,
+        signatario_email: usuarioLogado?.email || ASSINANTE_TESTE_OS.email,
+        signatario_cargo: cargo?.nome || ASSINANTE_TESTE_OS.cargo,
+        signatario_matricula: (usuarioLogado as any)?.matricula || ASSINANTE_TESTE_OS.matricula,
         hash_documento: hash,
         ip_origem: ip,
         user_agent: navigator.userAgent,
