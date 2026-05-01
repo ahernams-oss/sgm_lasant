@@ -196,10 +196,13 @@ const MonitorTV = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(clientesSelecionados));
   }, [clientesSelecionados]);
 
+  // Apenas registros do tipo "Cliente" (exclui Fornecedores)
+  const apenasClientes = useMemo(() => clientes.filter((c) => c.tipo === "Cliente"), [clientes]);
+
   const clientesAtivos = useMemo(() => {
-    const ativos = clientes.filter((c) => clientesSelecionados.length === 0 || clientesSelecionados.includes(c.id));
-    return ativos.length > 0 ? ativos : clientes;
-  }, [clientes, clientesSelecionados]);
+    const ativos = apenasClientes.filter((c) => clientesSelecionados.length === 0 || clientesSelecionados.includes(c.id));
+    return ativos.length > 0 ? ativos : apenasClientes;
+  }, [apenasClientes, clientesSelecionados]);
 
   const [idxCliente, setIdxCliente] = useState(0);
   const [tickRestante, setTickRestante] = useState(ROTATION_MS / 1000);
@@ -459,13 +462,13 @@ const MonitorTV = () => {
                 <Button size="sm" variant="ghost" onClick={() => setClientesSelecionados([])}>
                   Todos
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => setClientesSelecionados(clientes.map((c) => c.id))}>
+                <Button size="sm" variant="ghost" onClick={() => setClientesSelecionados(apenasClientes.map((c) => c.id))}>
                   Marcar todos
                 </Button>
               </div>
               <ScrollArea className="h-72">
                 <div className="space-y-1.5 pr-2">
-                  {clientes.map((c) => {
+                  {apenasClientes.map((c) => {
                     const checked = clientesSelecionados.includes(c.id);
                     return (
                       <label key={c.id} className="flex cursor-pointer items-center gap-2 rounded p-1 hover:bg-muted">
