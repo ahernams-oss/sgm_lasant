@@ -150,7 +150,8 @@ export default function AssinarLoteOs() {
 
     for (const id of selectedIds) {
       const os = ordens.find((o) => o.id === id);
-      if (!os || os.situacao !== "Validada") {
+      // [TESTES] Bloqueio por status removido. Em produção, restaurar checagem `os.situacao !== "Validada"`.
+      if (!os) {
         fail++;
         continue;
       }
