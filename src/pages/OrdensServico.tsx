@@ -781,7 +781,12 @@ export default function OrdensServicoPage() {
             <Button size="sm" variant="outline" onClick={async () => {
               const lista = ordens
                 .filter(o => selectedIds.has(o.id))
-                .map(o => ({ os: o, empresa, cliente: clientes.find(c => c.id === o.clienteId) }));
+                .map(o => ({
+                  os: o,
+                  empresa,
+                  cliente: clientes.find(c => c.id === o.clienteId),
+                  assinaturas: assinaturasOs.filter(a => a.os_id === o.id),
+                }));
               if (lista.length === 0) return;
               await gerarPdfOrdemServicoLote(lista);
               toast.success(`${lista.length} OS(s) impressas`);
@@ -837,7 +842,23 @@ export default function OrdensServicoPage() {
                       />
                     ) : null}
                   </TableCell>
-                  <TableCell className="font-bold">{os.numero}</TableCell>
+                  <TableCell className="font-bold">
+                    <div className="flex items-center gap-1.5">
+                      <span>{os.numero}</span>
+                      {(() => {
+                        const ass = assinaturasOs.filter(a => a.os_id === os.id);
+                        if (ass.length === 0) return null;
+                        const tooltip = ass.map(a => `${a.papel === "fiscal" ? "Fiscal" : "Solicitante"}: ${a.signatario_nome}`).join(" | ");
+                        return (
+                          <span className="flex items-center gap-0.5 text-primary" title={`Assinada eletronicamente — ${tooltip}`}>
+                            {ass.map((a) => (
+                              <FileSignature key={a.id} className="h-3.5 w-3.5" />
+                            ))}
+                          </span>
+                        );
+                      })()}
+                    </div>
+                  </TableCell>
                   <TableCell>{os.clienteNome}</TableCell>
                   <TableCell className="max-w-[250px] truncate">{os.descricaoServicos}</TableCell>
                   <TableCell>{prioridadeBadge(os.prioridade)}</TableCell>
@@ -864,6 +885,7 @@ export default function OrdensServicoPage() {
                             os,
                             empresa,
                             cliente: clientes.find(c => c.id === os.clienteId),
+                            assinaturas: assinaturasOs.filter(a => a.os_id === os.id),
                           });
                         }}>
                           <Printer className="mr-2 h-4 w-4" /> Imprimir OS

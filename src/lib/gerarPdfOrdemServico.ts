@@ -1,8 +1,10 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import QRCode from "qrcode";
 import { OrdemServico, MaterialOS } from "@/contexts/OrdensServicoContext";
 import { Empresa } from "@/contexts/EmpresaContext";
 import { Cliente } from "@/contexts/ClientesContext";
+import type { OsAssinatura } from "@/contexts/OsAssinaturasContext";
 
 const DARK = [60, 60, 60] as const;
 const BORDER: [number, number, number] = [60, 60, 60];
@@ -46,9 +48,94 @@ export interface RenderOSOptions {
   os: OrdemServico;
   empresa?: Empresa;
   cliente?: Cliente;
+  assinaturas?: OsAssinatura[];
 }
 
-async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
+async function gerarQRCodeDataUrl(text: string): Promise<string | null> {
+  try {
+    return await QRCode.toDataURL(text, { margin: 1, width: 200 });
+  } catch {
+    return null;
+  }
+}
+
+async function renderAssinaturas(doc: jsPDF, assinaturas: OsAssinatura[], y: number, ml: number, mr: number, cw: number): Promise<number> {
+  if (!assinaturas || assinaturas.length === 0) return y;
+
+  const labelPapel = (p: string) => p === "fiscal" ? "Fiscal do Contrato" : "Solicitante";
+
+  // Cabeçalho
+  autoTable(doc, {
+    startY: y,
+    theme: "grid",
+    styles: { fontSize: 8, cellPadding: 2, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30], fontStyle: "bold", halign: "center", fillColor: [240, 240, 240] },
+    body: [[{ content: "ASSINATURAS ELETRÔNICAS" }]],
+    columnStyles: { 0: { cellWidth: cw } },
+    margin: { left: ml, right: mr },
+  });
+  y = (doc as any).lastAutoTable.finalY;
+
+  for (const a of assinaturas) {
+    const verifyUrl = `${window.location.origin}/verificar-assinatura/${a.codigo_verificador}`;
+    const qrDataUrl = await gerarQRCodeDataUrl(verifyUrl);
+
+    const startY = y;
+    const blockHeight = 32;
+    const qrSize = 26;
+    const qrX = ml + cw - qrSize - 2;
+    const qrY = startY + 2;
+
+    // Caixa
+    doc.setDrawColor(BORDER[0], BORDER[1], BORDER[2]);
+    doc.setLineWidth(0.3);
+    doc.rect(ml, startY, cw, blockHeight);
+
+    // QR Code
+    if (qrDataUrl) {
+      try { doc.addImage(qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize); } catch { /* ignore */ }
+    }
+
+    // Texto da assinatura
+    const textX = ml + 3;
+    let textY = startY + 5;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(30, 30, 30);
+    doc.text(`${labelPapel(a.papel)} — Assinado Eletronicamente`, textX, textY);
+
+    textY += 4;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.text(`Signatário: ${a.signatario_nome}`, textX, textY);
+    if (a.signatario_cargo) {
+      textY += 3.5;
+      doc.text(`Cargo: ${a.signatario_cargo}`, textX, textY);
+    }
+    if (a.signatario_matricula) {
+      textY += 3.5;
+      doc.text(`Matrícula: ${a.signatario_matricula}`, textX, textY);
+    }
+    textY += 3.5;
+    doc.text(`Data/Hora: ${fmtDateTime(a.signed_at)}`, textX, textY);
+    textY += 3.5;
+    doc.text(`IP: ${a.ip_origem || "-"}`, textX, textY);
+    textY += 3.5;
+    doc.setFontSize(6.5);
+    doc.text(`Código: ${a.codigo_verificador}`, textX, textY);
+    textY += 3;
+    doc.setTextColor(80, 80, 80);
+    const baseLegal = a.base_legal || "Conforme Art. 6º, § 1º do Decreto nº 8.539/2015.";
+    const splitLegal = doc.splitTextToSize(baseLegal, cw - qrSize - 8);
+    doc.text(splitLegal, textX, textY);
+
+    doc.setTextColor(30, 30, 30);
+    y = startY + blockHeight + 2;
+  }
+
+  return y;
+}
+
+async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: RenderOSOptions) {
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
   const cw = pw - ml - mr;
@@ -397,6 +484,19 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente }: RenderOSOptions) {
     columnStyles: { 0: { cellWidth: cw } },
     margin: { left: ml, right: mr },
   });
+  y = (doc as any).lastAutoTable.finalY + 4;
+
+  // ===== ASSINATURAS ELETRÔNICAS =====
+  if (assinaturas && assinaturas.length > 0) {
+    // Quebra de página se não couber
+    const ph = doc.internal.pageSize.getHeight();
+    const espacoNecessario = 8 + assinaturas.length * 34;
+    if (y + espacoNecessario > ph - 15) {
+      doc.addPage();
+      y = 12;
+    }
+    y = await renderAssinaturas(doc, assinaturas, y, ml, mr, cw);
+  }
 }
 
 function addFooter(doc: jsPDF, empresa?: Empresa, osNumero?: number) {
