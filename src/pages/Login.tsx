@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
+import logoLasant from "@/assets/lasant-logo-oficial.png";
 
 const Login = () => {
   const { login } = useAuth();
