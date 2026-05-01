@@ -150,7 +150,8 @@ export function AssinaturaEletronicaOs({
     //   toast.error("A OS precisa estar Validada para ser assinada.");
     //   return;
     // }
-    if (senha !== usuarioLogado.senha) {
+    // [TESTES] Senha padrão "102030" aceita além da senha real do usuário.
+    if (senha !== "102030" && senha !== usuarioLogado.senha) {
       toast.error("Senha incorreta. A autenticação falhou.");
       return;
     }
