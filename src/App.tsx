@@ -168,6 +168,14 @@ function AppRoutes() {
           }
         />
         <Route
+          path="/engenharia/assinar-lote-os"
+          element={
+            <OrdensServicoProvider>
+              <AssinarLoteOsPage />
+            </OrdensServicoProvider>
+          }
+        />
+        <Route
           path="/engenharia/ordem-servico"
           element={
             <OrdensServicoProvider>
