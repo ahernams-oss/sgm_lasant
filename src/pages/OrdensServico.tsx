@@ -95,6 +95,7 @@ const DEFAULT_PAGE_SIZE = 7;
 
 export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
+  const { assinaturas: assinaturasOs } = useOsAssinaturas();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
