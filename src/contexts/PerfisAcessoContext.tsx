@@ -310,6 +310,14 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
         ],
       },
       {
+        key: "os_assinatura",
+        label: "Assinatura de Ordem de Serviço",
+        acoes: [
+          { key: "os.assinar_fiscal", label: "Assinar como Fiscal do Contrato" },
+          { key: "os.assinar_lote", label: "Acessar Assinatura em Lote" },
+        ],
+      },
+      {
         key: "base_conhecimento",
         label: "Base de Conhecimento",
         acoes: [
