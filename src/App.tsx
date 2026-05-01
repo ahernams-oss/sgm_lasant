@@ -99,6 +99,7 @@ import { PlanosManutencaoProvider } from "@/contexts/PlanosManutencaoContext";
 import PlanoManutencaoPage from "./pages/PlanoManutencao.tsx";
 import { KnowledgeBaseProvider } from "@/contexts/KnowledgeBaseContext";
 import BaseConhecimentoPage from "./pages/BaseConhecimento.tsx";
+import MonitorTV from "./pages/MonitorTV.tsx";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
@@ -247,6 +248,16 @@ const App = () => (
           <Route path="/unsubscribe" element={<UnsubscribePage />} />
           <Route path="/verificar-assinatura" element={<VerificarAssinaturaPage />} />
           <Route path="/verificar-assinatura/:codigo" element={<VerificarAssinaturaPage />} />
+          <Route
+            path="/monitor-tv"
+            element={
+              <SolicitacoesServicosProvider>
+                <OrdensServicoProvider>
+                  <MonitorTV />
+                </OrdensServicoProvider>
+              </SolicitacoesServicosProvider>
+            }
+          />
           <Route path="/*" element={<AppRoutes />} />
         </Routes>
       </BrowserRouter>
