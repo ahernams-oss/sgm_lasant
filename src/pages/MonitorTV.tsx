@@ -196,10 +196,13 @@ const MonitorTV = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(clientesSelecionados));
   }, [clientesSelecionados]);
 
+  // Apenas registros do tipo "Cliente" (exclui Fornecedores)
+  const apenasClientes = useMemo(() => clientes.filter((c) => c.tipo === "Cliente"), [clientes]);
+
   const clientesAtivos = useMemo(() => {
-    const ativos = clientes.filter((c) => clientesSelecionados.length === 0 || clientesSelecionados.includes(c.id));
-    return ativos.length > 0 ? ativos : clientes;
-  }, [clientes, clientesSelecionados]);
+    const ativos = apenasClientes.filter((c) => clientesSelecionados.length === 0 || clientesSelecionados.includes(c.id));
+    return ativos.length > 0 ? ativos : apenasClientes;
+  }, [apenasClientes, clientesSelecionados]);
 
   const [idxCliente, setIdxCliente] = useState(0);
   const [tickRestante, setTickRestante] = useState(ROTATION_MS / 1000);
