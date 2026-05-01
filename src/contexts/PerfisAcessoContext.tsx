@@ -309,6 +309,21 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "rdo.assinar_fiscalizacao", label: "Assinar como Fiscalização" },
         ],
       },
+      {
+        key: "base_conhecimento",
+        label: "Base de Conhecimento",
+        acoes: [
+          { key: "base_conhecimento.visualizar", label: "Visualizar artigos e FAQ" },
+          { key: "base_conhecimento.criar_artigo", label: "Criar artigo" },
+          { key: "base_conhecimento.editar_artigo", label: "Editar artigo" },
+          { key: "base_conhecimento.excluir_artigo", label: "Excluir artigo" },
+          { key: "base_conhecimento.criar_faq", label: "Criar FAQ" },
+          { key: "base_conhecimento.editar_faq", label: "Editar FAQ" },
+          { key: "base_conhecimento.excluir_faq", label: "Excluir FAQ" },
+          { key: "base_conhecimento.gerenciar_categorias", label: "Gerenciar categorias" },
+          { key: "base_conhecimento.gerenciar_anexos", label: "Gerenciar anexos" },
+        ],
+      },
     ],
   },
   {
