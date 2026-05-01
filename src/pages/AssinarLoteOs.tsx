@@ -157,7 +157,7 @@ export default function AssinarLoteOs() {
     setSigning(true);
     const ip = await obterIpOrigem();
     const cargo = usuarioLogado ? cargos.find((c) => c.id === usuarioLogado.cargoId) : null;
-    const matricula = (usuarioLogado as any)?.matricula || ASSINANTE_TESTE_OS.matricula;
+    const matricula = usuarioLogado?.matricula || ASSINANTE_TESTE_OS.matricula;
 
     let ok = 0;
     let fail = 0;
