@@ -781,7 +781,12 @@ export default function OrdensServicoPage() {
             <Button size="sm" variant="outline" onClick={async () => {
               const lista = ordens
                 .filter(o => selectedIds.has(o.id))
-                .map(o => ({ os: o, empresa, cliente: clientes.find(c => c.id === o.clienteId) }));
+                .map(o => ({
+                  os: o,
+                  empresa,
+                  cliente: clientes.find(c => c.id === o.clienteId),
+                  assinaturas: assinaturasOs.filter(a => a.os_id === o.id),
+                }));
               if (lista.length === 0) return;
               await gerarPdfOrdemServicoLote(lista);
               toast.success(`${lista.length} OS(s) impressas`);
