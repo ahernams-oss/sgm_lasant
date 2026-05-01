@@ -5,19 +5,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShieldCheck, ShieldAlert, ArrowLeft } from "lucide-react";
+import { ShieldCheck, ShieldAlert, ArrowLeft, FileSignature } from "lucide-react";
 import { gerarHashRdo } from "@/lib/assinaturaHash";
+import { gerarHashOs } from "@/lib/assinaturaHashOs";
 
-const fmtDateTime = (d: string) => new Date(d).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
-const labelPapel = (p: string) => p === "responsavel" ? "Responsável Técnico" : "Fiscalização";
+type Tipo = "rdo" | "os";
+
+const fmtDateTime = (d: string) =>
+  new Date(d).toLocaleString("pt-BR", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  });
+
+const labelPapel = (tipo: Tipo, p: string) => {
+  if (tipo === "rdo") return p === "responsavel" ? "Responsável Técnico" : "Fiscalização";
+  return p === "fiscal" ? "Fiscal do Contrato" : "Solicitante";
+};
 
 export default function VerificarAssinatura() {
   const { codigo: codigoParam } = useParams();
   const [codigo, setCodigo] = useState(codigoParam || "");
   const [busca, setBusca] = useState(!!codigoParam);
   const [loading, setLoading] = useState(false);
+  const [tipo, setTipo] = useState<Tipo | null>(null);
   const [assinatura, setAssinatura] = useState<any>(null);
-  const [rdo, setRdo] = useState<any>(null);
+  const [documento, setDocumento] = useState<any>(null);
   const [todasAssinaturas, setTodasAssinaturas] = useState<any[]>([]);
   const [hashAtual, setHashAtual] = useState<string>("");
   const [naoEncontrado, setNaoEncontrado] = useState(false);
@@ -27,34 +39,56 @@ export default function VerificarAssinatura() {
     setLoading(true);
     setNaoEncontrado(false);
     setAssinatura(null);
-    setRdo(null);
+    setDocumento(null);
+    setTodasAssinaturas([]);
+    setHashAtual("");
+    setTipo(null);
     try {
-      const { data: ass } = await supabase
+      const codTrim = cod.trim();
+
+      // 1. Tenta RDO
+      const { data: assRdo } = await supabase
         .from("rdo_assinaturas")
         .select("*")
-        .eq("codigo_verificador", cod.trim())
+        .eq("codigo_verificador", codTrim)
         .maybeSingle();
-      if (!ass) { setNaoEncontrado(true); setLoading(false); return; }
-      setAssinatura(ass);
 
-      const { data: r } = await supabase
-        .from("rdos")
-        .select("*")
-        .eq("id", ass.rdo_id)
-        .maybeSingle();
-      setRdo(r);
-
-      const { data: outras } = await supabase
-        .from("rdo_assinaturas")
-        .select("*")
-        .eq("rdo_id", ass.rdo_id)
-        .order("signed_at");
-      setTodasAssinaturas(outras || []);
-
-      if (r) {
-        const h = await gerarHashRdo(r as any);
-        setHashAtual(h);
+      if (assRdo) {
+        setTipo("rdo");
+        setAssinatura(assRdo);
+        const { data: r } = await supabase.from("rdos").select("*").eq("id", assRdo.rdo_id).maybeSingle();
+        setDocumento(r);
+        const { data: outras } = await supabase
+          .from("rdo_assinaturas").select("*").eq("rdo_id", assRdo.rdo_id).order("signed_at");
+        setTodasAssinaturas(outras || []);
+        if (r) {
+          try { setHashAtual(await gerarHashRdo(r as any)); } catch { /* ignore */ }
+        }
+        return;
       }
+
+      // 2. Tenta OS
+      const { data: assOs } = await supabase
+        .from("os_assinaturas")
+        .select("*")
+        .eq("codigo_verificador", codTrim)
+        .maybeSingle();
+
+      if (assOs) {
+        setTipo("os");
+        setAssinatura(assOs);
+        const { data: o } = await supabase.from("ordens_servico").select("*").eq("id", assOs.os_id).maybeSingle();
+        setDocumento(o);
+        const { data: outras } = await supabase
+          .from("os_assinaturas").select("*").eq("os_id", assOs.os_id).order("signed_at");
+        setTodasAssinaturas(outras || []);
+        if (o) {
+          try { setHashAtual(await gerarHashOs(o as any)); } catch { /* ignore */ }
+        }
+        return;
+      }
+
+      setNaoEncontrado(true);
     } finally {
       setLoading(false);
     }
@@ -62,16 +96,69 @@ export default function VerificarAssinatura() {
 
   useEffect(() => {
     if (codigoParam) buscar(codigoParam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codigoParam]);
 
   const integro = assinatura && hashAtual && assinatura.hash_documento === hashAtual;
+  const documentoCancelado = tipo === "os" && documento?.situacao === "Cancelada";
+  const valida = integro && !documentoCancelado;
+
+  const renderDocumento = () => {
+    if (!documento) return null;
+    if (tipo === "rdo") {
+      return (
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Conteúdo do RDO</CardTitle></CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            <p><span className="font-semibold">Cliente:</span> {documento.cliente_nome}</p>
+            <p><span className="font-semibold">Obra:</span> {documento.obra}</p>
+            <p><span className="font-semibold">Data:</span> {documento.data_rdo ? new Date(documento.data_rdo + "T00:00:00").toLocaleDateString("pt-BR") : "-"}</p>
+            <p><span className="font-semibold">Responsável:</span> {documento.responsavel}</p>
+            <p><span className="font-semibold">Avanço Físico:</span> {(Number(documento.avanco_fisico_geral) || 0).toFixed(2)}%</p>
+            <p><span className="font-semibold">Status:</span> {documento.status}</p>
+          </CardContent>
+        </Card>
+      );
+    }
+    // OS
+    return (
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-base">Conteúdo da Ordem de Serviço</CardTitle></CardHeader>
+        <CardContent className="space-y-1 text-sm">
+          <p><span className="font-semibold">Cliente:</span> {documento.cliente_nome || documento.clienteNome || "-"}</p>
+          <p><span className="font-semibold">Solicitante:</span> {documento.solicitante || "-"}</p>
+          <p><span className="font-semibold">Descrição:</span> {documento.descricao_servicos || documento.descricaoServicos || "-"}</p>
+          <p><span className="font-semibold">Data Início:</span> {documento.data_inicio || documento.dataInicio || "-"}</p>
+          <p><span className="font-semibold">Prioridade:</span> {documento.prioridade || "-"}</p>
+          <p><span className="font-semibold">Situação:</span>{" "}
+            <Badge variant="outline" className={
+              documento.situacao === "Validada" ? "bg-green-100 text-green-800 border-green-300" :
+              documento.situacao === "Cancelada" ? "bg-red-100 text-red-800 border-red-300" :
+              "bg-muted"
+            }>
+              {documento.situacao || "-"}
+            </Badge>
+          </p>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const tituloDocumento = tipo === "rdo"
+    ? `RDO Nº ${assinatura?.rdo_numero ?? ""}`
+    : `OS Nº ${assinatura?.os_numero ?? ""}`;
 
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-serif font-semibold">Verificação de Assinatura Eletrônica</h1>
-          <Button asChild variant="outline" size="sm"><Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Link></Button>
+          <h1 className="text-2xl font-serif font-semibold flex items-center gap-2">
+            <FileSignature className="h-6 w-6 text-primary" />
+            Verificação de Assinatura Eletrônica
+          </h1>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Link>
+          </Button>
         </div>
 
         <Card>
@@ -84,7 +171,7 @@ export default function VerificarAssinatura() {
               onKeyDown={e => e.key === "Enter" && (setBusca(true), buscar(codigo))}
             />
             <Button onClick={() => { setBusca(true); buscar(codigo); }} disabled={loading || !codigo}>
-              {loading ? "Buscando..." : "Verificar"}
+              {loading ? "Verificando..." : "Verificar"}
             </Button>
           </CardContent>
         </Card>
@@ -95,32 +182,54 @@ export default function VerificarAssinatura() {
               <ShieldAlert className="h-6 w-6" />
               <div>
                 <p className="font-semibold">Assinatura não encontrada</p>
-                <p className="text-sm text-muted-foreground">O código informado não corresponde a nenhuma assinatura registrada no sistema.</p>
+                <p className="text-sm text-muted-foreground">
+                  O código informado não corresponde a nenhuma assinatura registrada no sistema (RDO ou Ordem de Serviço).
+                </p>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {assinatura && (
+        {assinatura && tipo && (
           <>
-            <Card className={integro ? "border-2 border-green-500" : "border-2 border-amber-500"}>
+            <Card className={
+              valida ? "border-2 border-green-500" :
+              documentoCancelado ? "border-2 border-red-500" :
+              "border-2 border-amber-500"
+            }>
               <CardHeader className="pb-2 flex-row items-center gap-2">
-                {integro ? <ShieldCheck className="h-6 w-6 text-green-600" /> : <ShieldAlert className="h-6 w-6 text-amber-600" />}
+                {valida
+                  ? <ShieldCheck className="h-6 w-6 text-green-600" />
+                  : <ShieldAlert className={`h-6 w-6 ${documentoCancelado ? "text-red-600" : "text-amber-600"}`} />}
                 <CardTitle className="text-base">
-                  {integro ? "Assinatura Válida e Documento Íntegro" : "Assinatura registrada — verifique a integridade"}
+                  {valida && "Assinatura Válida e Documento Íntegro"}
+                  {!valida && documentoCancelado && "Documento Cancelado — Assinatura Expirada"}
+                  {!valida && !documentoCancelado && "Assinatura registrada — verifique a integridade"}
                 </CardTitle>
-                <Badge variant="outline" className={integro ? "ml-auto bg-green-100 text-green-800 border-green-300" : "ml-auto bg-amber-100 text-amber-800 border-amber-300"}>
-                  {integro ? "Válida" : "Atenção"}
+                <Badge
+                  variant="outline"
+                  className={
+                    valida ? "ml-auto bg-green-100 text-green-800 border-green-300" :
+                    documentoCancelado ? "ml-auto bg-red-100 text-red-800 border-red-300" :
+                    "ml-auto bg-amber-100 text-amber-800 border-amber-300"
+                  }
+                >
+                  {valida ? "Válida" : documentoCancelado ? "Expirada" : "Atenção"}
                 </Badge>
               </CardHeader>
               <CardContent className="space-y-1 text-sm">
-                {!integro && hashAtual && (
+                {documentoCancelado && (
+                  <p className="text-red-700 bg-red-50 border border-red-200 rounded p-2 mb-2">
+                    Este documento foi <strong>cancelado</strong> após a assinatura. A assinatura é considerada <strong>expirada</strong> e não tem mais validade jurídica.
+                  </p>
+                )}
+                {!integro && hashAtual && !documentoCancelado && (
                   <p className="text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 mb-2">
                     O conteúdo do documento foi modificado após a assinatura. O hash atual não confere com o hash assinado.
                   </p>
                 )}
-                <p><span className="font-semibold">Documento:</span> RDO Nº {assinatura.rdo_numero}</p>
-                <p><span className="font-semibold">Papel:</span> {labelPapel(assinatura.papel)}</p>
+                <p><span className="font-semibold">Documento:</span> {tituloDocumento}</p>
+                <p><span className="font-semibold">Papel:</span> {labelPapel(tipo, assinatura.papel)}</p>
                 <p><span className="font-semibold">Signatário:</span> {assinatura.signatario_nome}</p>
                 {assinatura.signatario_email && <p><span className="font-semibold">E-mail:</span> {assinatura.signatario_email}</p>}
                 {assinatura.signatario_cargo && <p><span className="font-semibold">Cargo:</span> {assinatura.signatario_cargo}</p>}
@@ -129,26 +238,22 @@ export default function VerificarAssinatura() {
                 {assinatura.ip_origem && <p><span className="font-semibold">IP de origem:</span> {assinatura.ip_origem}</p>}
                 <p className="italic text-muted-foreground mt-2 text-xs">{assinatura.base_legal}</p>
                 <div className="border-t pt-2 mt-2 space-y-1">
-                  <p className="text-xs"><span className="font-semibold">Código verificador:</span> <code className="bg-muted px-1 rounded">{assinatura.codigo_verificador}</code></p>
-                  <p className="text-xs break-all"><span className="font-semibold">Hash assinado:</span> <code className="bg-muted px-1 rounded">{assinatura.hash_documento}</code></p>
-                  {hashAtual && <p className="text-xs break-all"><span className="font-semibold">Hash atual:</span> <code className="bg-muted px-1 rounded">{hashAtual}</code></p>}
+                  <p className="text-xs"><span className="font-semibold">Código verificador:</span>{" "}
+                    <code className="bg-muted px-1 rounded">{assinatura.codigo_verificador}</code>
+                  </p>
+                  <p className="text-xs break-all"><span className="font-semibold">Hash assinado:</span>{" "}
+                    <code className="bg-muted px-1 rounded">{assinatura.hash_documento}</code>
+                  </p>
+                  {hashAtual && (
+                    <p className="text-xs break-all"><span className="font-semibold">Hash atual:</span>{" "}
+                      <code className="bg-muted px-1 rounded">{hashAtual}</code>
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
-            {rdo && (
-              <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-base">Conteúdo do RDO</CardTitle></CardHeader>
-                <CardContent className="space-y-1 text-sm">
-                  <p><span className="font-semibold">Cliente:</span> {rdo.cliente_nome}</p>
-                  <p><span className="font-semibold">Obra:</span> {rdo.obra}</p>
-                  <p><span className="font-semibold">Data:</span> {rdo.data_rdo ? new Date(rdo.data_rdo + "T00:00:00").toLocaleDateString("pt-BR") : "-"}</p>
-                  <p><span className="font-semibold">Responsável:</span> {rdo.responsavel}</p>
-                  <p><span className="font-semibold">Avanço Físico:</span> {(Number(rdo.avanco_fisico_geral) || 0).toFixed(2)}%</p>
-                  <p><span className="font-semibold">Status:</span> {rdo.status}</p>
-                </CardContent>
-              </Card>
-            )}
+            {renderDocumento()}
 
             {todasAssinaturas.length > 1 && (
               <Card>
@@ -156,7 +261,7 @@ export default function VerificarAssinatura() {
                 <CardContent className="space-y-2 text-sm">
                   {todasAssinaturas.filter(a => a.id !== assinatura.id).map(a => (
                     <div key={a.id} className="border rounded p-2">
-                      <p><strong>{labelPapel(a.papel)}:</strong> {a.signatario_nome} — {fmtDateTime(a.signed_at)}</p>
+                      <p><strong>{labelPapel(tipo, a.papel)}:</strong> {a.signatario_nome} — {fmtDateTime(a.signed_at)}</p>
                       <p className="text-xs text-muted-foreground">Código: {a.codigo_verificador}</p>
                     </div>
                   ))}
