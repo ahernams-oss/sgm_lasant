@@ -869,6 +869,7 @@ export default function OrdensServicoPage() {
                             os,
                             empresa,
                             cliente: clientes.find(c => c.id === os.clienteId),
+                            assinaturas: assinaturasOs.filter(a => a.os_id === os.id),
                           });
                         }}>
                           <Printer className="mr-2 h-4 w-4" /> Imprimir OS
