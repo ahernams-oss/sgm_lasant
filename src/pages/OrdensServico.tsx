@@ -842,7 +842,23 @@ export default function OrdensServicoPage() {
                       />
                     ) : null}
                   </TableCell>
-                  <TableCell className="font-bold">{os.numero}</TableCell>
+                  <TableCell className="font-bold">
+                    <div className="flex items-center gap-1.5">
+                      <span>{os.numero}</span>
+                      {(() => {
+                        const ass = assinaturasOs.filter(a => a.os_id === os.id);
+                        if (ass.length === 0) return null;
+                        const tooltip = ass.map(a => `${a.papel === "fiscal" ? "Fiscal" : "Solicitante"}: ${a.signatario_nome}`).join(" | ");
+                        return (
+                          <span className="flex items-center gap-0.5 text-primary" title={`Assinada eletronicamente — ${tooltip}`}>
+                            {ass.map((a) => (
+                              <FileSignature key={a.id} className="h-3.5 w-3.5" />
+                            ))}
+                          </span>
+                        );
+                      })()}
+                    </div>
+                  </TableCell>
                   <TableCell>{os.clienteNome}</TableCell>
                   <TableCell className="max-w-[250px] truncate">{os.descricaoServicos}</TableCell>
                   <TableCell>{prioridadeBadge(os.prioridade)}</TableCell>
