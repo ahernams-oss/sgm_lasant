@@ -95,6 +95,8 @@ import ResponsaveisTecnicosPage from "./pages/ResponsaveisTecnicos.tsx";
 import { ResponsaveisTecnicosProvider } from "@/contexts/ResponsaveisTecnicosContext";
 import { PlanosManutencaoProvider } from "@/contexts/PlanosManutencaoContext";
 import PlanoManutencaoPage from "./pages/PlanoManutencao.tsx";
+import { KnowledgeBaseProvider } from "@/contexts/KnowledgeBaseContext";
+import BaseConhecimentoPage from "./pages/BaseConhecimento.tsx";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
@@ -138,6 +140,7 @@ function AppRoutes() {
         <Route path="/cadastros/equipamentos" element={<EquipamentosPage />} />
         <Route path="/pmoc" element={<PmocPage />} />
         <Route path="/engenharia/plano-manutencao" element={<PlanoManutencaoPage />} />
+        <Route path="/engenharia/base-conhecimento" element={<BaseConhecimentoPage />} />
         <Route path="/cadastros/categorias-servicos" element={<CategoriasServicosPage />} />
         <Route path="/cadastros/servicos" element={<ServicosPage />} />
         <Route
@@ -220,6 +223,7 @@ const App = () => (
     <ProcessosTrabalhalistasProvider>
     <ResponsaveisTecnicosProvider>
     <PlanosManutencaoProvider>
+    <KnowledgeBaseProvider>
     <RdosProvider>
     <RdoAssinaturasProvider>
     <AuthProvider> {/* auth wrapper */}
@@ -239,6 +243,7 @@ const App = () => (
     </AuthProvider>
     </RdoAssinaturasProvider>
     </RdosProvider>
+    </KnowledgeBaseProvider>
     </PlanosManutencaoProvider>
     </ResponsaveisTecnicosProvider>
     </ProcessosTrabalhalistasProvider>
