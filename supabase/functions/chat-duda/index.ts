@@ -65,7 +65,68 @@ O relatório foi gerado com sucesso! Clique no botão abaixo para fazer o downlo
 - Seja objetiva, clara e amigável.
 - Use formatação markdown quando útil (listas, negrito, tabelas).
 - Se não souber algo específico, oriente o usuário a consultar o módulo adequado.
-- Assine como "Duda 💡" no final da primeira mensagem de cada conversa.`;
+## BASE DE CONHECIMENTO DE MANUTENÇÃO 📚
+Você tem acesso à ferramenta **buscar_base_conhecimento** que consulta artigos técnicos e FAQs da equipe de manutenção (procedimentos, soluções, manuais).
+
+**SEMPRE use essa ferramenta** quando o usuário fizer perguntas sobre:
+- Como executar procedimentos de manutenção (ex: "como trocar o filtro do split?")
+- Defeitos comuns e soluções (ex: "ar-condicionado está pingando água, o que fazer?")
+- Manuais, especificações ou referências técnicas de equipamentos
+- Dúvidas operacionais sobre engenharia/manutenção
+
+Após buscar, cite as fontes encontradas (título do artigo/FAQ) e diga que estão disponíveis no módulo **Base de Conhecimento** (Engenharia → Base de Conhecimento).
+
+Se a busca não retornar resultados relevantes, responda com seu conhecimento geral mas avise que **não há artigo específico cadastrado** e sugira que o usuário registre um artigo na base.
+
+Assine como "Duda 💡" no final da primeira mensagem de cada conversa.`;
+
+const TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "buscar_base_conhecimento",
+      description: "Busca semântica na Base de Conhecimento de Manutenção (artigos técnicos e FAQs). Use sempre que a pergunta envolver procedimentos, defeitos, manuais ou dúvidas técnicas de manutenção/engenharia.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Texto ou pergunta a buscar na base" },
+          limit: { type: "number", description: "Máximo de resultados (padrão 5)" },
+        },
+        required: ["query"],
+      },
+    },
+  },
+];
+
+async function executeToolCall(name: string, args: any, supabaseUrl: string, serviceRole: string): Promise<string> {
+  if (name === "buscar_base_conhecimento") {
+    try {
+      const res = await fetch(`${supabaseUrl}/functions/v1/kb-search`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRole}` },
+        body: JSON.stringify({ query: args.query, limit: args.limit ?? 5, threshold: 0.3 }),
+      });
+      const data = await res.json();
+      const results = data?.results ?? [];
+      if (results.length === 0) return JSON.stringify({ encontrados: 0, mensagem: "Nenhum artigo ou FAQ relacionado." });
+      return JSON.stringify({
+        encontrados: results.length,
+        resultados: results.map((r: any) => ({
+          tipo: r.tipo,
+          titulo: r.titulo,
+          categoria: r.categoria_nome,
+          conteudo: String(r.conteudo || "").slice(0, 1500),
+          relevancia: Math.round(r.similarity * 100) + "%",
+        })),
+      });
+    } catch (e) {
+      return JSON.stringify({ erro: e instanceof Error ? e.message : "Erro na busca" });
+    }
+  }
+  return JSON.stringify({ erro: "Tool desconhecida" });
+}
+
+const placeholder1 = `
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
