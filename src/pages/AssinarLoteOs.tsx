@@ -340,7 +340,7 @@ export default function AssinarLoteOs() {
                   className="text-center text-muted-foreground py-12"
                 >
                   <ShieldCheck className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                  Nenhuma OS Validada disponível para assinatura
+                  Nenhuma OS disponível para assinatura
                 </TableCell>
               </TableRow>
             ) : (
