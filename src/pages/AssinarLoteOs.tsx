@@ -55,7 +55,8 @@ export default function AssinarLoteOs() {
   const [signing, setSigning] = useState(false);
 
   // Permissões para cada papel
-  const podeFiscal = tem("os.assinar_fiscal");
+  // [TESTES] Liberado para qualquer usuário. Em produção: `const podeFiscal = tem("os.assinar_fiscal");`
+  const podeFiscal = true;
 
   // [TESTES] Filtro por "Validada" temporariamente removido para testes.
   // Em produção: restaurar `if (os.situacao !== "Validada") return false;`
