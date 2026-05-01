@@ -35,13 +35,15 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import {
   Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, ChevronDown, ChevronUp,
-  ClipboardList, Clock, CheckCircle2, XCircle, AlertTriangle, Wrench, Play, ShieldCheck, ShieldX, RotateCcw, BadgeCheck, Ban, History, Printer
+  ClipboardList, Clock, CheckCircle2, XCircle, AlertTriangle, Wrench, Play, ShieldCheck, ShieldX, RotateCcw, BadgeCheck, Ban, History, Printer, FileSignature
 } from "lucide-react";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfOrdemServico, gerarPdfOrdemServicoLote } from "@/lib/gerarPdfOrdemServico";
 import WorkflowTimeline from "@/components/WorkflowTimeline";
 import WorkflowHistorico from "@/components/WorkflowHistorico";
 import RelatorioFechamentoOSDialog from "@/components/RelatorioFechamentoOSDialog";
+import { AssinaturaEletronicaOs } from "@/components/AssinaturaEletronicaOs";
+import { useOsAssinaturas } from "@/contexts/OsAssinaturasContext";
 import { BarChart3 } from "lucide-react";
 
 const OS_WORKFLOW_STEPS = [
@@ -93,6 +95,7 @@ const DEFAULT_PAGE_SIZE = 7;
 
 export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
+  const { assinaturas: assinaturasOs } = useOsAssinaturas();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
