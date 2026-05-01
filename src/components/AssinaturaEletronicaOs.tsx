@@ -181,7 +181,7 @@ export function AssinaturaEletronicaOs({
         signatario_nome: usuarioLogado?.nome || ASSINANTE_TESTE_OS.nome,
         signatario_email: usuarioLogado?.email || ASSINANTE_TESTE_OS.email,
         signatario_cargo: cargo?.nome || ASSINANTE_TESTE_OS.cargo,
-        signatario_matricula: (usuarioLogado as any)?.matricula || ASSINANTE_TESTE_OS.matricula,
+        signatario_matricula: usuarioLogado?.matricula || ASSINANTE_TESTE_OS.matricula,
         hash_documento: hash,
         ip_origem: ip,
         user_agent: navigator.userAgent,
@@ -195,9 +195,10 @@ export function AssinaturaEletronicaOs({
         setSenha("");
         onAssinado?.();
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "verifique se já existe assinatura deste papel.";
       toast.error(
-        "Erro ao assinar: " + (e?.message || "verifique se já existe assinatura deste papel.")
+        "Erro ao assinar: " + message
       );
     } finally {
       setLoading(false);
