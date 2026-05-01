@@ -42,7 +42,7 @@ import { gerarPdfOrdemServico, gerarPdfOrdemServicoLote } from "@/lib/gerarPdfOr
 import WorkflowTimeline from "@/components/WorkflowTimeline";
 import WorkflowHistorico from "@/components/WorkflowHistorico";
 import RelatorioFechamentoOSDialog from "@/components/RelatorioFechamentoOSDialog";
-import AssinaturaEletronicaOs from "@/components/AssinaturaEletronicaOs";
+import { AssinaturaEletronicaOs } from "@/components/AssinaturaEletronicaOs";
 import { useOsAssinaturas } from "@/contexts/OsAssinaturasContext";
 import { BarChart3 } from "lucide-react";
 
