@@ -60,6 +60,7 @@ const menuItems = [
     group: "Gestão de Pessoas",
     items: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Painel TV (Tempo Real)", url: "/monitor-tv", icon: Monitor },
       { title: "Requisição de Pessoal", url: "/", icon: ClipboardList },
       { title: "Processos Seletivos", url: "/processos-seletivos", icon: ClipboardCheck },
       { title: "Funcionários", url: "/funcionarios", icon: UserCheck },
