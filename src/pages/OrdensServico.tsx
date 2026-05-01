@@ -1828,6 +1828,27 @@ export default function OrdensServicoPage() {
                 />
               </div>
 
+              {/* Assinaturas Eletrônicas (apenas após Validada) */}
+              {viewOS.situacao === "Validada" && (
+                <div className="border rounded-lg p-4 bg-muted/20 space-y-3">
+                  <h4 className="text-sm font-semibold flex items-center gap-2">
+                    <FileSignature className="h-4 w-4" /> Assinaturas Eletrônicas (até 2)
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <AssinaturaEletronicaOs
+                      os={viewOS}
+                      papel="fiscal"
+                      assinaturaExistente={assinaturasOs.find(a => a.os_id === viewOS.id && a.papel === "fiscal")}
+                    />
+                    <AssinaturaEletronicaOs
+                      os={viewOS}
+                      papel="solicitante"
+                      assinaturaExistente={assinaturasOs.find(a => a.os_id === viewOS.id && a.papel === "solicitante")}
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Histórico de Alterações */}
               {viewOS.historico && viewOS.historico.length > 0 && (
                 <div className="border rounded-lg p-4">
