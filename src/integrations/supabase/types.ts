@@ -1747,6 +1747,218 @@ export type Database = {
         }
         Relationships: []
       }
+      kb_artigo_equipamentos: {
+        Row: {
+          artigo_id: string
+          created_at: string | null
+          equipamento_descricao: string | null
+          equipamento_id: string
+          id: string
+        }
+        Insert: {
+          artigo_id: string
+          created_at?: string | null
+          equipamento_descricao?: string | null
+          equipamento_id: string
+          id?: string
+        }
+        Update: {
+          artigo_id?: string
+          created_at?: string | null
+          equipamento_descricao?: string | null
+          equipamento_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_artigo_equipamentos_artigo_id_fkey"
+            columns: ["artigo_id"]
+            isOneToOne: false
+            referencedRelation: "kb_artigos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_artigo_os: {
+        Row: {
+          artigo_id: string
+          created_at: string | null
+          id: string
+          os_id: string
+          os_numero: number | null
+        }
+        Insert: {
+          artigo_id: string
+          created_at?: string | null
+          id?: string
+          os_id: string
+          os_numero?: number | null
+        }
+        Update: {
+          artigo_id?: string
+          created_at?: string | null
+          id?: string
+          os_id?: string
+          os_numero?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_artigo_os_artigo_id_fkey"
+            columns: ["artigo_id"]
+            isOneToOne: false
+            referencedRelation: "kb_artigos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_artigos: {
+        Row: {
+          anexos: Json | null
+          autor_email: string | null
+          autor_nome: string | null
+          categoria_id: string | null
+          categoria_nome: string | null
+          conteudo: string
+          created_at: string | null
+          embedding: string | null
+          id: string
+          nao_uteis: number | null
+          resumo: string | null
+          status: string | null
+          tags: Json | null
+          titulo: string
+          updated_at: string | null
+          uteis: number | null
+          visualizacoes: number | null
+        }
+        Insert: {
+          anexos?: Json | null
+          autor_email?: string | null
+          autor_nome?: string | null
+          categoria_id?: string | null
+          categoria_nome?: string | null
+          conteudo?: string
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          nao_uteis?: number | null
+          resumo?: string | null
+          status?: string | null
+          tags?: Json | null
+          titulo: string
+          updated_at?: string | null
+          uteis?: number | null
+          visualizacoes?: number | null
+        }
+        Update: {
+          anexos?: Json | null
+          autor_email?: string | null
+          autor_nome?: string | null
+          categoria_id?: string | null
+          categoria_nome?: string | null
+          conteudo?: string
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          nao_uteis?: number | null
+          resumo?: string | null
+          status?: string | null
+          tags?: Json | null
+          titulo?: string
+          updated_at?: string | null
+          uteis?: number | null
+          visualizacoes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_artigos_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "kb_categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_categorias: {
+        Row: {
+          cor: string | null
+          created_at: string | null
+          descricao: string | null
+          icone: string | null
+          id: string
+          nome: string
+          ordem: number | null
+        }
+        Insert: {
+          cor?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome: string
+          ordem?: number | null
+        }
+        Update: {
+          cor?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome?: string
+          ordem?: number | null
+        }
+        Relationships: []
+      }
+      kb_faq: {
+        Row: {
+          categoria_id: string | null
+          categoria_nome: string | null
+          created_at: string | null
+          embedding: string | null
+          id: string
+          ordem: number | null
+          pergunta: string
+          resposta: string
+          tags: Json | null
+          updated_at: string | null
+          visualizacoes: number | null
+        }
+        Insert: {
+          categoria_id?: string | null
+          categoria_nome?: string | null
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          ordem?: number | null
+          pergunta: string
+          resposta?: string
+          tags?: Json | null
+          updated_at?: string | null
+          visualizacoes?: number | null
+        }
+        Update: {
+          categoria_id?: string | null
+          categoria_nome?: string | null
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          ordem?: number | null
+          pergunta?: string
+          resposta?: string
+          tags?: Json | null
+          updated_at?: string | null
+          visualizacoes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_faq_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "kb_categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lancamentos: {
         Row: {
           anexos: Json | null
@@ -3953,6 +4165,21 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      kb_buscar_semantico: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          categoria_nome: string
+          conteudo: string
+          id: string
+          similarity: number
+          tipo: string
+          titulo: string
+        }[]
       }
       move_to_dlq: {
         Args: {
