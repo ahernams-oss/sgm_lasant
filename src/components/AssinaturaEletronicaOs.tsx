@@ -222,7 +222,7 @@ export function AssinaturaEletronicaOs({
           )}
           {desabilitado && podeAssinar && (
             <p className="text-xs text-muted-foreground mt-2">
-              A OS precisa estar com situação <strong>Validada</strong> para receber assinatura.
+              Salve a OS antes de assiná-la.
             </p>
           )}
         </CardContent>
