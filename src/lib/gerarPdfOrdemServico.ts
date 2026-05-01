@@ -1,8 +1,10 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import QRCode from "qrcode";
 import { OrdemServico, MaterialOS } from "@/contexts/OrdensServicoContext";
 import { Empresa } from "@/contexts/EmpresaContext";
 import { Cliente } from "@/contexts/ClientesContext";
+import type { OsAssinatura } from "@/contexts/OsAssinaturasContext";
 
 const DARK = [60, 60, 60] as const;
 const BORDER: [number, number, number] = [60, 60, 60];
