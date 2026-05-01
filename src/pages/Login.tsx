@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { LogIn, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
@@ -12,6 +13,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [showSenha, setShowSenha] = useState(false);
+  const [lembrar, setLembrar] = useState(true);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -23,7 +25,7 @@ const Login = () => {
 
     setLoading(true);
     setTimeout(() => {
-      const success = login(email, senha);
+      const success = login(email, senha, lembrar);
       setLoading(false);
       if (success) {
         toast.success("Login realizado com sucesso!");
@@ -88,6 +90,22 @@ const Login = () => {
                 {showSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-1">
+            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+              <Checkbox
+                checked={lembrar}
+                onCheckedChange={(v) => setLembrar(v === true)}
+              />
+              Lembrar-me
+            </label>
+            <Link
+              to="/esqueci-senha"
+              className="text-xs text-primary hover:underline font-medium"
+            >
+              Esqueci minha senha
+            </Link>
           </div>
 
           <Button type="submit" className="w-full gap-2" disabled={loading}>
