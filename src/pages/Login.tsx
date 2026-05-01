@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { User, Lock, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -37,85 +37,82 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f7f5f0] px-4 py-10">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] px-8 py-10 sm:px-10 sm:py-12">
-          {/* Logo */}
-          <div className="flex justify-center mb-8">
-            <img
-              src="/Logo_Lasant.png"
-              alt="Lasant Construções"
-              className="h-16 w-auto"
-            />
-          </div>
+    <div className="min-h-screen flex bg-white">
+      {/* Coluna esquerda - Formulário */}
+      <div className="flex-1 flex flex-col px-6 sm:px-12 lg:px-20 py-8 lg:py-10 overflow-y-auto">
+        {/* Topo: Logo + LOG IN */}
+        <div className="flex items-center justify-between w-full max-w-2xl mx-auto">
+          <img
+            src="/Logo_Lasant.png"
+            alt="Lasant Construções"
+            className="h-16 w-auto"
+          />
+          <span className="text-base font-semibold tracking-[0.2em] text-foreground border-b-2 border-foreground pb-1">
+            LOG IN
+          </span>
+        </div>
 
-          {/* Título */}
-          <div className="flex items-center justify-center gap-2 mb-10">
-            <h1 className="text-3xl font-semibold text-foreground tracking-tight">
-              Log in
+        {/* Conteúdo central */}
+        <div className="flex-1 flex flex-col justify-center w-full max-w-md mx-auto py-10">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl sm:text-4xl font-serif font-semibold text-[#3a1d6e] leading-tight">
+              LASANT CONSTRUÇÕES
             </h1>
-            <span className="text-2xl font-bold text-foreground">SGM</span>
+            <h2 className="text-2xl sm:text-3xl font-serif font-medium text-[#3a1d6e] mt-3">
+              Log in - SGM
+            </h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
-            <div>
-              <label className="text-sm font-semibold text-foreground mb-2 block">
-                Email
-              </label>
-              <div className="relative">
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                  className="h-12 rounded-xl bg-[#faf9f6] border-border pr-10"
-                />
-                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-              </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Username */}
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+              <Input
+                type="email"
+                placeholder="Username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                className="h-12 pl-11 pr-4 rounded-full bg-[#ececec] border-transparent focus-visible:ring-2 focus-visible:ring-[#3a1d6e]/30"
+              />
             </div>
 
-            {/* Senha */}
-            <div>
-              <label className="text-sm font-semibold text-foreground mb-2 block">
-                Senha
-              </label>
-              <div className="relative">
-                <Input
-                  type={showSenha ? "text" : "password"}
-                  placeholder="Senha"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                  autoComplete="current-password"
-                  className="h-12 rounded-xl bg-[#faf9f6] border-border pr-16"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowSenha(!showSenha)}
-                  className="absolute right-9 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  tabIndex={-1}
-                >
-                  {showSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-              </div>
+            {/* Password */}
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+              <Input
+                type={showSenha ? "text" : "password"}
+                placeholder="Password"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                autoComplete="current-password"
+                className="h-12 pl-11 pr-11 rounded-full bg-[#ececec] border-transparent focus-visible:ring-2 focus-visible:ring-[#3a1d6e]/30"
+              />
+              <button
+                type="button"
+                onClick={() => setShowSenha(!showSenha)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
+              >
+                {showSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
 
             {/* Lembrar / Esqueci */}
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+            <div className="flex items-center justify-between px-2 pt-1">
+              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer select-none">
                 <Checkbox
                   checked={lembrar}
                   onCheckedChange={(v) => setLembrar(v === true)}
+                  className="rounded-sm"
                 />
-                Lembrar-me
+                <span className="italic">Lembrar</span>
               </label>
               <Link
                 to="/esqueci-senha"
-                className="text-sm text-foreground hover:underline font-medium"
+                className="text-sm italic text-foreground hover:underline"
               >
-                Esqueci minha senha
+                Esqueci a senha
               </Link>
             </div>
 
@@ -123,21 +120,72 @@ const Login = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 rounded-xl bg-black hover:bg-black/90 text-white font-semibold text-base mt-2"
+              className="w-full h-12 rounded-full bg-[#3a1d6e] hover:bg-[#2e1757] text-white font-semibold text-base mt-4 shadow-md"
             >
-              {loading ? "Entrando..." : "Continuar"}
+              {loading ? "Entrando..." : "Log in"}
             </Button>
-          </form>
 
-          {/* Rodapé */}
-          <p className="text-xs text-muted-foreground text-center mt-8">
-            Solicite suas credenciais ao administrador do sistema.
-          </p>
+            <p className="text-xs italic text-muted-foreground text-center pt-2">
+              Para acesso, contate a empresa.
+            </p>
+          </form>
         </div>
 
-        <p className="text-[11px] text-muted-foreground text-center mt-6">
+        <p className="text-[11px] text-muted-foreground text-center">
           © {new Date().getFullYear()} LASANT CONSTRUÇÕES — Todos os direitos reservados
         </p>
+      </div>
+
+      {/* Coluna direita - Painel decorativo */}
+      <div className="hidden lg:block relative w-[42%] xl:w-[45%] overflow-hidden">
+        {/* Camada roxa diagonal */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(135deg, #1a0a3e 0%, #2d1167 35%, #3a1d6e 60%, #4a2585 100%)",
+            clipPath: "polygon(15% 0, 100% 0, 85% 100%, 0 100%)",
+          }}
+        >
+          {/* Listras diagonais sutis */}
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(135deg, transparent 0, transparent 40px, rgba(255,255,255,0.08) 40px, rgba(255,255,255,0.08) 80px)",
+            }}
+          />
+        </div>
+
+        {/* Camada vermelha sobreposta */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(135deg, #8b2a3a 0%, #a83e4f 50%, #c45565 100%)",
+            clipPath: "polygon(55% 0, 100% 0, 100% 100%, 35% 100%)",
+            opacity: 0.92,
+          }}
+        >
+          <div
+            className="absolute inset-0 opacity-25"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(135deg, transparent 0, transparent 40px, rgba(255,255,255,0.1) 40px, rgba(255,255,255,0.1) 80px)",
+            }}
+          />
+        </div>
+
+        {/* Texto sobreposto */}
+        <div className="absolute inset-0 flex flex-col justify-center px-12 xl:px-16">
+          <div className="text-white font-serif leading-tight space-y-3">
+            <div className="text-5xl xl:text-6xl font-light">Gestão</div>
+            <div className="text-3xl xl:text-4xl font-light pl-12">de</div>
+            <div className="text-4xl xl:text-5xl font-light pl-20">Manutenção</div>
+            <div className="text-3xl xl:text-4xl font-light pl-12">e</div>
+            <div className="text-4xl xl:text-5xl font-light pl-24">Obras</div>
+          </div>
+        </div>
       </div>
     </div>
   );
