@@ -15,7 +15,7 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Search, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Upload, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
 
@@ -135,6 +135,19 @@ export default function I0Page() {
 
   const mesLabel = (m: number) => meses.find((x) => x.value === m)?.label ?? String(m);
 
+  const downloadTemplate = () => {
+    const ws = XLSX.utils.aoa_to_sheet([
+      ["Mês (1-12)", "Ano", "Código SCO", "Valor"],
+      [1, currentYear, "EXEMPLO001", 100.50],
+      [2, currentYear, "EXEMPLO002", 250.75],
+    ]);
+    ws["!cols"] = [{ wch: 14 }, { wch: 8 }, { wch: 18 }, { wch: 12 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Modelo I0");
+    XLSX.writeFile(wb, "modelo_i0.xlsx");
+    toast({ title: "Modelo baixado com sucesso" });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -147,6 +160,9 @@ export default function I0Page() {
             className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImport(f); e.target.value = ""; }}
           />
+          <Button variant="outline" onClick={downloadTemplate}>
+            <Download className="mr-2 h-4 w-4" /> Modelo
+          </Button>
           <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-2 h-4 w-4" /> Importar
           </Button>
