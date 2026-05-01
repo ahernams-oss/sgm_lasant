@@ -31,6 +31,19 @@ export default function Sco() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
+  const downloadTemplate = () => {
+    const ws = XLSX.utils.aoa_to_sheet([
+      ["Código", "Descrição", "Unidade", "Tipo (SCO/SINAPI/EMOP)"],
+      ["EXEMPLO001", "Descrição do item de exemplo", "un", "SCO"],
+      ["EXEMPLO002", "Outro item de exemplo", "m²", "SINAPI"],
+    ]);
+    ws["!cols"] = [{ wch: 16 }, { wch: 40 }, { wch: 10 }, { wch: 22 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Modelo SCO");
+    XLSX.writeFile(wb, "modelo_sco.xlsx");
+    toast({ title: "Modelo baixado com sucesso" });
+  };
+
   const handleImport = (file: File) => {
     const ext = file.name.split(".").pop()?.toLowerCase();
     const reader = new FileReader();
@@ -143,6 +156,9 @@ export default function Sco() {
               e.target.value = "";
             }}
           />
+          <Button variant="outline" onClick={downloadTemplate}>
+            <Download className="mr-2 h-4 w-4" /> Modelo
+          </Button>
           <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-2 h-4 w-4" /> Importar
           </Button>
