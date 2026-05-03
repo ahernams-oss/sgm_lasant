@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useBim, BimModelo } from "@/contexts/BimContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useRdos } from "@/contexts/RdosContext";
-import DoubleConfirmDelete from "@/components/DoubleConfirmDelete";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import BimViewer from "@/components/BimViewer";
 
 const DISCIPLINAS = ["Arquitetura", "Estrutural", "Hidráulica", "Elétrica", "AVAC", "PCI", "Telecom", "Coordenação"];
@@ -46,6 +46,7 @@ export default function BimPage() {
     addQuantitativo, deleteQuantitativo, addPrancha, deletePrancha } = useBim();
   const { clientes } = useClientes();
   const { rdos } = useRdos();
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const [search, setSearch] = useState("");
   const [filtroCliente, setFiltroCliente] = useState("todos");
@@ -284,11 +285,9 @@ export default function BimPage() {
                       <div className="flex justify-end gap-1">
                         <Button size="icon" variant="ghost" onClick={() => openViewer(m)} title="Visualizar 3D"><Eye className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" onClick={() => openEdit(m)} title="Editar"><Pencil className="h-4 w-4" /></Button>
-                        <DoubleConfirmDelete
-                          onConfirm={() => deleteModelo(m.id)}
-                          itemName={m.nome}
-                          trigger={<Button size="icon" variant="ghost" className="text-destructive"><Trash2 className="h-4 w-4" /></Button>}
-                        />
+                        <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(m.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
