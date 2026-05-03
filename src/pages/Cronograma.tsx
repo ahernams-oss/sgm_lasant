@@ -49,6 +49,17 @@ function CronogramaInner() {
 
   const apenasClientes = useMemo(() => clientes.filter((c) => c.tipo === "Cliente"), [clientes]);
 
+  const obrasDoCliente = useMemo(() => {
+    if (!form.cliente_id) return [] as string[];
+    const set = new Set<string>();
+    rdos.forEach((r) => {
+      if (r.cliente_id === form.cliente_id && (r.obra || "").trim()) {
+        set.add((r.obra || "").trim());
+      }
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [rdos, form.cliente_id]);
+
   const resetForm = () => {
     setForm({
       cliente_id: "",
