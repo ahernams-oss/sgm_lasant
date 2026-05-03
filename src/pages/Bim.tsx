@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useBim, BimModelo } from "@/contexts/BimContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useRdos } from "@/contexts/RdosContext";
+import { useCronogramas } from "@/contexts/CronogramasContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import BimViewer from "@/components/BimViewer";
 
