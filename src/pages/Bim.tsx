@@ -243,7 +243,7 @@ export default function BimPage() {
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos os clientes</SelectItem>
-              {clientes.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+              {clientes.filter((c: any) => (c.tipo || "Cliente") === "Cliente").map((c: any) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={filtroObra} onValueChange={setFiltroObra}>
@@ -319,7 +319,7 @@ export default function BimPage() {
               <Select value={form.cliente_id} onValueChange={handleClienteChange}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
-                  {clientes.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                  {clientes.filter((c: any) => (c.tipo || "Cliente") === "Cliente").map((c: any) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
