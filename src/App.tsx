@@ -273,6 +273,7 @@ const App = () => (
     </AuthProvider>
     </OsAssinaturasProvider>
     </BimProvider>
+    </CronogramasProvider>
     </RdoAssinaturasProvider>
     </RdosProvider>
     </KnowledgeBaseProvider>
