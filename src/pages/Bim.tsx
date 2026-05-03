@@ -535,6 +535,13 @@ export default function BimPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DoubleConfirmDelete
+        open={!!deleteId}
+        onOpenChange={(o) => { if (!o) cancelDelete(); }}
+        onConfirm={() => { if (deleteId) { deleteModelo(deleteId); cancelDelete(); } }}
+      />
     </div>
   );
 }
+
