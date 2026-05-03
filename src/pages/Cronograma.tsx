@@ -312,7 +312,27 @@ function CronogramaInner() {
                 </div>
                 <div>
                   <Label>Obra *</Label>
-                  <Input value={form.obra || ""} onChange={(e) => setForm((f) => ({ ...f, obra: e.target.value }))} />
+                  {obrasDoCliente.length > 0 ? (
+                    <Select
+                      value={form.obra || ""}
+                      onValueChange={(v) => setForm((f) => ({ ...f, obra: v }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a obra do RDO" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {obrasDoCliente.map((o) => (
+                          <SelectItem key={o} value={o}>{o}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      value={form.obra || ""}
+                      onChange={(e) => setForm((f) => ({ ...f, obra: e.target.value }))}
+                      placeholder={form.cliente_id ? "Nenhuma obra em RDO — digite manualmente" : "Selecione o cliente primeiro"}
+                    />
+                  )}
                 </div>
                 <div>
                   <Label>Responsável</Label>
