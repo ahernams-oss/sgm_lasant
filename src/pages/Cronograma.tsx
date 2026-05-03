@@ -1,0 +1,548 @@
+import { useState, useMemo, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Trash2, FileDown, FileSpreadsheet, Pencil, RefreshCw, CalendarRange } from "lucide-react";
+import { CronogramasProvider, useCronogramas, gerarPeriodos, type Cronograma, type CronogramaAtividade } from "@/contexts/CronogramasContext";
+import { useClientes } from "@/contexts/ClientesContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
+import { useRdos } from "@/contexts/RdosContext";
+import { gerarPdfCronograma } from "@/lib/gerarPdfCronograma";
+import { gerarExcelCronograma } from "@/lib/gerarExcelCronograma";
+import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { toast } from "sonner";
+
+const fmtMoney = (n: number) =>
+  (Number(n) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+function novaAtividade(ordem: number): CronogramaAtividade {
+  return {
+    id: crypto.randomUUID(),
+    ordem,
+    descricao: "",
+    unidade: "",
+    quantidade: 0,
+    peso: 0,
+    valor_total: 0,
+    modo_financeiro: "distribuido",
+    valores: {},
+    vincular_rdo: true,
+  };
+}
+
+function CronogramaInner() {
+  const { cronogramas, loading, addCronograma, updateCronograma, deleteCronograma, refresh } = useCronogramas();
+  const { clientes } = useClientes();
+  const { empresa } = useEmpresa();
+  const { rdos } = useRdos();
+
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Cronograma | null>(null);
+  const [form, setForm] = useState<Partial<Cronograma>>({});
+
+  const apenasClientes = useMemo(() => clientes.filter((c) => c.tipo === "Cliente"), [clientes]);
+
+  const resetForm = () => {
+    setForm({
+      cliente_id: "",
+      cliente_nome: "",
+      obra: "",
+      descricao: "",
+      responsavel: "",
+      data_inicio: "",
+      data_fim: "",
+      granularidade: "mensal",
+      valor_total: 0,
+      atividades: [],
+      periodos: [],
+      status: "Em Andamento",
+      observacoes: "",
+    });
+    setEditing(null);
+  };
+
+  const openNew = () => { resetForm(); setOpen(true); };
+
+  const openEdit = (c: Cronograma) => {
+    setForm({ ...c });
+    setEditing(c);
+    setOpen(true);
+  };
+
+  const recalcPeriodos = () => {
+    const p = gerarPeriodos(form.data_inicio || "", form.data_fim || "", (form.granularidade as any) || "mensal");
+    setForm((f) => ({ ...f, periodos: p }));
+    toast.success(`${p.length} períodos gerados`);
+  };
+
+  const addAtv = () => {
+    setForm((f) => ({ ...f, atividades: [...(f.atividades || []), novaAtividade((f.atividades?.length || 0) + 1)] }));
+  };
+
+  const updAtv = (idx: number, patch: Partial<CronogramaAtividade>) => {
+    setForm((f) => {
+      const atvs = [...(f.atividades || [])];
+      atvs[idx] = { ...atvs[idx], ...patch };
+      return { ...f, atividades: atvs };
+    });
+  };
+
+  const delAtv = (idx: number) => {
+    setForm((f) => ({ ...f, atividades: (f.atividades || []).filter((_, i) => i !== idx) }));
+  };
+
+  const updValor = (idx: number, periodo: string, campo: "previsto_fisico" | "previsto_financeiro" | "realizado_fisico" | "realizado_financeiro", val: number) => {
+    setForm((f) => {
+      const atvs = [...(f.atividades || [])];
+      const a = { ...atvs[idx] };
+      const valores = { ...(a.valores || {}) };
+      const cur = valores[periodo] || { previsto_fisico: 0, previsto_financeiro: 0, realizado_fisico: 0, realizado_financeiro: 0 };
+      valores[periodo] = { ...cur, [campo]: val };
+      a.valores = valores;
+      atvs[idx] = a;
+      return { ...f, atividades: atvs };
+    });
+  };
+
+  // Distribui valor_total proporcional ao previsto físico (modo distribuido)
+  const distribuirFinanceiro = (idx: number) => {
+    setForm((f) => {
+      const atvs = [...(f.atividades || [])];
+      const a = { ...atvs[idx] };
+      const periodos = f.periodos || [];
+      const totalPct = periodos.reduce((s, p) => s + (Number(a.valores?.[p.rotulo]?.previsto_fisico) || 0), 0);
+      const valores = { ...(a.valores || {}) };
+      periodos.forEach((p) => {
+        const cur = valores[p.rotulo] || { previsto_fisico: 0, previsto_financeiro: 0, realizado_fisico: 0, realizado_financeiro: 0 };
+        const pct = Number(cur.previsto_fisico) || 0;
+        const fin = totalPct > 0 ? (pct / totalPct) * (Number(a.valor_total) || 0) : 0;
+        valores[p.rotulo] = { ...cur, previsto_financeiro: fin };
+      });
+      a.valores = valores;
+      atvs[idx] = a;
+      return { ...f, atividades: atvs };
+    });
+  };
+
+  // Atualiza realizado físico/financeiro a partir dos RDOs do cliente/obra
+  const atualizarPelosRdos = () => {
+    if (!form.cliente_id || !form.obra) {
+      toast.error("Preencha Cliente e Obra primeiro.");
+      return;
+    }
+    const rdosObra = rdos.filter(
+      (r) => r.cliente_id === form.cliente_id && (r.obra || "").trim().toLowerCase() === (form.obra || "").trim().toLowerCase()
+    );
+    if (rdosObra.length === 0) {
+      toast.warning("Nenhum RDO encontrado para essa obra.");
+      return;
+    }
+    const periodos = form.periodos || [];
+    setForm((f) => {
+      const atvs = (f.atividades || []).map((a) => {
+        if (!a.vincular_rdo) return a;
+        const valores = { ...(a.valores || {}) };
+        periodos.forEach((p) => {
+          const dIni = new Date(p.inicio + "T00:00:00").getTime();
+          const dFim = new Date(p.fim + "T23:59:59").getTime();
+          const rdosPeriodo = rdosObra.filter((r) => {
+            const t = new Date((r.data_rdo || r.created_at) + (((r.data_rdo || "").length === 10) ? "T00:00:00" : "")).getTime();
+            return t >= dIni && t <= dFim;
+          });
+          if (rdosPeriodo.length === 0) return;
+          // Avanço real = média dos avanços físicos do RDO no período
+          const media = rdosPeriodo.reduce((s, r) => s + (Number(r.avanco_fisico_geral) || 0), 0) / rdosPeriodo.length;
+          const cur = valores[p.rotulo] || { previsto_fisico: 0, previsto_financeiro: 0, realizado_fisico: 0, realizado_financeiro: 0 };
+          // Fração do avanço total atribuída a essa atividade segundo seu peso previsto
+          const totalPctPrev = periodos.reduce((s, x) => s + (Number(a.valores?.[x.rotulo]?.previsto_fisico) || 0), 0);
+          const pctAtv = totalPctPrev > 0 ? (Number(cur.previsto_fisico) || 0) / totalPctPrev : 0;
+          const realFis = media * pctAtv;
+          const realFin = a.modo_financeiro === "distribuido" && totalPctPrev > 0
+            ? (realFis / 100) * (Number(a.valor_total) || 0)
+            : cur.realizado_financeiro;
+          valores[p.rotulo] = { ...cur, realizado_fisico: realFis, realizado_financeiro: realFin };
+        });
+        return { ...a, valores };
+      });
+      return { ...f, atividades: atvs };
+    });
+    toast.success(`Atualizado a partir de ${rdosObra.length} RDO(s).`);
+  };
+
+  const salvar = async () => {
+    if (!form.cliente_id || !form.obra) {
+      toast.error("Cliente e Obra são obrigatórios.");
+      return;
+    }
+    const valorTotal = (form.atividades || []).reduce((s, a) => s + (Number(a.valor_total) || 0), 0);
+    const payload = { ...form, valor_total: valorTotal };
+    if (editing) await updateCronograma(editing.id, payload);
+    else await addCronograma(payload);
+    setOpen(false);
+    resetForm();
+  };
+
+  const periodos = form.periodos || [];
+  const atividades = form.atividades || [];
+
+  // KPIs
+  const kpiValorTotal = atividades.reduce((s, a) => s + (Number(a.valor_total) || 0), 0);
+  const kpiRealFin = atividades.reduce((s, a) =>
+    s + Object.values(a.valores || {}).reduce((ss, v) => ss + (Number(v.realizado_financeiro) || 0), 0), 0);
+  const kpiAvancoMedio = atividades.length > 0
+    ? atividades.reduce((s, a) => {
+        const totalReal = Object.values(a.valores || {}).reduce((ss, v) => ss + (Number(v.realizado_fisico) || 0), 0);
+        return s + totalReal;
+      }, 0) / atividades.length
+    : 0;
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-serif font-semibold">Cronograma Físico-Financeiro</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Planejamento e acompanhamento por obra, integrado aos RDOs.
+          </p>
+        </div>
+        <Button onClick={openNew} className="gap-2">
+          <Plus className="h-4 w-4" /> Novo Cronograma
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader><CardTitle>Cronogramas Cadastrados</CardTitle></CardHeader>
+        <CardContent>
+          {loading ? (
+            <p className="text-sm text-muted-foreground">Carregando...</p>
+          ) : cronogramas.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum cronograma cadastrado.</p>
+          ) : (
+            <div className="space-y-3">
+              {cronogramas.map((c) => {
+                const totalReal = (c.atividades || []).reduce((s, a) =>
+                  s + Object.values(a.valores || {}).reduce((ss, v) => ss + (Number(v.realizado_financeiro) || 0), 0), 0);
+                const pctFin = c.valor_total > 0 ? (totalReal / c.valor_total) * 100 : 0;
+                return (
+                  <div key={c.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">Nº {c.numero}</Badge>
+                        <span className="font-semibold">{c.cliente_nome}</span>
+                        <span className="text-muted-foreground">— {c.obra}</span>
+                        <Badge>{c.status}</Badge>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1 flex gap-4">
+                        <span>Valor: {fmtMoney(c.valor_total)}</span>
+                        <span>Realizado: {fmtMoney(totalReal)} ({pctFin.toFixed(1)}%)</span>
+                        <span>Períodos: {c.periodos?.length || 0}</span>
+                        <span>Atividades: {c.atividades?.length || 0}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" onClick={() => gerarPdfCronograma(c, empresa)} title="Exportar PDF">
+                        <FileDown className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => gerarExcelCronograma(c)} title="Exportar Excel">
+                        <FileSpreadsheet className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => openEdit(c)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <DoubleConfirmDelete
+                        onConfirm={() => deleteCronograma(c.id)}
+                        itemName={`cronograma ${c.cliente_nome} - ${c.obra}`}
+                        trigger={
+                          <Button size="sm" variant="outline" className="text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        }
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-[95vw] max-h-[92vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editing ? "Editar Cronograma" : "Novo Cronograma"}</DialogTitle>
+          </DialogHeader>
+
+          <Tabs defaultValue="dados" className="mt-2">
+            <TabsList>
+              <TabsTrigger value="dados">Dados</TabsTrigger>
+              <TabsTrigger value="periodos">Períodos</TabsTrigger>
+              <TabsTrigger value="atividades">Atividades</TabsTrigger>
+              <TabsTrigger value="grade">Grade Físico-Financeira</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="dados" className="space-y-4 pt-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Cliente *</Label>
+                  <Select
+                    value={form.cliente_id || ""}
+                    onValueChange={(v) => {
+                      const c = apenasClientes.find((x) => x.id === v);
+                      setForm((f) => ({ ...f, cliente_id: v, cliente_nome: c?.nome || "" }));
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {apenasClientes.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Obra *</Label>
+                  <Input value={form.obra || ""} onChange={(e) => setForm((f) => ({ ...f, obra: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Responsável</Label>
+                  <Input value={form.responsavel || ""} onChange={(e) => setForm((f) => ({ ...f, responsavel: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <Select value={form.status || "Em Andamento"} onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Planejado">Planejado</SelectItem>
+                      <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+                      <SelectItem value="Pausado">Pausado</SelectItem>
+                      <SelectItem value="Concluído">Concluído</SelectItem>
+                      <SelectItem value="Cancelado">Cancelado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Descrição</Label>
+                  <Textarea value={form.descricao || ""} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Observações</Label>
+                  <Textarea value={form.observacoes || ""} onChange={(e) => setForm((f) => ({ ...f, observacoes: e.target.value }))} />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="periodos" className="space-y-4 pt-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label>Início *</Label>
+                  <Input type="date" value={form.data_inicio || ""} onChange={(e) => setForm((f) => ({ ...f, data_inicio: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Fim *</Label>
+                  <Input type="date" value={form.data_fim || ""} onChange={(e) => setForm((f) => ({ ...f, data_fim: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Granularidade</Label>
+                  <Select value={form.granularidade || "mensal"} onValueChange={(v: any) => setForm((f) => ({ ...f, granularidade: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mensal">Mensal</SelectItem>
+                      <SelectItem value="semanal">Semanal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <Button onClick={recalcPeriodos} variant="outline" className="gap-2">
+                <CalendarRange className="h-4 w-4" /> Gerar/Atualizar Períodos
+              </Button>
+              {periodos.length > 0 && (
+                <div className="text-sm text-muted-foreground">
+                  {periodos.length} período(s): {periodos.map((p) => p.rotulo).join(" • ")}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="atividades" className="space-y-3 pt-4">
+              <Button onClick={addAtv} variant="outline" className="gap-2"><Plus className="h-4 w-4" /> Nova Atividade</Button>
+              {atividades.length === 0 && (
+                <p className="text-sm text-muted-foreground">Nenhuma atividade.</p>
+              )}
+              {atividades.map((a, i) => (
+                <Card key={a.id}>
+                  <CardContent className="pt-4 grid grid-cols-12 gap-2 items-end">
+                    <div className="col-span-1">
+                      <Label className="text-xs">#</Label>
+                      <Input value={i + 1} disabled />
+                    </div>
+                    <div className="col-span-4">
+                      <Label className="text-xs">Descrição</Label>
+                      <Input value={a.descricao} onChange={(e) => updAtv(i, { descricao: e.target.value })} />
+                    </div>
+                    <div className="col-span-1">
+                      <Label className="text-xs">Unid.</Label>
+                      <Input value={a.unidade} onChange={(e) => updAtv(i, { unidade: e.target.value })} />
+                    </div>
+                    <div className="col-span-1">
+                      <Label className="text-xs">Qtd.</Label>
+                      <Input type="number" value={a.quantidade} onChange={(e) => updAtv(i, { quantidade: Number(e.target.value) })} />
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="text-xs">Valor Total</Label>
+                      <Input type="number" step="0.01" value={a.valor_total} onChange={(e) => updAtv(i, { valor_total: Number(e.target.value) })} />
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="text-xs">Modo Financeiro</Label>
+                      <Select value={a.modo_financeiro} onValueChange={(v: any) => updAtv(i, { modo_financeiro: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="distribuido">Distribuído</SelectItem>
+                          <SelectItem value="manual">Manual</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="col-span-1">
+                      <Button size="sm" variant="outline" className="text-destructive" onClick={() => delAtv(i)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </TabsContent>
+
+            <TabsContent value="grade" className="pt-4">
+              {periodos.length === 0 || atividades.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Defina períodos e atividades primeiro.</p>
+              ) : (
+                <>
+                  <div className="flex gap-2 mb-3">
+                    <Button size="sm" variant="outline" onClick={atualizarPelosRdos} className="gap-2">
+                      <RefreshCw className="h-4 w-4" /> Atualizar Realizado pelos RDOs
+                    </Button>
+                  </div>
+                  <div className="overflow-x-auto border rounded-lg">
+                    <table className="text-xs w-full">
+                      <thead className="bg-primary text-primary-foreground sticky top-0">
+                        <tr>
+                          <th className="p-2 text-left">#</th>
+                          <th className="p-2 text-left min-w-[200px]">Atividade</th>
+                          <th className="p-2 text-left">Tipo</th>
+                          {periodos.map((p) => <th key={p.rotulo} className="p-2 text-center min-w-[90px]">{p.rotulo}</th>)}
+                          <th className="p-2 text-center">Ação</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {atividades.map((a, i) => (
+                          <>
+                            <tr key={`${a.id}-pf`} className="border-t bg-muted/30">
+                              <td className="p-1 text-center font-bold" rowSpan={4}>{i + 1}</td>
+                              <td className="p-1 font-medium" rowSpan={4}>{a.descricao || "(sem nome)"}</td>
+                              <td className="p-1 text-xs font-semibold">Prev. %</td>
+                              {periodos.map((p) => (
+                                <td key={p.rotulo} className="p-1">
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    className="h-7 text-xs"
+                                    value={a.valores?.[p.rotulo]?.previsto_fisico ?? 0}
+                                    onChange={(e) => updValor(i, p.rotulo, "previsto_fisico", Number(e.target.value))}
+                                  />
+                                </td>
+                              ))}
+                              <td className="p-1 text-center" rowSpan={4}>
+                                {a.modo_financeiro === "distribuido" && (
+                                  <Button size="sm" variant="ghost" onClick={() => distribuirFinanceiro(i)} title="Distribuir financeiro proporcional">
+                                    <RefreshCw className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </td>
+                            </tr>
+                            <tr key={`${a.id}-pfin`} className="bg-muted/30">
+                              <td className="p-1 text-xs font-semibold">Prev. R$</td>
+                              {periodos.map((p) => (
+                                <td key={p.rotulo} className="p-1">
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    className="h-7 text-xs"
+                                    value={a.valores?.[p.rotulo]?.previsto_financeiro ?? 0}
+                                    onChange={(e) => updValor(i, p.rotulo, "previsto_financeiro", Number(e.target.value))}
+                                    disabled={a.modo_financeiro === "distribuido"}
+                                  />
+                                </td>
+                              ))}
+                            </tr>
+                            <tr key={`${a.id}-rf`}>
+                              <td className="p-1 text-xs font-semibold text-green-700">Real. %</td>
+                              {periodos.map((p) => (
+                                <td key={p.rotulo} className="p-1">
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    className="h-7 text-xs"
+                                    value={a.valores?.[p.rotulo]?.realizado_fisico ?? 0}
+                                    onChange={(e) => updValor(i, p.rotulo, "realizado_fisico", Number(e.target.value))}
+                                  />
+                                </td>
+                              ))}
+                            </tr>
+                            <tr key={`${a.id}-rfin`} className="border-b">
+                              <td className="p-1 text-xs font-semibold text-green-700">Real. R$</td>
+                              {periodos.map((p) => (
+                                <td key={p.rotulo} className="p-1">
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    className="h-7 text-xs"
+                                    value={a.valores?.[p.rotulo]?.realizado_financeiro ?? 0}
+                                    onChange={(e) => updValor(i, p.rotulo, "realizado_financeiro", Number(e.target.value))}
+                                  />
+                                </td>
+                              ))}
+                            </tr>
+                          </>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 mt-4">
+                    <Card><CardContent className="pt-4">
+                      <p className="text-xs text-muted-foreground">Valor Total</p>
+                      <p className="text-lg font-bold text-primary">{fmtMoney(kpiValorTotal)}</p>
+                    </CardContent></Card>
+                    <Card><CardContent className="pt-4">
+                      <p className="text-xs text-muted-foreground">Realizado Financeiro</p>
+                      <p className="text-lg font-bold text-green-700">{fmtMoney(kpiRealFin)}</p>
+                    </CardContent></Card>
+                    <Card><CardContent className="pt-4">
+                      <p className="text-xs text-muted-foreground">Avanço Médio Físico</p>
+                      <p className="text-lg font-bold">{kpiAvancoMedio.toFixed(2)}%</p>
+                    </CardContent></Card>
+                  </div>
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button onClick={salvar}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+export default function CronogramaPage() {
+  return (
+    <CronogramasProvider>
+      <CronogramaInner />
+    </CronogramasProvider>
+  );
+}
