@@ -47,6 +47,7 @@ export default function BimPage() {
     addQuantitativo, deleteQuantitativo, addPrancha, deletePrancha } = useBim();
   const { clientes } = useClientes();
   const { rdos } = useRdos();
+  const { cronogramas } = useCronogramas();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const [search, setSearch] = useState("");
