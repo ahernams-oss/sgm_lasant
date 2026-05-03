@@ -700,6 +700,66 @@ export type Database = {
         }
         Relationships: []
       }
+      cronogramas: {
+        Row: {
+          atividades: Json
+          cliente_id: string
+          cliente_nome: string
+          created_at: string
+          data_fim: string | null
+          data_inicio: string | null
+          descricao: string | null
+          granularidade: string
+          id: string
+          numero: number
+          obra: string
+          observacoes: string | null
+          periodos: Json
+          responsavel: string | null
+          status: string | null
+          updated_at: string
+          valor_total: number | null
+        }
+        Insert: {
+          atividades?: Json
+          cliente_id?: string
+          cliente_nome?: string
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          granularidade?: string
+          id?: string
+          numero?: number
+          obra?: string
+          observacoes?: string | null
+          periodos?: Json
+          responsavel?: string | null
+          status?: string | null
+          updated_at?: string
+          valor_total?: number | null
+        }
+        Update: {
+          atividades?: Json
+          cliente_id?: string
+          cliente_nome?: string
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          granularidade?: string
+          id?: string
+          numero?: number
+          obra?: string
+          observacoes?: string | null
+          periodos?: Json
+          responsavel?: string | null
+          status?: string | null
+          updated_at?: string
+          valor_total?: number | null
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
