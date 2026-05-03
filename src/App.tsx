@@ -103,6 +103,7 @@ import MonitorTV from "./pages/MonitorTV.tsx";
 import CronogramaPage from "./pages/Cronograma.tsx";
 import BimPage from "./pages/Bim.tsx";
 import { BimProvider } from "@/contexts/BimContext";
+import { CronogramasProvider } from "@/contexts/CronogramasContext";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
