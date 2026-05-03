@@ -14,6 +14,175 @@ export type Database = {
   }
   public: {
     Tables: {
+      bim_modelos: {
+        Row: {
+          arquivo_nome: string | null
+          arquivo_tamanho: number | null
+          arquivo_url: string | null
+          cliente_id: string
+          cliente_nome: string
+          created_at: string
+          data_upload: string | null
+          descricao: string | null
+          disciplina: string
+          formato: string
+          id: string
+          nome: string
+          numero: number
+          obra: string
+          observacoes: string | null
+          responsavel_tecnico: string | null
+          status: string | null
+          tags: Json | null
+          thumbnail_url: string | null
+          updated_at: string
+          versao: string
+        }
+        Insert: {
+          arquivo_nome?: string | null
+          arquivo_tamanho?: number | null
+          arquivo_url?: string | null
+          cliente_id?: string
+          cliente_nome?: string
+          created_at?: string
+          data_upload?: string | null
+          descricao?: string | null
+          disciplina?: string
+          formato?: string
+          id?: string
+          nome?: string
+          numero?: number
+          obra?: string
+          observacoes?: string | null
+          responsavel_tecnico?: string | null
+          status?: string | null
+          tags?: Json | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          versao?: string
+        }
+        Update: {
+          arquivo_nome?: string | null
+          arquivo_tamanho?: number | null
+          arquivo_url?: string | null
+          cliente_id?: string
+          cliente_nome?: string
+          created_at?: string
+          data_upload?: string | null
+          descricao?: string | null
+          disciplina?: string
+          formato?: string
+          id?: string
+          nome?: string
+          numero?: number
+          obra?: string
+          observacoes?: string | null
+          responsavel_tecnico?: string | null
+          status?: string | null
+          tags?: Json | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          versao?: string
+        }
+        Relationships: []
+      }
+      bim_pranchas: {
+        Row: {
+          arquivo_nome: string | null
+          arquivo_url: string | null
+          codigo: string
+          created_at: string
+          data_revisao: string | null
+          escala: string | null
+          id: string
+          modelo_id: string
+          observacao: string | null
+          revisao: string | null
+          titulo: string
+        }
+        Insert: {
+          arquivo_nome?: string | null
+          arquivo_url?: string | null
+          codigo?: string
+          created_at?: string
+          data_revisao?: string | null
+          escala?: string | null
+          id?: string
+          modelo_id: string
+          observacao?: string | null
+          revisao?: string | null
+          titulo?: string
+        }
+        Update: {
+          arquivo_nome?: string | null
+          arquivo_url?: string | null
+          codigo?: string
+          created_at?: string
+          data_revisao?: string | null
+          escala?: string | null
+          id?: string
+          modelo_id?: string
+          observacao?: string | null
+          revisao?: string | null
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bim_pranchas_modelo_id_fkey"
+            columns: ["modelo_id"]
+            isOneToOne: false
+            referencedRelation: "bim_modelos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bim_quantitativos: {
+        Row: {
+          categoria: string
+          created_at: string
+          cronograma_atividade_id: string | null
+          cronograma_id: string | null
+          elemento: string
+          id: string
+          modelo_id: string
+          observacao: string | null
+          quantidade: number
+          unidade: string
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          cronograma_atividade_id?: string | null
+          cronograma_id?: string | null
+          elemento?: string
+          id?: string
+          modelo_id: string
+          observacao?: string | null
+          quantidade?: number
+          unidade?: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          cronograma_atividade_id?: string | null
+          cronograma_id?: string | null
+          elemento?: string
+          id?: string
+          modelo_id?: string
+          observacao?: string | null
+          quantidade?: number
+          unidade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bim_quantitativos_modelo_id_fkey"
+            columns: ["modelo_id"]
+            isOneToOne: false
+            referencedRelation: "bim_modelos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cargos: {
         Row: {
           anexos: Json | null
