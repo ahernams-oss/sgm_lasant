@@ -74,8 +74,14 @@ export default function BimPage() {
     (rdos || []).forEach((r: any) => {
       if (r.cliente_id === form.cliente_id && (r.obra || "").trim()) set.add((r.obra || "").trim());
     });
+    (cronogramas || []).forEach((c: any) => {
+      if (c.cliente_id === form.cliente_id && (c.obra || "").trim()) set.add((c.obra || "").trim());
+    });
+    (modelos || []).forEach((m: any) => {
+      if (m.cliente_id === form.cliente_id && (m.obra || "").trim()) set.add((m.obra || "").trim());
+    });
     return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
-  }, [rdos, form.cliente_id]);
+  }, [rdos, cronogramas, modelos, form.cliente_id]);
 
   const obrasDisponiveis = useMemo(() => {
     const set = new Set<string>();
