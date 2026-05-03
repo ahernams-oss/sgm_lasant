@@ -36,6 +36,7 @@ import {
   Megaphone,
   Bell,
   BotMessageSquare,
+  Box,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -90,6 +91,7 @@ const menuItems = [
     items: [
       { title: "RDO - Diário de Obras", url: "/engenharia/rdo", icon: FileSpreadsheet },
       { title: "Cronograma Físico-Financeiro", url: "/engenharia/cronograma", icon: CalendarClock },
+      { title: "BIM - Modelagem 3D", url: "/obras/bim", icon: Box },
     ],
   },
   {

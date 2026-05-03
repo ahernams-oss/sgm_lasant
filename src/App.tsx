@@ -101,6 +101,8 @@ import { KnowledgeBaseProvider } from "@/contexts/KnowledgeBaseContext";
 import BaseConhecimentoPage from "./pages/BaseConhecimento.tsx";
 import MonitorTV from "./pages/MonitorTV.tsx";
 import CronogramaPage from "./pages/Cronograma.tsx";
+import BimPage from "./pages/Bim.tsx";
+import { BimProvider } from "@/contexts/BimContext";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
@@ -189,6 +191,7 @@ function AppRoutes() {
         />
         <Route path="/engenharia/rdo" element={<RdoPage />} />
         <Route path="/engenharia/cronograma" element={<CronogramaPage />} />
+        <Route path="/obras/bim" element={<BimPage />} />
         <Route path="/engenharia/responsaveis-tecnicos" element={<ResponsaveisTecnicosPage />} />
         <Route path="/cadastros/responsaveis-tecnicos" element={<ResponsaveisTecnicosPage />} />
         <Route path="/comunicacao/mensagens" element={<ComunicacaoMensagensPage />} />
@@ -239,6 +242,7 @@ const App = () => (
     <KnowledgeBaseProvider>
     <RdosProvider>
     <RdoAssinaturasProvider>
+    <BimProvider>
     <OsAssinaturasProvider>
     <AuthProvider> {/* auth wrapper */}
     <TooltipProvider>
@@ -266,6 +270,7 @@ const App = () => (
     </TooltipProvider>
     </AuthProvider>
     </OsAssinaturasProvider>
+    </BimProvider>
     </RdoAssinaturasProvider>
     </RdosProvider>
     </KnowledgeBaseProvider>
