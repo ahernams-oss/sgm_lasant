@@ -15,7 +15,7 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useRdos } from "@/contexts/RdosContext";
 import { gerarPdfCronograma } from "@/lib/gerarPdfCronograma";
 import { gerarExcelCronograma } from "@/lib/gerarExcelCronograma";
-import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
 
 const fmtMoney = (n: number) =>
@@ -37,7 +37,7 @@ function novaAtividade(ordem: number): CronogramaAtividade {
 }
 
 function CronogramaInner() {
-  const { cronogramas, loading, addCronograma, updateCronograma, deleteCronograma, refresh } = useCronogramas();
+  const { cronogramas, loading, addCronograma, updateCronograma, deleteCronograma } = useCronogramas();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { rdos } = useRdos();
@@ -45,6 +45,7 @@ function CronogramaInner() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Cronograma | null>(null);
   const [form, setForm] = useState<Partial<Cronograma>>({});
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const apenasClientes = useMemo(() => clientes.filter((c) => c.tipo === "Cliente"), [clientes]);
 
@@ -255,15 +256,9 @@ function CronogramaInner() {
                       <Button size="sm" variant="outline" onClick={() => openEdit(c)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <DoubleConfirmDelete
-                        onConfirm={() => deleteCronograma(c.id)}
-                        itemName={`cronograma ${c.cliente_nome} - ${c.obra}`}
-                        trigger={
-                          <Button size="sm" variant="outline" className="text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        }
-                      />
+                      <Button size="sm" variant="outline" className="text-destructive" onClick={() => requestDelete(c.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 );
