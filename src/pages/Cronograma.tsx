@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -433,7 +433,7 @@ function CronogramaInner() {
                       </thead>
                       <tbody>
                         {atividades.map((a, i) => (
-                          <>
+                          <React.Fragment key={a.id}>
                             <tr key={`${a.id}-pf`} className="border-t bg-muted/30">
                               <td className="p-1 text-center font-bold" rowSpan={4}>{i + 1}</td>
                               <td className="p-1 font-medium" rowSpan={4}>{a.descricao || "(sem nome)"}</td>
@@ -500,7 +500,7 @@ function CronogramaInner() {
                                 </td>
                               ))}
                             </tr>
-                          </>
+                          </React.Fragment>
                         ))}
                       </tbody>
                     </table>
@@ -530,6 +530,12 @@ function CronogramaInner() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DoubleConfirmDelete
+        open={!!deleteId}
+        onOpenChange={(v) => { if (!v) cancelDelete(); }}
+        onConfirm={() => { if (deleteId) deleteCronograma(deleteId); cancelDelete(); }}
+      />
     </div>
   );
 }
