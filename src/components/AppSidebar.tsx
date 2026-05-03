@@ -82,6 +82,7 @@ const menuItems = [
       { title: "Ordem de Serviço", url: "/engenharia/ordem-servico", icon: Wrench },
       { title: "Assinar OS em Lote", url: "/engenharia/assinar-lote-os", icon: ClipboardCheck },
       { title: "RDO - Diário de Obras", url: "/engenharia/rdo", icon: FileSpreadsheet },
+      { title: "Cronograma Físico-Financeiro", url: "/engenharia/cronograma", icon: CalendarClock },
       { title: "Plano de Manutenção", url: "/engenharia/plano-manutencao", icon: Wrench },
       { title: "Base de Conhecimento", url: "/engenharia/base-conhecimento", icon: BookOpen },
     ],

@@ -100,6 +100,7 @@ import PlanoManutencaoPage from "./pages/PlanoManutencao.tsx";
 import { KnowledgeBaseProvider } from "@/contexts/KnowledgeBaseContext";
 import BaseConhecimentoPage from "./pages/BaseConhecimento.tsx";
 import MonitorTV from "./pages/MonitorTV.tsx";
+import CronogramaPage from "./pages/Cronograma.tsx";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
@@ -187,6 +188,7 @@ function AppRoutes() {
           }
         />
         <Route path="/engenharia/rdo" element={<RdoPage />} />
+        <Route path="/engenharia/cronograma" element={<CronogramaPage />} />
         <Route path="/engenharia/responsaveis-tecnicos" element={<ResponsaveisTecnicosPage />} />
         <Route path="/cadastros/responsaveis-tecnicos" element={<ResponsaveisTecnicosPage />} />
         <Route path="/comunicacao/mensagens" element={<ComunicacaoMensagensPage />} />
