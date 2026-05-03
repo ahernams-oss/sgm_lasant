@@ -69,7 +69,7 @@ export default function BimPage() {
   const obrasDoCliente = useMemo(() => {
     if (!form.cliente_id) return [] as string[];
     const set = new Set<string>();
-    rdos.forEach((r: any) => {
+    (rdos || []).forEach((r: any) => {
       if (r.cliente_id === form.cliente_id && (r.obra || "").trim()) set.add((r.obra || "").trim());
     });
     return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
@@ -77,12 +77,12 @@ export default function BimPage() {
 
   const obrasDisponiveis = useMemo(() => {
     const set = new Set<string>();
-    modelos.forEach((m) => { if (filtroCliente === "todos" || m.cliente_id === filtroCliente) set.add(m.obra); });
+    (modelos || []).forEach((m) => { if (filtroCliente === "todos" || m.cliente_id === filtroCliente) set.add(m.obra); });
     return Array.from(set).filter(Boolean).sort();
   }, [modelos, filtroCliente]);
 
   const modelosFiltrados = useMemo(() => {
-    return modelos.filter((m) => {
+    return (modelos || []).filter((m) => {
       if (filtroCliente !== "todos" && m.cliente_id !== filtroCliente) return false;
       if (filtroObra !== "todas" && m.obra !== filtroObra) return false;
       if (search) {
