@@ -243,6 +243,7 @@ const App = () => (
     <KnowledgeBaseProvider>
     <RdosProvider>
     <RdoAssinaturasProvider>
+    <CronogramasProvider>
     <BimProvider>
     <OsAssinaturasProvider>
     <AuthProvider> {/* auth wrapper */}
