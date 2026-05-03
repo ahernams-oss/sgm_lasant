@@ -85,9 +85,9 @@ export function BimProvider({ children }: { children: ReactNode }) {
       fetchAll("bim_quantitativos"),
       fetchAll("bim_pranchas"),
     ]);
-    setModelos(m as BimModelo[]);
-    setQuantitativos(q as BimQuantitativo[]);
-    setPranchas(p as BimPrancha[]);
+    setModelos((m as BimModelo[]) || []);
+    setQuantitativos((q as BimQuantitativo[]) || []);
+    setPranchas((p as BimPrancha[]) || []);
     setLoading(false);
   };
 
