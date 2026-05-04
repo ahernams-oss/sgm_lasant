@@ -226,25 +226,30 @@ export default function CategoriasCompras() {
             <Button onClick={openNewSub}><Plus className="mr-2 h-4 w-4" />Novo SubGrupo</Button>
           </div>
           <div className="border rounded-lg">
+            <SortableHeaderRow order={colOrderSubs} onReorder={setColOrderSubs}>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-28">Código</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Grupo</TableHead>
-                  <TableHead className="w-20">Classes</TableHead>
+                  {colOrderSubs.map(key => {
+                    const cd = colDefsSubs[key];
+                    return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                  })}
                   <TableHead className="w-24">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredSubs.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum subgrupo cadastrado</TableCell></TableRow>
-                ) : paginate(filteredSubs, pageSubs, pageSize).paginated.map(s => (
+                  <TableRow><TableCell colSpan={colOrderSubs.length + 1} className="text-center text-muted-foreground py-8">Nenhum subgrupo cadastrado</TableCell></TableRow>
+                ) : paginate(filteredSubs, pageSubs, pageSize).paginated.map(s => {
+                  const cellMap: Record<string, ReactNode> = {
+                    codigo: <Badge variant="outline" className="font-mono">{s.codigo}</Badge>,
+                    nome: <span className="font-medium">{s.nome}</span>,
+                    grupo: <>{getGrupoCodigo(s.grupoId)} - {getGrupoNome(s.grupoId)}</>,
+                    classes: <span className="text-center block">{classes.filter(c => c.subGrupoId === s.id).length}</span>,
+                  };
+                  return (
                   <TableRow key={s.id}>
-                    <TableCell><Badge variant="outline" className="font-mono">{s.codigo}</Badge></TableCell>
-                    <TableCell className="font-medium">{s.nome}</TableCell>
-                    <TableCell>{getGrupoCodigo(s.grupoId)} - {getGrupoNome(s.grupoId)}</TableCell>
-                    <TableCell className="text-center">{classes.filter(c => c.subGrupoId === s.id).length}</TableCell>
+                    {colOrderSubs.map(key => <TableCell key={key} className={colDefsSubs[key]?.className}>{cellMap[key]}</TableCell>)}
                     <TableCell>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" onClick={() => openEditSub(s)}><Pencil className="h-4 w-4" /></Button>
@@ -252,9 +257,11 @@ export default function CategoriasCompras() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
+            </SortableHeaderRow>
           </div>
           <PaginationControls currentPage={pageSubs} totalItems={filteredSubs.length} onPageChange={setPageSubs} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageSubs(1); }} />
         </TabsContent>
