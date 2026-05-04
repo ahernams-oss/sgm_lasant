@@ -37,11 +37,11 @@ export default function MateriaisServicosPage() {
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const colDefs: Record<string, { label: string; className?: string }> = {
-    codigo: { label: "Código" },
+    codigo: { label: "Código", className: "text-center" },
     descricao: { label: "Descrição" },
-    tipo: { label: "Tipo" },
-    unidade: { label: "Unidade" },
-    fotos: { label: "Fotos" },
+    tipo: { label: "Tipo", className: "text-center" },
+    unidade: { label: "Unidade", className: "text-center" },
+    fotos: { label: "Fotos", className: "text-center" },
     categoria: { label: "Categoria" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
