@@ -63,6 +63,8 @@ const RequisicaoGrid = () => {
   const [filterDataAte, setFilterDataAte] = useState<string>("");
   const [editingReq, setEditingReq] = useState<Requisicao | null>(null);
   const [historicoReq, setHistoricoReq] = useState<Requisicao | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(7);
   const [editForm, setEditForm] = useState({
     unidade: "", cargoId: "", jornada: "", cargaHoraria: "",
     tipoContratacao: [] as string[], internoExterno: "", origemVaga: "", motivoOutros: "",
