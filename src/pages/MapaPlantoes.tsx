@@ -182,12 +182,16 @@ const MapaPlantoes = () => {
                   {Array.from({ length: dias }, (_, i) => {
                     const dow = new Date(ano, mes, i + 1).getDay();
                     const fimSemana = dow === 0 || dow === 6;
+                    const siglasDow = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
                     return (
                       <TableHead
                         key={i}
                         className={`text-center w-9 px-1 text-[11px] ${fimSemana ? "bg-muted/50" : ""}`}
                       >
-                        {i + 1}
+                        <div className="flex flex-col items-center leading-tight">
+                          <span className="text-[9px] font-normal text-muted-foreground uppercase">{siglasDow[dow]}</span>
+                          <span>{i + 1}</span>
+                        </div>
                       </TableHead>
                     );
                   })}
