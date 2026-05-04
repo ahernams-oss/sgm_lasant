@@ -48,13 +48,14 @@ export function SortableTableHead({ id, className, children }: SortableHeadProps
   );
 }
 
-interface SortableHeaderRowProps {
+interface SortableTableProps {
   order: string[];
   onReorder: (newOrder: string[]) => void;
   children: ReactNode;
 }
 
-export function SortableHeaderRow({ order, onReorder, children }: SortableHeaderRowProps) {
+/** Wraps the whole <Table> inside a DndContext + SortableContext. */
+export function SortableTableWrapper({ order, onReorder, children }: SortableTableProps) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const handleDragEnd = (e: DragEndEvent) => {
     const { active, over } = e;
@@ -72,3 +73,6 @@ export function SortableHeaderRow({ order, onReorder, children }: SortableHeader
     </DndContext>
   );
 }
+
+// Backwards-compat alias (kept for existing imports)
+export const SortableHeaderRow = SortableTableWrapper;
