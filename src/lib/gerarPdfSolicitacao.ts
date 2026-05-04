@@ -105,7 +105,7 @@ async function renderSolicitacao(
     body: [
       [
         { content: "Número da SS:", styles: { fontStyle: "bold" } },
-        `SS-${ss.numero}`,
+        `SS ${formatNumeroAno(ss.numero, ss.createdAt)}`,
         { content: "Prioridade:", styles: { fontStyle: "bold" } },
         { content: ss.prioridade || "-", styles: { fontStyle: "bold", textColor: ss.prioridade === "Emergencial" ? [200, 0, 0] : ss.prioridade === "Urgente" ? [200, 150, 0] : [30, 30, 30] } },
       ],
