@@ -174,23 +174,29 @@ export default function CategoriasCompras() {
             <Button onClick={openNewGrupo}><Plus className="mr-2 h-4 w-4" />Novo Grupo</Button>
           </div>
           <div className="border rounded-lg">
+            <SortableHeaderRow order={colOrderGrupos} onReorder={setColOrderGrupos}>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-28">Código</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead className="w-20">SubGrupos</TableHead>
+                  {colOrderGrupos.map(key => {
+                    const cd = colDefsGrupos[key];
+                    return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                  })}
                   <TableHead className="w-24">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredGrupos.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum grupo cadastrado</TableCell></TableRow>
-                ) : paginate(filteredGrupos, pageGrupos, pageSize).paginated.map(g => (
+                  <TableRow><TableCell colSpan={colOrderGrupos.length + 1} className="text-center text-muted-foreground py-8">Nenhum grupo cadastrado</TableCell></TableRow>
+                ) : paginate(filteredGrupos, pageGrupos, pageSize).paginated.map(g => {
+                  const cellMap: Record<string, ReactNode> = {
+                    codigo: <Badge variant="outline" className="font-mono">{g.codigo}</Badge>,
+                    nome: <span className="font-medium">{g.nome}</span>,
+                    subgrupos: <span className="text-center block">{subGrupos.filter(s => s.grupoId === g.id).length}</span>,
+                  };
+                  return (
                   <TableRow key={g.id}>
-                    <TableCell><Badge variant="outline" className="font-mono">{g.codigo}</Badge></TableCell>
-                    <TableCell className="font-medium">{g.nome}</TableCell>
-                    <TableCell className="text-center">{subGrupos.filter(s => s.grupoId === g.id).length}</TableCell>
+                    {colOrderGrupos.map(key => <TableCell key={key} className={colDefsGrupos[key]?.className}>{cellMap[key]}</TableCell>)}
                     <TableCell>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" onClick={() => openEditGrupo(g)}><Pencil className="h-4 w-4" /></Button>
@@ -198,9 +204,11 @@ export default function CategoriasCompras() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
+            </SortableHeaderRow>
           </div>
           <PaginationControls currentPage={pageGrupos} totalItems={filteredGrupos.length} onPageChange={setPageGrupos} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageGrupos(1); }} />
         </TabsContent>
