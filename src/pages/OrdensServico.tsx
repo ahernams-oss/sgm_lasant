@@ -400,7 +400,7 @@ export default function OrdensServicoPage() {
       observacoes_fiscalizacao: [...obsExistentes, novaObsFisc],
       ...financeiro,
     });
-    toast.success(`OS ${naoAprovarOS.numero} alterada para "Serviço Não Aprovado pela Fiscalização"`);
+    toast.success(`OS ${formatNumeroAno(naoAprovarOS.numero, naoAprovarOS.createdAt)} alterada para "Serviço Não Aprovado pela Fiscalização"`);
     setNaoAprovarOS(null);
     setNaoAprovarJustificativa("");
   };
