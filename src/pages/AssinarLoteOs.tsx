@@ -356,7 +356,7 @@ export default function AssinarLoteOs() {
                     />
                   </TableCell>
                   <TableCell className="font-mono font-bold">
-                    {s.numero}
+                    {formatNumeroAno(s.numero, s.createdAt)}
                   </TableCell>
                   <TableCell>{s.clienteNome || "—"}</TableCell>
                   <TableCell className="text-sm">
