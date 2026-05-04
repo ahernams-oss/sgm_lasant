@@ -51,6 +51,8 @@ export default function CotacaoComprasPage() {
   const [filterStatus, setFilterStatus] = useState("Todos");
   const [filterPeriodo, setFilterPeriodo] = useState("Todos");
   const [filterComprador, setFilterComprador] = useState("Todos");
+  const [filterDataIni, setFilterDataIni] = useState("");
+  const [filterDataFim, setFilterDataFim] = useState("");
   const [pageCot, setPageCot] = useState(1);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
