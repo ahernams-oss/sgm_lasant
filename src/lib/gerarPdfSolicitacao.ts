@@ -370,6 +370,6 @@ export async function gerarPdfSolicitacaoLote(
     doc.text(`Página ${i} de ${pageCount}`, pw / 2, pageH - 14, { align: "center" });
   }
 
-  const numeros = lista.map(l => l.ss.numero).join("_");
+  const numeros = lista.map(l => formatNumeroAno(l.ss.numero, l.ss.createdAt)).join("_");
   doc.save(`SS_Lote_${numeros}.pdf`);
 }
