@@ -58,7 +58,7 @@ export default function PedidoCompraPage() {
   const [filterDataIni, setFilterDataIni] = useState("");
   const [filterDataFim, setFilterDataFim] = useState("");
   const [pagePed, setPagePed] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(7);
   const [viewPedido, setViewPedido] = useState<PedidoCompra | null>(null);
   const [historicoPedido, setHistoricoPedido] = useState<PedidoCompra | null>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
