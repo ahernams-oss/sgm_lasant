@@ -67,6 +67,21 @@ export default function PedidoCompraPage() {
   const [statusObs, setStatusObs] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
+  const colDefs: Record<string, { label: string; className?: string }> = {
+    numero: { label: "Nº Pedido" },
+    centroCusto: { label: "Centro de Custo" },
+    rc: { label: "RC" },
+    data: { label: "Data" },
+    fornecedor: { label: "Fornecedor" },
+    valorTotal: { label: "Valor Total" },
+    prazo: { label: "Prazo" },
+    status: { label: "Status" },
+  };
+  const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
+    "compras.pedidos",
+    ["numero", "centroCusto", "rc", "data", "fornecedor", "valorTotal", "prazo", "status"]
+  );
+
   // Send dialog state
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
   const [sendPedido, setSendPedido] = useState<PedidoCompra | null>(null);
