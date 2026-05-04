@@ -390,7 +390,7 @@ export default function SolicitacaoServicosPage() {
       situacao: "Orçamento Disponível",
       historico: buildHistoricoEntry("Orçamento Disponível", full?.historico || []),
     });
-    toast({ title: "Orçamento enviado", description: `SS nº ${orcamentoTarget.numero} — Orçamento Disponível` });
+    toast({ title: "Orçamento enviado", description: `SS nº ${formatNumeroAno(orcamentoTarget.numero, full?.createdAt)} — Orçamento Disponível` });
   };
 
   const existingOrcamentoForTarget = useMemo(() => {
