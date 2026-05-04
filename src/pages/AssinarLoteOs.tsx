@@ -67,11 +67,10 @@ export default function AssinarLoteOs() {
   // [TESTES] Liberado para qualquer usuário. Em produção: `const podeFiscal = tem("os.assinar_fiscal");`
   const podeFiscal = true;
 
-  // [TESTES] Filtro por "Validada" temporariamente removido para testes.
-  // Em produção: restaurar `if (os.situacao !== "Validada") return false;`
+  // Apenas OS Validadas podem ser assinadas, e sem sobreposição (mesmo papel)
   const validadasDisponiveis = useMemo(() => {
     return ordens.filter((os) => {
-      // if (os.situacao !== "Validada") return false;
+      if (os.situacao !== "Validada") return false;
       const jaAssinada = assinaturas.some(
         (a) => a.os_id === os.id && a.papel === papel
       );
@@ -158,12 +157,11 @@ export default function AssinarLoteOs() {
 
     for (const id of selectedIds) {
       const os = ordens.find((o) => o.id === id);
-      // [TESTES] Bloqueio por status removido. Em produção, restaurar checagem `os.situacao !== "Validada"`.
-      if (!os) {
+      if (!os || os.situacao !== "Validada") {
         fail++;
         continue;
       }
-      // Não duplicar
+      // Não duplicar (sobreposição de assinatura)
       if (assinaturas.some((a) => a.os_id === os.id && a.papel === papel)) {
         fail++;
         continue;
@@ -219,7 +217,7 @@ export default function AssinarLoteOs() {
               Assinar OS em Lote
             </h1>
             <p className="text-sm text-muted-foreground">
-              Ordens de Serviço pendentes de assinatura <span className="text-amber-600">(modo testes — qualquer situação)</span>
+              Ordens de Serviço validadas, pendentes de assinatura
             </p>
           </div>
         </div>
