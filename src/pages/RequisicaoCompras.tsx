@@ -64,13 +64,13 @@ export default function RequisicaoComprasPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const colDefs: Record<string, { label: string; className?: string }> = {
-    numero: { label: "Nº" },
-    data: { label: "Data" },
+    numero: { label: "Nº", className: "text-center" },
+    data: { label: "Data", className: "text-center" },
     solicitante: { label: "Solicitante" },
     centroCusto: { label: "Centro de Custo" },
-    urgencia: { label: "Urgência" },
-    itens: { label: "Itens" },
-    status: { label: "Status" },
+    urgencia: { label: "Urgência", className: "text-center" },
+    itens: { label: "Itens", className: "text-center" },
+    status: { label: "Status", className: "text-center" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "compras.requisicoes",
