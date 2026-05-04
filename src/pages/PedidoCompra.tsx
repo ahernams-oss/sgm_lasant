@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send } from "lucide-react";
+import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send, FilterX } from "lucide-react";
 import { format } from "date-fns";
 import { downloadPdfOrdemCompra, uploadPdfOrdemCompra } from "@/lib/gerarPdfOrdemCompra";
 import { enviarWhatsApp, enviarWhatsAppComDocumento } from "@/lib/whatsapp";
@@ -49,6 +49,10 @@ export default function PedidoCompraPage() {
 
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("Todos");
+  const [filterFornecedor, setFilterFornecedor] = useState("Todos");
+  const [filterComprador, setFilterComprador] = useState("Todos");
+  const [filterDataIni, setFilterDataIni] = useState("");
+  const [filterDataFim, setFilterDataFim] = useState("");
   const [pagePed, setPagePed] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [viewPedido, setViewPedido] = useState<PedidoCompra | null>(null);
@@ -70,12 +74,31 @@ export default function PedidoCompraPage() {
   const filtered = useMemo(() => {
     let list = pedidos;
     if (filterStatus !== "Todos") list = list.filter(p => p.status === filterStatus);
+    if (filterFornecedor !== "Todos") list = list.filter(p => p.fornecedorId === filterFornecedor);
+    if (filterComprador !== "Todos") list = list.filter(p => p.comprador === filterComprador);
+    if (filterDataIni) list = list.filter(p => p.dataCriacao >= filterDataIni);
+    if (filterDataFim) list = list.filter(p => p.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
       const s = search.toLowerCase();
       list = list.filter(p => String(p.numero).includes(s) || p.fornecedorNome.toLowerCase().includes(s) || p.comprador.toLowerCase().includes(s) || String(p.requisicaoNumero).includes(s));
     }
     return list.sort((a, b) => b.numero - a.numero);
-  }, [pedidos, search, filterStatus]);
+  }, [pedidos, search, filterStatus, filterFornecedor, filterComprador, filterDataIni, filterDataFim]);
+
+  const fornecedoresUnicos = useMemo(() => {
+    const map = new Map<string, string>();
+    pedidos.forEach(p => { if (p.fornecedorId) map.set(p.fornecedorId, p.fornecedorNome); });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [pedidos]);
+  const compradoresUnicos = useMemo(() =>
+    Array.from(new Set(pedidos.map(p => p.comprador).filter(Boolean))).sort(),
+    [pedidos]
+  );
+  const hasActiveFilters = search !== "" || filterStatus !== "Todos" || filterFornecedor !== "Todos" || filterComprador !== "Todos" || filterDataIni !== "" || filterDataFim !== "";
+  const clearFilters = () => {
+    setSearch(""); setFilterStatus("Todos"); setFilterFornecedor("Todos");
+    setFilterComprador("Todos"); setFilterDataIni(""); setFilterDataFim("");
+  };
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -247,18 +270,57 @@ export default function PedidoCompraPage() {
         <h1 className="text-2xl font-bold text-foreground">Pedidos de Compra</h1>
       </div>
 
-      <div className="flex gap-4">
-        <div className="relative max-w-sm flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar por nº, fornecedor, comprador..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="relative flex-1 min-w-[220px] max-w-sm">
+          <Label className="text-xs">Buscar</Label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Nº, fornecedor, comprador..." value={search} onChange={e => { setSearch(e.target.value); setPagePed(1); }} className="pl-9" />
+          </div>
         </div>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Todos">Todos os Status</SelectItem>
-            {Object.keys(statusColors).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <div className="w-44">
+          <Label className="text-xs">Status</Label>
+          <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPagePed(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos os Status</SelectItem>
+              {Object.keys(statusColors).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-52">
+          <Label className="text-xs">Fornecedor</Label>
+          <Select value={filterFornecedor} onValueChange={v => { setFilterFornecedor(v); setPagePed(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos</SelectItem>
+              {fornecedoresUnicos.map(([id, nome]) => <SelectItem key={id} value={id}>{nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-44">
+          <Label className="text-xs">Comprador</Label>
+          <Select value={filterComprador} onValueChange={v => { setFilterComprador(v); setPagePed(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos</SelectItem>
+              {compradoresUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-40">
+          <Label className="text-xs">Data inicial</Label>
+          <Input type="date" value={filterDataIni} onChange={e => { setFilterDataIni(e.target.value); setPagePed(1); }} />
+        </div>
+        <div className="w-40">
+          <Label className="text-xs">Data final</Label>
+          <Input type="date" value={filterDataFim} onChange={e => { setFilterDataFim(e.target.value); setPagePed(1); }} />
+        </div>
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+            <FilterX className="mr-1 h-4 w-4" />Limpar
+          </Button>
+        )}
       </div>
 
       {selectedIds.length > 0 && (
