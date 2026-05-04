@@ -21,6 +21,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
+import type { ReactNode } from "react";
 
 const statusColors: Record<StatusRequisicaoCompras, string> = {
   Rascunho: "bg-muted text-muted-foreground",
