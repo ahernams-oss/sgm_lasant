@@ -81,6 +81,7 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "funcionarios.gerenciar_lancamentos", label: "Gerenciar lançamentos" },
           { key: "funcionarios.gerenciar_exames", label: "Gerenciar exames periódicos" },
           { key: "funcionarios.gerenciar_promocoes", label: "Gerenciar promoções" },
+          { key: "funcionarios.aprovar_promocoes", label: "Aprovar promoções (com senha)" },
         ],
         statusTransicoes: [
           { key: "funcionarios.status.ativo", label: "Ativo" },

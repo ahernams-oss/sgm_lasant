@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -12,10 +11,16 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, AlertTriangle, TrendingUp } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
+import { Plus, Trash2, AlertTriangle, TrendingUp, CheckCircle2, XCircle, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { useUsuarios } from "@/contexts/UsuariosContext";
+import { usePerfisAcesso } from "@/contexts/PerfisAcessoContext";
+import { usePermissao } from "@/hooks/usePermissao";
 
 interface Promocao {
   id: string;
@@ -33,6 +38,10 @@ interface Promocao {
   cliente_novo_nome: string;
   motivo: string;
   observacoes: string;
+  status: "pendente" | "aprovada" | "rejeitada";
+  aprovador_id?: string | null;
+  aprovador_nome?: string | null;
+  aprovado_em?: string | null;
   created_at: string;
 }
 
@@ -54,6 +63,11 @@ const Field = ({ label, children, required }: { label: string; children: React.R
 export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, clienteAtualId, onPromover }: Props) {
   const { cargos } = useCargos();
   const { clientes } = useClientes();
+  const { usuarios } = useUsuarios();
+  const { perfis } = usePerfisAcesso();
+  const { tem, usuarioLogado } = usePermissao();
+  const podeAprovar = tem("funcionarios.aprovar_promocoes");
+
   const [promocoes, setPromocoes] = useState<Promocao[]>([]);
   const [loading, setLoading] = useState(true);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
@@ -64,6 +78,11 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
     cliente_novo_id: "",
     motivo: "",
     observacoes: "",
+  });
+
+  // Approval dialog state
+  const [aprovacao, setAprovacao] = useState<{ promocao: Promocao | null; senha: string; acao: "aprovar" | "rejeitar" }>({
+    promocao: null, senha: "", acao: "aprovar",
   });
 
   const cargoAtual = cargos.find((c) => c.id === cargoAtualId);
@@ -100,7 +119,7 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
     }
   }, [form.cargo_novo_id, cargos]);
 
-  const handlePromover = async () => {
+  const handleSolicitar = async () => {
     if (!form.cargo_novo_id || !form.data_promocao) {
       toast.error("Informe o novo cargo e a data da promoção.");
       return;
@@ -124,22 +143,16 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
       cliente_novo_nome: clienteNovo?.nome || clienteAtual?.nome || "",
       motivo: form.motivo,
       observacoes: form.observacoes,
+      status: "pendente",
     } as any);
 
     if (error) {
-      console.error("Erro ao registrar promoção:", error);
-      toast.error("Erro ao registrar promoção.");
+      console.error("Erro ao solicitar promoção:", error);
+      toast.error("Erro ao solicitar promoção.");
       return;
     }
 
-    // Update the employee data in localStorage via callback
-    onPromover({
-      cargoId: form.cargo_novo_id,
-      salario: form.salario_novo || salarioAtual,
-      clienteId: form.cliente_novo_id || clienteAtualId,
-    });
-
-    toast.success("Promoção registrada com sucesso! Dados do funcionário atualizados.");
+    toast.success("Solicitação de promoção registrada. Aguardando aprovação por usuário com privilégio.");
     setForm({
       data_promocao: new Date().toISOString().split("T")[0],
       cargo_novo_id: "",
@@ -148,6 +161,56 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
       motivo: "",
       observacoes: "",
     });
+    fetchPromocoes();
+  };
+
+  const confirmarAprovacao = async () => {
+    const { promocao, senha, acao } = aprovacao;
+    if (!promocao) return;
+    if (!senha) { toast.error("Informe sua senha."); return; }
+    if (!usuarioLogado) { toast.error("Sessão inválida."); return; }
+
+    // Validate password against logged user
+    const u = usuarios.find((x) => x.id === usuarioLogado.id);
+    if (!u || u.senha !== senha) {
+      toast.error("Senha incorreta.");
+      return;
+    }
+    // Re-check privilege using current user's perfil
+    const perfil = perfis.find((p) => p.id === u.perfilAcessoId);
+    const autorizado = podeAprovar || !!perfil?.permissoes?.["funcionarios.aprovar_promocoes"];
+    if (!autorizado) {
+      toast.error("Seu perfil não possui privilégio para aprovar promoções.");
+      return;
+    }
+
+    const novoStatus = acao === "aprovar" ? "aprovada" : "rejeitada";
+    const { error } = await supabase.from("promocoes").update({
+      status: novoStatus,
+      aprovador_id: u.id,
+      aprovador_nome: u.nome,
+      aprovado_em: new Date().toISOString(),
+    } as any).eq("id", promocao.id);
+
+    if (error) {
+      console.error(error);
+      toast.error("Erro ao registrar decisão.");
+      return;
+    }
+
+    if (acao === "aprovar") {
+      // Apply changes to employee record
+      onPromover({
+        cargoId: promocao.cargo_novo_id,
+        salario: promocao.salario_novo || promocao.salario_anterior,
+        clienteId: promocao.cliente_novo_id || promocao.cliente_anterior_id,
+      });
+      toast.success("Promoção aprovada e aplicada ao funcionário.");
+    } else {
+      toast.success("Promoção rejeitada.");
+    }
+
+    setAprovacao({ promocao: null, senha: "", acao: "aprovar" });
     fetchPromocoes();
   };
 
@@ -170,6 +233,12 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
       </div>
     );
   }
+
+  const statusBadge = (s: Promocao["status"]) => {
+    if (s === "aprovada") return <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Aprovada</Badge>;
+    if (s === "rejeitada") return <Badge className="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400">Rejeitada</Badge>;
+    return <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Pendente</Badge>;
+  };
 
   return (
     <div className="space-y-6">
@@ -222,9 +291,12 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
           <Input value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} placeholder="Observações adicionais" />
         </Field>
       </div>
-      <Button type="button" onClick={handlePromover} className="shadow-md">
-        <TrendingUp className="h-4 w-4 mr-1" /> Registrar Promoção
+      <Button type="button" onClick={handleSolicitar} className="shadow-md">
+        <TrendingUp className="h-4 w-4 mr-1" /> Solicitar Promoção
       </Button>
+      <p className="text-xs text-muted-foreground -mt-3">
+        A promoção será aplicada ao funcionário somente após aprovação por usuário com privilégio (validação por senha).
+      </p>
 
       {/* History table */}
       <div>
@@ -241,11 +313,11 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
                   <TableHead>Data</TableHead>
                   <TableHead>Cargo Anterior</TableHead>
                   <TableHead>Novo Cargo</TableHead>
-                  <TableHead>Salário Anterior</TableHead>
+                  <TableHead>Sal. Anterior</TableHead>
                   <TableHead>Novo Salário</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Motivo</TableHead>
-                  <TableHead className="w-12"></TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Aprovador</TableHead>
+                  <TableHead className="w-32 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -253,25 +325,38 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
                   <TableRow key={p.id}>
                     <TableCell>{p.data_promocao.split("-").reverse().join("/")}</TableCell>
                     <TableCell>{p.cargo_anterior_nome || "—"}</TableCell>
-                    <TableCell>
-                      <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-xs">
-                        {p.cargo_novo_nome}
-                      </Badge>
-                    </TableCell>
+                    <TableCell className="font-medium">{p.cargo_novo_nome}</TableCell>
                     <TableCell>{p.salario_anterior ? `R$ ${p.salario_anterior}` : "—"}</TableCell>
                     <TableCell className="font-medium">{p.salario_novo ? `R$ ${p.salario_novo}` : "—"}</TableCell>
-                    <TableCell>
-                      {p.cliente_anterior_nome !== p.cliente_novo_nome ? (
-                        <span className="text-xs">{p.cliente_anterior_nome || "—"} → {p.cliente_novo_nome || "—"}</span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">Mantido</span>
-                      )}
+                    <TableCell>{statusBadge(p.status)}</TableCell>
+                    <TableCell className="text-xs">
+                      {p.aprovador_nome ? (
+                        <>
+                          {p.aprovador_nome}
+                          {p.aprovado_em && <div className="text-muted-foreground">{new Date(p.aprovado_em).toLocaleString("pt-BR")}</div>}
+                        </>
+                      ) : "—"}
                     </TableCell>
-                    <TableCell>{p.motivo || "—"}</TableCell>
-                    <TableCell>
-                      <Button size="icon" variant="ghost" type="button" onClick={() => requestDelete(p.id)} className="h-7 w-7 text-destructive hover:text-destructive">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        {p.status === "pendente" && podeAprovar && (
+                          <>
+                            <Button size="icon" variant="ghost" type="button" title="Aprovar"
+                              onClick={() => setAprovacao({ promocao: p, senha: "", acao: "aprovar" })}
+                              className="h-7 w-7 text-emerald-600 hover:text-emerald-700">
+                              <CheckCircle2 className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" type="button" title="Rejeitar"
+                              onClick={() => setAprovacao({ promocao: p, senha: "", acao: "rejeitar" })}
+                              className="h-7 w-7 text-rose-600 hover:text-rose-700">
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                        <Button size="icon" variant="ghost" type="button" onClick={() => requestDelete(p.id)} className="h-7 w-7 text-destructive hover:text-destructive">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -280,6 +365,43 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
           </div>
         )}
       </div>
+
+      {/* Approval dialog */}
+      <Dialog open={!!aprovacao.promocao} onOpenChange={(o) => !o && setAprovacao({ promocao: null, senha: "", acao: "aprovar" })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              {aprovacao.acao === "aprovar" ? "Aprovar Promoção" : "Rejeitar Promoção"}
+            </DialogTitle>
+            <DialogDescription>
+              Confirme sua identidade digitando sua senha. Apenas usuários com privilégio podem {aprovacao.acao === "aprovar" ? "aprovar" : "rejeitar"} promoções.
+            </DialogDescription>
+          </DialogHeader>
+          {aprovacao.promocao && (
+            <div className="rounded-md border border-border bg-muted/30 p-3 text-sm space-y-1">
+              <div><strong>Novo cargo:</strong> {aprovacao.promocao.cargo_novo_nome}</div>
+              <div><strong>Novo salário:</strong> {aprovacao.promocao.salario_novo ? `R$ ${aprovacao.promocao.salario_novo}` : "—"}</div>
+              <div><strong>Data:</strong> {aprovacao.promocao.data_promocao.split("-").reverse().join("/")}</div>
+            </div>
+          )}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold">Sua senha *</Label>
+            <Input type="password" value={aprovacao.senha} autoFocus
+              onChange={(e) => setAprovacao((p) => ({ ...p, senha: e.target.value }))}
+              onKeyDown={(e) => { if (e.key === "Enter") confirmarAprovacao(); }}
+              placeholder="Digite sua senha" />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setAprovacao({ promocao: null, senha: "", acao: "aprovar" })}>Cancelar</Button>
+            <Button type="button" onClick={confirmarAprovacao}
+              className={aprovacao.acao === "aprovar" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"}>
+              {aprovacao.acao === "aprovar" ? "Aprovar" : "Rejeitar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
     </div>
   );
