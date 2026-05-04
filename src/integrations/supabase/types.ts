@@ -3771,6 +3771,9 @@ export type Database = {
       }
       promocoes: {
         Row: {
+          aprovado_em: string | null
+          aprovador_id: string | null
+          aprovador_nome: string | null
           cargo_anterior_id: string | null
           cargo_anterior_nome: string | null
           cargo_novo_id: string
@@ -3787,8 +3790,12 @@ export type Database = {
           observacoes: string | null
           salario_anterior: string | null
           salario_novo: string | null
+          status: string
         }
         Insert: {
+          aprovado_em?: string | null
+          aprovador_id?: string | null
+          aprovador_nome?: string | null
           cargo_anterior_id?: string | null
           cargo_anterior_nome?: string | null
           cargo_novo_id: string
@@ -3805,8 +3812,12 @@ export type Database = {
           observacoes?: string | null
           salario_anterior?: string | null
           salario_novo?: string | null
+          status?: string
         }
         Update: {
+          aprovado_em?: string | null
+          aprovador_id?: string | null
+          aprovador_nome?: string | null
           cargo_anterior_id?: string | null
           cargo_anterior_nome?: string | null
           cargo_novo_id?: string
@@ -3823,6 +3834,7 @@ export type Database = {
           observacoes?: string | null
           salario_anterior?: string | null
           salario_novo?: string | null
+          status?: string
         }
         Relationships: []
       }
