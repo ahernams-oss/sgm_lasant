@@ -1617,7 +1617,7 @@ export default function OrdensServicoPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ClipboardList className="h-5 w-5" />
-              Ordem de Serviço Nº {viewOS?.numero}
+              Ordem de Serviço Nº {viewOS ? formatNumeroAno(viewOS.numero, viewOS.createdAt) : ""}
             </DialogTitle>
           </DialogHeader>
           {viewOS && (
