@@ -856,7 +856,7 @@ export default function SolicitacaoServicosPage() {
                     {s.prioridade && (
                       <span className={`inline-block w-3 h-3 rounded-full ${getPrioridadeColor(s.prioridade)}`} title={s.prioridade} />
                     )}
-                    {s.numero}
+                    {formatNumeroAno(s.numero, s.createdAt)}
                   </div>
                 </TableCell>
                 <TableCell className="text-xs whitespace-nowrap">
