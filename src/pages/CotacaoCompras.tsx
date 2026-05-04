@@ -118,9 +118,9 @@ export default function CotacaoComprasPage() {
     return Array.from(set).sort();
   }, [cotacoes]);
 
-  const hasActiveFilters = filterStatus !== "Todos" || filterPeriodo !== "Todos" || filterComprador !== "Todos" || search !== "";
+  const hasActiveFilters = filterStatus !== "Todos" || filterPeriodo !== "Todos" || filterComprador !== "Todos" || search !== "" || filterDataIni !== "" || filterDataFim !== "";
 
-  const clearFilters = () => { setSearch(""); setFilterStatus("Todos"); setFilterPeriodo("Todos"); setFilterComprador("Todos"); };
+  const clearFilters = () => { setSearch(""); setFilterStatus("Todos"); setFilterPeriodo("Todos"); setFilterComprador("Todos"); setFilterDataIni(""); setFilterDataFim(""); };
 
   const filtered = useMemo(() => {
     let list = cotacoes;
@@ -131,12 +131,14 @@ export default function CotacaoComprasPage() {
       const dataLimite = subDays(new Date(), dias);
       list = list.filter(c => isAfter(new Date(c.dataCriacao), dataLimite));
     }
+    if (filterDataIni) list = list.filter(c => c.dataCriacao >= filterDataIni);
+    if (filterDataFim) list = list.filter(c => c.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
       const s = search.toLowerCase();
       list = list.filter(c => String(c.numero).includes(s) || c.comprador.toLowerCase().includes(s) || String(c.requisicaoNumero).includes(s));
     }
     return list.sort((a, b) => b.numero - a.numero);
-  }, [cotacoes, search, filterStatus, filterPeriodo, filterComprador]);
+  }, [cotacoes, search, filterStatus, filterPeriodo, filterComprador, filterDataIni, filterDataFim]);
 
   const handleCriarCotacao = () => {
     if (!selectedReqId) { toast({ title: "Selecione uma requisição", variant: "destructive" }); return; }
