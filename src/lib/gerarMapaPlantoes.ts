@@ -43,6 +43,7 @@ interface Params {
 }
 
 const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+const SIGLAS_DOW = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 export function gerarMapaPlantoesPdf({ funcionarios, cargos, clientes, ano, mes }: Params) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
@@ -54,7 +55,11 @@ export function gerarMapaPlantoesPdf({ funcionarios, cargos, clientes, ano, mes 
 
   const dias = diasDoMes(ano, mes);
   const dataRef = new Date(ano, mes, 1);
-  const head = [["Funcionário", "Cargo", "Cliente", "Jornada", ...Array.from({ length: dias }, (_, i) => String(i + 1))]];
+  const diasArr = Array.from({ length: dias }, (_, i) => i + 1);
+  const dowArr = diasArr.map((d) => new Date(ano, mes, d).getDay());
+  const head = [
+    ["Funcionário", "Cargo", "Cliente", "Jornada", ...diasArr.map((d) => `${SIGLAS_DOW[dowArr[d - 1]]}\n${d}`)],
+  ];
 
   const body = funcionarios.map((f) => {
     const cargo = cargos.find((c) => c.id === f.cargoId)?.nome || "—";
