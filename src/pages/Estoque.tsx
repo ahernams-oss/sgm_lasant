@@ -411,34 +411,38 @@ export default function EstoquePage() {
         {/* SALDOS */}
         <TabsContent value="saldos">
           <div className="border rounded-lg">
+            <SortableHeaderRow order={colOrderSaldos} onReorder={setColOrderSaldos}>
             <Table>
              <TableHeader>
                 <TableRow>
-                  <TableHead>Código</TableHead>
-                  <TableHead>Material/Serviço</TableHead>
-                  <TableHead>Centro de Custo</TableHead>
-                  <TableHead>Local</TableHead>
-                  <TableHead className="text-right">Quantidade</TableHead>
-                  <TableHead className="text-right">Vlr Unit. (FIFO)</TableHead>
-                  <TableHead className="text-right">Vlr Total</TableHead>
+                  {colOrderSaldos.map(key => {
+                    const cd = colDefsSaldos[key];
+                    return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                  })}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {saldos.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum saldo registrado</TableCell></TableRow>
-                ) : paginate(saldos, pageSaldos, pageSize).paginated.map((s, i) => (
+                  <TableRow><TableCell colSpan={colOrderSaldos.length} className="text-center text-muted-foreground py-8">Nenhum saldo registrado</TableCell></TableRow>
+                ) : paginate(saldos, pageSaldos, pageSize).paginated.map((s, i) => {
+                  const cellMap: Record<string, ReactNode> = {
+                    codigo: <span className="font-mono">{s.materialCodigo}</span>,
+                    material: s.materialDescricao,
+                    centroCusto: saldoCentroCusto.get(`${s.materialId}|${s.local}`) || "-",
+                    local: s.local,
+                    quantidade: <span className="font-semibold">{s.quantidade.toLocaleString("pt-BR")}</span>,
+                    vlrUnit: s.valorUnitarioFIFO > 0 ? s.valorUnitarioFIFO.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-",
+                    vlrTotal: <span className="font-semibold">{s.valorTotal > 0 ? s.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</span>,
+                  };
+                  return (
                   <TableRow key={i}>
-                    <TableCell className="font-mono">{s.materialCodigo}</TableCell>
-                    <TableCell>{s.materialDescricao}</TableCell>
-                    <TableCell>{saldoCentroCusto.get(`${s.materialId}|${s.local}`) || "-"}</TableCell>
-                    <TableCell>{s.local}</TableCell>
-                    <TableCell className="text-right font-semibold">{s.quantidade.toLocaleString("pt-BR")}</TableCell>
-                    <TableCell className="text-right">{s.valorUnitarioFIFO > 0 ? s.valorUnitarioFIFO.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</TableCell>
-                    <TableCell className="text-right font-semibold">{s.valorTotal > 0 ? s.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</TableCell>
+                    {colOrderSaldos.map(key => <TableCell key={key} className={colDefsSaldos[key]?.className}>{cellMap[key]}</TableCell>)}
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
+            </SortableHeaderRow>
           </div>
           <PaginationControls currentPage={pageSaldos} totalItems={saldos.length} onPageChange={setPageSaldos} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageSaldos(1); }} />
         </TabsContent>
