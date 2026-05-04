@@ -1625,7 +1625,7 @@ export default function OrdensServicoPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground">Nº OS</p>
-                  <p className="font-bold text-lg">{viewOS.numero}</p>
+                  <p className="font-bold text-lg">{formatNumeroAno(viewOS.numero, viewOS.createdAt)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Nº SS</p>
