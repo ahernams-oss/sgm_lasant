@@ -16,6 +16,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Search, PackageCheck, Eye, ClipboardList, MoreHorizontal, History, Paperclip, FileText, X, Download } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
+import type { ReactNode } from "react";
 
 const statusColors: Record<string, string> = {
   Emitido: "bg-blue-100 text-blue-800",
@@ -36,6 +39,20 @@ export default function RecebimentoComprasPage() {
   const [filterStatus, setFilterStatus] = useState("Pendentes");
   const [pageRec, setPageRec] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  const colDefs: Record<string, { label: string; className?: string }> = {
+    numero: { label: "Nº Pedido" },
+    rc: { label: "RC" },
+    fornecedor: { label: "Fornecedor" },
+    localEntrega: { label: "Local Entrega" },
+    valor: { label: "Valor" },
+    status: { label: "Status" },
+    progresso: { label: "Progresso" },
+  };
+  const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
+    "compras.recebimento",
+    ["numero", "rc", "fornecedor", "localEntrega", "valor", "status", "progresso"]
+  );
 
   // Recebimento dialog
   const [recDialogOpen, setRecDialogOpen] = useState(false);
