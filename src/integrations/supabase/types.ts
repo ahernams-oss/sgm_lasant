@@ -4338,7 +4338,7 @@ export type Database = {
           imagens?: Json | null
           local_descricao?: string | null
           local_id?: string | null
-          numero?: number
+          numero: number
           observacoes?: string | null
           pavimento_descricao?: string | null
           pavimento_id?: string | null
