@@ -93,6 +93,7 @@ import { RdoAssinaturasProvider } from "@/contexts/RdoAssinaturasContext";
 import { OsAssinaturasProvider } from "@/contexts/OsAssinaturasContext";
 import AssinarLoteOsPage from "./pages/AssinarLoteOs.tsx";
 import ConfirmarLoteOsPage from "./pages/ConfirmarLoteOs.tsx";
+import ValidarLoteOsPage from "./pages/ValidarLoteOs.tsx";
 import VerificarAssinaturaPage from "./pages/VerificarAssinatura.tsx";
 import ResponsaveisTecnicosPage from "./pages/ResponsaveisTecnicos.tsx";
 import { ResponsaveisTecnicosProvider } from "@/contexts/ResponsaveisTecnicosContext";
@@ -186,9 +187,17 @@ function AppRoutes() {
           element={
             <SolicitacoesServicosProvider>
               <OrdensServicoProvider>
-                <ConfirmarLoteOsPage />
-              </OrdensServicoProvider>
-            </SolicitacoesServicosProvider>
+              <ConfirmarLoteOsPage />
+            </OrdensServicoProvider>
+          </SolicitacoesServicosProvider>
+        }
+        />
+        <Route
+          path="/engenharia/validar-lote-os"
+          element={
+            <OrdensServicoProvider>
+              <ValidarLoteOsPage />
+            </OrdensServicoProvider>
           }
         />
         <Route
