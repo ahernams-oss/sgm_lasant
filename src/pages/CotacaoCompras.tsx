@@ -677,6 +677,16 @@ export default function CotacaoComprasPage() {
             <Input placeholder="Nº cotação, RC, comprador..." value={search} onChange={e => { setSearch(e.target.value); setPageCot(1); }} className="pl-9" />
           </div>
         </div>
+        <div className="w-56">
+          <Label className="text-xs">Centro de Custo</Label>
+          <Select value={filterCentroCusto} onValueChange={v => { setFilterCentroCusto(v); setPageCot(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos Centros de Custo</SelectItem>
+              {centrosCustoUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="w-44">
           <Label className="text-xs">Status</Label>
           <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPageCot(1); }}>
@@ -690,16 +700,6 @@ export default function CotacaoComprasPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="w-56">
-          <Label className="text-xs">Centro de Custo</Label>
-          <Select value={filterCentroCusto} onValueChange={v => { setFilterCentroCusto(v); setPageCot(1); }}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Todos">Todos Centros de Custo</SelectItem>
-              {centrosCustoUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
         <div className="w-40">
           <Label className="text-xs">Período</Label>
           <Select value={filterPeriodo} onValueChange={v => { setFilterPeriodo(v); setPageCot(1); }}>
@@ -710,16 +710,6 @@ export default function CotacaoComprasPage() {
               <SelectItem value="30">Últimos 30 dias</SelectItem>
               <SelectItem value="90">Últimos 90 dias</SelectItem>
               <SelectItem value="365">Último ano</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-44">
-          <Label className="text-xs">Comprador</Label>
-          <Select value={filterComprador} onValueChange={v => { setFilterComprador(v); setPageCot(1); }}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Todos">Todos Compradores</SelectItem>
-              {compradores.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
