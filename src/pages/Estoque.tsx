@@ -20,6 +20,9 @@ import { Plus, Search, ArrowDownCircle, ArrowUpCircle, AlertTriangle, ClipboardL
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
+import type { ReactNode } from "react";
 
 export default function EstoquePage() {
   const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, criarInventario, atualizarInventario, fecharInventario } = useEstoque();
@@ -37,6 +40,61 @@ export default function EstoquePage() {
   const [pageMov, setPageMov] = useState(1);
   const [pageAlertas, setPageAlertas] = useState(1);
   const [pageInv, setPageInv] = useState(1);
+
+  const colDefsSaldos: Record<string, { label: string; className?: string }> = {
+    codigo: { label: "Código" },
+    material: { label: "Material/Serviço" },
+    centroCusto: { label: "Centro de Custo" },
+    local: { label: "Local" },
+    quantidade: { label: "Quantidade", className: "text-right" },
+    vlrUnit: { label: "Vlr Unit. (FIFO)", className: "text-right" },
+    vlrTotal: { label: "Vlr Total", className: "text-right" },
+  };
+  const { order: colOrderSaldos, setOrder: setColOrderSaldos } = useColumnOrder(
+    "compras.estoque.saldos",
+    ["codigo", "material", "centroCusto", "local", "quantidade", "vlrUnit", "vlrTotal"]
+  );
+
+  const colDefsMov: Record<string, { label: string; className?: string }> = {
+    data: { label: "Data" },
+    tipo: { label: "Tipo" },
+    codigo: { label: "Código" },
+    material: { label: "Material" },
+    centroCusto: { label: "Centro de Custo" },
+    local: { label: "Local" },
+    qtd: { label: "Qtd", className: "text-right" },
+    vlrUnit: { label: "Vlr Unit.", className: "text-right" },
+    documento: { label: "Documento" },
+    usuario: { label: "Usuário" },
+  };
+  const { order: colOrderMov, setOrder: setColOrderMov } = useColumnOrder(
+    "compras.estoque.movimentacoes",
+    ["data", "tipo", "codigo", "material", "centroCusto", "local", "qtd", "vlrUnit", "documento", "usuario"]
+  );
+
+  const colDefsAlertas: Record<string, { label: string; className?: string }> = {
+    codigo: { label: "Código" },
+    material: { label: "Material" },
+    estoqueMinimo: { label: "Estoque Mínimo", className: "text-right" },
+    saldoAtual: { label: "Saldo Atual", className: "text-right" },
+    status: { label: "Status" },
+  };
+  const { order: colOrderAlertas, setOrder: setColOrderAlertas } = useColumnOrder(
+    "compras.estoque.alertas",
+    ["codigo", "material", "estoqueMinimo", "saldoAtual", "status"]
+  );
+
+  const colDefsInv: Record<string, { label: string; className?: string }> = {
+    data: { label: "Data" },
+    local: { label: "Local" },
+    itens: { label: "Itens" },
+    usuario: { label: "Usuário" },
+    status: { label: "Status" },
+  };
+  const { order: colOrderInv, setOrder: setColOrderInv } = useColumnOrder(
+    "compras.estoque.inventarios",
+    ["data", "local", "itens", "usuario", "status"]
+  );
 
   // Movimentação dialog
   const [movDialogOpen, setMovDialogOpen] = useState(false);
