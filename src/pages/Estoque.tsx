@@ -42,13 +42,13 @@ export default function EstoquePage() {
   const [pageInv, setPageInv] = useState(1);
 
   const colDefsSaldos: Record<string, { label: string; className?: string }> = {
-    codigo: { label: "Código" },
+    codigo: { label: "Código", className: "text-center" },
     material: { label: "Material/Serviço" },
     centroCusto: { label: "Centro de Custo" },
     local: { label: "Local" },
-    quantidade: { label: "Quantidade", className: "text-right" },
-    vlrUnit: { label: "Vlr Unit. (FIFO)", className: "text-right" },
-    vlrTotal: { label: "Vlr Total", className: "text-right" },
+    quantidade: { label: "Quantidade", className: "text-center" },
+    vlrUnit: { label: "Vlr Unit. (FIFO)", className: "text-center" },
+    vlrTotal: { label: "Vlr Total", className: "text-center" },
   };
   const { order: colOrderSaldos, setOrder: setColOrderSaldos } = useColumnOrder(
     "compras.estoque.saldos",
@@ -56,16 +56,16 @@ export default function EstoquePage() {
   );
 
   const colDefsMov: Record<string, { label: string; className?: string }> = {
-    data: { label: "Data" },
-    tipo: { label: "Tipo" },
-    codigo: { label: "Código" },
+    data: { label: "Data", className: "text-center" },
+    tipo: { label: "Tipo", className: "text-center" },
+    codigo: { label: "Código", className: "text-center" },
     material: { label: "Material" },
     centroCusto: { label: "Centro de Custo" },
     local: { label: "Local" },
-    qtd: { label: "Qtd", className: "text-right" },
-    vlrUnit: { label: "Vlr Unit.", className: "text-right" },
-    documento: { label: "Documento" },
-    usuario: { label: "Usuário" },
+    qtd: { label: "Qtd", className: "text-center" },
+    vlrUnit: { label: "Vlr Unit.", className: "text-center" },
+    documento: { label: "Documento", className: "text-center" },
+    usuario: { label: "Usuário", className: "text-center" },
   };
   const { order: colOrderMov, setOrder: setColOrderMov } = useColumnOrder(
     "compras.estoque.movimentacoes",
@@ -73,11 +73,11 @@ export default function EstoquePage() {
   );
 
   const colDefsAlertas: Record<string, { label: string; className?: string }> = {
-    codigo: { label: "Código" },
+    codigo: { label: "Código", className: "text-center" },
     material: { label: "Material" },
-    estoqueMinimo: { label: "Estoque Mínimo", className: "text-right" },
-    saldoAtual: { label: "Saldo Atual", className: "text-right" },
-    status: { label: "Status" },
+    estoqueMinimo: { label: "Estoque Mínimo", className: "text-center" },
+    saldoAtual: { label: "Saldo Atual", className: "text-center" },
+    status: { label: "Status", className: "text-center" },
   };
   const { order: colOrderAlertas, setOrder: setColOrderAlertas } = useColumnOrder(
     "compras.estoque.alertas",
@@ -85,11 +85,11 @@ export default function EstoquePage() {
   );
 
   const colDefsInv: Record<string, { label: string; className?: string }> = {
-    data: { label: "Data" },
+    data: { label: "Data", className: "text-center" },
     local: { label: "Local" },
-    itens: { label: "Itens" },
-    usuario: { label: "Usuário" },
-    status: { label: "Status" },
+    itens: { label: "Itens", className: "text-center" },
+    usuario: { label: "Usuário", className: "text-center" },
+    status: { label: "Status", className: "text-center" },
   };
   const { order: colOrderInv, setOrder: setColOrderInv } = useColumnOrder(
     "compras.estoque.inventarios",
