@@ -57,6 +57,20 @@ export default function CotacaoComprasPage() {
   const [filterDataIni, setFilterDataIni] = useState("");
   const [filterDataFim, setFilterDataFim] = useState("");
   const [pageCot, setPageCot] = useState(1);
+
+  const colDefs: Record<string, { label: string; className?: string }> = {
+    numero: { label: "Nº Cotação" },
+    centroCusto: { label: "Centro de Custo" },
+    rcs: { label: "RCS Vinculada" },
+    data: { label: "Data" },
+    comprador: { label: "Comprador" },
+    propostas: { label: "Propostas" },
+    status: { label: "Status" },
+  };
+  const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
+    "compras.cotacoes",
+    ["numero", "centroCusto", "rcs", "data", "comprador", "propostas", "status"]
+  );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Dialog states
