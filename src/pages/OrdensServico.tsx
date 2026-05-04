@@ -1931,7 +1931,7 @@ export default function OrdensServicoPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Eye className="h-5 w-5" />
-              Solicitação de Serviço nº {viewSSTarget?.numero}
+              Solicitação de Serviço nº {viewSSTarget ? formatNumeroAno(viewSSTarget.numero, viewSSTarget.createdAt) : ""}
             </DialogTitle>
           </DialogHeader>
           {viewSSTarget && (() => {
