@@ -954,7 +954,19 @@ const Funcionarios = () => {
                     })();
                     return (
                     <TableRow key={f.id}>
-                      <TableCell className="font-medium">{f.nome}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <span>{f.nome}</span>
+                          {promocoesPendentes.has(f.id) && (
+                            <img
+                              src={promocaoPendenteIcon}
+                              alt="Promoção pendente"
+                              title="Solicitação de promoção pendente"
+                              className="h-5 w-5 object-contain"
+                            />
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>{f.cpf || "—"}</TableCell>
                       <TableCell>{getCargoNome(f.cargoId)}</TableCell>
                       <TableCell>{f.clienteId ? getClienteNome(f.clienteId) : "—"}</TableCell>
