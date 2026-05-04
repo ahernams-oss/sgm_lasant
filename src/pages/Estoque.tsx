@@ -20,6 +20,9 @@ import { Plus, Search, ArrowDownCircle, ArrowUpCircle, AlertTriangle, ClipboardL
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
+import type { ReactNode } from "react";
 
 export default function EstoquePage() {
   const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, criarInventario, atualizarInventario, fecharInventario } = useEstoque();
@@ -37,6 +40,61 @@ export default function EstoquePage() {
   const [pageMov, setPageMov] = useState(1);
   const [pageAlertas, setPageAlertas] = useState(1);
   const [pageInv, setPageInv] = useState(1);
+
+  const colDefsSaldos: Record<string, { label: string; className?: string }> = {
+    codigo: { label: "Código" },
+    material: { label: "Material/Serviço" },
+    centroCusto: { label: "Centro de Custo" },
+    local: { label: "Local" },
+    quantidade: { label: "Quantidade", className: "text-right" },
+    vlrUnit: { label: "Vlr Unit. (FIFO)", className: "text-right" },
+    vlrTotal: { label: "Vlr Total", className: "text-right" },
+  };
+  const { order: colOrderSaldos, setOrder: setColOrderSaldos } = useColumnOrder(
+    "compras.estoque.saldos",
+    ["codigo", "material", "centroCusto", "local", "quantidade", "vlrUnit", "vlrTotal"]
+  );
+
+  const colDefsMov: Record<string, { label: string; className?: string }> = {
+    data: { label: "Data" },
+    tipo: { label: "Tipo" },
+    codigo: { label: "Código" },
+    material: { label: "Material" },
+    centroCusto: { label: "Centro de Custo" },
+    local: { label: "Local" },
+    qtd: { label: "Qtd", className: "text-right" },
+    vlrUnit: { label: "Vlr Unit.", className: "text-right" },
+    documento: { label: "Documento" },
+    usuario: { label: "Usuário" },
+  };
+  const { order: colOrderMov, setOrder: setColOrderMov } = useColumnOrder(
+    "compras.estoque.movimentacoes",
+    ["data", "tipo", "codigo", "material", "centroCusto", "local", "qtd", "vlrUnit", "documento", "usuario"]
+  );
+
+  const colDefsAlertas: Record<string, { label: string; className?: string }> = {
+    codigo: { label: "Código" },
+    material: { label: "Material" },
+    estoqueMinimo: { label: "Estoque Mínimo", className: "text-right" },
+    saldoAtual: { label: "Saldo Atual", className: "text-right" },
+    status: { label: "Status" },
+  };
+  const { order: colOrderAlertas, setOrder: setColOrderAlertas } = useColumnOrder(
+    "compras.estoque.alertas",
+    ["codigo", "material", "estoqueMinimo", "saldoAtual", "status"]
+  );
+
+  const colDefsInv: Record<string, { label: string; className?: string }> = {
+    data: { label: "Data" },
+    local: { label: "Local" },
+    itens: { label: "Itens" },
+    usuario: { label: "Usuário" },
+    status: { label: "Status" },
+  };
+  const { order: colOrderInv, setOrder: setColOrderInv } = useColumnOrder(
+    "compras.estoque.inventarios",
+    ["data", "local", "itens", "usuario", "status"]
+  );
 
   // Movimentação dialog
   const [movDialogOpen, setMovDialogOpen] = useState(false);
@@ -353,34 +411,38 @@ export default function EstoquePage() {
         {/* SALDOS */}
         <TabsContent value="saldos">
           <div className="border rounded-lg">
+            <SortableHeaderRow order={colOrderSaldos} onReorder={setColOrderSaldos}>
             <Table>
              <TableHeader>
                 <TableRow>
-                  <TableHead>Código</TableHead>
-                  <TableHead>Material/Serviço</TableHead>
-                  <TableHead>Centro de Custo</TableHead>
-                  <TableHead>Local</TableHead>
-                  <TableHead className="text-right">Quantidade</TableHead>
-                  <TableHead className="text-right">Vlr Unit. (FIFO)</TableHead>
-                  <TableHead className="text-right">Vlr Total</TableHead>
+                  {colOrderSaldos.map(key => {
+                    const cd = colDefsSaldos[key];
+                    return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                  })}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {saldos.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum saldo registrado</TableCell></TableRow>
-                ) : paginate(saldos, pageSaldos, pageSize).paginated.map((s, i) => (
+                  <TableRow><TableCell colSpan={colOrderSaldos.length} className="text-center text-muted-foreground py-8">Nenhum saldo registrado</TableCell></TableRow>
+                ) : paginate(saldos, pageSaldos, pageSize).paginated.map((s, i) => {
+                  const cellMap: Record<string, ReactNode> = {
+                    codigo: <span className="font-mono">{s.materialCodigo}</span>,
+                    material: s.materialDescricao,
+                    centroCusto: saldoCentroCusto.get(`${s.materialId}|${s.local}`) || "-",
+                    local: s.local,
+                    quantidade: <span className="font-semibold">{s.quantidade.toLocaleString("pt-BR")}</span>,
+                    vlrUnit: s.valorUnitarioFIFO > 0 ? s.valorUnitarioFIFO.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-",
+                    vlrTotal: <span className="font-semibold">{s.valorTotal > 0 ? s.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</span>,
+                  };
+                  return (
                   <TableRow key={i}>
-                    <TableCell className="font-mono">{s.materialCodigo}</TableCell>
-                    <TableCell>{s.materialDescricao}</TableCell>
-                    <TableCell>{saldoCentroCusto.get(`${s.materialId}|${s.local}`) || "-"}</TableCell>
-                    <TableCell>{s.local}</TableCell>
-                    <TableCell className="text-right font-semibold">{s.quantidade.toLocaleString("pt-BR")}</TableCell>
-                    <TableCell className="text-right">{s.valorUnitarioFIFO > 0 ? s.valorUnitarioFIFO.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</TableCell>
-                    <TableCell className="text-right font-semibold">{s.valorTotal > 0 ? s.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</TableCell>
+                    {colOrderSaldos.map(key => <TableCell key={key} className={colDefsSaldos[key]?.className}>{cellMap[key]}</TableCell>)}
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
+            </SortableHeaderRow>
           </div>
           <PaginationControls currentPage={pageSaldos} totalItems={saldos.length} onPageChange={setPageSaldos} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageSaldos(1); }} />
         </TabsContent>
@@ -388,40 +450,41 @@ export default function EstoquePage() {
         {/* MOVIMENTAÇÕES */}
         <TabsContent value="movimentacoes">
           <div className="border rounded-lg">
+            <SortableHeaderRow order={colOrderMov} onReorder={setColOrderMov}>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Código</TableHead>
-                  <TableHead>Material</TableHead>
-                  <TableHead>Centro de Custo</TableHead>
-                  <TableHead>Local</TableHead>
-                  <TableHead className="text-right">Qtd</TableHead>
-                  <TableHead className="text-right">Vlr Unit.</TableHead>
-                  <TableHead>Documento</TableHead>
-                  <TableHead>Usuário</TableHead>
+                  {colOrderMov.map(key => {
+                    const cd = colDefsMov[key];
+                    return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                  })}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {movFiltered.length === 0 ? (
-                  <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Nenhuma movimentação</TableCell></TableRow>
-                ) : paginate(movFiltered, pageMov, pageSize).paginated.map(m => (
+                  <TableRow><TableCell colSpan={colOrderMov.length} className="text-center text-muted-foreground py-8">Nenhuma movimentação</TableCell></TableRow>
+                ) : paginate(movFiltered, pageMov, pageSize).paginated.map(m => {
+                  const cellMap: Record<string, ReactNode> = {
+                    data: <span className="text-xs">{m.dataMovimentacao ? new Date(m.dataMovimentacao).toLocaleDateString("pt-BR") : "-"}</span>,
+                    tipo: <Badge className={tipoColor(m.tipo)}>{m.tipo === "entrada" ? "Entrada" : m.tipo === "saida" ? "Saída" : "Ajuste"}</Badge>,
+                    codigo: <span className="font-mono">{m.materialCodigo}</span>,
+                    material: m.materialDescricao,
+                    centroCusto: getCentroCustoFromDocRef(m.documentoRef),
+                    local: m.local,
+                    qtd: <span className="font-semibold">{m.quantidade.toLocaleString("pt-BR")}</span>,
+                    vlrUnit: m.valorUnitario > 0 ? m.valorUnitario.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-",
+                    documento: <span className="text-xs">{m.documentoRef || "-"}</span>,
+                    usuario: <span className="text-xs">{m.usuario}</span>,
+                  };
+                  return (
                   <TableRow key={m.id}>
-                    <TableCell className="text-xs">{m.dataMovimentacao ? new Date(m.dataMovimentacao).toLocaleDateString("pt-BR") : "-"}</TableCell>
-                    <TableCell><Badge className={tipoColor(m.tipo)}>{m.tipo === "entrada" ? "Entrada" : m.tipo === "saida" ? "Saída" : "Ajuste"}</Badge></TableCell>
-                    <TableCell className="font-mono">{m.materialCodigo}</TableCell>
-                    <TableCell>{m.materialDescricao}</TableCell>
-                    <TableCell>{getCentroCustoFromDocRef(m.documentoRef)}</TableCell>
-                    <TableCell>{m.local}</TableCell>
-                    <TableCell className="text-right font-semibold">{m.quantidade.toLocaleString("pt-BR")}</TableCell>
-                    <TableCell className="text-right">{m.valorUnitario > 0 ? m.valorUnitario.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</TableCell>
-                    <TableCell className="text-xs">{m.documentoRef || "-"}</TableCell>
-                    <TableCell className="text-xs">{m.usuario}</TableCell>
+                    {colOrderMov.map(key => <TableCell key={key} className={colDefsMov[key]?.className}>{cellMap[key]}</TableCell>)}
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
+            </SortableHeaderRow>
           </div>
           <PaginationControls currentPage={pageMov} totalItems={movFiltered.length} onPageChange={setPageMov} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageMov(1); }} />
         </TabsContent>
@@ -429,35 +492,38 @@ export default function EstoquePage() {
         {/* ALERTAS */}
         <TabsContent value="alertas">
           <div className="border rounded-lg">
+            <SortableHeaderRow order={colOrderAlertas} onReorder={setColOrderAlertas}>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Código</TableHead>
-                  <TableHead>Material</TableHead>
-                  <TableHead className="text-right">Estoque Mínimo</TableHead>
-                  <TableHead className="text-right">Saldo Atual</TableHead>
-                  <TableHead>Status</TableHead>
+                  {colOrderAlertas.map(key => {
+                    const cd = colDefsAlertas[key];
+                    return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                  })}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {alertas.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum alerta – todos os itens estão acima do mínimo</TableCell></TableRow>
-                ) : paginate(alertas, pageAlertas, pageSize).paginated.map(a => (
+                  <TableRow><TableCell colSpan={colOrderAlertas.length} className="text-center text-muted-foreground py-8">Nenhum alerta – todos os itens estão acima do mínimo</TableCell></TableRow>
+                ) : paginate(alertas, pageAlertas, pageSize).paginated.map(a => {
+                  const cellMap: Record<string, ReactNode> = {
+                    codigo: <span className="font-mono">{a.codigo}</span>,
+                    material: a.descricao,
+                    estoqueMinimo: a.estoqueMinimo,
+                    saldoAtual: <span className="font-semibold">{a.saldoAtual}</span>,
+                    status: a.saldoAtual <= 0
+                      ? <Badge variant="destructive">Zerado</Badge>
+                      : <Badge className="bg-amber-500/10 text-amber-700 border-amber-200">Baixo</Badge>,
+                  };
+                  return (
                   <TableRow key={a.id}>
-                    <TableCell className="font-mono">{a.codigo}</TableCell>
-                    <TableCell>{a.descricao}</TableCell>
-                    <TableCell className="text-right">{a.estoqueMinimo}</TableCell>
-                    <TableCell className="text-right font-semibold">{a.saldoAtual}</TableCell>
-                    <TableCell>
-                      {a.saldoAtual <= 0
-                        ? <Badge variant="destructive">Zerado</Badge>
-                        : <Badge className="bg-amber-500/10 text-amber-700 border-amber-200">Baixo</Badge>
-                      }
-                    </TableCell>
+                    {colOrderAlertas.map(key => <TableCell key={key} className={colDefsAlertas[key]?.className}>{cellMap[key]}</TableCell>)}
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
+            </SortableHeaderRow>
           </div>
           <PaginationControls currentPage={pageAlertas} totalItems={alertas.length} onPageChange={setPageAlertas} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageAlertas(1); }} />
         </TabsContent>
@@ -465,31 +531,31 @@ export default function EstoquePage() {
         {/* INVENTÁRIOS */}
         <TabsContent value="inventarios">
           <div className="border rounded-lg">
+            <SortableHeaderRow order={colOrderInv} onReorder={setColOrderInv}>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Local</TableHead>
-                  <TableHead>Itens</TableHead>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Status</TableHead>
+                  {colOrderInv.map(key => {
+                    const cd = colDefsInv[key];
+                    return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                  })}
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {inventarios.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum inventário registrado</TableCell></TableRow>
-                ) : paginate([...inventarios].reverse(), pageInv, pageSize).paginated.map(inv => (
+                  <TableRow><TableCell colSpan={colOrderInv.length + 1} className="text-center text-muted-foreground py-8">Nenhum inventário registrado</TableCell></TableRow>
+                ) : paginate([...inventarios].reverse(), pageInv, pageSize).paginated.map(inv => {
+                  const cellMap: Record<string, ReactNode> = {
+                    data: inv.dataInventario ? new Date(inv.dataInventario).toLocaleDateString("pt-BR") : "-",
+                    local: inv.local,
+                    itens: inv.itens.length,
+                    usuario: inv.usuario,
+                    status: <Badge className={inv.status === "Aberto" ? "bg-blue-500/10 text-blue-700 border-blue-200" : "bg-muted text-muted-foreground"}>{inv.status}</Badge>,
+                  };
+                  return (
                   <TableRow key={inv.id}>
-                    <TableCell>{inv.dataInventario ? new Date(inv.dataInventario).toLocaleDateString("pt-BR") : "-"}</TableCell>
-                    <TableCell>{inv.local}</TableCell>
-                    <TableCell>{inv.itens.length}</TableCell>
-                    <TableCell>{inv.usuario}</TableCell>
-                    <TableCell>
-                      <Badge className={inv.status === "Aberto" ? "bg-blue-500/10 text-blue-700 border-blue-200" : "bg-muted text-muted-foreground"}>
-                        {inv.status}
-                      </Badge>
-                    </TableCell>
+                    {colOrderInv.map(key => <TableCell key={key} className={colDefsInv[key]?.className}>{cellMap[key]}</TableCell>)}
                     <TableCell className="space-x-1">
                       {inv.status === "Aberto" && (
                         <>
@@ -503,9 +569,11 @@ export default function EstoquePage() {
                       )}
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
+            </SortableHeaderRow>
           </div>
           <PaginationControls currentPage={pageInv} totalItems={inventarios.length} onPageChange={setPageInv} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageInv(1); }} />
         </TabsContent>

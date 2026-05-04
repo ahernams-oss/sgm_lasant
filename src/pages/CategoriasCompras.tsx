@@ -11,6 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Search, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
+import type { ReactNode } from "react";
 
 export default function CategoriasCompras() {
   const {
@@ -47,6 +50,39 @@ export default function CategoriasCompras() {
   // Filter
   const [filterGrupoId, setFilterGrupoId] = useState<string>("all");
   const [filterSubGrupoId, setFilterSubGrupoId] = useState<string>("all");
+
+  const colDefsGrupos: Record<string, { label: string; className?: string }> = {
+    codigo: { label: "Código", className: "w-28" },
+    nome: { label: "Nome" },
+    subgrupos: { label: "SubGrupos", className: "w-20" },
+  };
+  const { order: colOrderGrupos, setOrder: setColOrderGrupos } = useColumnOrder(
+    "compras.categorias.grupos",
+    ["codigo", "nome", "subgrupos"]
+  );
+
+  const colDefsSubs: Record<string, { label: string; className?: string }> = {
+    codigo: { label: "Código", className: "w-28" },
+    nome: { label: "Nome" },
+    grupo: { label: "Grupo" },
+    classes: { label: "Classes", className: "w-20" },
+  };
+  const { order: colOrderSubs, setOrder: setColOrderSubs } = useColumnOrder(
+    "compras.categorias.subgrupos",
+    ["codigo", "nome", "grupo", "classes"]
+  );
+
+  const colDefsClasses: Record<string, { label: string; className?: string }> = {
+    codigoCompleto: { label: "Código Completo", className: "w-36" },
+    codigo: { label: "Código", className: "w-20" },
+    nome: { label: "Nome" },
+    subgrupo: { label: "SubGrupo" },
+    grupo: { label: "Grupo" },
+  };
+  const { order: colOrderClasses, setOrder: setColOrderClasses } = useColumnOrder(
+    "compras.categorias.classes",
+    ["codigoCompleto", "codigo", "nome", "subgrupo", "grupo"]
+  );
 
   // === GRUPO ===
   const filteredGrupos = useMemo(() => {
@@ -138,23 +174,29 @@ export default function CategoriasCompras() {
             <Button onClick={openNewGrupo}><Plus className="mr-2 h-4 w-4" />Novo Grupo</Button>
           </div>
           <div className="border rounded-lg">
+            <SortableHeaderRow order={colOrderGrupos} onReorder={setColOrderGrupos}>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-28">Código</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead className="w-20">SubGrupos</TableHead>
+                  {colOrderGrupos.map(key => {
+                    const cd = colDefsGrupos[key];
+                    return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                  })}
                   <TableHead className="w-24">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredGrupos.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum grupo cadastrado</TableCell></TableRow>
-                ) : paginate(filteredGrupos, pageGrupos, pageSize).paginated.map(g => (
+                  <TableRow><TableCell colSpan={colOrderGrupos.length + 1} className="text-center text-muted-foreground py-8">Nenhum grupo cadastrado</TableCell></TableRow>
+                ) : paginate(filteredGrupos, pageGrupos, pageSize).paginated.map(g => {
+                  const cellMap: Record<string, ReactNode> = {
+                    codigo: <Badge variant="outline" className="font-mono">{g.codigo}</Badge>,
+                    nome: <span className="font-medium">{g.nome}</span>,
+                    subgrupos: <span className="text-center block">{subGrupos.filter(s => s.grupoId === g.id).length}</span>,
+                  };
+                  return (
                   <TableRow key={g.id}>
-                    <TableCell><Badge variant="outline" className="font-mono">{g.codigo}</Badge></TableCell>
-                    <TableCell className="font-medium">{g.nome}</TableCell>
-                    <TableCell className="text-center">{subGrupos.filter(s => s.grupoId === g.id).length}</TableCell>
+                    {colOrderGrupos.map(key => <TableCell key={key} className={colDefsGrupos[key]?.className}>{cellMap[key]}</TableCell>)}
                     <TableCell>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" onClick={() => openEditGrupo(g)}><Pencil className="h-4 w-4" /></Button>
@@ -162,9 +204,11 @@ export default function CategoriasCompras() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
+            </SortableHeaderRow>
           </div>
           <PaginationControls currentPage={pageGrupos} totalItems={filteredGrupos.length} onPageChange={setPageGrupos} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageGrupos(1); }} />
         </TabsContent>
@@ -182,25 +226,30 @@ export default function CategoriasCompras() {
             <Button onClick={openNewSub}><Plus className="mr-2 h-4 w-4" />Novo SubGrupo</Button>
           </div>
           <div className="border rounded-lg">
+            <SortableHeaderRow order={colOrderSubs} onReorder={setColOrderSubs}>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-28">Código</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Grupo</TableHead>
-                  <TableHead className="w-20">Classes</TableHead>
+                  {colOrderSubs.map(key => {
+                    const cd = colDefsSubs[key];
+                    return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                  })}
                   <TableHead className="w-24">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredSubs.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum subgrupo cadastrado</TableCell></TableRow>
-                ) : paginate(filteredSubs, pageSubs, pageSize).paginated.map(s => (
+                  <TableRow><TableCell colSpan={colOrderSubs.length + 1} className="text-center text-muted-foreground py-8">Nenhum subgrupo cadastrado</TableCell></TableRow>
+                ) : paginate(filteredSubs, pageSubs, pageSize).paginated.map(s => {
+                  const cellMap: Record<string, ReactNode> = {
+                    codigo: <Badge variant="outline" className="font-mono">{s.codigo}</Badge>,
+                    nome: <span className="font-medium">{s.nome}</span>,
+                    grupo: <>{getGrupoCodigo(s.grupoId)} - {getGrupoNome(s.grupoId)}</>,
+                    classes: <span className="text-center block">{classes.filter(c => c.subGrupoId === s.id).length}</span>,
+                  };
+                  return (
                   <TableRow key={s.id}>
-                    <TableCell><Badge variant="outline" className="font-mono">{s.codigo}</Badge></TableCell>
-                    <TableCell className="font-medium">{s.nome}</TableCell>
-                    <TableCell>{getGrupoCodigo(s.grupoId)} - {getGrupoNome(s.grupoId)}</TableCell>
-                    <TableCell className="text-center">{classes.filter(c => c.subGrupoId === s.id).length}</TableCell>
+                    {colOrderSubs.map(key => <TableCell key={key} className={colDefsSubs[key]?.className}>{cellMap[key]}</TableCell>)}
                     <TableCell>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" onClick={() => openEditSub(s)}><Pencil className="h-4 w-4" /></Button>
@@ -208,9 +257,11 @@ export default function CategoriasCompras() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
+            </SortableHeaderRow>
           </div>
           <PaginationControls currentPage={pageSubs} totalItems={filteredSubs.length} onPageChange={setPageSubs} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageSubs(1); }} />
         </TabsContent>
@@ -239,27 +290,31 @@ export default function CategoriasCompras() {
             <Button onClick={openNewClasse}><Plus className="mr-2 h-4 w-4" />Nova Classe</Button>
           </div>
           <div className="border rounded-lg">
+            <SortableHeaderRow order={colOrderClasses} onReorder={setColOrderClasses}>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-36">Código Completo</TableHead>
-                  <TableHead className="w-20">Código</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>SubGrupo</TableHead>
-                  <TableHead>Grupo</TableHead>
+                  {colOrderClasses.map(key => {
+                    const cd = colDefsClasses[key];
+                    return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                  })}
                   <TableHead className="w-24">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredClasses.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma classe cadastrada</TableCell></TableRow>
-                ) : paginate(filteredClasses, pageClasses, pageSize).paginated.map(c => (
+                  <TableRow><TableCell colSpan={colOrderClasses.length + 1} className="text-center text-muted-foreground py-8">Nenhuma classe cadastrada</TableCell></TableRow>
+                ) : paginate(filteredClasses, pageClasses, pageSize).paginated.map(c => {
+                  const cellMap: Record<string, ReactNode> = {
+                    codigoCompleto: <Badge variant="secondary" className="font-mono">{getCodigoCompleto(c.id)}</Badge>,
+                    codigo: <Badge variant="outline" className="font-mono">{c.codigo}</Badge>,
+                    nome: <span className="font-medium">{c.nome}</span>,
+                    subgrupo: <>{getSubCodigo(c.subGrupoId)} - {getSubNome(c.subGrupoId)}</>,
+                    grupo: <>{getGrupoCodigo(getSubGrupoId(c.subGrupoId))} - {getGrupoNome(getSubGrupoId(c.subGrupoId))}</>,
+                  };
+                  return (
                   <TableRow key={c.id}>
-                    <TableCell><Badge variant="secondary" className="font-mono">{getCodigoCompleto(c.id)}</Badge></TableCell>
-                    <TableCell><Badge variant="outline" className="font-mono">{c.codigo}</Badge></TableCell>
-                    <TableCell className="font-medium">{c.nome}</TableCell>
-                    <TableCell>{getSubCodigo(c.subGrupoId)} - {getSubNome(c.subGrupoId)}</TableCell>
-                    <TableCell>{getGrupoCodigo(getSubGrupoId(c.subGrupoId))} - {getGrupoNome(getSubGrupoId(c.subGrupoId))}</TableCell>
+                    {colOrderClasses.map(key => <TableCell key={key} className={colDefsClasses[key]?.className}>{cellMap[key]}</TableCell>)}
                     <TableCell>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" onClick={() => openEditClasse(c)}><Pencil className="h-4 w-4" /></Button>
@@ -267,9 +322,11 @@ export default function CategoriasCompras() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
+            </SortableHeaderRow>
           </div>
           <PaginationControls currentPage={pageClasses} totalItems={filteredClasses.length} onPageChange={setPageClasses} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageClasses(1); }} />
         </TabsContent>

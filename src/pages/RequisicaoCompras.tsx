@@ -21,6 +21,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
+import type { ReactNode } from "react";
 
 const statusColors: Record<StatusRequisicaoCompras, string> = {
   Rascunho: "bg-muted text-muted-foreground",
@@ -59,6 +62,20 @@ export default function RequisicaoComprasPage() {
   const [filterDataFim, setFilterDataFim] = useState("");
   const [pageReq, setPageReq] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const colDefs: Record<string, { label: string; className?: string }> = {
+    numero: { label: "Nº" },
+    data: { label: "Data" },
+    solicitante: { label: "Solicitante" },
+    centroCusto: { label: "Centro de Custo" },
+    urgencia: { label: "Urgência" },
+    itens: { label: "Itens" },
+    status: { label: "Status" },
+  };
+  const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
+    "compras.requisicoes",
+    ["numero", "data", "solicitante", "centroCusto", "urgencia", "itens", "status"]
+  );
 
   // Form state
   const [centroCusto, setCentroCusto] = useState("");
@@ -260,35 +277,33 @@ export default function RequisicaoComprasPage() {
       </div>
 
       <div className="border rounded-lg">
+        <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nº</TableHead>
-              <TableHead>Data</TableHead>
-              <TableHead>Solicitante</TableHead>
-              <TableHead>Centro de Custo</TableHead>
-              <TableHead>Urgência</TableHead>
-              <TableHead>Itens</TableHead>
-              <TableHead>Status</TableHead>
+              {colOrder.map(key => {
+                const cd = colDefs[key];
+                return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+              })}
               <TableHead className="w-28">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma requisição encontrada</TableCell></TableRow>
-            ) : filtered.map(r => (
+              <TableRow><TableCell colSpan={colOrder.length + 1} className="text-center text-muted-foreground py-8">Nenhuma requisição encontrada</TableCell></TableRow>
+            ) : filtered.map(r => {
+              const cellMap: Record<string, ReactNode> = {
+                numero: <span className="font-mono font-bold">RCS-{String(r.numero).padStart(4, "0")}</span>,
+                data: format(new Date(r.dataCriacao), "dd/MM/yyyy HH:mm"),
+                solicitante: r.solicitante,
+                centroCusto: r.centroCustoNome,
+                urgencia: <Badge variant={r.urgencia === "Urgente" ? "destructive" : r.urgencia === "Alta" ? "default" : "secondary"}>{r.urgencia}</Badge>,
+                itens: r.itens.length,
+                status: <Badge className={statusColors[r.status]}>{r.status}</Badge>,
+              };
+              return (
               <TableRow key={r.id}>
-                <TableCell className="font-mono font-bold">RCS-{String(r.numero).padStart(4, "0")}</TableCell>
-                <TableCell>{format(new Date(r.dataCriacao), "dd/MM/yyyy HH:mm")}</TableCell>
-                <TableCell>{r.solicitante}</TableCell>
-                <TableCell>{r.centroCustoNome}</TableCell>
-                <TableCell>
-                  <Badge variant={r.urgencia === "Urgente" ? "destructive" : r.urgencia === "Alta" ? "default" : "secondary"}>
-                    {r.urgencia}
-                  </Badge>
-                </TableCell>
-                <TableCell>{r.itens.length}</TableCell>
-                <TableCell><Badge className={statusColors[r.status]}>{r.status}</Badge></TableCell>
+                {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" title="Detalhes" onClick={() => setViewReq(r)}><Eye className="h-4 w-4" /></Button>
@@ -296,9 +311,11 @@ export default function RequisicaoComprasPage() {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
+        </SortableHeaderRow>
       </div>
 
       {/* Dialog Nova Requisição */}

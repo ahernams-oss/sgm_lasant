@@ -16,6 +16,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Search, PackageCheck, Eye, ClipboardList, MoreHorizontal, History, Paperclip, FileText, X, Download } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
+import type { ReactNode } from "react";
 
 const statusColors: Record<string, string> = {
   Emitido: "bg-blue-100 text-blue-800",
@@ -36,6 +39,20 @@ export default function RecebimentoComprasPage() {
   const [filterStatus, setFilterStatus] = useState("Pendentes");
   const [pageRec, setPageRec] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  const colDefs: Record<string, { label: string; className?: string }> = {
+    numero: { label: "Nº Pedido" },
+    rc: { label: "RC" },
+    fornecedor: { label: "Fornecedor" },
+    localEntrega: { label: "Local Entrega" },
+    valor: { label: "Valor" },
+    status: { label: "Status" },
+    progresso: { label: "Progresso" },
+  };
+  const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
+    "compras.recebimento",
+    ["numero", "rc", "fornecedor", "localEntrega", "valor", "status", "progresso"]
+  );
 
   // Recebimento dialog
   const [recDialogOpen, setRecDialogOpen] = useState(false);
@@ -212,22 +229,20 @@ export default function RecebimentoComprasPage() {
 
       {/* Table */}
       <div className="border rounded-lg">
+        <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nº Pedido</TableHead>
-              <TableHead>RC</TableHead>
-              <TableHead>Fornecedor</TableHead>
-              <TableHead>Local Entrega</TableHead>
-              <TableHead>Valor</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Progresso</TableHead>
+              {colOrder.map(key => {
+                const cd = colDefs[key];
+                return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+              })}
               <TableHead className="w-16 text-center">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
+              <TableRow><TableCell colSpan={colOrder.length + 1} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
             ) : paginate(filtered, pageRec, pageSize).paginated.map(p => {
               const recsPedido = getRecebimentosByPedido(p.id);
               const totalItens = p.itens.length;
@@ -235,26 +250,25 @@ export default function RecebimentoComprasPage() {
                 const recebido = getTotalRecebidoPorItem(p.id, i.itemId);
                 return recebido >= i.quantidade;
               }).length;
-
+              const cellMap: Record<string, ReactNode> = {
+                numero: <span className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</span>,
+                rc: <span className="font-mono">RCS-{String(p.requisicaoNumero).padStart(4, "0")}</span>,
+                fornecedor: p.fornecedorNome,
+                localEntrega: <span className="text-sm">{p.localEntrega || "-"}</span>,
+                valor: <span className="font-medium">{formatCurrency(p.valorTotal)}</span>,
+                status: <Badge className={statusColors[p.status] || ""}>{p.status}</Badge>,
+                progresso: (
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 h-2 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${totalItens > 0 ? (itensCompletos / totalItens) * 100 : 0}%` }} />
+                    </div>
+                    <span className="text-xs text-muted-foreground">{itensCompletos}/{totalItens}</span>
+                  </div>
+                ),
+              };
               return (
                 <TableRow key={p.id}>
-                  <TableCell className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</TableCell>
-                  <TableCell className="font-mono">RCS-{String(p.requisicaoNumero).padStart(4, "0")}</TableCell>
-                  <TableCell>{p.fornecedorNome}</TableCell>
-                  <TableCell className="text-sm">{p.localEntrega || "-"}</TableCell>
-                  <TableCell className="font-medium">{formatCurrency(p.valorTotal)}</TableCell>
-                  <TableCell><Badge className={statusColors[p.status] || ""}>{p.status}</Badge></TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 h-2 rounded-full bg-muted overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-primary transition-all"
-                          style={{ width: `${totalItens > 0 ? (itensCompletos / totalItens) * 100 : 0}%` }}
-                        />
-                      </div>
-                      <span className="text-xs text-muted-foreground">{itensCompletos}/{totalItens}</span>
-                    </div>
-                  </TableCell>
+                  {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
                   <TableCell className="text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -293,6 +307,7 @@ export default function RecebimentoComprasPage() {
             })}
           </TableBody>
         </Table>
+        </SortableHeaderRow>
       </div>
       <PaginationControls currentPage={pageRec} totalItems={filtered.length} onPageChange={setPageRec} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageRec(1); }} />
 
