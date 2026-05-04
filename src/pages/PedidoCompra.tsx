@@ -74,12 +74,31 @@ export default function PedidoCompraPage() {
   const filtered = useMemo(() => {
     let list = pedidos;
     if (filterStatus !== "Todos") list = list.filter(p => p.status === filterStatus);
+    if (filterFornecedor !== "Todos") list = list.filter(p => p.fornecedorId === filterFornecedor);
+    if (filterComprador !== "Todos") list = list.filter(p => p.comprador === filterComprador);
+    if (filterDataIni) list = list.filter(p => p.dataCriacao >= filterDataIni);
+    if (filterDataFim) list = list.filter(p => p.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
       const s = search.toLowerCase();
       list = list.filter(p => String(p.numero).includes(s) || p.fornecedorNome.toLowerCase().includes(s) || p.comprador.toLowerCase().includes(s) || String(p.requisicaoNumero).includes(s));
     }
     return list.sort((a, b) => b.numero - a.numero);
-  }, [pedidos, search, filterStatus]);
+  }, [pedidos, search, filterStatus, filterFornecedor, filterComprador, filterDataIni, filterDataFim]);
+
+  const fornecedoresUnicos = useMemo(() => {
+    const map = new Map<string, string>();
+    pedidos.forEach(p => { if (p.fornecedorId) map.set(p.fornecedorId, p.fornecedorNome); });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [pedidos]);
+  const compradoresUnicos = useMemo(() =>
+    Array.from(new Set(pedidos.map(p => p.comprador).filter(Boolean))).sort(),
+    [pedidos]
+  );
+  const hasActiveFilters = search !== "" || filterStatus !== "Todos" || filterFornecedor !== "Todos" || filterComprador !== "Todos" || filterDataIni !== "" || filterDataFim !== "";
+  const clearFilters = () => {
+    setSearch(""); setFilterStatus("Todos"); setFilterFornecedor("Todos");
+    setFilterComprador("Todos"); setFilterDataIni(""); setFilterDataFim("");
+  };
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
