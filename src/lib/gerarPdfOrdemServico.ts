@@ -534,6 +534,6 @@ export async function gerarPdfOrdemServicoLote(lista: RenderOSOptions[]) {
     await renderOS(doc, lista[i]);
   }
   addFooter(doc, lista[0].empresa);
-  const nums = lista.map(l => l.os.numero).join("_");
+  const nums = lista.map(l => formatNumeroAno(l.os.numero, l.os.createdAt)).join("_");
   doc.save(`OS_Lote_${nums}.pdf`);
 }
