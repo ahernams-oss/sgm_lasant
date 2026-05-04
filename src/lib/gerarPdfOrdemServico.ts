@@ -5,6 +5,7 @@ import { OrdemServico, MaterialOS } from "@/contexts/OrdensServicoContext";
 import { Empresa } from "@/contexts/EmpresaContext";
 import { Cliente } from "@/contexts/ClientesContext";
 import type { OsAssinatura } from "@/contexts/OsAssinaturasContext";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 const DARK = [60, 60, 60] as const;
 const BORDER: [number, number, number] = [60, 60, 60];
