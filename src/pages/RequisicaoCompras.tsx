@@ -52,6 +52,11 @@ export default function RequisicaoComprasPage() {
   const [historicoReq, setHistoricoReq] = useState<RequisicaoCompras | null>(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("Todos");
+  const [filterCentroCusto, setFilterCentroCusto] = useState<string>("Todos");
+  const [filterUrgencia, setFilterUrgencia] = useState<string>("Todas");
+  const [filterSolicitante, setFilterSolicitante] = useState<string>("Todos");
+  const [filterDataIni, setFilterDataIni] = useState("");
+  const [filterDataFim, setFilterDataFim] = useState("");
   const [pageReq, setPageReq] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -85,6 +90,11 @@ export default function RequisicaoComprasPage() {
   const filtered = useMemo(() => {
     let list = requisicoes;
     if (filterStatus !== "Todos") list = list.filter(r => r.status === filterStatus);
+    if (filterCentroCusto !== "Todos") list = list.filter(r => r.centroCusto === filterCentroCusto);
+    if (filterUrgencia !== "Todas") list = list.filter(r => r.urgencia === filterUrgencia);
+    if (filterSolicitante !== "Todos") list = list.filter(r => r.solicitante === filterSolicitante);
+    if (filterDataIni) list = list.filter(r => r.dataCriacao >= filterDataIni);
+    if (filterDataFim) list = list.filter(r => r.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
       const s = search.toLowerCase();
       list = list.filter(r =>
@@ -95,7 +105,23 @@ export default function RequisicaoComprasPage() {
       );
     }
     return list.sort((a, b) => b.numero - a.numero);
-  }, [requisicoes, search, filterStatus]);
+  }, [requisicoes, search, filterStatus, filterCentroCusto, filterUrgencia, filterSolicitante, filterDataIni, filterDataFim]);
+
+  const solicitantesUnicos = useMemo(() =>
+    Array.from(new Set(requisicoes.map(r => r.solicitante).filter(Boolean))).sort(),
+    [requisicoes]
+  );
+  const centrosUnicos = useMemo(() => {
+    const map = new Map<string, string>();
+    requisicoes.forEach(r => { if (r.centroCusto) map.set(r.centroCusto, r.centroCustoNome); });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [requisicoes]);
+
+  const limparFiltros = () => {
+    setSearch(""); setFilterStatus("Todos"); setFilterCentroCusto("Todos");
+    setFilterUrgencia("Todas"); setFilterSolicitante("Todos");
+    setFilterDataIni(""); setFilterDataFim("");
+  };
 
   const resetForm = () => {
     setCentroCusto(""); setLocalEntrega(""); setJustificativa(""); setUrgencia("Normal"); setPrazoDesejado("");
@@ -172,18 +198,65 @@ export default function RequisicaoComprasPage() {
         <Button onClick={() => { resetForm(); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" />Nova Requisição</Button>
       </div>
 
-      <div className="flex gap-4">
-        <div className="relative max-w-sm flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar por nº, solicitante, item..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="relative flex-1 min-w-[220px]">
+          <Label className="text-xs">Buscar</Label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Nº, solicitante, item..." value={search} onChange={e => { setSearch(e.target.value); setPageReq(1); }} className="pl-9" />
+          </div>
         </div>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Todos">Todos os Status</SelectItem>
-            {Object.keys(statusColors).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <div className="w-44">
+          <Label className="text-xs">Status</Label>
+          <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPageReq(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos os Status</SelectItem>
+              {Object.keys(statusColors).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-52">
+          <Label className="text-xs">Centro de Custo</Label>
+          <Select value={filterCentroCusto} onValueChange={v => { setFilterCentroCusto(v); setPageReq(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos</SelectItem>
+              {centrosUnicos.map(([id, nome]) => <SelectItem key={id} value={id}>{nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-36">
+          <Label className="text-xs">Urgência</Label>
+          <Select value={filterUrgencia} onValueChange={v => { setFilterUrgencia(v); setPageReq(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todas">Todas</SelectItem>
+              {URGENCIAS.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-48">
+          <Label className="text-xs">Solicitante</Label>
+          <Select value={filterSolicitante} onValueChange={v => { setFilterSolicitante(v); setPageReq(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos</SelectItem>
+              {solicitantesUnicos.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-40">
+          <Label className="text-xs">Data inicial</Label>
+          <Input type="date" value={filterDataIni} onChange={e => { setFilterDataIni(e.target.value); setPageReq(1); }} />
+        </div>
+        <div className="w-40">
+          <Label className="text-xs">Data final</Label>
+          <Input type="date" value={filterDataFim} onChange={e => { setFilterDataFim(e.target.value); setPageReq(1); }} />
+        </div>
+        <Button variant="outline" onClick={limparFiltros}>
+          <X className="mr-2 h-4 w-4" />Limpar
+        </Button>
       </div>
 
       <div className="border rounded-lg">
