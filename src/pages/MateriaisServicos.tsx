@@ -15,6 +15,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Search, Upload, FileText, FileSpreadsheet, Camera, X, Image } from "lucide-react";
 import { gerarPdfMateriaisServicos, gerarExcelMateriaisServicos } from "@/lib/gerarRelatorioMateriaisServicos";
 import * as XLSX from "xlsx";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
+import type { ReactNode } from "react";
 
 const UNIDADES = ["UN", "M", "M²", "M³", "KG", "L", "CX", "PCT", "SC", "GL", "HR", "VB", "JG", "PR", "RL", "TB", "FD", "BD", "CJ", "DZ"];
 
@@ -32,6 +35,19 @@ export default function MateriaisServicosPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+
+  const colDefs: Record<string, { label: string; className?: string }> = {
+    codigo: { label: "Código" },
+    descricao: { label: "Descrição" },
+    tipo: { label: "Tipo" },
+    unidade: { label: "Unidade" },
+    fotos: { label: "Fotos" },
+    categoria: { label: "Categoria" },
+  };
+  const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
+    "compras.materiais",
+    ["codigo", "descricao", "tipo", "unidade", "fotos", "categoria"]
+  );
 
   const filtered = useMemo(() => {
     let list = materiais;
