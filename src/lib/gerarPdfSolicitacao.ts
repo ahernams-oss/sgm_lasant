@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
 import { Empresa } from "@/contexts/EmpresaContext";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 const ORANGE = [230, 150, 50] as const;
 const DARK_BLUE = [30, 58, 107] as const;
