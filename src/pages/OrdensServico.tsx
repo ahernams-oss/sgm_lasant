@@ -375,7 +375,7 @@ export default function OrdensServicoPage() {
         });
       }
     }
-    toast.success(`OS ${os.numero} alterada para "${novaSituacao}"`);
+    toast.success(`OS ${formatNumeroAno(os.numero, os.createdAt)} alterada para "${novaSituacao}"`);
   };
 
   const handleConfirmNaoAprovar = async () => {
