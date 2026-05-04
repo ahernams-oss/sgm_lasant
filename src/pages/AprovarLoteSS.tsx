@@ -252,7 +252,7 @@ export default function AprovarLoteSS() {
                     aria-label={`Selecionar SS ${s.numero}`}
                   />
                 </TableCell>
-                <TableCell className="font-mono font-bold">{s.numero}</TableCell>
+                <TableCell className="font-mono font-bold">{formatNumeroAno(s.numero, s.createdAt)}</TableCell>
                 <TableCell>{s.clienteNome || "—"}</TableCell>
                 <TableCell className="text-sm">
                   {[s.localDescricao, s.pavimentoDescricao, s.setorDescricao].filter(Boolean).join(" › ") || "—"}
