@@ -43,6 +43,7 @@ interface Params {
 }
 
 const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+const SIGLAS_DOW = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 export function gerarMapaPlantoesPdf({ funcionarios, cargos, clientes, ano, mes }: Params) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
@@ -54,7 +55,11 @@ export function gerarMapaPlantoesPdf({ funcionarios, cargos, clientes, ano, mes 
 
   const dias = diasDoMes(ano, mes);
   const dataRef = new Date(ano, mes, 1);
-  const head = [["Funcionário", "Cargo", "Cliente", "Jornada", ...Array.from({ length: dias }, (_, i) => String(i + 1))]];
+  const diasArr = Array.from({ length: dias }, (_, i) => i + 1);
+  const dowArr = diasArr.map((d) => new Date(ano, mes, d).getDay());
+  const head = [
+    ["Funcionário", "Cargo", "Cliente", "Jornada", ...diasArr.map((d) => `${SIGLAS_DOW[dowArr[d - 1]]}\n${d}`)],
+  ];
 
   const body = funcionarios.map((f) => {
     const cargo = cargos.find((c) => c.id === f.cargoId)?.nome || "—";
@@ -66,17 +71,25 @@ export function gerarMapaPlantoesPdf({ funcionarios, cargos, clientes, ano, mes 
     return [f.nome, cargo, cliente, f.jornadaTrabalho || "—", ...linhaDias];
   });
 
+  const diasColStyles: any = {};
+  diasArr.forEach((d, idx) => {
+    const colIdx = 4 + idx;
+    const fimSemana = dowArr[idx] === 0 || dowArr[idx] === 6;
+    if (fimSemana) diasColStyles[colIdx] = { fillColor: [240, 240, 245] };
+  });
+
   autoTable(doc, {
     startY: 18,
     head,
     body,
-    styles: { fontSize: 6, cellPadding: 1, halign: "center" },
-    headStyles: { fillColor: [103, 58, 183], textColor: 255, fontSize: 6 },
+    styles: { fontSize: 6, cellPadding: 1, halign: "center", valign: "middle" },
+    headStyles: { fillColor: [103, 58, 183], textColor: 255, fontSize: 6, halign: "center", valign: "middle" },
     columnStyles: {
       0: { halign: "left", cellWidth: 35 },
       1: { halign: "left", cellWidth: 25 },
       2: { halign: "left", cellWidth: 25 },
       3: { halign: "left", cellWidth: 28 },
+      ...diasColStyles,
     },
   });
 
@@ -90,19 +103,21 @@ export function gerarMapaPlantoesPdf({ funcionarios, cargos, clientes, ano, mes 
 export function gerarMapaPlantoesExcel({ funcionarios, cargos, clientes, ano, mes }: Params) {
   const dias = diasDoMes(ano, mes);
   const dataRef = new Date(ano, mes, 1);
-  const header = ["Funcionário", "Cargo", "Cliente", "Jornada", ...Array.from({ length: dias }, (_, i) => String(i + 1))];
+  const diasArr = Array.from({ length: dias }, (_, i) => i + 1);
+  const dowArr = diasArr.map((d) => new Date(ano, mes, d).getDay());
+
+  const headerDow = ["", "", "", "", ...diasArr.map((d) => SIGLAS_DOW[dowArr[d - 1]])];
+  const headerDia = ["Funcionário", "Cargo", "Cliente", "Jornada", ...diasArr.map((d) => String(d))];
 
   const rows = funcionarios.map((f) => {
     const cargo = cargos.find((c) => c.id === f.cargoId)?.nome || "";
     const cliente = clientes.find((c) => c.id === f.clienteId)?.nome || "";
     const sigla = SIGLAS[(f.jornadaTrabalho as TipoJornada)] || "";
-    const linhaDias = Array.from({ length: dias }, (_, i) =>
-      trabalhaNoDia(f.jornadaTrabalho, i + 1, dataRef) ? sigla : ""
-    );
+    const linhaDias = diasArr.map((d) => (trabalhaNoDia(f.jornadaTrabalho, d, dataRef) ? sigla : ""));
     return [f.nome, cargo, cliente, f.jornadaTrabalho || "", ...linhaDias];
   });
 
-  const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+  const ws = XLSX.utils.aoa_to_sheet([headerDow, headerDia, ...rows]);
   ws["!cols"] = [{ wch: 28 }, { wch: 20 }, { wch: 20 }, { wch: 22 }, ...Array.from({ length: dias }, () => ({ wch: 4 }))];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, `${MESES[mes]} ${ano}`);
