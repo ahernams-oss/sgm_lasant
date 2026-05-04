@@ -36,6 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 const statusColors: Record<Requisicao["status"], string> = {
   Pendente: "bg-amber-100 text-amber-800 border-amber-200",
