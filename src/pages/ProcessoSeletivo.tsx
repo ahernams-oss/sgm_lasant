@@ -26,6 +26,9 @@ import {
   DOCUMENTOS_OBRIGATORIOS,
 } from "@/contexts/ProcessoSeletivoContext";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+
+const ESTADO_CIVIL_OPTIONS = ["Solteiro(a)", "Casado(a)", "Divorciado(a)", "Viúvo(a)", "União Estável"];
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
@@ -486,13 +489,16 @@ const ProcessoSeletivoPage = () => {
                           </div>
                           <div>
                             <label className="text-xs font-medium text-muted-foreground">Estado Civil</label>
-                            <DebouncedInput
-                              value={c.estadoCivil}
-                              onChange={(e) => handleSalvarParecer(c.id, "estadoCivil", e.target.value)}
-                              placeholder="Ex: Solteiro(a)"
-                              className="mt-1"
+                            <Select
+                              value={c.estadoCivil || ""}
+                              onValueChange={(v) => handleSalvarParecer(c.id, "estadoCivil", v)}
                               disabled={!isCurrentEtapa}
-                            />
+                            >
+                              <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                              <SelectContent>
+                                {ESTADO_CIVIL_OPTIONS.map((ec) => <SelectItem key={ec} value={ec}>{ec}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
                         <div>
