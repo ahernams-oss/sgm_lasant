@@ -690,6 +690,16 @@ export default function CotacaoComprasPage() {
             </SelectContent>
           </Select>
         </div>
+        <div className="w-56">
+          <Label className="text-xs">Centro de Custo</Label>
+          <Select value={filterCentroCusto} onValueChange={v => { setFilterCentroCusto(v); setPageCot(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos Centros de Custo</SelectItem>
+              {centrosCustoUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="w-40">
           <Label className="text-xs">Período</Label>
           <Select value={filterPeriodo} onValueChange={v => { setFilterPeriodo(v); setPageCot(1); }}>
