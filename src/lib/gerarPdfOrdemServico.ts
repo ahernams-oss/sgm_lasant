@@ -522,7 +522,7 @@ function addFooter(doc: jsPDF, empresa?: Empresa, osNumero?: number | string) {
 export async function gerarPdfOrdemServico(opts: RenderOSOptions) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   await renderOS(doc, opts);
-  addFooter(doc, opts.empresa, formatNumeroAno(opts.os.numero, opts.os.createdAt) as any);
+  addFooter(doc, opts.empresa, formatNumeroAno(opts.os.numero, opts.os.createdAt));
   doc.save(`OS_${formatNumeroAno(opts.os.numero, opts.os.createdAt)}_${(opts.os.clienteNome || "").replace(/\s+/g, "_")}.pdf`);
 }
 
