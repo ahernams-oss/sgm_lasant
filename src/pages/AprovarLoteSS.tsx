@@ -5,6 +5,7 @@ import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
