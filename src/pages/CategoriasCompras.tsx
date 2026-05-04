@@ -52,9 +52,9 @@ export default function CategoriasCompras() {
   const [filterSubGrupoId, setFilterSubGrupoId] = useState<string>("all");
 
   const colDefsGrupos: Record<string, { label: string; className?: string }> = {
-    codigo: { label: "Código", className: "w-28" },
+    codigo: { label: "Código", className: "w-28 text-center" },
     nome: { label: "Nome" },
-    subgrupos: { label: "SubGrupos", className: "w-20" },
+    subgrupos: { label: "SubGrupos", className: "w-20 text-center" },
   };
   const { order: colOrderGrupos, setOrder: setColOrderGrupos } = useColumnOrder(
     "compras.categorias.grupos",
@@ -62,10 +62,10 @@ export default function CategoriasCompras() {
   );
 
   const colDefsSubs: Record<string, { label: string; className?: string }> = {
-    codigo: { label: "Código", className: "w-28" },
+    codigo: { label: "Código", className: "w-28 text-center" },
     nome: { label: "Nome" },
     grupo: { label: "Grupo" },
-    classes: { label: "Classes", className: "w-20" },
+    classes: { label: "Classes", className: "w-20 text-center" },
   };
   const { order: colOrderSubs, setOrder: setColOrderSubs } = useColumnOrder(
     "compras.categorias.subgrupos",
@@ -73,8 +73,8 @@ export default function CategoriasCompras() {
   );
 
   const colDefsClasses: Record<string, { label: string; className?: string }> = {
-    codigoCompleto: { label: "Código Completo", className: "w-36" },
-    codigo: { label: "Código", className: "w-20" },
+    codigoCompleto: { label: "Código Completo", className: "w-36 text-center" },
+    codigo: { label: "Código", className: "w-20 text-center" },
     nome: { label: "Nome" },
     subgrupo: { label: "SubGrupo" },
     grupo: { label: "Grupo" },
