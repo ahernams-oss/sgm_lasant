@@ -103,19 +103,21 @@ export function gerarMapaPlantoesPdf({ funcionarios, cargos, clientes, ano, mes 
 export function gerarMapaPlantoesExcel({ funcionarios, cargos, clientes, ano, mes }: Params) {
   const dias = diasDoMes(ano, mes);
   const dataRef = new Date(ano, mes, 1);
-  const header = ["Funcionário", "Cargo", "Cliente", "Jornada", ...Array.from({ length: dias }, (_, i) => String(i + 1))];
+  const diasArr = Array.from({ length: dias }, (_, i) => i + 1);
+  const dowArr = diasArr.map((d) => new Date(ano, mes, d).getDay());
+
+  const headerDow = ["", "", "", "", ...diasArr.map((d) => SIGLAS_DOW[dowArr[d - 1]])];
+  const headerDia = ["Funcionário", "Cargo", "Cliente", "Jornada", ...diasArr.map((d) => String(d))];
 
   const rows = funcionarios.map((f) => {
     const cargo = cargos.find((c) => c.id === f.cargoId)?.nome || "";
     const cliente = clientes.find((c) => c.id === f.clienteId)?.nome || "";
     const sigla = SIGLAS[(f.jornadaTrabalho as TipoJornada)] || "";
-    const linhaDias = Array.from({ length: dias }, (_, i) =>
-      trabalhaNoDia(f.jornadaTrabalho, i + 1, dataRef) ? sigla : ""
-    );
+    const linhaDias = diasArr.map((d) => (trabalhaNoDia(f.jornadaTrabalho, d, dataRef) ? sigla : ""));
     return [f.nome, cargo, cliente, f.jornadaTrabalho || "", ...linhaDias];
   });
 
-  const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+  const ws = XLSX.utils.aoa_to_sheet([headerDow, headerDia, ...rows]);
   ws["!cols"] = [{ wch: 28 }, { wch: 20 }, { wch: 20 }, { wch: 22 }, ...Array.from({ length: dias }, () => ({ wch: 4 }))];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, `${MESES[mes]} ${ano}`);
