@@ -28,7 +28,8 @@ const STATUS_PERMITIDOS = ["Executada", "Serviço Re-executado"];
 
 export default function ConfirmarLoteOs() {
   const { ordens, updateOrdem } = useOrdensServico();
-  const { usuarioLogado, clientesPermitidosIds, temAcessoTotal } = useAuth();
+  const { usuarioLogado } = useAuth();
+  const { clientes } = useClientes();
   const { registrarMovimentacao } = useEstoque();
 
   const [search, setSearch] = useState("");
@@ -44,13 +45,10 @@ export default function ConfirmarLoteOs() {
     { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" },
   ];
 
-  const disponiveis = useMemo(() => {
-    return ordens.filter((os) => {
-      if (!STATUS_PERMITIDOS.includes(os.situacao)) return false;
-      if (!temAcessoTotal && os.clienteId && !clientesPermitidosIds.includes(os.clienteId)) return false;
-      return true;
-    });
-  }, [ordens, clientesPermitidosIds, temAcessoTotal]);
+  const disponiveis = useMemo(
+    () => ordens.filter((os) => STATUS_PERMITIDOS.includes(os.situacao)),
+    [ordens]
+  );
 
   const filtered = useMemo(() => {
     let result = disponiveis;
