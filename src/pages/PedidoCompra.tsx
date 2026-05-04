@@ -51,6 +51,7 @@ export default function PedidoCompraPage() {
   const [filterStatus, setFilterStatus] = useState("Todos");
   const [filterFornecedor, setFilterFornecedor] = useState("Todos");
   const [filterComprador, setFilterComprador] = useState("Todos");
+  const [filterCentroCusto, setFilterCentroCusto] = useState("Todos");
   const [filterDataIni, setFilterDataIni] = useState("");
   const [filterDataFim, setFilterDataFim] = useState("");
   const [pagePed, setPagePed] = useState(1);
@@ -76,6 +77,12 @@ export default function PedidoCompraPage() {
     if (filterStatus !== "Todos") list = list.filter(p => p.status === filterStatus);
     if (filterFornecedor !== "Todos") list = list.filter(p => p.fornecedorId === filterFornecedor);
     if (filterComprador !== "Todos") list = list.filter(p => p.comprador === filterComprador);
+    if (filterCentroCusto !== "Todos") {
+      list = list.filter(p => {
+        const req = requisicoes.find(r => r.id === p.requisicaoId);
+        return req?.centroCustoNome === filterCentroCusto;
+      });
+    }
     if (filterDataIni) list = list.filter(p => p.dataCriacao >= filterDataIni);
     if (filterDataFim) list = list.filter(p => p.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
@@ -83,7 +90,7 @@ export default function PedidoCompraPage() {
       list = list.filter(p => String(p.numero).includes(s) || p.fornecedorNome.toLowerCase().includes(s) || p.comprador.toLowerCase().includes(s) || String(p.requisicaoNumero).includes(s));
     }
     return list.sort((a, b) => b.numero - a.numero);
-  }, [pedidos, search, filterStatus, filterFornecedor, filterComprador, filterDataIni, filterDataFim]);
+  }, [pedidos, requisicoes, search, filterStatus, filterFornecedor, filterComprador, filterCentroCusto, filterDataIni, filterDataFim]);
 
   const fornecedoresUnicos = useMemo(() => {
     const map = new Map<string, string>();
@@ -94,10 +101,18 @@ export default function PedidoCompraPage() {
     Array.from(new Set(pedidos.map(p => p.comprador).filter(Boolean))).sort(),
     [pedidos]
   );
-  const hasActiveFilters = search !== "" || filterStatus !== "Todos" || filterFornecedor !== "Todos" || filterComprador !== "Todos" || filterDataIni !== "" || filterDataFim !== "";
+  const centrosCustoUnicos = useMemo(() => {
+    const set = new Set<string>();
+    pedidos.forEach(p => {
+      const req = requisicoes.find(r => r.id === p.requisicaoId);
+      if (req?.centroCustoNome) set.add(req.centroCustoNome);
+    });
+    return Array.from(set).sort();
+  }, [pedidos, requisicoes]);
+  const hasActiveFilters = search !== "" || filterStatus !== "Todos" || filterFornecedor !== "Todos" || filterComprador !== "Todos" || filterCentroCusto !== "Todos" || filterDataIni !== "" || filterDataFim !== "";
   const clearFilters = () => {
     setSearch(""); setFilterStatus("Todos"); setFilterFornecedor("Todos");
-    setFilterComprador("Todos"); setFilterDataIni(""); setFilterDataFim("");
+    setFilterComprador("Todos"); setFilterCentroCusto("Todos"); setFilterDataIni(""); setFilterDataFim("");
   };
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -305,6 +320,16 @@ export default function PedidoCompraPage() {
             <SelectContent>
               <SelectItem value="Todos">Todos</SelectItem>
               {compradoresUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-56">
+          <Label className="text-xs">Centro de Custo</Label>
+          <Select value={filterCentroCusto} onValueChange={v => { setFilterCentroCusto(v); setPagePed(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos</SelectItem>
+              {centrosCustoUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
