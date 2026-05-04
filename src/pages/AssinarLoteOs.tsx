@@ -1,8 +1,8 @@
 import { useState, useMemo } from "react";
 import { useOrdensServico, OrdemServico } from "@/contexts/OrdensServicoContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useClientes } from "@/contexts/ClientesContext";
 import { useCargos } from "@/contexts/CargosContext";
-import { usePermissao } from "@/hooks/usePermissao";
 import { useOsAssinaturas, PapelOsAssinatura } from "@/contexts/OsAssinaturasContext";
 import { gerarHashOs, obterIpOrigem } from "@/lib/assinaturaHashOs";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
@@ -48,9 +48,9 @@ const ASSINANTE_TESTE_OS = {
 
 export default function AssinarLoteOs() {
   const { ordens } = useOrdensServico();
-  const { usuarioLogado, clientesPermitidosIds, temAcessoTotal } = useAuth();
+  const { usuarioLogado } = useAuth();
+  const { clientes } = useClientes();
   const { cargos } = useCargos();
-  const { tem } = usePermissao();
   const { assinaturas, registrar, refresh } = useOsAssinaturas();
 
   const [search, setSearch] = useState("");
@@ -72,19 +72,12 @@ export default function AssinarLoteOs() {
   const validadasDisponiveis = useMemo(() => {
     return ordens.filter((os) => {
       // if (os.situacao !== "Validada") return false;
-      if (
-        !temAcessoTotal &&
-        os.clienteId &&
-        !clientesPermitidosIds.includes(os.clienteId)
-      ) {
-        return false;
-      }
       const jaAssinada = assinaturas.some(
         (a) => a.os_id === os.id && a.papel === papel
       );
       return !jaAssinada;
     });
-  }, [ordens, assinaturas, papel, clientesPermitidosIds, temAcessoTotal]);
+  }, [ordens, assinaturas, papel]);
 
   const filtered = useMemo(() => {
     let result = validadasDisponiveis;
@@ -127,13 +120,14 @@ export default function AssinarLoteOs() {
     });
   };
 
-  const clientesUnicos = useMemo(() => {
-    const map = new Map<string, string>();
-    validadasDisponiveis.forEach((s) => {
-      if (s.clienteId && s.clienteNome) map.set(s.clienteId, s.clienteNome);
-    });
-    return Array.from(map.entries());
-  }, [validadasDisponiveis]);
+  const clientesUnicos = useMemo(
+    () =>
+      (clientes || [])
+        .filter((c: any) => (c.tipo || "Cliente") === "Cliente")
+        .map((c: any) => [c.id, c.nome] as [string, string])
+        .sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
+    [clientes]
+  );
 
   const podePapel = papel === "fiscal" ? podeFiscal : true;
 
@@ -166,16 +160,6 @@ export default function AssinarLoteOs() {
       const os = ordens.find((o) => o.id === id);
       // [TESTES] Bloqueio por status removido. Em produção, restaurar checagem `os.situacao !== "Validada"`.
       if (!os) {
-        fail++;
-        continue;
-      }
-      // Confere acesso ao cliente para o papel "solicitante"
-      if (
-        papel === "solicitante" &&
-        !temAcessoTotal &&
-        os.clienteId &&
-        !clientesPermitidosIds.includes(os.clienteId)
-      ) {
         fail++;
         continue;
       }
