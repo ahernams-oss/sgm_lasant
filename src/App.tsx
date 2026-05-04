@@ -182,6 +182,16 @@ function AppRoutes() {
           }
         />
         <Route
+          path="/engenharia/confirmar-lote-os"
+          element={
+            <SolicitacoesServicosProvider>
+              <OrdensServicoProvider>
+                <ConfirmarLoteOsPage />
+              </OrdensServicoProvider>
+            </SolicitacoesServicosProvider>
+          }
+        />
+        <Route
           path="/engenharia/ordem-servico"
           element={
             <OrdensServicoProvider>
