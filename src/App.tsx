@@ -12,6 +12,7 @@ import Fornecedores from "./pages/Fornecedores.tsx";
 import Cargos from "./pages/Cargos.tsx";
 import Funcionarios from "./pages/Funcionarios.tsx";
 import MapaFuncionarios from "./pages/MapaFuncionarios.tsx";
+import MapaPlantoes from "./pages/MapaPlantoes.tsx";
 import Usuarios from "./pages/Usuarios.tsx";
 import Login from "./pages/Login.tsx";
 import EsqueciSenha from "./pages/EsqueciSenha.tsx";
