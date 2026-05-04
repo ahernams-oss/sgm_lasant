@@ -31,9 +31,14 @@ export function SortableTableHead({ id, className, children }: SortableHeadProps
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+  const justify = className?.includes("text-center")
+    ? "justify-center"
+    : className?.includes("text-right")
+      ? "justify-end"
+      : "justify-start";
   return (
     <TableHead ref={setNodeRef} style={style} className={cn("group select-none", className)}>
-      <span className="inline-flex items-center gap-1.5">
+      <span className={cn("flex items-center gap-1.5", justify)}>
         <span
           {...attributes}
           {...listeners}
