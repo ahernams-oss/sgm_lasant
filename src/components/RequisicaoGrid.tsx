@@ -36,6 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 const statusColors: Record<Requisicao["status"], string> = {
   Pendente: "bg-amber-100 text-amber-800 border-amber-200",
@@ -62,6 +63,8 @@ const RequisicaoGrid = () => {
   const [filterDataAte, setFilterDataAte] = useState<string>("");
   const [editingReq, setEditingReq] = useState<Requisicao | null>(null);
   const [historicoReq, setHistoricoReq] = useState<Requisicao | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(7);
   const [editForm, setEditForm] = useState({
     unidade: "", cargoId: "", jornada: "", cargaHoraria: "",
     tipoContratacao: [] as string[], internoExterno: "", origemVaga: "", motivoOutros: "",
@@ -260,7 +263,7 @@ const RequisicaoGrid = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredRequisicoes.map((req) => (
+              {paginate(filteredRequisicoes, page, pageSize).paginated.map((req) => (
                 <TableRow key={req.id}>
                   <TableCell className="pl-5 text-xs font-medium tabular-nums">{req.numero}</TableCell>
                   <TableCell className="text-xs tabular-nums whitespace-nowrap">{req.dataCriacao}</TableCell>
@@ -318,6 +321,9 @@ const RequisicaoGrid = () => {
             </TableBody>
           </Table>
         </div>
+      )}
+      {filteredRequisicoes.length > 0 && (
+        <PaginationControls currentPage={page} totalItems={filteredRequisicoes.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
       )}
 
       <Dialog open={!!editingReq} onOpenChange={(open) => !open && setEditingReq(null)}>
