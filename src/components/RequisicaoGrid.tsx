@@ -322,6 +322,9 @@ const RequisicaoGrid = () => {
           </Table>
         </div>
       )}
+      {filteredRequisicoes.length > 0 && (
+        <PaginationControls currentPage={page} totalItems={filteredRequisicoes.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
+      )}
 
       <Dialog open={!!editingReq} onOpenChange={(open) => !open && setEditingReq(null)}>
         <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
