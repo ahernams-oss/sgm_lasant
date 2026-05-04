@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import promocaoPendenteIcon from "@/assets/promocao-pendente.png";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown, HardHat, Stethoscope, TrendingUp, Clock, MoreHorizontal } from "lucide-react";
@@ -318,6 +320,28 @@ const Funcionarios = () => {
   const [filterCliente, setFilterCliente] = useState<string>("todos");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  const [promocoesPendentes, setPromocoesPendentes] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    let active = true;
+    const fetchPendentes = async () => {
+      const { data, error } = await supabase
+        .from("promocoes")
+        .select("funcionario_id")
+        .eq("status", "pendente");
+      if (!active) return;
+      if (!error && data) {
+        setPromocoesPendentes(new Set(data.map((r: any) => r.funcionario_id)));
+      }
+    };
+    fetchPendentes();
+    const ch = supabase
+      .channel("promocoes-pendentes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "promocoes" }, fetchPendentes)
+      .subscribe();
+    return () => { active = false; supabase.removeChannel(ch); };
+  }, []);
 
   const update = (field: string, value: any) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -930,7 +954,19 @@ const Funcionarios = () => {
                     })();
                     return (
                     <TableRow key={f.id}>
-                      <TableCell className="font-medium">{f.nome}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <span>{f.nome}</span>
+                          {promocoesPendentes.has(f.id) && (
+                            <img
+                              src={promocaoPendenteIcon}
+                              alt="Promoção pendente"
+                              title="Solicitação de promoção pendente"
+                              className="h-5 w-5 object-contain"
+                            />
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>{f.cpf || "—"}</TableCell>
                       <TableCell>{getCargoNome(f.cargoId)}</TableCell>
                       <TableCell>{f.clienteId ? getClienteNome(f.clienteId) : "—"}</TableCell>
