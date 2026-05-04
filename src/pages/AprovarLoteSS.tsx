@@ -60,6 +60,7 @@ export default function AprovarLoteSS() {
       const q = search.toLowerCase();
       result = result.filter(s =>
         String(s.numero).includes(q) ||
+        formatNumeroAno(s.numero, s.createdAt).toLowerCase().includes(q) ||
         s.clienteNome?.toLowerCase().includes(q) ||
         s.descricaoServicos?.toLowerCase().includes(q) ||
         s.localDescricao?.toLowerCase().includes(q)
