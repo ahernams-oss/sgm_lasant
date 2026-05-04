@@ -71,17 +71,25 @@ export function gerarMapaPlantoesPdf({ funcionarios, cargos, clientes, ano, mes 
     return [f.nome, cargo, cliente, f.jornadaTrabalho || "—", ...linhaDias];
   });
 
+  const diasColStyles: any = {};
+  diasArr.forEach((d, idx) => {
+    const colIdx = 4 + idx;
+    const fimSemana = dowArr[idx] === 0 || dowArr[idx] === 6;
+    if (fimSemana) diasColStyles[colIdx] = { fillColor: [240, 240, 245] };
+  });
+
   autoTable(doc, {
     startY: 18,
     head,
     body,
-    styles: { fontSize: 6, cellPadding: 1, halign: "center" },
-    headStyles: { fillColor: [103, 58, 183], textColor: 255, fontSize: 6 },
+    styles: { fontSize: 6, cellPadding: 1, halign: "center", valign: "middle" },
+    headStyles: { fillColor: [103, 58, 183], textColor: 255, fontSize: 6, halign: "center", valign: "middle" },
     columnStyles: {
       0: { halign: "left", cellWidth: 35 },
       1: { halign: "left", cellWidth: 25 },
       2: { halign: "left", cellWidth: 25 },
       3: { halign: "left", cellWidth: 28 },
+      ...diasColStyles,
     },
   });
 
