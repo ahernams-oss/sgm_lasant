@@ -938,20 +938,28 @@ const Funcionarios = () => {
                       <TableCell>{statusBadge(f.status || "Ativo")}</TableCell>
                       <TableCell>{expBadge || "—"}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button size="icon" variant="ghost" onClick={() => gerarPdfFuncionario(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })} className="h-8 w-8" title="Baixar PDF Ficha">
-                            <FileDown className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button size="icon" variant="ghost" onClick={() => gerarPdfEpi(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })} className="h-8 w-8" title="Baixar PDF EPI">
-                            <HardHat className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button size="icon" variant="ghost" onClick={() => handleEdit(f)} className="h-8 w-8">
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button size="icon" variant="ghost" onClick={() => requestDelete(f.id)} className="h-8 w-8 text-destructive hover:text-destructive">
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-8 w-8" title="Ações">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => gerarPdfFuncionario(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })}>
+                              <FileDown className="h-4 w-4 mr-2" /> Baixar PDF Ficha
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => gerarPdfEpi(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })}>
+                              <HardHat className="h-4 w-4 mr-2" /> Baixar PDF EPI
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEdit(f)}>
+                              <Pencil className="h-4 w-4 mr-2" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => requestDelete(f.id)} className="text-destructive focus:text-destructive">
+                              <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                     );
