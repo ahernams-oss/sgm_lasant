@@ -51,6 +51,7 @@ export default function CotacaoComprasPage() {
   const [filterStatus, setFilterStatus] = useState("Todos");
   const [filterPeriodo, setFilterPeriodo] = useState("Todos");
   const [filterComprador, setFilterComprador] = useState("Todos");
+  const [filterCentroCusto, setFilterCentroCusto] = useState("Todos");
   const [filterDataIni, setFilterDataIni] = useState("");
   const [filterDataFim, setFilterDataFim] = useState("");
   const [pageCot, setPageCot] = useState(1);
@@ -118,14 +119,29 @@ export default function CotacaoComprasPage() {
     return Array.from(set).sort();
   }, [cotacoes]);
 
-  const hasActiveFilters = filterStatus !== "Todos" || filterPeriodo !== "Todos" || filterComprador !== "Todos" || search !== "" || filterDataIni !== "" || filterDataFim !== "";
+  const centrosCustoUnicos = useMemo(() => {
+    const set = new Set<string>();
+    cotacoes.forEach(c => {
+      const req = requisicoes.find(r => r.id === c.requisicaoId);
+      if (req?.centroCustoNome) set.add(req.centroCustoNome);
+    });
+    return Array.from(set).sort();
+  }, [cotacoes, requisicoes]);
 
-  const clearFilters = () => { setSearch(""); setFilterStatus("Todos"); setFilterPeriodo("Todos"); setFilterComprador("Todos"); setFilterDataIni(""); setFilterDataFim(""); };
+  const hasActiveFilters = filterStatus !== "Todos" || filterPeriodo !== "Todos" || filterComprador !== "Todos" || filterCentroCusto !== "Todos" || search !== "" || filterDataIni !== "" || filterDataFim !== "";
+
+  const clearFilters = () => { setSearch(""); setFilterStatus("Todos"); setFilterPeriodo("Todos"); setFilterComprador("Todos"); setFilterCentroCusto("Todos"); setFilterDataIni(""); setFilterDataFim(""); };
 
   const filtered = useMemo(() => {
     let list = cotacoes;
     if (filterStatus !== "Todos") list = list.filter(c => c.status === filterStatus);
     if (filterComprador !== "Todos") list = list.filter(c => c.comprador === filterComprador);
+    if (filterCentroCusto !== "Todos") {
+      list = list.filter(c => {
+        const req = requisicoes.find(r => r.id === c.requisicaoId);
+        return req?.centroCustoNome === filterCentroCusto;
+      });
+    }
     if (filterPeriodo !== "Todos") {
       const dias = Number(filterPeriodo);
       const dataLimite = subDays(new Date(), dias);
@@ -138,7 +154,7 @@ export default function CotacaoComprasPage() {
       list = list.filter(c => String(c.numero).includes(s) || c.comprador.toLowerCase().includes(s) || String(c.requisicaoNumero).includes(s));
     }
     return list.sort((a, b) => b.numero - a.numero);
-  }, [cotacoes, search, filterStatus, filterPeriodo, filterComprador, filterDataIni, filterDataFim]);
+  }, [cotacoes, requisicoes, search, filterStatus, filterPeriodo, filterComprador, filterCentroCusto, filterDataIni, filterDataFim]);
 
   const handleCriarCotacao = () => {
     if (!selectedReqId) { toast({ title: "Selecione uma requisição", variant: "destructive" }); return; }
@@ -671,6 +687,16 @@ export default function CotacaoComprasPage() {
               <SelectItem value="Aguardando Aprovação">Aguardando Aprovação</SelectItem>
               <SelectItem value="Finalizada">Finalizada</SelectItem>
               <SelectItem value="Cancelada">Cancelada</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-56">
+          <Label className="text-xs">Centro de Custo</Label>
+          <Select value={filterCentroCusto} onValueChange={v => { setFilterCentroCusto(v); setPageCot(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos Centros de Custo</SelectItem>
+              {centrosCustoUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
