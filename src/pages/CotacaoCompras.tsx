@@ -8,6 +8,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
