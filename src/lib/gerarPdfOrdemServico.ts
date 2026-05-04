@@ -183,7 +183,7 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
     const d = os.createdAt ? new Date(os.createdAt) : new Date();
     return isNaN(d.getTime()) ? new Date().getFullYear() : d.getFullYear();
   })();
-  const numeroFormatado = `${String(os.numero).padStart(2, "0")}-${anoOS}${cliente?.cap ? `/${cliente.cap}` : ""}${os.tipoOs?.sigla ? `-${os.tipoOs.sigla}` : ""}`;
+  const numeroFormatado = `${String(os.numero).padStart(2, "0")}-${cliente?.cap || "0"}/${anoOS}-${os.tipoOs?.sigla || ""}`;
   const boxW = 38, boxH = 8;
   const boxX = pw - mr - boxW;
   const boxY = y + 19;
