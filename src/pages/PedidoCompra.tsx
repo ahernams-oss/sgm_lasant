@@ -270,18 +270,57 @@ export default function PedidoCompraPage() {
         <h1 className="text-2xl font-bold text-foreground">Pedidos de Compra</h1>
       </div>
 
-      <div className="flex gap-4">
-        <div className="relative max-w-sm flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar por nº, fornecedor, comprador..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="relative flex-1 min-w-[220px] max-w-sm">
+          <Label className="text-xs">Buscar</Label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Nº, fornecedor, comprador..." value={search} onChange={e => { setSearch(e.target.value); setPagePed(1); }} className="pl-9" />
+          </div>
         </div>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Todos">Todos os Status</SelectItem>
-            {Object.keys(statusColors).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <div className="w-44">
+          <Label className="text-xs">Status</Label>
+          <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPagePed(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos os Status</SelectItem>
+              {Object.keys(statusColors).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-52">
+          <Label className="text-xs">Fornecedor</Label>
+          <Select value={filterFornecedor} onValueChange={v => { setFilterFornecedor(v); setPagePed(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos</SelectItem>
+              {fornecedoresUnicos.map(([id, nome]) => <SelectItem key={id} value={id}>{nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-44">
+          <Label className="text-xs">Comprador</Label>
+          <Select value={filterComprador} onValueChange={v => { setFilterComprador(v); setPagePed(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos</SelectItem>
+              {compradoresUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-40">
+          <Label className="text-xs">Data inicial</Label>
+          <Input type="date" value={filterDataIni} onChange={e => { setFilterDataIni(e.target.value); setPagePed(1); }} />
+        </div>
+        <div className="w-40">
+          <Label className="text-xs">Data final</Label>
+          <Input type="date" value={filterDataFim} onChange={e => { setFilterDataFim(e.target.value); setPagePed(1); }} />
+        </div>
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+            <FilterX className="mr-1 h-4 w-4" />Limpar
+          </Button>
+        )}
       </div>
 
       {selectedIds.length > 0 && (
