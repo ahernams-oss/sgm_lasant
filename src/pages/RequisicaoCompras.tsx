@@ -215,15 +215,15 @@ export default function RequisicaoComprasPage() {
         <Button onClick={() => { resetForm(); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" />Nova Requisição</Button>
       </div>
 
-      <div className="flex flex-wrap gap-3 items-end">
-        <div className="relative flex-1 min-w-[220px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 items-end">
+        <div className="relative sm:col-span-2 md:col-span-3 lg:col-span-2 xl:col-span-2 min-w-0">
           <Label className="text-xs">Buscar</Label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Nº, solicitante, item..." value={search} onChange={e => { setSearch(e.target.value); setPageReq(1); }} className="pl-9" />
           </div>
         </div>
-        <div className="w-52">
+        <div className="min-w-0">
           <Label className="text-xs">Centro de Custo</Label>
           <Select value={filterCentroCusto} onValueChange={v => { setFilterCentroCusto(v); setPageReq(1); }}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -233,7 +233,7 @@ export default function RequisicaoComprasPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="w-44">
+        <div className="min-w-0">
           <Label className="text-xs">Status</Label>
           <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPageReq(1); }}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -243,7 +243,7 @@ export default function RequisicaoComprasPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="w-36">
+        <div className="min-w-0">
           <Label className="text-xs">Urgência</Label>
           <Select value={filterUrgencia} onValueChange={v => { setFilterUrgencia(v); setPageReq(1); }}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -253,7 +253,7 @@ export default function RequisicaoComprasPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="w-48">
+        <div className="min-w-0">
           <Label className="text-xs">Solicitante</Label>
           <Select value={filterSolicitante} onValueChange={v => { setFilterSolicitante(v); setPageReq(1); }}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -263,15 +263,15 @@ export default function RequisicaoComprasPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="w-40">
+        <div className="min-w-0">
           <Label className="text-xs">Data inicial</Label>
           <Input type="date" value={filterDataIni} onChange={e => { setFilterDataIni(e.target.value); setPageReq(1); }} />
         </div>
-        <div className="w-40">
+        <div className="min-w-0">
           <Label className="text-xs">Data final</Label>
           <Input type="date" value={filterDataFim} onChange={e => { setFilterDataFim(e.target.value); setPageReq(1); }} />
         </div>
-        <Button variant="outline" onClick={limparFiltros}>
+        <Button variant="outline" onClick={limparFiltros} className="w-full sm:w-auto">
           <X className="mr-2 h-4 w-4" />Limpar
         </Button>
       </div>
