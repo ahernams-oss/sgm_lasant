@@ -52,6 +52,11 @@ export default function RequisicaoComprasPage() {
   const [historicoReq, setHistoricoReq] = useState<RequisicaoCompras | null>(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("Todos");
+  const [filterCentroCusto, setFilterCentroCusto] = useState<string>("Todos");
+  const [filterUrgencia, setFilterUrgencia] = useState<string>("Todas");
+  const [filterSolicitante, setFilterSolicitante] = useState<string>("Todos");
+  const [filterDataIni, setFilterDataIni] = useState("");
+  const [filterDataFim, setFilterDataFim] = useState("");
   const [pageReq, setPageReq] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
