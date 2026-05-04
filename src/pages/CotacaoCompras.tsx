@@ -876,6 +876,7 @@ export default function CotacaoComprasPage() {
             })}
           </TableBody>
         </Table>
+        </SortableHeaderRow>
       </div>
 
       {/* Dialog Nova Cotação */}
