@@ -1280,7 +1280,7 @@ export default function SolicitacaoServicosPage() {
               {duplicateMatches.map(m => (
                 <div key={m.id} className="border rounded-md p-3 bg-muted/30">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold text-sm">SS Nº {m.numero}</span>
+                    <span className="font-semibold text-sm">SS Nº {formatNumeroAno(m.numero, m.createdAt)}</span>
                     <Badge variant="outline">{m.situacao}</Badge>
                   </div>
                   <div className="text-xs text-muted-foreground mb-1">
