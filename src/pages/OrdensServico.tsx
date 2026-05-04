@@ -3,6 +3,7 @@ import { updateRow, fetchAll } from "@/lib/supabaseHelper";
 import { SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
 import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { supabase } from "@/integrations/supabase/client";
+import { formatNumeroAno } from "@/lib/formatNumero";
 import { useNavigate } from "react-router-dom";
 import { useOrdensServico, OrdemServico, MaterialOS, ProfissionalOS, AnexoOS, FotoOS, ObservacaoOS, ObservacaoFiscalizacao, TIPOS_OS, TipoOS } from "@/contexts/OrdensServicoContext";
 import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
