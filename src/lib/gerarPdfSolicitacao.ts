@@ -331,8 +331,8 @@ export async function gerarPdfSolicitacao(
 ) {
   const doc = new jsPDF();
   await renderSolicitacao(doc, ss, comImagens, empresa, equipamento);
-  addFooters(doc, empresa, String(ss.numero));
-  doc.save(`SS_${ss.numero}_${ss.clienteNome?.replace(/\s+/g, "_") || "sem_cliente"}.pdf`);
+  addFooters(doc, empresa, formatNumeroAno(ss.numero, ss.createdAt));
+  doc.save(`SS_${formatNumeroAno(ss.numero, ss.createdAt)}_${ss.clienteNome?.replace(/\s+/g, "_") || "sem_cliente"}.pdf`);
 }
 
 /** Generates a single PDF containing multiple SS (one per page group). */
