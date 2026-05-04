@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, type ReactNode } from "react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useCotacaoCompras, CotacaoCompras, PropostaFornecedor, ItemCotacaoFornecedor, ItemVencedor } from "@/contexts/CotacaoComprasContext";
 import { useRequisicaoCompras, RequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
@@ -8,6 +8,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,6 +57,20 @@ export default function CotacaoComprasPage() {
   const [filterDataIni, setFilterDataIni] = useState("");
   const [filterDataFim, setFilterDataFim] = useState("");
   const [pageCot, setPageCot] = useState(1);
+
+  const colDefs: Record<string, { label: string; className?: string }> = {
+    numero: { label: "Nº Cotação" },
+    centroCusto: { label: "Centro de Custo" },
+    rcs: { label: "RCS Vinculada" },
+    data: { label: "Data" },
+    comprador: { label: "Comprador" },
+    propostas: { label: "Propostas" },
+    status: { label: "Status" },
+  };
+  const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
+    "compras.cotacoes",
+    ["numero", "centroCusto", "rcs", "data", "comprador", "propostas", "status"]
+  );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Dialog states
@@ -752,39 +768,40 @@ export default function CotacaoComprasPage() {
       )}
 
       <div className="border rounded-lg">
+        <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-10">
                 <Checkbox checked={allSelected && filtered.length > 0} onCheckedChange={toggleSelectAll} />
               </TableHead>
-              <TableHead>Nº Cotação</TableHead>
-              <TableHead>Centro de Custo</TableHead>
-              <TableHead>RCS Vinculada</TableHead>
-              <TableHead>Data</TableHead>
-              <TableHead>Comprador</TableHead>
-              <TableHead>Propostas</TableHead>
-              <TableHead>Status</TableHead>
+              {colOrder.map(key => {
+                const cd = colDefs[key];
+                return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+              })}
               <TableHead className="w-16 text-center">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma cotação encontrada</TableCell></TableRow>
+              <TableRow><TableCell colSpan={colOrder.length + 2} className="text-center text-muted-foreground py-8">Nenhuma cotação encontrada</TableCell></TableRow>
             ) : paginate(filtered, pageCot).paginated.map(c => {
               const rcVinculada = requisicoes.find(r => r.id === c.requisicaoId);
+              const cellMap: Record<string, ReactNode> = {
+                numero: <span className="font-mono font-bold">COT-{String(c.numero).padStart(4, "0")}</span>,
+                centroCusto: <span className="text-sm">{rcVinculada?.centroCustoNome || "-"}</span>,
+                rcs: <span className="font-mono">RC-{String(c.requisicaoNumero).padStart(4, "0")}</span>,
+                data: format(new Date(c.dataCriacao), "dd/MM/yyyy"),
+                comprador: c.comprador,
+                propostas: <Badge variant="secondary">{c.propostas.length}</Badge>,
+                status: <Badge className={statusColors[c.status] || ""}>{c.status}</Badge>,
+              };
               return (
               <TableRow key={c.id} className={selectedIds.includes(c.id) ? "bg-primary/5" : ""}>
                 <TableCell>
                   <Checkbox checked={selectedIds.includes(c.id)} onCheckedChange={() => toggleSelect(c.id)} />
                 </TableCell>
-                <TableCell className="font-mono font-bold">COT-{String(c.numero).padStart(4, "0")}</TableCell>
-                <TableCell className="text-sm">{rcVinculada?.centroCustoNome || "-"}</TableCell>
-                <TableCell className="font-mono">RC-{String(c.requisicaoNumero).padStart(4, "0")}</TableCell>
-                <TableCell>{format(new Date(c.dataCriacao), "dd/MM/yyyy")}</TableCell>
-                <TableCell>{c.comprador}</TableCell>
-                <TableCell><Badge variant="secondary">{c.propostas.length}</Badge></TableCell>
-                <TableCell><Badge className={statusColors[c.status] || ""}>{c.status}</Badge></TableCell>
+                {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
                 <TableCell className="text-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -859,6 +876,7 @@ export default function CotacaoComprasPage() {
             })}
           </TableBody>
         </Table>
+        </SortableHeaderRow>
       </div>
 
       {/* Dialog Nova Cotação */}

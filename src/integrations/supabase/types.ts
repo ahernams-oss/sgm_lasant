@@ -4403,6 +4403,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_grid_column_prefs: {
+        Row: {
+          column_order: Json
+          created_at: string
+          id: string
+          page_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          column_order?: Json
+          created_at?: string
+          id?: string
+          page_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          column_order?: Json
+          created_at?: string
+          id?: string
+          page_key?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       usuarios: {
         Row: {
           cargo_id: string | null
