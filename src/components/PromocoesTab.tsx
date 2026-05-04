@@ -344,25 +344,29 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
                       ) : "—"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        {p.status === "pendente" && podeAprovar && (
-                          <>
-                            <Button size="icon" variant="ghost" type="button" title="Aprovar"
-                              onClick={() => setAprovacao({ promocao: p, senha: "", acao: "aprovar" })}
-                              className="h-7 w-7 text-emerald-600 hover:text-emerald-700">
-                              <CheckCircle2 className="h-4 w-4" />
-                            </Button>
-                            <Button size="icon" variant="ghost" type="button" title="Rejeitar"
-                              onClick={() => setAprovacao({ promocao: p, senha: "", acao: "rejeitar" })}
-                              className="h-7 w-7 text-rose-600 hover:text-rose-700">
-                              <XCircle className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                        <Button size="icon" variant="ghost" type="button" onClick={() => requestDelete(p.id)} className="h-7 w-7 text-destructive hover:text-destructive">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="icon" variant="ghost" type="button" className="h-7 w-7">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {p.status === "pendente" && podeAprovar && (
+                            <>
+                              <DropdownMenuItem onClick={() => setAprovacao({ promocao: p, senha: "", acao: "aprovar" })}>
+                                <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-600" /> Aprovar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setAprovacao({ promocao: p, senha: "", acao: "rejeitar" })}>
+                                <XCircle className="h-4 w-4 mr-2 text-rose-600" /> Rejeitar
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                            </>
+                          )}
+                          <DropdownMenuItem onClick={() => requestDelete(p.id)} className="text-destructive focus:text-destructive">
+                            <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
