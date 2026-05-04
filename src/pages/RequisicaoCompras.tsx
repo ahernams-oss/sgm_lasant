@@ -90,6 +90,11 @@ export default function RequisicaoComprasPage() {
   const filtered = useMemo(() => {
     let list = requisicoes;
     if (filterStatus !== "Todos") list = list.filter(r => r.status === filterStatus);
+    if (filterCentroCusto !== "Todos") list = list.filter(r => r.centroCusto === filterCentroCusto);
+    if (filterUrgencia !== "Todas") list = list.filter(r => r.urgencia === filterUrgencia);
+    if (filterSolicitante !== "Todos") list = list.filter(r => r.solicitante === filterSolicitante);
+    if (filterDataIni) list = list.filter(r => r.dataCriacao >= filterDataIni);
+    if (filterDataFim) list = list.filter(r => r.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
       const s = search.toLowerCase();
       list = list.filter(r =>
@@ -100,7 +105,23 @@ export default function RequisicaoComprasPage() {
       );
     }
     return list.sort((a, b) => b.numero - a.numero);
-  }, [requisicoes, search, filterStatus]);
+  }, [requisicoes, search, filterStatus, filterCentroCusto, filterUrgencia, filterSolicitante, filterDataIni, filterDataFim]);
+
+  const solicitantesUnicos = useMemo(() =>
+    Array.from(new Set(requisicoes.map(r => r.solicitante).filter(Boolean))).sort(),
+    [requisicoes]
+  );
+  const centrosUnicos = useMemo(() => {
+    const map = new Map<string, string>();
+    requisicoes.forEach(r => { if (r.centroCusto) map.set(r.centroCusto, r.centroCustoNome); });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [requisicoes]);
+
+  const limparFiltros = () => {
+    setSearch(""); setFilterStatus("Todos"); setFilterCentroCusto("Todos");
+    setFilterUrgencia("Todas"); setFilterSolicitante("Todos");
+    setFilterDataIni(""); setFilterDataFim("");
+  };
 
   const resetForm = () => {
     setCentroCusto(""); setLocalEntrega(""); setJustificativa(""); setUrgencia("Normal"); setPrazoDesejado("");
