@@ -293,6 +293,16 @@ export default function PedidoCompraPage() {
             <Input placeholder="Nº, fornecedor, comprador..." value={search} onChange={e => { setSearch(e.target.value); setPagePed(1); }} className="pl-9" />
           </div>
         </div>
+        <div className="w-56">
+          <Label className="text-xs">Centro de Custo</Label>
+          <Select value={filterCentroCusto} onValueChange={v => { setFilterCentroCusto(v); setPagePed(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos</SelectItem>
+              {centrosCustoUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="w-44">
           <Label className="text-xs">Status</Label>
           <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPagePed(1); }}>
@@ -310,26 +320,6 @@ export default function PedidoCompraPage() {
             <SelectContent>
               <SelectItem value="Todos">Todos</SelectItem>
               {fornecedoresUnicos.map(([id, nome]) => <SelectItem key={id} value={id}>{nome}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-44">
-          <Label className="text-xs">Comprador</Label>
-          <Select value={filterComprador} onValueChange={v => { setFilterComprador(v); setPagePed(1); }}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Todos">Todos</SelectItem>
-              {compradoresUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-56">
-          <Label className="text-xs">Centro de Custo</Label>
-          <Select value={filterCentroCusto} onValueChange={v => { setFilterCentroCusto(v); setPagePed(1); }}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Todos">Todos</SelectItem>
-              {centrosCustoUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
