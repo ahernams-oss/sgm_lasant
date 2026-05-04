@@ -846,7 +846,7 @@ export default function OrdensServicoPage() {
                   </TableCell>
                   <TableCell className="font-bold">
                     <div className="flex items-center gap-1.5">
-                      <span>{os.numero}</span>
+                      <span>{formatNumeroAno(os.numero, os.createdAt)}</span>
                       {(() => {
                         const ass = assinaturasOs.filter(a => a.os_id === os.id);
                         if (ass.length === 0) return null;
