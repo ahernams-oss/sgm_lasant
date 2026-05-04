@@ -51,6 +51,8 @@ export default function CotacaoComprasPage() {
   const [filterStatus, setFilterStatus] = useState("Todos");
   const [filterPeriodo, setFilterPeriodo] = useState("Todos");
   const [filterComprador, setFilterComprador] = useState("Todos");
+  const [filterDataIni, setFilterDataIni] = useState("");
+  const [filterDataFim, setFilterDataFim] = useState("");
   const [pageCot, setPageCot] = useState(1);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -116,9 +118,9 @@ export default function CotacaoComprasPage() {
     return Array.from(set).sort();
   }, [cotacoes]);
 
-  const hasActiveFilters = filterStatus !== "Todos" || filterPeriodo !== "Todos" || filterComprador !== "Todos" || search !== "";
+  const hasActiveFilters = filterStatus !== "Todos" || filterPeriodo !== "Todos" || filterComprador !== "Todos" || search !== "" || filterDataIni !== "" || filterDataFim !== "";
 
-  const clearFilters = () => { setSearch(""); setFilterStatus("Todos"); setFilterPeriodo("Todos"); setFilterComprador("Todos"); };
+  const clearFilters = () => { setSearch(""); setFilterStatus("Todos"); setFilterPeriodo("Todos"); setFilterComprador("Todos"); setFilterDataIni(""); setFilterDataFim(""); };
 
   const filtered = useMemo(() => {
     let list = cotacoes;
@@ -129,12 +131,14 @@ export default function CotacaoComprasPage() {
       const dataLimite = subDays(new Date(), dias);
       list = list.filter(c => isAfter(new Date(c.dataCriacao), dataLimite));
     }
+    if (filterDataIni) list = list.filter(c => c.dataCriacao >= filterDataIni);
+    if (filterDataFim) list = list.filter(c => c.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
       const s = search.toLowerCase();
       list = list.filter(c => String(c.numero).includes(s) || c.comprador.toLowerCase().includes(s) || String(c.requisicaoNumero).includes(s));
     }
     return list.sort((a, b) => b.numero - a.numero);
-  }, [cotacoes, search, filterStatus, filterPeriodo, filterComprador]);
+  }, [cotacoes, search, filterStatus, filterPeriodo, filterComprador, filterDataIni, filterDataFim]);
 
   const handleCriarCotacao = () => {
     if (!selectedReqId) { toast({ title: "Selecione uma requisição", variant: "destructive" }); return; }
@@ -650,39 +654,57 @@ export default function CotacaoComprasPage() {
       </div>
 
       <div className="flex flex-wrap gap-3 items-end">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar nº cotação, RC, comprador..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+        <div className="flex-1 min-w-[220px] max-w-sm">
+          <Label className="text-xs">Buscar</Label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Nº cotação, RC, comprador..." value={search} onChange={e => { setSearch(e.target.value); setPageCot(1); }} className="pl-9" />
+          </div>
         </div>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Todos">Todos os Status</SelectItem>
-            <SelectItem value="Em Andamento">Em Andamento</SelectItem>
-            <SelectItem value="Aguardando Aprovação">Aguardando Aprovação</SelectItem>
-            <SelectItem value="Finalizada">Finalizada</SelectItem>
-            <SelectItem value="Cancelada">Cancelada</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={filterPeriodo} onValueChange={setFilterPeriodo}>
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Todos">Todo Período</SelectItem>
-            <SelectItem value="7">Últimos 7 dias</SelectItem>
-            <SelectItem value="30">Últimos 30 dias</SelectItem>
-            <SelectItem value="90">Últimos 90 dias</SelectItem>
-            <SelectItem value="365">Último ano</SelectItem>
-          </SelectContent>
-        </Select>
-        {compradores.length > 1 && (
-          <Select value={filterComprador} onValueChange={setFilterComprador}>
-            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+        <div className="w-44">
+          <Label className="text-xs">Status</Label>
+          <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPageCot(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos os Status</SelectItem>
+              <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+              <SelectItem value="Aguardando Aprovação">Aguardando Aprovação</SelectItem>
+              <SelectItem value="Finalizada">Finalizada</SelectItem>
+              <SelectItem value="Cancelada">Cancelada</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-40">
+          <Label className="text-xs">Período</Label>
+          <Select value={filterPeriodo} onValueChange={v => { setFilterPeriodo(v); setPageCot(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todo Período</SelectItem>
+              <SelectItem value="7">Últimos 7 dias</SelectItem>
+              <SelectItem value="30">Últimos 30 dias</SelectItem>
+              <SelectItem value="90">Últimos 90 dias</SelectItem>
+              <SelectItem value="365">Último ano</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-44">
+          <Label className="text-xs">Comprador</Label>
+          <Select value={filterComprador} onValueChange={v => { setFilterComprador(v); setPageCot(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="Todos">Todos Compradores</SelectItem>
               {compradores.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
-        )}
+        </div>
+        <div className="w-40">
+          <Label className="text-xs">Data inicial</Label>
+          <Input type="date" value={filterDataIni} onChange={e => { setFilterDataIni(e.target.value); setPageCot(1); }} />
+        </div>
+        <div className="w-40">
+          <Label className="text-xs">Data final</Label>
+          <Input type="date" value={filterDataFim} onChange={e => { setFilterDataFim(e.target.value); setPageCot(1); }} />
+        </div>
         {hasActiveFilters && (
           <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
             <FilterX className="mr-1 h-4 w-4" />Limpar
