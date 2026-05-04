@@ -616,6 +616,7 @@ export default function OrdensServicoPage() {
       const q = busca.toLowerCase();
       const matchBusca = !busca ||
         o.numero.toString().includes(busca) ||
+        formatNumeroAno(o.numero, o.createdAt).toLowerCase().includes(q) ||
         o.clienteNome.toLowerCase().includes(q) ||
         o.nCliente.toLowerCase().includes(q) ||
         o.descricaoServicos.toLowerCase().includes(q) ||
