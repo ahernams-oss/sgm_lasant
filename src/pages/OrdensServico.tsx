@@ -1907,7 +1907,7 @@ export default function OrdensServicoPage() {
           </DialogHeader>
           <div className="space-y-3 py-2">
             <p className="text-sm text-muted-foreground">
-              OS nº {naoAprovarOS?.numero} — Informe o motivo da não aprovação. Esta justificativa será registrada na aba Fiscalização da OS.
+              OS nº {naoAprovarOS ? formatNumeroAno(naoAprovarOS.numero, naoAprovarOS.createdAt) : ""} — Informe o motivo da não aprovação. Esta justificativa será registrada na aba Fiscalização da OS.
             </p>
             <div>
               <Label>Justificativa *</Label>
