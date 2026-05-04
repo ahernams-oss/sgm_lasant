@@ -88,13 +88,14 @@ export default function ConfirmarLoteOs() {
     });
   };
 
-  const clientesUnicos = useMemo(() => {
-    const map = new Map<string, string>();
-    disponiveis.forEach((s) => {
-      if (s.clienteId && s.clienteNome) map.set(s.clienteId, s.clienteNome);
-    });
-    return Array.from(map.entries());
-  }, [disponiveis]);
+  const clientesUnicos = useMemo(
+    () =>
+      (clientes || [])
+        .filter((c: any) => (c.tipo || "Cliente") === "Cliente")
+        .map((c: any) => [c.id, c.nome] as [string, string])
+        .sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
+    [clientes]
+  );
 
   const handleConfirmarLote = async () => {
     setConfirming(true);
