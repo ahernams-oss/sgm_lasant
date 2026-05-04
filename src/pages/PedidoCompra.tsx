@@ -68,14 +68,14 @@ export default function PedidoCompraPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const colDefs: Record<string, { label: string; className?: string }> = {
-    numero: { label: "Nº Pedido" },
+    numero: { label: "Nº Pedido", className: "text-center" },
     centroCusto: { label: "Centro de Custo" },
-    rc: { label: "RC" },
-    data: { label: "Data" },
+    rc: { label: "RC", className: "text-center" },
+    data: { label: "Data", className: "text-center" },
     fornecedor: { label: "Fornecedor" },
-    valorTotal: { label: "Valor Total" },
-    prazo: { label: "Prazo" },
-    status: { label: "Status" },
+    valorTotal: { label: "Valor Total", className: "text-center" },
+    prazo: { label: "Prazo", className: "text-center" },
+    status: { label: "Status", className: "text-center" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "compras.pedidos",

@@ -41,13 +41,13 @@ export default function RecebimentoComprasPage() {
   const [pageSize, setPageSize] = useState(10);
 
   const colDefs: Record<string, { label: string; className?: string }> = {
-    numero: { label: "Nº Pedido" },
-    rc: { label: "RC" },
+    numero: { label: "Nº Pedido", className: "text-center" },
+    rc: { label: "RC", className: "text-center" },
     fornecedor: { label: "Fornecedor" },
     localEntrega: { label: "Local Entrega" },
-    valor: { label: "Valor" },
-    status: { label: "Status" },
-    progresso: { label: "Progresso" },
+    valor: { label: "Valor", className: "text-center" },
+    status: { label: "Status", className: "text-center" },
+    progresso: { label: "Progresso", className: "text-center" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "compras.recebimento",

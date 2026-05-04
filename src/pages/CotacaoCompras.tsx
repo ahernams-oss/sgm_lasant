@@ -59,13 +59,13 @@ export default function CotacaoComprasPage() {
   const [pageCot, setPageCot] = useState(1);
 
   const colDefs: Record<string, { label: string; className?: string }> = {
-    numero: { label: "Nº Cotação" },
+    numero: { label: "Nº Cotação", className: "text-center" },
     centroCusto: { label: "Centro de Custo" },
-    rcs: { label: "RCS Vinculada" },
-    data: { label: "Data" },
+    rcs: { label: "RCS Vinculada", className: "text-center" },
+    data: { label: "Data", className: "text-center" },
     comprador: { label: "Comprador" },
-    propostas: { label: "Propostas" },
-    status: { label: "Status" },
+    propostas: { label: "Propostas", className: "text-center" },
+    status: { label: "Status", className: "text-center" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "compras.cotacoes",
