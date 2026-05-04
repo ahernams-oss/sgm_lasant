@@ -223,16 +223,6 @@ export default function RequisicaoComprasPage() {
             <Input placeholder="Nº, solicitante, item..." value={search} onChange={e => { setSearch(e.target.value); setPageReq(1); }} className="pl-9" />
           </div>
         </div>
-        <div className="w-44">
-          <Label className="text-xs">Status</Label>
-          <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPageReq(1); }}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Todos">Todos os Status</SelectItem>
-              {Object.keys(statusColors).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
         <div className="w-52">
           <Label className="text-xs">Centro de Custo</Label>
           <Select value={filterCentroCusto} onValueChange={v => { setFilterCentroCusto(v); setPageReq(1); }}>
@@ -240,6 +230,16 @@ export default function RequisicaoComprasPage() {
             <SelectContent>
               <SelectItem value="Todos">Todos</SelectItem>
               {centrosUnicos.map(([id, nome]) => <SelectItem key={id} value={id}>{nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-44">
+          <Label className="text-xs">Status</Label>
+          <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPageReq(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos os Status</SelectItem>
+              {Object.keys(statusColors).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
