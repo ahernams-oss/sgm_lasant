@@ -290,27 +290,31 @@ export default function CategoriasCompras() {
             <Button onClick={openNewClasse}><Plus className="mr-2 h-4 w-4" />Nova Classe</Button>
           </div>
           <div className="border rounded-lg">
+            <SortableHeaderRow order={colOrderClasses} onReorder={setColOrderClasses}>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-36">Código Completo</TableHead>
-                  <TableHead className="w-20">Código</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>SubGrupo</TableHead>
-                  <TableHead>Grupo</TableHead>
+                  {colOrderClasses.map(key => {
+                    const cd = colDefsClasses[key];
+                    return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                  })}
                   <TableHead className="w-24">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredClasses.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma classe cadastrada</TableCell></TableRow>
-                ) : paginate(filteredClasses, pageClasses, pageSize).paginated.map(c => (
+                  <TableRow><TableCell colSpan={colOrderClasses.length + 1} className="text-center text-muted-foreground py-8">Nenhuma classe cadastrada</TableCell></TableRow>
+                ) : paginate(filteredClasses, pageClasses, pageSize).paginated.map(c => {
+                  const cellMap: Record<string, ReactNode> = {
+                    codigoCompleto: <Badge variant="secondary" className="font-mono">{getCodigoCompleto(c.id)}</Badge>,
+                    codigo: <Badge variant="outline" className="font-mono">{c.codigo}</Badge>,
+                    nome: <span className="font-medium">{c.nome}</span>,
+                    subgrupo: <>{getSubCodigo(c.subGrupoId)} - {getSubNome(c.subGrupoId)}</>,
+                    grupo: <>{getGrupoCodigo(getSubGrupoId(c.subGrupoId))} - {getGrupoNome(getSubGrupoId(c.subGrupoId))}</>,
+                  };
+                  return (
                   <TableRow key={c.id}>
-                    <TableCell><Badge variant="secondary" className="font-mono">{getCodigoCompleto(c.id)}</Badge></TableCell>
-                    <TableCell><Badge variant="outline" className="font-mono">{c.codigo}</Badge></TableCell>
-                    <TableCell className="font-medium">{c.nome}</TableCell>
-                    <TableCell>{getSubCodigo(c.subGrupoId)} - {getSubNome(c.subGrupoId)}</TableCell>
-                    <TableCell>{getGrupoCodigo(getSubGrupoId(c.subGrupoId))} - {getGrupoNome(getSubGrupoId(c.subGrupoId))}</TableCell>
+                    {colOrderClasses.map(key => <TableCell key={key} className={colDefsClasses[key]?.className}>{cellMap[key]}</TableCell>)}
                     <TableCell>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" onClick={() => openEditClasse(c)}><Pencil className="h-4 w-4" /></Button>
@@ -318,9 +322,11 @@ export default function CategoriasCompras() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
+            </SortableHeaderRow>
           </div>
           <PaginationControls currentPage={pageClasses} totalItems={filteredClasses.length} onPageChange={setPageClasses} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageClasses(1); }} />
         </TabsContent>
