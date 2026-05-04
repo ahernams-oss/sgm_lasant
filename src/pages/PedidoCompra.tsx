@@ -376,42 +376,42 @@ export default function PedidoCompraPage() {
       )}
 
       <div className="border rounded-lg">
+        <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-10">
                 <Checkbox checked={allSelectableSelected && selectableFiltered.length > 0} onCheckedChange={toggleSelectAll} />
               </TableHead>
-              <TableHead>Nº Pedido</TableHead>
-              <TableHead>Centro de Custo</TableHead>
-              <TableHead>RC</TableHead>
-              <TableHead>Data</TableHead>
-              <TableHead>Fornecedor</TableHead>
-              <TableHead>Valor Total</TableHead>
-              <TableHead>Prazo</TableHead>
-              <TableHead>Status</TableHead>
+              {colOrder.map(key => {
+                const cd = colDefs[key];
+                return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+              })}
               <TableHead className="w-48">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
+              <TableRow><TableCell colSpan={colOrder.length + 2} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
             ) : paginate(filtered, pagePed, pageSize).paginated.map(p => {
               const rcVinculada = requisicoes.find(r => r.id === p.requisicaoId);
               const canUpdate = getNextStatuses(p.status).length > 0;
+              const cellMap: Record<string, ReactNode> = {
+                numero: <span className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</span>,
+                centroCusto: <span className="text-sm">{rcVinculada?.centroCustoNome || "-"}</span>,
+                rc: <span className="font-mono">RCS-{String(p.requisicaoNumero).padStart(4, "0")}</span>,
+                data: format(new Date(p.dataCriacao), "dd/MM/yyyy"),
+                fornecedor: p.fornecedorNome,
+                valorTotal: <span className="font-medium">{formatCurrency(p.valorTotal)}</span>,
+                prazo: p.prazoEntrega || "-",
+                status: <Badge className={statusColors[p.status]}>{p.status}</Badge>,
+              };
               return (
                 <TableRow key={p.id} className={selectedIds.includes(p.id) ? "bg-primary/5" : ""}>
                   <TableCell>
                     <Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggleSelect(p.id)} />
                   </TableCell>
-                  <TableCell className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</TableCell>
-                  <TableCell className="text-sm">{rcVinculada?.centroCustoNome || "-"}</TableCell>
-                  <TableCell className="font-mono">RCS-{String(p.requisicaoNumero).padStart(4, "0")}</TableCell>
-                  <TableCell>{format(new Date(p.dataCriacao), "dd/MM/yyyy")}</TableCell>
-                  <TableCell>{p.fornecedorNome}</TableCell>
-                  <TableCell className="font-medium">{formatCurrency(p.valorTotal)}</TableCell>
-                  <TableCell>{p.prazoEntrega || "-"}</TableCell>
-                  <TableCell><Badge className={statusColors[p.status]}>{p.status}</Badge></TableCell>
+                  {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
                   <TableCell>
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" title="Detalhes" onClick={() => setViewPedido(p)}><Eye className="h-4 w-4" /></Button>
@@ -428,6 +428,7 @@ export default function PedidoCompraPage() {
             })}
           </TableBody>
         </Table>
+        </SortableHeaderRow>
       </div>
       <PaginationControls currentPage={pagePed} totalItems={filtered.length} onPageChange={setPagePed} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPagePed(1); }} />
 
