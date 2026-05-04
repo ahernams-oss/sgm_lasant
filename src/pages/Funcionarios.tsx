@@ -321,6 +321,28 @@ const Funcionarios = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  const [promocoesPendentes, setPromocoesPendentes] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    let active = true;
+    const fetchPendentes = async () => {
+      const { data, error } = await supabase
+        .from("promocoes")
+        .select("funcionario_id")
+        .eq("status", "pendente");
+      if (!active) return;
+      if (!error && data) {
+        setPromocoesPendentes(new Set(data.map((r: any) => r.funcionario_id)));
+      }
+    };
+    fetchPendentes();
+    const ch = supabase
+      .channel("promocoes-pendentes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "promocoes" }, fetchPendentes)
+      .subscribe();
+    return () => { active = false; supabase.removeChannel(ch); };
+  }, []);
+
   const update = (field: string, value: any) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
