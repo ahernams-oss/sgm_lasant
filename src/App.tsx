@@ -124,6 +124,7 @@ function AppRoutes() {
         <Route path="/epis" element={<EpisPage />} />
         <Route path="/exames" element={<ExamesPage />} />
         <Route path="/mapa-funcionarios" element={<MapaFuncionarios />} />
+        <Route path="/mapa-plantoes" element={<MapaPlantoes />} />
         <Route path="/usuarios" element={<Usuarios />} />
         <Route path="/perfis-acesso" element={<PerfisAcessoPage />} />
         <Route path="/empresa" element={<EmpresaDadosPage />} />
