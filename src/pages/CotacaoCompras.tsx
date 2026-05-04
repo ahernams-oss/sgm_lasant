@@ -780,6 +780,7 @@ export default function CotacaoComprasPage() {
                 </TableCell>
                 <TableCell className="font-mono font-bold">COT-{String(c.numero).padStart(4, "0")}</TableCell>
                 <TableCell className="text-sm">{rcVinculada?.centroCustoNome || "-"}</TableCell>
+                <TableCell className="font-mono">RC-{String(c.requisicaoNumero).padStart(4, "0")}</TableCell>
                 <TableCell>{format(new Date(c.dataCriacao), "dd/MM/yyyy")}</TableCell>
                 <TableCell>{c.comprador}</TableCell>
                 <TableCell><Badge variant="secondary">{c.propostas.length}</Badge></TableCell>
