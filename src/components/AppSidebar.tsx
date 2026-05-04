@@ -81,6 +81,7 @@ const menuItems = [
       { title: "Solicitação de Serviços", url: "/engenharia/solicitacao-servicos", icon: ClipboardList },
       { title: "Aprovar SS em Lote", url: "/engenharia/aprovar-lote-ss", icon: ClipboardCheck },
       { title: "Ordem de Serviço", url: "/engenharia/ordem-servico", icon: Wrench },
+      { title: "Confirmar OS em Lote", url: "/engenharia/confirmar-lote-os", icon: ClipboardCheck },
       { title: "Assinar OS em Lote", url: "/engenharia/assinar-lote-os", icon: ClipboardCheck },
       { title: "Plano de Manutenção", url: "/engenharia/plano-manutencao", icon: Wrench },
       { title: "Base de Conhecimento", url: "/engenharia/base-conhecimento", icon: BookOpen },
