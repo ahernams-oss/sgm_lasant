@@ -3,6 +3,7 @@ import { updateRow, fetchAll } from "@/lib/supabaseHelper";
 import { SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
 import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { supabase } from "@/integrations/supabase/client";
+import { formatNumeroAno } from "@/lib/formatNumero";
 import { useNavigate } from "react-router-dom";
 import { useOrdensServico, OrdemServico, MaterialOS, ProfissionalOS, AnexoOS, FotoOS, ObservacaoOS, ObservacaoFiscalizacao, TIPOS_OS, TipoOS } from "@/contexts/OrdensServicoContext";
 import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
@@ -350,8 +351,8 @@ export default function OrdensServicoPage() {
               tipo: "saida",
               quantidade: Number(mat.quantidade) || 0,
               local: os.clienteNome || "",
-              documentoRef: `OS ${os.numero}`,
-              observacao: `Saída automática - Ordem de Serviço nº ${os.numero}`,
+              documentoRef: `OS ${formatNumeroAno(os.numero, os.createdAt)}`,
+              observacao: `Saída automática - Ordem de Serviço nº ${formatNumeroAno(os.numero, os.createdAt)}`,
               usuario: usuarioLogado?.nome || "Sistema",
               lote: "",
               validade: "",
@@ -374,7 +375,7 @@ export default function OrdensServicoPage() {
         });
       }
     }
-    toast.success(`OS ${os.numero} alterada para "${novaSituacao}"`);
+    toast.success(`OS ${formatNumeroAno(os.numero, os.createdAt)} alterada para "${novaSituacao}"`);
   };
 
   const handleConfirmNaoAprovar = async () => {
@@ -399,7 +400,7 @@ export default function OrdensServicoPage() {
       observacoes_fiscalizacao: [...obsExistentes, novaObsFisc],
       ...financeiro,
     });
-    toast.success(`OS ${naoAprovarOS.numero} alterada para "Serviço Não Aprovado pela Fiscalização"`);
+    toast.success(`OS ${formatNumeroAno(naoAprovarOS.numero, naoAprovarOS.createdAt)} alterada para "Serviço Não Aprovado pela Fiscalização"`);
     setNaoAprovarOS(null);
     setNaoAprovarJustificativa("");
   };
@@ -615,6 +616,7 @@ export default function OrdensServicoPage() {
       const q = busca.toLowerCase();
       const matchBusca = !busca ||
         o.numero.toString().includes(busca) ||
+        formatNumeroAno(o.numero, o.createdAt).toLowerCase().includes(q) ||
         o.clienteNome.toLowerCase().includes(q) ||
         o.nCliente.toLowerCase().includes(q) ||
         o.descricaoServicos.toLowerCase().includes(q) ||
@@ -844,7 +846,7 @@ export default function OrdensServicoPage() {
                   </TableCell>
                   <TableCell className="font-bold">
                     <div className="flex items-center gap-1.5">
-                      <span>{os.numero}</span>
+                      <span>{formatNumeroAno(os.numero, os.createdAt)}</span>
                       {(() => {
                         const ass = assinaturasOs.filter(a => a.os_id === os.id);
                         if (ass.length === 0) return null;
@@ -1615,7 +1617,7 @@ export default function OrdensServicoPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ClipboardList className="h-5 w-5" />
-              Ordem de Serviço Nº {viewOS?.numero}
+              Ordem de Serviço Nº {viewOS ? formatNumeroAno(viewOS.numero, viewOS.createdAt) : ""}
             </DialogTitle>
           </DialogHeader>
           {viewOS && (
@@ -1623,7 +1625,7 @@ export default function OrdensServicoPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground">Nº OS</p>
-                  <p className="font-bold text-lg">{viewOS.numero}</p>
+                  <p className="font-bold text-lg">{formatNumeroAno(viewOS.numero, viewOS.createdAt)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Nº SS</p>
@@ -1905,7 +1907,7 @@ export default function OrdensServicoPage() {
           </DialogHeader>
           <div className="space-y-3 py-2">
             <p className="text-sm text-muted-foreground">
-              OS nº {naoAprovarOS?.numero} — Informe o motivo da não aprovação. Esta justificativa será registrada na aba Fiscalização da OS.
+              OS nº {naoAprovarOS ? formatNumeroAno(naoAprovarOS.numero, naoAprovarOS.createdAt) : ""} — Informe o motivo da não aprovação. Esta justificativa será registrada na aba Fiscalização da OS.
             </p>
             <div>
               <Label>Justificativa *</Label>
@@ -1929,7 +1931,7 @@ export default function OrdensServicoPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Eye className="h-5 w-5" />
-              Solicitação de Serviço nº {viewSSTarget?.numero}
+              Solicitação de Serviço nº {viewSSTarget ? formatNumeroAno(viewSSTarget.numero, viewSSTarget.createdAt) : ""}
             </DialogTitle>
           </DialogHeader>
           {viewSSTarget && (() => {

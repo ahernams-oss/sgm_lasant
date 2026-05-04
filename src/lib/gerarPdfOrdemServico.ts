@@ -5,6 +5,7 @@ import { OrdemServico, MaterialOS } from "@/contexts/OrdensServicoContext";
 import { Empresa } from "@/contexts/EmpresaContext";
 import { Cliente } from "@/contexts/ClientesContext";
 import type { OsAssinatura } from "@/contexts/OsAssinaturasContext";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 const DARK = [60, 60, 60] as const;
 const BORDER: [number, number, number] = [60, 60, 60];
@@ -182,7 +183,7 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
     const d = os.createdAt ? new Date(os.createdAt) : new Date();
     return isNaN(d.getTime()) ? new Date().getFullYear() : d.getFullYear();
   })();
-  const numeroFormatado = `${os.numero}-${cliente?.cap || "0"}/${anoOS}-${os.tipoOs?.sigla || ""}`;
+  const numeroFormatado = `${String(os.numero).padStart(2, "0")}-${cliente?.cap || "0"}/${anoOS}-${os.tipoOs?.sigla || ""}`;
   const boxW = 38, boxH = 8;
   const boxX = pw - mr - boxW;
   const boxY = y + 19;
@@ -499,7 +500,7 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
   }
 }
 
-function addFooter(doc: jsPDF, empresa?: Empresa, osNumero?: number) {
+function addFooter(doc: jsPDF, empresa?: Empresa, osNumero?: number | string) {
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
   const pages = doc.getNumberOfPages();
@@ -521,8 +522,8 @@ function addFooter(doc: jsPDF, empresa?: Empresa, osNumero?: number) {
 export async function gerarPdfOrdemServico(opts: RenderOSOptions) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   await renderOS(doc, opts);
-  addFooter(doc, opts.empresa, opts.os.numero);
-  doc.save(`OS_${opts.os.numero}_${(opts.os.clienteNome || "").replace(/\s+/g, "_")}.pdf`);
+  addFooter(doc, opts.empresa, formatNumeroAno(opts.os.numero, opts.os.createdAt));
+  doc.save(`OS_${formatNumeroAno(opts.os.numero, opts.os.createdAt)}_${(opts.os.clienteNome || "").replace(/\s+/g, "_")}.pdf`);
 }
 
 export async function gerarPdfOrdemServicoLote(lista: RenderOSOptions[]) {
@@ -533,6 +534,6 @@ export async function gerarPdfOrdemServicoLote(lista: RenderOSOptions[]) {
     await renderOS(doc, lista[i]);
   }
   addFooter(doc, lista[0].empresa);
-  const nums = lista.map(l => l.os.numero).join("_");
+  const nums = lista.map(l => formatNumeroAno(l.os.numero, l.os.createdAt)).join("_");
   doc.save(`OS_Lote_${nums}.pdf`);
 }

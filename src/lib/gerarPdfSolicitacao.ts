@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
 import { Empresa } from "@/contexts/EmpresaContext";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 const ORANGE = [230, 150, 50] as const;
 const DARK_BLUE = [30, 58, 107] as const;
@@ -104,7 +105,7 @@ async function renderSolicitacao(
     body: [
       [
         { content: "Número da SS:", styles: { fontStyle: "bold" } },
-        `SS-${ss.numero}`,
+        `SS ${formatNumeroAno(ss.numero, ss.createdAt)}`,
         { content: "Prioridade:", styles: { fontStyle: "bold" } },
         { content: ss.prioridade || "-", styles: { fontStyle: "bold", textColor: ss.prioridade === "Emergencial" ? [200, 0, 0] : ss.prioridade === "Urgente" ? [200, 150, 0] : [30, 30, 30] } },
       ],
@@ -330,8 +331,8 @@ export async function gerarPdfSolicitacao(
 ) {
   const doc = new jsPDF();
   await renderSolicitacao(doc, ss, comImagens, empresa, equipamento);
-  addFooters(doc, empresa, String(ss.numero));
-  doc.save(`SS_${ss.numero}_${ss.clienteNome?.replace(/\s+/g, "_") || "sem_cliente"}.pdf`);
+  addFooters(doc, empresa, formatNumeroAno(ss.numero, ss.createdAt));
+  doc.save(`SS_${formatNumeroAno(ss.numero, ss.createdAt)}_${ss.clienteNome?.replace(/\s+/g, "_") || "sem_cliente"}.pdf`);
 }
 
 /** Generates a single PDF containing multiple SS (one per page group). */
@@ -369,6 +370,6 @@ export async function gerarPdfSolicitacaoLote(
     doc.text(`Página ${i} de ${pageCount}`, pw / 2, pageH - 14, { align: "center" });
   }
 
-  const numeros = lista.map(l => l.ss.numero).join("_");
+  const numeros = lista.map(l => formatNumeroAno(l.ss.numero, l.ss.createdAt)).join("_");
   doc.save(`SS_Lote_${numeros}.pdf`);
 }

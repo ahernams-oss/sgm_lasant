@@ -5,6 +5,7 @@ import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,6 +60,7 @@ export default function AprovarLoteSS() {
       const q = search.toLowerCase();
       result = result.filter(s =>
         String(s.numero).includes(q) ||
+        formatNumeroAno(s.numero, s.createdAt).toLowerCase().includes(q) ||
         s.clienteNome?.toLowerCase().includes(q) ||
         s.descricaoServicos?.toLowerCase().includes(q) ||
         s.localDescricao?.toLowerCase().includes(q)
@@ -250,7 +252,7 @@ export default function AprovarLoteSS() {
                     aria-label={`Selecionar SS ${s.numero}`}
                   />
                 </TableCell>
-                <TableCell className="font-mono font-bold">{s.numero}</TableCell>
+                <TableCell className="font-mono font-bold">{formatNumeroAno(s.numero, s.createdAt)}</TableCell>
                 <TableCell>{s.clienteNome || "—"}</TableCell>
                 <TableCell className="text-sm">
                   {[s.localDescricao, s.pavimentoDescricao, s.setorDescricao].filter(Boolean).join(" › ") || "—"}

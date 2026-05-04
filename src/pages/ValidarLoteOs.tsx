@@ -3,6 +3,7 @@ import { useOrdensServico, OrdemServico } from "@/contexts/OrdensServicoContext"
 import { useAuth } from "@/contexts/AuthContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +55,7 @@ export default function ValidarLoteOs() {
       result = result.filter(
         (s) =>
           String(s.numero).includes(q) ||
+          formatNumeroAno(s.numero, s.createdAt).toLowerCase().includes(q) ||
           s.clienteNome?.toLowerCase().includes(q) ||
           s.descricaoServicos?.toLowerCase().includes(q) ||
           s.localDescricao?.toLowerCase().includes(q)
@@ -220,7 +222,7 @@ export default function ValidarLoteOs() {
                       aria-label={`Selecionar OS ${s.numero}`}
                     />
                   </TableCell>
-                  <TableCell className="font-mono font-bold">{s.numero}</TableCell>
+                  <TableCell className="font-mono font-bold">{formatNumeroAno(s.numero, s.createdAt)}</TableCell>
                   <TableCell>{s.clienteNome || "—"}</TableCell>
                   <TableCell className="text-sm">
                     {[s.localDescricao, s.pavimentoDescricao, s.setorDescricao].filter(Boolean).join(" › ") || "—"}

@@ -14,6 +14,7 @@ import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
 import { gerarPdfSolicitacao, gerarPdfSolicitacaoLote } from "@/lib/gerarPdfSolicitacao";
 import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
 import { supabase } from "@/integrations/supabase/client";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -374,7 +375,7 @@ export default function SolicitacaoServicosPage() {
       situacao: "Orçamento Solicitado",
       historico: buildHistoricoEntry("Orçamento Solicitado", full?.historico || []),
     });
-    toast({ title: "Orçamento solicitado", description: `SS nº ${s.numero} — Orçamento Solicitado` });
+    toast({ title: "Orçamento solicitado", description: `SS nº ${formatNumeroAno(s.numero, s.createdAt)} — Orçamento Solicitado` });
   };
 
   const handleOrcarSolicitacao = (s: any) => {
@@ -389,7 +390,7 @@ export default function SolicitacaoServicosPage() {
       situacao: "Orçamento Disponível",
       historico: buildHistoricoEntry("Orçamento Disponível", full?.historico || []),
     });
-    toast({ title: "Orçamento enviado", description: `SS nº ${orcamentoTarget.numero} — Orçamento Disponível` });
+    toast({ title: "Orçamento enviado", description: `SS nº ${formatNumeroAno(orcamentoTarget.numero, full?.createdAt)} — Orçamento Disponível` });
   };
 
   const existingOrcamentoForTarget = useMemo(() => {
@@ -515,7 +516,8 @@ export default function SolicitacaoServicosPage() {
         s.descricaoServicos.toLowerCase().includes(q) ||
         s.situacao.toLowerCase().includes(q) ||
         s.tipo.toLowerCase().includes(q) ||
-        String(s.numero).includes(q)
+        String(s.numero).includes(q) ||
+        formatNumeroAno(s.numero, s.createdAt).toLowerCase().includes(q)
       );
     }
     if (filterCliente !== "all") result = result.filter(s => s.clienteId === filterCliente);
@@ -854,7 +856,7 @@ export default function SolicitacaoServicosPage() {
                     {s.prioridade && (
                       <span className={`inline-block w-3 h-3 rounded-full ${getPrioridadeColor(s.prioridade)}`} title={s.prioridade} />
                     )}
-                    {s.numero}
+                    {formatNumeroAno(s.numero, s.createdAt)}
                   </div>
                 </TableCell>
                 <TableCell className="text-xs whitespace-nowrap">
@@ -1030,7 +1032,7 @@ export default function SolicitacaoServicosPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Eye className="h-5 w-5" />
-              Solicitação de Serviço nº {viewTarget?.numero}
+              Solicitação de Serviço nº {viewTarget ? formatNumeroAno(viewTarget.numero, viewTarget.createdAt) : ""}
             </DialogTitle>
           </DialogHeader>
           {viewTarget && (() => {
@@ -1278,7 +1280,7 @@ export default function SolicitacaoServicosPage() {
               {duplicateMatches.map(m => (
                 <div key={m.id} className="border rounded-md p-3 bg-muted/30">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold text-sm">SS Nº {m.numero}</span>
+                    <span className="font-semibold text-sm">SS Nº {formatNumeroAno(m.numero, m.createdAt)}</span>
                     <Badge variant="outline">{m.situacao}</Badge>
                   </div>
                   <div className="text-xs text-muted-foreground mb-1">

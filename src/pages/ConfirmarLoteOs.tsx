@@ -6,6 +6,7 @@ import { useEstoque } from "@/contexts/EstoqueContext";
 import { updateRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,7 @@ export default function ConfirmarLoteOs() {
       result = result.filter(
         (s) =>
           String(s.numero).includes(q) ||
+          formatNumeroAno(s.numero, s.createdAt).toLowerCase().includes(q) ||
           s.clienteNome?.toLowerCase().includes(q) ||
           s.descricaoServicos?.toLowerCase().includes(q) ||
           s.localDescricao?.toLowerCase().includes(q)
@@ -125,8 +127,8 @@ export default function ConfirmarLoteOs() {
                 tipo: "saida",
                 quantidade: Number(mat.quantidade) || 0,
                 local: os.clienteNome || "",
-                documentoRef: `OS ${os.numero}`,
-                observacao: `Saída automática - Ordem de Serviço nº ${os.numero}`,
+                documentoRef: `OS ${formatNumeroAno(os.numero, os.createdAt)}`,
+                observacao: `Saída automática - Ordem de Serviço nº ${formatNumeroAno(os.numero, os.createdAt)}`,
                 usuario: usuarioLogado?.nome || "Sistema",
                 lote: "",
                 validade: "",
@@ -267,7 +269,7 @@ export default function ConfirmarLoteOs() {
                       aria-label={`Selecionar OS ${s.numero}`}
                     />
                   </TableCell>
-                  <TableCell className="font-mono font-bold">{s.numero}</TableCell>
+                  <TableCell className="font-mono font-bold">{formatNumeroAno(s.numero, s.createdAt)}</TableCell>
                   <TableCell>{s.clienteNome || "—"}</TableCell>
                   <TableCell className="text-sm">
                     {[s.localDescricao, s.pavimentoDescricao, s.setorDescricao].filter(Boolean).join(" › ") || "—"}

@@ -6,6 +6,7 @@ import { useCargos } from "@/contexts/CargosContext";
 import { useOsAssinaturas, PapelOsAssinatura } from "@/contexts/OsAssinaturasContext";
 import { gerarHashOs, obterIpOrigem } from "@/lib/assinaturaHashOs";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,6 +89,7 @@ export default function AssinarLoteOs() {
       result = result.filter(
         (s) =>
           String(s.numero).includes(q) ||
+          formatNumeroAno(s.numero, s.createdAt).toLowerCase().includes(q) ||
           s.clienteNome?.toLowerCase().includes(q) ||
           s.descricaoServicos?.toLowerCase().includes(q) ||
           s.localDescricao?.toLowerCase().includes(q)
@@ -354,7 +356,7 @@ export default function AssinarLoteOs() {
                     />
                   </TableCell>
                   <TableCell className="font-mono font-bold">
-                    {s.numero}
+                    {formatNumeroAno(s.numero, s.createdAt)}
                   </TableCell>
                   <TableCell>{s.clienteNome || "—"}</TableCell>
                   <TableCell className="text-sm">
