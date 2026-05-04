@@ -3,6 +3,7 @@ import { useOrdensServico, OrdemServico } from "@/contexts/OrdensServicoContext"
 import { useAuth } from "@/contexts/AuthContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
