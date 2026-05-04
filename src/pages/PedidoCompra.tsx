@@ -427,6 +427,21 @@ export default function PedidoCompraPage() {
               );
             })}
           </TableBody>
+          {filtered.length > 0 && (
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={colOrder.length + 2} className="bg-muted/50">
+                  <div className="flex flex-wrap items-center justify-end gap-x-6 gap-y-1 text-sm">
+                    <span className="text-muted-foreground">Total de pedidos: <span className="font-semibold text-foreground">{filtered.length}</span></span>
+                    <span className="text-muted-foreground">Soma valor total: <span className="font-bold text-foreground">{formatCurrency(filtered.reduce((s, p) => s + (p.valorTotal || 0), 0))}</span></span>
+                    {selectedIds.length > 0 && (
+                      <span className="text-muted-foreground">Selecionados: <span className="font-semibold text-foreground">{selectedIds.length}</span> — <span className="font-bold text-foreground">{formatCurrency(filtered.filter(p => selectedIds.includes(p.id)).reduce((s, p) => s + (p.valorTotal || 0), 0))}</span></span>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
         </SortableHeaderRow>
       </div>
