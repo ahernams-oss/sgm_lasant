@@ -51,6 +51,39 @@ export default function CategoriasCompras() {
   const [filterGrupoId, setFilterGrupoId] = useState<string>("all");
   const [filterSubGrupoId, setFilterSubGrupoId] = useState<string>("all");
 
+  const colDefsGrupos: Record<string, { label: string; className?: string }> = {
+    codigo: { label: "Código", className: "w-28" },
+    nome: { label: "Nome" },
+    subgrupos: { label: "SubGrupos", className: "w-20" },
+  };
+  const { order: colOrderGrupos, setOrder: setColOrderGrupos } = useColumnOrder(
+    "compras.categorias.grupos",
+    ["codigo", "nome", "subgrupos"]
+  );
+
+  const colDefsSubs: Record<string, { label: string; className?: string }> = {
+    codigo: { label: "Código", className: "w-28" },
+    nome: { label: "Nome" },
+    grupo: { label: "Grupo" },
+    classes: { label: "Classes", className: "w-20" },
+  };
+  const { order: colOrderSubs, setOrder: setColOrderSubs } = useColumnOrder(
+    "compras.categorias.subgrupos",
+    ["codigo", "nome", "grupo", "classes"]
+  );
+
+  const colDefsClasses: Record<string, { label: string; className?: string }> = {
+    codigoCompleto: { label: "Código Completo", className: "w-36" },
+    codigo: { label: "Código", className: "w-20" },
+    nome: { label: "Nome" },
+    subgrupo: { label: "SubGrupo" },
+    grupo: { label: "Grupo" },
+  };
+  const { order: colOrderClasses, setOrder: setColOrderClasses } = useColumnOrder(
+    "compras.categorias.classes",
+    ["codigoCompleto", "codigo", "nome", "subgrupo", "grupo"]
+  );
+
   // === GRUPO ===
   const filteredGrupos = useMemo(() => {
     if (!search) return grupos;
