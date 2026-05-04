@@ -12,6 +12,7 @@ import Fornecedores from "./pages/Fornecedores.tsx";
 import Cargos from "./pages/Cargos.tsx";
 import Funcionarios from "./pages/Funcionarios.tsx";
 import MapaFuncionarios from "./pages/MapaFuncionarios.tsx";
+import MapaPlantoes from "./pages/MapaPlantoes.tsx";
 import Usuarios from "./pages/Usuarios.tsx";
 import Login from "./pages/Login.tsx";
 import EsqueciSenha from "./pages/EsqueciSenha.tsx";
@@ -123,6 +124,7 @@ function AppRoutes() {
         <Route path="/epis" element={<EpisPage />} />
         <Route path="/exames" element={<ExamesPage />} />
         <Route path="/mapa-funcionarios" element={<MapaFuncionarios />} />
+        <Route path="/mapa-plantoes" element={<MapaPlantoes />} />
         <Route path="/usuarios" element={<Usuarios />} />
         <Route path="/perfis-acesso" element={<PerfisAcessoPage />} />
         <Route path="/empresa" element={<EmpresaDadosPage />} />

@@ -67,6 +67,7 @@ const menuItems = [
       { title: "EPIs", url: "/epis", icon: HardHat },
       { title: "Exames Periódicos", url: "/exames", icon: Stethoscope },
       { title: "Mapa de Funcionários", url: "/mapa-funcionarios", icon: CalendarClock },
+      { title: "Mapa de Plantões", url: "/mapa-plantoes", icon: CalendarClock },
     ],
   },
   {
