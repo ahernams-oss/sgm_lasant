@@ -645,7 +645,14 @@ const Funcionarios = () => {
                     <Input value={form.salario} onChange={(e) => update("salario", e.target.value)} placeholder="R$ 0,00" />
                   </Field>
                   <Field label="Jornada de Trabalho">
-                    <Input value={form.jornadaTrabalho} onChange={(e) => update("jornadaTrabalho", e.target.value)} placeholder="44h semanais" />
+                    <Select value={form.jornadaTrabalho} onValueChange={(v) => update("jornadaTrabalho", v)}>
+                      <SelectTrigger><SelectValue placeholder="Selecione a jornada" /></SelectTrigger>
+                      <SelectContent>
+                        {["Diarista", "Plantão Diurno - PAR", "Plantão Diurno - ÍMPAR", "Plantão Noturno - PAR", "Plantão Noturno - ÍMPAR"].map((j) => (
+                          <SelectItem key={j} value={j}>{j}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </Field>
                   <Field label="CTPS">
                     <Input value={form.ctps} onChange={(e) => update("ctps", e.target.value)} />
