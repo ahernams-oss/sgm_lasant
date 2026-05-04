@@ -450,40 +450,41 @@ export default function EstoquePage() {
         {/* MOVIMENTAÇÕES */}
         <TabsContent value="movimentacoes">
           <div className="border rounded-lg">
+            <SortableHeaderRow order={colOrderMov} onReorder={setColOrderMov}>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Código</TableHead>
-                  <TableHead>Material</TableHead>
-                  <TableHead>Centro de Custo</TableHead>
-                  <TableHead>Local</TableHead>
-                  <TableHead className="text-right">Qtd</TableHead>
-                  <TableHead className="text-right">Vlr Unit.</TableHead>
-                  <TableHead>Documento</TableHead>
-                  <TableHead>Usuário</TableHead>
+                  {colOrderMov.map(key => {
+                    const cd = colDefsMov[key];
+                    return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                  })}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {movFiltered.length === 0 ? (
-                  <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Nenhuma movimentação</TableCell></TableRow>
-                ) : paginate(movFiltered, pageMov, pageSize).paginated.map(m => (
+                  <TableRow><TableCell colSpan={colOrderMov.length} className="text-center text-muted-foreground py-8">Nenhuma movimentação</TableCell></TableRow>
+                ) : paginate(movFiltered, pageMov, pageSize).paginated.map(m => {
+                  const cellMap: Record<string, ReactNode> = {
+                    data: <span className="text-xs">{m.dataMovimentacao ? new Date(m.dataMovimentacao).toLocaleDateString("pt-BR") : "-"}</span>,
+                    tipo: <Badge className={tipoColor(m.tipo)}>{m.tipo === "entrada" ? "Entrada" : m.tipo === "saida" ? "Saída" : "Ajuste"}</Badge>,
+                    codigo: <span className="font-mono">{m.materialCodigo}</span>,
+                    material: m.materialDescricao,
+                    centroCusto: getCentroCustoFromDocRef(m.documentoRef),
+                    local: m.local,
+                    qtd: <span className="font-semibold">{m.quantidade.toLocaleString("pt-BR")}</span>,
+                    vlrUnit: m.valorUnitario > 0 ? m.valorUnitario.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-",
+                    documento: <span className="text-xs">{m.documentoRef || "-"}</span>,
+                    usuario: <span className="text-xs">{m.usuario}</span>,
+                  };
+                  return (
                   <TableRow key={m.id}>
-                    <TableCell className="text-xs">{m.dataMovimentacao ? new Date(m.dataMovimentacao).toLocaleDateString("pt-BR") : "-"}</TableCell>
-                    <TableCell><Badge className={tipoColor(m.tipo)}>{m.tipo === "entrada" ? "Entrada" : m.tipo === "saida" ? "Saída" : "Ajuste"}</Badge></TableCell>
-                    <TableCell className="font-mono">{m.materialCodigo}</TableCell>
-                    <TableCell>{m.materialDescricao}</TableCell>
-                    <TableCell>{getCentroCustoFromDocRef(m.documentoRef)}</TableCell>
-                    <TableCell>{m.local}</TableCell>
-                    <TableCell className="text-right font-semibold">{m.quantidade.toLocaleString("pt-BR")}</TableCell>
-                    <TableCell className="text-right">{m.valorUnitario > 0 ? m.valorUnitario.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</TableCell>
-                    <TableCell className="text-xs">{m.documentoRef || "-"}</TableCell>
-                    <TableCell className="text-xs">{m.usuario}</TableCell>
+                    {colOrderMov.map(key => <TableCell key={key} className={colDefsMov[key]?.className}>{cellMap[key]}</TableCell>)}
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
+            </SortableHeaderRow>
           </div>
           <PaginationControls currentPage={pageMov} totalItems={movFiltered.length} onPageChange={setPageMov} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPageMov(1); }} />
         </TabsContent>
