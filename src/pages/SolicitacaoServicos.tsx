@@ -375,7 +375,7 @@ export default function SolicitacaoServicosPage() {
       situacao: "Orçamento Solicitado",
       historico: buildHistoricoEntry("Orçamento Solicitado", full?.historico || []),
     });
-    toast({ title: "Orçamento solicitado", description: `SS nº ${s.numero} — Orçamento Solicitado` });
+    toast({ title: "Orçamento solicitado", description: `SS nº ${formatNumeroAno(s.numero, s.createdAt)} — Orçamento Solicitado` });
   };
 
   const handleOrcarSolicitacao = (s: any) => {
