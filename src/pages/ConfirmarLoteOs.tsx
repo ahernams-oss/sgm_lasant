@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useOrdensServico, OrdemServico } from "@/contexts/OrdensServicoContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useClientes } from "@/contexts/ClientesContext";
 import { useEstoque } from "@/contexts/EstoqueContext";
 import { updateRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,7 +28,8 @@ const STATUS_PERMITIDOS = ["Executada", "Serviço Re-executado"];
 
 export default function ConfirmarLoteOs() {
   const { ordens, updateOrdem } = useOrdensServico();
-  const { usuarioLogado, clientesPermitidosIds, temAcessoTotal } = useAuth();
+  const { usuarioLogado } = useAuth();
+  const { clientes } = useClientes();
   const { registrarMovimentacao } = useEstoque();
 
   const [search, setSearch] = useState("");
@@ -43,13 +45,10 @@ export default function ConfirmarLoteOs() {
     { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" },
   ];
 
-  const disponiveis = useMemo(() => {
-    return ordens.filter((os) => {
-      if (!STATUS_PERMITIDOS.includes(os.situacao)) return false;
-      if (!temAcessoTotal && os.clienteId && !clientesPermitidosIds.includes(os.clienteId)) return false;
-      return true;
-    });
-  }, [ordens, clientesPermitidosIds, temAcessoTotal]);
+  const disponiveis = useMemo(
+    () => ordens.filter((os) => STATUS_PERMITIDOS.includes(os.situacao)),
+    [ordens]
+  );
 
   const filtered = useMemo(() => {
     let result = disponiveis;
@@ -89,13 +88,14 @@ export default function ConfirmarLoteOs() {
     });
   };
 
-  const clientesUnicos = useMemo(() => {
-    const map = new Map<string, string>();
-    disponiveis.forEach((s) => {
-      if (s.clienteId && s.clienteNome) map.set(s.clienteId, s.clienteNome);
-    });
-    return Array.from(map.entries());
-  }, [disponiveis]);
+  const clientesUnicos = useMemo(
+    () =>
+      (clientes || [])
+        .filter((c: any) => (c.tipo || "Cliente") === "Cliente")
+        .map((c: any) => [c.id, c.nome] as [string, string])
+        .sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
+    [clientes]
+  );
 
   const handleConfirmarLote = async () => {
     setConfirming(true);
