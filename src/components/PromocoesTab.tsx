@@ -276,11 +276,14 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
           <Select value={form.cliente_novo_id} onValueChange={(v) => setForm({ ...form, cliente_novo_id: v })}>
             <SelectTrigger><SelectValue placeholder="Manter atual..." /></SelectTrigger>
             <SelectContent>
-              {clientes.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.nome} {c.id === clienteAtualId ? "(atual)" : ""}
-                </SelectItem>
-              ))}
+              {clientes
+                .filter((c: any) => (c.tipo || "Cliente") === "Cliente")
+                .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+                .map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.nome} {c.id === clienteAtualId ? "(atual)" : ""}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </Field>
