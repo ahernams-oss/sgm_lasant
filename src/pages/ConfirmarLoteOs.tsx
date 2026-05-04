@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useOrdensServico, OrdemServico } from "@/contexts/OrdensServicoContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useClientes } from "@/contexts/ClientesContext";
 import { useEstoque } from "@/contexts/EstoqueContext";
 import { updateRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
