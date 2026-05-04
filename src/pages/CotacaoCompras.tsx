@@ -768,18 +768,17 @@ export default function CotacaoComprasPage() {
       )}
 
       <div className="border rounded-lg">
+        <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-10">
                 <Checkbox checked={allSelected && filtered.length > 0} onCheckedChange={toggleSelectAll} />
               </TableHead>
-              <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
-                {colOrder.map(key => {
-                  const c = colDefs[key];
-                  return c ? <SortableTableHead key={key} id={key} className={c.className}>{c.label}</SortableTableHead> : null;
-                })}
-              </SortableHeaderRow>
+              {colOrder.map(key => {
+                const cd = colDefs[key];
+                return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+              })}
               <TableHead className="w-16 text-center">Ações</TableHead>
             </TableRow>
           </TableHeader>
