@@ -500,7 +500,7 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
   }
 }
 
-function addFooter(doc: jsPDF, empresa?: Empresa, osNumero?: number) {
+function addFooter(doc: jsPDF, empresa?: Empresa, osNumero?: number | string) {
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
   const pages = doc.getNumberOfPages();
