@@ -6,6 +6,7 @@ import { useCargos } from "@/contexts/CargosContext";
 import { useOsAssinaturas, PapelOsAssinatura } from "@/contexts/OsAssinaturasContext";
 import { gerarHashOs, obterIpOrigem } from "@/lib/assinaturaHashOs";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
