@@ -163,29 +163,32 @@ export default function MateriaisServicosPage() {
       </div>
 
       <div className="border rounded-lg">
+        <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Código</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Unidade</TableHead>
-              <TableHead>Fotos</TableHead>
-              <TableHead>Categoria</TableHead>
+              {colOrder.map(key => {
+                const cd = colDefs[key];
+                return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+              })}
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
              {paginate(filtered, page, pageSize).paginated.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum item cadastrado</TableCell></TableRow>
-            ) : paginate(filtered, page, pageSize).paginated.map(m => (
+              <TableRow><TableCell colSpan={colOrder.length + 1} className="text-center text-muted-foreground py-8">Nenhum item cadastrado</TableCell></TableRow>
+            ) : paginate(filtered, page, pageSize).paginated.map(m => {
+              const cellMap: Record<string, ReactNode> = {
+                codigo: <span className="font-mono">{m.codigo}</span>,
+                descricao: m.descricao,
+                tipo: m.tipo,
+                unidade: m.unidadeMedida,
+                fotos: (m.fotos?.length || 0) > 0 ? <span className="flex items-center gap-1 text-primary"><Camera className="h-3.5 w-3.5" />{m.fotos.length}</span> : "-",
+                categoria: catNome(m.categoriaId),
+              };
+              return (
               <TableRow key={m.id}>
-                <TableCell className="font-mono">{m.codigo}</TableCell>
-                <TableCell>{m.descricao}</TableCell>
-                <TableCell>{m.tipo}</TableCell>
-                <TableCell>{m.unidadeMedida}</TableCell>
-                <TableCell>{(m.fotos?.length || 0) > 0 ? <span className="flex items-center gap-1 text-primary"><Camera className="h-3.5 w-3.5" />{m.fotos.length}</span> : "-"}</TableCell>
-                <TableCell>{catNome(m.categoriaId)}</TableCell>
+                {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(m)}><Pencil className="h-4 w-4" /></Button>
@@ -193,9 +196,11 @@ export default function MateriaisServicosPage() {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
+        </SortableHeaderRow>
       </div>
 
       <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
