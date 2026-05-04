@@ -49,6 +49,10 @@ export default function PedidoCompraPage() {
 
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("Todos");
+  const [filterFornecedor, setFilterFornecedor] = useState("Todos");
+  const [filterComprador, setFilterComprador] = useState("Todos");
+  const [filterDataIni, setFilterDataIni] = useState("");
+  const [filterDataFim, setFilterDataFim] = useState("");
   const [pagePed, setPagePed] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [viewPedido, setViewPedido] = useState<PedidoCompra | null>(null);
