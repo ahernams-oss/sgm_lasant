@@ -323,6 +323,16 @@ export default function PedidoCompraPage() {
             </SelectContent>
           </Select>
         </div>
+        <div className="w-56">
+          <Label className="text-xs">Centro de Custo</Label>
+          <Select value={filterCentroCusto} onValueChange={v => { setFilterCentroCusto(v); setPagePed(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos</SelectItem>
+              {centrosCustoUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="w-40">
           <Label className="text-xs">Data inicial</Label>
           <Input type="date" value={filterDataIni} onChange={e => { setFilterDataIni(e.target.value); setPagePed(1); }} />
