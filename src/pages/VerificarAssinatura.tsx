@@ -90,6 +90,36 @@ export default function VerificarAssinatura() {
         return;
       }
 
+      // 3. Tenta PC (Ordem de Compra)
+      const { data: assPc } = await supabase
+        .from("pc_assinaturas")
+        .select("*")
+        .eq("codigo_verificador", codTrim)
+        .maybeSingle();
+
+      if (assPc) {
+        setTipo("pc");
+        setAssinatura(assPc);
+        const { data: p } = await supabase.from("pedidos_compra").select("*").eq("id", assPc.pedido_id).maybeSingle();
+        setDocumento(p);
+        const { data: outras } = await supabase
+          .from("pc_assinaturas").select("*").eq("pedido_id", assPc.pedido_id).order("signed_at");
+        setTodasAssinaturas(outras || []);
+        if (p) {
+          try {
+            const pedidoMapped: any = {
+              numero: p.numero, cotacaoId: p.cotacao_id, requisicaoId: p.requisicao_id,
+              requisicaoNumero: p.requisicao_numero, dataCriacao: p.data_criacao,
+              comprador: p.comprador, fornecedorId: p.fornecedor_id, fornecedorNome: p.fornecedor_nome,
+              itens: p.itens, condicaoPagamento: p.condicao_pagamento, prazoEntrega: p.prazo_entrega,
+              localEntrega: p.local_entrega, observacoes: p.observacoes, valorTotal: Number(p.valor_total) || 0,
+            };
+            setHashAtual(await gerarHashPc(pedidoMapped));
+          } catch { /* ignore */ }
+        }
+        return;
+      }
+
       setNaoEncontrado(true);
     } finally {
       setLoading(false);
