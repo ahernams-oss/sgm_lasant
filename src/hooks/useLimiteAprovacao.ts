@@ -20,9 +20,8 @@ export function useLimiteAprovacao() {
 
   const podeAprovar = (valor: number, tipo: "compras" | "os"): boolean => {
     if (!usuarioLogado) {
-      // Modo teste: sem usuário identificado, libera aprovação com aviso
-      toast.warning("Aprovação liberada em modo de teste (sem usuário identificado).");
-      return true;
+      toast.error("Aprovação bloqueada: usuário não identificado. Faça login novamente.");
+      return false;
     }
     const limite =
       tipo === "compras"
