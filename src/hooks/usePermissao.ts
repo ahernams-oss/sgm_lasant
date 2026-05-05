@@ -22,5 +22,22 @@ export function usePermissao() {
     return !!perfil?.permissoes?.[key];
   };
 
-  return { tem, acessoTotal, perfil, usuarioLogado };
+  /**
+   * Retorna true se o usuário tem QUALQUER permissão do módulo
+   * (chave exata ou qualquer subchave começando com `${prefix}.`).
+   * Usado para decidir se um item de menu deve aparecer.
+   */
+  const temModulo = (prefix: string): boolean => {
+    if (!usuarioLogado) return false;
+    if (acessoTotal) return true;
+    const perms = perfil?.permissoes || {};
+    if (perms[prefix]) return true;
+    const dot = `${prefix}.`;
+    for (const k of Object.keys(perms)) {
+      if (perms[k] && k.startsWith(dot)) return true;
+    }
+    return false;
+  };
+
+  return { tem, temModulo, acessoTotal, perfil, usuarioLogado };
 }
