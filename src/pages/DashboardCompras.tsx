@@ -89,6 +89,18 @@ export default function DashboardCompras() {
   const { getDescricaoCompleta } = useCategoriasCompras();
   const { empresa } = useEmpresa();
   const [filters, setFilters] = useState<DashboardFiltersState>(() => loadDashboardFilters("dashboard-compras:filters"));
+  const [tipoFiltro, setTipoFiltro] = useState<"todos" | "Material" | "Serviço">("todos");
+
+  // Helper: tipo de um item (Material/Serviço) baseado no cadastro
+  const tipoDoItem = useCallback((itemId: string): "Material" | "Serviço" => {
+    const mat = materiais.find(m => m.id === itemId);
+    return mat?.tipo === "Serviço" ? "Serviço" : "Material";
+  }, [materiais]);
+
+  const itemMatchesTipo = useCallback((itemId: string) => {
+    if (tipoFiltro === "todos") return true;
+    return tipoDoItem(itemId) === tipoFiltro;
+  }, [tipoFiltro, tipoDoItem]);
 
   const centroCustoOptions = useMemo(() => {
     const map = new Map<string, string>();
