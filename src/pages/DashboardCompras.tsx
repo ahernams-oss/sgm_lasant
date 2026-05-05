@@ -211,24 +211,30 @@ export default function DashboardCompras() {
     });
   }, [pedidos, filters]);
 
-  // Ranking materiais — volume (quantidade) e valor financeiro
-  const { topMateriaisVolume, topMateriaisValor } = useMemo(() => {
-    const agg: Record<string, { descricao: string; quantidade: number; valor: number }> = {};
+  // Ranking materiais e serviços — volume (quantidade) e valor financeiro
+  const { topMaterialVolume, topMaterialValor, topServicoVolume, topServicoValor } = useMemo(() => {
+    const aggMat: Record<string, { descricao: string; quantidade: number; valor: number }> = {};
+    const aggServ: Record<string, { descricao: string; quantidade: number; valor: number }> = {};
     pedidosFiltrados.forEach(p => {
       p.itens.forEach(it => {
         const key = it.itemId || it.descricao;
         const mat = materiais.find(m => m.id === it.itemId);
+        const tipo = mat?.tipo === "Serviço" ? "Serviço" : "Material";
         const desc = mat ? `${mat.codigo} - ${mat.descricao}` : (it.descricao || "Item sem descrição");
-        if (!agg[key]) agg[key] = { descricao: desc, quantidade: 0, valor: 0 };
-        agg[key].quantidade += Number(it.quantidade) || 0;
-        agg[key].valor += Number(it.valorTotal) || 0;
+        const target = tipo === "Serviço" ? aggServ : aggMat;
+        if (!target[key]) target[key] = { descricao: desc, quantidade: 0, valor: 0 };
+        target[key].quantidade += Number(it.quantidade) || 0;
+        target[key].valor += Number(it.valorTotal) || 0;
       });
     });
-    const arr = Object.values(agg);
     const truncar = (s: string) => s.length > 40 ? s.slice(0, 38) + "…" : s;
+    const buildVol = (agg: typeof aggMat) => Object.values(agg).sort((a, b) => b.quantidade - a.quantidade).slice(0, 10).map(x => ({ name: truncar(x.descricao), value: x.quantidade }));
+    const buildVal = (agg: typeof aggMat) => Object.values(agg).sort((a, b) => b.valor - a.valor).slice(0, 10).map(x => ({ name: truncar(x.descricao), value: Number(x.valor.toFixed(2)) }));
     return {
-      topMateriaisVolume: [...arr].sort((a, b) => b.quantidade - a.quantidade).slice(0, 10).map(x => ({ name: truncar(x.descricao), value: x.quantidade })),
-      topMateriaisValor: [...arr].sort((a, b) => b.valor - a.valor).slice(0, 10).map(x => ({ name: truncar(x.descricao), value: Number(x.valor.toFixed(2)) })),
+      topMaterialVolume: buildVol(aggMat),
+      topMaterialValor: buildVal(aggMat),
+      topServicoVolume: buildVol(aggServ),
+      topServicoValor: buildVal(aggServ),
     };
   }, [pedidosFiltrados, materiais]);
 
@@ -544,19 +550,19 @@ export default function DashboardCompras() {
         </Card>
       </div>
 
-      {/* Ranking de Materiais Comprados */}
+      {/* Ranking de Materiais */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Top 10 Materiais Mais Comprados (Volume)</CardTitle>
+            <CardTitle className="text-sm">Top 10 Materiais (Volume)</CardTitle>
             <p className="text-xs text-muted-foreground">Quantidade total adquirida via Pedidos de Compra</p>
           </CardHeader>
           <CardContent>
-            {topMateriaisVolume.length === 0 ? (
+            {topMaterialVolume.length === 0 ? (
               <p className="text-center text-muted-foreground py-10">Sem dados</p>
             ) : (
               <ResponsiveContainer width="100%" height={360}>
-                <BarChart data={topMateriaisVolume} layout="vertical" margin={{ left: 10, right: 30 }}>
+                <BarChart data={topMaterialVolume} layout="vertical" margin={{ left: 10, right: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" allowDecimals={false} />
                   <YAxis type="category" dataKey="name" width={180} fontSize={10} />
@@ -570,20 +576,67 @@ export default function DashboardCompras() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Top 10 Materiais por Valor Financeiro</CardTitle>
+            <CardTitle className="text-sm">Top 10 Materiais (Valor Financeiro)</CardTitle>
             <p className="text-xs text-muted-foreground">Maior gasto acumulado em Pedidos de Compra</p>
           </CardHeader>
           <CardContent>
-            {topMateriaisValor.length === 0 ? (
+            {topMaterialValor.length === 0 ? (
               <p className="text-center text-muted-foreground py-10">Sem dados</p>
             ) : (
               <ResponsiveContainer width="100%" height={360}>
-                <BarChart data={topMateriaisValor} layout="vertical" margin={{ left: 10, right: 30 }}>
+                <BarChart data={topMaterialValor} layout="vertical" margin={{ left: 10, right: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`} />
                   <YAxis type="category" dataKey="name" width={180} fontSize={10} />
                   <Tooltip formatter={(v: any) => [`R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, "Valor"]} />
                   <Bar dataKey="value" name="Valor (R$)" fill="hsl(145, 60%, 45%)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Ranking de Serviços */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Top 10 Serviços (Volume)</CardTitle>
+            <p className="text-xs text-muted-foreground">Quantidade total contratada via Pedidos de Compra</p>
+          </CardHeader>
+          <CardContent>
+            {topServicoVolume.length === 0 ? (
+              <p className="text-center text-muted-foreground py-10">Sem dados</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={360}>
+                <BarChart data={topServicoVolume} layout="vertical" margin={{ left: 10, right: 30 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" width={180} fontSize={10} />
+                  <Tooltip formatter={(v: any) => [`${Number(v).toLocaleString("pt-BR")} un`, "Quantidade"]} />
+                  <Bar dataKey="value" name="Quantidade" fill="hsl(260, 60%, 55%)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Top 10 Serviços (Valor Financeiro)</CardTitle>
+            <p className="text-xs text-muted-foreground">Maior gasto acumulado em Pedidos de Compra</p>
+          </CardHeader>
+          <CardContent>
+            {topServicoValor.length === 0 ? (
+              <p className="text-center text-muted-foreground py-10">Sem dados</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={360}>
+                <BarChart data={topServicoValor} layout="vertical" margin={{ left: 10, right: 30 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`} />
+                  <YAxis type="category" dataKey="name" width={180} fontSize={10} />
+                  <Tooltip formatter={(v: any) => [`R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, "Valor"]} />
+                  <Bar dataKey="value" name="Valor (R$)" fill="hsl(30, 80%, 55%)" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
