@@ -48,7 +48,32 @@ export default function CotacaoComprasPage() {
   const { usuarioLogado } = useAuth();
   const { podeAprovar } = useLimiteAprovacao();
   const { empresa } = useEmpresa();
+  const { cargos } = useCargos();
+  const { registrar: registrarAssinaturaPc } = usePcAssinaturas();
   const { toast } = useToast();
+
+  const assinarPedidoAutomatico = useCallback(async (pedido: PedidoCompra) => {
+    try {
+      const hash = await gerarHashPc(pedido);
+      const ip = await obterIpOrigem();
+      const cargo = usuarioLogado ? cargos.find((c) => c.id === usuarioLogado.cargoId) : null;
+      await registrarAssinaturaPc({
+        pedido_id: pedido.id,
+        pedido_numero: pedido.numero,
+        papel: "aprovador",
+        signatario_user_id: usuarioLogado?.id || "modo-teste-pc-102030",
+        signatario_nome: usuarioLogado?.nome || "Usuário de Teste",
+        signatario_email: usuarioLogado?.email || "teste@lasant.com.br",
+        signatario_cargo: cargo?.nome || "Modo Teste",
+        signatario_matricula: usuarioLogado?.matricula || "TESTE",
+        hash_documento: hash,
+        ip_origem: ip,
+        user_agent: navigator.userAgent,
+      });
+    } catch (e) {
+      console.error("Falha ao assinar pedido automaticamente:", e);
+    }
+  }, [usuarioLogado, cargos, registrarAssinaturaPc]);
 
   const fornecedores = useMemo(() => clientes.filter(c => c.tipo === "Fornecedor"), [clientes]);
   const reqDisponiveisParaCotacao = useMemo(() => requisicoes.filter(r => r.status === "Enviada" || r.status === "Em Cotação"), [requisicoes]);
