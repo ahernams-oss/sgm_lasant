@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, FileDown, FileSpreadsheet, Pencil, RefreshCw, CalendarRange } from "lucide-react";
+import { Plus, Trash2, FileDown, FileSpreadsheet, Pencil, RefreshCw, CalendarRange, FileText, Activity, DollarSign, ListChecks } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CronogramasProvider, useCronogramas, gerarPeriodos, type Cronograma, type CronogramaAtividade } from "@/contexts/CronogramasContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
