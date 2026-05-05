@@ -15,8 +15,6 @@ export function usePermissao() {
   const perfil = perfis.find(p => p.id === usuarioLogado?.perfilAcessoId);
 
   const tem = (key: string): boolean => {
-    // TEMP: liberado para testes — remover depois
-    if (key === "clientes.ver_valor_folha") return true;
     if (!usuarioLogado) return false;
     if (acessoTotal) return true;
     return !!perfil?.permissoes?.[key];
