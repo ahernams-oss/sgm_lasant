@@ -535,16 +535,16 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
   });
   y = (doc as any).lastAutoTable.finalY + 4;
 
-  // ===== ASSINATURAS ELETRÔNICAS =====
-  if (assinaturas && assinaturas.length > 0) {
-    // Quebra de página se não couber
+  // ===== ASSINATURAS ELETRÔNICAS (somente solicitante; fiscal já foi renderizado acima) =====
+  const assinaturasRestantes = (assinaturas || []).filter((a) => a.papel !== "fiscal");
+  if (assinaturasRestantes.length > 0) {
     const ph = doc.internal.pageSize.getHeight();
-    const espacoNecessario = 8 + assinaturas.length * 34;
+    const espacoNecessario = 8 + assinaturasRestantes.length * 34;
     if (y + espacoNecessario > ph - 15) {
       doc.addPage();
       y = 12;
     }
-    y = await renderAssinaturas(doc, assinaturas, y, ml, mr, cw);
+    y = await renderAssinaturas(doc, assinaturasRestantes, y, ml, mr, cw);
   }
 }
 
