@@ -98,6 +98,7 @@ import { PcAssinaturasProvider } from "@/contexts/PcAssinaturasContext";
 import AssinarLoteOsPage from "./pages/AssinarLoteOs.tsx";
 import ConfirmarLoteOsPage from "./pages/ConfirmarLoteOs.tsx";
 import ValidarLoteOsPage from "./pages/ValidarLoteOs.tsx";
+import ImprimirLoteOsPage from "./pages/ImprimirLoteOs.tsx";
 import VerificarAssinaturaPage from "./pages/VerificarAssinatura.tsx";
 import ResponsaveisTecnicosPage from "./pages/ResponsaveisTecnicos.tsx";
 import { ResponsaveisTecnicosProvider } from "@/contexts/ResponsaveisTecnicosContext";
@@ -204,6 +205,14 @@ function AppRoutes() {
           element={
             <OrdensServicoProvider>
               <ValidarLoteOsPage />
+            </OrdensServicoProvider>
+          }
+        />
+        <Route
+          path="/engenharia/imprimir-lote-os"
+          element={
+            <OrdensServicoProvider>
+              <ImprimirLoteOsPage />
             </OrdensServicoProvider>
           }
         />

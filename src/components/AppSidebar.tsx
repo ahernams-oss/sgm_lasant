@@ -86,6 +86,7 @@ const menuItems = [
       { title: "Confirmar OS em Lote", url: "/engenharia/confirmar-lote-os", icon: ClipboardCheck },
       { title: "Validar OS em Lote", url: "/engenharia/validar-lote-os", icon: ClipboardCheck },
       { title: "Assinar OS em Lote", url: "/engenharia/assinar-lote-os", icon: ClipboardCheck },
+      { title: "Imprimir OS Validadas", url: "/engenharia/imprimir-lote-os", icon: ClipboardCheck },
       { title: "Plano de Manutenção", url: "/engenharia/plano-manutencao", icon: Wrench },
       { title: "Base de Conhecimento", url: "/engenharia/base-conhecimento", icon: BookOpen },
     ],
