@@ -550,19 +550,19 @@ export default function DashboardCompras() {
         </Card>
       </div>
 
-      {/* Ranking de Materiais Comprados */}
+      {/* Ranking de Materiais */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Top 10 Materiais Mais Comprados (Volume)</CardTitle>
+            <CardTitle className="text-sm">Top 10 Materiais (Volume)</CardTitle>
             <p className="text-xs text-muted-foreground">Quantidade total adquirida via Pedidos de Compra</p>
           </CardHeader>
           <CardContent>
-            {topMateriaisVolume.length === 0 ? (
+            {topMaterialVolume.length === 0 ? (
               <p className="text-center text-muted-foreground py-10">Sem dados</p>
             ) : (
               <ResponsiveContainer width="100%" height={360}>
-                <BarChart data={topMateriaisVolume} layout="vertical" margin={{ left: 10, right: 30 }}>
+                <BarChart data={topMaterialVolume} layout="vertical" margin={{ left: 10, right: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" allowDecimals={false} />
                   <YAxis type="category" dataKey="name" width={180} fontSize={10} />
@@ -576,20 +576,67 @@ export default function DashboardCompras() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Top 10 Materiais por Valor Financeiro</CardTitle>
+            <CardTitle className="text-sm">Top 10 Materiais (Valor Financeiro)</CardTitle>
             <p className="text-xs text-muted-foreground">Maior gasto acumulado em Pedidos de Compra</p>
           </CardHeader>
           <CardContent>
-            {topMateriaisValor.length === 0 ? (
+            {topMaterialValor.length === 0 ? (
               <p className="text-center text-muted-foreground py-10">Sem dados</p>
             ) : (
               <ResponsiveContainer width="100%" height={360}>
-                <BarChart data={topMateriaisValor} layout="vertical" margin={{ left: 10, right: 30 }}>
+                <BarChart data={topMaterialValor} layout="vertical" margin={{ left: 10, right: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`} />
                   <YAxis type="category" dataKey="name" width={180} fontSize={10} />
                   <Tooltip formatter={(v: any) => [`R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, "Valor"]} />
                   <Bar dataKey="value" name="Valor (R$)" fill="hsl(145, 60%, 45%)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Ranking de Serviços */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Top 10 Serviços (Volume)</CardTitle>
+            <p className="text-xs text-muted-foreground">Quantidade total contratada via Pedidos de Compra</p>
+          </CardHeader>
+          <CardContent>
+            {topServicoVolume.length === 0 ? (
+              <p className="text-center text-muted-foreground py-10">Sem dados</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={360}>
+                <BarChart data={topServicoVolume} layout="vertical" margin={{ left: 10, right: 30 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" width={180} fontSize={10} />
+                  <Tooltip formatter={(v: any) => [`${Number(v).toLocaleString("pt-BR")} un`, "Quantidade"]} />
+                  <Bar dataKey="value" name="Quantidade" fill="hsl(260, 60%, 55%)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Top 10 Serviços (Valor Financeiro)</CardTitle>
+            <p className="text-xs text-muted-foreground">Maior gasto acumulado em Pedidos de Compra</p>
+          </CardHeader>
+          <CardContent>
+            {topServicoValor.length === 0 ? (
+              <p className="text-center text-muted-foreground py-10">Sem dados</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={360}>
+                <BarChart data={topServicoValor} layout="vertical" margin={{ left: 10, right: 30 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`} />
+                  <YAxis type="category" dataKey="name" width={180} fontSize={10} />
+                  <Tooltip formatter={(v: any) => [`R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, "Valor"]} />
+                  <Bar dataKey="value" name="Valor (R$)" fill="hsl(30, 80%, 55%)" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
