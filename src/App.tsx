@@ -27,6 +27,7 @@ import DashboardCompras from "./pages/DashboardCompras.tsx";
 import CotacaoComprasPage from "./pages/CotacaoCompras.tsx";
 import PedidoCompraPage from "./pages/PedidoCompra.tsx";
 import InteligenciaComprasPage from "./pages/InteligenciaCompras.tsx";
+import AssinarLotePcPage from "./pages/AssinarLotePc.tsx";
 import PropostaFornecedorPage from "./pages/PropostaFornecedor.tsx";
 import RecebimentoComprasPage from "./pages/RecebimentoCompras.tsx";
 import EstoquePage from "./pages/Estoque.tsx";
@@ -140,6 +141,7 @@ function AppRoutes() {
         <Route path="/compras/cotacoes" element={<CotacaoComprasPage />} />
         <Route path="/compras/pedidos" element={<PedidoCompraPage />} />
         <Route path="/compras/inteligencia" element={<InteligenciaComprasPage />} />
+        <Route path="/compras/assinar-lote-pc" element={<AssinarLotePcPage />} />
         <Route path="/compras/recebimento" element={<RecebimentoComprasPage />} />
         <Route path="/compras/estoque" element={<EstoquePage />} />
         <Route path="/compras/relatorios-estoque" element={<RelatoriosEstoquePage />} />
