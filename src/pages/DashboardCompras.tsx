@@ -125,9 +125,10 @@ export default function DashboardCompras() {
       if (filters.dateTo) { const end = new Date(filters.dateTo); end.setHours(23, 59, 59, 999); if (d > end) return false; }
       if (filters.clienteId !== "todos" && r.centroCusto !== filters.clienteId) return false;
       if (filters.status !== "todos" && r.status !== filters.status) return false;
+      if (tipoFiltro !== "todos" && !r.itens.some(it => itemMatchesTipo(it.materialId))) return false;
       return true;
     });
-  }, [requisicoes, filters]);
+  }, [requisicoes, filters, tipoFiltro, itemMatchesTipo]);
 
   // KPIs
   const totalReqs = filtered.length;
@@ -135,7 +136,7 @@ export default function DashboardCompras() {
   const concluidas = filtered.filter(r => r.status === "Concluída").length;
   const reprovadas = filtered.filter(r => r.status === "Reprovada").length;
   const canceladas = filtered.filter(r => r.status === "Cancelada").length;
-  const totalItens = filtered.reduce((s, r) => s + r.itens.length, 0);
+  const totalItens = filtered.reduce((s, r) => s + r.itens.filter(it => itemMatchesTipo(it.materialId)).length, 0);
   const urgentes = filtered.filter(r => r.urgencia === "Urgente" || r.urgencia === "Alta").length;
 
   // Status distribution
