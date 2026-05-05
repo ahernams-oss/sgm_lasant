@@ -233,32 +233,49 @@ const PerfisAcesso = () => {
               </div>
             </div>
 
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-foreground">Permissões</h3>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                  <div className="h-2.5 w-2.5 rounded-full bg-primary" />
-                  <span className="text-[10px] text-muted-foreground">Ações</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-                  <span className="text-[10px] text-muted-foreground">Status</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                  <span className="text-[10px] text-muted-foreground">Flags</span>
-                </div>
-                <div className="flex items-center gap-2 ml-2">
-                  <Switch checked={allChecked} onCheckedChange={toggleAll} />
-                  <span className="text-xs text-muted-foreground">
-                    {allChecked ? "Desmarcar todos" : "Marcar todos"}
+            <div className="mb-4 space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-sm font-semibold text-foreground">Permissões</h3>
+                  <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                    {ALL_PERMISSION_KEYS.filter(k => form.permissoes[k]).length}/{ALL_PERMISSION_KEYS.length}
                   </span>
                 </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-1.5"><div className="h-2.5 w-2.5 rounded-full bg-primary" /><span className="text-[10px] text-muted-foreground">Ações</span></div>
+                  <div className="flex items-center gap-1.5"><div className="h-2.5 w-2.5 rounded-full bg-amber-500" /><span className="text-[10px] text-muted-foreground">Status</span></div>
+                  <div className="flex items-center gap-1.5"><div className="h-2.5 w-2.5 rounded-full bg-emerald-500" /><span className="text-[10px] text-muted-foreground">Flags</span></div>
+                  <Button type="button" variant="outline" size="sm" onClick={expandAll} className="h-7 text-xs gap-1"><ChevronsUpDown className="h-3 w-3" />Expandir tudo</Button>
+                  <Button type="button" variant="outline" size="sm" onClick={collapseAll} className="h-7 text-xs gap-1"><ChevronsDownUp className="h-3 w-3" />Recolher tudo</Button>
+                  <div className="flex items-center gap-2 ml-1">
+                    <Switch checked={allChecked} onCheckedChange={toggleAll} />
+                    <span className="text-xs text-muted-foreground">{allChecked ? "Desmarcar todos" : "Marcar todos"}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={permSearch}
+                  onChange={e => setPermSearch(e.target.value)}
+                  placeholder="Buscar módulo, ação, status ou flag..."
+                  className="pl-9 pr-9 h-9"
+                />
+                {permSearch && (
+                  <button type="button" onClick={() => setPermSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
 
             <div className="space-y-4">
-              {MODULOS_SISTEMA.map(grupo => {
+              {filteredModulos.length === 0 && (
+                <div className="text-center text-sm text-muted-foreground py-8 border border-dashed rounded-lg">
+                  Nenhum módulo encontrado para "{permSearch}".
+                </div>
+              )}
+              {filteredModulos.map(grupo => {
                 const grupoKeys = grupo.modulos.flatMap(getModuleAllKeys);
                 const allGrupoChecked = grupoKeys.every(k => form.permissoes[k]);
                 const someGrupoChecked = grupoKeys.some(k => form.permissoes[k]);
