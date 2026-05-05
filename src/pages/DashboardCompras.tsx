@@ -233,7 +233,14 @@ export default function DashboardCompras() {
       p.itens.forEach(it => {
         const key = it.itemId || it.descricao;
         const mat = materiais.find(m => m.id === it.itemId);
-        const tipo = mat?.tipo === "Serviço" ? "Serviço" : "Material";
+        // Determina tipo: prioriza cadastro; fallback heurístico pela descrição
+        const descRaw = (mat?.descricao || it.descricao || "").toLowerCase();
+        let tipo: "Material" | "Serviço";
+        if (mat?.tipo === "Serviço" || mat?.tipo === "Material") {
+          tipo = mat.tipo;
+        } else {
+          tipo = /\bservi[cç]o/.test(descRaw) ? "Serviço" : "Material";
+        }
         const desc = mat ? `${mat.codigo} - ${mat.descricao}` : (it.descricao || "Item sem descrição");
         const target = tipo === "Serviço" ? aggServ : aggMat;
         if (!target[key]) target[key] = { descricao: desc, quantidade: 0, valor: 0 };
