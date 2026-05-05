@@ -174,6 +174,14 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { usuarioLogado, logout } = useAuth();
+  const { temModulo, acessoTotal } = usePermissao();
+
+  const visibleGroups = menuItems
+    .map((g) => ({
+      ...g,
+      items: g.items.filter((it: any) => !it.perm || temModulo(it.perm)),
+    }))
+    .filter((g) => g.items.length > 0);
 
   return (
     <Sidebar collapsible="icon">
@@ -189,7 +197,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {menuItems.map((group) => (
+        {visibleGroups.map((group) => (
           <SidebarGroup key={group.group}>
             <SidebarGroupLabel className="font-bold">{group.group}</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -217,32 +225,36 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <NavLink
-                to="/usuarios"
-                end
-                className="hover:bg-sidebar-accent/50"
-                activeClassName="bg-sidebar-accent text-primary font-medium"
-              >
-                <Shield className="mr-2 h-4 w-4" />
-                {!collapsed && <span>Usuários</span>}
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <NavLink
-                to="/perfis-acesso"
-                end
-                className="hover:bg-sidebar-accent/50"
-                activeClassName="bg-sidebar-accent text-primary font-medium"
-              >
-                <KeyRound className="mr-2 h-4 w-4" />
-                {!collapsed && <span>Perfis de Acesso</span>}
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {(acessoTotal || temModulo("usuarios")) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <NavLink
+                  to="/usuarios"
+                  end
+                  className="hover:bg-sidebar-accent/50"
+                  activeClassName="bg-sidebar-accent text-primary font-medium"
+                >
+                  <Shield className="mr-2 h-4 w-4" />
+                  {!collapsed && <span>Usuários</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {(acessoTotal || temModulo("perfis_acesso")) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <NavLink
+                  to="/perfis-acesso"
+                  end
+                  className="hover:bg-sidebar-accent/50"
+                  activeClassName="bg-sidebar-accent text-primary font-medium"
+                >
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  {!collapsed && <span>Perfis de Acesso</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
 
         {usuarioLogado && (
