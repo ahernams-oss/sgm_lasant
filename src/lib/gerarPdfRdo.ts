@@ -245,7 +245,57 @@ export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], inc
     doc.text(rdo.assinatura_fiscalizacao_nome || "_______________________", ml + sigW + 4 + sigW / 2, y + 26, { align: "center" });
   }
 
-  // Footer
+  // ===== ANEXOS / IMAGENS =====
+  if (incluirImagens) {
+    const imagens = (rdo.anexos || []).filter(a => (a.tipo || "").startsWith("image/") || /\.(png|jpe?g|gif|webp|bmp)$/i.test(a.nome || ""));
+    if (imagens.length > 0) {
+      doc.addPage();
+      let yi = 12;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(...DARK);
+      doc.text("REGISTRO FOTOGRÁFICO", pw / 2, yi, { align: "center" });
+      yi += 6;
+
+      const ph = doc.internal.pageSize.getHeight();
+      const cols = 2;
+      const gap = 4;
+      const imgW = (cw - gap) / cols;
+      const imgH = 60;
+      const cellH = imgH + 8;
+      let col = 0;
+
+      for (const anx of imagens) {
+        const data = await loadImageAsDataUrl(anx.url);
+        if (!data) continue;
+        if (yi + cellH > ph - 15) {
+          doc.addPage();
+          yi = 12;
+          col = 0;
+        }
+        const x = ml + col * (imgW + gap);
+        try {
+          const fmt = /png/i.test(anx.tipo || anx.nome) ? "PNG" : "JPEG";
+          doc.addImage(data, fmt, x, yi, imgW, imgH);
+          doc.setDrawColor(...BORDER);
+          doc.setLineWidth(0.2);
+          doc.rect(x, yi, imgW, imgH);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(7);
+          doc.setTextColor(80, 80, 80);
+          const nome = (anx.nome || "").length > 60 ? anx.nome.slice(0, 57) + "..." : (anx.nome || "");
+          doc.text(nome, x + imgW / 2, yi + imgH + 4, { align: "center" });
+        } catch {}
+        col++;
+        if (col >= cols) {
+          col = 0;
+          yi += cellH;
+        }
+      }
+    }
+  }
+
+
   const pages = doc.getNumberOfPages();
   const nome = empresa?.nomeFantasia || empresa?.razaoSocial || "SGM Lasant";
   for (let i = 1; i <= pages; i++) {
