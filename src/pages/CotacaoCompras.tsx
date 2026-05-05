@@ -324,6 +324,7 @@ export default function CotacaoComprasPage() {
 
       aprovarCotacao(aprovarCotacaoId, principalFornecedorId, finJustificativa, itensVencedores);
 
+      const pedidosCriados: PedidoCompra[] = [];
       for (const fornId of fornecedorIds) {
         const prop = cot.propostas.find(p => p.fornecedorId === fornId);
         if (!prop) continue;
@@ -332,7 +333,7 @@ export default function CotacaoComprasPage() {
           .filter(i => itemIds.includes(i.itemId))
           .map(i => ({ itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario, valorTotal: i.precoUnitario * i.quantidade }));
 
-        addPedido({
+        const novo = addPedido({
           cotacaoId: cot.id,
           requisicaoId: cot.requisicaoId,
           requisicaoNumero: cot.requisicaoNumero,
@@ -345,7 +346,10 @@ export default function CotacaoComprasPage() {
           localEntrega: req.localEntrega || "",
           observacoes: "",
         });
+        pedidosCriados.push(novo);
       }
+
+      await Promise.all(pedidosCriados.map(p => assinarPedidoAutomatico(p)));
 
       updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador",
         fornecedorIds.length > 1
