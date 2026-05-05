@@ -139,6 +139,7 @@ function AppRoutes() {
         <Route path="/compras/requisicoes" element={<RequisicaoComprasPage />} />
         <Route path="/compras/cotacoes" element={<CotacaoComprasPage />} />
         <Route path="/compras/pedidos" element={<PedidoCompraPage />} />
+        <Route path="/compras/inteligencia" element={<InteligenciaComprasPage />} />
         <Route path="/compras/recebimento" element={<RecebimentoComprasPage />} />
         <Route path="/compras/estoque" element={<EstoquePage />} />
         <Route path="/compras/relatorios-estoque" element={<RelatoriosEstoquePage />} />
