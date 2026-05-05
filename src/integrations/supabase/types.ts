@@ -4078,6 +4078,7 @@ export type Database = {
           origem_vaga: string | null
           salario_substituido: string | null
           salario_vaga: string | null
+          solicitante: string | null
           status: string | null
           tipo_contratacao: Json | null
           tipo_vaga: string | null
@@ -4110,6 +4111,7 @@ export type Database = {
           origem_vaga?: string | null
           salario_substituido?: string | null
           salario_vaga?: string | null
+          solicitante?: string | null
           status?: string | null
           tipo_contratacao?: Json | null
           tipo_vaga?: string | null
@@ -4142,6 +4144,7 @@ export type Database = {
           origem_vaga?: string | null
           salario_substituido?: string | null
           salario_vaga?: string | null
+          solicitante?: string | null
           status?: string | null
           tipo_contratacao?: Json | null
           tipo_vaga?: string | null
