@@ -83,7 +83,7 @@ async function renderAssinaturas(doc: jsPDF, assinaturas: OsAssinatura[], y: num
 
     const startY = y;
     const blockHeight = 32;
-    const qrSize = 26;
+    const qrSize = 13;
     const qrX = ml + blockWidth - qrSize - 2;
     const qrY = startY + 2;
 
