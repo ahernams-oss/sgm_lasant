@@ -259,9 +259,27 @@ function CronogramaInner() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline" onClick={() => gerarPdfCronograma(c, empresa)} title="Exportar PDF">
-                        <FileDown className="h-4 w-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline" title="Exportar PDF">
+                            <FileDown className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => gerarPdfCronograma(c, empresa, "completo")}>
+                            <FileText className="h-4 w-4 mr-2" /> Completo (Físico + Financeiro)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => gerarPdfCronograma(c, empresa, "fisico")}>
+                            <Activity className="h-4 w-4 mr-2" /> Somente Físico (%)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => gerarPdfCronograma(c, empresa, "financeiro")}>
+                            <DollarSign className="h-4 w-4 mr-2" /> Somente Financeiro (R$)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => gerarPdfCronograma(c, empresa, "resumo")}>
+                            <ListChecks className="h-4 w-4 mr-2" /> Resumo Executivo
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       <Button size="sm" variant="outline" onClick={() => gerarExcelCronograma(c)} title="Exportar Excel">
                         <FileSpreadsheet className="h-4 w-4" />
                       </Button>
