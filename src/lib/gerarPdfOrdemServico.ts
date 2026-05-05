@@ -523,8 +523,14 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
     doc.text(`IP: ${assinaturaFiscal.ip_origem || "-"}`, textX, textY);
     textY += 3.5;
     doc.setFontSize(6);
-    doc.text(`Código: ${assinaturaFiscal.codigo_verificador}`, textX, textY);
-  }
+    const codLines = doc.splitTextToSize(`Código: ${assinaturaFiscal.codigo_verificador}`, r.w - 4);
+    doc.text(codLines, textX, textY);
+    textY += 3 * codLines.length;
+    doc.setTextColor(80, 80, 80);
+    const baseLegal = assinaturaFiscal.base_legal || "LEI Nº 14.063, DE 23 DE SETEMBRO DE 2020";
+    const legalLines = doc.splitTextToSize(baseLegal, r.w - 4);
+    doc.text(legalLines, textX, textY);
+    doc.setTextColor(30, 30, 30);
 
   // Caixa de observações grande
   const obsTexto = (os.observacoes || []).map((o: any) => `• ${o.descricao || ""}`).join("\n") || "";
