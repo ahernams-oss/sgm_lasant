@@ -516,13 +516,36 @@ export default function PedidoCompraPage() {
 
               {viewPedido.observacoes && <div><span className="text-muted-foreground text-sm">Observações:</span><p className="text-sm">{viewPedido.observacoes}</p></div>}
 
-              <div className="flex gap-2 pt-4 border-t">
+              {(() => {
+                const a = assinaturasPorPedido(viewPedido.id).find(x => x.papel === "aprovador");
+                if (!a) return null;
+                return (
+                  <div className="border-2 border-primary/30 bg-primary/5 rounded-lg p-3 text-sm space-y-1">
+                    <div className="flex items-center gap-2 font-semibold">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      Aprovador — Assinado Eletronicamente
+                    </div>
+                    <p><strong>Signatário:</strong> {a.signatario_nome}</p>
+                    {a.signatario_cargo && <p><strong>Cargo:</strong> {a.signatario_cargo}</p>}
+                    {a.signatario_matricula && <p><strong>Matrícula:</strong> {a.signatario_matricula}</p>}
+                    <p><strong>Data/Hora:</strong> {format(new Date(a.signed_at), "dd/MM/yyyy HH:mm")}</p>
+                    {a.ip_origem && <p><strong>IP:</strong> {a.ip_origem}</p>}
+                    <p className="text-xs"><strong>Código:</strong> <code className="bg-muted px-1 rounded">{a.codigo_verificador}</code></p>
+                    <p className="text-xs italic text-muted-foreground">{a.base_legal}</p>
+                  </div>
+                );
+              })()}
+
+              <div className="flex flex-wrap gap-2 pt-4 border-t">
                 <Button onClick={() => handleDownloadPdf(viewPedido)} variant="outline">
                   <FileDown className="h-4 w-4 mr-2" /> Baixar PDF
                 </Button>
                 <Button onClick={() => { setViewPedido(null); openSendDialog(viewPedido); }}>
                   <Send className="h-4 w-4 mr-2" /> Enviar ao Fornecedor
                 </Button>
+                {!assinaturasPorPedido(viewPedido.id).find(x => x.papel === "aprovador") && (
+                  <AssinaturaEletronicaPc pedido={viewPedido} fullLabel size="default" />
+                )}
               </div>
             </div>
           )}
