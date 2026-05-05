@@ -1,8 +1,10 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import QRCode from "qrcode";
 import { PedidoCompra } from "@/contexts/PedidoCompraContext";
 import { Cliente } from "@/contexts/ClientesContext";
 import { Empresa } from "@/contexts/EmpresaContext";
+import type { PcAssinatura } from "@/contexts/PcAssinaturasContext";
 import { format } from "date-fns";
 
 interface OrdemCompraData {
@@ -10,6 +12,7 @@ interface OrdemCompraData {
   empresa: Empresa | null;
   fornecedor: Cliente | null;
   autorizadoPor: string;
+  assinatura?: PcAssinatura | null;
 }
 
 // ── helpers ──────────────────────────────────────────────
@@ -77,7 +80,7 @@ function fieldRow(
 
 // ── main generator (async for logo) ─────────────────────
 export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<jsPDF> {
-  const { pedido, empresa, fornecedor, autorizadoPor } = data;
+  const { pedido, empresa, fornecedor, autorizadoPor, assinatura } = data;
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
