@@ -339,7 +339,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     // Tabela principal
     doc.addPage();
     const rows = ordensFiltradas.map(o => {
-      const { total } = totalOS(o);
+      const total = totalSemBdi(o);
       return [formatNumeroAno(o.numero, o.createdAt), o.clienteNome || "-", o.categoria || "-", fmtBRL(total)];
     });
     autoTable(doc, {
@@ -352,8 +352,6 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       columnStyles: { 0: { cellWidth: 22 }, 3: { halign: "right", cellWidth: 30 } },
       foot: [
         [{ content: `Nº de OS: ${ordensFiltradas.length}`, colSpan: 2 }, "Total Geral", fmtBRL(totalGeral)],
-        [{ content: "", colSpan: 2 }, `BDI %: ${bdiMedio.toFixed(4)}%`, fmtBRL(bdiValor)],
-        [{ content: "Total Geral c/ BDI", colSpan: 3 }, fmtBRL(totalComBdi)],
       ],
       footStyles: { fillColor: [230, 235, 245], textColor: 30, fontStyle: "bold" },
     });
