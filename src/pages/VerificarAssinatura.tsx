@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { ShieldCheck, ShieldAlert, ArrowLeft, FileSignature } from "lucide-react";
 import { gerarHashRdo } from "@/lib/assinaturaHash";
 import { gerarHashOs } from "@/lib/assinaturaHashOs";
+import { gerarHashPc } from "@/lib/assinaturaHashPc";
 
-type Tipo = "rdo" | "os";
+type Tipo = "rdo" | "os" | "pc";
 
 const fmtDateTime = (d: string) =>
   new Date(d).toLocaleString("pt-BR", {
@@ -19,6 +20,7 @@ const fmtDateTime = (d: string) =>
 
 const labelPapel = (tipo: Tipo, p: string) => {
   if (tipo === "rdo") return p === "responsavel" ? "Responsável Técnico" : "Fiscalização";
+  if (tipo === "pc") return "Aprovador";
   return p === "fiscal" ? "Fiscal do Contrato" : "Solicitante";
 };
 
