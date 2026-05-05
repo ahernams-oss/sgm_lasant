@@ -204,10 +204,10 @@ export async function gerarPdfCronograma(cronograma: Cronograma, empresa?: Empre
     });
     resumoBody.push([
       "",
-      { content: "TOTAL GERAL", styles: { fontStyle: "bold" } },
+      { content: "TOTAL GERAL", styles: { fontStyle: "bold" } } as any,
       "", "", "",
-      { content: fmtMoney(totalGeralPrev), styles: { fontStyle: "bold" } },
-      { content: fmtMoney(totalGeralReal), styles: { fontStyle: "bold" } },
+      { content: fmtMoney(totalGeralPrev), styles: { fontStyle: "bold" } } as any,
+      { content: fmtMoney(totalGeralReal), styles: { fontStyle: "bold" } } as any,
     ]);
 
     doc.setFont("helvetica", "bold");
