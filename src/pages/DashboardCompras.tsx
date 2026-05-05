@@ -421,6 +421,16 @@ export default function DashboardCompras() {
             clienteLabel="Centro de Custo"
             statusOptions={statusOptions}
           />
+          <Select value={tipoFiltro} onValueChange={(v) => setTipoFiltro(v as typeof tipoFiltro)}>
+            <SelectTrigger className="h-9 w-[160px] text-xs">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os tipos</SelectItem>
+              <SelectItem value="Material">Apenas Materiais</SelectItem>
+              <SelectItem value="Serviço">Apenas Serviços</SelectItem>
+            </SelectContent>
+          </Select>
           <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={exportPdf}>
             <FileText className="h-3.5 w-3.5" />Relatório PDF
           </Button>
