@@ -2,12 +2,16 @@ import { useState, useMemo, useEffect, useCallback, type ReactNode } from "react
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useCotacaoCompras, CotacaoCompras, PropostaFornecedor, ItemCotacaoFornecedor, ItemVencedor } from "@/contexts/CotacaoComprasContext";
 import { useRequisicaoCompras, RequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
-import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
+import { usePedidoCompra, PedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useCargos } from "@/contexts/CargosContext";
+import { usePcAssinaturas } from "@/contexts/PcAssinaturasContext";
+import { gerarHashPc } from "@/lib/assinaturaHashPc";
+import { obterIpOrigem } from "@/lib/assinaturaHashOs";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { Button } from "@/components/ui/button";
