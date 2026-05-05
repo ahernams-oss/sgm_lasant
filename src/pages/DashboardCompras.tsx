@@ -200,6 +200,38 @@ export default function DashboardCompras() {
   const reprovadaList = useMemo(() => filtered.filter(r => r.status === "Reprovada"), [filtered]);
   const pendentesEntrega = useMemo(() => filtered.filter(r => ["Pedido Emitido", "Em Entrega"].includes(r.status)), [filtered]);
 
+  // Pedidos filtrados pelo mesmo período (data de criação) — exclui cancelados
+  const pedidosFiltrados = useMemo(() => {
+    return pedidos.filter(p => {
+      if (p.status === "Cancelado") return false;
+      const d = new Date(p.dataCriacao);
+      if (filters.dateFrom && d < filters.dateFrom) return false;
+      if (filters.dateTo) { const end = new Date(filters.dateTo); end.setHours(23, 59, 59, 999); if (d > end) return false; }
+      return true;
+    });
+  }, [pedidos, filters]);
+
+  // Ranking materiais — volume (quantidade) e valor financeiro
+  const { topMateriaisVolume, topMateriaisValor } = useMemo(() => {
+    const agg: Record<string, { descricao: string; quantidade: number; valor: number }> = {};
+    pedidosFiltrados.forEach(p => {
+      p.itens.forEach(it => {
+        const key = it.itemId || it.descricao;
+        const mat = materiais.find(m => m.id === it.itemId);
+        const desc = mat ? `${mat.codigo} - ${mat.descricao}` : (it.descricao || "Item sem descrição");
+        if (!agg[key]) agg[key] = { descricao: desc, quantidade: 0, valor: 0 };
+        agg[key].quantidade += Number(it.quantidade) || 0;
+        agg[key].valor += Number(it.valorTotal) || 0;
+      });
+    });
+    const arr = Object.values(agg);
+    const truncar = (s: string) => s.length > 40 ? s.slice(0, 38) + "…" : s;
+    return {
+      topMateriaisVolume: [...arr].sort((a, b) => b.quantidade - a.quantidade).slice(0, 10).map(x => ({ name: truncar(x.descricao), value: x.quantidade })),
+      topMateriaisValor: [...arr].sort((a, b) => b.valor - a.valor).slice(0, 10).map(x => ({ name: truncar(x.descricao), value: Number(x.valor.toFixed(2)) })),
+    };
+  }, [pedidosFiltrados, materiais]);
+
   // PDF Export
   const exportPdf = () => {
     const doc = new jsPDF();
