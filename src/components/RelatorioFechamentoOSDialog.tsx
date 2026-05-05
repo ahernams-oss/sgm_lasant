@@ -232,6 +232,10 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
   };
 
   const PIE_COLORS = ["#1e3a6b", "#2a8819", "#e7b73b", "#dc2626", "#7dd3fc", "#8b4513", "#6b7280", "#9333ea", "#0ea5e9", "#f97316"];
+  const hexToRgb = (h: string): [number, number, number] => {
+    const s = h.replace("#", "");
+    return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)];
+  };
 
   const drawPieChart = (categorias: { nome: string; valor: number; pct: number }[]): string => {
     const size = 400;
