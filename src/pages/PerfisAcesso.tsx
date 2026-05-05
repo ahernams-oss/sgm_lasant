@@ -280,6 +280,8 @@ const PerfisAcesso = () => {
                 const allGrupoChecked = grupoKeys.every(k => form.permissoes[k]);
                 const someGrupoChecked = grupoKeys.some(k => form.permissoes[k]);
 
+                const isGrupoCollapsed = !!collapsedGroups[grupo.grupo] && !permSearch.trim();
+
                 return (
                   <div key={grupo.grupo} className="rounded-lg border border-border overflow-hidden">
                     <div className="flex items-center justify-between px-4 py-3 bg-muted/30">
@@ -289,7 +291,14 @@ const PerfisAcesso = () => {
                           className={someGrupoChecked && !allGrupoChecked ? "opacity-60" : ""}
                           onCheckedChange={() => toggleGrupo(grupo)}
                         />
-                        <h4 className="text-sm font-semibold text-foreground">{grupo.grupo}</h4>
+                        <button
+                          type="button"
+                          onClick={() => toggleGrupoCollapse(grupo.grupo)}
+                          className="flex items-center gap-1.5 hover:opacity-80"
+                        >
+                          {isGrupoCollapsed ? <ChevronRight className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                          <h4 className="text-sm font-semibold text-foreground">{grupo.grupo}</h4>
+                        </button>
                         <span className="text-[10px] text-muted-foreground">
                           ({grupoKeys.filter(k => form.permissoes[k]).length}/{grupoKeys.length})
                         </span>
@@ -303,7 +312,7 @@ const PerfisAcesso = () => {
                       </button>
                     </div>
 
-                    <div className="divide-y divide-border">
+                    {!isGrupoCollapsed && <div className="divide-y divide-border">
                       {grupo.modulos.map(mod => {
                         const modKeys = getModuleAllKeys(mod);
                         const allModChecked = modKeys.every(k => form.permissoes[k]);
