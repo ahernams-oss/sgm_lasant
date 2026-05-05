@@ -34,9 +34,10 @@ export interface RenderRdoOptions {
   empresa?: Empresa;
   cliente?: Cliente;
   assinaturas?: RdoAssinatura[];
+  incluirImagens?: boolean;
 }
 
-export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [] }: RenderRdoOptions) {
+export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], incluirImagens = false }: RenderRdoOptions) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
