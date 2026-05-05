@@ -272,25 +272,26 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     const dataIni = fmtData(intervalo.ini.toISOString());
     const dataFimStr = fmtData(intervalo.fim.toISOString());
 
-    // Agregação por categoria
+    // Agregação por categoria (sem BDI)
     const catMap = new Map<string, number>();
-    let totalGeral = 0; let bdiSomaPond = 0;
+    let totalGeral = 0;
+    const totalSemBdi = (o: any) => {
+      const { sco, est } = totalOS(o);
+      return sco + est;
+    };
     ordensFiltradas.forEach(o => {
-      const { total, bdi } = totalOS(o);
-      totalGeral += total; bdiSomaPond += total * (bdi || 0);
+      const total = totalSemBdi(o);
+      totalGeral += total;
       const cat = o.categoria || "SEM CATEGORIA";
       catMap.set(cat, (catMap.get(cat) || 0) + total);
     });
-    const bdiMedio = totalGeral > 0 ? bdiSomaPond / totalGeral : 0;
-    const bdiValor = totalGeral * (bdiMedio / 100);
-    const totalComBdi = totalGeral + bdiValor;
     const catList = Array.from(catMap.entries())
       .map(([nome, valor]) => ({ nome, valor, pct: totalGeral > 0 ? (valor / totalGeral) * 100 : 0 }))
       .sort((a, b) => a.nome.localeCompare(b.nome));
 
     if (formato === "excel") {
       const data = ordensFiltradas.map(o => {
-        const { total } = totalOS(o);
+        const total = totalSemBdi(o);
         return {
           "OS": formatNumeroAno(o.numero, o.createdAt),
           "Unidade": o.clienteNome || "-",
@@ -299,8 +300,6 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         };
       });
       data.push({ "OS": "" as any, "Unidade": `Nº de OS: ${ordensFiltradas.length}` as any, "Categoria": "Total Geral" as any, "Valor": Number(totalGeral.toFixed(2)) });
-      data.push({ "OS": "" as any, "Unidade": "" as any, "Categoria": `BDI: ${bdiMedio.toFixed(4)}%` as any, "Valor": Number(bdiValor.toFixed(2)) });
-      data.push({ "OS": "" as any, "Unidade": "" as any, "Categoria": "Total Geral c/ BDI" as any, "Valor": Number(totalComBdi.toFixed(2)) });
       const ws = XLSX.utils.json_to_sheet(data);
       ws["!cols"] = [{ wch: 14 }, { wch: 40 }, { wch: 30 }, { wch: 14 }];
       const wsCat = XLSX.utils.json_to_sheet(catList.map(c => ({ Categoria: c.nome, Valor: Number(c.valor.toFixed(2)), Percentual: `${c.pct.toFixed(2)}%` })));
