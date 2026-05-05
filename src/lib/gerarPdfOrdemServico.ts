@@ -464,15 +464,15 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
       ],
       [
         { content: "Qual a avaliação do requisitante quanto à execução do serviço solicitado nesta OS?", colSpan: 2, styles: { fontSize: 7 } },
-        { content: "", rowSpan: 4, styles: { minCellHeight: 30 } },
+        { content: "", rowSpan: 4, styles: { minCellHeight: 13 } },
       ],
       [
-        { content: validada ? "X" : "", styles: { halign: "center", valign: "middle", fontStyle: "bold", fontSize: 14, minCellHeight: 7 } },
-        { content: "A CONTENTO", styles: { fontStyle: "bold", valign: "middle", minCellHeight: 7 } },
+        { content: validada ? "X" : "", styles: { halign: "center", valign: "middle", fontStyle: "bold", fontSize: 11, minCellHeight: 3 } },
+        { content: "A CONTENTO", styles: { fontStyle: "bold", valign: "middle", minCellHeight: 3, fontSize: 7 } },
       ],
       [
-        { content: "", styles: { halign: "center", valign: "middle", fontStyle: "bold", fontSize: 14, minCellHeight: 7 } },
-        { content: "NÃO A CONTENTO", styles: { fontStyle: "bold", valign: "middle", minCellHeight: 7 } },
+        { content: "", styles: { halign: "center", valign: "middle", fontStyle: "bold", fontSize: 11, minCellHeight: 3 } },
+        { content: "NÃO A CONTENTO", styles: { fontStyle: "bold", valign: "middle", minCellHeight: 3, fontSize: 7 } },
       ],
       [
         { content: "OBSERVAÇÕES:", colSpan: 2, styles: { fontSize: 7, fontStyle: "bold" } },
