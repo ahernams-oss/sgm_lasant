@@ -216,18 +216,21 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
   autoTable(doc, {
     startY: y,
     theme: "grid",
-    styles: { fontSize: 7.5, cellPadding: 1.5, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30] },
+    styles: { fontSize: 8, cellPadding: 1.8, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30], valign: "middle" },
     body: [
       [
-        { content: "Unidade Requisitante:", styles: { fontStyle: "normal", fontSize: 6.5, valign: "top" } },
-        { content: "Data aprovação:", styles: { fontStyle: "normal", fontSize: 6.5, valign: "top" } },
-      ],
-      [
-        { content: localText, styles: { fontStyle: "bold", fontSize: 10, halign: "center", minCellHeight: 8 } },
-        { content: dataValidacao || "-", styles: { fontStyle: "bold", halign: "center", minCellHeight: 8 } },
+        { content: "Unidade Requisitante:", styles: { fontStyle: "bold", fontSize: 7.5, halign: "left" } },
+        { content: localText || "-", styles: { fontStyle: "bold", fontSize: 9.5, halign: "left" } },
+        { content: "Data aprovação:", styles: { fontStyle: "bold", fontSize: 7.5, halign: "left" } },
+        { content: dataValidacao || "-", styles: { fontStyle: "bold", fontSize: 9, halign: "center" } },
       ],
     ],
-    columnStyles: { 0: { cellWidth: cw * 0.7 }, 1: { cellWidth: cw * 0.3 } },
+    columnStyles: {
+      0: { cellWidth: cw * 0.16 },
+      1: { cellWidth: cw * 0.50 },
+      2: { cellWidth: cw * 0.14 },
+      3: { cellWidth: cw * 0.20 },
+    },
     margin: { left: ml, right: mr },
   });
   y = (doc as any).lastAutoTable.finalY;
