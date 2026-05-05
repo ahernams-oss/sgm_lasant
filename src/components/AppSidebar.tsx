@@ -37,6 +37,7 @@ import {
   Bell,
   BotMessageSquare,
   Box,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -104,6 +105,7 @@ const menuItems = [
       { title: "Requisições de Compras", url: "/compras/requisicoes", icon: ShoppingCart },
       { title: "Cotações", url: "/compras/cotacoes", icon: Scale },
       { title: "Pedidos de Compra", url: "/compras/pedidos", icon: FileCheck },
+      { title: "Inteligência de Compras", url: "/compras/inteligencia", icon: Sparkles },
       { title: "Recebimento", url: "/compras/recebimento", icon: PackageCheck },
       { title: "Estoque", url: "/compras/estoque", icon: Warehouse },
       { title: "Relatórios de Estoque", url: "/compras/relatorios-estoque", icon: FileBarChart },
