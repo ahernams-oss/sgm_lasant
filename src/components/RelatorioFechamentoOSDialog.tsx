@@ -32,7 +32,7 @@ const PERIODOS: { value: Periodo; label: string; desc: string }[] = [
 ];
 
 const TIPOS: { value: TipoRelatorio; label: string; desc: string }[] = [
-  { value: "fechamento_validadas", label: "Fechamento (Validadas)", desc: "Apenas OSs Validadas — OS, Unidade, Categoria e Valor, com totais, BDI e gráfico por categoria." },
+  { value: "fechamento_validadas", label: "Fechamento (Validadas)", desc: "Apenas OSs Validadas — OS, Unidade, Categoria e Valor, com totais e gráfico por categoria." },
   { value: "analitico", label: "Analítico (detalhado)", desc: "Lista completa de OSs com nº, cliente, situação, prioridade, datas e descrição." },
   { value: "sintetico", label: "Sintético (resumo)", desc: "Resumo por situação e por cliente, com totais." },
   { value: "financeiro", label: "Financeiro", desc: "Totais de materiais SCO, estoque, BDI e total geral por OS." },
@@ -272,25 +272,26 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     const dataIni = fmtData(intervalo.ini.toISOString());
     const dataFimStr = fmtData(intervalo.fim.toISOString());
 
-    // Agregação por categoria
+    // Agregação por categoria (sem BDI)
     const catMap = new Map<string, number>();
-    let totalGeral = 0; let bdiSomaPond = 0;
+    let totalGeral = 0;
+    const totalSemBdi = (o: any) => {
+      const { sco, est } = totalOS(o);
+      return sco + est;
+    };
     ordensFiltradas.forEach(o => {
-      const { total, bdi } = totalOS(o);
-      totalGeral += total; bdiSomaPond += total * (bdi || 0);
+      const total = totalSemBdi(o);
+      totalGeral += total;
       const cat = o.categoria || "SEM CATEGORIA";
       catMap.set(cat, (catMap.get(cat) || 0) + total);
     });
-    const bdiMedio = totalGeral > 0 ? bdiSomaPond / totalGeral : 0;
-    const bdiValor = totalGeral * (bdiMedio / 100);
-    const totalComBdi = totalGeral + bdiValor;
     const catList = Array.from(catMap.entries())
       .map(([nome, valor]) => ({ nome, valor, pct: totalGeral > 0 ? (valor / totalGeral) * 100 : 0 }))
       .sort((a, b) => a.nome.localeCompare(b.nome));
 
     if (formato === "excel") {
       const data = ordensFiltradas.map(o => {
-        const { total } = totalOS(o);
+        const total = totalSemBdi(o);
         return {
           "OS": formatNumeroAno(o.numero, o.createdAt),
           "Unidade": o.clienteNome || "-",
@@ -299,8 +300,6 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         };
       });
       data.push({ "OS": "" as any, "Unidade": `Nº de OS: ${ordensFiltradas.length}` as any, "Categoria": "Total Geral" as any, "Valor": Number(totalGeral.toFixed(2)) });
-      data.push({ "OS": "" as any, "Unidade": "" as any, "Categoria": `BDI: ${bdiMedio.toFixed(4)}%` as any, "Valor": Number(bdiValor.toFixed(2)) });
-      data.push({ "OS": "" as any, "Unidade": "" as any, "Categoria": "Total Geral c/ BDI" as any, "Valor": Number(totalComBdi.toFixed(2)) });
       const ws = XLSX.utils.json_to_sheet(data);
       ws["!cols"] = [{ wch: 14 }, { wch: 40 }, { wch: 30 }, { wch: 14 }];
       const wsCat = XLSX.utils.json_to_sheet(catList.map(c => ({ Categoria: c.nome, Valor: Number(c.valor.toFixed(2)), Percentual: `${c.pct.toFixed(2)}%` })));
@@ -340,7 +339,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     // Tabela principal
     doc.addPage();
     const rows = ordensFiltradas.map(o => {
-      const { total } = totalOS(o);
+      const total = totalSemBdi(o);
       return [formatNumeroAno(o.numero, o.createdAt), o.clienteNome || "-", o.categoria || "-", fmtBRL(total)];
     });
     autoTable(doc, {
@@ -353,8 +352,6 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       columnStyles: { 0: { cellWidth: 22 }, 3: { halign: "right", cellWidth: 30 } },
       foot: [
         [{ content: `Nº de OS: ${ordensFiltradas.length}`, colSpan: 2 }, "Total Geral", fmtBRL(totalGeral)],
-        [{ content: "", colSpan: 2 }, `BDI %: ${bdiMedio.toFixed(4)}%`, fmtBRL(bdiValor)],
-        [{ content: "Total Geral c/ BDI", colSpan: 3 }, fmtBRL(totalComBdi)],
       ],
       footStyles: { fillColor: [230, 235, 245], textColor: 30, fontStyle: "bold" },
     });
