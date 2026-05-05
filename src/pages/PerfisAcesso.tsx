@@ -82,11 +82,49 @@ const PerfisAcesso = () => {
     });
   };
 
+  const expandAll = () => {
+    const all: Record<string, boolean> = {};
+    MODULOS_SISTEMA.forEach(g => g.modulos.forEach(m => { all[m.key] = true; }));
+    setExpandedModules(all);
+    setCollapsedGroups({});
+  };
+  const collapseAll = () => {
+    setExpandedModules({});
+    const allG: Record<string, boolean> = {};
+    MODULOS_SISTEMA.forEach(g => { allG[g.grupo] = true; });
+    setCollapsedGroups(allG);
+  };
+  const toggleGrupoCollapse = (grupo: string) =>
+    setCollapsedGroups(prev => ({ ...prev, [grupo]: !prev[grupo] }));
+
+  const matchesSearch = (text: string) =>
+    !permSearch.trim() || text.toLowerCase().includes(permSearch.toLowerCase());
+
+  const filteredModulos = useMemo(() => {
+    if (!permSearch.trim()) return MODULOS_SISTEMA;
+    return MODULOS_SISTEMA
+      .map(g => ({
+        ...g,
+        modulos: g.modulos.filter(m => {
+          if (matchesSearch(m.label)) return true;
+          const sub = [
+            ...(m.acoes ?? []),
+            ...(m.statusTransicoes ?? []),
+            ...(m.flags ?? []),
+          ];
+          return sub.some(s => matchesSearch(s.label));
+        }),
+      }))
+      .filter(g => g.modulos.length > 0);
+  }, [permSearch]);
+
   const resetForm = () => {
     setForm(emptyForm);
     setEditingId(null);
     setShowForm(false);
     setExpandedModules({});
+    setCollapsedGroups({});
+    setPermSearch("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
