@@ -31,13 +31,13 @@ const STATUS_COLORS: Record<string, string> = {
 
 const PIE_COLORS = ["#3b82f6", "#10b981", "#ef4444", "#9ca3af", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4"];
 
-const GRADIENT_STYLES = [
-  { bg: "from-blue-500/10 to-blue-600/5", icon: "text-blue-600", border: "border-blue-200/50" },
-  { bg: "from-amber-500/10 to-amber-600/5", icon: "text-amber-600", border: "border-amber-200/50" },
-  { bg: "from-emerald-500/10 to-emerald-600/5", icon: "text-emerald-600", border: "border-emerald-200/50" },
-  { bg: "from-red-500/10 to-red-600/5", icon: "text-red-600", border: "border-red-200/50" },
-  { bg: "from-purple-500/10 to-purple-600/5", icon: "text-purple-600", border: "border-purple-200/50" },
-  { bg: "from-cyan-500/10 to-cyan-600/5", icon: "text-cyan-600", border: "border-cyan-200/50" },
+const KPI_VARIANTS = [
+  { ring: "from-blue-500 to-indigo-600", bg: "bg-blue-50", text: "text-blue-700", icon: "text-blue-600" },
+  { ring: "from-emerald-500 to-teal-600", bg: "bg-emerald-50", text: "text-emerald-700", icon: "text-emerald-600" },
+  { ring: "from-amber-500 to-orange-600", bg: "bg-amber-50", text: "text-amber-700", icon: "text-amber-600" },
+  { ring: "from-rose-500 to-red-600", bg: "bg-rose-50", text: "text-rose-700", icon: "text-rose-600" },
+  { ring: "from-purple-500 to-fuchsia-600", bg: "bg-purple-50", text: "text-purple-700", icon: "text-purple-600" },
+  { ring: "from-cyan-500 to-sky-600", bg: "bg-cyan-50", text: "text-cyan-700", icon: "text-cyan-600" },
 ];
 
 const GradientKpiCard = ({
@@ -45,18 +45,19 @@ const GradientKpiCard = ({
 }: {
   icon: any; label: string; value: number | string; gradientIdx?: number; subtitle?: string;
 }) => {
-  const style = GRADIENT_STYLES[gradientIdx % GRADIENT_STYLES.length];
+  const v = KPI_VARIANTS[gradientIdx % KPI_VARIANTS.length];
   return (
-    <Card className={cn("overflow-hidden border", style.border)}>
-      <CardContent className="pt-4 pb-3 px-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-lg font-bold text-foreground">{value}</p>
-            <p className="text-xs font-medium text-muted-foreground mt-0.5">{label}</p>
-            {subtitle && <p className="text-[10px] text-muted-foreground/70 mt-0.5">{subtitle}</p>}
+    <Card className="group relative overflow-hidden border border-border/60 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+      <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", v.ring)} />
+      <CardContent className="pt-5 pb-4 px-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className="text-lg font-bold text-foreground mt-1.5 truncate">{value}</p>
+            {subtitle && <p className="text-[10px] text-muted-foreground/80 mt-0.5">{subtitle}</p>}
           </div>
-          <div className={cn("rounded-xl p-2.5 bg-gradient-to-br", style.bg)}>
-            <Icon className={cn("h-4 w-4", style.icon)} />
+          <div className={cn("rounded-xl p-2.5 shrink-0 transition-transform group-hover:scale-110", v.bg)}>
+            <Icon className={cn("h-4 w-4", v.icon)} />
           </div>
         </div>
       </CardContent>
