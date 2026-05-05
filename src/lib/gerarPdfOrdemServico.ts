@@ -480,8 +480,8 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
     ],
     columnStyles: {
       0: { cellWidth: cw * 0.15 },
-      1: { cellWidth: cw * 0.65 },
-      2: { cellWidth: cw * 0.20 },
+      1: { cellWidth: cw * 0.54 },
+      2: { cellWidth: cw * 0.31 },
     },
     margin: { left: ml, right: mr },
   });
