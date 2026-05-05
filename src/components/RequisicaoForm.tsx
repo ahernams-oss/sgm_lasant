@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { useCargos } from "@/contexts/CargosContext";
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const jornadaOptions = ["Diarista", "Plantão Diurno - PAR", "Plantão Diurno - ÍMPAR", "Plantão Noturno - PAR", "Plantão Noturno - ÍMPAR"];
 const contratacaoOptions = ["Efetivo", "Temporário", "PCD", "Estagiário"];
@@ -40,6 +41,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { cargos } = useCargos();
   const { addRequisicao } = useRequisicoes();
   const { clientes } = useClientes();
+  const { usuarioLogado } = useAuth();
   const [form, setForm] = useState({
     headcount: "",
     orcamento: "",
@@ -107,6 +109,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       conhecimentoInformatica: form.conhecimentoInformatica,
       atividadesCargo: form.atividadesCargo,
       salarioVaga: form.salarioVaga,
+      solicitante: usuarioLogado?.nome || "",
     });
     toast.success("Requisição enviada com sucesso!");
     onSuccess?.();
