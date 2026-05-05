@@ -40,6 +40,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissao } from "@/hooks/usePermissao";
 
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -61,110 +62,110 @@ const menuItems = [
   {
     group: "Gestão de Pessoas",
     items: [
-      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-      { title: "Requisição de Pessoal", url: "/", icon: ClipboardList },
-      { title: "Processos Seletivos", url: "/processos-seletivos", icon: ClipboardCheck },
-      { title: "Funcionários", url: "/funcionarios", icon: UserCheck },
-      { title: "EPIs", url: "/epis", icon: HardHat },
-      { title: "Exames Periódicos", url: "/exames", icon: Stethoscope },
-      { title: "Mapa de Funcionários", url: "/mapa-funcionarios", icon: CalendarClock },
-      { title: "Mapa de Plantões", url: "/mapa-plantoes", icon: CalendarClock },
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, perm: "dashboard_gp" },
+      { title: "Requisição de Pessoal", url: "/", icon: ClipboardList, perm: "requisicao_colaboradores" },
+      { title: "Processos Seletivos", url: "/processos-seletivos", icon: ClipboardCheck, perm: "processos_seletivos" },
+      { title: "Funcionários", url: "/funcionarios", icon: UserCheck, perm: "funcionarios" },
+      { title: "EPIs", url: "/epis", icon: HardHat, perm: "funcionarios" },
+      { title: "Exames Periódicos", url: "/exames", icon: Stethoscope, perm: "funcionarios" },
+      { title: "Mapa de Funcionários", url: "/mapa-funcionarios", icon: CalendarClock, perm: "mapa_funcionarios" },
+      { title: "Mapa de Plantões", url: "/mapa-plantoes", icon: CalendarClock, perm: "mapa_funcionarios" },
     ],
   },
   {
     group: "Patrimônio",
-    items: [{ title: "Ferramentas", url: "/patrimonio/ferramentas", icon: Wrench }],
+    items: [{ title: "Ferramentas", url: "/patrimonio/ferramentas", icon: Wrench, perm: "ferramentas" }],
   },
   {
     group: "Engenharia",
     items: [
-      { title: "Dashboard Engenharia", url: "/engenharia/dashboard", icon: BarChart3 },
-      { title: "Medição de Serviços", url: "/engenharia/medicoes", icon: Ruler },
-      { title: "Solicitação de Serviços", url: "/engenharia/solicitacao-servicos", icon: ClipboardList },
-      { title: "Aprovar SS em Lote", url: "/engenharia/aprovar-lote-ss", icon: ClipboardCheck },
-      { title: "Ordem de Serviço", url: "/engenharia/ordem-servico", icon: Wrench },
-      { title: "Confirmar OS em Lote", url: "/engenharia/confirmar-lote-os", icon: ClipboardCheck },
-      { title: "Validar OS em Lote", url: "/engenharia/validar-lote-os", icon: ClipboardCheck },
-      { title: "Assinar OS em Lote", url: "/engenharia/assinar-lote-os", icon: ClipboardCheck },
-      { title: "Imprimir OS Validadas", url: "/engenharia/imprimir-lote-os", icon: ClipboardCheck },
-      { title: "Plano de Manutenção", url: "/engenharia/plano-manutencao", icon: Wrench },
-      { title: "Base de Conhecimento", url: "/engenharia/base-conhecimento", icon: BookOpen },
+      { title: "Dashboard Engenharia", url: "/engenharia/dashboard", icon: BarChart3, perm: "dashboard_engenharia" },
+      { title: "Medição de Serviços", url: "/engenharia/medicoes", icon: Ruler, perm: "medicoes" },
+      { title: "Solicitação de Serviços", url: "/engenharia/solicitacao-servicos", icon: ClipboardList, perm: "solicitacao_servicos" },
+      { title: "Aprovar SS em Lote", url: "/engenharia/aprovar-lote-ss", icon: ClipboardCheck, perm: "solicitacao_servicos.aprovar_lote" },
+      { title: "Ordem de Serviço", url: "/engenharia/ordem-servico", icon: Wrench, perm: "ordem_servico" },
+      { title: "Confirmar OS em Lote", url: "/engenharia/confirmar-lote-os", icon: ClipboardCheck, perm: "os.confirmar_lote" },
+      { title: "Validar OS em Lote", url: "/engenharia/validar-lote-os", icon: ClipboardCheck, perm: "os.validar_lote" },
+      { title: "Assinar OS em Lote", url: "/engenharia/assinar-lote-os", icon: ClipboardCheck, perm: "os.assinar_lote" },
+      { title: "Imprimir OS Validadas", url: "/engenharia/imprimir-lote-os", icon: ClipboardCheck, perm: "os.imprimir_lote" },
+      { title: "Plano de Manutenção", url: "/engenharia/plano-manutencao", icon: Wrench, perm: "plano_manutencao" },
+      { title: "Base de Conhecimento", url: "/engenharia/base-conhecimento", icon: BookOpen, perm: "base_conhecimento" },
     ],
   },
   {
     group: "Obras",
     items: [
-      { title: "RDO - Diário de Obras", url: "/engenharia/rdo", icon: FileSpreadsheet },
-      { title: "Cronograma Físico-Financeiro", url: "/engenharia/cronograma", icon: CalendarClock },
-      { title: "BIM - Modelagem 3D", url: "/obras/bim", icon: Box },
+      { title: "RDO - Diário de Obras", url: "/engenharia/rdo", icon: FileSpreadsheet, perm: "rdo" },
+      { title: "Cronograma Físico-Financeiro", url: "/engenharia/cronograma", icon: CalendarClock, perm: "cronograma" },
+      { title: "BIM - Modelagem 3D", url: "/obras/bim", icon: Box, perm: "bim" },
     ],
   },
   {
     group: "Compras e Suprimentos",
     items: [
-      { title: "Dashboard Compras", url: "/compras/dashboard", icon: LayoutDashboard },
-      { title: "Requisições de Compras", url: "/compras/requisicoes", icon: ShoppingCart },
-      { title: "Cotações", url: "/compras/cotacoes", icon: Scale },
-      { title: "Pedidos de Compra", url: "/compras/pedidos", icon: FileCheck },
-      { title: "Assinar PC em Lote", url: "/compras/assinar-lote-pc", icon: ShieldCheck },
-      { title: "Inteligência de Compras", url: "/compras/inteligencia", icon: Sparkles },
-      { title: "Recebimento", url: "/compras/recebimento", icon: PackageCheck },
-      { title: "Estoque", url: "/compras/estoque", icon: Warehouse },
-      { title: "Relatórios de Estoque", url: "/compras/relatorios-estoque", icon: FileBarChart },
-      { title: "Materiais e Serviços", url: "/compras/materiais", icon: Package },
-      { title: "Categorias de Compras", url: "/compras/categorias", icon: Tags },
-      { title: "Fabricantes", url: "/compras/fabricantes", icon: Factory },
+      { title: "Dashboard Compras", url: "/compras/dashboard", icon: LayoutDashboard, perm: "dashboard_compras" },
+      { title: "Requisições de Compras", url: "/compras/requisicoes", icon: ShoppingCart, perm: "requisicoes_compras" },
+      { title: "Cotações", url: "/compras/cotacoes", icon: Scale, perm: "cotacoes" },
+      { title: "Pedidos de Compra", url: "/compras/pedidos", icon: FileCheck, perm: "pedidos_compra" },
+      { title: "Assinar PC em Lote", url: "/compras/assinar-lote-pc", icon: ShieldCheck, perm: "pc_assinatura" },
+      { title: "Inteligência de Compras", url: "/compras/inteligencia", icon: Sparkles, perm: "requisicoes_compras" },
+      { title: "Recebimento", url: "/compras/recebimento", icon: PackageCheck, perm: "recebimento" },
+      { title: "Estoque", url: "/compras/estoque", icon: Warehouse, perm: "estoque" },
+      { title: "Relatórios de Estoque", url: "/compras/relatorios-estoque", icon: FileBarChart, perm: "estoque" },
+      { title: "Materiais e Serviços", url: "/compras/materiais", icon: Package, perm: "materiais_servicos" },
+      { title: "Categorias de Compras", url: "/compras/categorias", icon: Tags, perm: "categorias_compras" },
+      { title: "Fabricantes", url: "/compras/fabricantes", icon: Factory, perm: "fabricantes" },
     ],
   },
   {
     group: "Licitações",
-    items: [{ title: "Licitações", url: "/licitacoes", icon: Gavel }],
+    items: [{ title: "Licitações", url: "/licitacoes", icon: Gavel, perm: "licitacoes" }],
   },
   {
     group: "Jurídico",
-    items: [{ title: "Contencioso Trabalhista", url: "/juridico", icon: Scale }],
+    items: [{ title: "Contencioso Trabalhista", url: "/juridico", icon: Scale, perm: "juridico" }],
   },
   {
     group: "Comunicação",
     items: [
-      { title: "Mensagens", url: "/comunicacao/mensagens", icon: MessageSquare },
-      { title: "Avisos e Comunicados", url: "/comunicacao/avisos", icon: Megaphone },
-      { title: "Notificações de Tarefas", url: "/comunicacao/notificacoes", icon: Bell },
+      { title: "Mensagens", url: "/comunicacao/mensagens", icon: MessageSquare, perm: "comunicacao_mensagens" },
+      { title: "Avisos e Comunicados", url: "/comunicacao/avisos", icon: Megaphone, perm: "comunicacao_avisos" },
+      { title: "Notificações de Tarefas", url: "/comunicacao/notificacoes", icon: Bell, perm: "comunicacao_notificacoes" },
     ],
   },
   {
     group: "PMOC",
-    items: [{ title: "PMOC", url: "/pmoc", icon: Fan }],
+    items: [{ title: "PMOC", url: "/pmoc", icon: Fan, perm: "pmoc" }],
   },
   {
     group: "Qualidade",
     items: [
-      { title: "Registro de Evidências", url: "/qualidade/evidencias", icon: ShieldCheck },
-      { title: "Checklists", url: "/qualidade/checklists", icon: ClipboardCheck },
+      { title: "Registro de Evidências", url: "/qualidade/evidencias", icon: ShieldCheck, perm: "evidencias" },
+      { title: "Checklists", url: "/qualidade/checklists", icon: ClipboardCheck, perm: "checklists" },
     ],
   },
   {
     group: "Assistente IA",
-    items: [{ title: "Duda - Assistente", url: "/chat-duda", icon: BotMessageSquare }],
+    items: [{ title: "Duda - Assistente", url: "/chat-duda", icon: BotMessageSquare, perm: "chat_duda" }],
   },
   {
     group: "Gerencial",
-    items: [{ title: "Painel TV (Tempo Real)", url: "/monitor-tv", icon: Monitor }],
+    items: [{ title: "Painel TV (Tempo Real)", url: "/monitor-tv", icon: Monitor, perm: "monitor_tv" }],
   },
   {
     group: "Cadastros",
     items: [
-      { title: "Dados da Empresa", url: "/empresa", icon: Building2 },
-      { title: "Clientes", url: "/clientes", icon: Users },
-      { title: "Faturamento", url: "/clientes?tab=faturamento", icon: DollarSign },
-      { title: "Equipamentos", url: "/cadastros/equipamentos", icon: Monitor },
-      { title: "Fornecedores", url: "/fornecedores", icon: Truck },
-      { title: "Cargos", url: "/cargos", icon: Briefcase },
-      { title: "Categorias de Serviços", url: "/cadastros/categorias-servicos", icon: Tags },
-      { title: "Serviços", url: "/cadastros/servicos", icon: Wrench },
-      { title: "Responsáveis Técnicos", url: "/cadastros/responsaveis-tecnicos", icon: UserCheck },
-      { title: "SCO", url: "/sco", icon: FileSpreadsheet },
-      { title: "I0", url: "/i0", icon: DollarSign },
+      { title: "Dados da Empresa", url: "/empresa", icon: Building2, perm: "empresa" },
+      { title: "Clientes", url: "/clientes", icon: Users, perm: "clientes" },
+      { title: "Faturamento", url: "/clientes?tab=faturamento", icon: DollarSign, perm: "clientes" },
+      { title: "Equipamentos", url: "/cadastros/equipamentos", icon: Monitor, perm: "equipamentos" },
+      { title: "Fornecedores", url: "/fornecedores", icon: Truck, perm: "fornecedores" },
+      { title: "Cargos", url: "/cargos", icon: Briefcase, perm: "cargos" },
+      { title: "Categorias de Serviços", url: "/cadastros/categorias-servicos", icon: Tags, perm: "categorias_servicos" },
+      { title: "Serviços", url: "/cadastros/servicos", icon: Wrench, perm: "servicos" },
+      { title: "Responsáveis Técnicos", url: "/cadastros/responsaveis-tecnicos", icon: UserCheck, perm: "responsaveis_tecnicos" },
+      { title: "SCO", url: "/sco", icon: FileSpreadsheet, perm: "sco" },
+      { title: "I0", url: "/i0", icon: DollarSign, perm: "sco" },
     ],
   },
 ];
@@ -173,6 +174,14 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { usuarioLogado, logout } = useAuth();
+  const { temModulo, acessoTotal } = usePermissao();
+
+  const visibleGroups = menuItems
+    .map((g) => ({
+      ...g,
+      items: g.items.filter((it: any) => !it.perm || temModulo(it.perm)),
+    }))
+    .filter((g) => g.items.length > 0);
 
   return (
     <Sidebar collapsible="icon">
@@ -188,7 +197,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {menuItems.map((group) => (
+        {visibleGroups.map((group) => (
           <SidebarGroup key={group.group}>
             <SidebarGroupLabel className="font-bold">{group.group}</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -216,32 +225,36 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <NavLink
-                to="/usuarios"
-                end
-                className="hover:bg-sidebar-accent/50"
-                activeClassName="bg-sidebar-accent text-primary font-medium"
-              >
-                <Shield className="mr-2 h-4 w-4" />
-                {!collapsed && <span>Usuários</span>}
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <NavLink
-                to="/perfis-acesso"
-                end
-                className="hover:bg-sidebar-accent/50"
-                activeClassName="bg-sidebar-accent text-primary font-medium"
-              >
-                <KeyRound className="mr-2 h-4 w-4" />
-                {!collapsed && <span>Perfis de Acesso</span>}
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {(acessoTotal || temModulo("usuarios")) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <NavLink
+                  to="/usuarios"
+                  end
+                  className="hover:bg-sidebar-accent/50"
+                  activeClassName="bg-sidebar-accent text-primary font-medium"
+                >
+                  <Shield className="mr-2 h-4 w-4" />
+                  {!collapsed && <span>Usuários</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {(acessoTotal || temModulo("perfis_acesso")) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <NavLink
+                  to="/perfis-acesso"
+                  end
+                  className="hover:bg-sidebar-accent/50"
+                  activeClassName="bg-sidebar-accent text-primary font-medium"
+                >
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  {!collapsed && <span>Perfis de Acesso</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
 
         {usuarioLogado && (
