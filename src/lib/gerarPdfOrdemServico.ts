@@ -442,14 +442,22 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
 
   // ===== DADOS FINAIS / Avaliação + Carimbo gerente =====
   const validada = os.situacao === "Validada";
+  const assinaturaFiscal = (assinaturas || []).find((a) => a.papel === "fiscal");
+  let fiscalCellRect: { x: number; y: number; w: number; h: number } | null = null;
   autoTable(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 7.5, cellPadding: 1.8, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30] },
+    didDrawCell: (data: any) => {
+      // captura o retângulo da célula com rowSpan (carimbo/assinatura)
+      if (data.section === "body" && data.row.index === 1 && data.column.index === 2) {
+        fiscalCellRect = { x: data.cell.x, y: data.cell.y, w: data.cell.width, h: data.cell.height };
+      }
+    },
     body: [
       [
         { content: "DADOS FINAIS:", colSpan: 2, styles: { fontStyle: "bold", fontSize: 7 } },
-        { content: "Carimbo e assinatura", styles: { fontSize: 6.5, halign: "center" } },
+        { content: "Carimbo e assinatura / Assinatura eletrônica", styles: { fontSize: 6.5, halign: "center" } },
       ],
       [
         { content: "Qual a avaliação do requisitante quanto à execução do serviço solicitado nesta OS?", colSpan: 2, styles: { fontSize: 7 } },
