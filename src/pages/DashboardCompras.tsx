@@ -544,6 +544,53 @@ export default function DashboardCompras() {
         </Card>
       </div>
 
+      {/* Ranking de Materiais Comprados */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Top 10 Materiais Mais Comprados (Volume)</CardTitle>
+            <p className="text-xs text-muted-foreground">Quantidade total adquirida via Pedidos de Compra</p>
+          </CardHeader>
+          <CardContent>
+            {topMateriaisVolume.length === 0 ? (
+              <p className="text-center text-muted-foreground py-10">Sem dados</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={360}>
+                <BarChart data={topMateriaisVolume} layout="vertical" margin={{ left: 10, right: 30 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" width={180} fontSize={10} />
+                  <Tooltip formatter={(v: any) => [`${Number(v).toLocaleString("pt-BR")} un`, "Quantidade"]} />
+                  <Bar dataKey="value" name="Quantidade" fill="hsl(190, 70%, 50%)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Top 10 Materiais por Valor Financeiro</CardTitle>
+            <p className="text-xs text-muted-foreground">Maior gasto acumulado em Pedidos de Compra</p>
+          </CardHeader>
+          <CardContent>
+            {topMateriaisValor.length === 0 ? (
+              <p className="text-center text-muted-foreground py-10">Sem dados</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={360}>
+                <BarChart data={topMateriaisValor} layout="vertical" margin={{ left: 10, right: 30 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`} />
+                  <YAxis type="category" dataKey="name" width={180} fontSize={10} />
+                  <Tooltip formatter={(v: any) => [`R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, "Valor"]} />
+                  <Bar dataKey="value" name="Valor (R$)" fill="hsl(145, 60%, 45%)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Tabs with tables */}
       <Tabs defaultValue="pendentes">
         <TabsList>
