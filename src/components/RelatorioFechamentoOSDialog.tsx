@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import type { OrdemServico } from "@/contexts/OrdensServicoContext";
 
 type Periodo = "semanal" | "quinzenal" | "mensal" | "personalizado";
-type TipoRelatorio = "analitico" | "sintetico" | "financeiro" | "produtividade" | "situacao";
+type TipoRelatorio = "fechamento_validadas" | "analitico" | "sintetico" | "financeiro" | "produtividade" | "situacao";
 
 interface Props {
   open: boolean;
