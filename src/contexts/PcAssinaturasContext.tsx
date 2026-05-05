@@ -29,7 +29,12 @@ interface Ctx {
   refresh: () => Promise<void>;
 }
 
-const PcAssinaturasContext = createContext<Ctx>({} as Ctx);
+const PcAssinaturasContext = createContext<Ctx>({
+  assinaturas: [],
+  porPedido: () => [],
+  registrar: async () => null,
+  refresh: async () => {},
+});
 export const usePcAssinaturas = () => useContext(PcAssinaturasContext);
 
 export function PcAssinaturasProvider({ children }: { children: ReactNode }) {
