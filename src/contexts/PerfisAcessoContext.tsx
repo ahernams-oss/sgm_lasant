@@ -293,11 +293,110 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "i0.excluir", label: "Excluir I0" },
         ],
       },
+      {
+        key: "equipamentos",
+        label: "Equipamentos",
+        acoes: [
+          { key: "equipamentos.criar", label: "Cadastrar equipamento" },
+          { key: "equipamentos.editar", label: "Editar equipamento" },
+          { key: "equipamentos.excluir", label: "Excluir equipamento" },
+          { key: "equipamentos.importar", label: "Importar equipamentos" },
+          { key: "equipamentos.exportar", label: "Exportar relatório" },
+        ],
+      },
+      {
+        key: "categorias_servicos",
+        label: "Categorias de Serviços",
+        acoes: [
+          { key: "categorias_servicos.criar", label: "Criar categoria" },
+          { key: "categorias_servicos.editar", label: "Editar categoria" },
+          { key: "categorias_servicos.excluir", label: "Excluir categoria" },
+        ],
+      },
+      {
+        key: "servicos",
+        label: "Serviços",
+        acoes: [
+          { key: "servicos.criar", label: "Cadastrar serviço" },
+          { key: "servicos.editar", label: "Editar serviço" },
+          { key: "servicos.excluir", label: "Excluir serviço" },
+        ],
+      },
     ],
   },
   {
     grupo: "Engenharia",
     modulos: [
+      {
+        key: "dashboard_engenharia",
+        label: "Dashboard Engenharia",
+        acoes: [
+          { key: "dashboard_engenharia.visualizar", label: "Visualizar dashboard" },
+          { key: "dashboard_engenharia.exportar_pdf", label: "Exportar PDF" },
+        ],
+      },
+      {
+        key: "solicitacao_servicos",
+        label: "Solicitação de Serviços (SS)",
+        acoes: [
+          { key: "solicitacao_servicos.criar", label: "Criar SS" },
+          { key: "solicitacao_servicos.editar", label: "Editar SS" },
+          { key: "solicitacao_servicos.excluir", label: "Excluir SS" },
+          { key: "solicitacao_servicos.exportar_pdf", label: "Exportar PDF" },
+          { key: "solicitacao_servicos.aprovar_lote", label: "Aprovação em Lote" },
+        ],
+        statusTransicoes: [
+          { key: "solicitacao_servicos.status.aberta", label: "Aberta" },
+          { key: "solicitacao_servicos.status.em_analise", label: "Em Análise" },
+          { key: "solicitacao_servicos.status.aprovada", label: "Aprovada" },
+          { key: "solicitacao_servicos.status.reprovada", label: "Reprovada" },
+          { key: "solicitacao_servicos.status.concluida", label: "Concluída" },
+          { key: "solicitacao_servicos.status.cancelada", label: "Cancelada" },
+        ],
+      },
+      {
+        key: "ordem_servico",
+        label: "Ordem de Serviço (OS)",
+        acoes: [
+          { key: "ordem_servico.criar", label: "Criar OS" },
+          { key: "ordem_servico.editar", label: "Editar OS" },
+          { key: "ordem_servico.excluir", label: "Excluir OS" },
+          { key: "ordem_servico.exportar_pdf", label: "Exportar PDF" },
+          { key: "ordem_servico.gerenciar_orcamento", label: "Gerenciar Orçamento" },
+          { key: "ordem_servico.gerenciar_anexos", label: "Gerenciar Anexos" },
+          { key: "ordem_servico.gerenciar_historico", label: "Visualizar Histórico/Workflow" },
+        ],
+        statusTransicoes: [
+          { key: "ordem_servico.status.aberta", label: "Aberta" },
+          { key: "ordem_servico.status.em_execucao", label: "Em Execução" },
+          { key: "ordem_servico.status.concluida", label: "Concluída" },
+          { key: "ordem_servico.status.cancelada", label: "Cancelada" },
+        ],
+      },
+      {
+        key: "medicoes",
+        label: "Medições de Serviços",
+        acoes: [
+          { key: "medicoes.criar", label: "Criar medição" },
+          { key: "medicoes.editar", label: "Editar medição" },
+          { key: "medicoes.excluir", label: "Excluir medição" },
+          { key: "medicoes.aprovar", label: "Aprovar medição" },
+          { key: "medicoes.exportar_pdf", label: "Exportar PDF" },
+          { key: "medicoes.exportar_excel", label: "Exportar Excel" },
+          { key: "medicoes.exportar_pagamento", label: "Exportar Pagamento Bancário" },
+        ],
+      },
+      {
+        key: "cronograma",
+        label: "Cronograma Físico-Financeiro",
+        acoes: [
+          { key: "cronograma.criar", label: "Criar cronograma" },
+          { key: "cronograma.editar", label: "Editar cronograma" },
+          { key: "cronograma.excluir", label: "Excluir cronograma" },
+          { key: "cronograma.exportar_pdf", label: "Exportar PDF" },
+          { key: "cronograma.exportar_excel", label: "Exportar Excel" },
+        ],
+      },
       {
         key: "rdo",
         label: "RDO - Diário de Obras",
@@ -306,16 +405,71 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "rdo.editar", label: "Editar RDO" },
           { key: "rdo.excluir", label: "Excluir RDO" },
           { key: "rdo.exportar_pdf", label: "Exportar PDF" },
+          { key: "rdo.exportar_pdf_imagens", label: "Exportar PDF com Imagens" },
           { key: "rdo.assinar_responsavel", label: "Assinar como Responsável Técnico" },
           { key: "rdo.assinar_fiscalizacao", label: "Assinar como Fiscalização" },
         ],
       },
       {
+        key: "plano_manutencao",
+        label: "Plano de Manutenção",
+        acoes: [
+          { key: "plano_manutencao.criar", label: "Criar plano" },
+          { key: "plano_manutencao.editar", label: "Editar plano" },
+          { key: "plano_manutencao.excluir", label: "Excluir plano" },
+          { key: "plano_manutencao.gerar_os", label: "Gerar OS a partir do plano" },
+          { key: "plano_manutencao.exportar", label: "Exportar relatório" },
+        ],
+      },
+      {
+        key: "pmoc",
+        label: "PMOC",
+        acoes: [
+          { key: "pmoc.criar", label: "Criar PMOC" },
+          { key: "pmoc.editar", label: "Editar PMOC" },
+          { key: "pmoc.excluir", label: "Excluir PMOC" },
+          { key: "pmoc.exportar_pdf", label: "Exportar PDF" },
+          { key: "pmoc.exportar_excel", label: "Exportar Excel" },
+        ],
+      },
+      {
+        key: "bim",
+        label: "BIM - Modelos 3D",
+        acoes: [
+          { key: "bim.criar", label: "Cadastrar modelo" },
+          { key: "bim.editar", label: "Editar modelo" },
+          { key: "bim.excluir", label: "Excluir modelo" },
+          { key: "bim.gerenciar_pranchas", label: "Gerenciar pranchas" },
+          { key: "bim.gerenciar_quantitativos", label: "Gerenciar quantitativos" },
+          { key: "bim.visualizar_3d", label: "Visualizar modelo 3D" },
+        ],
+      },
+      {
+        key: "responsaveis_tecnicos",
+        label: "Responsáveis Técnicos",
+        acoes: [
+          { key: "responsaveis_tecnicos.criar", label: "Cadastrar responsável" },
+          { key: "responsaveis_tecnicos.editar", label: "Editar responsável" },
+          { key: "responsaveis_tecnicos.excluir", label: "Excluir responsável" },
+        ],
+      },
+      {
         key: "os_assinatura",
-        label: "Assinatura de Ordem de Serviço",
+        label: "Assinatura/Lotes de OS",
         acoes: [
           { key: "os.assinar_fiscal", label: "Assinar como Fiscal do Contrato" },
           { key: "os.assinar_lote", label: "Acessar Assinatura em Lote" },
+          { key: "os.confirmar_lote", label: "Confirmar OS em Lote" },
+          { key: "os.validar_lote", label: "Validar OS em Lote" },
+          { key: "os.imprimir_lote", label: "Imprimir OS em Lote" },
+        ],
+      },
+      {
+        key: "pc_assinatura",
+        label: "Assinatura de Pedidos de Compra",
+        acoes: [
+          { key: "pc.assinar", label: "Assinar PC" },
+          { key: "pc.assinar_lote", label: "Assinar PC em Lote" },
         ],
       },
       {
@@ -336,8 +490,141 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
     ],
   },
   {
+    grupo: "Licitações",
+    modulos: [
+      {
+        key: "licitacoes",
+        label: "Licitações",
+        acoes: [
+          { key: "licitacoes.criar", label: "Cadastrar licitação" },
+          { key: "licitacoes.editar", label: "Editar licitação" },
+          { key: "licitacoes.excluir", label: "Excluir licitação" },
+          { key: "licitacoes.gerenciar_anexos", label: "Gerenciar anexos" },
+          { key: "licitacoes.extrair_datas_ia", label: "Extrair datas via IA" },
+        ],
+        statusTransicoes: [
+          { key: "licitacoes.status.acompanhando", label: "Acompanhando" },
+          { key: "licitacoes.status.participando", label: "Participando" },
+          { key: "licitacoes.status.vencida", label: "Vencida" },
+          { key: "licitacoes.status.perdida", label: "Perdida" },
+          { key: "licitacoes.status.cancelada", label: "Cancelada" },
+        ],
+      },
+    ],
+  },
+  {
+    grupo: "Jurídico",
+    modulos: [
+      {
+        key: "juridico",
+        label: "Processos Trabalhistas",
+        acoes: [
+          { key: "juridico.criar", label: "Cadastrar processo" },
+          { key: "juridico.editar", label: "Editar processo" },
+          { key: "juridico.excluir", label: "Excluir processo" },
+          { key: "juridico.gerenciar_audiencias", label: "Gerenciar audiências" },
+          { key: "juridico.gerenciar_anexos", label: "Gerenciar anexos" },
+          { key: "juridico.gerenciar_contatos", label: "Gerenciar contatos de notificação" },
+        ],
+      },
+    ],
+  },
+  {
+    grupo: "Patrimônio",
+    modulos: [
+      {
+        key: "ferramentas",
+        label: "Ferramentas",
+        acoes: [
+          { key: "ferramentas.criar", label: "Cadastrar ferramenta" },
+          { key: "ferramentas.editar", label: "Editar ferramenta" },
+          { key: "ferramentas.excluir", label: "Excluir ferramenta" },
+          { key: "ferramentas.gerenciar_emprestimos", label: "Gerenciar empréstimos" },
+          { key: "ferramentas.aprovar_emprestimo", label: "Aprovar empréstimo" },
+          { key: "ferramentas.vincular_funcionario", label: "Vincular a funcionário" },
+        ],
+      },
+    ],
+  },
+  {
+    grupo: "Qualidade",
+    modulos: [
+      {
+        key: "evidencias",
+        label: "Evidências",
+        acoes: [
+          { key: "evidencias.criar", label: "Cadastrar evidência" },
+          { key: "evidencias.editar", label: "Editar evidência" },
+          { key: "evidencias.excluir", label: "Excluir evidência" },
+          { key: "evidencias.gerenciar_anexos", label: "Gerenciar anexos" },
+        ],
+      },
+      {
+        key: "checklists",
+        label: "Checklists",
+        acoes: [
+          { key: "checklists.criar", label: "Criar checklist" },
+          { key: "checklists.editar", label: "Editar checklist" },
+          { key: "checklists.excluir", label: "Excluir checklist" },
+          { key: "checklists.preencher", label: "Preencher checklist" },
+          { key: "checklists.aprovar", label: "Aprovar preenchimento" },
+        ],
+      },
+    ],
+  },
+  {
+    grupo: "Comunicação",
+    modulos: [
+      {
+        key: "comunicacao_mensagens",
+        label: "Mensagens",
+        acoes: [
+          { key: "comunicacao_mensagens.criar_conversa", label: "Iniciar conversa" },
+          { key: "comunicacao_mensagens.enviar", label: "Enviar mensagem" },
+          { key: "comunicacao_mensagens.criar_grupo", label: "Criar grupo" },
+        ],
+      },
+      {
+        key: "comunicacao_avisos",
+        label: "Avisos",
+        acoes: [
+          { key: "comunicacao_avisos.criar", label: "Publicar aviso" },
+          { key: "comunicacao_avisos.editar", label: "Editar aviso" },
+          { key: "comunicacao_avisos.excluir", label: "Excluir aviso" },
+        ],
+      },
+      {
+        key: "comunicacao_notificacoes",
+        label: "Notificações",
+        acoes: [
+          { key: "comunicacao_notificacoes.criar", label: "Criar notificação" },
+          { key: "comunicacao_notificacoes.excluir", label: "Excluir notificação" },
+          { key: "comunicacao_notificacoes.marcar_lida", label: "Marcar como lida" },
+        ],
+      },
+      {
+        key: "chat_duda",
+        label: "Assistente Duda (IA)",
+        acoes: [
+          { key: "chat_duda.usar", label: "Conversar com a Duda" },
+          { key: "chat_duda.exportar", label: "Exportar relatórios da Duda" },
+        ],
+      },
+    ],
+  },
+  {
     grupo: "Administração",
     modulos: [
+      {
+        key: "empresa",
+        label: "Dados da Empresa",
+        acoes: [
+          { key: "empresa.visualizar", label: "Visualizar dados" },
+          { key: "empresa.editar", label: "Editar dados" },
+          { key: "empresa.gerenciar_logo", label: "Gerenciar logotipo" },
+          { key: "empresa.gerenciar_dados_bancarios", label: "Gerenciar dados bancários" },
+        ],
+      },
       {
         key: "usuarios",
         label: "Usuários",
@@ -346,6 +633,8 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "usuarios.editar", label: "Editar usuário" },
           { key: "usuarios.excluir", label: "Excluir usuário" },
           { key: "usuarios.gerenciar_acessos", label: "Gerenciar acessos por cliente" },
+          { key: "usuarios.gerenciar_limites", label: "Gerenciar limites de aprovação" },
+          { key: "usuarios.resetar_senha", label: "Resetar senha de usuário" },
         ],
       },
       {
@@ -356,6 +645,13 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "perfis_acesso.editar", label: "Editar perfil" },
           { key: "perfis_acesso.excluir", label: "Excluir perfil" },
           { key: "perfis_acesso.duplicar", label: "Duplicar perfil" },
+        ],
+      },
+      {
+        key: "monitor_tv",
+        label: "Monitor TV",
+        acoes: [
+          { key: "monitor_tv.visualizar", label: "Acessar Monitor TV" },
         ],
       },
     ],

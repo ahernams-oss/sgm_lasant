@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
-import { KeyRound, Trash2, Pencil, Search, Copy, ChevronDown, ChevronRight } from "lucide-react";
+import { KeyRound, Trash2, Pencil, Search, Copy, ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -28,7 +28,9 @@ const PerfisAcesso = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
+  const [permSearch, setPermSearch] = useState("");
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
@@ -80,11 +82,49 @@ const PerfisAcesso = () => {
     });
   };
 
+  const expandAll = () => {
+    const all: Record<string, boolean> = {};
+    MODULOS_SISTEMA.forEach(g => g.modulos.forEach(m => { all[m.key] = true; }));
+    setExpandedModules(all);
+    setCollapsedGroups({});
+  };
+  const collapseAll = () => {
+    setExpandedModules({});
+    const allG: Record<string, boolean> = {};
+    MODULOS_SISTEMA.forEach(g => { allG[g.grupo] = true; });
+    setCollapsedGroups(allG);
+  };
+  const toggleGrupoCollapse = (grupo: string) =>
+    setCollapsedGroups(prev => ({ ...prev, [grupo]: !prev[grupo] }));
+
+  const matchesSearch = (text: string) =>
+    !permSearch.trim() || text.toLowerCase().includes(permSearch.toLowerCase());
+
+  const filteredModulos = useMemo(() => {
+    if (!permSearch.trim()) return MODULOS_SISTEMA;
+    return MODULOS_SISTEMA
+      .map(g => ({
+        ...g,
+        modulos: g.modulos.filter(m => {
+          if (matchesSearch(m.label)) return true;
+          const sub = [
+            ...(m.acoes ?? []),
+            ...(m.statusTransicoes ?? []),
+            ...(m.flags ?? []),
+          ];
+          return sub.some(s => matchesSearch(s.label));
+        }),
+      }))
+      .filter(g => g.modulos.length > 0);
+  }, [permSearch]);
+
   const resetForm = () => {
     setForm(emptyForm);
     setEditingId(null);
     setShowForm(false);
     setExpandedModules({});
+    setCollapsedGroups({});
+    setPermSearch("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -193,35 +233,54 @@ const PerfisAcesso = () => {
               </div>
             </div>
 
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-foreground">Permissões</h3>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                  <div className="h-2.5 w-2.5 rounded-full bg-primary" />
-                  <span className="text-[10px] text-muted-foreground">Ações</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-                  <span className="text-[10px] text-muted-foreground">Status</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                  <span className="text-[10px] text-muted-foreground">Flags</span>
-                </div>
-                <div className="flex items-center gap-2 ml-2">
-                  <Switch checked={allChecked} onCheckedChange={toggleAll} />
-                  <span className="text-xs text-muted-foreground">
-                    {allChecked ? "Desmarcar todos" : "Marcar todos"}
+            <div className="mb-4 space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-sm font-semibold text-foreground">Permissões</h3>
+                  <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                    {ALL_PERMISSION_KEYS.filter(k => form.permissoes[k]).length}/{ALL_PERMISSION_KEYS.length}
                   </span>
                 </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-1.5"><div className="h-2.5 w-2.5 rounded-full bg-primary" /><span className="text-[10px] text-muted-foreground">Ações</span></div>
+                  <div className="flex items-center gap-1.5"><div className="h-2.5 w-2.5 rounded-full bg-amber-500" /><span className="text-[10px] text-muted-foreground">Status</span></div>
+                  <div className="flex items-center gap-1.5"><div className="h-2.5 w-2.5 rounded-full bg-emerald-500" /><span className="text-[10px] text-muted-foreground">Flags</span></div>
+                  <Button type="button" variant="outline" size="sm" onClick={expandAll} className="h-7 text-xs gap-1"><ChevronsUpDown className="h-3 w-3" />Expandir tudo</Button>
+                  <Button type="button" variant="outline" size="sm" onClick={collapseAll} className="h-7 text-xs gap-1"><ChevronsDownUp className="h-3 w-3" />Recolher tudo</Button>
+                  <div className="flex items-center gap-2 ml-1">
+                    <Switch checked={allChecked} onCheckedChange={toggleAll} />
+                    <span className="text-xs text-muted-foreground">{allChecked ? "Desmarcar todos" : "Marcar todos"}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={permSearch}
+                  onChange={e => setPermSearch(e.target.value)}
+                  placeholder="Buscar módulo, ação, status ou flag..."
+                  className="pl-9 pr-9 h-9"
+                />
+                {permSearch && (
+                  <button type="button" onClick={() => setPermSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
 
             <div className="space-y-4">
-              {MODULOS_SISTEMA.map(grupo => {
+              {filteredModulos.length === 0 && (
+                <div className="text-center text-sm text-muted-foreground py-8 border border-dashed rounded-lg">
+                  Nenhum módulo encontrado para "{permSearch}".
+                </div>
+              )}
+              {filteredModulos.map(grupo => {
                 const grupoKeys = grupo.modulos.flatMap(getModuleAllKeys);
                 const allGrupoChecked = grupoKeys.every(k => form.permissoes[k]);
                 const someGrupoChecked = grupoKeys.some(k => form.permissoes[k]);
+
+                const isGrupoCollapsed = !!collapsedGroups[grupo.grupo] && !permSearch.trim();
 
                 return (
                   <div key={grupo.grupo} className="rounded-lg border border-border overflow-hidden">
@@ -232,7 +291,14 @@ const PerfisAcesso = () => {
                           className={someGrupoChecked && !allGrupoChecked ? "opacity-60" : ""}
                           onCheckedChange={() => toggleGrupo(grupo)}
                         />
-                        <h4 className="text-sm font-semibold text-foreground">{grupo.grupo}</h4>
+                        <button
+                          type="button"
+                          onClick={() => toggleGrupoCollapse(grupo.grupo)}
+                          className="flex items-center gap-1.5 hover:opacity-80"
+                        >
+                          {isGrupoCollapsed ? <ChevronRight className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                          <h4 className="text-sm font-semibold text-foreground">{grupo.grupo}</h4>
+                        </button>
                         <span className="text-[10px] text-muted-foreground">
                           ({grupoKeys.filter(k => form.permissoes[k]).length}/{grupoKeys.length})
                         </span>
@@ -246,7 +312,7 @@ const PerfisAcesso = () => {
                       </button>
                     </div>
 
-                    <div className="divide-y divide-border">
+                    {!isGrupoCollapsed && <div className="divide-y divide-border">
                       {grupo.modulos.map(mod => {
                         const modKeys = getModuleAllKeys(mod);
                         const allModChecked = modKeys.every(k => form.permissoes[k]);
@@ -331,7 +397,7 @@ const PerfisAcesso = () => {
                           </div>
                         );
                       })}
-                    </div>
+                    </div>}
                   </div>
                 );
               })}
