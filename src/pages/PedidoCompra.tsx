@@ -5,6 +5,9 @@ import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePcAssinaturas } from "@/contexts/PcAssinaturasContext";
+import { AssinaturaEletronicaPc } from "@/components/AssinaturaEletronicaPc";
+import { ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +51,7 @@ export default function PedidoCompraPage() {
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
+  const { porPedido: assinaturasPorPedido } = usePcAssinaturas();
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
@@ -138,11 +142,13 @@ export default function PedidoCompraPage() {
   const getFornecedor = (fornecedorId: string) => clientes.find(c => c.id === fornecedorId) || null;
 
   const handleDownloadPdf = async (pedido: PedidoCompra) => {
+    const assinatura = assinaturasPorPedido(pedido.id).find(a => a.papel === "aprovador") || null;
     await downloadPdfOrdemCompra({
       pedido,
       empresa: empresa.id ? empresa : null,
       fornecedor: getFornecedor(pedido.fornecedorId),
       autorizadoPor: usuarioLogado?.nome || "Usuário",
+      assinatura,
     });
     toast({ title: "PDF da Ordem de Compra baixado com sucesso" });
   };
@@ -160,11 +166,13 @@ export default function PedidoCompraPage() {
     if (!sendPedido) return;
     setSending(true);
 
+    const assinatura = assinaturasPorPedido(sendPedido.id).find(a => a.papel === "aprovador") || null;
     const pdfData = {
       pedido: sendPedido,
       empresa: empresa.id ? empresa : null,
       fornecedor: getFornecedor(sendPedido.fornecedorId),
       autorizadoPor: usuarioLogado?.nome || "Usuário",
+      assinatura,
     };
 
     try {
@@ -287,11 +295,13 @@ export default function PedidoCompraPage() {
     if (lista.length === 0) return;
     toast({ title: `Gerando ${lista.length} PDF${lista.length > 1 ? "s" : ""}...` });
     for (const p of lista) {
+      const assinatura = assinaturasPorPedido(p.id).find(a => a.papel === "aprovador") || null;
       await downloadPdfOrdemCompra({
         pedido: p,
         empresa: empresa.id ? empresa : null,
         fornecedor: getFornecedor(p.fornecedorId),
         autorizadoPor: usuarioLogado?.nome || "Usuário",
+        assinatura,
       });
     }
     toast({ title: `${lista.length} PDF${lista.length > 1 ? "s gerados" : " gerado"} com sucesso` });
@@ -413,15 +423,27 @@ export default function PedidoCompraPage() {
                   </TableCell>
                   {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
                   <TableCell>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" title="Detalhes" onClick={() => setViewPedido(p)}><Eye className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" title="Histórico" onClick={() => setHistoricoPedido(p)}><Clock className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" title="Baixar PDF" onClick={() => handleDownloadPdf(p)}><FileDown className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" title="Enviar ao Fornecedor" onClick={() => openSendDialog(p)}><Send className="h-4 w-4" /></Button>
-                      {canUpdate && (
-                        <Button variant="ghost" size="icon" title="Atualizar Status" onClick={() => openStatusDialog(p)}><ArrowRight className="h-4 w-4" /></Button>
-                      )}
-                    </div>
+                    {(() => {
+                      const assinatura = assinaturasPorPedido(p.id).find(a => a.papel === "aprovador");
+                      return (
+                        <div className="flex gap-1 items-center">
+                          <Button variant="ghost" size="icon" title="Detalhes" onClick={() => setViewPedido(p)}><Eye className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" title="Histórico" onClick={() => setHistoricoPedido(p)}><Clock className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" title="Baixar PDF" onClick={() => handleDownloadPdf(p)}><FileDown className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" title="Enviar ao Fornecedor" onClick={() => openSendDialog(p)}><Send className="h-4 w-4" /></Button>
+                          {assinatura ? (
+                            <span title={`Assinado por ${assinatura.signatario_nome} em ${format(new Date(assinatura.signed_at), "dd/MM/yyyy HH:mm")}`}>
+                              <ShieldCheck className="h-4 w-4 text-green-600" />
+                            </span>
+                          ) : (
+                            <AssinaturaEletronicaPc pedido={p} variant="ghost" size="icon" label="" />
+                          )}
+                          {canUpdate && (
+                            <Button variant="ghost" size="icon" title="Atualizar Status" onClick={() => openStatusDialog(p)}><ArrowRight className="h-4 w-4" /></Button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </TableCell>
                 </TableRow>
               );
@@ -494,13 +516,36 @@ export default function PedidoCompraPage() {
 
               {viewPedido.observacoes && <div><span className="text-muted-foreground text-sm">Observações:</span><p className="text-sm">{viewPedido.observacoes}</p></div>}
 
-              <div className="flex gap-2 pt-4 border-t">
+              {(() => {
+                const a = assinaturasPorPedido(viewPedido.id).find(x => x.papel === "aprovador");
+                if (!a) return null;
+                return (
+                  <div className="border-2 border-primary/30 bg-primary/5 rounded-lg p-3 text-sm space-y-1">
+                    <div className="flex items-center gap-2 font-semibold">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      Aprovador — Assinado Eletronicamente
+                    </div>
+                    <p><strong>Signatário:</strong> {a.signatario_nome}</p>
+                    {a.signatario_cargo && <p><strong>Cargo:</strong> {a.signatario_cargo}</p>}
+                    {a.signatario_matricula && <p><strong>Matrícula:</strong> {a.signatario_matricula}</p>}
+                    <p><strong>Data/Hora:</strong> {format(new Date(a.signed_at), "dd/MM/yyyy HH:mm")}</p>
+                    {a.ip_origem && <p><strong>IP:</strong> {a.ip_origem}</p>}
+                    <p className="text-xs"><strong>Código:</strong> <code className="bg-muted px-1 rounded">{a.codigo_verificador}</code></p>
+                    <p className="text-xs italic text-muted-foreground">{a.base_legal}</p>
+                  </div>
+                );
+              })()}
+
+              <div className="flex flex-wrap gap-2 pt-4 border-t">
                 <Button onClick={() => handleDownloadPdf(viewPedido)} variant="outline">
                   <FileDown className="h-4 w-4 mr-2" /> Baixar PDF
                 </Button>
                 <Button onClick={() => { setViewPedido(null); openSendDialog(viewPedido); }}>
                   <Send className="h-4 w-4 mr-2" /> Enviar ao Fornecedor
                 </Button>
+                {!assinaturasPorPedido(viewPedido.id).find(x => x.papel === "aprovador") && (
+                  <AssinaturaEletronicaPc pedido={viewPedido} fullLabel size="default" />
+                )}
               </div>
             </div>
           )}

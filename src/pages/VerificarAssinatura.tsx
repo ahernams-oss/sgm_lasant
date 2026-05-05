@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { ShieldCheck, ShieldAlert, ArrowLeft, FileSignature } from "lucide-react";
 import { gerarHashRdo } from "@/lib/assinaturaHash";
 import { gerarHashOs } from "@/lib/assinaturaHashOs";
+import { gerarHashPc } from "@/lib/assinaturaHashPc";
 
-type Tipo = "rdo" | "os";
+type Tipo = "rdo" | "os" | "pc";
 
 const fmtDateTime = (d: string) =>
   new Date(d).toLocaleString("pt-BR", {
@@ -19,6 +20,7 @@ const fmtDateTime = (d: string) =>
 
 const labelPapel = (tipo: Tipo, p: string) => {
   if (tipo === "rdo") return p === "responsavel" ? "Responsável Técnico" : "Fiscalização";
+  if (tipo === "pc") return "Aprovador";
   return p === "fiscal" ? "Fiscal do Contrato" : "Solicitante";
 };
 
@@ -88,6 +90,36 @@ export default function VerificarAssinatura() {
         return;
       }
 
+      // 3. Tenta PC (Ordem de Compra)
+      const { data: assPc } = await supabase
+        .from("pc_assinaturas")
+        .select("*")
+        .eq("codigo_verificador", codTrim)
+        .maybeSingle();
+
+      if (assPc) {
+        setTipo("pc");
+        setAssinatura(assPc);
+        const { data: p } = await supabase.from("pedidos_compra").select("*").eq("id", assPc.pedido_id).maybeSingle();
+        setDocumento(p);
+        const { data: outras } = await supabase
+          .from("pc_assinaturas").select("*").eq("pedido_id", assPc.pedido_id).order("signed_at");
+        setTodasAssinaturas(outras || []);
+        if (p) {
+          try {
+            const pedidoMapped: any = {
+              numero: p.numero, cotacaoId: p.cotacao_id, requisicaoId: p.requisicao_id,
+              requisicaoNumero: p.requisicao_numero, dataCriacao: p.data_criacao,
+              comprador: p.comprador, fornecedorId: p.fornecedor_id, fornecedorNome: p.fornecedor_nome,
+              itens: p.itens, condicaoPagamento: p.condicao_pagamento, prazoEntrega: p.prazo_entrega,
+              localEntrega: p.local_entrega, observacoes: p.observacoes, valorTotal: Number(p.valor_total) || 0,
+            };
+            setHashAtual(await gerarHashPc(pedidoMapped));
+          } catch { /* ignore */ }
+        }
+        return;
+      }
+
       setNaoEncontrado(true);
     } finally {
       setLoading(false);
@@ -100,7 +132,9 @@ export default function VerificarAssinatura() {
   }, [codigoParam]);
 
   const integro = assinatura && hashAtual && assinatura.hash_documento === hashAtual;
-  const documentoCancelado = tipo === "os" && documento?.situacao === "Cancelada";
+  const documentoCancelado =
+    (tipo === "os" && documento?.situacao === "Cancelada") ||
+    (tipo === "pc" && documento?.status === "Cancelado");
   const valida = integro && !documentoCancelado;
 
   const renderDocumento = () => {
@@ -116,6 +150,24 @@ export default function VerificarAssinatura() {
             <p><span className="font-semibold">Responsável:</span> {documento.responsavel}</p>
             <p><span className="font-semibold">Avanço Físico:</span> {(Number(documento.avanco_fisico_geral) || 0).toFixed(2)}%</p>
             <p><span className="font-semibold">Status:</span> {documento.status}</p>
+          </CardContent>
+        </Card>
+      );
+    }
+    if (tipo === "pc") {
+      return (
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Conteúdo da Ordem de Compra</CardTitle></CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            <p><span className="font-semibold">Fornecedor:</span> {documento.fornecedor_nome || "-"}</p>
+            <p><span className="font-semibold">Comprador:</span> {documento.comprador || "-"}</p>
+            <p><span className="font-semibold">Data:</span> {documento.data_criacao ? new Date(documento.data_criacao).toLocaleString("pt-BR") : "-"}</p>
+            <p><span className="font-semibold">Valor Total:</span> {Number(documento.valor_total || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+            <p><span className="font-semibold">Status:</span>{" "}
+              <Badge variant="outline" className={documento.status === "Cancelado" ? "bg-red-100 text-red-800 border-red-300" : "bg-muted"}>
+                {documento.status || "-"}
+              </Badge>
+            </p>
           </CardContent>
         </Card>
       );
@@ -146,6 +198,8 @@ export default function VerificarAssinatura() {
 
   const tituloDocumento = tipo === "rdo"
     ? `RDO Nº ${assinatura?.rdo_numero ?? ""}`
+    : tipo === "pc"
+    ? `Ordem de Compra PC-${String(assinatura?.pedido_numero ?? "").padStart(4, "0")}`
     : `OS Nº ${assinatura?.os_numero ?? ""}`;
 
   return (

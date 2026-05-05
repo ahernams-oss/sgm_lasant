@@ -1,8 +1,10 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import QRCode from "qrcode";
 import { PedidoCompra } from "@/contexts/PedidoCompraContext";
 import { Cliente } from "@/contexts/ClientesContext";
 import { Empresa } from "@/contexts/EmpresaContext";
+import type { PcAssinatura } from "@/contexts/PcAssinaturasContext";
 import { format } from "date-fns";
 
 interface OrdemCompraData {
@@ -10,6 +12,7 @@ interface OrdemCompraData {
   empresa: Empresa | null;
   fornecedor: Cliente | null;
   autorizadoPor: string;
+  assinatura?: PcAssinatura | null;
 }
 
 // ── helpers ──────────────────────────────────────────────
@@ -77,7 +80,7 @@ function fieldRow(
 
 // ── main generator (async for logo) ─────────────────────
 export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<jsPDF> {
-  const { pedido, empresa, fornecedor, autorizadoPor } = data;
+  const { pedido, empresa, fornecedor, autorizadoPor, assinatura } = data;
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
@@ -237,18 +240,68 @@ export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<j
   doc.setTextColor(0, 0, 0);
   y += 15;
 
-  // ────────── AUTORIZAÇÃO ──────────
-  const sigW = fullW * 0.45;
-  const sigX = ml + (fullW - sigW) / 2;
-  doc.setDrawColor(BORDER.r, BORDER.g, BORDER.b);
-  doc.setLineWidth(0.5);
-  doc.line(sigX, y + 12, sigX + sigW, y + 12);
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  doc.text(autorizadoPor || "Responsável", ml + fullW / 2, y + 18, { align: "center" });
-  doc.setFontSize(7);
-  doc.setFont("helvetica", "normal");
-  doc.text("Autorizado por", ml + fullW / 2, y + 23, { align: "center" });
+  // ────────── AUTORIZAÇÃO / ASSINATURA ELETRÔNICA ──────────
+  if (assinatura) {
+    // Cabeçalho
+    doc.setFillColor(240, 240, 240);
+    doc.setDrawColor(BORDER.r, BORDER.g, BORDER.b);
+    doc.setLineWidth(0.3);
+    doc.rect(ml, y, fullW, 6, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(30, 30, 30);
+    doc.text("ASSINATURA ELETRÔNICA — APROVADOR", ml + fullW / 2, y + 4.2, { align: "center" });
+    y += 6;
+
+    const blockH = 32;
+    const qrSize = 22;
+    const qrX = ml + fullW - qrSize - 3;
+    const qrY = y + (blockH - qrSize) / 2;
+
+    doc.rect(ml, y, fullW, blockH);
+
+    let qrDataUrl: string | null = null;
+    try {
+      const verifyUrl = `${window.location.origin}/verificar-assinatura/${assinatura.codigo_verificador}`;
+      qrDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 200 });
+      doc.addImage(qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize);
+    } catch { /* ignore */ }
+
+    const tx = ml + 3;
+    let ty = y + 5;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.text("Aprovador — Assinado Eletronicamente", tx, ty);
+    ty += 4;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.text(`Signatário: ${assinatura.signatario_nome}`, tx, ty);
+    if (assinatura.signatario_cargo) { ty += 3.5; doc.text(`Cargo: ${assinatura.signatario_cargo}`, tx, ty); }
+    if (assinatura.signatario_matricula) { ty += 3.5; doc.text(`Matrícula: ${assinatura.signatario_matricula}`, tx, ty); }
+    ty += 3.5;
+    doc.text(`Data/Hora: ${format(new Date(assinatura.signed_at), "dd/MM/yyyy HH:mm")}`, tx, ty);
+    if (assinatura.ip_origem) { ty += 3.5; doc.text(`IP: ${assinatura.ip_origem}`, tx, ty); }
+    ty += 3.5;
+    doc.setFontSize(6.5);
+    doc.text(`Código: ${assinatura.codigo_verificador}`, tx, ty);
+    ty += 3;
+    doc.setTextColor(80, 80, 80);
+    doc.text("LEI Nº 14.063, DE 23 DE SETEMBRO DE 2020", tx, ty);
+    doc.setTextColor(0, 0, 0);
+    y += blockH + 2;
+  } else {
+    const sigW = fullW * 0.45;
+    const sigX = ml + (fullW - sigW) / 2;
+    doc.setDrawColor(BORDER.r, BORDER.g, BORDER.b);
+    doc.setLineWidth(0.5);
+    doc.line(sigX, y + 12, sigX + sigW, y + 12);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.text(autorizadoPor || "Responsável", ml + fullW / 2, y + 18, { align: "center" });
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.text("Autorizado por", ml + fullW / 2, y + 23, { align: "center" });
+  }
 
   // ────────── FOOTER ──────────
   doc.setFillColor(BLUE.r, BLUE.g, BLUE.b);
