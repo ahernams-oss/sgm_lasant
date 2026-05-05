@@ -276,20 +276,7 @@ const RequisicaoGrid = () => {
                   <TableCell className="text-sm">{req.solicitante || "—"}</TableCell>
                   <TableCell className="text-sm">{req.aprovadoPor || "—"}</TableCell>
                   <TableCell>
-                    {isProcessoLiberado(req.id) || req.status === "Concluída" ? (
-                      <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge>
-                    ) : (
-                      <Select value={req.status} onValueChange={(v) => handleStatusChange(req, v as Requisicao["status"])}>
-                        <SelectTrigger className="h-7 w-[120px] text-xs border-0 p-0 focus:ring-0">
-                          <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statusOptions.map((s) => (
-                            <SelectItem key={s} value={s}>{s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
+                    <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge>
                   </TableCell>
                   <TableCell className="pr-5 text-center">
                     <DropdownMenu>
@@ -314,6 +301,27 @@ const RequisicaoGrid = () => {
                           <DropdownMenuItem onClick={() => navigate(`/processo-seletivo/${req.id}`)}>
                             <ClipboardCheck className="mr-2 h-4 w-4" /> Processo Seletivo
                           </DropdownMenuItem>
+                        )}
+                        {!isProcessoLiberado(req.id) && req.status !== "Concluída" && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel className="text-xs text-muted-foreground">Aprovação</DropdownMenuLabel>
+                            {req.status !== "Em Análise" && (
+                              <DropdownMenuItem onClick={() => handleStatusChange(req, "Em Análise")}>
+                                <Clock className="mr-2 h-4 w-4 text-blue-600" /> Marcar Em Análise
+                              </DropdownMenuItem>
+                            )}
+                            {req.status !== "Aprovada" && (
+                              <DropdownMenuItem onClick={() => handleStatusChange(req, "Aprovada")}>
+                                <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Aprovar
+                              </DropdownMenuItem>
+                            )}
+                            {req.status !== "Reprovada" && (
+                              <DropdownMenuItem onClick={() => handleStatusChange(req, "Reprovada")}>
+                                <XCircle className="mr-2 h-4 w-4 text-red-600" /> Reprovar
+                              </DropdownMenuItem>
+                            )}
+                          </>
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
