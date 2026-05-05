@@ -26,7 +26,9 @@ const fmtMoney = (n: number) =>
   (Number(n) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fmtPct = (n: number) => `${(Number(n) || 0).toFixed(2)}%`;
 
-export async function gerarPdfCronograma(cronograma: Cronograma, empresa?: Empresa) {
+export type CronogramaModelo = "completo" | "fisico" | "financeiro" | "resumo";
+
+export async function gerarPdfCronograma(cronograma: Cronograma, empresa?: Empresa, modelo: CronogramaModelo = "completo") {
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
   const pw = doc.internal.pageSize.getWidth();
   const ml = 10, mr = 10;
