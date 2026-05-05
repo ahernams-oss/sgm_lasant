@@ -15,9 +15,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, LineChart, Line,
+  PieChart, Pie, Cell, Legend, AreaChart, Area,
 } from "recharts";
-import { FileText, Ruler, TrendingUp, DollarSign, Clock, CheckCircle, Download, CalendarIcon, Filter, X, LayoutDashboard, AlertTriangle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { FileText, Ruler, TrendingUp, DollarSign, Clock, CheckCircle, Download, CalendarIcon, Filter, X, LayoutDashboard, AlertTriangle, Sparkles, Wallet, Activity } from "lucide-react";
 import { downloadPdfMedicoes } from "@/lib/gerarPdfMedicoes";
 import { downloadExcelMedicoes } from "@/lib/gerarExcelMedicoes";
 
