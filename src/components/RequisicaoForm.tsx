@@ -109,6 +109,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       conhecimentoInformatica: form.conhecimentoInformatica,
       atividadesCargo: form.atividadesCargo,
       salarioVaga: form.salarioVaga,
+      solicitante: usuarioLogado?.nome || "",
     });
     toast.success("Requisição enviada com sucesso!");
     onSuccess?.();
