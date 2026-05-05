@@ -26,6 +26,7 @@ import RequisicaoComprasPage from "./pages/RequisicaoCompras.tsx";
 import DashboardCompras from "./pages/DashboardCompras.tsx";
 import CotacaoComprasPage from "./pages/CotacaoCompras.tsx";
 import PedidoCompraPage from "./pages/PedidoCompra.tsx";
+import InteligenciaComprasPage from "./pages/InteligenciaCompras.tsx";
 import PropostaFornecedorPage from "./pages/PropostaFornecedor.tsx";
 import RecebimentoComprasPage from "./pages/RecebimentoCompras.tsx";
 import EstoquePage from "./pages/Estoque.tsx";
