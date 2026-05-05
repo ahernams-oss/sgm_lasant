@@ -299,6 +299,76 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
     grupo: "Engenharia",
     modulos: [
       {
+        key: "dashboard_engenharia",
+        label: "Dashboard Engenharia",
+        acoes: [
+          { key: "dashboard_engenharia.visualizar", label: "Visualizar dashboard" },
+          { key: "dashboard_engenharia.exportar_pdf", label: "Exportar PDF" },
+        ],
+      },
+      {
+        key: "solicitacao_servicos",
+        label: "Solicitação de Serviços (SS)",
+        acoes: [
+          { key: "solicitacao_servicos.criar", label: "Criar SS" },
+          { key: "solicitacao_servicos.editar", label: "Editar SS" },
+          { key: "solicitacao_servicos.excluir", label: "Excluir SS" },
+          { key: "solicitacao_servicos.exportar_pdf", label: "Exportar PDF" },
+          { key: "solicitacao_servicos.aprovar_lote", label: "Aprovação em Lote" },
+        ],
+        statusTransicoes: [
+          { key: "solicitacao_servicos.status.aberta", label: "Aberta" },
+          { key: "solicitacao_servicos.status.em_analise", label: "Em Análise" },
+          { key: "solicitacao_servicos.status.aprovada", label: "Aprovada" },
+          { key: "solicitacao_servicos.status.reprovada", label: "Reprovada" },
+          { key: "solicitacao_servicos.status.concluida", label: "Concluída" },
+          { key: "solicitacao_servicos.status.cancelada", label: "Cancelada" },
+        ],
+      },
+      {
+        key: "ordem_servico",
+        label: "Ordem de Serviço (OS)",
+        acoes: [
+          { key: "ordem_servico.criar", label: "Criar OS" },
+          { key: "ordem_servico.editar", label: "Editar OS" },
+          { key: "ordem_servico.excluir", label: "Excluir OS" },
+          { key: "ordem_servico.exportar_pdf", label: "Exportar PDF" },
+          { key: "ordem_servico.gerenciar_orcamento", label: "Gerenciar Orçamento" },
+          { key: "ordem_servico.gerenciar_anexos", label: "Gerenciar Anexos" },
+          { key: "ordem_servico.gerenciar_historico", label: "Visualizar Histórico/Workflow" },
+        ],
+        statusTransicoes: [
+          { key: "ordem_servico.status.aberta", label: "Aberta" },
+          { key: "ordem_servico.status.em_execucao", label: "Em Execução" },
+          { key: "ordem_servico.status.concluida", label: "Concluída" },
+          { key: "ordem_servico.status.cancelada", label: "Cancelada" },
+        ],
+      },
+      {
+        key: "medicoes",
+        label: "Medições de Serviços",
+        acoes: [
+          { key: "medicoes.criar", label: "Criar medição" },
+          { key: "medicoes.editar", label: "Editar medição" },
+          { key: "medicoes.excluir", label: "Excluir medição" },
+          { key: "medicoes.aprovar", label: "Aprovar medição" },
+          { key: "medicoes.exportar_pdf", label: "Exportar PDF" },
+          { key: "medicoes.exportar_excel", label: "Exportar Excel" },
+          { key: "medicoes.exportar_pagamento", label: "Exportar Pagamento Bancário" },
+        ],
+      },
+      {
+        key: "cronograma",
+        label: "Cronograma Físico-Financeiro",
+        acoes: [
+          { key: "cronograma.criar", label: "Criar cronograma" },
+          { key: "cronograma.editar", label: "Editar cronograma" },
+          { key: "cronograma.excluir", label: "Excluir cronograma" },
+          { key: "cronograma.exportar_pdf", label: "Exportar PDF" },
+          { key: "cronograma.exportar_excel", label: "Exportar Excel" },
+        ],
+      },
+      {
         key: "rdo",
         label: "RDO - Diário de Obras",
         acoes: [
@@ -306,16 +376,71 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "rdo.editar", label: "Editar RDO" },
           { key: "rdo.excluir", label: "Excluir RDO" },
           { key: "rdo.exportar_pdf", label: "Exportar PDF" },
+          { key: "rdo.exportar_pdf_imagens", label: "Exportar PDF com Imagens" },
           { key: "rdo.assinar_responsavel", label: "Assinar como Responsável Técnico" },
           { key: "rdo.assinar_fiscalizacao", label: "Assinar como Fiscalização" },
         ],
       },
       {
+        key: "plano_manutencao",
+        label: "Plano de Manutenção",
+        acoes: [
+          { key: "plano_manutencao.criar", label: "Criar plano" },
+          { key: "plano_manutencao.editar", label: "Editar plano" },
+          { key: "plano_manutencao.excluir", label: "Excluir plano" },
+          { key: "plano_manutencao.gerar_os", label: "Gerar OS a partir do plano" },
+          { key: "plano_manutencao.exportar", label: "Exportar relatório" },
+        ],
+      },
+      {
+        key: "pmoc",
+        label: "PMOC",
+        acoes: [
+          { key: "pmoc.criar", label: "Criar PMOC" },
+          { key: "pmoc.editar", label: "Editar PMOC" },
+          { key: "pmoc.excluir", label: "Excluir PMOC" },
+          { key: "pmoc.exportar_pdf", label: "Exportar PDF" },
+          { key: "pmoc.exportar_excel", label: "Exportar Excel" },
+        ],
+      },
+      {
+        key: "bim",
+        label: "BIM - Modelos 3D",
+        acoes: [
+          { key: "bim.criar", label: "Cadastrar modelo" },
+          { key: "bim.editar", label: "Editar modelo" },
+          { key: "bim.excluir", label: "Excluir modelo" },
+          { key: "bim.gerenciar_pranchas", label: "Gerenciar pranchas" },
+          { key: "bim.gerenciar_quantitativos", label: "Gerenciar quantitativos" },
+          { key: "bim.visualizar_3d", label: "Visualizar modelo 3D" },
+        ],
+      },
+      {
+        key: "responsaveis_tecnicos",
+        label: "Responsáveis Técnicos",
+        acoes: [
+          { key: "responsaveis_tecnicos.criar", label: "Cadastrar responsável" },
+          { key: "responsaveis_tecnicos.editar", label: "Editar responsável" },
+          { key: "responsaveis_tecnicos.excluir", label: "Excluir responsável" },
+        ],
+      },
+      {
         key: "os_assinatura",
-        label: "Assinatura de Ordem de Serviço",
+        label: "Assinatura/Lotes de OS",
         acoes: [
           { key: "os.assinar_fiscal", label: "Assinar como Fiscal do Contrato" },
           { key: "os.assinar_lote", label: "Acessar Assinatura em Lote" },
+          { key: "os.confirmar_lote", label: "Confirmar OS em Lote" },
+          { key: "os.validar_lote", label: "Validar OS em Lote" },
+          { key: "os.imprimir_lote", label: "Imprimir OS em Lote" },
+        ],
+      },
+      {
+        key: "pc_assinatura",
+        label: "Assinatura de Pedidos de Compra",
+        acoes: [
+          { key: "pc.assinar", label: "Assinar PC" },
+          { key: "pc.assinar_lote", label: "Assinar PC em Lote" },
         ],
       },
       {
