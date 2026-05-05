@@ -1,0 +1,254 @@
+import { useState, useMemo } from "react";
+import { useOrdensServico, OrdemServico } from "@/contexts/OrdensServicoContext";
+import { useClientes } from "@/contexts/ClientesContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
+import { useOsAssinaturas } from "@/contexts/OsAssinaturasContext";
+import { gerarPdfOrdemServicoLote } from "@/lib/gerarPdfOrdemServico";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
+import { formatNumeroAno } from "@/lib/formatNumero";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import { Printer, Search } from "lucide-react";
+
+const STATUS_PERMITIDOS = ["Validada"];
+
+export default function ImprimirLoteOs() {
+  const { ordens } = useOrdensServico();
+  const { clientes } = useClientes();
+  const { empresa } = useEmpresa();
+  const { assinaturas: assinaturasOs } = useOsAssinaturas();
+
+  const [search, setSearch] = useState("");
+  const [filterCliente, setFilterCliente] = useState("all");
+  const [filtroDataIni, setFiltroDataIni] = useState("");
+  const [filtroDataFim, setFiltroDataFim] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [printing, setPrinting] = useState(false);
+
+  const disponiveis = useMemo(
+    () => ordens.filter((os) => STATUS_PERMITIDOS.includes(os.situacao)),
+    [ordens]
+  );
+
+  const filtered = useMemo(() => {
+    let result = disponiveis;
+    if (filterCliente !== "all") result = result.filter((s) => s.clienteId === filterCliente);
+    if (filtroDataIni) result = result.filter((s) => (s.createdAt || "") >= filtroDataIni);
+    if (filtroDataFim) result = result.filter((s) => (s.createdAt || "").slice(0, 10) <= filtroDataFim);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (s) =>
+          String(s.numero).includes(q) ||
+          formatNumeroAno(s.numero, s.createdAt).toLowerCase().includes(q) ||
+          s.clienteNome?.toLowerCase().includes(q) ||
+          s.descricaoServicos?.toLowerCase().includes(q) ||
+          s.localDescricao?.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [disponiveis, search, filterCliente, filtroDataIni, filtroDataFim]);
+
+  const { paginated } = paginate(filtered, page, pageSize);
+  const allPageIds = paginated.map((s) => s.id);
+  const allPageSelected = allPageIds.length > 0 && allPageIds.every((id) => selectedIds.has(id));
+
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allPageSelected) allPageIds.forEach((id) => next.delete(id));
+      else allPageIds.forEach((id) => next.add(id));
+      return next;
+    });
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAllFiltered = () => {
+    setSelectedIds(new Set(filtered.map((s) => s.id)));
+  };
+
+  const clientesUnicos = useMemo(
+    () =>
+      (clientes || [])
+        .filter((c: any) => (c.tipo || "Cliente") === "Cliente")
+        .map((c: any) => [c.id, c.nome] as [string, string])
+        .sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
+    [clientes]
+  );
+
+  const handleImprimirLote = async () => {
+    const lista = ordens
+      .filter((o) => selectedIds.has(o.id))
+      .map((o) => ({
+        os: o,
+        empresa,
+        cliente: clientes.find((c) => c.id === o.clienteId),
+        assinaturas: assinaturasOs.filter((a) => a.os_id === o.id),
+      }));
+    if (lista.length === 0) return;
+    setPrinting(true);
+    try {
+      await gerarPdfOrdemServicoLote(lista);
+      toast.success(`${lista.length} OS impressa(s) em lote.`);
+    } catch (e: any) {
+      toast.error("Falha ao gerar PDF: " + (e?.message || ""));
+    } finally {
+      setPrinting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 p-2.5 rounded-xl">
+            <Printer className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Imprimir OS Validadas em Lote</h1>
+            <p className="text-sm text-muted-foreground">
+              Selecione as Ordens de Serviço validadas para gerar um único PDF
+            </p>
+          </div>
+        </div>
+        <Badge variant="secondary">{filtered.length} disponíveis</Badge>
+      </div>
+
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="relative flex-1 min-w-[220px]">
+          <Label className="text-xs">Buscar</Label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Nº, cliente, descrição..."
+              className="pl-9"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            />
+          </div>
+        </div>
+        <div className="w-[260px]">
+          <Label className="text-xs">Cliente</Label>
+          <Select value={filterCliente} onValueChange={(v) => { setFilterCliente(v); setPage(1); }}>
+            <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Clientes</SelectItem>
+              {clientesUnicos.map(([id, nome]) => (
+                <SelectItem key={id} value={id}>{nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-xs">Data Início</Label>
+          <Input type="date" value={filtroDataIni} onChange={(e) => { setFiltroDataIni(e.target.value); setPage(1); }} />
+        </div>
+        <div>
+          <Label className="text-xs">Data Fim</Label>
+          <Input type="date" value={filtroDataFim} onChange={(e) => { setFiltroDataFim(e.target.value); setPage(1); }} />
+        </div>
+      </div>
+
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 p-3 bg-accent rounded-lg border border-border">
+          <span className="text-sm font-medium">{selectedIds.size} OS selecionada(s)</span>
+          <Button size="sm" onClick={handleImprimirLote} disabled={printing}>
+            <Printer className="mr-2 h-4 w-4" />
+            {printing ? "Gerando PDF..." : "Imprimir selecionadas"}
+          </Button>
+          <Button size="sm" variant="outline" onClick={selectAllFiltered}>
+            Selecionar todas filtradas ({filtered.length})
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+            Limpar seleção
+          </Button>
+        </div>
+      )}
+
+      <div className="rounded-lg border border-border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-10 text-center">
+                <Checkbox
+                  checked={allPageSelected}
+                  onCheckedChange={toggleSelectAll}
+                  aria-label="Selecionar todos da página"
+                />
+              </TableHead>
+              <TableHead className="w-16">Nº</TableHead>
+              <TableHead>Cliente</TableHead>
+              <TableHead>Local</TableHead>
+              <TableHead>Descrição do Serviço</TableHead>
+              <TableHead className="w-32">Solicitante</TableHead>
+              <TableHead className="w-40 text-center">Situação</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginated.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
+                  <Printer className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                  Nenhuma OS validada encontrada
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginated.map((s: OrdemServico) => (
+                <TableRow key={s.id} className={selectedIds.has(s.id) ? "bg-accent/50" : ""}>
+                  <TableCell className="text-center">
+                    <Checkbox
+                      checked={selectedIds.has(s.id)}
+                      onCheckedChange={() => toggleSelect(s.id)}
+                      aria-label={`Selecionar OS ${s.numero}`}
+                    />
+                  </TableCell>
+                  <TableCell className="font-mono font-bold">{formatNumeroAno(s.numero, s.createdAt)}</TableCell>
+                  <TableCell>{s.clienteNome || "—"}</TableCell>
+                  <TableCell className="text-sm">
+                    {[s.localDescricao, s.pavimentoDescricao, s.setorDescricao].filter(Boolean).join(" › ") || "—"}
+                  </TableCell>
+                  <TableCell className="text-sm max-w-[280px] truncate">
+                    {s.descricaoServicos || "—"}
+                  </TableCell>
+                  <TableCell className="text-sm">{s.solicitante || "—"}</TableCell>
+                  <TableCell className="text-center">
+                    <Badge variant="outline">{s.situacao}</Badge>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <PaginationControls
+        currentPage={page}
+        totalItems={filtered.length}
+        onPageChange={setPage}
+        pageSize={pageSize}
+        onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+      />
+    </div>
+  );
+}
