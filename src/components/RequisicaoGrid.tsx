@@ -273,6 +273,7 @@ const RequisicaoGrid = () => {
                   <TableCell className="text-sm">{req.jornada || "—"}</TableCell>
                   <TableCell className="text-sm">{req.origemVaga || "—"}</TableCell>
                   <TableCell className="text-sm">{req.nomeSubstituido || "—"}</TableCell>
+                  <TableCell className="text-sm">{req.solicitante || "—"}</TableCell>
                   <TableCell className="text-sm">{req.aprovadoPor || "—"}</TableCell>
                   <TableCell>
                     {isProcessoLiberado(req.id) || req.status === "Concluída" ? (
