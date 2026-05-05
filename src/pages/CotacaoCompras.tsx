@@ -364,7 +364,7 @@ export default function CotacaoComprasPage() {
 
       const propVencedora = cot.propostas.find(p => p.fornecedorId === finVencedorId);
       if (propVencedora) {
-        addPedido({
+        const novoPedido = addPedido({
           cotacaoId: cot.id,
           requisicaoId: cot.requisicaoId,
           requisicaoNumero: cot.requisicaoNumero,
@@ -377,9 +377,10 @@ export default function CotacaoComprasPage() {
           localEntrega: req.localEntrega || "",
           observacoes: "",
         });
-        updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador", "Pedido gerado após aprovação");
+        await assinarPedidoAutomatico(novoPedido);
+        updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador", "Pedido gerado e assinado eletronicamente após aprovação");
       }
-      toast({ title: "Cotação aprovada e pedido emitido!" });
+      toast({ title: "Cotação aprovada e pedido emitido com assinatura eletrônica!" });
     }
 
     setAprovarDialogOpen(false);
