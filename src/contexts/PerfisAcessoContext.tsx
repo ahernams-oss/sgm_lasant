@@ -490,8 +490,141 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
     ],
   },
   {
+    grupo: "Licitações",
+    modulos: [
+      {
+        key: "licitacoes",
+        label: "Licitações",
+        acoes: [
+          { key: "licitacoes.criar", label: "Cadastrar licitação" },
+          { key: "licitacoes.editar", label: "Editar licitação" },
+          { key: "licitacoes.excluir", label: "Excluir licitação" },
+          { key: "licitacoes.gerenciar_anexos", label: "Gerenciar anexos" },
+          { key: "licitacoes.extrair_datas_ia", label: "Extrair datas via IA" },
+        ],
+        statusTransicoes: [
+          { key: "licitacoes.status.acompanhando", label: "Acompanhando" },
+          { key: "licitacoes.status.participando", label: "Participando" },
+          { key: "licitacoes.status.vencida", label: "Vencida" },
+          { key: "licitacoes.status.perdida", label: "Perdida" },
+          { key: "licitacoes.status.cancelada", label: "Cancelada" },
+        ],
+      },
+    ],
+  },
+  {
+    grupo: "Jurídico",
+    modulos: [
+      {
+        key: "juridico",
+        label: "Processos Trabalhistas",
+        acoes: [
+          { key: "juridico.criar", label: "Cadastrar processo" },
+          { key: "juridico.editar", label: "Editar processo" },
+          { key: "juridico.excluir", label: "Excluir processo" },
+          { key: "juridico.gerenciar_audiencias", label: "Gerenciar audiências" },
+          { key: "juridico.gerenciar_anexos", label: "Gerenciar anexos" },
+          { key: "juridico.gerenciar_contatos", label: "Gerenciar contatos de notificação" },
+        ],
+      },
+    ],
+  },
+  {
+    grupo: "Patrimônio",
+    modulos: [
+      {
+        key: "ferramentas",
+        label: "Ferramentas",
+        acoes: [
+          { key: "ferramentas.criar", label: "Cadastrar ferramenta" },
+          { key: "ferramentas.editar", label: "Editar ferramenta" },
+          { key: "ferramentas.excluir", label: "Excluir ferramenta" },
+          { key: "ferramentas.gerenciar_emprestimos", label: "Gerenciar empréstimos" },
+          { key: "ferramentas.aprovar_emprestimo", label: "Aprovar empréstimo" },
+          { key: "ferramentas.vincular_funcionario", label: "Vincular a funcionário" },
+        ],
+      },
+    ],
+  },
+  {
+    grupo: "Qualidade",
+    modulos: [
+      {
+        key: "evidencias",
+        label: "Evidências",
+        acoes: [
+          { key: "evidencias.criar", label: "Cadastrar evidência" },
+          { key: "evidencias.editar", label: "Editar evidência" },
+          { key: "evidencias.excluir", label: "Excluir evidência" },
+          { key: "evidencias.gerenciar_anexos", label: "Gerenciar anexos" },
+        ],
+      },
+      {
+        key: "checklists",
+        label: "Checklists",
+        acoes: [
+          { key: "checklists.criar", label: "Criar checklist" },
+          { key: "checklists.editar", label: "Editar checklist" },
+          { key: "checklists.excluir", label: "Excluir checklist" },
+          { key: "checklists.preencher", label: "Preencher checklist" },
+          { key: "checklists.aprovar", label: "Aprovar preenchimento" },
+        ],
+      },
+    ],
+  },
+  {
+    grupo: "Comunicação",
+    modulos: [
+      {
+        key: "comunicacao_mensagens",
+        label: "Mensagens",
+        acoes: [
+          { key: "comunicacao_mensagens.criar_conversa", label: "Iniciar conversa" },
+          { key: "comunicacao_mensagens.enviar", label: "Enviar mensagem" },
+          { key: "comunicacao_mensagens.criar_grupo", label: "Criar grupo" },
+        ],
+      },
+      {
+        key: "comunicacao_avisos",
+        label: "Avisos",
+        acoes: [
+          { key: "comunicacao_avisos.criar", label: "Publicar aviso" },
+          { key: "comunicacao_avisos.editar", label: "Editar aviso" },
+          { key: "comunicacao_avisos.excluir", label: "Excluir aviso" },
+        ],
+      },
+      {
+        key: "comunicacao_notificacoes",
+        label: "Notificações",
+        acoes: [
+          { key: "comunicacao_notificacoes.criar", label: "Criar notificação" },
+          { key: "comunicacao_notificacoes.excluir", label: "Excluir notificação" },
+          { key: "comunicacao_notificacoes.marcar_lida", label: "Marcar como lida" },
+        ],
+      },
+      {
+        key: "chat_duda",
+        label: "Assistente Duda (IA)",
+        acoes: [
+          { key: "chat_duda.usar", label: "Conversar com a Duda" },
+          { key: "chat_duda.exportar", label: "Exportar relatórios da Duda" },
+        ],
+      },
+    ],
+  },
+  {
     grupo: "Administração",
     modulos: [
+      {
+        key: "empresa",
+        label: "Dados da Empresa",
+        acoes: [
+          { key: "empresa.visualizar", label: "Visualizar dados" },
+          { key: "empresa.editar", label: "Editar dados" },
+          { key: "empresa.gerenciar_logo", label: "Gerenciar logotipo" },
+          { key: "empresa.gerenciar_dados_bancarios", label: "Gerenciar dados bancários" },
+        ],
+      },
       {
         key: "usuarios",
         label: "Usuários",
@@ -500,6 +633,8 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "usuarios.editar", label: "Editar usuário" },
           { key: "usuarios.excluir", label: "Excluir usuário" },
           { key: "usuarios.gerenciar_acessos", label: "Gerenciar acessos por cliente" },
+          { key: "usuarios.gerenciar_limites", label: "Gerenciar limites de aprovação" },
+          { key: "usuarios.resetar_senha", label: "Resetar senha de usuário" },
         ],
       },
       {
@@ -510,6 +645,13 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "perfis_acesso.editar", label: "Editar perfil" },
           { key: "perfis_acesso.excluir", label: "Excluir perfil" },
           { key: "perfis_acesso.duplicar", label: "Duplicar perfil" },
+        ],
+      },
+      {
+        key: "monitor_tv",
+        label: "Monitor TV",
+        acoes: [
+          { key: "monitor_tv.visualizar", label: "Acessar Monitor TV" },
         ],
       },
     ],
