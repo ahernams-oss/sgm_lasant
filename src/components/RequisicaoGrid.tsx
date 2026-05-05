@@ -197,7 +197,12 @@ const RequisicaoGrid = () => {
       ate.setHours(23, 59, 59, 999);
       result = result.filter((r) => { const d = parseDataBR(r.dataCriacao); return d && d <= ate; });
     }
-    return result;
+    return [...result].sort((a, b) => {
+      const da = parseDataBR(a.dataCriacao)?.getTime() ?? 0;
+      const db = parseDataBR(b.dataCriacao)?.getTime() ?? 0;
+      if (db !== da) return db - da;
+      return (b.numero ?? 0) - (a.numero ?? 0);
+    });
   }, [requisicoes, search, filterStatus, filterUnidade, filterDataDe, filterDataAte]);
 
   if (requisicoes.length === 0) {
