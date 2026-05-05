@@ -142,11 +142,13 @@ export default function PedidoCompraPage() {
   const getFornecedor = (fornecedorId: string) => clientes.find(c => c.id === fornecedorId) || null;
 
   const handleDownloadPdf = async (pedido: PedidoCompra) => {
+    const assinatura = assinaturasPorPedido(pedido.id).find(a => a.papel === "aprovador") || null;
     await downloadPdfOrdemCompra({
       pedido,
       empresa: empresa.id ? empresa : null,
       fornecedor: getFornecedor(pedido.fornecedorId),
       autorizadoPor: usuarioLogado?.nome || "Usuário",
+      assinatura,
     });
     toast({ title: "PDF da Ordem de Compra baixado com sucesso" });
   };
@@ -164,11 +166,13 @@ export default function PedidoCompraPage() {
     if (!sendPedido) return;
     setSending(true);
 
+    const assinatura = assinaturasPorPedido(sendPedido.id).find(a => a.papel === "aprovador") || null;
     const pdfData = {
       pedido: sendPedido,
       empresa: empresa.id ? empresa : null,
       fornecedor: getFornecedor(sendPedido.fornecedorId),
       autorizadoPor: usuarioLogado?.nome || "Usuário",
+      assinatura,
     };
 
     try {
@@ -291,11 +295,13 @@ export default function PedidoCompraPage() {
     if (lista.length === 0) return;
     toast({ title: `Gerando ${lista.length} PDF${lista.length > 1 ? "s" : ""}...` });
     for (const p of lista) {
+      const assinatura = assinaturasPorPedido(p.id).find(a => a.papel === "aprovador") || null;
       await downloadPdfOrdemCompra({
         pedido: p,
         empresa: empresa.id ? empresa : null,
         fornecedor: getFornecedor(p.fornecedorId),
         autorizadoPor: usuarioLogado?.nome || "Usuário",
+        assinatura,
       });
     }
     toast({ title: `${lista.length} PDF${lista.length > 1 ? "s gerados" : " gerado"} com sucesso` });
