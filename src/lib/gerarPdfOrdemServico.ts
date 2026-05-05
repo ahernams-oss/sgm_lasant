@@ -484,6 +484,45 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
   });
   y = (doc as any).lastAutoTable.finalY;
 
+  // Renderiza assinatura do fiscal dentro do retângulo "Carimbo e assinatura / Assinatura eletrônica"
+  if (assinaturaFiscal && fiscalCellRect) {
+    const r = fiscalCellRect;
+    const verifyUrl = `${window.location.origin}/verificar-assinatura/${assinaturaFiscal.codigo_verificador}`;
+    const qrDataUrl = await gerarQRCodeDataUrl(verifyUrl);
+    const qrSize = 13;
+    const qrX = r.x + r.w - qrSize - 2;
+    const qrY = r.y + 2;
+    if (qrDataUrl) {
+      try { doc.addImage(qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize); } catch { /* ignore */ }
+    }
+    const textX = r.x + 2;
+    let textY = r.y + 4;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    doc.setTextColor(30, 30, 30);
+    doc.text("Fiscal — Assinado Eletronicamente", textX, textY);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    textY += 3.5;
+    const nomeLines = doc.splitTextToSize(`Signatário: ${assinaturaFiscal.signatario_nome}`, r.w - qrSize - 6);
+    doc.text(nomeLines, textX, textY);
+    textY += 3.5 * nomeLines.length;
+    if (assinaturaFiscal.signatario_cargo) {
+      doc.text(`Cargo: ${assinaturaFiscal.signatario_cargo}`, textX, textY);
+      textY += 3.5;
+    }
+    if (assinaturaFiscal.signatario_matricula) {
+      doc.text(`Matrícula: ${assinaturaFiscal.signatario_matricula}`, textX, textY);
+      textY += 3.5;
+    }
+    doc.text(`Data/Hora: ${fmtDateTime(assinaturaFiscal.signed_at)}`, textX, textY);
+    textY += 3.5;
+    doc.text(`IP: ${assinaturaFiscal.ip_origem || "-"}`, textX, textY);
+    textY += 3.5;
+    doc.setFontSize(6);
+    doc.text(`Código: ${assinaturaFiscal.codigo_verificador}`, textX, textY);
+  }
+
   // Caixa de observações grande
   const obsTexto = (os.observacoes || []).map((o: any) => `• ${o.descricao || ""}`).join("\n") || "";
   autoTable(doc, {
