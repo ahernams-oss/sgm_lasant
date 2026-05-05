@@ -1,0 +1,1 @@
+UPDATE public.usuarios SET limite_aprovacao_compras = 10000000, limite_aprovacao_os = 10000000 WHERE email IN ('ahernams@gmail.com','vinicius.nogueira@lasant.com.br');
