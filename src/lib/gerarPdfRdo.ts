@@ -311,5 +311,6 @@ export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], inc
     doc.text(`RDO Nº ${rdo.numero}`, pw - mr, ph - 5, { align: "right" });
   }
 
-  doc.save(`RDO_${rdo.numero}_${(rdo.cliente_nome || "").replace(/\s+/g, "_")}.pdf`);
+  const sufixo = incluirImagens ? "_com_imagens" : "";
+  doc.save(`RDO_${rdo.numero}_${(rdo.cliente_nome || "").replace(/\s+/g, "_")}${sufixo}.pdf`);
 }
