@@ -423,15 +423,27 @@ export default function PedidoCompraPage() {
                   </TableCell>
                   {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
                   <TableCell>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" title="Detalhes" onClick={() => setViewPedido(p)}><Eye className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" title="Histórico" onClick={() => setHistoricoPedido(p)}><Clock className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" title="Baixar PDF" onClick={() => handleDownloadPdf(p)}><FileDown className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" title="Enviar ao Fornecedor" onClick={() => openSendDialog(p)}><Send className="h-4 w-4" /></Button>
-                      {canUpdate && (
-                        <Button variant="ghost" size="icon" title="Atualizar Status" onClick={() => openStatusDialog(p)}><ArrowRight className="h-4 w-4" /></Button>
-                      )}
-                    </div>
+                    {(() => {
+                      const assinatura = assinaturasPorPedido(p.id).find(a => a.papel === "aprovador");
+                      return (
+                        <div className="flex gap-1 items-center">
+                          <Button variant="ghost" size="icon" title="Detalhes" onClick={() => setViewPedido(p)}><Eye className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" title="Histórico" onClick={() => setHistoricoPedido(p)}><Clock className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" title="Baixar PDF" onClick={() => handleDownloadPdf(p)}><FileDown className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" title="Enviar ao Fornecedor" onClick={() => openSendDialog(p)}><Send className="h-4 w-4" /></Button>
+                          {assinatura ? (
+                            <span title={`Assinado por ${assinatura.signatario_nome} em ${format(new Date(assinatura.signed_at), "dd/MM/yyyy HH:mm")}`}>
+                              <ShieldCheck className="h-4 w-4 text-green-600" />
+                            </span>
+                          ) : (
+                            <AssinaturaEletronicaPc pedido={p} variant="ghost" size="icon" label="" />
+                          )}
+                          {canUpdate && (
+                            <Button variant="ghost" size="icon" title="Atualizar Status" onClick={() => openStatusDialog(p)}><ArrowRight className="h-4 w-4" /></Button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </TableCell>
                 </TableRow>
               );
