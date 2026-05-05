@@ -293,6 +293,35 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "i0.excluir", label: "Excluir I0" },
         ],
       },
+      {
+        key: "equipamentos",
+        label: "Equipamentos",
+        acoes: [
+          { key: "equipamentos.criar", label: "Cadastrar equipamento" },
+          { key: "equipamentos.editar", label: "Editar equipamento" },
+          { key: "equipamentos.excluir", label: "Excluir equipamento" },
+          { key: "equipamentos.importar", label: "Importar equipamentos" },
+          { key: "equipamentos.exportar", label: "Exportar relatório" },
+        ],
+      },
+      {
+        key: "categorias_servicos",
+        label: "Categorias de Serviços",
+        acoes: [
+          { key: "categorias_servicos.criar", label: "Criar categoria" },
+          { key: "categorias_servicos.editar", label: "Editar categoria" },
+          { key: "categorias_servicos.excluir", label: "Excluir categoria" },
+        ],
+      },
+      {
+        key: "servicos",
+        label: "Serviços",
+        acoes: [
+          { key: "servicos.criar", label: "Cadastrar serviço" },
+          { key: "servicos.editar", label: "Editar serviço" },
+          { key: "servicos.excluir", label: "Excluir serviço" },
+        ],
+      },
     ],
   },
   {
