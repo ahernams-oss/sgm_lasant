@@ -286,7 +286,7 @@ export default function CotacaoComprasPage() {
     setAprovarDialogOpen(true);
   };
 
-  const handleAprovar = () => {
+  const handleAprovar = async () => {
     const cot = cotacoes.find(c => c.id === aprovarCotacaoId);
     if (!cot) return;
     const req = requisicoes.find(r => r.id === cot.requisicaoId);
