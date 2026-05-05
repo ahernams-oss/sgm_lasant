@@ -232,24 +232,30 @@ export default function DashboardMedicoes() {
   if (loading) return <div className="p-8 text-muted-foreground">Carregando...</div>;
 
   return (
-    <div className="p-4 md:p-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-primary mb-1">
-            <LayoutDashboard className="h-4 w-4" />
-            <span className="text-xs font-medium uppercase tracking-wider">Engenharia</span>
+    <div className="p-4 md:p-8 space-y-6 animate-fade-up">
+      {/* Hero Header */}
+      <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary via-primary/90 to-indigo-700 p-6 md:p-8 text-primary-foreground shadow-lg">
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
+        <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm mb-3">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-semibold uppercase tracking-wider">Engenharia · Visão Executiva</span>
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard de Medição de Serviços e Obras</h1>
+            <p className="text-sm md:text-base text-primary-foreground/85 mt-1.5 max-w-2xl">
+              Acompanhamento financeiro e operacional consolidado das medições de obras e contratos.
+            </p>
           </div>
-          <h1 className="text-xl font-bold text-foreground">Dashboard — Medição de Serviços e Obras</h1>
-          <p className="text-sm text-muted-foreground">Acompanhamento financeiro e operacional das medições.</p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={() => downloadPdfMedicoes(filtered, filterLabel)}>
-            <FileText className="mr-1 h-3.5 w-3.5" /> Relatório PDF
-          </Button>
-          <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={() => downloadExcelMedicoes(filtered, filterLabel)}>
-            <Download className="mr-1 h-3.5 w-3.5" /> Relatório Excel
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="secondary" size="sm" className="h-9 text-xs gap-1.5 bg-white text-primary hover:bg-white/90 shadow-sm" onClick={() => downloadPdfMedicoes(filtered, filterLabel)}>
+              <FileText className="h-3.5 w-3.5" /> Relatório PDF
+            </Button>
+            <Button variant="secondary" size="sm" className="h-9 text-xs gap-1.5 bg-white/15 text-white hover:bg-white/25 border border-white/20 backdrop-blur-sm" onClick={() => downloadExcelMedicoes(filtered, filterLabel)}>
+              <Download className="h-3.5 w-3.5" /> Relatório Excel
+            </Button>
+          </div>
         </div>
       </div>
 
