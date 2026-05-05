@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { format } from "date-fns";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
@@ -89,6 +89,18 @@ export default function DashboardCompras() {
   const { getDescricaoCompleta } = useCategoriasCompras();
   const { empresa } = useEmpresa();
   const [filters, setFilters] = useState<DashboardFiltersState>(() => loadDashboardFilters("dashboard-compras:filters"));
+  const [tipoFiltro, setTipoFiltro] = useState<"todos" | "Material" | "Serviço">("todos");
+
+  // Helper: tipo de um item (Material/Serviço) baseado no cadastro
+  const tipoDoItem = useCallback((itemId: string): "Material" | "Serviço" => {
+    const mat = materiais.find(m => m.id === itemId);
+    return mat?.tipo === "Serviço" ? "Serviço" : "Material";
+  }, [materiais]);
+
+  const itemMatchesTipo = useCallback((itemId: string) => {
+    if (tipoFiltro === "todos") return true;
+    return tipoDoItem(itemId) === tipoFiltro;
+  }, [tipoFiltro, tipoDoItem]);
 
   const centroCustoOptions = useMemo(() => {
     const map = new Map<string, string>();
@@ -113,9 +125,10 @@ export default function DashboardCompras() {
       if (filters.dateTo) { const end = new Date(filters.dateTo); end.setHours(23, 59, 59, 999); if (d > end) return false; }
       if (filters.clienteId !== "todos" && r.centroCusto !== filters.clienteId) return false;
       if (filters.status !== "todos" && r.status !== filters.status) return false;
+      if (tipoFiltro !== "todos" && !r.itens.some(it => itemMatchesTipo(it.materialId))) return false;
       return true;
     });
-  }, [requisicoes, filters]);
+  }, [requisicoes, filters, tipoFiltro, itemMatchesTipo]);
 
   // KPIs
   const totalReqs = filtered.length;
@@ -123,7 +136,7 @@ export default function DashboardCompras() {
   const concluidas = filtered.filter(r => r.status === "Concluída").length;
   const reprovadas = filtered.filter(r => r.status === "Reprovada").length;
   const canceladas = filtered.filter(r => r.status === "Cancelada").length;
-  const totalItens = filtered.reduce((s, r) => s + r.itens.length, 0);
+  const totalItens = filtered.reduce((s, r) => s + r.itens.filter(it => itemMatchesTipo(it.materialId)).length, 0);
   const urgentes = filtered.filter(r => r.urgencia === "Urgente" || r.urgencia === "Alta").length;
 
   // Status distribution
@@ -155,13 +168,14 @@ export default function DashboardCompras() {
     const map: Record<string, number> = {};
     filtered.forEach(r => {
       r.itens.forEach(item => {
+        if (!itemMatchesTipo(item.materialId)) return;
         const mat = materiais.find(m => m.id === item.materialId);
         const catName = mat?.categoriaId ? (getDescricaoCompleta(mat.categoriaId) || "Sem categoria") : "Sem categoria";
         map[catName] = (map[catName] || 0) + item.quantidade;
       });
     });
     return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 10);
-  }, [filtered, materiais, getDescricaoCompleta]);
+  }, [filtered, materiais, getDescricaoCompleta, itemMatchesTipo]);
 
   // Timeline
   const timelineData = useMemo(() => {
@@ -407,6 +421,16 @@ export default function DashboardCompras() {
             clienteLabel="Centro de Custo"
             statusOptions={statusOptions}
           />
+          <Select value={tipoFiltro} onValueChange={(v) => setTipoFiltro(v as typeof tipoFiltro)}>
+            <SelectTrigger className="h-9 w-[160px] text-xs">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os tipos</SelectItem>
+              <SelectItem value="Material">Apenas Materiais</SelectItem>
+              <SelectItem value="Serviço">Apenas Serviços</SelectItem>
+            </SelectContent>
+          </Select>
           <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={exportPdf}>
             <FileText className="h-3.5 w-3.5" />Relatório PDF
           </Button>
