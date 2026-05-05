@@ -257,6 +257,7 @@ const RequisicaoGrid = () => {
                 <TableHead>Jornada</TableHead>
                 <TableHead>Origem</TableHead>
                 <TableHead>Substituído</TableHead>
+                <TableHead>Solicitante</TableHead>
                 <TableHead>Aprovador</TableHead>
                 <TableHead className="pr-5">Status</TableHead>
                 <TableHead className="pr-5 text-center">Ações</TableHead>
