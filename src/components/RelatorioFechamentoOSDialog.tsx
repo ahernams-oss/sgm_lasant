@@ -114,10 +114,12 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const ref = o.createdAt ? new Date(o.createdAt).getTime() : 0;
       if (isNaN(ref) || ref < iniMs || ref > fimMs) return false;
       if (clienteSel !== "todos" && o.clienteId !== clienteSel) return false;
-      if (situacaoSel !== "todas" && o.situacao !== situacaoSel) return false;
+      if (tipo === "fechamento_validadas") {
+        if (o.situacao !== "Validada") return false;
+      } else if (situacaoSel !== "todas" && o.situacao !== situacaoSel) return false;
       return true;
     });
-  }, [ordens, intervalo, clienteSel, situacaoSel]);
+  }, [ordens, intervalo, clienteSel, situacaoSel, tipo]);
 
   const situacoesUnicas = useMemo(() => Array.from(new Set(ordens.map(o => o.situacao).filter(Boolean))), [ordens]);
 
