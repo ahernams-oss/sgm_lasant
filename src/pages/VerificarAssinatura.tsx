@@ -154,6 +154,24 @@ export default function VerificarAssinatura() {
         </Card>
       );
     }
+    if (tipo === "pc") {
+      return (
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Conteúdo da Ordem de Compra</CardTitle></CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            <p><span className="font-semibold">Fornecedor:</span> {documento.fornecedor_nome || "-"}</p>
+            <p><span className="font-semibold">Comprador:</span> {documento.comprador || "-"}</p>
+            <p><span className="font-semibold">Data:</span> {documento.data_criacao ? new Date(documento.data_criacao).toLocaleString("pt-BR") : "-"}</p>
+            <p><span className="font-semibold">Valor Total:</span> {Number(documento.valor_total || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+            <p><span className="font-semibold">Status:</span>{" "}
+              <Badge variant="outline" className={documento.status === "Cancelado" ? "bg-red-100 text-red-800 border-red-300" : "bg-muted"}>
+                {documento.status || "-"}
+              </Badge>
+            </p>
+          </CardContent>
+        </Card>
+      );
+    }
     // OS
     return (
       <Card>
@@ -180,6 +198,8 @@ export default function VerificarAssinatura() {
 
   const tituloDocumento = tipo === "rdo"
     ? `RDO Nº ${assinatura?.rdo_numero ?? ""}`
+    : tipo === "pc"
+    ? `Ordem de Compra PC-${String(assinatura?.pedido_numero ?? "").padStart(4, "0")}`
     : `OS Nº ${assinatura?.os_numero ?? ""}`;
 
   return (
