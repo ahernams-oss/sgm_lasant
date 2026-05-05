@@ -92,6 +92,7 @@ import RdoPage from "./pages/Rdo.tsx";
 import { RdosProvider } from "@/contexts/RdosContext";
 import { RdoAssinaturasProvider } from "@/contexts/RdoAssinaturasContext";
 import { OsAssinaturasProvider } from "@/contexts/OsAssinaturasContext";
+import { PcAssinaturasProvider } from "@/contexts/PcAssinaturasContext";
 import AssinarLoteOsPage from "./pages/AssinarLoteOs.tsx";
 import ConfirmarLoteOsPage from "./pages/ConfirmarLoteOs.tsx";
 import ValidarLoteOsPage from "./pages/ValidarLoteOs.tsx";
@@ -268,6 +269,7 @@ const App = () => (
     <CronogramasProvider>
     <BimProvider>
     <OsAssinaturasProvider>
+    <PcAssinaturasProvider>
     <AuthProvider> {/* auth wrapper */}
     <TooltipProvider>
       <Toaster />
@@ -293,6 +295,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </PcAssinaturasProvider>
     </OsAssinaturasProvider>
     </BimProvider>
     </CronogramasProvider>
