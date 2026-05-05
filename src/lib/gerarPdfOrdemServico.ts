@@ -531,6 +531,7 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
     const legalLines = doc.splitTextToSize(baseLegal, r.w - 4);
     doc.text(legalLines, textX, textY);
     doc.setTextColor(30, 30, 30);
+  }
 
   // Caixa de observações grande
   const obsTexto = (os.observacoes || []).map((o: any) => `• ${o.descricao || ""}`).join("\n") || "";
