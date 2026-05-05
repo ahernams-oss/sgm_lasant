@@ -41,6 +41,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { cargos } = useCargos();
   const { addRequisicao } = useRequisicoes();
   const { clientes } = useClientes();
+  const { usuarioLogado } = useAuth();
   const [form, setForm] = useState({
     headcount: "",
     orcamento: "",
