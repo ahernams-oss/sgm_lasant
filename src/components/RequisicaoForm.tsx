@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { useCargos } from "@/contexts/CargosContext";
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const jornadaOptions = ["Diarista", "Plantão Diurno - PAR", "Plantão Diurno - ÍMPAR", "Plantão Noturno - PAR", "Plantão Noturno - ÍMPAR"];
 const contratacaoOptions = ["Efetivo", "Temporário", "PCD", "Estagiário"];
