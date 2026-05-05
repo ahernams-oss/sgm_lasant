@@ -132,7 +132,9 @@ export default function VerificarAssinatura() {
   }, [codigoParam]);
 
   const integro = assinatura && hashAtual && assinatura.hash_documento === hashAtual;
-  const documentoCancelado = tipo === "os" && documento?.situacao === "Cancelada";
+  const documentoCancelado =
+    (tipo === "os" && documento?.situacao === "Cancelada") ||
+    (tipo === "pc" && documento?.status === "Cancelado");
   const valida = integro && !documentoCancelado;
 
   const renderDocumento = () => {
