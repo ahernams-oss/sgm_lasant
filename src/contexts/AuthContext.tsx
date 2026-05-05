@@ -74,9 +74,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [usuarioLogado]);
 
   const login = (email: string, senha: string, lembrarMe = false): boolean => {
+    const emailNorm = email.trim().toLowerCase();
+    const senhaNorm = senha.trim();
     const found = usuarios.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.senha === senha
+      (u) => (u.email || "").trim().toLowerCase() === emailNorm && (u.senha || "").trim() === senhaNorm
     );
+    if (!found) {
+      console.warn("[Login] Falha ao autenticar:", { emailDigitado: emailNorm, totalUsuarios: usuarios.length });
+    }
     if (found) {
       setLembrar(lembrarMe);
       setUsuarioLogado(found);
