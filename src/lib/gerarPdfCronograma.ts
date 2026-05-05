@@ -247,5 +247,5 @@ export async function gerarPdfCronograma(cronograma: Cronograma, empresa?: Empre
     doc.text(`Cronograma Nº ${cronograma.numero}`, pw - mr, ph - 4, { align: "right" });
   }
 
-  doc.save(`Cronograma_${cronograma.numero}_${(cronograma.cliente_nome || "").replace(/\s+/g, "_")}.pdf`);
+  doc.save(`Cronograma_${cronograma.numero}_${modelo}_${(cronograma.cliente_nome || "").replace(/\s+/g, "_")}.pdf`);
 }
