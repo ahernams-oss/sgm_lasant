@@ -127,7 +127,7 @@ async function renderAssinaturas(doc: jsPDF, assinaturas: OsAssinatura[], y: num
     textY += 3;
     doc.setTextColor(80, 80, 80);
     const baseLegal = a.base_legal || "Conforme Art. 6º, § 1º do Decreto nº 8.539/2015.";
-    const splitLegal = doc.splitTextToSize(baseLegal, cw - qrSize - 8);
+    const splitLegal = doc.splitTextToSize(baseLegal, blockWidth - qrSize - 8);
     doc.text(splitLegal, textX, textY);
 
     doc.setTextColor(30, 30, 30);
