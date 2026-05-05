@@ -365,14 +365,52 @@ export default function DashboardMedicoes() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
         <GradientKpiCard icon={Ruler} label="Total Medições" value={totalMedicoes} gradientIdx={0} />
-        <GradientKpiCard icon={DollarSign} label="Valor Contratado" value={fmt(valorContratado)} gradientIdx={0} />
-        <GradientKpiCard icon={TrendingUp} label="Valor Medido" value={fmt(valorMedido)} gradientIdx={2} />
-        <GradientKpiCard icon={DollarSign} label="Saldo Aberto" value={fmt(saldoAberto)} gradientIdx={1} subtitle="Contratado − Medido" />
-        <GradientKpiCard icon={TrendingUp} label="% Médio Exec." value={fmtPct(percentualMedio)} gradientIdx={4} />
+        <GradientKpiCard icon={Wallet} label="Valor Contratado" value={fmt(valorContratado)} gradientIdx={5} />
+        <GradientKpiCard icon={TrendingUp} label="Valor Medido" value={fmt(valorMedido)} gradientIdx={1} />
+        <GradientKpiCard icon={DollarSign} label="Saldo Aberto" value={fmt(saldoAberto)} gradientIdx={2} subtitle="Contratado − Medido" />
+        <GradientKpiCard icon={Activity} label="% Médio Exec." value={fmtPct(percentualMedio)} gradientIdx={4} />
         <GradientKpiCard icon={Clock} label="Em Andamento" value={emAndamento} gradientIdx={0} />
-        <GradientKpiCard icon={CheckCircle} label="Concluídas" value={concluidas} gradientIdx={2} />
+        <GradientKpiCard icon={CheckCircle} label="Concluídas" value={concluidas} gradientIdx={1} />
         <GradientKpiCard icon={AlertTriangle} label="Paralisadas" value={paralisadas} gradientIdx={3} />
       </div>
+
+      {/* Execution overview */}
+      <Card className="border-border/60 overflow-hidden">
+        <CardContent className="p-5 md:p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Execução Financeira Global</p>
+                  <p className="text-sm text-foreground/80 mt-0.5">{fmt(valorMedido)} medidos de {fmt(valorContratado)} contratados</p>
+                </div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
+                  {valorContratado > 0 ? fmtPct((valorMedido / valorContratado) * 100) : "0%"}
+                </span>
+              </div>
+              <Progress value={valorContratado > 0 ? (valorMedido / valorContratado) * 100 : 0} className="h-3" />
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground pt-1">
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Medido</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-muted-foreground/40" /> Saldo a executar: {fmt(saldoAberto)}</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3 md:border-l md:pl-6 md:border-border/60">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-blue-600">{emAndamento}</p>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">Em curso</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-emerald-600">{concluidas}</p>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">Concluídas</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-rose-600">{paralisadas}</p>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">Paralisadas</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Charts */}
       <Tabs defaultValue="status" className="space-y-4">
