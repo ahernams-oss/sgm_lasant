@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileDown, ClipboardCheck, Search, Pencil, History, MoreVertical, CheckCircle2, XCircle, Clock } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { gerarPdfRequisicao } from "@/lib/gerarPdfRequisicao";
 import { enviarWhatsApp } from "@/lib/whatsapp";
