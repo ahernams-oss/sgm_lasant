@@ -426,15 +426,25 @@ export default function DashboardMedicoes() {
             <CardHeader><CardTitle className="text-sm">Evolução Mensal</CardTitle></CardHeader>
             <CardContent className="h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={byMonth}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis tickFormatter={(v) => fmt(v)} />
-                  <Tooltip formatter={(v: number) => fmt(v)} />
+                <AreaChart data={byMonth}>
+                  <defs>
+                    <linearGradient id="gradContratado" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradMedido" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                  <YAxis tickFormatter={(v) => fmt(v)} tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ borderRadius: 8, border: "1px solid hsl(var(--border))" }} />
                   <Legend />
-                  <Line type="monotone" dataKey="contratado" name="Contratado" stroke="#3b82f6" strokeWidth={2} />
-                  <Line type="monotone" dataKey="medido" name="Medido" stroke="#10b981" strokeWidth={2} />
-                </LineChart>
+                  <Area type="monotone" dataKey="contratado" name="Contratado" stroke="#3b82f6" strokeWidth={2.5} fill="url(#gradContratado)" />
+                  <Area type="monotone" dataKey="medido" name="Medido" stroke="#10b981" strokeWidth={2.5} fill="url(#gradMedido)" />
+                </AreaChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
