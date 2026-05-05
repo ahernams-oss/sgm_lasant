@@ -37,6 +37,7 @@ import {
   Bell,
   BotMessageSquare,
   Box,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
