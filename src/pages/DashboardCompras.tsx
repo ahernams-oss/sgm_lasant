@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { format } from "date-fns";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
