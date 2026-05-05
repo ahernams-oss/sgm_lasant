@@ -76,6 +76,7 @@ async function renderAssinaturas(doc: jsPDF, assinaturas: OsAssinatura[], y: num
   });
   y = (doc as any).lastAutoTable.finalY;
 
+  const blockWidth = cw / 2;
   for (const a of assinaturas) {
     const verifyUrl = `${window.location.origin}/verificar-assinatura/${a.codigo_verificador}`;
     const qrDataUrl = await gerarQRCodeDataUrl(verifyUrl);
@@ -83,13 +84,13 @@ async function renderAssinaturas(doc: jsPDF, assinaturas: OsAssinatura[], y: num
     const startY = y;
     const blockHeight = 32;
     const qrSize = 26;
-    const qrX = ml + cw - qrSize - 2;
+    const qrX = ml + blockWidth - qrSize - 2;
     const qrY = startY + 2;
 
     // Caixa
     doc.setDrawColor(BORDER[0], BORDER[1], BORDER[2]);
     doc.setLineWidth(0.3);
-    doc.rect(ml, startY, cw, blockHeight);
+    doc.rect(ml, startY, blockWidth, blockHeight);
 
     // QR Code
     if (qrDataUrl) {
@@ -126,7 +127,7 @@ async function renderAssinaturas(doc: jsPDF, assinaturas: OsAssinatura[], y: num
     textY += 3;
     doc.setTextColor(80, 80, 80);
     const baseLegal = a.base_legal || "Conforme Art. 6º, § 1º do Decreto nº 8.539/2015.";
-    const splitLegal = doc.splitTextToSize(baseLegal, cw - qrSize - 8);
+    const splitLegal = doc.splitTextToSize(baseLegal, blockWidth - qrSize - 8);
     doc.text(splitLegal, textX, textY);
 
     doc.setTextColor(30, 30, 30);
