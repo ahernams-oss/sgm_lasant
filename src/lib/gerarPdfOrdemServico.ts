@@ -126,7 +126,7 @@ async function renderAssinaturas(doc: jsPDF, assinaturas: OsAssinatura[], y: num
     doc.text(`Código: ${a.codigo_verificador}`, textX, textY);
     textY += 3;
     doc.setTextColor(80, 80, 80);
-    const baseLegal = a.base_legal || "LEI Nº 14.063, DE 23 DE SETEMBRO DE 2020";
+    const baseLegal = "LEI Nº 14.063, DE 23 DE SETEMBRO DE 2020";
     const splitLegal = doc.splitTextToSize(baseLegal, blockWidth - qrSize - 8);
     doc.text(splitLegal, textX, textY);
 
