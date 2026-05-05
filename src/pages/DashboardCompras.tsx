@@ -84,6 +84,7 @@ function formatHours(h: number) {
 
 export default function DashboardCompras() {
   const { requisicoes } = useRequisicaoCompras();
+  const { pedidos } = usePedidoCompra();
   const { materiais } = useMateriaisServicos();
   const { getDescricaoCompleta } = useCategoriasCompras();
   const { empresa } = useEmpresa();
