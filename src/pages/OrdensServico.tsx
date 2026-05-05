@@ -705,6 +705,34 @@ export default function OrdensServicoPage() {
           <Button variant="outline" onClick={() => setRelatorioOpen(true)}>
             <BarChart3 className="mr-2 h-4 w-4" /> Relatórios
           </Button>
+          <Button variant="outline" onClick={async () => {
+            const osBase: any = {
+              id: "base",
+              numero: 0,
+              createdAt: new Date().toISOString(),
+              clienteId: "",
+              clienteNome: "",
+              tipoOs: { sigla: "" },
+              localDescricao: "",
+              pavimentoDescricao: "",
+              setorDescricao: "",
+              descricaoServicos: "",
+              solicitante: "",
+              solicitacaoNumero: "",
+              categoria: "",
+              servico: "",
+              materiais: [],
+              materiaisEstoque: [],
+              observacoes: [],
+              historico: [],
+              situacao: "Aberta",
+              bdi: 0,
+            };
+            await gerarPdfOrdemServico({ os: osBase, empresa, cliente: undefined, assinaturas: [] });
+            toast.success("PDF base gerado");
+          }}>
+            <Printer className="mr-2 h-4 w-4" /> PDF Base
+          </Button>
           <Button onClick={() => { resetForm(); setFormOpen(true); }}>
             <Plus className="mr-2 h-4 w-4" /> Nova OS
           </Button>
