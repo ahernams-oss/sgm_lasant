@@ -209,6 +209,14 @@ function AppRoutes() {
           }
         />
         <Route
+          path="/engenharia/imprimir-lote-os"
+          element={
+            <OrdensServicoProvider>
+              <ImprimirLoteOsPage />
+            </OrdensServicoProvider>
+          }
+        />
+        <Route
           path="/engenharia/ordem-servico"
           element={
             <OrdensServicoProvider>
