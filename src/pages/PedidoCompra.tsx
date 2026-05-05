@@ -5,6 +5,9 @@ import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePcAssinaturas } from "@/contexts/PcAssinaturasContext";
+import { AssinaturaEletronicaPc } from "@/components/AssinaturaEletronicaPc";
+import { ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +51,7 @@ export default function PedidoCompraPage() {
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
+  const { porPedido: assinaturasPorPedido } = usePcAssinaturas();
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
