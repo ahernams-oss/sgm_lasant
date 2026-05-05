@@ -527,7 +527,7 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
     doc.text(codLines, textX, textY);
     textY += 3 * codLines.length;
     doc.setTextColor(80, 80, 80);
-    const baseLegal = assinaturaFiscal.base_legal || "LEI Nº 14.063, DE 23 DE SETEMBRO DE 2020";
+    const baseLegal = "LEI Nº 14.063, DE 23 DE SETEMBRO DE 2020";
     const legalLines = doc.splitTextToSize(baseLegal, r.w - 4);
     doc.text(legalLines, textX, textY);
     doc.setTextColor(30, 30, 30);
