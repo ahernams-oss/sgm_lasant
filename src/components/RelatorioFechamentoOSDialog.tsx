@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import type { OrdemServico } from "@/contexts/OrdensServicoContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 type Periodo = "semanal" | "quinzenal" | "mensal" | "personalizado";
 type TipoRelatorio = "fechamento_validadas" | "analitico" | "sintetico" | "financeiro" | "produtividade" | "situacao";
