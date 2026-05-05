@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, FileDown, FileSpreadsheet, Pencil, RefreshCw, CalendarRange } from "lucide-react";
+import { Plus, Trash2, FileDown, FileSpreadsheet, Pencil, RefreshCw, CalendarRange, FileText, Activity, DollarSign, ListChecks } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CronogramasProvider, useCronogramas, gerarPeriodos, type Cronograma, type CronogramaAtividade } from "@/contexts/CronogramasContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
@@ -258,9 +259,27 @@ function CronogramaInner() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline" onClick={() => gerarPdfCronograma(c, empresa)} title="Exportar PDF">
-                        <FileDown className="h-4 w-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline" title="Exportar PDF">
+                            <FileDown className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => gerarPdfCronograma(c, empresa, "completo")}>
+                            <FileText className="h-4 w-4 mr-2" /> Completo (Físico + Financeiro)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => gerarPdfCronograma(c, empresa, "fisico")}>
+                            <Activity className="h-4 w-4 mr-2" /> Somente Físico (%)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => gerarPdfCronograma(c, empresa, "financeiro")}>
+                            <DollarSign className="h-4 w-4 mr-2" /> Somente Financeiro (R$)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => gerarPdfCronograma(c, empresa, "resumo")}>
+                            <ListChecks className="h-4 w-4 mr-2" /> Resumo Executivo
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       <Button size="sm" variant="outline" onClick={() => gerarExcelCronograma(c)} title="Exportar Excel">
                         <FileSpreadsheet className="h-4 w-4" />
                       </Button>

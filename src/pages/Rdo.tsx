@@ -16,7 +16,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Edit, Trash2, FileDown, Upload, X, Eraser } from "lucide-react";
+import { Search, Plus, Edit, Trash2, FileDown, Upload, X, Eraser, FileText, Image as ImageIcon } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
 import { gerarPdfRdo } from "@/lib/gerarPdfRdo";
@@ -242,10 +243,10 @@ export default function RdoPage() {
     setEditing(null);
   };
 
-  const onExportPdf = async (r: Rdo) => {
+  const onExportPdf = async (r: Rdo, incluirImagens = false) => {
     const cliente = clientes.find((c) => c.id === r.cliente_id);
     const assinaturas = porRdo(r.id);
-    await gerarPdfRdo({ rdo: r, empresa, cliente, assinaturas });
+    await gerarPdfRdo({ rdo: r, empresa, cliente, assinaturas, incluirImagens });
   };
 
   return (
@@ -318,9 +319,21 @@ export default function RdoPage() {
                   <TableCell className="text-center">{(Number(r.avanco_fisico_geral) || 0).toFixed(1)}%</TableCell>
                   <TableCell><Badge variant="outline" className={statusColor(r.status)}>{r.status}</Badge></TableCell>
                   <TableCell className="text-right space-x-1">
-                    <Button size="icon" variant="ghost" onClick={() => onExportPdf(r)} title="Exportar PDF">
-                      <FileDown className="h-4 w-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="icon" variant="ghost" title="Exportar PDF">
+                          <FileDown className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onExportPdf(r, false)}>
+                          <FileText className="h-4 w-4 mr-2" /> PDF sem imagens
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onExportPdf(r, true)}>
+                          <ImageIcon className="h-4 w-4 mr-2" /> PDF com imagens
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button size="icon" variant="ghost" onClick={() => openEdit(r)} title="Editar">
                       <Edit className="h-4 w-4" />
                     </Button>
