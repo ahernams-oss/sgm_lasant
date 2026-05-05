@@ -99,26 +99,32 @@ export async function gerarPdfCronograma(cronograma: Cronograma, empresa?: Empre
     bodyFisico.push(prevRow, realRow);
   });
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.text("CRONOGRAMA FÍSICO (% de avanço)", ml, y);
-  y += 2;
+  const showFisico = modelo === "completo" || modelo === "fisico";
+  const showFinanceiro = modelo === "completo" || modelo === "financeiro";
+  const showResumo = modelo === "resumo";
 
-  autoTable(doc, {
-    startY: y,
-    head,
-    body: bodyFisico,
-    theme: "grid",
-    styles: { fontSize: 7, cellPadding: 1, lineColor: BORDER, lineWidth: 0.2 },
-    headStyles: { fillColor: [103, 58, 183], textColor: 255, fontStyle: "bold", fontSize: 7 },
-    columnStyles: { 0: { cellWidth: 8, halign: "center" }, 2: { cellWidth: 16, halign: "center", fontStyle: "bold" } },
-    margin: { left: ml, right: mr },
-  });
-  y = (doc as any).lastAutoTable.finalY + 4;
+  if (showFisico) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("CRONOGRAMA FÍSICO (% de avanço)", ml, y);
+    y += 2;
 
-  if (y > 170) { doc.addPage(); y = 10; }
+    autoTable(doc, {
+      startY: y,
+      head,
+      body: bodyFisico,
+      theme: "grid",
+      styles: { fontSize: 7, cellPadding: 1, lineColor: BORDER, lineWidth: 0.2 },
+      headStyles: { fillColor: [103, 58, 183], textColor: 255, fontStyle: "bold", fontSize: 7 },
+      columnStyles: { 0: { cellWidth: 8, halign: "center" }, 2: { cellWidth: 16, halign: "center", fontStyle: "bold" } },
+      margin: { left: ml, right: mr },
+    });
+    y = (doc as any).lastAutoTable.finalY + 4;
+  }
 
-  // CRONOGRAMA FINANCEIRO
+  if (showFinanceiro && y > 170) { doc.addPage(); y = 10; }
+
+  // CRONOGRAMA FINANCEIRO (sempre calcula totais para usar no resumo)
   const bodyFinanceiro: any[] = [];
   const totaisPrevPorPeriodo: Record<string, number> = {};
   const totaisRealPorPeriodo: Record<string, number> = {};
@@ -145,7 +151,6 @@ export async function gerarPdfCronograma(cronograma: Cronograma, empresa?: Empre
     bodyFinanceiro.push(prevRow, realRow);
   });
 
-  // Totais
   const totalRowPrev: any[] = ["", { content: "TOTAL", styles: { fontStyle: "bold" } }, "Prev. R$"];
   const totalRowReal: any[] = ["", "", "Real. R$"];
   periodos.forEach(p => {
@@ -156,21 +161,75 @@ export async function gerarPdfCronograma(cronograma: Cronograma, empresa?: Empre
   totalRowReal.push(fmtMoney(totalGeralReal));
   bodyFinanceiro.push(totalRowPrev, totalRowReal);
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.text("CRONOGRAMA FINANCEIRO (R$)", ml, y);
-  y += 2;
+  if (showFinanceiro) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("CRONOGRAMA FINANCEIRO (R$)", ml, y);
+    y += 2;
 
-  autoTable(doc, {
-    startY: y,
-    head,
-    body: bodyFinanceiro,
-    theme: "grid",
-    styles: { fontSize: 7, cellPadding: 1, lineColor: BORDER, lineWidth: 0.2 },
-    headStyles: { fillColor: [76, 175, 80], textColor: 255, fontStyle: "bold", fontSize: 7 },
-    columnStyles: { 0: { cellWidth: 8, halign: "center" }, 2: { cellWidth: 16, halign: "center", fontStyle: "bold" } },
-    margin: { left: ml, right: mr },
-  });
+    autoTable(doc, {
+      startY: y,
+      head,
+      body: bodyFinanceiro,
+      theme: "grid",
+      styles: { fontSize: 7, cellPadding: 1, lineColor: BORDER, lineWidth: 0.2 },
+      headStyles: { fillColor: [76, 175, 80], textColor: 255, fontStyle: "bold", fontSize: 7 },
+      columnStyles: { 0: { cellWidth: 8, halign: "center" }, 2: { cellWidth: 16, halign: "center", fontStyle: "bold" } },
+      margin: { left: ml, right: mr },
+    });
+    y = (doc as any).lastAutoTable.finalY + 4;
+  }
+
+  if (showResumo) {
+    // Resumo executivo: 1 linha por atividade com % físico e R$ acumulados
+    const resumoBody = atividades.map((a, i) => {
+      let pPrev = 0, pReal = 0, fPrev = 0, fReal = 0;
+      periodos.forEach(p => {
+        const v = a.valores?.[p.rotulo] || { previsto_fisico: 0, realizado_fisico: 0, previsto_financeiro: 0, realizado_financeiro: 0 };
+        pPrev += Number(v.previsto_fisico) || 0;
+        pReal += Number(v.realizado_fisico) || 0;
+        fPrev += Number(v.previsto_financeiro) || 0;
+        fReal += Number(v.realizado_financeiro) || 0;
+      });
+      const desv = pPrev > 0 ? (pReal - pPrev) : 0;
+      return [
+        String(i + 1),
+        a.descricao,
+        fmtPct(pPrev),
+        fmtPct(pReal),
+        { content: `${desv >= 0 ? "+" : ""}${desv.toFixed(2)}%`, styles: { textColor: desv >= 0 ? [30, 120, 30] as any : [180, 30, 30] as any, fontStyle: "bold" as const } },
+        fmtMoney(fPrev),
+        fmtMoney(fReal),
+      ];
+    });
+    resumoBody.push([
+      "",
+      { content: "TOTAL GERAL", styles: { fontStyle: "bold" } },
+      "", "", "",
+      { content: fmtMoney(totalGeralPrev), styles: { fontStyle: "bold" } },
+      { content: fmtMoney(totalGeralReal), styles: { fontStyle: "bold" } },
+    ]);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("RESUMO EXECUTIVO", ml, y);
+    y += 2;
+    autoTable(doc, {
+      startY: y,
+      head: [["#", "Atividade", "Físico Prev.", "Físico Real.", "Desvio", "Financ. Prev.", "Financ. Real."]],
+      body: resumoBody,
+      theme: "grid",
+      styles: { fontSize: 8, cellPadding: 1.5, lineColor: BORDER, lineWidth: 0.2 },
+      headStyles: { fillColor: [33, 150, 243], textColor: 255, fontStyle: "bold" },
+      columnStyles: {
+        0: { cellWidth: 10, halign: "center" },
+        2: { halign: "center" }, 3: { halign: "center" }, 4: { halign: "center" },
+        5: { halign: "right" }, 6: { halign: "right" },
+      },
+      margin: { left: ml, right: mr },
+    });
+  }
+
 
   // Footer
   const pages = doc.getNumberOfPages();
