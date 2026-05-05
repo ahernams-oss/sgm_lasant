@@ -15,9 +15,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, LineChart, Line,
+  PieChart, Pie, Cell, Legend, AreaChart, Area,
 } from "recharts";
-import { FileText, Ruler, TrendingUp, DollarSign, Clock, CheckCircle, Download, CalendarIcon, Filter, X, LayoutDashboard, AlertTriangle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { FileText, Ruler, TrendingUp, DollarSign, Clock, CheckCircle, Download, CalendarIcon, Filter, X, LayoutDashboard, AlertTriangle, Sparkles, Wallet, Activity } from "lucide-react";
 import { downloadPdfMedicoes } from "@/lib/gerarPdfMedicoes";
 import { downloadExcelMedicoes } from "@/lib/gerarExcelMedicoes";
 
@@ -30,13 +31,13 @@ const STATUS_COLORS: Record<string, string> = {
 
 const PIE_COLORS = ["#3b82f6", "#10b981", "#ef4444", "#9ca3af", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4"];
 
-const GRADIENT_STYLES = [
-  { bg: "from-blue-500/10 to-blue-600/5", icon: "text-blue-600", border: "border-blue-200/50" },
-  { bg: "from-amber-500/10 to-amber-600/5", icon: "text-amber-600", border: "border-amber-200/50" },
-  { bg: "from-emerald-500/10 to-emerald-600/5", icon: "text-emerald-600", border: "border-emerald-200/50" },
-  { bg: "from-red-500/10 to-red-600/5", icon: "text-red-600", border: "border-red-200/50" },
-  { bg: "from-purple-500/10 to-purple-600/5", icon: "text-purple-600", border: "border-purple-200/50" },
-  { bg: "from-cyan-500/10 to-cyan-600/5", icon: "text-cyan-600", border: "border-cyan-200/50" },
+const KPI_VARIANTS = [
+  { ring: "from-blue-500 to-indigo-600", bg: "bg-blue-50", text: "text-blue-700", icon: "text-blue-600" },
+  { ring: "from-emerald-500 to-teal-600", bg: "bg-emerald-50", text: "text-emerald-700", icon: "text-emerald-600" },
+  { ring: "from-amber-500 to-orange-600", bg: "bg-amber-50", text: "text-amber-700", icon: "text-amber-600" },
+  { ring: "from-rose-500 to-red-600", bg: "bg-rose-50", text: "text-rose-700", icon: "text-rose-600" },
+  { ring: "from-purple-500 to-fuchsia-600", bg: "bg-purple-50", text: "text-purple-700", icon: "text-purple-600" },
+  { ring: "from-cyan-500 to-sky-600", bg: "bg-cyan-50", text: "text-cyan-700", icon: "text-cyan-600" },
 ];
 
 const GradientKpiCard = ({
@@ -44,18 +45,19 @@ const GradientKpiCard = ({
 }: {
   icon: any; label: string; value: number | string; gradientIdx?: number; subtitle?: string;
 }) => {
-  const style = GRADIENT_STYLES[gradientIdx % GRADIENT_STYLES.length];
+  const v = KPI_VARIANTS[gradientIdx % KPI_VARIANTS.length];
   return (
-    <Card className={cn("overflow-hidden border", style.border)}>
-      <CardContent className="pt-4 pb-3 px-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-lg font-bold text-foreground">{value}</p>
-            <p className="text-xs font-medium text-muted-foreground mt-0.5">{label}</p>
-            {subtitle && <p className="text-[10px] text-muted-foreground/70 mt-0.5">{subtitle}</p>}
+    <Card className="group relative overflow-hidden border border-border/60 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+      <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", v.ring)} />
+      <CardContent className="pt-5 pb-4 px-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className="text-lg font-bold text-foreground mt-1.5 truncate">{value}</p>
+            {subtitle && <p className="text-[10px] text-muted-foreground/80 mt-0.5">{subtitle}</p>}
           </div>
-          <div className={cn("rounded-xl p-2.5 bg-gradient-to-br", style.bg)}>
-            <Icon className={cn("h-4 w-4", style.icon)} />
+          <div className={cn("rounded-xl p-2.5 shrink-0 transition-transform group-hover:scale-110", v.bg)}>
+            <Icon className={cn("h-4 w-4", v.icon)} />
           </div>
         </div>
       </CardContent>
@@ -230,24 +232,30 @@ export default function DashboardMedicoes() {
   if (loading) return <div className="p-8 text-muted-foreground">Carregando...</div>;
 
   return (
-    <div className="p-4 md:p-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-primary mb-1">
-            <LayoutDashboard className="h-4 w-4" />
-            <span className="text-xs font-medium uppercase tracking-wider">Engenharia</span>
+    <div className="p-4 md:p-8 space-y-6 animate-fade-up">
+      {/* Hero Header */}
+      <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary via-primary/90 to-indigo-700 p-6 md:p-8 text-primary-foreground shadow-lg">
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
+        <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm mb-3">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-semibold uppercase tracking-wider">Engenharia · Visão Executiva</span>
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard de Medição de Serviços e Obras</h1>
+            <p className="text-sm md:text-base text-primary-foreground/85 mt-1.5 max-w-2xl">
+              Acompanhamento financeiro e operacional consolidado das medições de obras e contratos.
+            </p>
           </div>
-          <h1 className="text-xl font-bold text-foreground">Dashboard — Medição de Serviços e Obras</h1>
-          <p className="text-sm text-muted-foreground">Acompanhamento financeiro e operacional das medições.</p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={() => downloadPdfMedicoes(filtered, filterLabel)}>
-            <FileText className="mr-1 h-3.5 w-3.5" /> Relatório PDF
-          </Button>
-          <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={() => downloadExcelMedicoes(filtered, filterLabel)}>
-            <Download className="mr-1 h-3.5 w-3.5" /> Relatório Excel
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="secondary" size="sm" className="h-9 text-xs gap-1.5 bg-white text-primary hover:bg-white/90 shadow-sm" onClick={() => downloadPdfMedicoes(filtered, filterLabel)}>
+              <FileText className="h-3.5 w-3.5" /> Relatório PDF
+            </Button>
+            <Button variant="secondary" size="sm" className="h-9 text-xs gap-1.5 bg-white/15 text-white hover:bg-white/25 border border-white/20 backdrop-blur-sm" onClick={() => downloadExcelMedicoes(filtered, filterLabel)}>
+              <Download className="h-3.5 w-3.5" /> Relatório Excel
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -357,14 +365,52 @@ export default function DashboardMedicoes() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
         <GradientKpiCard icon={Ruler} label="Total Medições" value={totalMedicoes} gradientIdx={0} />
-        <GradientKpiCard icon={DollarSign} label="Valor Contratado" value={fmt(valorContratado)} gradientIdx={0} />
-        <GradientKpiCard icon={TrendingUp} label="Valor Medido" value={fmt(valorMedido)} gradientIdx={2} />
-        <GradientKpiCard icon={DollarSign} label="Saldo Aberto" value={fmt(saldoAberto)} gradientIdx={1} subtitle="Contratado − Medido" />
-        <GradientKpiCard icon={TrendingUp} label="% Médio Exec." value={fmtPct(percentualMedio)} gradientIdx={4} />
+        <GradientKpiCard icon={Wallet} label="Valor Contratado" value={fmt(valorContratado)} gradientIdx={5} />
+        <GradientKpiCard icon={TrendingUp} label="Valor Medido" value={fmt(valorMedido)} gradientIdx={1} />
+        <GradientKpiCard icon={DollarSign} label="Saldo Aberto" value={fmt(saldoAberto)} gradientIdx={2} subtitle="Contratado − Medido" />
+        <GradientKpiCard icon={Activity} label="% Médio Exec." value={fmtPct(percentualMedio)} gradientIdx={4} />
         <GradientKpiCard icon={Clock} label="Em Andamento" value={emAndamento} gradientIdx={0} />
-        <GradientKpiCard icon={CheckCircle} label="Concluídas" value={concluidas} gradientIdx={2} />
+        <GradientKpiCard icon={CheckCircle} label="Concluídas" value={concluidas} gradientIdx={1} />
         <GradientKpiCard icon={AlertTriangle} label="Paralisadas" value={paralisadas} gradientIdx={3} />
       </div>
+
+      {/* Execution overview */}
+      <Card className="border-border/60 overflow-hidden">
+        <CardContent className="p-5 md:p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Execução Financeira Global</p>
+                  <p className="text-sm text-foreground/80 mt-0.5">{fmt(valorMedido)} medidos de {fmt(valorContratado)} contratados</p>
+                </div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
+                  {valorContratado > 0 ? fmtPct((valorMedido / valorContratado) * 100) : "0%"}
+                </span>
+              </div>
+              <Progress value={valorContratado > 0 ? (valorMedido / valorContratado) * 100 : 0} className="h-3" />
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground pt-1">
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Medido</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-muted-foreground/40" /> Saldo a executar: {fmt(saldoAberto)}</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3 md:border-l md:pl-6 md:border-border/60">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-blue-600">{emAndamento}</p>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">Em curso</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-emerald-600">{concluidas}</p>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">Concluídas</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-rose-600">{paralisadas}</p>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">Paralisadas</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Charts */}
       <Tabs defaultValue="status" className="space-y-4">
@@ -418,15 +464,25 @@ export default function DashboardMedicoes() {
             <CardHeader><CardTitle className="text-sm">Evolução Mensal</CardTitle></CardHeader>
             <CardContent className="h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={byMonth}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis tickFormatter={(v) => fmt(v)} />
-                  <Tooltip formatter={(v: number) => fmt(v)} />
+                <AreaChart data={byMonth}>
+                  <defs>
+                    <linearGradient id="gradContratado" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradMedido" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                  <YAxis tickFormatter={(v) => fmt(v)} tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ borderRadius: 8, border: "1px solid hsl(var(--border))" }} />
                   <Legend />
-                  <Line type="monotone" dataKey="contratado" name="Contratado" stroke="#3b82f6" strokeWidth={2} />
-                  <Line type="monotone" dataKey="medido" name="Medido" stroke="#10b981" strokeWidth={2} />
-                </LineChart>
+                  <Area type="monotone" dataKey="contratado" name="Contratado" stroke="#3b82f6" strokeWidth={2.5} fill="url(#gradContratado)" />
+                  <Area type="monotone" dataKey="medido" name="Medido" stroke="#10b981" strokeWidth={2.5} fill="url(#gradMedido)" />
+                </AreaChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
