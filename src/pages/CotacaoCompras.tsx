@@ -357,7 +357,7 @@ export default function CotacaoComprasPage() {
           : "Pedido gerado após aprovação"
       );
 
-      toast({ title: `Cotação aprovada! ${fornecedorIds.length} pedido(s) emitido(s).` });
+      toast({ title: `Cotação aprovada! ${fornecedorIds.length} pedido(s) emitido(s) e assinado(s) eletronicamente.` });
     } else {
       if (!finVencedorId) { toast({ title: "Selecione o fornecedor vencedor", variant: "destructive" }); return; }
       aprovarCotacao(aprovarCotacaoId, finVencedorId, finJustificativa);
