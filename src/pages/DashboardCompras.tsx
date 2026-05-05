@@ -211,24 +211,30 @@ export default function DashboardCompras() {
     });
   }, [pedidos, filters]);
 
-  // Ranking materiais — volume (quantidade) e valor financeiro
-  const { topMateriaisVolume, topMateriaisValor } = useMemo(() => {
-    const agg: Record<string, { descricao: string; quantidade: number; valor: number }> = {};
+  // Ranking materiais e serviços — volume (quantidade) e valor financeiro
+  const { topMaterialVolume, topMaterialValor, topServicoVolume, topServicoValor } = useMemo(() => {
+    const aggMat: Record<string, { descricao: string; quantidade: number; valor: number }> = {};
+    const aggServ: Record<string, { descricao: string; quantidade: number; valor: number }> = {};
     pedidosFiltrados.forEach(p => {
       p.itens.forEach(it => {
         const key = it.itemId || it.descricao;
         const mat = materiais.find(m => m.id === it.itemId);
+        const tipo = mat?.tipo === "Serviço" ? "Serviço" : "Material";
         const desc = mat ? `${mat.codigo} - ${mat.descricao}` : (it.descricao || "Item sem descrição");
-        if (!agg[key]) agg[key] = { descricao: desc, quantidade: 0, valor: 0 };
-        agg[key].quantidade += Number(it.quantidade) || 0;
-        agg[key].valor += Number(it.valorTotal) || 0;
+        const target = tipo === "Serviço" ? aggServ : aggMat;
+        if (!target[key]) target[key] = { descricao: desc, quantidade: 0, valor: 0 };
+        target[key].quantidade += Number(it.quantidade) || 0;
+        target[key].valor += Number(it.valorTotal) || 0;
       });
     });
-    const arr = Object.values(agg);
     const truncar = (s: string) => s.length > 40 ? s.slice(0, 38) + "…" : s;
+    const buildVol = (agg: typeof aggMat) => Object.values(agg).sort((a, b) => b.quantidade - a.quantidade).slice(0, 10).map(x => ({ name: truncar(x.descricao), value: x.quantidade }));
+    const buildVal = (agg: typeof aggMat) => Object.values(agg).sort((a, b) => b.valor - a.valor).slice(0, 10).map(x => ({ name: truncar(x.descricao), value: Number(x.valor.toFixed(2)) }));
     return {
-      topMateriaisVolume: [...arr].sort((a, b) => b.quantidade - a.quantidade).slice(0, 10).map(x => ({ name: truncar(x.descricao), value: x.quantidade })),
-      topMateriaisValor: [...arr].sort((a, b) => b.valor - a.valor).slice(0, 10).map(x => ({ name: truncar(x.descricao), value: Number(x.valor.toFixed(2)) })),
+      topMaterialVolume: buildVol(aggMat),
+      topMaterialValor: buildVal(aggMat),
+      topServicoVolume: buildVol(aggServ),
+      topServicoValor: buildVal(aggServ),
     };
   }, [pedidosFiltrados, materiais]);
 
