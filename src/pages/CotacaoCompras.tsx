@@ -2,12 +2,16 @@ import { useState, useMemo, useEffect, useCallback, type ReactNode } from "react
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useCotacaoCompras, CotacaoCompras, PropostaFornecedor, ItemCotacaoFornecedor, ItemVencedor } from "@/contexts/CotacaoComprasContext";
 import { useRequisicaoCompras, RequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
-import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
+import { usePedidoCompra, PedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useCargos } from "@/contexts/CargosContext";
+import { usePcAssinaturas } from "@/contexts/PcAssinaturasContext";
+import { gerarHashPc } from "@/lib/assinaturaHashPc";
+import { obterIpOrigem } from "@/lib/assinaturaHashOs";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { Button } from "@/components/ui/button";
@@ -44,7 +48,32 @@ export default function CotacaoComprasPage() {
   const { usuarioLogado } = useAuth();
   const { podeAprovar } = useLimiteAprovacao();
   const { empresa } = useEmpresa();
+  const { cargos } = useCargos();
+  const { registrar: registrarAssinaturaPc } = usePcAssinaturas();
   const { toast } = useToast();
+
+  const assinarPedidoAutomatico = useCallback(async (pedido: PedidoCompra) => {
+    try {
+      const hash = await gerarHashPc(pedido);
+      const ip = await obterIpOrigem();
+      const cargo = usuarioLogado ? cargos.find((c) => c.id === usuarioLogado.cargoId) : null;
+      await registrarAssinaturaPc({
+        pedido_id: pedido.id,
+        pedido_numero: pedido.numero,
+        papel: "aprovador",
+        signatario_user_id: usuarioLogado?.id || "modo-teste-pc-102030",
+        signatario_nome: usuarioLogado?.nome || "Usuário de Teste",
+        signatario_email: usuarioLogado?.email || "teste@lasant.com.br",
+        signatario_cargo: cargo?.nome || "Modo Teste",
+        signatario_matricula: usuarioLogado?.matricula || "TESTE",
+        hash_documento: hash,
+        ip_origem: ip,
+        user_agent: navigator.userAgent,
+      });
+    } catch (e) {
+      console.error("Falha ao assinar pedido automaticamente:", e);
+    }
+  }, [usuarioLogado, cargos, registrarAssinaturaPc]);
 
   const fornecedores = useMemo(() => clientes.filter(c => c.tipo === "Fornecedor"), [clientes]);
   const reqDisponiveisParaCotacao = useMemo(() => requisicoes.filter(r => r.status === "Enviada" || r.status === "Em Cotação"), [requisicoes]);
@@ -257,7 +286,7 @@ export default function CotacaoComprasPage() {
     setAprovarDialogOpen(true);
   };
 
-  const handleAprovar = () => {
+  const handleAprovar = async () => {
     const cot = cotacoes.find(c => c.id === aprovarCotacaoId);
     if (!cot) return;
     const req = requisicoes.find(r => r.id === cot.requisicaoId);
@@ -295,6 +324,7 @@ export default function CotacaoComprasPage() {
 
       aprovarCotacao(aprovarCotacaoId, principalFornecedorId, finJustificativa, itensVencedores);
 
+      const pedidosCriados: PedidoCompra[] = [];
       for (const fornId of fornecedorIds) {
         const prop = cot.propostas.find(p => p.fornecedorId === fornId);
         if (!prop) continue;
@@ -303,7 +333,7 @@ export default function CotacaoComprasPage() {
           .filter(i => itemIds.includes(i.itemId))
           .map(i => ({ itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario, valorTotal: i.precoUnitario * i.quantidade }));
 
-        addPedido({
+        const novo = addPedido({
           cotacaoId: cot.id,
           requisicaoId: cot.requisicaoId,
           requisicaoNumero: cot.requisicaoNumero,
@@ -316,7 +346,10 @@ export default function CotacaoComprasPage() {
           localEntrega: req.localEntrega || "",
           observacoes: "",
         });
+        pedidosCriados.push(novo);
       }
+
+      await Promise.all(pedidosCriados.map(p => assinarPedidoAutomatico(p)));
 
       updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador",
         fornecedorIds.length > 1
@@ -324,14 +357,14 @@ export default function CotacaoComprasPage() {
           : "Pedido gerado após aprovação"
       );
 
-      toast({ title: `Cotação aprovada! ${fornecedorIds.length} pedido(s) emitido(s).` });
+      toast({ title: `Cotação aprovada! ${fornecedorIds.length} pedido(s) emitido(s) e assinado(s) eletronicamente.` });
     } else {
       if (!finVencedorId) { toast({ title: "Selecione o fornecedor vencedor", variant: "destructive" }); return; }
       aprovarCotacao(aprovarCotacaoId, finVencedorId, finJustificativa);
 
       const propVencedora = cot.propostas.find(p => p.fornecedorId === finVencedorId);
       if (propVencedora) {
-        addPedido({
+        const novoPedido = addPedido({
           cotacaoId: cot.id,
           requisicaoId: cot.requisicaoId,
           requisicaoNumero: cot.requisicaoNumero,
@@ -344,9 +377,10 @@ export default function CotacaoComprasPage() {
           localEntrega: req.localEntrega || "",
           observacoes: "",
         });
-        updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador", "Pedido gerado após aprovação");
+        await assinarPedidoAutomatico(novoPedido);
+        updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador", "Pedido gerado e assinado eletronicamente após aprovação");
       }
-      toast({ title: "Cotação aprovada e pedido emitido!" });
+      toast({ title: "Cotação aprovada e pedido emitido com assinatura eletrônica!" });
     }
 
     setAprovarDialogOpen(false);
