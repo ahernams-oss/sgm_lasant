@@ -168,13 +168,14 @@ export default function DashboardCompras() {
     const map: Record<string, number> = {};
     filtered.forEach(r => {
       r.itens.forEach(item => {
+        if (!itemMatchesTipo(item.materialId)) return;
         const mat = materiais.find(m => m.id === item.materialId);
         const catName = mat?.categoriaId ? (getDescricaoCompleta(mat.categoriaId) || "Sem categoria") : "Sem categoria";
         map[catName] = (map[catName] || 0) + item.quantidade;
       });
     });
     return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 10);
-  }, [filtered, materiais, getDescricaoCompleta]);
+  }, [filtered, materiais, getDescricaoCompleta, itemMatchesTipo]);
 
   // Timeline
   const timelineData = useMemo(() => {
