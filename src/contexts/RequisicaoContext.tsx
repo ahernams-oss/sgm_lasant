@@ -58,6 +58,7 @@ const reqToRow = (r: Requisicao) => ({
   formacao: r.formacao as any, formacao_detalhe: r.formacaoDetalhe,
   experiencia: r.experiencia, conhecimento_informatica: r.conhecimentoInformatica,
   atividades_cargo: r.atividadesCargo, salario_vaga: r.salarioVaga,
+  solicitante: r.solicitante ?? "",
   status: r.status, aprovado_por: r.aprovadoPor ?? "",
   historico_status: r.historicoStatus as any,
 });
