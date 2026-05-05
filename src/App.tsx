@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { ReactNode } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -113,14 +114,17 @@ import { BimProvider } from "@/contexts/BimContext";
 import { CronogramasProvider } from "@/contexts/CronogramasContext";
 const queryClient = new QueryClient();
 
-function AppRoutes() {
+function RequireAuth({ children }: { children: ReactNode }) {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+}
+
+function ProtectedAppRoutes() {
   return (
     <AppLayout>
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/esqueci-senha" element={<EsqueciSenha />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/fornecedores" element={<Fornecedores />} />
         <Route path="/cargos" element={<Cargos />} />
@@ -242,6 +246,25 @@ function AppRoutes() {
   );
 }
 
+function AppRoutes() {
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <Routes>
+      <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+      <Route
+        path="/*"
+        element={
+          <RequireAuth>
+            <ProtectedAppRoutes />
+          </RequireAuth>
+        }
+      />
+    </Routes>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ClientesProvider>
@@ -296,11 +319,13 @@ const App = () => (
           <Route
             path="/monitor-tv"
             element={
-              <SolicitacoesServicosProvider>
-                <OrdensServicoProvider>
-                  <MonitorTV />
-                </OrdensServicoProvider>
-              </SolicitacoesServicosProvider>
+              <RequireAuth>
+                <SolicitacoesServicosProvider>
+                  <OrdensServicoProvider>
+                    <MonitorTV />
+                  </OrdensServicoProvider>
+                </SolicitacoesServicosProvider>
+              </RequireAuth>
             }
           />
           <Route path="/*" element={<AppRoutes />} />
