@@ -319,9 +319,21 @@ export default function RdoPage() {
                   <TableCell className="text-center">{(Number(r.avanco_fisico_geral) || 0).toFixed(1)}%</TableCell>
                   <TableCell><Badge variant="outline" className={statusColor(r.status)}>{r.status}</Badge></TableCell>
                   <TableCell className="text-right space-x-1">
-                    <Button size="icon" variant="ghost" onClick={() => onExportPdf(r)} title="Exportar PDF">
-                      <FileDown className="h-4 w-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="icon" variant="ghost" title="Exportar PDF">
+                          <FileDown className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onExportPdf(r, false)}>
+                          <FileText className="h-4 w-4 mr-2" /> PDF sem imagens
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onExportPdf(r, true)}>
+                          <ImageIcon className="h-4 w-4 mr-2" /> PDF com imagens
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button size="icon" variant="ghost" onClick={() => openEdit(r)} title="Editar">
                       <Edit className="h-4 w-4" />
                     </Button>
