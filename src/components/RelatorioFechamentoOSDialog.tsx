@@ -495,11 +495,12 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
             </div>
             <div>
               <Label className="text-sm">Situação</Label>
-              <Select value={situacaoSel} onValueChange={setSituacaoSel}>
+              <Select value={tipo === "fechamento_validadas" ? "Validada" : situacaoSel} onValueChange={setSituacaoSel} disabled={tipo === "fechamento_validadas"}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todas">Todas</SelectItem>
                   {situacoesUnicas.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  {tipo === "fechamento_validadas" && !situacoesUnicas.includes("Validada") && <SelectItem value="Validada">Validada</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
