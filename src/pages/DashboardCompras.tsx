@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
+import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
@@ -83,6 +84,7 @@ function formatHours(h: number) {
 
 export default function DashboardCompras() {
   const { requisicoes } = useRequisicaoCompras();
+  const { pedidos } = usePedidoCompra();
   const { materiais } = useMateriaisServicos();
   const { getDescricaoCompleta } = useCategoriasCompras();
   const { empresa } = useEmpresa();
@@ -197,6 +199,38 @@ export default function DashboardCompras() {
 
   const reprovadaList = useMemo(() => filtered.filter(r => r.status === "Reprovada"), [filtered]);
   const pendentesEntrega = useMemo(() => filtered.filter(r => ["Pedido Emitido", "Em Entrega"].includes(r.status)), [filtered]);
+
+  // Pedidos filtrados pelo mesmo período (data de criação) — exclui cancelados
+  const pedidosFiltrados = useMemo(() => {
+    return pedidos.filter(p => {
+      if (p.status === "Cancelado") return false;
+      const d = new Date(p.dataCriacao);
+      if (filters.dateFrom && d < filters.dateFrom) return false;
+      if (filters.dateTo) { const end = new Date(filters.dateTo); end.setHours(23, 59, 59, 999); if (d > end) return false; }
+      return true;
+    });
+  }, [pedidos, filters]);
+
+  // Ranking materiais — volume (quantidade) e valor financeiro
+  const { topMateriaisVolume, topMateriaisValor } = useMemo(() => {
+    const agg: Record<string, { descricao: string; quantidade: number; valor: number }> = {};
+    pedidosFiltrados.forEach(p => {
+      p.itens.forEach(it => {
+        const key = it.itemId || it.descricao;
+        const mat = materiais.find(m => m.id === it.itemId);
+        const desc = mat ? `${mat.codigo} - ${mat.descricao}` : (it.descricao || "Item sem descrição");
+        if (!agg[key]) agg[key] = { descricao: desc, quantidade: 0, valor: 0 };
+        agg[key].quantidade += Number(it.quantidade) || 0;
+        agg[key].valor += Number(it.valorTotal) || 0;
+      });
+    });
+    const arr = Object.values(agg);
+    const truncar = (s: string) => s.length > 40 ? s.slice(0, 38) + "…" : s;
+    return {
+      topMateriaisVolume: [...arr].sort((a, b) => b.quantidade - a.quantidade).slice(0, 10).map(x => ({ name: truncar(x.descricao), value: x.quantidade })),
+      topMateriaisValor: [...arr].sort((a, b) => b.valor - a.valor).slice(0, 10).map(x => ({ name: truncar(x.descricao), value: Number(x.valor.toFixed(2)) })),
+    };
+  }, [pedidosFiltrados, materiais]);
 
   // PDF Export
   const exportPdf = () => {
@@ -503,6 +537,53 @@ export default function DashboardCompras() {
                   <YAxis type="category" dataKey="name" width={120} fontSize={10} />
                   <Tooltip />
                   <Bar dataKey="value" name="Requisições" fill="hsl(260, 60%, 55%)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Ranking de Materiais Comprados */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Top 10 Materiais Mais Comprados (Volume)</CardTitle>
+            <p className="text-xs text-muted-foreground">Quantidade total adquirida via Pedidos de Compra</p>
+          </CardHeader>
+          <CardContent>
+            {topMateriaisVolume.length === 0 ? (
+              <p className="text-center text-muted-foreground py-10">Sem dados</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={360}>
+                <BarChart data={topMateriaisVolume} layout="vertical" margin={{ left: 10, right: 30 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" width={180} fontSize={10} />
+                  <Tooltip formatter={(v: any) => [`${Number(v).toLocaleString("pt-BR")} un`, "Quantidade"]} />
+                  <Bar dataKey="value" name="Quantidade" fill="hsl(190, 70%, 50%)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Top 10 Materiais por Valor Financeiro</CardTitle>
+            <p className="text-xs text-muted-foreground">Maior gasto acumulado em Pedidos de Compra</p>
+          </CardHeader>
+          <CardContent>
+            {topMateriaisValor.length === 0 ? (
+              <p className="text-center text-muted-foreground py-10">Sem dados</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={360}>
+                <BarChart data={topMateriaisValor} layout="vertical" margin={{ left: 10, right: 30 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`} />
+                  <YAxis type="category" dataKey="name" width={180} fontSize={10} />
+                  <Tooltip formatter={(v: any) => [`R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, "Valor"]} />
+                  <Bar dataKey="value" name="Valor (R$)" fill="hsl(145, 60%, 45%)" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
