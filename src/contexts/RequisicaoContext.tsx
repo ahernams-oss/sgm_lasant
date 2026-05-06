@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
-import { supabase } from "@/integrations/supabase/client";
-import { enviarWhatsApp } from "@/lib/whatsapp";
+import { enviarNotificacaoRP } from "@/lib/notificacaoRP";
 
 export interface StatusHistorico { status: string; dataHora: string; usuario?: string; }
 
