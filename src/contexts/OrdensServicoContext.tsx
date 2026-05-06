@@ -125,6 +125,7 @@ const rowToOrdem = (r: any): OrdemServico => ({
   dataTermino: r.data_termino ?? "",
   horaTermino: r.hora_termino ?? "",
   prioridade: r.prioridade ?? "C: NORMAL",
+  complexidade: (r.complexidade as any) ?? "Baixa",
   solicitante: r.solicitante ?? "",
   matricula: r.matricula ?? "",
   ramal: r.ramal ?? "",
