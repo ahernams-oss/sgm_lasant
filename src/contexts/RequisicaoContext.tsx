@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
-import { supabase } from "@/integrations/supabase/client";
-import { enviarWhatsApp } from "@/lib/whatsapp";
+import { enviarNotificacaoRP } from "@/lib/notificacaoRP";
 
 export interface StatusHistorico { status: string; dataHora: string; usuario?: string; }
 
@@ -87,28 +86,15 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
     await insertRow("requisicoes", reqToRow(full));
     await load();
 
-    // Disparo WhatsApp para o RH ao criar nova RP
-    try {
-      const { data: emp } = await (supabase as any)
-        .from("empresa")
-        .select("whatsapp_rh")
-        .limit(1)
-        .maybeSingle();
-      const destino = (emp?.whatsapp_rh || "").trim();
-      if (destino) {
-        const msg =
-          `*Nova Requisição de Pessoal*\n\n` +
-          `RP Nº: ${full.numero}\n` +
-          `Cargo: ${full.cargoNome || "-"}\n` +
-          `Unidade: ${full.unidade || "-"}\n` +
-          `Solicitante: ${full.solicitante || "-"}\n` +
-          `Data: ${full.dataCriacao}\n` +
-          `Status: ${full.status}`;
-        await enviarWhatsApp(destino, msg);
-      }
-    } catch (e) {
-      console.error("Falha ao notificar RH via WhatsApp:", e);
-    }
+    const msg =
+      `*Nova Requisição de Pessoal*\n\n` +
+      `RP Nº: ${full.numero}\n` +
+      `Cargo: ${full.cargoNome || "-"}\n` +
+      `Unidade: ${full.unidade || "-"}\n` +
+      `Solicitante: ${full.solicitante || "-"}\n` +
+      `Data: ${full.dataCriacao}\n` +
+      `Status: ${full.status}`;
+    await enviarNotificacaoRP({ mensagem: msg, solicitante: full.solicitante });
   };
 
   const updateRequisicao = async (id: string, data: Partial<Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor" | "historicoStatus">>) => {
@@ -130,6 +116,15 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
     };
     await updateRow("requisicoes", id, reqToRow(updated));
     await load();
+
+    const msg =
+      `*Atualização de Requisição de Pessoal*\n\n` +
+      `RP Nº: ${current.numero}\n` +
+      `Cargo: ${current.cargoNome || "-"}\n` +
+      `Status: ${status}\n` +
+      (aprovadoPor ? `Por: ${aprovadoPor}\n` : "") +
+      `Data: ${agora}`;
+    await enviarNotificacaoRP({ mensagem: msg, solicitante: current.solicitante });
   };
 
   return (
