@@ -17,7 +17,7 @@ const Login = () => {
   const [lembrar, setLembrar] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !senha.trim()) {
       toast.error("Preencha todos os campos.");
@@ -25,16 +25,17 @@ const Login = () => {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      const success = login(email, senha, lembrar);
-      setLoading(false);
+    try {
+      const success = await login(email, senha, lembrar);
       if (success) {
         toast.success("Login realizado com sucesso!");
         navigate("/");
       } else {
         toast.error("E-mail ou senha inválidos.");
       }
-    }, 400);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
