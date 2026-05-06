@@ -6,6 +6,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const JANELAS: { dias: number; campo: string; titulo: string }[] = [
+  { dias: 10, campo: 'notificado_10d', titulo: 'LEMBRETE DE AUDIÊNCIA - 10 DIAS' },
+  { dias: 7, campo: 'notificado_7d', titulo: 'LEMBRETE DE AUDIÊNCIA - 7 DIAS' },
+  { dias: 5, campo: 'notificado_5d', titulo: 'LEMBRETE DE AUDIÊNCIA - 5 DIAS' },
+  { dias: 2, campo: 'notificado_2d', titulo: 'URGENTE - AUDIÊNCIA EM 2 DIAS' },
+];
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -37,95 +44,62 @@ serve(async (req) => {
 
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
-
-    const em2d = new Date(hoje);
-    em2d.setDate(em2d.getDate() + 2);
-    const em5d = new Date(hoje);
-    em5d.setDate(em5d.getDate() + 5);
-
     const fmt = (d: Date) => d.toISOString().split('T')[0];
-
-    const { data: aud5d } = await supabase
-      .from('juridico_audiencias')
-      .select('*')
-      .eq('status', 'Agendada')
-      .eq('notificado_5d', false)
-      .lte('data_audiencia', fmt(em5d))
-      .gte('data_audiencia', fmt(hoje));
-
-    const { data: aud2d } = await supabase
-      .from('juridico_audiencias')
-      .select('*')
-      .eq('status', 'Agendada')
-      .eq('notificado_2d', false)
-      .lte('data_audiencia', fmt(em2d))
-      .gte('data_audiencia', fmt(hoje));
 
     let enviados = 0;
     const baseUrl = `https://v5.chatpro.com.br/${chatproInstance}`;
+    const detalhes: Record<string, number> = {};
 
     const enviarWhatsApp = async (telefone: string, mensagem: string) => {
       const telefoneLimpo = telefone.replace(/\D/g, '');
       if (!telefoneLimpo) return;
-
-      const url = `${baseUrl}/api/v1/send_message`;
-      await fetch(url, {
+      await fetch(`${baseUrl}/api/v1/send_message`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': chatproToken,
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': chatproToken },
         body: JSON.stringify({ number: telefoneLimpo, message: mensagem }),
       });
       enviados++;
     };
 
-    for (const aud of (aud5d || [])) {
-      const dataFormatada = new Date(aud.data_audiencia + 'T12:00:00').toLocaleDateString('pt-BR');
-      const msg = `⚖️ *LEMBRETE DE AUDIÊNCIA - 5 DIAS*\n\n` +
-        `Processo: *${aud.processo_numero}*\n` +
-        `Tipo: ${aud.tipo}\n` +
-        `Data: *${dataFormatada}*${aud.hora ? ` às ${aud.hora}` : ''}\n` +
-        `Local: ${aud.local || 'Não informado'}\n` +
-        `Vara: ${aud.vara || 'Não informada'}\n` +
-        `${aud.observacoes ? `Obs: ${aud.observacoes}` : ''}`;
+    for (const j of JANELAS) {
+      const limite = new Date(hoje);
+      limite.setDate(limite.getDate() + j.dias);
 
-      for (const contato of contatos) {
-        if (contato.telefone_whatsapp) {
-          await enviarWhatsApp(contato.telefone_whatsapp, msg);
-        }
-      }
-
-      await supabase
+      const { data: auds } = await supabase
         .from('juridico_audiencias')
-        .update({ notificado_5d: true })
-        .eq('id', aud.id);
-    }
+        .select('*')
+        .eq('status', 'Agendada')
+        .eq(j.campo, false)
+        .lte('data_audiencia', fmt(limite))
+        .gte('data_audiencia', fmt(hoje));
 
-    for (const aud of (aud2d || [])) {
-      const dataFormatada = new Date(aud.data_audiencia + 'T12:00:00').toLocaleDateString('pt-BR');
-      const msg = `⚖️ *URGENTE - AUDIÊNCIA EM 2 DIAS*\n\n` +
-        `Processo: *${aud.processo_numero}*\n` +
-        `Tipo: ${aud.tipo}\n` +
-        `Data: *${dataFormatada}*${aud.hora ? ` às ${aud.hora}` : ''}\n` +
-        `Local: ${aud.local || 'Não informado'}\n` +
-        `Vara: ${aud.vara || 'Não informada'}\n` +
-        `${aud.observacoes ? `Obs: ${aud.observacoes}` : ''}`;
+      detalhes[j.campo] = (auds || []).length;
 
-      for (const contato of contatos) {
-        if (contato.telefone_whatsapp) {
-          await enviarWhatsApp(contato.telefone_whatsapp, msg);
+      for (const aud of (auds || [])) {
+        const dataFormatada = new Date(aud.data_audiencia + 'T12:00:00').toLocaleDateString('pt-BR');
+        const msg = `⚖️ *${j.titulo}*\n\n` +
+          `Processo: *${aud.processo_numero}*\n` +
+          `Tipo: ${aud.tipo}\n` +
+          `Data: *${dataFormatada}*${aud.hora ? ` às ${aud.hora}` : ''}\n` +
+          `Local: ${aud.local || 'Não informado'}\n` +
+          `Vara: ${aud.vara || 'Não informada'}\n` +
+          `${aud.observacoes ? `Obs: ${aud.observacoes}` : ''}`;
+
+        for (const contato of contatos) {
+          if (contato.telefone_whatsapp) {
+            await enviarWhatsApp(contato.telefone_whatsapp, msg);
+          }
         }
-      }
 
-      await supabase
-        .from('juridico_audiencias')
-        .update({ notificado_2d: true })
-        .eq('id', aud.id);
+        await supabase
+          .from('juridico_audiencias')
+          .update({ [j.campo]: true })
+          .eq('id', aud.id);
+      }
     }
 
     return new Response(
-      JSON.stringify({ success: true, enviados, audiencias_5d: (aud5d || []).length, audiencias_2d: (aud2d || []).length }),
+      JSON.stringify({ success: true, enviados, detalhes }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error: unknown) {

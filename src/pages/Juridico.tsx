@@ -38,6 +38,8 @@ interface Audiencia {
   vara: string;
   observacoes: string;
   status: string;
+  notificado_10d: boolean;
+  notificado_7d: boolean;
   notificado_5d: boolean;
   notificado_2d: boolean;
 }
@@ -64,7 +66,8 @@ const emptyProcesso: Omit<ProcessoTrabalhista, "id"> = {
 
 const emptyAudiencia: Omit<Audiencia, "id"> = {
   processo_id: "", processo_numero: "", data_audiencia: "", hora: "", tipo: "Audiência Inicial",
-  local: "", vara: "", observacoes: "", status: "Agendada", notificado_5d: false, notificado_2d: false,
+  local: "", vara: "", observacoes: "", status: "Agendada",
+  notificado_10d: false, notificado_7d: false, notificado_5d: false, notificado_2d: false,
 };
 
 const emptyContato: Omit<ContatoNotificacao, "id"> = {
@@ -111,7 +114,9 @@ export default function JuridicoPage() {
       id: r.id, processo_id: r.processo_id ?? "", processo_numero: r.processo_numero ?? "",
       data_audiencia: r.data_audiencia ?? "", hora: r.hora ?? "", tipo: r.tipo ?? "",
       local: r.local ?? "", vara: r.vara ?? "", observacoes: r.observacoes ?? "",
-      status: r.status ?? "Agendada", notificado_5d: r.notificado_5d ?? false, notificado_2d: r.notificado_2d ?? false,
+      status: r.status ?? "Agendada",
+      notificado_10d: r.notificado_10d ?? false, notificado_7d: r.notificado_7d ?? false,
+      notificado_5d: r.notificado_5d ?? false, notificado_2d: r.notificado_2d ?? false,
     })));
   }, []);
 
@@ -449,9 +454,11 @@ export default function JuridicoPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
+                          {a.notificado_10d && <Badge variant="outline" className="text-xs">10d ✓</Badge>}
+                          {a.notificado_7d && <Badge variant="outline" className="text-xs">7d ✓</Badge>}
                           {a.notificado_5d && <Badge variant="outline" className="text-xs">5d ✓</Badge>}
                           {a.notificado_2d && <Badge variant="outline" className="text-xs">2d ✓</Badge>}
-                          {!a.notificado_5d && !a.notificado_2d && <span className="text-xs text-muted-foreground">Pendente</span>}
+                          {!a.notificado_10d && !a.notificado_7d && !a.notificado_5d && !a.notificado_2d && <span className="text-xs text-muted-foreground">Pendente</span>}
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
