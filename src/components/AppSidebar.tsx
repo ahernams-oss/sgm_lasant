@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  ChevronDown,
   ClipboardList,
   Users,
   Briefcase,
@@ -57,6 +58,8 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useState, useEffect } from "react";
 
 const menuItems = [
   {
