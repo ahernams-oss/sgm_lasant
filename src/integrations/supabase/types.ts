@@ -2670,6 +2670,66 @@ export type Database = {
         }
         Relationships: []
       }
+      orcamentos_sco: {
+        Row: {
+          bdi: number
+          cliente_id: string | null
+          cliente_nome: string | null
+          created_at: string
+          criado_por: string | null
+          desconto: number
+          id: string
+          itens: Json
+          numero: number
+          obra: string | null
+          observacoes: string | null
+          status: string
+          subtotal: number
+          tipo_analise: string
+          titulo: string
+          updated_at: string
+          valor_total: number
+        }
+        Insert: {
+          bdi?: number
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          created_at?: string
+          criado_por?: string | null
+          desconto?: number
+          id?: string
+          itens?: Json
+          numero?: number
+          obra?: string | null
+          observacoes?: string | null
+          status?: string
+          subtotal?: number
+          tipo_analise?: string
+          titulo: string
+          updated_at?: string
+          valor_total?: number
+        }
+        Update: {
+          bdi?: number
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          created_at?: string
+          criado_por?: string | null
+          desconto?: number
+          id?: string
+          itens?: Json
+          numero?: number
+          obra?: string | null
+          observacoes?: string | null
+          status?: string
+          subtotal?: number
+          tipo_analise?: string
+          titulo?: string
+          updated_at?: string
+          valor_total?: number
+        }
+        Relationships: []
+      }
       ordens_servico: {
         Row: {
           anexos: Json | null
@@ -4331,6 +4391,123 @@ export type Database = {
           id?: string
           nome?: string
           titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sco_composicoes: {
+        Row: {
+          created_at: string
+          elementar_codigo: string | null
+          elementar_descricao: string | null
+          id: string
+          quantidade: number
+          reutilizado: string | null
+          servico_codigo: string
+          unidade: string | null
+        }
+        Insert: {
+          created_at?: string
+          elementar_codigo?: string | null
+          elementar_descricao?: string | null
+          id?: string
+          quantidade?: number
+          reutilizado?: string | null
+          servico_codigo: string
+          unidade?: string | null
+        }
+        Update: {
+          created_at?: string
+          elementar_codigo?: string | null
+          elementar_descricao?: string | null
+          id?: string
+          quantidade?: number
+          reutilizado?: string | null
+          servico_codigo?: string
+          unidade?: string | null
+        }
+        Relationships: []
+      }
+      sco_elementares: {
+        Row: {
+          codigo: string
+          created_at: string
+          descricao: string
+          grupo: string | null
+          preco: number
+          referencia: string | null
+          reutilizado: string | null
+          unidade: string | null
+          updated_at: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          descricao: string
+          grupo?: string | null
+          preco?: number
+          referencia?: string | null
+          reutilizado?: string | null
+          unidade?: string | null
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          descricao?: string
+          grupo?: string | null
+          preco?: number
+          referencia?: string | null
+          reutilizado?: string | null
+          unidade?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sco_servicos: {
+        Row: {
+          capitulo: string | null
+          capitulo_descricao: string | null
+          codigo: string
+          created_at: string
+          descricao: string
+          preco: number
+          referencia: string | null
+          secao: string | null
+          secao_descricao: string | null
+          subsecao: string | null
+          subsecao_descricao: string | null
+          unidade: string | null
+          updated_at: string
+        }
+        Insert: {
+          capitulo?: string | null
+          capitulo_descricao?: string | null
+          codigo: string
+          created_at?: string
+          descricao: string
+          preco?: number
+          referencia?: string | null
+          secao?: string | null
+          secao_descricao?: string | null
+          subsecao?: string | null
+          subsecao_descricao?: string | null
+          unidade?: string | null
+          updated_at?: string
+        }
+        Update: {
+          capitulo?: string | null
+          capitulo_descricao?: string | null
+          codigo?: string
+          created_at?: string
+          descricao?: string
+          preco?: number
+          referencia?: string | null
+          secao?: string | null
+          secao_descricao?: string | null
+          subsecao?: string | null
+          subsecao_descricao?: string | null
+          unidade?: string | null
           updated_at?: string
         }
         Relationships: []
