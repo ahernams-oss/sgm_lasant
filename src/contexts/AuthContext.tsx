@@ -10,7 +10,7 @@ const STORAGE_KEY = "usuarioLogado";
 
 interface AuthContextType {
   usuarioLogado: Usuario | null;
-  login: (email: string, senha: string, lembrar?: boolean) => boolean;
+  login: (email: string, senha: string, lembrar?: boolean) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
   temAcessoTotal: boolean;
@@ -36,10 +36,19 @@ const writeStored = (user: Usuario | null, lembrar: boolean) => {
 };
 
 const gerarSenhaTemporaria = (): string => {
-  const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-  let out = "";
-  for (let i = 0; i < 8; i++) out += chars[Math.floor(Math.random() * chars.length)];
-  return out;
+  // 10 caracteres com classes garantidas (atende política)
+  const upp = "ABCDEFGHJKMNPQRSTUVWXYZ";
+  const low = "abcdefghjkmnpqrstuvwxyz";
+  const num = "23456789";
+  const sym = "!@#$%&*?";
+  const all = upp + low + num + sym;
+  const pick = (s: string) => s[Math.floor(Math.random() * s.length)];
+  let out = pick(upp) + pick(low) + pick(num) + pick(sym);
+  for (let i = 0; i < 6; i++) out += pick(all);
+  return out
+    .split("")
+    .sort(() => Math.random() - 0.5)
+    .join("");
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -73,21 +82,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return usuarioLogado.clientesPermitidos;
   }, [usuarioLogado]);
 
-  const login = (email: string, senha: string, lembrarMe = false): boolean => {
+  const login = async (email: string, senha: string, lembrarMe = false): Promise<boolean> => {
     const emailNorm = email.trim().toLowerCase();
     const senhaNorm = senha.trim();
-    const found = usuarios.find(
-      (u) => (u.email || "").trim().toLowerCase() === emailNorm && (u.senha || "").trim() === senhaNorm
-    );
-    if (!found) {
-      console.warn("[Login] Falha ao autenticar:", { emailDigitado: emailNorm, totalUsuarios: usuarios.length });
-    }
-    if (found) {
+
+    try {
+      const { data, error } = await supabase.functions.invoke("auth-login", {
+        body: { email: emailNorm, senha: senhaNorm },
+      });
+
+      if (error || !data?.usuario) {
+        console.warn("[Login] Falha ao autenticar:", error?.message);
+        return false;
+      }
+
+      // Mapeia resposta da função (snake_case) para o objeto Usuario (camelCase)
+      const r = data.usuario;
+      const usuario: Usuario = {
+        id: r.id,
+        nome: r.nome ?? "",
+        cargoId: r.cargo_id ?? "",
+        telefone: r.telefone ?? "",
+        email: r.email ?? "",
+        senha: "", // nunca persistir senha no client
+        clientesPermitidos: r.clientes_permitidos ?? [],
+        perfilAcessoId: r.perfil_acesso_id ?? "",
+        matricula: r.matricula ?? "",
+        ramal: r.ramal ?? "",
+        limiteAprovacaoCompras: Number(r.limite_aprovacao_compras ?? 0),
+        limiteAprovacaoOS: Number(r.limite_aprovacao_os ?? 0),
+      };
+
       setLembrar(lembrarMe);
-      setUsuarioLogado(found);
+      setUsuarioLogado(usuario);
       return true;
+    } catch (e) {
+      console.error("[Login] Erro inesperado:", e);
+      return false;
     }
-    return false;
   };
 
   const logout = () => setUsuarioLogado(null);
@@ -104,13 +136,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const novaSenha = gerarSenhaTemporaria();
 
-    // Atualiza a senha no banco
-    const { error: updateError } = await supabase
-      .from("usuarios")
-      .update({ senha: novaSenha })
-      .eq("id", user.id);
+    // Grava senha hasheada via Edge Function
+    const { error: setError } = await supabase.functions.invoke("auth-set-password", {
+      body: { userId: user.id, novaSenha, skipPolicy: false },
+    });
 
-    if (updateError) {
+    if (setError) {
       return { ok: false, message: "Erro ao gerar nova senha. Tente novamente." };
     }
 
