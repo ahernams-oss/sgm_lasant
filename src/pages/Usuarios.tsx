@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
-import { Shield, Trash2, Pencil, Eye, EyeOff, Search } from "lucide-react";
+import { Shield, Trash2, Pencil, Eye, EyeOff, Search, KeyRound, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,10 +13,17 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import { useUsuarios } from "@/contexts/UsuariosContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { usePerfisAcesso } from "@/contexts/PerfisAcessoContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { passwordSchema, isBcryptHash } from "@/lib/passwordPolicy";
+import { PasswordStrengthMeter } from "@/components/PasswordStrengthMeter";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const emptyForm = {
@@ -31,6 +38,7 @@ const Usuarios = () => {
   const { cargos } = useCargos();
   const { clientes } = useClientes();
   const { perfis } = usePerfisAcesso();
+  const { resetSenha } = useAuth();
 
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -43,6 +51,8 @@ const Usuarios = () => {
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [searchClientes, setSearchClientes] = useState("");
   const [searchFornecedores, setSearchFornecedores] = useState("");
+  const [auditoriaOpen, setAuditoriaOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const update = (field: string, value: string | number) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -72,21 +82,67 @@ const Usuarios = () => {
     setShowSenha(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nome.trim()) { toast.error("Informe o nome."); return; }
     if (!form.cargoId) { toast.error("Selecione o cargo."); return; }
     if (!form.email.trim()) { toast.error("Informe o e-mail."); return; }
-    if (!editingId && !form.senha.trim()) { toast.error("Informe a senha."); return; }
 
-    if (editingId) {
-      updateUsuario(editingId, form);
-      toast.success("Usuário atualizado.");
-    } else {
-      addUsuario(form);
-      toast.success("Usuário cadastrado.");
+    const senhaInformada = form.senha.trim().length > 0;
+    if (!editingId && !senhaInformada) { toast.error("Informe a senha."); return; }
+
+    // Valida política sempre que o usuário digitar uma senha
+    if (senhaInformada) {
+      const result = passwordSchema.safeParse(form.senha);
+      if (!result.success) {
+        toast.error(result.error.errors[0]?.message ?? "Senha inválida.");
+        return;
+      }
     }
-    resetForm();
+
+    setSubmitting(true);
+    try {
+      // Salva o usuário SEM senha (ela será gravada hasheada via Edge Function)
+      const dataSemSenha = { ...form, senha: "" };
+
+      if (editingId) {
+        // Mantém a senha atual se nada foi informado; usa update sem alterar senha
+        const usuarioAtual = usuarios.find((u) => u.id === editingId);
+        await updateUsuario(editingId, {
+          ...dataSemSenha,
+          senha: senhaInformada ? "" : (usuarioAtual?.senha ?? ""),
+        });
+        if (senhaInformada) {
+          const { error } = await supabase.functions.invoke("auth-set-password", {
+            body: { userId: editingId, novaSenha: form.senha },
+          });
+          if (error) throw error;
+        }
+        toast.success("Usuário atualizado.");
+      } else {
+        // 1. Cria o usuário sem senha para obter o id
+        await addUsuario(dataSemSenha);
+        // 2. Localiza o usuário recém-criado pelo email
+        const { data: novo } = await supabase
+          .from("usuarios")
+          .select("id")
+          .ilike("email", form.email.trim().toLowerCase())
+          .maybeSingle();
+        if (novo?.id) {
+          const { error } = await supabase.functions.invoke("auth-set-password", {
+            body: { userId: novo.id, novaSenha: form.senha },
+          });
+          if (error) throw error;
+        }
+        toast.success("Usuário cadastrado.");
+      }
+      resetForm();
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao salvar usuário.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleEdit = (u: (typeof usuarios)[0]) => {
@@ -107,6 +163,12 @@ const Usuarios = () => {
     toast.success("Usuário removido.");
   };
   const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
+
+  const handleForcarReset = async (email: string) => {
+    const r = await resetSenha(email);
+    if (r.ok) toast.success(r.message);
+    else toast.error(r.message);
+  };
 
   const getCargoNome = (cargoId: string) =>
     cargos.find((c) => c.id === cargoId)?.nome ?? "—";
@@ -135,6 +197,14 @@ const Usuarios = () => {
     return result;
   }, [usuarios, search, filterCargo, cargos]);
 
+  // Auditoria de senhas
+  const auditoria = useMemo(() => {
+    const semSenha = usuarios.filter((u) => !u.senha || u.senha.trim() === "");
+    const legado = usuarios.filter((u) => u.senha && !isBcryptHash(u.senha));
+    const seguros = usuarios.filter((u) => isBcryptHash(u.senha));
+    return { semSenha, legado, seguros };
+  }, [usuarios]);
+
   return (
     <div className="bg-background">
       <div className="container max-w-full mx-auto px-4 py-8">
@@ -150,9 +220,14 @@ const Usuarios = () => {
                 Gerencie os usuários do sistema e seus acessos por cliente.
               </p>
             </div>
-            {!showForm && (
-              <Button onClick={() => setShowForm(true)} className="shadow-md">Novo Usuário</Button>
-            )}
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => setAuditoriaOpen(true)}>
+                <Shield className="h-4 w-4 mr-2" /> Auditoria de Acessos
+              </Button>
+              {!showForm && (
+                <Button onClick={() => setShowForm(true)} className="shadow-md">Novo Usuário</Button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -203,7 +278,7 @@ const Usuarios = () => {
                     <Label className="text-xs font-semibold text-foreground/80">E-mail *</Label>
                     <Input type="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="email@empresa.com" />
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 md:col-span-2">
                     <Label className="text-xs font-semibold text-foreground/80">
                       Senha {editingId ? "(deixe vazio para manter)" : "*"}
                     </Label>
@@ -214,11 +289,16 @@ const Usuarios = () => {
                         onChange={(e) => update("senha", e.target.value)}
                         placeholder="••••••••"
                         className="pr-10"
+                        autoComplete="new-password"
                       />
                       <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" onClick={() => setShowSenha(!showSenha)} tabIndex={-1}>
                         {showSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
+                    <PasswordStrengthMeter senha={form.senha} />
+                    <p className="text-[11px] text-muted-foreground">
+                      Mínimo 8 caracteres, com maiúscula, número e caractere especial.
+                    </p>
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-foreground/80">Perfil de Acesso</Label>
@@ -366,8 +446,10 @@ const Usuarios = () => {
             </Tabs>
 
             <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
-              <Button type="button" variant="outline" onClick={resetForm}>Cancelar</Button>
-              <Button type="submit" className="shadow-md">{editingId ? "Salvar Alterações" : "Cadastrar Usuário"}</Button>
+              <Button type="button" variant="outline" onClick={resetForm} disabled={submitting}>Cancelar</Button>
+              <Button type="submit" className="shadow-md" disabled={submitting}>
+                {submitting ? "Salvando..." : (editingId ? "Salvar Alterações" : "Cadastrar Usuário")}
+              </Button>
             </div>
           </form>
         )}
@@ -438,6 +520,88 @@ const Usuarios = () => {
         </div>
       </div>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
+
+      {/* Diálogo de Auditoria de Acessos */}
+      <Dialog open={auditoriaOpen} onOpenChange={setAuditoriaOpen}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" /> Auditoria de Acessos
+            </DialogTitle>
+            <DialogDescription>
+              Diagnóstico das credenciais armazenadas. Use "Forçar redefinição" para gerar e enviar uma senha temporária por e-mail.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+              <p className="text-xs text-emerald-700 font-semibold uppercase">Senhas seguras</p>
+              <p className="text-2xl font-bold text-emerald-700">{auditoria.seguros.length}</p>
+            </div>
+            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
+              <p className="text-xs text-yellow-700 font-semibold uppercase">Senhas legadas</p>
+              <p className="text-2xl font-bold text-yellow-700">{auditoria.legado.length}</p>
+            </div>
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+              <p className="text-xs text-destructive font-semibold uppercase">Sem senha</p>
+              <p className="text-2xl font-bold text-destructive">{auditoria.semSenha.length}</p>
+            </div>
+          </div>
+
+          {auditoria.semSenha.length > 0 && (
+            <div className="mb-5">
+              <h3 className="text-sm font-semibold flex items-center gap-2 mb-2">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                Usuários sem senha cadastrada
+              </h3>
+              <div className="rounded-lg border border-border divide-y">
+                {auditoria.semSenha.map((u) => (
+                  <div key={u.id} className="flex items-center justify-between p-3">
+                    <div>
+                      <p className="text-sm font-medium">{u.nome}</p>
+                      <p className="text-xs text-muted-foreground">{u.email}</p>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => handleForcarReset(u.email)}>
+                      <KeyRound className="h-3.5 w-3.5 mr-1.5" /> Forçar redefinição
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {auditoria.legado.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold flex items-center gap-2 mb-2">
+                <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                Senhas em formato legado (texto puro)
+              </h3>
+              <p className="text-xs text-muted-foreground mb-2">
+                Estas senhas serão automaticamente migradas para hash bcrypt no próximo login do usuário. Para acelerar, force a redefinição.
+              </p>
+              <div className="rounded-lg border border-border divide-y max-h-[300px] overflow-y-auto">
+                {auditoria.legado.map((u) => (
+                  <div key={u.id} className="flex items-center justify-between p-3">
+                    <div>
+                      <p className="text-sm font-medium">{u.nome}</p>
+                      <p className="text-xs text-muted-foreground">{u.email}</p>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => handleForcarReset(u.email)}>
+                      <KeyRound className="h-3.5 w-3.5 mr-1.5" /> Forçar redefinição
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {auditoria.semSenha.length === 0 && auditoria.legado.length === 0 && (
+            <div className="text-center py-6 text-sm text-muted-foreground">
+              ✅ Todos os usuários estão com senhas seguras (hash bcrypt).
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
