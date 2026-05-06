@@ -99,6 +99,10 @@ export interface OrdemServico {
   operadorNome: string;
   createdAt: string;
   historico: { situacao: string; data: string; usuario: string }[];
+  avaliacao?: number | null;
+  avaliacaoJustificativa?: string;
+  avaliacaoData?: string;
+  avaliacaoUsuario?: string;
 }
 
 interface OrdensServicoContextType {
@@ -154,6 +158,10 @@ const rowToOrdem = (r: any): OrdemServico => ({
   operadorNome: r.operador_nome ?? "",
   createdAt: r.created_at ?? "",
   historico: Array.isArray(r.historico) ? r.historico : [],
+  avaliacao: r.avaliacao ?? null,
+  avaliacaoJustificativa: r.avaliacao_justificativa ?? "",
+  avaliacaoData: r.avaliacao_data ?? "",
+  avaliacaoUsuario: r.avaliacao_usuario ?? "",
 });
 
 export function OrdensServicoProvider({ children }: { children: ReactNode }) {
