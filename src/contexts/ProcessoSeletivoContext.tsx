@@ -131,21 +131,42 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
   const updateCandidato = async (processoId: string, candidatoId: string, data: Partial<Candidato>) => {
     const p = processos.find(p => p.id === processoId);
     if (!p) return;
+    const before = p.candidatos.find(c => c.id === candidatoId);
     await saveAndReload(processoId, {
       ...p, candidatos: p.candidatos.map(c => c.id === candidatoId ? { ...c, ...data } : c),
     });
+    if (!before) return;
+    const after = { ...before, ...data };
+    const eventos: { evento: string; detalhes?: string }[] = [];
+    if (data.statusPsicologico && data.statusPsicologico !== before.statusPsicologico) {
+      eventos.push({ evento: "Avaliação Psicológica", detalhes: `Status: ${data.statusPsicologico}` });
+    }
+    if (data.statusTecnico && data.statusTecnico !== before.statusTecnico) {
+      eventos.push({ evento: "Avaliação Técnica", detalhes: `Status: ${data.statusTecnico}${after.avaliadorTecnico ? ` | Avaliador: ${after.avaliadorTecnico}` : ""}` });
+    }
+    if (data.statusLiberacao && data.statusLiberacao !== before.statusLiberacao) {
+      eventos.push({ evento: "Liberação", detalhes: `Status: ${data.statusLiberacao}${after.liberadoPor ? ` | Por: ${after.liberadoPor}` : ""}` });
+    }
+    if (data.contratacaoFinalizada && !before.contratacaoFinalizada) {
+      eventos.push({ evento: "Contratação Finalizada" });
+    }
+    for (const ev of eventos) {
+      await notificarEtapaCandidato(p.requisicaoId, after.nome, ev.evento, ev.detalhes);
+    }
   };
 
   const avancarEtapa = async (processoId: string, candidatoId: string) => {
     const etapas: EtapaCandidato[] = ["entrevista_psicologica", "entrevista_tecnica", "liberacao", "contratacao"];
     const p = processos.find(p => p.id === processoId);
     if (!p) return;
+    let candidatoNotif: { nome: string; nextEtapa: EtapaCandidato } | null = null;
     await saveAndReload(processoId, {
       ...p, candidatos: p.candidatos.map(c => {
         if (c.id !== candidatoId) return c;
         const idx = etapas.indexOf(c.etapaAtual);
         if (idx < etapas.length - 1) {
           const nextEtapa = etapas[idx + 1];
+          candidatoNotif = { nome: c.nome, nextEtapa };
           const dateNow = new Date().toLocaleDateString("pt-BR");
           const dateField =
             nextEtapa === "entrevista_tecnica" ? "dataEntrevistaTecnica" :
@@ -156,6 +177,15 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
         return c;
       }),
     });
+    if (candidatoNotif) {
+      const labels: Record<EtapaCandidato, string> = {
+        entrevista_psicologica: "Entrevista Psicológica",
+        entrevista_tecnica: "Entrevista Técnica",
+        liberacao: "Liberação",
+        contratacao: "Contratação",
+      };
+      await notificarEtapaCandidato(p.requisicaoId, candidatoNotif.nome, `Avanço de Etapa → ${labels[candidatoNotif.nextEtapa]}`);
+    }
   };
 
   return (
