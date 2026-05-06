@@ -59,12 +59,12 @@ Deno.serve(async (req) => {
     let migrated = false;
 
     if (isBcryptHash(user.senha)) {
-      ok = await bcrypt.compare(senha, user.senha);
+      ok = bcrypt.compareSync(senha, user.senha);
     } else {
       // Legado: comparação direta. Se OK → re-hash.
       ok = senha.trim() === String(user.senha).trim();
       if (ok) {
-        const hash = await bcrypt.hash(senha, await bcrypt.genSalt(10));
+        const hash = bcrypt.hashSync(senha, bcrypt.genSaltSync(10));
         await supabase.from("usuarios").update({ senha: hash }).eq("id", user.id);
         migrated = true;
       }
