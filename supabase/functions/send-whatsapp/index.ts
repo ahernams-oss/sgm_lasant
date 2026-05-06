@@ -60,7 +60,7 @@ serve(async (req) => {
           'Authorization': CHATPRO_TOKEN,
         },
         body: JSON.stringify({
-          number: telefoneLimpo,
+          number: destino,
           message: textoComLink,
         }),
       });
@@ -93,7 +93,7 @@ serve(async (req) => {
         'Authorization': CHATPRO_TOKEN,
       },
       body: JSON.stringify({
-        number: telefoneLimpo,
+        number: destino,
         message: mensagem,
       }),
     });
