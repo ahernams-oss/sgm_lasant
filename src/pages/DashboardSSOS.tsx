@@ -173,17 +173,32 @@ export default function DashboardSSOS() {
   }, [ssFiltradas, osFiltradas]);
 
   // === Ranking de Funcionários (por OS) ===
+  // Pontuação por complexidade (mapeada da Prioridade da OS):
+  //   C: NORMAL → Baixa = 1pt | B: URGENTE → Média = 3pt | A: IMEDIATA → Alta = 5pt
+  const pontosOS = (prioridade?: string): { pontos: number; nivel: "Baixa" | "Média" | "Alta" } => {
+    const p = (prioridade || "").toUpperCase();
+    if (p.startsWith("A")) return { pontos: 5, nivel: "Alta" };
+    if (p.startsWith("B")) return { pontos: 3, nivel: "Média" };
+    return { pontos: 1, nivel: "Baixa" };
+  };
+
   const rankingFuncionarios = useMemo(() => {
     const map: Record<string, {
       nome: string; cargo: string; total: number; concluidas: number; abertas: number;
+      pontos: number; baixa: number; media: number; alta: number;
     }> = {};
     osFiltradas.forEach(o => {
       const profs = o.profissionais || [];
+      const { pontos, nivel } = pontosOS(o.prioridade);
       profs.forEach((p: any) => {
         const id = p.funcionarioId || p.id || p.nome;
         if (!id) return;
-        if (!map[id]) map[id] = { nome: p.nome || "Sem nome", cargo: p.cargo || "-", total: 0, concluidas: 0, abertas: 0 };
+        if (!map[id]) map[id] = { nome: p.nome || "Sem nome", cargo: p.cargo || "-", total: 0, concluidas: 0, abertas: 0, pontos: 0, baixa: 0, media: 0, alta: 0 };
         map[id].total += 1;
+        map[id].pontos += pontos;
+        if (nivel === "Baixa") map[id].baixa += 1;
+        else if (nivel === "Média") map[id].media += 1;
+        else map[id].alta += 1;
         if (o.situacao === "Validada" || o.situacao === "Executada" || o.situacao === "Serviço Confirmado") {
           map[id].concluidas += 1;
         } else {
@@ -191,7 +206,7 @@ export default function DashboardSSOS() {
         }
       });
     });
-    return Object.values(map).sort((a, b) => b.concluidas - a.concluidas || b.total - a.total).slice(0, 10);
+    return Object.values(map).sort((a, b) => b.pontos - a.pontos || b.concluidas - a.concluidas).slice(0, 10);
   }, [osFiltradas]);
 
   // === Tipo de OS distribution ===
