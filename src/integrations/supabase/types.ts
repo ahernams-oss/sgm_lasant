@@ -1911,8 +1911,10 @@ export type Database = {
           hora: string | null
           id: string
           local: string | null
+          notificado_10d: boolean
           notificado_2d: boolean
           notificado_5d: boolean
+          notificado_7d: boolean
           observacoes: string | null
           processo_id: string
           processo_numero: string
@@ -1926,8 +1928,10 @@ export type Database = {
           hora?: string | null
           id?: string
           local?: string | null
+          notificado_10d?: boolean
           notificado_2d?: boolean
           notificado_5d?: boolean
+          notificado_7d?: boolean
           observacoes?: string | null
           processo_id: string
           processo_numero?: string
@@ -1941,8 +1945,10 @@ export type Database = {
           hora?: string | null
           id?: string
           local?: string | null
+          notificado_10d?: boolean
           notificado_2d?: boolean
           notificado_5d?: boolean
+          notificado_7d?: boolean
           observacoes?: string | null
           processo_id?: string
           processo_numero?: string
