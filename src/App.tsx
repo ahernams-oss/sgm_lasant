@@ -65,6 +65,7 @@ import UnsubscribePage from "./pages/Unsubscribe.tsx";
 import LicitacoesPage from "./pages/Licitacoes.tsx";
 import MedicoesServicosPage from "./pages/MedicoesServicos.tsx";
 import DashboardMedicoesPage from "./pages/DashboardMedicoes.tsx";
+import DashboardSSOSPage from "./pages/DashboardSSOS.tsx";
 import FerramentasPage from "./pages/Ferramentas.tsx";
 import EvidenciasPage from "./pages/Evidencias.tsx";
 import ChecklistsPage from "./pages/Checklists.tsx";
