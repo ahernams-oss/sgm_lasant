@@ -1,70 +1,64 @@
-# Fase 1 — Fortalecimento de Senhas
+## Módulo de Orçamentos SCO (FGV)
 
-Endurecer o sistema de autenticação atual sem quebrar o fluxo existente. Tudo é retrocompatível: senhas antigas (texto puro) continuam funcionando até o próximo login, quando são migradas automaticamente para hash.
+Construção de um módulo completo para confecção de orçamentos baseado nos catálogos SCO/FGV (Março/2026), com seleção de itens, recuperação automática de preços e geração de relatórios sintéticos e analíticos.
 
-## O que será entregue
+### 1. Banco de dados (3 tabelas de catálogo + 1 de orçamentos)
 
-### 1. Hash de senhas com bcrypt (Edge Functions)
-Criar duas Edge Functions seguras (com `verify_jwt = false`, validação Zod):
-- **`auth-login`** — recebe email + senha, busca o usuário, valida (bcrypt OU texto puro legado), e se for legado faz a migração automática para hash. Retorna o objeto `usuario` (sem a senha).
-- **`auth-set-password`** — recebe `userId` + `novaSenha`, valida política de complexidade, gera hash bcrypt e grava.
+**`sco_elementares`** (≈3.918 itens — FGV04)
+- `codigo` (PK, ex: MAT000050), `descricao`, `unidade`, `grupo` (MAT/MOB/MOD/MOI/EVE/RSE/REQ), `preco`, `referencia` (Mar/2026).
 
-As senhas no banco passarão a ser armazenadas como hash bcrypt (`$2a$...`). Senhas antigas em texto puro continuam funcionando uma única vez — no próximo login, são re-hasheadas.
+**`sco_servicos`** (≈5.514 itens — FGV06)
+- `codigo` (PK, ex: AD 04.05.0050), `descricao`, `unidade`, `preco`, `capitulo` (ex: AD), `secao`, `subsecao`, `referencia`.
 
-### 2. Política de complexidade
-Validação via Zod, aplicada no cadastro, edição e reset:
-- Mínimo 8 caracteres
-- Pelo menos 1 letra maiúscula
-- Pelo menos 1 número
-- Pelo menos 1 caractere especial
+**`sco_composicoes`** (≈29.171 linhas — FGV07)
+- `servico_codigo` (FK), `elementar_codigo` (FK), `elementar_descricao`, `unidade`, `quantidade`. Define quanto de cada elementar entra em 1 unidade do serviço.
 
-Aplicada em:
-- Cadastro de Usuários (`Usuarios.tsx`)
-- Reset de senha (`AuthContext.resetSenha`)
-- Edge Function `auth-set-password` (validação server-side)
+**`orcamentos_sco`** (orçamentos do usuário)
+- `numero` (sequencial), `titulo`, `cliente_id` (opcional), `obra_id` (opcional), `tipo_analise` (sintetica/analitica), `bdi` (%), `desconto` (%), `observacoes`, `itens` (JSONB: lista `{servico_codigo, descricao, unidade, quantidade, preco_unit, preco_total}`), `valor_total`, `status`.
 
-### 3. Refatoração do AuthContext
-- `login()` passa a chamar a Edge Function `auth-login` em vez de comparar senha em texto puro localmente.
-- `resetSenha()` passa a chamar `auth-set-password` para gravar a nova senha já hasheada.
-- O cadastro de usuário também passa a chamar `auth-set-password` ao definir/alterar senha.
+### 2. Importação dos catálogos
+- **Migração inicial**: cria as 3 tabelas com RLS pública.
+- **Edge Function `import-sco-catalogs`**: recebe os 3 XLSX (base64), faz parse e popula. Acessível pela tela `/orcamentos/importar-catalogo` com botão de upload — permite reimportar quando a FGV publicar nova referência.
+- Carga inicial via script — eu rodo a importação após a migração ser aprovada.
 
-### 4. Relatório de usuários sem senha
-Nova tela em **Cadastros → Usuários**: botão "Auditoria de Acessos" que mostra:
-- Usuários sem senha cadastrada (NULL ou vazio)
-- Usuários ainda em senha legada (texto puro, não hasheada)
-- Botão para "Forçar redefinição" (limpa senha + dispara e-mail de recuperação)
+### 3. UI — Novo grupo "Orçamentos" na sidebar
 
-### 5. Indicador de força de senha
-Componente visual no formulário de senha (barra colorida fraca/média/forte) para guiar o usuário.
+Páginas:
+- **`/orcamentos`** — Grid listando orçamentos (nº, título, cliente, valor total, BDI, status, ações).
+- **`/orcamentos/novo`** e **`/orcamentos/:id`** — Formulário do orçamento:
+  - Cabeçalho: título, cliente (combobox opcional), obra (opcional), BDI %, desconto %, observações.
+  - **Adicionar item**: combobox de busca em `sco_servicos` (por código ou descrição, com hierarquia capítulo→seção). Ao selecionar, traz unidade e preço unitário. Usuário informa quantidade.
+  - Tabela de itens: código, descrição, un, qtd, preço unit, total, ação.
+  - Totais: subtotal + BDI + desconto = valor total.
+- **`/orcamentos/importar-catalogo`** — Upload dos 3 XLSX para reimportar.
+- **`/orcamentos/catalogo`** — Visualização/busca livre do catálogo SCO (consulta de preços).
 
-## Detalhes técnicos
+### 4. Análise Sintética × Analítica
 
-**Stack:** bcrypt via `https://deno.land/x/bcrypt` nas Edge Functions. Frontend não manipula hash.
+- **Sintética**: lista os serviços escolhidos com qtd × preço unitário do serviço.
+- **Analítica**: para cada serviço, expande sua composição (`sco_composicoes`) — mostra cada elementar (material, mão-de-obra, equipamento) com quantidade unitária, quantidade total (qtd serviço × qtd elementar), preço unitário do elementar e subtotal. Soma por serviço e total geral.
 
-**Migração:**
-```text
-Login flow:
-  1. Frontend envia email + senha → auth-login
-  2. Edge Function busca usuário
-  3. Se senha começa com "$2" → bcrypt.compare
-  4. Senão → comparação direta (legado) + se OK, re-hash e UPDATE
-  5. Retorna usuário (sem senha)
-```
+Toggle no formulário e nos botões de exportação.
 
-**Compatibilidade:**
-- Nenhuma migração de schema necessária (campo `senha` continua TEXT).
-- Usuários atuais não precisam fazer nada — migração é transparente no próximo login.
-- `SENHA_TESTE = "102030"` (modo teste em assinaturas) continua funcionando — não é afetado.
+### 5. Exportações
+- **PDF Sintético** (`gerarPdfOrcamentoSco.ts`) — layout Lasant azul royal.
+- **PDF Analítico** — adiciona sub-tabela de composição por serviço.
+- **Excel Sintético** e **Excel Analítico** — usando `xlsx` (já no projeto).
 
-**Não incluído nesta fase (ficará para Fase 2/3):**
-- Bloqueio por tentativas de login
-- Tabela `auth_logs` de auditoria
-- Expiração de senha a cada 90 dias
-- Migração para Supabase Auth nativo
+### 6. Permissões e padrões
+- Aplicar padrão Berry (roxo #673ab7), Combobox para busca, paginação 7/10/20/50, DoubleConfirmDelete, datetime `dd/mm/yyyy, hh:mm`.
+- Adicionar módulo "Orçamentos" em PerfisAcesso.
 
-## Arquivos afetados
+### Detalhes técnicos
+- Parsing XLSX no edge function via `xlsx` (npm/esm).
+- Composição navegada por `servico_codigo` indexado.
+- BDI aplicado sobre subtotal antes do desconto.
+- Numeração de orçamento via trigger anual (padrão SS/OS).
 
-- **Novos:** `supabase/functions/auth-login/index.ts`, `supabase/functions/auth-set-password/index.ts`, `src/lib/passwordPolicy.ts`, `src/components/PasswordStrengthMeter.tsx`, `src/components/AuditoriaAcessosDialog.tsx`
-- **Editados:** `src/contexts/AuthContext.tsx`, `src/pages/Usuarios.tsx`
+### Etapas de execução
+1. Criar migração com 3 tabelas catálogo + tabela orçamentos + trigger numeração + RLS.
+2. Eu populo o catálogo após a migração aprovada (via script SQL/Supabase).
+3. Criar Context, edge function de importação, páginas, dialog, geradores PDF/Excel.
+4. Adicionar grupo "Orçamentos" na sidebar e rotas em App.tsx.
 
-Posso prosseguir com a implementação?
+Após sua aprovação eu executo tudo de uma vez.
