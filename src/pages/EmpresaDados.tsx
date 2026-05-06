@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark } from "lucide-react";
+import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark, MessageCircle } from "lucide-react";
 
 
 export default function EmpresaDados() {
