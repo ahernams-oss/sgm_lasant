@@ -104,7 +104,7 @@ export function gerarPdfMedicoes(medicoes: MedicaoServico[], filterLabel?: strin
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    doc.text("Relatório gerado automaticamente — SGM Lasant", 14, h - 12);
+    doc.text("Relatório gerado automaticamente — Engenharia e Manutenção — SGM Lasant", 14, h - 12);
     doc.text(`Página ${i} de ${pages}`, pw / 2, h - 12, { align: "center" });
   }
 
