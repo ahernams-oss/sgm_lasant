@@ -1062,6 +1062,17 @@ export default function OrdensServicoPage() {
                 </Select>
               </div>
               <div>
+                <Label>Complexidade</Label>
+                <Select value={complexidade} onValueChange={(v) => setComplexidade(v as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Baixa">Baixa</SelectItem>
+                    <SelectItem value="Média">Média</SelectItem>
+                    <SelectItem value="Alta">Alta</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label>Situação</Label>
                 <Input value={situacao} disabled className="bg-muted cursor-not-allowed" />
               </div>
