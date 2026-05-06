@@ -1,5 +1,29 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
+import { supabase } from "@/integrations/supabase/client";
+import { enviarNotificacaoRP } from "@/lib/notificacaoRP";
+
+async function notificarEtapaCandidato(requisicaoId: string, candidatoNome: string, evento: string, detalhes?: string) {
+  try {
+    const { data: req } = await (supabase as any)
+      .from("requisicoes")
+      .select("numero,cargo_nome,solicitante")
+      .eq("id", requisicaoId)
+      .maybeSingle();
+    if (!req) return;
+    const msg =
+      `*Processo Seletivo - ${evento}*\n\n` +
+      `RP Nº: ${req.numero}\n` +
+      `Cargo: ${req.cargo_nome || "-"}\n` +
+      `Candidato: ${candidatoNome}\n` +
+      (detalhes ? `${detalhes}\n` : "") +
+      `Data: ${new Date().toLocaleString("pt-BR")}`;
+    await enviarNotificacaoRP({ mensagem: msg, solicitante: req.solicitante });
+  } catch (e) {
+    console.error("Falha notificação processo seletivo:", e);
+  }
+}
+
 
 export type EtapaCandidato = "entrevista_psicologica" | "entrevista_tecnica" | "liberacao" | "contratacao";
 export type StatusCandidato = "pendente" | "aprovado" | "neutro" | "reprovado";
