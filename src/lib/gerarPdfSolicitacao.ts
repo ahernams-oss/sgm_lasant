@@ -74,7 +74,7 @@ async function renderSolicitacao(
   doc.setFontSize(16);
   doc.setFont("helvetica", "bolditalic");
   doc.setTextColor(...DARK_BLUE);
-  doc.text("SOLICITAÇÃO DE SERVIÇO", pw / 2, y + 10, { align: "center" });
+  doc.text("SOLICITAÇÃO DE SERVIÇO — ENGENHARIA E MANUTENÇÃO", pw / 2, y + 10, { align: "center" });
 
   doc.setFontSize(11);
   doc.setFont("helvetica", "italic");
