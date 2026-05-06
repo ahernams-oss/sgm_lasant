@@ -192,7 +192,7 @@ export default function DashboardSSOS() {
     }> = {};
     osFiltradas.forEach(o => {
       const profs = o.profissionais || [];
-      const { pontos, nivel } = pontosOS(o.prioridade);
+      const { pontos, nivel } = pontosOS((o as any).complexidade);
       profs.forEach((p: any) => {
         const id = p.funcionarioId || p.id || p.nome;
         if (!id) return;
