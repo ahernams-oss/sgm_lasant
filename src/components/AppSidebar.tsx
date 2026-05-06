@@ -241,7 +241,7 @@ export function AppSidebar() {
               <SidebarGroup>
                 {!collapsed && (
                   <CollapsibleTrigger asChild>
-                    <SidebarGroupLabel className="font-bold cursor-pointer flex items-center justify-between hover:bg-sidebar-accent/30 rounded-md transition-colors">
+                    <SidebarGroupLabel className="font-bold cursor-pointer flex items-center justify-between hover:bg-sidebar-accent/30 rounded-md transition-colors text-[hsl(225,73%,40%)]">
                       <span>{group.group}</span>
                       <ChevronDown
                         className={`h-4 w-4 transition-transform ${isOpen ? "" : "-rotate-90"}`}
