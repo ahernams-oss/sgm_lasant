@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { updateRow } from "@/lib/supabaseHelper";
 import { useAuth } from "@/contexts/AuthContext";
 import { OrdemServico, useOrdensServico } from "@/contexts/OrdensServicoContext";
 
@@ -22,6 +21,7 @@ interface Props {
 
 export function AvaliacaoOs({ os }: Props) {
   const { usuarioLogado } = useAuth();
+  const { updateOrdem } = useOrdensServico();
   const [estrelas, setEstrelas] = useState<number>(os.avaliacao ?? 0);
   const [hover, setHover] = useState<number>(0);
   const [justificativa, setJustificativa] = useState<string>(os.avaliacaoJustificativa ?? "");
@@ -41,7 +41,7 @@ export function AvaliacaoOs({ os }: Props) {
     }
     setSalvando(true);
     try {
-      await updateRow("ordens_servico", os.id, {
+      await updateOrdem(os.id, {
         avaliacao: estrelas,
         avaliacao_justificativa: exigeJustificativa ? justificativa.trim() : "",
         avaliacao_data: new Date().toISOString(),
