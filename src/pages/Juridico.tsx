@@ -38,6 +38,8 @@ interface Audiencia {
   vara: string;
   observacoes: string;
   status: string;
+  notificado_10d: boolean;
+  notificado_7d: boolean;
   notificado_5d: boolean;
   notificado_2d: boolean;
 }
@@ -64,7 +66,8 @@ const emptyProcesso: Omit<ProcessoTrabalhista, "id"> = {
 
 const emptyAudiencia: Omit<Audiencia, "id"> = {
   processo_id: "", processo_numero: "", data_audiencia: "", hora: "", tipo: "Audiência Inicial",
-  local: "", vara: "", observacoes: "", status: "Agendada", notificado_5d: false, notificado_2d: false,
+  local: "", vara: "", observacoes: "", status: "Agendada",
+  notificado_10d: false, notificado_7d: false, notificado_5d: false, notificado_2d: false,
 };
 
 const emptyContato: Omit<ContatoNotificacao, "id"> = {
