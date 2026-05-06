@@ -68,7 +68,7 @@ export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], inc
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.text("RDO - REGISTRO DIÁRIO DE OBRAS", pw / 2, y + 23, { align: "center" });
+  doc.text("RDO - REGISTRO DIÁRIO DE OBRAS — ENGENHARIA E MANUTENÇÃO", pw / 2, y + 23, { align: "center" });
 
   const ano = new Date(rdo.data_rdo || rdo.created_at || Date.now()).getFullYear();
   const numeroFormatado = `${rdo.numero}/${ano}`;
