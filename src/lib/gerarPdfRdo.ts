@@ -306,7 +306,7 @@ export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], inc
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    doc.text(`Documento gerado automaticamente — ${nome}`, ml, ph - 5);
+    doc.text(`Documento gerado automaticamente — Engenharia e Manutenção — ${nome}`, ml, ph - 5);
     doc.text(`Página ${i} de ${pages}`, pw / 2, ph - 5, { align: "center" });
     doc.text(`RDO Nº ${rdo.numero}`, pw - mr, ph - 5, { align: "right" });
   }
