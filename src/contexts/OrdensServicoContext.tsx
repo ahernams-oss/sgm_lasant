@@ -70,6 +70,7 @@ export interface OrdemServico {
   dataTermino: string;
   horaTermino: string;
   prioridade: string;
+  complexidade: "Baixa" | "Média" | "Alta";
   solicitante: string;
   matricula: string;
   ramal: string;
