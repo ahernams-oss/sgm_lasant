@@ -1,0 +1,559 @@
+import { useMemo, useState } from "react";
+import { format, parseISO, isValid } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Badge } from "@/components/ui/badge";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend, AreaChart, Area,
+} from "recharts";
+import {
+  ClipboardList, Wrench, Filter, X, CalendarIcon, TrendingUp, Trophy, Users,
+  CheckCircle2, Clock, AlertTriangle, Sparkles, Building2, BarChart3, Activity,
+} from "lucide-react";
+import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
+import { useOrdensServico } from "@/contexts/OrdensServicoContext";
+import { useClientes } from "@/contexts/ClientesContext";
+
+const CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
+
+const KPI_VARIANTS = [
+  { ring: "from-blue-500 to-indigo-600", bg: "bg-blue-50", icon: "text-blue-600" },
+  { ring: "from-emerald-500 to-teal-600", bg: "bg-emerald-50", icon: "text-emerald-600" },
+  { ring: "from-amber-500 to-orange-600", bg: "bg-amber-50", icon: "text-amber-600" },
+  { ring: "from-rose-500 to-red-600", bg: "bg-rose-50", icon: "text-rose-600" },
+  { ring: "from-purple-500 to-fuchsia-600", bg: "bg-purple-50", icon: "text-purple-600" },
+  { ring: "from-cyan-500 to-sky-600", bg: "bg-cyan-50", icon: "text-cyan-600" },
+];
+
+const KpiCard = ({ icon: Icon, label, value, subtitle, gradientIdx = 0 }: {
+  icon: any; label: string; value: number | string; subtitle?: string; gradientIdx?: number;
+}) => {
+  const v = KPI_VARIANTS[gradientIdx % KPI_VARIANTS.length];
+  return (
+    <Card className="group relative overflow-hidden border border-border/60 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+      <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", v.ring)} />
+      <CardContent className="pt-5 pb-4 px-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className="text-xl font-bold text-foreground mt-1.5 truncate">{value}</p>
+            {subtitle && <p className="text-[10px] text-muted-foreground/80 mt-0.5">{subtitle}</p>}
+          </div>
+          <div className={cn("rounded-xl p-2.5 shrink-0 transition-transform group-hover:scale-110", v.bg)}>
+            <Icon className={cn("h-4 w-4", v.icon)} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+function parseDate(s?: string): Date | null {
+  if (!s) return null;
+  const d = parseISO(s);
+  return isValid(d) ? d : null;
+}
+
+export default function DashboardSSOS() {
+  const { solicitacoes } = useSolicitacoesServicos();
+  const { ordens } = useOrdensServico();
+  const { clientes } = useClientes();
+
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [clienteFilter, setClienteFilter] = useState("todos");
+  const [statusSSFilter, setStatusSSFilter] = useState("todos");
+  const [statusOSFilter, setStatusOSFilter] = useState("todos");
+
+  const clearFilters = () => {
+    setDateFrom(undefined); setDateTo(undefined);
+    setClienteFilter("todos"); setStatusSSFilter("todos"); setStatusOSFilter("todos");
+  };
+
+  const hasFilters = dateFrom || dateTo || clienteFilter !== "todos" || statusSSFilter !== "todos" || statusOSFilter !== "todos";
+
+  const inRange = (d: Date | null): boolean => {
+    if (!d) return !dateFrom && !dateTo;
+    if (dateFrom && d < dateFrom) return false;
+    if (dateTo) {
+      const end = new Date(dateTo); end.setHours(23, 59, 59, 999);
+      if (d > end) return false;
+    }
+    return true;
+  };
+
+  // === Filtered SS ===
+  const ssFiltradas = useMemo(() => {
+    return solicitacoes.filter((s) => {
+      const d = parseDate(s.dataHoraSolicitacao || s.createdAt);
+      if (!inRange(d)) return false;
+      if (clienteFilter !== "todos" && s.clienteId !== clienteFilter) return false;
+      if (statusSSFilter !== "todos" && s.situacao !== statusSSFilter) return false;
+      return true;
+    });
+  }, [solicitacoes, dateFrom, dateTo, clienteFilter, statusSSFilter]);
+
+  // === Filtered OS ===
+  const osFiltradas = useMemo(() => {
+    return ordens.filter((o) => {
+      const d = parseDate(o.createdAt);
+      if (!inRange(d)) return false;
+      if (clienteFilter !== "todos" && o.clienteId !== clienteFilter) return false;
+      if (statusOSFilter !== "todos" && o.situacao !== statusOSFilter) return false;
+      return true;
+    });
+  }, [ordens, dateFrom, dateTo, clienteFilter, statusOSFilter]);
+
+  // === KPIs SS ===
+  const ssTotal = ssFiltradas.length;
+  const ssAguardando = ssFiltradas.filter(s => s.situacao === "Aguardando aprovação").length;
+  const ssAprovadas = ssFiltradas.filter(s => s.situacao === "Aprovada").length;
+  const ssConcluidas = ssFiltradas.filter(s => s.situacao === "Concluída").length;
+  const ssCanceladas = ssFiltradas.filter(s => s.situacao === "Cancelada").length;
+
+  // === KPIs OS ===
+  const osTotal = osFiltradas.length;
+  const osAbertas = osFiltradas.filter(o => o.situacao === "Aberta").length;
+  const osExecutadas = osFiltradas.filter(o => o.situacao === "Executada" || o.situacao === "Serviço Confirmado").length;
+  const osValidadas = osFiltradas.filter(o => o.situacao === "Validada").length;
+  const osEmergenciais = osFiltradas.filter(o => (o.prioridade || "").toUpperCase().includes("IMEDIATA")).length;
+
+  // === Charts ===
+  const ssStatusData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    ssFiltradas.forEach(s => { counts[s.situacao] = (counts[s.situacao] || 0) + 1; });
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  }, [ssFiltradas]);
+
+  const osStatusData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    osFiltradas.forEach(o => { counts[o.situacao] = (counts[o.situacao] || 0) + 1; });
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  }, [osFiltradas]);
+
+  const timelineData = useMemo(() => {
+    const months: Record<string, { mes: string; ss: number; os: number }> = {};
+    ssFiltradas.forEach(s => {
+      const d = parseDate(s.dataHoraSolicitacao || s.createdAt);
+      if (!d) return;
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      if (!months[k]) months[k] = { mes: k, ss: 0, os: 0 };
+      months[k].ss += 1;
+    });
+    osFiltradas.forEach(o => {
+      const d = parseDate(o.createdAt);
+      if (!d) return;
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      if (!months[k]) months[k] = { mes: k, ss: 0, os: 0 };
+      months[k].os += 1;
+    });
+    return Object.values(months).sort((a, b) => a.mes.localeCompare(b.mes));
+  }, [ssFiltradas, osFiltradas]);
+
+  // === Ranking de Clientes (SS + OS) ===
+  const rankingClientes = useMemo(() => {
+    const counts: Record<string, { cliente: string; ss: number; os: number; total: number }> = {};
+    ssFiltradas.forEach(s => {
+      const k = s.clienteNome || "Sem cliente";
+      if (!counts[k]) counts[k] = { cliente: k, ss: 0, os: 0, total: 0 };
+      counts[k].ss += 1; counts[k].total += 1;
+    });
+    osFiltradas.forEach(o => {
+      const k = o.clienteNome || "Sem cliente";
+      if (!counts[k]) counts[k] = { cliente: k, ss: 0, os: 0, total: 0 };
+      counts[k].os += 1; counts[k].total += 1;
+    });
+    return Object.values(counts).sort((a, b) => b.total - a.total).slice(0, 10);
+  }, [ssFiltradas, osFiltradas]);
+
+  // === Ranking de Funcionários (por OS) ===
+  const rankingFuncionarios = useMemo(() => {
+    const map: Record<string, {
+      nome: string; cargo: string; total: number; concluidas: number; abertas: number;
+    }> = {};
+    osFiltradas.forEach(o => {
+      const profs = o.profissionais || [];
+      profs.forEach((p: any) => {
+        const id = p.funcionarioId || p.id || p.nome;
+        if (!id) return;
+        if (!map[id]) map[id] = { nome: p.nome || "Sem nome", cargo: p.cargo || "-", total: 0, concluidas: 0, abertas: 0 };
+        map[id].total += 1;
+        if (o.situacao === "Validada" || o.situacao === "Executada" || o.situacao === "Serviço Confirmado") {
+          map[id].concluidas += 1;
+        } else {
+          map[id].abertas += 1;
+        }
+      });
+    });
+    return Object.values(map).sort((a, b) => b.concluidas - a.concluidas || b.total - a.total).slice(0, 10);
+  }, [osFiltradas]);
+
+  // === Tipo de OS distribution ===
+  const tipoOSData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    osFiltradas.forEach(o => {
+      const t = o.tipoOs?.descricao || "Outros";
+      counts[t] = (counts[t] || 0) + 1;
+    });
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  }, [osFiltradas]);
+
+  // === Clientes para filtro ===
+  const clientesAtivos = useMemo(() => {
+    const ids = new Set<string>();
+    solicitacoes.forEach(s => s.clienteId && ids.add(s.clienteId));
+    ordens.forEach(o => o.clienteId && ids.add(o.clienteId));
+    return clientes.filter(c => ids.has(c.id)).sort((a, b) => (a.nomeFantasia || a.nome).localeCompare(b.nomeFantasia || b.nome));
+  }, [solicitacoes, ordens, clientes]);
+
+  const ssStatusOptions = useMemo(() => Array.from(new Set(solicitacoes.map(s => s.situacao).filter(Boolean))), [solicitacoes]);
+  const osStatusOptions = useMemo(() => Array.from(new Set(ordens.map(o => o.situacao).filter(Boolean))), [ordens]);
+
+  const taxaConversao = ssTotal > 0 ? ((osTotal / ssTotal) * 100) : 0;
+  const taxaConclusao = osTotal > 0 ? ((osValidadas / osTotal) * 100) : 0;
+
+  return (
+    <div className="p-4 md:p-8 space-y-6 animate-fade-up">
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary via-primary/90 to-indigo-700 p-6 md:p-8 text-primary-foreground shadow-lg">
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
+        <div className="relative">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm mb-3">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Engenharia e Manutenção · Operacional</span>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            Dashboard de Solicitações e Ordens de Serviço
+          </h1>
+          <p className="text-sm md:text-base text-primary-foreground/85 mt-1.5 max-w-2xl">
+            Acompanhamento operacional de SS, OS e produtividade da equipe técnica.
+          </p>
+        </div>
+      </div>
+
+      {/* Filtros */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Filter className="h-4 w-4" /> Filtros
+            </CardTitle>
+            {hasFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs">
+                <X className="mr-1 h-3 w-3" /> Limpar filtros
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Data (De)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-9 text-sm", !dateFrom && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Selecione"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} /></PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Data (Até)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-9 text-sm", !dateTo && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateTo ? format(dateTo, "dd/MM/yyyy") : "Selecione"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={dateTo} onSelect={setDateTo} /></PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Cliente</Label>
+              <Select value={clienteFilter} onValueChange={setClienteFilter}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  {clientesAtivos.map(c => (<SelectItem key={c.id} value={c.id}>{c.nomeFantasia || c.nome}</SelectItem>))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Situação SS</Label>
+              <Select value={statusSSFilter} onValueChange={setStatusSSFilter}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todas</SelectItem>
+                  {ssStatusOptions.map(s => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Situação OS</Label>
+              <Select value={statusOSFilter} onValueChange={setStatusOSFilter}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todas</SelectItem>
+                  {osStatusOptions.map(s => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* KPIs SS */}
+      <div>
+        <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+          <ClipboardList className="h-4 w-4 text-primary" /> Solicitações de Serviço (SS)
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <KpiCard icon={ClipboardList} label="Total SS" value={ssTotal} gradientIdx={0} />
+          <KpiCard icon={Clock} label="Aguardando" value={ssAguardando} gradientIdx={2} />
+          <KpiCard icon={CheckCircle2} label="Aprovadas" value={ssAprovadas} gradientIdx={1} />
+          <KpiCard icon={CheckCircle2} label="Concluídas" value={ssConcluidas} gradientIdx={4} />
+          <KpiCard icon={X} label="Canceladas" value={ssCanceladas} gradientIdx={3} />
+        </div>
+      </div>
+
+      {/* KPIs OS */}
+      <div>
+        <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+          <Wrench className="h-4 w-4 text-primary" /> Ordens de Serviço (OS)
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <KpiCard icon={Wrench} label="Total OS" value={osTotal} gradientIdx={0} />
+          <KpiCard icon={Clock} label="Abertas" value={osAbertas} gradientIdx={2} />
+          <KpiCard icon={Activity} label="Executadas" value={osExecutadas} gradientIdx={5} />
+          <KpiCard icon={CheckCircle2} label="Validadas" value={osValidadas} gradientIdx={1} />
+          <KpiCard icon={AlertTriangle} label="Emergenciais" value={osEmergenciais} gradientIdx={3} />
+          <KpiCard icon={TrendingUp} label="Conv. SS→OS" value={`${taxaConversao.toFixed(0)}%`} subtitle={`Conclusão: ${taxaConclusao.toFixed(0)}%`} gradientIdx={4} />
+        </div>
+      </div>
+
+      {/* Gráficos */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-primary" /> SS por Situação
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {ssStatusData.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-10">Nenhuma solicitação no período.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie data={ssStatusData} cx="50%" cy="50%" innerRadius={50} outerRadius={95} dataKey="value" nameKey="name" label={({ name, value }) => `${name}: ${value}`} labelLine>
+                    {ssStatusData.map((_, i) => (<Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-primary" /> OS por Situação
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {osStatusData.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-10">Nenhuma OS no período.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={osStatusData} margin={{ left: 10, right: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="value" name="OS" radius={[4, 4, 0, 0]}>
+                    {osStatusData.map((_, i) => (<Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Activity className="h-4 w-4 text-primary" /> Evolução Mensal — SS vs OS
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {timelineData.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-10">Sem dados no período.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={timelineData}>
+                  <defs>
+                    <linearGradient id="colorSS" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.6} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorOS" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.6} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="mes" tick={{ fontSize: 10 }} />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Area type="monotone" dataKey="ss" stroke="#3b82f6" fill="url(#colorSS)" name="Solicitações" />
+                  <Area type="monotone" dataKey="os" stroke="#10b981" fill="url(#colorOS)" name="Ordens" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Rankings */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Ranking de Clientes */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-primary" /> Ranking — Clientes (SS + OS)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {rankingClientes.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-10">Sem dados.</p>
+            ) : (
+              <div className="space-y-2">
+                {rankingClientes.map((c, idx) => {
+                  const max = rankingClientes[0]?.total || 1;
+                  const pct = (c.total / max) * 100;
+                  return (
+                    <div key={c.cliente} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <span className={cn(
+                            "shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold",
+                            idx === 0 && "bg-amber-100 text-amber-700",
+                            idx === 1 && "bg-slate-200 text-slate-700",
+                            idx === 2 && "bg-orange-100 text-orange-700",
+                            idx > 2 && "bg-muted text-muted-foreground",
+                          )}>{idx + 1}</span>
+                          <span className="font-medium truncate">{c.cliente}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Badge variant="outline" className="text-[10px] h-5">SS {c.ss}</Badge>
+                          <Badge variant="outline" className="text-[10px] h-5">OS {c.os}</Badge>
+                          <span className="font-bold text-foreground w-8 text-right">{c.total}</span>
+                        </div>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Ranking de Funcionários */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Trophy className="h-4 w-4 text-amber-500" /> Ranking — Funcionários Mais Produtivos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {rankingFuncionarios.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-10">
+                Nenhum funcionário vinculado a OS no período.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {rankingFuncionarios.map((f, idx) => {
+                  const max = rankingFuncionarios[0]?.concluidas || rankingFuncionarios[0]?.total || 1;
+                  const pct = ((f.concluidas || f.total) / max) * 100;
+                  return (
+                    <div key={f.nome + idx} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <span className={cn(
+                            "shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold",
+                            idx === 0 && "bg-amber-100 text-amber-700",
+                            idx === 1 && "bg-slate-200 text-slate-700",
+                            idx === 2 && "bg-orange-100 text-orange-700",
+                            idx > 2 && "bg-muted text-muted-foreground",
+                          )}>{idx + 1}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium truncate">{f.nome}</p>
+                            <p className="text-[10px] text-muted-foreground truncate">{f.cargo}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Badge variant="outline" className="text-[10px] h-5 bg-emerald-50 text-emerald-700 border-emerald-200">
+                            {f.concluidas} concl.
+                          </Badge>
+                          <Badge variant="outline" className="text-[10px] h-5">
+                            {f.abertas} abertas
+                          </Badge>
+                          <span className="font-bold text-foreground w-8 text-right">{f.total}</span>
+                        </div>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Tipo de OS */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Wrench className="h-4 w-4 text-primary" /> OS por Tipo de Manutenção
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {tipoOSData.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-10">Sem dados.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={tipoOSData} layout="vertical" margin={{ left: 80, right: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={120} />
+                  <Tooltip />
+                  <Bar dataKey="value" name="OS" radius={[0, 4, 4, 0]}>
+                    {tipoOSData.map((_, i) => (<Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
