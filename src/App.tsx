@@ -154,7 +154,17 @@ function ProtectedAppRoutes() {
         <Route path="/compras/dashboard" element={<DashboardCompras />} />
         <Route path="/compras/fabricantes" element={<FabricantesPage />} />
         <Route path="/licitacoes" element={<LicitacoesPage />} />
-        <Route path="/engenharia/dashboard" element={<DashboardMedicoesPage />} />
+        <Route path="/engenharia/dashboard-medicoes" element={<DashboardMedicoesPage />} />
+        <Route
+          path="/engenharia/dashboard"
+          element={
+            <SolicitacoesServicosProvider>
+              <OrdensServicoProvider>
+                <DashboardSSOSPage />
+              </OrdensServicoProvider>
+            </SolicitacoesServicosProvider>
+          }
+        />
         <Route path="/engenharia/medicoes" element={<MedicoesServicosPage />} />
         <Route path="/patrimonio/ferramentas" element={<FerramentasPage />} />
         <Route path="/qualidade/evidencias" element={<EvidenciasPage />} />
