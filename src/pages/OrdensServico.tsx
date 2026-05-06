@@ -144,6 +144,7 @@ export default function OrdensServicoPage() {
   const [dataTermino, setDataTermino] = useState("");
   const [horaTermino, setHoraTermino] = useState("");
   const [prioridade, setPrioridade] = useState("C: NORMAL");
+  const [complexidade, setComplexidade] = useState<"Baixa" | "Média" | "Alta">("Baixa");
   const [solicitante, setSolicitante] = useState("");
   const [matricula, setMatricula] = useState("");
   const [ramal, setRamal] = useState("");
