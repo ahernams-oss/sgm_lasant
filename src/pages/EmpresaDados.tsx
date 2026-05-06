@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark } from "lucide-react";
+import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark, MessageCircle } from "lucide-react";
 
 
 export default function EmpresaDados() {
@@ -327,6 +327,28 @@ export default function EmpresaDados() {
           </div>
         </CardContent>
       </Card>
+
+      {/* WhatsApp */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <MessageCircle className="h-4 w-4" /> WhatsApp para Disparos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-xs text-muted-foreground">
+            Informe número (com DDI/DDD) ou string de grupo do WhatsApp para envio automático de mensagens.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Field label="WhatsApp Compras" field="whatsappCompras" placeholder="55119... ou ID do grupo" icon={MessageCircle} />
+            <Field label="WhatsApp RH" field="whatsappRh" placeholder="55119... ou ID do grupo" icon={MessageCircle} />
+            <Field label="WhatsApp Engenharia" field="whatsappEngenharia" placeholder="55119... ou ID do grupo" icon={MessageCircle} />
+            <Field label="WhatsApp Comercial" field="whatsappComercial" placeholder="55119... ou ID do grupo" icon={MessageCircle} />
+            <Field label="WhatsApp Faturamento" field="whatsappFaturamento" placeholder="55119... ou ID do grupo" icon={MessageCircle} />
+          </div>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }

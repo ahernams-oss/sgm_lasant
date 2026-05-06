@@ -32,6 +32,11 @@ export interface Empresa {
   conta: string;
   tipoConta: string;
   chavePix: string;
+  whatsappCompras: string;
+  whatsappRh: string;
+  whatsappEngenharia: string;
+  whatsappComercial: string;
+  whatsappFaturamento: string;
 }
 
 const EMPTY: Empresa = {
@@ -41,6 +46,8 @@ const EMPTY: Empresa = {
   contato: "", site: "", logoUrl: "", emailRh: "", emailEngenharia: "",
   emailEstoque: "", emailRelatorios: "", banco: "", agencia: "", conta: "",
   tipoConta: "", chavePix: "",
+  whatsappCompras: "", whatsappRh: "", whatsappEngenharia: "",
+  whatsappComercial: "", whatsappFaturamento: "",
 };
 
 interface EmpresaContextType {
@@ -82,6 +89,11 @@ const rowToEmpresa = (r: any): Empresa => ({
   conta: r.conta ?? "",
   tipoConta: r.tipo_conta ?? "",
   chavePix: r.chave_pix ?? "",
+  whatsappCompras: r.whatsapp_compras ?? "",
+  whatsappRh: r.whatsapp_rh ?? "",
+  whatsappEngenharia: r.whatsapp_engenharia ?? "",
+  whatsappComercial: r.whatsapp_comercial ?? "",
+  whatsappFaturamento: r.whatsapp_faturamento ?? "",
 });
 
 const empresaToRow = (e: Empresa) => ({
@@ -113,6 +125,11 @@ const empresaToRow = (e: Empresa) => ({
   conta: e.conta,
   tipo_conta: e.tipoConta,
   chave_pix: e.chavePix,
+  whatsapp_compras: e.whatsappCompras,
+  whatsapp_rh: e.whatsappRh,
+  whatsapp_engenharia: e.whatsappEngenharia,
+  whatsapp_comercial: e.whatsappComercial,
+  whatsapp_faturamento: e.whatsappFaturamento,
 });
 
 export function EmpresaProvider({ children }: { children: ReactNode }) {
