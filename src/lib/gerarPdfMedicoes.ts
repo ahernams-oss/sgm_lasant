@@ -15,7 +15,7 @@ export function gerarPdfMedicoes(medicoes: MedicaoServico[], filterLabel?: strin
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(15);
   doc.setFont("helvetica", "bold");
-  doc.text("Relatório de Medição de Serviços e Obras", 14, 14);
+  doc.text("Relatório de Medição de Serviços e Obras — Engenharia e Manutenção", 14, 14);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, 14, 22);
