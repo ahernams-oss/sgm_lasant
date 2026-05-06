@@ -314,7 +314,7 @@ function addFooters(doc: jsPDF, empresa?: Empresa, ssNumero?: string) {
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    doc.text(`Documento gerado automaticamente — ${empresaNome}`, ml, pageH - 14);
+    doc.text(`Documento gerado automaticamente — Engenharia e Manutenção — ${empresaNome}`, ml, pageH - 14);
     doc.text(`Página ${i} de ${pageCount}`, pw / 2, pageH - 14, { align: "center" });
     if (ssNumero) {
       doc.text(`SS Nº ${ssNumero}`, pw - mr, pageH - 14, { align: "right" });
