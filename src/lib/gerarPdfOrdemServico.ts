@@ -177,7 +177,7 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
   // Título principal
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.text("ORDEM DE SERVIÇO DE MANUTENÇÃO", pw / 2, y + 23, { align: "center" });
+  doc.text("ORDEM DE SERVIÇO DE MANUTENÇÃO — ENGENHARIA E MANUTENÇÃO", pw / 2, y + 23, { align: "center" });
 
   // Caixa do número da OS (direita) — formato: NUMERO-CAP/ANO-TIPO
   const anoOS = (() => {
