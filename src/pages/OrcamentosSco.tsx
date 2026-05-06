@@ -10,7 +10,7 @@ import { useOrcamentosSco } from "@/contexts/OrcamentosScoContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfOrcamentoSco } from "@/lib/gerarPdfOrcamentoSco";
 import { gerarExcelOrcamentoSco } from "@/lib/gerarExcelOrcamentoSco";
-import DoubleConfirmDelete from "@/components/DoubleConfirmDelete";
+import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 
 export default function OrcamentosSco() {
   const nav = useNavigate();
