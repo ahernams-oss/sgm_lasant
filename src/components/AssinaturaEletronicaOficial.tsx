@@ -137,7 +137,7 @@ export function AssinaturaEletronicaOficial({ rdo, papel, assinaturaExistente, o
               <p><strong>Signatário:</strong> {usuarioLogado?.nome}</p>
               <p><strong>E-mail:</strong> {usuarioLogado?.email}</p>
               <p className="italic text-muted-foreground mt-2">
-                Esta assinatura tem valor jurídico conforme Art. 6º, § 1º do Decreto nº 8.539/2015. A operação será registrada com data, hora, IP e código verificador único.
+                Esta assinatura tem valor jurídico conforme Lei nº 14.063, de 23 de Setembro de 2020. A operação será registrada com data, hora, IP e código verificador único.
               </p>
             </div>
             <div>
