@@ -30,7 +30,22 @@ serve(async (req) => {
       );
     }
 
-    const telefoneLimpo = telefone.replace(/\D/g, '');
+    // Detecta se é ID de grupo (contém @g.us, hífen, ou número muito longo > 15 dígitos)
+    const telefoneStr = String(telefone).trim();
+    const apenasDigitos = telefoneStr.replace(/\D/g, '');
+    const isGrupo = telefoneStr.includes('@g.us')
+      || telefoneStr.includes('-')
+      || apenasDigitos.length > 15;
+
+    let destino: string;
+    if (isGrupo) {
+      // Para grupos, ChatPro espera o JID completo com @g.us
+      destino = telefoneStr.includes('@g.us')
+        ? telefoneStr
+        : `${apenasDigitos || telefoneStr.replace('@g.us', '')}@g.us`;
+    } else {
+      destino = apenasDigitos;
+    }
     const baseUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}`;
 
     // Envio de documento: enviamos o link como texto (instância atual não suporta upload de arquivo)
