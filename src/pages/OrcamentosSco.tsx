@@ -107,7 +107,6 @@ export default function OrcamentosSco() {
         <DoubleConfirmDelete
           open={!!delId}
           onOpenChange={(o) => { if (!o) setDelId(null); }}
-          itemName={`Orçamento ${orcamentos.find((x) => x.id === delId)?.numero || ""}`}
           onConfirm={async () => { await remove(delId!); setDelId(null); }}
         />
       )}
