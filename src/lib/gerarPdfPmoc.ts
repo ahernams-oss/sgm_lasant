@@ -16,9 +16,9 @@ function header(doc: jsPDF, titulo: string, subtitulo: string) {
   doc.setFillColor(30, 58, 107);
   doc.rect(0, 0, pw, 36, "F");
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(16);
+  doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text(titulo, 14, 16);
+  doc.text(`${titulo} — Engenharia e Manutenção`, 14, 16);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text(subtitulo, 14, 24);
