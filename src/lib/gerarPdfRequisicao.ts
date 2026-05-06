@@ -7,16 +7,34 @@ const DARK_BLUE: [number, number, number] = [30, 58, 107];
 const BORDER_COLOR: [number, number, number] = [180, 180, 180];
 
 async function loadImageAsDataUrl(url: string): Promise<string | null> {
+  // Try canvas-based loader first (handles CORS images well)
   try {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    return new Promise<string>((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.readAsDataURL(blob);
+    return await new Promise<string>((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = img.width;
+        c.height = img.height;
+        const ctx = c.getContext("2d");
+        ctx?.drawImage(img, 0, 0);
+        resolve(c.toDataURL("image/png"));
+      };
+      img.onerror = reject;
+      img.src = url;
     });
   } catch {
-    return null;
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return null;
+    }
   }
 }
 
@@ -27,41 +45,46 @@ export async function gerarPdfRequisicao(req: Requisicao, empresa?: Empresa) {
   const ml = 14;
   const mr = 14;
 
-  let y = 10;
+  // ===== HEADER (Lasant official layout) =====
+  // Blue rectangle on the RIGHT half of the header
+  const headerH = 34;
+  const blueStartX = pw * 0.42;
+  doc.setFillColor(...DARK_BLUE);
+  doc.rect(blueStartX, 0, pw - blueStartX, headerH, "F");
 
-  // ===== HEADER =====
-  // Logo on the left
-  if (empresa?.logoUrl) {
-    const logoData = await loadImageAsDataUrl(empresa.logoUrl);
-    if (logoData) {
-      try {
-        doc.addImage(logoData, "PNG", ml, y, 40, 18);
-      } catch { /* ignore */ }
+  // Logo on the LEFT (white area) — uses empresa.logoUrl or fallback
+  const logoSrc = empresa?.logoUrl || "/Logo_Lasant.png";
+  const logoData = await loadImageAsDataUrl(logoSrc);
+  if (logoData) {
+    try {
+      doc.addImage(logoData, "PNG", ml, 4, 42, 26);
+    } catch {
+      doc.setTextColor(...DARK_BLUE);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("LASANT", ml, 20);
     }
+  } else {
+    doc.setTextColor(...DARK_BLUE);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("LASANT", ml, 20);
   }
 
-  // Dark blue banner in the center
-  const bannerX = 70;
-  const bannerW = 90;
-  const bannerH = 24;
-  doc.setFillColor(...DARK_BLUE);
-  doc.rect(bannerX, y, bannerW, bannerH, "F");
-
+  // Title on the RIGHT (inside blue area)
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(14);
+  doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("Requisição de Colaborador", bannerX + bannerW / 2, y + 10, { align: "center" });
+  doc.text("REQUISIÇÃO DE PESSOAL", pw - mr, 14, { align: "right" });
+
+  // Number + meta below title
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text(`RC Nº ${req.numero}`, bannerX + bannerW / 2, y + 18, { align: "center" });
+  doc.text(`RC Nº ${req.numero}`, pw - mr, 21, { align: "right" });
+  doc.text(`Data: ${req.dataCriacao}  |  Status: ${req.status}`, pw - mr, 27, { align: "right" });
 
-  // Date & Status on the right
-  doc.setTextColor(80, 80, 80);
-  doc.setFontSize(9);
-  doc.text(`Data: ${req.dataCriacao}`, pw - mr, y + 8, { align: "right" });
-  doc.text(`Status: ${req.status}`, pw - mr, y + 15, { align: "right" });
-
-  y += bannerH + 14;
+  doc.setTextColor(40, 40, 40);
+  let y = headerH + 10;
 
   // ===== HELPER: Section with bordered table =====
   const addSection = (title: string, rows: [string, string][]) => {
