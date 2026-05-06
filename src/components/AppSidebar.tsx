@@ -79,7 +79,8 @@ const menuItems = [
   {
     group: "Engenharia e Manutenção",
     items: [
-      { title: "Dashboard Engenharia e Manutenção", url: "/engenharia/dashboard", icon: BarChart3, perm: "dashboard_engenharia" },
+      { title: "Dashboard SS / OS", url: "/engenharia/dashboard", icon: BarChart3, perm: "dashboard_engenharia" },
+      { title: "Dashboard Medições", url: "/engenharia/dashboard-medicoes", icon: BarChart3, perm: "dashboard_engenharia" },
       { title: "Medição de Serviços", url: "/engenharia/medicoes", icon: Ruler, perm: "medicoes" },
       { title: "Solicitação de Serviços", url: "/engenharia/solicitacao-servicos", icon: ClipboardList, perm: "solicitacao_servicos" },
       { title: "Aprovar SS em Lote", url: "/engenharia/aprovar-lote-ss", icon: ClipboardCheck, perm: "solicitacao_servicos.aprovar_lote" },
