@@ -1048,6 +1048,11 @@ export type Database = {
           telefone: string | null
           tipo_conta: string | null
           uf: string | null
+          whatsapp_comercial: string | null
+          whatsapp_compras: string | null
+          whatsapp_engenharia: string | null
+          whatsapp_faturamento: string | null
+          whatsapp_rh: string | null
         }
         Insert: {
           agencia?: string | null
@@ -1080,6 +1085,11 @@ export type Database = {
           telefone?: string | null
           tipo_conta?: string | null
           uf?: string | null
+          whatsapp_comercial?: string | null
+          whatsapp_compras?: string | null
+          whatsapp_engenharia?: string | null
+          whatsapp_faturamento?: string | null
+          whatsapp_rh?: string | null
         }
         Update: {
           agencia?: string | null
@@ -1112,6 +1122,11 @@ export type Database = {
           telefone?: string | null
           tipo_conta?: string | null
           uf?: string | null
+          whatsapp_comercial?: string | null
+          whatsapp_compras?: string | null
+          whatsapp_engenharia?: string | null
+          whatsapp_faturamento?: string | null
+          whatsapp_rh?: string | null
         }
         Relationships: []
       }
