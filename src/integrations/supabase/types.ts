@@ -2671,6 +2671,7 @@ export type Database = {
           categoria: string | null
           cliente_id: string | null
           cliente_nome: string | null
+          complexidade: string
           created_at: string | null
           data_inicio: string | null
           data_termino: string | null
@@ -2714,6 +2715,7 @@ export type Database = {
           categoria?: string | null
           cliente_id?: string | null
           cliente_nome?: string | null
+          complexidade?: string
           created_at?: string | null
           data_inicio?: string | null
           data_termino?: string | null
@@ -2757,6 +2759,7 @@ export type Database = {
           categoria?: string | null
           cliente_id?: string | null
           cliente_nome?: string | null
+          complexidade?: string
           created_at?: string | null
           data_inicio?: string | null
           data_termino?: string | null

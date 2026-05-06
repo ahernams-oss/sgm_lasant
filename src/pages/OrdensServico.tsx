@@ -144,6 +144,7 @@ export default function OrdensServicoPage() {
   const [dataTermino, setDataTermino] = useState("");
   const [horaTermino, setHoraTermino] = useState("");
   const [prioridade, setPrioridade] = useState("C: NORMAL");
+  const [complexidade, setComplexidade] = useState<"Baixa" | "Média" | "Alta">("Baixa");
   const [solicitante, setSolicitante] = useState("");
   const [matricula, setMatricula] = useState("");
   const [ramal, setRamal] = useState("");
@@ -513,7 +514,7 @@ export default function OrdensServicoPage() {
   const resetForm = () => {
     setClienteId(""); setNCliente(""); setSituacao("Aberta"); setTipoOs(TIPOS_OS[0]);
     setDataInicio(""); setHoraInicio(""); setDataTermino(""); setHoraTermino("");
-    setPrioridade("C: NORMAL"); setSolicitante(""); setMatricula("");
+    setPrioridade("C: NORMAL"); setComplexidade("Baixa"); setSolicitante(""); setMatricula("");
     setRamal(""); setTelefone(""); setLocalId(""); setPavimentoId("");
     setSetorId(""); setCategoria(""); setServico("");
     setDescricaoServicos(""); setRessalvaAprovacao(""); setDescricaoConclusao("");
@@ -532,7 +533,7 @@ export default function OrdensServicoPage() {
     setClienteId(os.clienteId); setNCliente(os.nCliente); setSituacao(os.situacao); setTipoOs(os.tipoOs);
     setDataInicio(os.dataInicio); setHoraInicio(os.horaInicio);
     setDataTermino(os.dataTermino); setHoraTermino(os.horaTermino);
-    setPrioridade(os.prioridade); setSolicitante(os.solicitante);
+    setPrioridade(os.prioridade); setComplexidade((os as any).complexidade || "Baixa"); setSolicitante(os.solicitante);
     setMatricula(os.matricula); setRamal(os.ramal); setTelefone(os.telefone);
     setLocalId(os.localId); setPavimentoId(os.pavimentoId); setSetorId(os.setorId);
     setEditLocalDesc(os.localDescricao); setEditPavDesc(os.pavimentoDescricao); setEditSetorDesc(os.setorDescricao);
@@ -563,6 +564,7 @@ export default function OrdensServicoPage() {
       data_termino: dataTermino,
       hora_termino: horaTermino,
       prioridade,
+      complexidade,
       solicitante,
       matricula,
       ramal,
@@ -1056,6 +1058,17 @@ export default function OrdensServicoPage() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {PRIORIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Complexidade</Label>
+                <Select value={complexidade} onValueChange={(v) => setComplexidade(v as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Baixa">Baixa</SelectItem>
+                    <SelectItem value="Média">Média</SelectItem>
+                    <SelectItem value="Alta">Alta</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

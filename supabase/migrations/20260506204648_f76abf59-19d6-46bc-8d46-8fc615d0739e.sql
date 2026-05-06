@@ -1,0 +1,1 @@
+ALTER TABLE public.ordens_servico ADD COLUMN IF NOT EXISTS complexidade text NOT NULL DEFAULT 'Baixa';
