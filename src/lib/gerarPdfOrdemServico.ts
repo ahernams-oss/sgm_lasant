@@ -82,10 +82,10 @@ async function renderAssinaturas(doc: jsPDF, assinaturas: OsAssinatura[], y: num
     const qrDataUrl = await gerarQRCodeDataUrl(verifyUrl);
 
     const startY = y;
-    const blockHeight = 32;
-    const qrSize = 13;
-    const qrX = ml + blockWidth - qrSize - 2;
-    const qrY = startY + 2;
+    const blockHeight = 24;
+    const qrSize = 10;
+    const qrX = ml + blockWidth - qrSize - 1.5;
+    const qrY = startY + 1.5;
 
     // Caixa
     doc.setDrawColor(BORDER[0], BORDER[1], BORDER[2]);
@@ -98,40 +98,40 @@ async function renderAssinaturas(doc: jsPDF, assinaturas: OsAssinatura[], y: num
     }
 
     // Texto da assinatura
-    const textX = ml + 3;
-    let textY = startY + 5;
+    const textX = ml + 2.5;
+    let textY = startY + 3.8;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.5);
+    doc.setFontSize(6.5);
     doc.setTextColor(30, 30, 30);
     doc.text(`${labelPapel(a.papel)} — Assinado Eletronicamente`, textX, textY);
 
-    textY += 4;
+    textY += 3;
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
+    doc.setFontSize(5.7);
     doc.text(`Signatário: ${a.signatario_nome}`, textX, textY);
     if (a.signatario_cargo) {
-      textY += 3.5;
+      textY += 2.6;
       doc.text(`Cargo: ${a.signatario_cargo}`, textX, textY);
     }
     if (a.signatario_matricula) {
-      textY += 3.5;
+      textY += 2.6;
       doc.text(`Matrícula: ${a.signatario_matricula}`, textX, textY);
     }
-    textY += 3.5;
+    textY += 2.6;
     doc.text(`Data/Hora: ${fmtDateTime(a.signed_at)}`, textX, textY);
-    textY += 3.5;
+    textY += 2.6;
     doc.text(`IP: ${a.ip_origem || "-"}`, textX, textY);
-    textY += 3.5;
-    doc.setFontSize(6.5);
+    textY += 2.6;
+    doc.setFontSize(5);
     doc.text(`Código: ${a.codigo_verificador}`, textX, textY);
-    textY += 3;
+    textY += 2.3;
     doc.setTextColor(80, 80, 80);
     const baseLegal = "LEI Nº 14.063, DE 23 DE SETEMBRO DE 2020";
-    const splitLegal = doc.splitTextToSize(baseLegal, blockWidth - qrSize - 8);
+    const splitLegal = doc.splitTextToSize(baseLegal, blockWidth - qrSize - 6);
     doc.text(splitLegal, textX, textY);
 
     doc.setTextColor(30, 30, 30);
-    y = startY + blockHeight + 2;
+    y = startY + blockHeight + 1.5;
   }
 
   return y;
