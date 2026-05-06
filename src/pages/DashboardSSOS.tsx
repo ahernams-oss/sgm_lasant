@@ -15,10 +15,13 @@ import {
 import {
   ClipboardList, Wrench, Filter, X, CalendarIcon, TrendingUp, Trophy, Users,
   CheckCircle2, Clock, AlertTriangle, Sparkles, Building2, BarChart3, Activity,
+  FileDown, FileSpreadsheet,
 } from "lucide-react";
 import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
+import { downloadPdfDashboardSSOS, downloadExcelDashboardSSOS } from "@/lib/gerarRelatorioDashboardSSOS";
 
 const CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
 
