@@ -241,7 +241,7 @@ export default function DashboardMedicoes() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm mb-3">
               <Sparkles className="h-3.5 w-3.5" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider">Engenharia · Visão Executiva</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider">Engenharia e Manutenção · Visão Executiva</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard de Medição de Serviços e Obras</h1>
             <p className="text-sm md:text-base text-primary-foreground/85 mt-1.5 max-w-2xl">

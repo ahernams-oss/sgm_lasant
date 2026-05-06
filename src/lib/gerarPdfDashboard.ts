@@ -46,7 +46,7 @@ function addFooter(doc: jsPDF, empresa?: Empresa) {
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
     const label = empresa?.nomeFantasia || empresa?.razaoSocial || "SGM Lasant";
-    doc.text(`Relatório gerado automaticamente — ${label}`, 14, ph - 14);
+    doc.text(`Relatório gerado automaticamente — Gestão de Pessoas — ${label}`, 14, ph - 14);
     doc.text(`Página ${i} de ${pageCount}`, pw / 2, ph - 14, { align: "center" });
   }
 }

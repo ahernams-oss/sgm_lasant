@@ -74,7 +74,7 @@ async function renderSolicitacao(
   doc.setFontSize(16);
   doc.setFont("helvetica", "bolditalic");
   doc.setTextColor(...DARK_BLUE);
-  doc.text("SOLICITAÇÃO DE SERVIÇO", pw / 2, y + 10, { align: "center" });
+  doc.text("SOLICITAÇÃO DE SERVIÇO — ENGENHARIA E MANUTENÇÃO", pw / 2, y + 10, { align: "center" });
 
   doc.setFontSize(11);
   doc.setFont("helvetica", "italic");
@@ -314,7 +314,7 @@ function addFooters(doc: jsPDF, empresa?: Empresa, ssNumero?: string) {
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    doc.text(`Documento gerado automaticamente — ${empresaNome}`, ml, pageH - 14);
+    doc.text(`Documento gerado automaticamente — Engenharia e Manutenção — ${empresaNome}`, ml, pageH - 14);
     doc.text(`Página ${i} de ${pageCount}`, pw / 2, pageH - 14, { align: "center" });
     if (ssNumero) {
       doc.text(`SS Nº ${ssNumero}`, pw - mr, pageH - 14, { align: "right" });
@@ -366,7 +366,7 @@ export async function gerarPdfSolicitacaoLote(
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    doc.text(`Documento gerado automaticamente — ${empresaNome}`, ml, pageH - 14);
+    doc.text(`Documento gerado automaticamente — Engenharia e Manutenção — ${empresaNome}`, ml, pageH - 14);
     doc.text(`Página ${i} de ${pageCount}`, pw / 2, pageH - 14, { align: "center" });
   }
 

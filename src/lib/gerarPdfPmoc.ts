@@ -16,9 +16,9 @@ function header(doc: jsPDF, titulo: string, subtitulo: string) {
   doc.setFillColor(30, 58, 107);
   doc.rect(0, 0, pw, 36, "F");
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(16);
+  doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text(titulo, 14, 16);
+  doc.text(`${titulo} — Engenharia e Manutenção`, 14, 16);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text(subtitulo, 14, 24);
@@ -37,7 +37,7 @@ function footer(doc: jsPDF) {
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    doc.text("Relatório PMOC — SGM Lasant", 14, ph - 14);
+    doc.text("Relatório PMOC — Engenharia e Manutenção — SGM Lasant", 14, ph - 14);
     doc.text(`Página ${i} de ${pages}`, pw / 2, ph - 14, { align: "center" });
   }
 }

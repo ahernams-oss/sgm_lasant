@@ -15,7 +15,7 @@ export function gerarPdfMedicoes(medicoes: MedicaoServico[], filterLabel?: strin
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(15);
   doc.setFont("helvetica", "bold");
-  doc.text("Relatório de Medição de Serviços e Obras", 14, 14);
+  doc.text("Relatório de Medição de Serviços e Obras — Engenharia e Manutenção", 14, 14);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, 14, 22);
@@ -104,7 +104,7 @@ export function gerarPdfMedicoes(medicoes: MedicaoServico[], filterLabel?: strin
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    doc.text("Relatório gerado automaticamente — SGM Lasant", 14, h - 12);
+    doc.text("Relatório gerado automaticamente — Engenharia e Manutenção — SGM Lasant", 14, h - 12);
     doc.text(`Página ${i} de ${pages}`, pw / 2, h - 12, { align: "center" });
   }
 
