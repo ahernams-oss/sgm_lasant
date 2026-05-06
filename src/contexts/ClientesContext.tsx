@@ -25,6 +25,8 @@ export interface Faturamento {
   dataEmissaoNf: string;
   xmlNfNome: string;
   xmlNfConteudo: string;
+  numeroNf: string;
+  chaveNf: string;
   numeroMedicao: string;
   descricao: string;
   valorBruto: string;
