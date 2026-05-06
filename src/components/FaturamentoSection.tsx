@@ -60,15 +60,27 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
         const xmlDoc = parser.parseFromString(content, "text/xml");
         const nNF = xmlDoc.getElementsByTagName("nNF")[0]?.textContent || "";
         const vNF = xmlDoc.getElementsByTagName("vNF")[0]?.textContent || "";
+        const vLiq = xmlDoc.getElementsByTagName("vLiq")[0]?.textContent
+          || xmlDoc.getElementsByTagName("vNF")[0]?.textContent || "";
         const dhEmi = xmlDoc.getElementsByTagName("dhEmi")[0]?.textContent || "";
         const dataEmi = dhEmi ? dhEmi.substring(0, 10) : "";
-        
+        // Chave NF: try infNFe Id attribute (NFe44...) or chNFe element
+        let chave = xmlDoc.getElementsByTagName("chNFe")[0]?.textContent || "";
+        if (!chave) {
+          const infNFe = xmlDoc.getElementsByTagName("infNFe")[0];
+          const id = infNFe?.getAttribute("Id") || "";
+          chave = id.replace(/^NFe/i, "");
+        }
+
         setForm((prev) => ({
           ...prev,
           xmlNfNome: file.name,
-          xmlNfConteudo: content.substring(0, 5000), // limit storage
+          xmlNfConteudo: content.substring(0, 5000),
+          ...(nNF && !prev.numeroNf ? { numeroNf: nNF } : {}),
+          ...(chave && !prev.chaveNf ? { chaveNf: chave } : {}),
           ...(nNF && !prev.numeroMedicao ? { numeroMedicao: nNF } : {}),
           ...(vNF && !prev.valorBruto ? { valorBruto: vNF } : {}),
+          ...(vLiq && !prev.valorLiquido ? { valorLiquido: vLiq } : {}),
           ...(dataEmi && !prev.dataEmissaoNf ? { dataEmissaoNf: dataEmi } : {}),
         }));
         toast.success("XML importado! Dados extraídos automaticamente.");
