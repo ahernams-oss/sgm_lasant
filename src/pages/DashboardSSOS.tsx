@@ -67,6 +67,7 @@ export default function DashboardSSOS() {
   const { solicitacoes } = useSolicitacoesServicos();
   const { ordens } = useOrdensServico();
   const { clientes } = useClientes();
+  const { empresa } = useEmpresa();
 
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
