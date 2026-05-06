@@ -15,6 +15,8 @@ const emptyFaturamento: Omit<Faturamento, "id"> = {
   dataEmissaoNf: "",
   xmlNfNome: "",
   xmlNfConteudo: "",
+  numeroNf: "",
+  chaveNf: "",
   numeroMedicao: "",
   descricao: "",
   valorBruto: "",
