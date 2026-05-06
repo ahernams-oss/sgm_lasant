@@ -533,7 +533,7 @@ export default function OrdensServicoPage() {
     setClienteId(os.clienteId); setNCliente(os.nCliente); setSituacao(os.situacao); setTipoOs(os.tipoOs);
     setDataInicio(os.dataInicio); setHoraInicio(os.horaInicio);
     setDataTermino(os.dataTermino); setHoraTermino(os.horaTermino);
-    setPrioridade(os.prioridade); setSolicitante(os.solicitante);
+    setPrioridade(os.prioridade); setComplexidade((os as any).complexidade || "Baixa"); setSolicitante(os.solicitante);
     setMatricula(os.matricula); setRamal(os.ramal); setTelefone(os.telefone);
     setLocalId(os.localId); setPavimentoId(os.pavimentoId); setSetorId(os.setorId);
     setEditLocalDesc(os.localDescricao); setEditPavDesc(os.pavimentoDescricao); setEditSetorDesc(os.setorDescricao);
