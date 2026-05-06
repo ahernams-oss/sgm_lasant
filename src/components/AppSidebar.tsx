@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  ChevronDown,
   ClipboardList,
   Users,
   Briefcase,
@@ -57,6 +58,8 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useState, useEffect } from "react";
 
 const menuItems = [
   {
@@ -184,6 +187,35 @@ export function AppSidebar() {
     }))
     .filter((g) => g.items.length > 0);
 
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem("sidebar:openGroups");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {};
+  });
+
+  useEffect(() => {
+    setOpenGroups((prev) => {
+      const next = { ...prev };
+      visibleGroups.forEach((g) => {
+        const hasActive = g.items.some((it) => location.pathname === it.url.split("?")[0]);
+        if (hasActive) next[g.group] = true;
+        else if (next[g.group] === undefined) next[g.group] = true;
+      });
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  const toggleGroup = (name: string) => {
+    setOpenGroups((prev) => {
+      const next = { ...prev, [name]: !prev[name] };
+      try { localStorage.setItem("sidebar:openGroups", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
@@ -198,30 +230,50 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {visibleGroups.map((group) => (
-          <SidebarGroup key={group.group}>
-            <SidebarGroupLabel className="font-bold">{group.group}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to={item.url}
-                        end
-                        className="hover:bg-sidebar-accent/50 font-semibold"
-                        activeClassName="bg-sidebar-accent text-primary font-medium"
-                      >
-                        <item.icon className="mr-2 h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+        {visibleGroups.map((group) => {
+          const isOpen = openGroups[group.group] ?? true;
+          return (
+            <Collapsible
+              key={group.group}
+              open={collapsed ? true : isOpen}
+              onOpenChange={() => !collapsed && toggleGroup(group.group)}
+            >
+              <SidebarGroup>
+                {!collapsed && (
+                  <CollapsibleTrigger asChild>
+                    <SidebarGroupLabel className="font-bold cursor-pointer flex items-center justify-between hover:bg-sidebar-accent/30 rounded-md transition-colors">
+                      <span>{group.group}</span>
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform ${isOpen ? "" : "-rotate-90"}`}
+                      />
+                    </SidebarGroupLabel>
+                  </CollapsibleTrigger>
+                )}
+                <CollapsibleContent>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {group.items.map((item) => (
+                        <SidebarMenuItem key={item.title}>
+                          <SidebarMenuButton asChild>
+                            <NavLink
+                              to={item.url}
+                              end
+                              className="hover:bg-sidebar-accent/50 font-semibold"
+                              activeClassName="bg-sidebar-accent text-primary font-medium"
+                            >
+                              <item.icon className="mr-2 h-4 w-4" />
+                              {!collapsed && <span>{item.title}</span>}
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </SidebarGroup>
+            </Collapsible>
+          );
+        })}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
