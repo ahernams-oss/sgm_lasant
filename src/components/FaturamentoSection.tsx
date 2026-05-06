@@ -189,6 +189,14 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
           <label className="field-label">Nº Medição</label>
           <Input placeholder="Nº da medição" value={form.numeroMedicao} onChange={(e) => update("numeroMedicao", e.target.value)} />
         </div>
+        <div>
+          <label className="field-label">Nº Nota Fiscal</label>
+          <Input placeholder="Nº da NF" value={form.numeroNf} onChange={(e) => update("numeroNf", e.target.value)} />
+        </div>
+        <div className="sm:col-span-2 md:col-span-3">
+          <label className="field-label">Chave da Nota Fiscal</label>
+          <Input placeholder="Chave de acesso (44 dígitos)" maxLength={44} value={form.chaveNf} onChange={(e) => update("chaveNf", e.target.value.replace(/\D/g, ""))} />
+        </div>
         <div className="sm:col-span-2">
           <label className="field-label">Descrição</label>
           <Input placeholder="Descrição do faturamento" value={form.descricao} onChange={(e) => update("descricao", e.target.value)} />
