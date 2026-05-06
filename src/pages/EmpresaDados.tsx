@@ -321,7 +321,7 @@ export default function EmpresaDados() {
           <Separator />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="E-mail Envio RH" field="emailRh" placeholder="rh@empresa.com" icon={Mail} />
-            <Field label="E-mail Envio Engenharia" field="emailEngenharia" placeholder="engenharia@empresa.com" icon={Mail} />
+            <Field label="E-mail Envio Engenharia e Manutenção" field="emailEngenharia" placeholder="engenharia@empresa.com" icon={Mail} />
             <Field label="E-mail Envio Estoque" field="emailEstoque" placeholder="estoque@empresa.com" icon={Mail} />
             <Field label="E-mail Envio Relatórios" field="emailRelatorios" placeholder="relatorios@empresa.com" icon={Mail} />
           </div>
