@@ -175,13 +175,34 @@ export async function gerarPdfRequisicao(req: Requisicao, empresa?: Empresa) {
     ["Formação", req.formacao?.join(", ") || ""],
     ["Detalhe Formação", req.formacaoDetalhe],
     ["Experiência", req.experiencia],
-    ["Informática", req.conhecimentoInformatica],
   ]);
 
-  // ===== ATIVIDADES DO CARGO =====
-  addSection("Atividades do Cargo", [
-    ["Atividades", req.atividadesCargo],
-  ]);
+  // ===== Blocos full-width (sempre exibidos) =====
+  const renderFullWidthBlock = (title: string, content: string) => {
+    const text = (content || "").trim() || "—";
+    const lines = doc.splitTextToSize(text, pw - ml - mr - 4);
+    const boxH = lines.length * 5 + 6;
+    if (y + boxH + 10 > ph - 30) { doc.addPage(); y = 20; }
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...DARK_BLUE);
+    doc.text(title, ml, y);
+    y += 4;
+
+    doc.setDrawColor(...BORDER_COLOR);
+    doc.setLineWidth(0.3);
+    doc.rect(ml, y, pw - ml - mr, boxH);
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(40, 40, 40);
+    doc.text(lines, ml + 2, y + 5);
+    y += boxH + 8;
+  };
+
+  renderFullWidthBlock("Conhecimento de Informática", req.conhecimentoInformatica);
+  renderFullWidthBlock("Atividades do Cargo", req.atividadesCargo);
 
   // ===== ANEXOS =====
   if (y + 20 > ph - 30) {
