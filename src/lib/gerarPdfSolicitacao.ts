@@ -366,7 +366,7 @@ export async function gerarPdfSolicitacaoLote(
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    doc.text(`Documento gerado automaticamente — ${empresaNome}`, ml, pageH - 14);
+    doc.text(`Documento gerado automaticamente — Engenharia e Manutenção — ${empresaNome}`, ml, pageH - 14);
     doc.text(`Página ${i} de ${pageCount}`, pw / 2, pageH - 14, { align: "center" });
   }
 
