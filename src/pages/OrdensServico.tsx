@@ -564,6 +564,7 @@ export default function OrdensServicoPage() {
       data_termino: dataTermino,
       hora_termino: horaTermino,
       prioridade,
+      complexidade,
       solicitante,
       matricula,
       ramal,
