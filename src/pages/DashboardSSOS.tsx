@@ -495,6 +495,9 @@ export default function DashboardSSOS() {
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Trophy className="h-4 w-4 text-amber-500" /> Ranking — Funcionários Mais Produtivos
             </CardTitle>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Pontuação por complexidade da OS · Baixa = 1 pt · Média = 3 pts · Alta = 5 pts
+            </p>
           </CardHeader>
           <CardContent>
             {rankingFuncionarios.length === 0 ? (
@@ -503,12 +506,12 @@ export default function DashboardSSOS() {
               </p>
             ) : (
               <div className="space-y-2">
-                {rankingFuncionarios.map((f, idx) => {
-                  const max = rankingFuncionarios[0]?.concluidas || rankingFuncionarios[0]?.total || 1;
-                  const pct = ((f.concluidas || f.total) / max) * 100;
+                {rankingFuncionarios.map((f: any, idx) => {
+                  const max = rankingFuncionarios[0]?.pontos || 1;
+                  const pct = (f.pontos / max) * 100;
                   return (
                     <div key={f.nome + idx} className="space-y-1">
-                      <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center justify-between text-xs gap-2">
                         <div className="flex items-center gap-2 min-w-0 flex-1">
                           <span className={cn(
                             "shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold",
@@ -522,14 +525,11 @@ export default function DashboardSSOS() {
                             <p className="text-[10px] text-muted-foreground truncate">{f.cargo}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Badge variant="outline" className="text-[10px] h-5 bg-emerald-50 text-emerald-700 border-emerald-200">
-                            {f.concluidas} concl.
-                          </Badge>
-                          <Badge variant="outline" className="text-[10px] h-5">
-                            {f.abertas} abertas
-                          </Badge>
-                          <span className="font-bold text-foreground w-8 text-right">{f.total}</span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <Badge variant="outline" className="text-[10px] h-5 bg-green-50 text-green-700 border-green-200" title="Baixa (1pt)">B {f.baixa}</Badge>
+                          <Badge variant="outline" className="text-[10px] h-5 bg-amber-50 text-amber-700 border-amber-200" title="Média (3pts)">M {f.media}</Badge>
+                          <Badge variant="outline" className="text-[10px] h-5 bg-rose-50 text-rose-700 border-rose-200" title="Alta (5pts)">A {f.alta}</Badge>
+                          <span className="font-bold text-foreground w-12 text-right tabular-nums">{f.pontos} pts</span>
                         </div>
                       </div>
                       <div className="h-1.5 rounded-full bg-muted overflow-hidden">
