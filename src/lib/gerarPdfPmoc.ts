@@ -37,7 +37,7 @@ function footer(doc: jsPDF) {
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    doc.text("Relatório PMOC — SGM Lasant", 14, ph - 14);
+    doc.text("Relatório PMOC — Engenharia e Manutenção — SGM Lasant", 14, ph - 14);
     doc.text(`Página ${i} de ${pages}`, pw / 2, ph - 14, { align: "center" });
   }
 }
