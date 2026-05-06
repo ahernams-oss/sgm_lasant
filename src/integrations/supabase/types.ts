@@ -2667,6 +2667,10 @@ export type Database = {
       ordens_servico: {
         Row: {
           anexos: Json | null
+          avaliacao: number | null
+          avaliacao_data: string | null
+          avaliacao_justificativa: string | null
+          avaliacao_usuario: string | null
           bdi: number | null
           categoria: string | null
           cliente_id: string | null
@@ -2711,6 +2715,10 @@ export type Database = {
         }
         Insert: {
           anexos?: Json | null
+          avaliacao?: number | null
+          avaliacao_data?: string | null
+          avaliacao_justificativa?: string | null
+          avaliacao_usuario?: string | null
           bdi?: number | null
           categoria?: string | null
           cliente_id?: string | null
@@ -2755,6 +2763,10 @@ export type Database = {
         }
         Update: {
           anexos?: Json | null
+          avaliacao?: number | null
+          avaliacao_data?: string | null
+          avaliacao_justificativa?: string | null
+          avaliacao_usuario?: string | null
           bdi?: number | null
           categoria?: string | null
           cliente_id?: string | null

@@ -44,6 +44,7 @@ import WorkflowTimeline from "@/components/WorkflowTimeline";
 import WorkflowHistorico from "@/components/WorkflowHistorico";
 import RelatorioFechamentoOSDialog from "@/components/RelatorioFechamentoOSDialog";
 import { AssinaturaEletronicaOs } from "@/components/AssinaturaEletronicaOs";
+import { AvaliacaoOs } from "@/components/AvaliacaoOs";
 import { useOsAssinaturas } from "@/contexts/OsAssinaturasContext";
 import { BarChart3 } from "lucide-react";
 
@@ -1887,6 +1888,11 @@ export default function OrdensServicoPage() {
                     />
                   </div>
                 </div>
+              )}
+
+              {/* Avaliação do Cliente (apenas após Validada) */}
+              {viewOS.situacao === "Validada" && (
+                <AvaliacaoOs os={viewOS} />
               )}
 
               {/* Histórico de Alterações */}
