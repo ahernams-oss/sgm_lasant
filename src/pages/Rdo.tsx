@@ -561,7 +561,7 @@ export default function RdoPage() {
 
             <TabsContent value="assinaturas" className="space-y-4 mt-4">
               <div className="bg-muted/30 border rounded p-3 text-xs text-muted-foreground">
-                As assinaturas são <strong>eletrônicas oficiais</strong>, com validade jurídica conforme Art. 6º, § 1º do Decreto nº 8.539/2015.
+                As assinaturas são <strong>eletrônicas oficiais</strong>, com validade jurídica conforme Lei nº 14.063, de 23 de Setembro de 2020.
                 Cada assinatura registra automaticamente o signatário autenticado, data/hora, IP, hash do documento e gera um código verificador único, consultável publicamente.
               </div>
               <AssinaturaEletronicaOficial

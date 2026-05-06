@@ -413,8 +413,7 @@ export default function AssinarLoteOs() {
               </p>
               <p className="italic text-muted-foreground mt-2">
                 Cada OS receberá uma assinatura individual com data, hora, IP,
-                hash e código verificador único, conforme Art. 6º, § 1º do
-                Decreto nº 8.539/2015.
+                hash e código verificador único, conforme Lei nº 14.063, de 23 de Setembro de 2020.
               </p>
             </div>
             <div>
