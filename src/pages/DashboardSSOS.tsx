@@ -237,23 +237,68 @@ export default function DashboardSSOS() {
   const taxaConversao = ssTotal > 0 ? ((osTotal / ssTotal) * 100) : 0;
   const taxaConclusao = osTotal > 0 ? ((osValidadas / osTotal) * 100) : 0;
 
+  const buildReportData = () => {
+    const periodo = dateFrom || dateTo
+      ? `Período: ${dateFrom ? format(dateFrom, "dd/MM/yyyy") : "—"} a ${dateTo ? format(dateTo, "dd/MM/yyyy") : "—"}`
+      : "Período: Todos";
+    const filtros: string[] = [];
+    if (clienteFilter !== "todos") {
+      const c = clientes.find(c => c.id === clienteFilter);
+      filtros.push(`Cliente: ${c?.nomeFantasia || c?.nome || clienteFilter}`);
+    }
+    if (statusSSFilter !== "todos") filtros.push(`Situação SS: ${statusSSFilter}`);
+    if (statusOSFilter !== "todos") filtros.push(`Situação OS: ${statusOSFilter}`);
+    return {
+      empresa,
+      periodoLabel: periodo,
+      filtroLabel: filtros.length ? `Filtros: ${filtros.join(" · ")}` : "Filtros: nenhum",
+      kpisSS: { total: ssTotal, aguardando: ssAguardando, aprovadas: ssAprovadas, concluidas: ssConcluidas, canceladas: ssCanceladas },
+      kpisOS: { total: osTotal, abertas: osAbertas, executadas: osExecutadas, validadas: osValidadas, emergenciais: osEmergenciais, conversao: `${taxaConversao.toFixed(1)}%`, conclusao: `${taxaConclusao.toFixed(1)}%` },
+      ssStatus: ssStatusData,
+      osStatus: osStatusData,
+      tipoOS: tipoOSData,
+      rankingClientes,
+      rankingFuncionarios: rankingFuncionarios as any,
+    };
+  };
+
   return (
     <div className="p-4 md:p-8 space-y-6 animate-fade-up">
       {/* Hero */}
       <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary via-primary/90 to-indigo-700 p-6 md:p-8 text-primary-foreground shadow-lg">
         <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm mb-3">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Engenharia e Manutenção · Operacional</span>
+        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm mb-3">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-semibold uppercase tracking-wider">Engenharia e Manutenção · Operacional</span>
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+              Dashboard de Solicitações e Ordens de Serviço
+            </h1>
+            <p className="text-sm md:text-base text-primary-foreground/85 mt-1.5 max-w-2xl">
+              Acompanhamento operacional de SS, OS e produtividade da equipe técnica.
+            </p>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-            Dashboard de Solicitações e Ordens de Serviço
-          </h1>
-          <p className="text-sm md:text-base text-primary-foreground/85 mt-1.5 max-w-2xl">
-            Acompanhamento operacional de SS, OS e produtividade da equipe técnica.
-          </p>
+          <div className="flex flex-wrap gap-2 shrink-0">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => downloadPdfDashboardSSOS(buildReportData())}
+              className="bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm"
+            >
+              <FileDown className="mr-2 h-4 w-4" /> Exportar PDF
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => downloadExcelDashboardSSOS(buildReportData())}
+              className="bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm"
+            >
+              <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar Excel
+            </Button>
+          </div>
         </div>
       </div>
 
