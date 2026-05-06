@@ -177,12 +177,11 @@ export default function DashboardSSOS() {
   }, [ssFiltradas, osFiltradas]);
 
   // === Ranking de Funcionários (por OS) ===
-  // Pontuação por complexidade (mapeada da Prioridade da OS):
-  //   C: NORMAL → Baixa = 1pt | B: URGENTE → Média = 3pt | A: IMEDIATA → Alta = 5pt
-  const pontosOS = (prioridade?: string): { pontos: number; nivel: "Baixa" | "Média" | "Alta" } => {
-    const p = (prioridade || "").toUpperCase();
-    if (p.startsWith("A")) return { pontos: 5, nivel: "Alta" };
-    if (p.startsWith("B")) return { pontos: 3, nivel: "Média" };
+  // Pontuação por Complexidade da OS: Baixa = 1pt | Média = 3pts | Alta = 5pts
+  const pontosOS = (complexidade?: string): { pontos: number; nivel: "Baixa" | "Média" | "Alta" } => {
+    const c = (complexidade || "").toLowerCase();
+    if (c.startsWith("a")) return { pontos: 5, nivel: "Alta" };
+    if (c.startsWith("m") || c.startsWith("mé") || c.startsWith("me")) return { pontos: 3, nivel: "Média" };
     return { pontos: 1, nivel: "Baixa" };
   };
 
