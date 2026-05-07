@@ -123,6 +123,7 @@ export default function OrcamentoScoForm() {
       bdi: bdiNum,
       desconto: descNum,
       observacoes,
+      referencia,
       itens,
       subtotal,
       valor_total: valorTotal,
@@ -146,7 +147,7 @@ export default function OrcamentoScoForm() {
         numero: editing?.numero || 0,
         created_at: editing?.created_at || new Date().toISOString(),
         titulo, cliente_nome: clientes.find((c: any) => c.id === clienteId)?.nome || "",
-        obra, tipo_analise: tipo, bdi: bdiNum, desconto: descNum, observacoes,
+        obra, tipo_analise: tipo, bdi: bdiNum, desconto: descNum, observacoes, referencia,
         itens, subtotal, valor_total: valorTotal, status,
       },
     };
@@ -206,6 +207,16 @@ export default function OrcamentoScoForm() {
           </div>
           <div><Label>BDI (%)</Label><Input value={bdi} onChange={(e) => setBdi(e.target.value)} /></div>
           <div><Label>Desconto (%)</Label><Input value={desconto} onChange={(e) => setDesconto(e.target.value)} /></div>
+          <div>
+            <Label>Tabela de Preços (Mês/Ano)</Label>
+            <Select value={referencia || "__auto__"} onValueChange={(v) => setReferencia(v === "__auto__" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__auto__">(qualquer)</SelectItem>
+                {referencias.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="md:col-span-3"><Label>Observações</Label><Textarea rows={2} value={observacoes} onChange={(e) => setObservacoes(e.target.value)} /></div>
         </CardContent>
       </Card>
