@@ -575,6 +575,8 @@ const Clientes = () => {
                             updateCliente(contratosClienteId!, { contratos: updated });
                           }}
                           contratoNumero={ct.numero}
+                          cliente={cliente}
+                          contrato={ct}
                         />
                       )}
                     </div>
