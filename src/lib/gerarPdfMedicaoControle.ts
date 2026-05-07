@@ -88,7 +88,9 @@ function renderPagina(
   autoTable(doc, {
     startY: y,
     theme: "grid",
-    styles: { fontSize: 9, cellPadding: 2 },
+    margin: { left: 8, right: 8 },
+    tableWidth: "auto",
+    styles: { fontSize: 8, cellPadding: 1.5 },
     body: [
       [
         { content: "PROCESSO Nº", styles: { fontStyle: "bold", fillColor: [240, 240, 240], halign: "center" } },
