@@ -87,17 +87,74 @@ export default function Equipamentos() {
     setForm(prev => ({ ...prev, setorId: id, setorDescricao: s?.descricao || "" }));
   };
 
-  const handleUpload = async (file: File, type: "foto" | "manual") => {
-    const setter = type === "foto" ? setUploadingFoto : setUploadingManual;
+  const handleUpload = async (file: File, type: "foto" | "manual" | "certificado") => {
+    const setter = type === "foto" ? setUploadingFoto : type === "manual" ? setUploadingManual : setUploadingCert;
     setter(true);
     const ext = file.name.split(".").pop();
     const path = `equipamentos/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
     const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
     if (error) { toast.error("Erro no upload."); setter(false); return; }
     const { data: { publicUrl } } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
-    setField(type === "foto" ? "fotoUrl" : "manualUrl", publicUrl);
+    if (type === "foto") setField("fotoUrl", publicUrl);
+    else if (type === "manual") setField("manualUrl", publicUrl);
+    else setField("certificadoCalibracaoUrl", publicUrl);
     setter(false);
-    toast.success(`${type === "foto" ? "Foto" : "Manual"} enviado!`);
+    toast.success(`Arquivo enviado!`);
+  };
+
+  const loadHistorico = async (equipId: string) => {
+    const { data } = await supabase
+      .from("equipamentos_calibracoes_historico" as any)
+      .select("*")
+      .eq("equipamento_id", equipId)
+      .order("data_calibracao", { ascending: false });
+    setHistorico((data as any) || []);
+  };
+
+  const openHistorico = async (eq: Equipamento) => {
+    setHistoricoEquip(eq);
+    await loadHistorico(eq.id);
+  };
+
+  const uploadCertificadoNova = async (file: File) => {
+    const ext = file.name.split(".").pop();
+    const path = `equipamentos/cert_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
+    if (error) { toast.error("Erro no upload."); return; }
+    const { data: { publicUrl } } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
+    setNovaCalib(p => ({ ...p, certificado_url: publicUrl }));
+    toast.success("Certificado enviado!");
+  };
+
+  const registrarCalibracao = async () => {
+    if (!historicoEquip) return;
+    if (!novaCalib.data_calibracao) { toast.error("Informe a data de calibração."); return; }
+    const { error } = await supabase.from("equipamentos_calibracoes_historico" as any).insert({
+      equipamento_id: historicoEquip.id,
+      equipamento_nome: historicoEquip.equipamento,
+      equipamento_tag: historicoEquip.tag,
+      ...novaCalib,
+      validade_calibracao: novaCalib.validade_calibracao || null,
+    });
+    if (error) { toast.error("Erro ao registrar."); return; }
+    // Atualiza o equipamento com a calibração mais recente e zera flags
+    await updateEquipamento(historicoEquip.id, {
+      dataCalibracao: novaCalib.data_calibracao,
+      validadeCalibracao: novaCalib.validade_calibracao,
+      laboratorioCalibracao: novaCalib.laboratorio,
+      numeroCertificadoCalibracao: novaCalib.numero_certificado,
+      certificadoCalibracaoUrl: novaCalib.certificado_url,
+    } as any);
+    // Reset flags via direct update
+    await supabase.from("equipamentos").update({
+      calibracao_notificado_30d: false,
+      calibracao_notificado_15d: false,
+      calibracao_notificado_7d: false,
+    }).eq("id", historicoEquip.id);
+    toast.success("Calibração registrada!");
+    setNovaCalibOpen(false);
+    setNovaCalib({ data_calibracao: "", validade_calibracao: "", laboratorio: "", numero_certificado: "", certificado_url: "", responsavel: "", resultado: "Aprovado", observacoes: "", custo: 0 });
+    await loadHistorico(historicoEquip.id);
   };
 
   const handleSubmit = () => {
