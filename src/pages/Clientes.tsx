@@ -114,6 +114,8 @@ const FaturamentoView = () => {
                                   updateCliente(cliente.id, { contratos });
                                 }}
                                 contratoNumero={ct.numero}
+                                cliente={cliente}
+                                contrato={ct}
                               />
                             </div>
                           )}
