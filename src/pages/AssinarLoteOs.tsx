@@ -393,10 +393,10 @@ export default function AssinarLoteOs() {
             </p>
             <div className="bg-muted/50 border rounded p-3 text-xs space-y-1">
               <p>
-                <strong>Signatário:</strong> {usuarioLogado?.nome || ASSINANTE_TESTE_OS.nome}
+                <strong>Signatário:</strong> {usuarioLogado?.nome}
               </p>
               <p>
-                <strong>E-mail:</strong> {usuarioLogado?.email || ASSINANTE_TESTE_OS.email}
+                <strong>E-mail:</strong> {usuarioLogado?.email}
               </p>
               <p className="italic text-muted-foreground mt-2">
                 Cada OS receberá uma assinatura individual com data, hora, IP,
