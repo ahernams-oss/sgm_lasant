@@ -88,7 +88,9 @@ function renderPagina(
   autoTable(doc, {
     startY: y,
     theme: "grid",
-    styles: { fontSize: 9, cellPadding: 2 },
+    margin: { left: 8, right: 8 },
+    tableWidth: "auto",
+    styles: { fontSize: 8, cellPadding: 1.5 },
     body: [
       [
         { content: "PROCESSO Nº", styles: { fontStyle: "bold", fillColor: [240, 240, 240], halign: "center" } },
@@ -147,17 +149,19 @@ function renderPagina(
   autoTable(doc, {
     startY: y,
     theme: "grid",
-    styles: { fontSize: 8, cellPadding: 1.8, valign: "middle" },
-    headStyles: { fillColor: [169, 169, 169], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
+    margin: { left: 8, right: 8 },
+    tableWidth: "auto",
+    styles: { fontSize: 7, cellPadding: 1.2, valign: "middle", overflow: "linebreak" },
+    headStyles: { fillColor: [169, 169, 169], textColor: [255, 255, 255], fontStyle: "bold", halign: "center", fontSize: 7 },
     columnStyles: {
-      0: { cellWidth: 45 },
-      1: { cellWidth: 22, halign: "center" },
-      2: { cellWidth: 95 },
-      3: { cellWidth: 14, halign: "center" },
-      4: { cellWidth: 55 },
-      5: { cellWidth: 14, halign: "center" },
-      6: { cellWidth: 28, halign: "right" },
-      7: { cellWidth: 24, halign: "center" },
+      0: { cellWidth: 38 },
+      1: { cellWidth: 18, halign: "center" },
+      2: { cellWidth: 88 },
+      3: { cellWidth: 12, halign: "center" },
+      4: { cellWidth: 48 },
+      5: { cellWidth: 12, halign: "center" },
+      6: { cellWidth: 24, halign: "right" },
+      7: { cellWidth: 21, halign: "center" },
     },
     head: [[
       "LOCAL DA UNIDADE HOSPITALAR", "DATA", "Nº DE O.S.", "ITEM", "SERVIÇOS (RESUMO)", "QT OS", "VALOR", "SITUAÇÃO",
