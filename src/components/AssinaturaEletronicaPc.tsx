@@ -41,7 +41,8 @@ export function AssinaturaEletronicaPc({ pedido, onAssinado, variant = "default"
       toast.error("Usuário não autenticado.");
       return;
     }
-    if (senha !== usuarioLogado.senha) {
+    const senhaOk = await verificarSenhaUsuario(usuarioLogado.email, senha);
+    if (!senhaOk) {
       toast.error("Senha incorreta.");
       return;
     }
