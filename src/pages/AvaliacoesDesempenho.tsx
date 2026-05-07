@@ -126,10 +126,12 @@ function PageInner() {
 
   const openEdit = (a: AvaliacaoDesempenho) => {
     setEditId(a.id);
+    const { mes, ano } = parsePeriodo(a.periodoReferencia);
     setForm({
       funcionarioId: a.funcionarioId,
       dataAvaliacao: a.dataAvaliacao,
-      periodoReferencia: a.periodoReferencia,
+      periodoMes: mes,
+      periodoAno: ano,
       notas: { ...a.notas },
       observacoes: a.observacoes,
     });
