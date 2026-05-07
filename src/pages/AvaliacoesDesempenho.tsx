@@ -310,7 +310,7 @@ function PageInner() {
             <DialogTitle>{editId ? "Editar Avaliação" : "Nova Avaliação de Desempenho"}</DialogTitle>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
               <Label>Funcionário *</Label>
               <Select value={form.funcionarioId} onValueChange={(v) => setForm({ ...form, funcionarioId: v })}>
@@ -329,8 +329,22 @@ function PageInner() {
               <Input type="date" value={form.dataAvaliacao} onChange={(e) => setForm({ ...form, dataAvaliacao: e.target.value })} />
             </div>
             <div>
-              <Label>Período de referência</Label>
-              <Input placeholder="Ex: 2026/Q1" value={form.periodoReferencia} onChange={(e) => setForm({ ...form, periodoReferencia: e.target.value })} />
+              <Label>Mês de referência</Label>
+              <Select value={form.periodoMes} onValueChange={(v) => setForm({ ...form, periodoMes: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione o mês" /></SelectTrigger>
+                <SelectContent>
+                  {MESES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Ano de referência</Label>
+              <Select value={form.periodoAno} onValueChange={(v) => setForm({ ...form, periodoAno: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione o ano" /></SelectTrigger>
+                <SelectContent>
+                  {ANOS.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
