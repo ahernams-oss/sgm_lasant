@@ -230,15 +230,9 @@ function PageInner() {
                         </Button>
                       )}
                       {podeExcluir && (
-                        <DoubleConfirmDelete
-                          itemName={`avaliação de ${funcMap[a.funcionarioId] || "funcionário"}`}
-                          onConfirm={async () => { await deleteAvaliacao(a.id); toast.success("Avaliação removida."); }}
-                          trigger={
-                            <Button size="icon" variant="ghost" className="text-destructive" title="Excluir">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          }
-                        />
+                        <Button size="icon" variant="ghost" className="text-destructive" title="Excluir" onClick={() => requestDelete(a.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       )}
                     </div>
                   </TableCell>
