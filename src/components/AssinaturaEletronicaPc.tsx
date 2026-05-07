@@ -27,15 +27,6 @@ interface Props {
   fullLabel?: boolean;
 }
 
-const SENHA_TESTE = "102030";
-const ASSINANTE_TESTE = {
-  id: "modo-teste-pc-102030",
-  nome: "Usuário de Teste",
-  email: "teste@lasant.com.br",
-  cargo: "Modo Teste",
-  matricula: "TESTE",
-};
-
 export function AssinaturaEletronicaPc({ pedido, onAssinado, variant = "default", size = "sm", label = "Assinar", fullLabel = false }: Props) {
   const { usuarioLogado } = useAuth();
   const { cargos } = useCargos();
@@ -45,12 +36,11 @@ export function AssinaturaEletronicaPc({ pedido, onAssinado, variant = "default"
   const [loading, setLoading] = useState(false);
 
   const handleAssinar = async () => {
-    const modoTeste = senha === SENHA_TESTE;
-    if (!usuarioLogado && !modoTeste) {
+    if (!usuarioLogado) {
       toast.error("Usuário não autenticado.");
       return;
     }
-    if (!modoTeste && senha !== usuarioLogado?.senha) {
+    if (senha !== usuarioLogado.senha) {
       toast.error("Senha incorreta.");
       return;
     }
@@ -58,17 +48,17 @@ export function AssinaturaEletronicaPc({ pedido, onAssinado, variant = "default"
     try {
       const hash = await gerarHashPc(pedido);
       const ip = await obterIpOrigem();
-      const cargo = usuarioLogado ? cargos.find((c) => c.id === usuarioLogado.cargoId) : null;
+      const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
 
       const result = await registrar({
         pedido_id: pedido.id,
         pedido_numero: pedido.numero,
         papel: "aprovador",
-        signatario_user_id: usuarioLogado?.id || ASSINANTE_TESTE.id,
-        signatario_nome: usuarioLogado?.nome || ASSINANTE_TESTE.nome,
-        signatario_email: usuarioLogado?.email || ASSINANTE_TESTE.email,
-        signatario_cargo: cargo?.nome || ASSINANTE_TESTE.cargo,
-        signatario_matricula: usuarioLogado?.matricula || ASSINANTE_TESTE.matricula,
+        signatario_user_id: usuarioLogado.id,
+        signatario_nome: usuarioLogado.nome,
+        signatario_email: usuarioLogado.email,
+        signatario_cargo: cargo?.nome || "",
+        signatario_matricula: usuarioLogado.matricula || "",
         hash_documento: hash,
         ip_origem: ip,
         user_agent: navigator.userAgent,
