@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardCheck, Plus, Pencil, Trash2, Eye } from "lucide-react";
+import { ClipboardCheck, Plus, Pencil, Trash2, Eye, FileSpreadsheet, FileText, Download } from "lucide-react";
 import { toast } from "sonner";
 import {
   AvaliacoesDesempenhoProvider,
@@ -19,6 +19,8 @@ import {
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissao } from "@/hooks/usePermissao";
+import { gerarPdfAvaliacaoDesempenho, gerarPdfAvaliacoesLista } from "@/lib/gerarPdfAvaliacaoDesempenho";
+import { gerarExcelAvaliacoesDesempenho } from "@/lib/gerarExcelAvaliacoesDesempenho";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 
