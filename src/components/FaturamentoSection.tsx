@@ -45,6 +45,17 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { tem } = usePermissao();
   const podeVerValorFolha = tem("clientes.ver_valor_folha");
+  const { ordens } = useOrdensServico();
+  const { empresa } = useEmpresa();
+
+  const handleGerarRelatorio = (f: Faturamento) => {
+    if (!cliente || !contrato) { toast.error("Dados do contrato indisponíveis."); return; }
+    const doc = gerarPdfMedicaoControle({
+      cliente, contrato, faturamento: f, ordens,
+      empresaNome: empresa?.razaoSocial || empresa?.nomeFantasia || "",
+    });
+    doc.save(`Medicao_${contrato.numero}_${f.numeroMedicao || f.id.slice(0, 6)}.pdf`);
+  };
 
   const update = <K extends keyof Omit<Faturamento, "id">>(field: K, value: Omit<Faturamento, "id">[K]) =>
     setForm((prev) => ({ ...prev, [field]: value }));
