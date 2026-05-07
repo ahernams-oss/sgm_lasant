@@ -118,6 +118,7 @@ import OrcamentosSco from "./pages/OrcamentosSco.tsx";
 import OrcamentoScoForm from "./pages/OrcamentoScoForm.tsx";
 import ImportarCatalogoSco from "./pages/ImportarCatalogoSco.tsx";
 import CatalogoSco from "./pages/CatalogoSco.tsx";
+import AvaliacoesDesempenhoPage from "./pages/AvaliacoesDesempenho.tsx";
 const queryClient = new QueryClient();
 
 function RequireAuth({ children }: { children: ReactNode }) {
