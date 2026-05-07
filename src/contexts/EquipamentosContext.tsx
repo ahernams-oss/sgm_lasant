@@ -135,6 +135,17 @@ const equipamentoToRow = (e: Partial<Omit<Equipamento, "id">>) => ({
   numero_anvisa: e.numeroAnvisa,
   foto_url: e.fotoUrl,
   manual_url: e.manualUrl,
+  requer_calibracao: e.requerCalibracao,
+  data_calibracao: e.dataCalibracao || null,
+  validade_calibracao: e.validadeCalibracao || null,
+  frequencia_calibracao_meses: e.frequenciaCalibracaoMeses,
+  certificado_calibracao_url: e.certificadoCalibracaoUrl,
+  laboratorio_calibracao: e.laboratorioCalibracao,
+  numero_certificado_calibracao: e.numeroCertificadoCalibracao,
+  observacoes_calibracao: e.observacoesCalibracao,
+  responsavel_calibracao: e.responsavelCalibracao,
+  telefone_responsavel_calibracao: e.telefoneResponsavelCalibracao,
+  email_responsavel_calibracao: e.emailResponsavelCalibracao,
 });
 
 export function EquipamentosProvider({ children }: { children: ReactNode }) {
