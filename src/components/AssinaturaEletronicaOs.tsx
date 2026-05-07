@@ -34,14 +34,6 @@ interface Props {
 const labelPapel = (p: PapelOsAssinatura) =>
   p === "fiscal" ? "Fiscal do Contrato" : "Solicitante";
 
-const SENHA_TESTE_ASSINATURA_OS = "102030";
-const ASSINANTE_TESTE_OS = {
-  id: "modo-teste-os-102030",
-  nome: "Usuário de Teste",
-  email: "teste@lasant.com.br",
-  cargo: "Modo Teste",
-  matricula: "TESTE",
-};
 
 const fmtDateTime = (d: string) =>
   new Date(d).toLocaleString("pt-BR", {
