@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useOsAssinaturas, PapelOsAssinatura } from "@/contexts/OsAssinaturasContext";
+import { usePermissao } from "@/hooks/usePermissao";
 import { gerarHashOs, obterIpOrigem } from "@/lib/assinaturaHashOs";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { formatNumeroAno } from "@/lib/formatNumero";
