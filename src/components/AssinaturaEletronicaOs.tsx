@@ -66,9 +66,7 @@ export function AssinaturaEletronicaOs({
     !os.clienteId ||
     clientesPermitidosIds.includes(os.clienteId);
 
-  // [TESTES] Checagem de permissão liberada para todos. Em produção, restaurar:
-  // const podeAssinar = papel === "fiscal" ? tem("os.assinar_fiscal") : temAcessoAoCliente;
-  const podeAssinar = true;
+  const podeAssinar = papel === "fiscal" ? tem("os.assinar_fiscal") : temAcessoAoCliente;
 
   // ========== JÁ ASSINADO ==========
   if (assinaturaExistente) {
