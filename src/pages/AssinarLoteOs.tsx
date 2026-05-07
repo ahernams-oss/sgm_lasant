@@ -1,3 +1,4 @@
+import { verificarSenhaUsuario } from "@/lib/verifySenha";
 import { useState, useMemo } from "react";
 import { useOrdensServico, OrdemServico } from "@/contexts/OrdensServicoContext";
 import { useAuth } from "@/contexts/AuthContext";
