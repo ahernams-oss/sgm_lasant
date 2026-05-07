@@ -20,7 +20,7 @@ import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
-import DoubleConfirmDelete from "@/components/DoubleConfirmDelete";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 
 const NOTA_MIN = 0;
 const NOTA_MAX = 10;
