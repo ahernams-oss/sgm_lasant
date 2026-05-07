@@ -1132,20 +1132,28 @@ export type Database = {
       }
       equipamentos: {
         Row: {
+          calibracao_notificado_15d: boolean | null
+          calibracao_notificado_30d: boolean | null
+          calibracao_notificado_7d: boolean | null
           capacidade_btu: string | null
+          certificado_calibracao_url: string | null
           cliente_id: string | null
           cliente_nome: string | null
           contrato: string | null
           corrente: string | null
           created_at: string | null
           data_aquisicao: string | null
+          data_calibracao: string | null
           data_garantia: string | null
+          email_responsavel_calibracao: string | null
           equipamento: string | null
           expectativa_vida: string | null
           fabricante: string | null
           foto_url: string | null
+          frequencia_calibracao_meses: number | null
           grupo: string | null
           id: string
+          laboratorio_calibracao: string | null
           local_descricao: string | null
           local_id: string | null
           manual_url: string | null
@@ -1153,34 +1161,48 @@ export type Database = {
           nivel_manutencao: string | null
           nivel_risco: string | null
           numero_anvisa: string | null
+          numero_certificado_calibracao: string | null
+          observacoes_calibracao: string | null
           pavimento_descricao: string | null
           pavimento_id: string | null
           plano_manutencao: string | null
           potencia: string | null
+          requer_calibracao: boolean | null
+          responsavel_calibracao: string | null
           serie: string | null
           setor_descricao: string | null
           setor_id: string | null
           situacao: string | null
           subgrupo: string | null
           tag: string | null
+          telefone_responsavel_calibracao: string | null
           tensao: string | null
+          validade_calibracao: string | null
           valor: number | null
         }
         Insert: {
+          calibracao_notificado_15d?: boolean | null
+          calibracao_notificado_30d?: boolean | null
+          calibracao_notificado_7d?: boolean | null
           capacidade_btu?: string | null
+          certificado_calibracao_url?: string | null
           cliente_id?: string | null
           cliente_nome?: string | null
           contrato?: string | null
           corrente?: string | null
           created_at?: string | null
           data_aquisicao?: string | null
+          data_calibracao?: string | null
           data_garantia?: string | null
+          email_responsavel_calibracao?: string | null
           equipamento?: string | null
           expectativa_vida?: string | null
           fabricante?: string | null
           foto_url?: string | null
+          frequencia_calibracao_meses?: number | null
           grupo?: string | null
           id?: string
+          laboratorio_calibracao?: string | null
           local_descricao?: string | null
           local_id?: string | null
           manual_url?: string | null
@@ -1188,34 +1210,48 @@ export type Database = {
           nivel_manutencao?: string | null
           nivel_risco?: string | null
           numero_anvisa?: string | null
+          numero_certificado_calibracao?: string | null
+          observacoes_calibracao?: string | null
           pavimento_descricao?: string | null
           pavimento_id?: string | null
           plano_manutencao?: string | null
           potencia?: string | null
+          requer_calibracao?: boolean | null
+          responsavel_calibracao?: string | null
           serie?: string | null
           setor_descricao?: string | null
           setor_id?: string | null
           situacao?: string | null
           subgrupo?: string | null
           tag?: string | null
+          telefone_responsavel_calibracao?: string | null
           tensao?: string | null
+          validade_calibracao?: string | null
           valor?: number | null
         }
         Update: {
+          calibracao_notificado_15d?: boolean | null
+          calibracao_notificado_30d?: boolean | null
+          calibracao_notificado_7d?: boolean | null
           capacidade_btu?: string | null
+          certificado_calibracao_url?: string | null
           cliente_id?: string | null
           cliente_nome?: string | null
           contrato?: string | null
           corrente?: string | null
           created_at?: string | null
           data_aquisicao?: string | null
+          data_calibracao?: string | null
           data_garantia?: string | null
+          email_responsavel_calibracao?: string | null
           equipamento?: string | null
           expectativa_vida?: string | null
           fabricante?: string | null
           foto_url?: string | null
+          frequencia_calibracao_meses?: number | null
           grupo?: string | null
           id?: string
+          laboratorio_calibracao?: string | null
           local_descricao?: string | null
           local_id?: string | null
           manual_url?: string | null
@@ -1223,18 +1259,75 @@ export type Database = {
           nivel_manutencao?: string | null
           nivel_risco?: string | null
           numero_anvisa?: string | null
+          numero_certificado_calibracao?: string | null
+          observacoes_calibracao?: string | null
           pavimento_descricao?: string | null
           pavimento_id?: string | null
           plano_manutencao?: string | null
           potencia?: string | null
+          requer_calibracao?: boolean | null
+          responsavel_calibracao?: string | null
           serie?: string | null
           setor_descricao?: string | null
           setor_id?: string | null
           situacao?: string | null
           subgrupo?: string | null
           tag?: string | null
+          telefone_responsavel_calibracao?: string | null
           tensao?: string | null
+          validade_calibracao?: string | null
           valor?: number | null
+        }
+        Relationships: []
+      }
+      equipamentos_calibracoes_historico: {
+        Row: {
+          certificado_url: string | null
+          created_at: string
+          custo: number | null
+          data_calibracao: string
+          equipamento_id: string
+          equipamento_nome: string
+          equipamento_tag: string | null
+          id: string
+          laboratorio: string | null
+          numero_certificado: string | null
+          observacoes: string | null
+          responsavel: string | null
+          resultado: string | null
+          validade_calibracao: string | null
+        }
+        Insert: {
+          certificado_url?: string | null
+          created_at?: string
+          custo?: number | null
+          data_calibracao: string
+          equipamento_id: string
+          equipamento_nome?: string
+          equipamento_tag?: string | null
+          id?: string
+          laboratorio?: string | null
+          numero_certificado?: string | null
+          observacoes?: string | null
+          responsavel?: string | null
+          resultado?: string | null
+          validade_calibracao?: string | null
+        }
+        Update: {
+          certificado_url?: string | null
+          created_at?: string
+          custo?: number | null
+          data_calibracao?: string
+          equipamento_id?: string
+          equipamento_nome?: string
+          equipamento_tag?: string | null
+          id?: string
+          laboratorio?: string | null
+          numero_certificado?: string | null
+          observacoes?: string | null
+          responsavel?: string | null
+          resultado?: string | null
+          validade_calibracao?: string | null
         }
         Relationships: []
       }

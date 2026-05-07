@@ -34,6 +34,18 @@ export interface Equipamento {
   numeroAnvisa: string;
   fotoUrl: string;
   manualUrl: string;
+  // Calibração
+  requerCalibracao: boolean;
+  dataCalibracao: string;
+  validadeCalibracao: string;
+  frequenciaCalibracaoMeses: number;
+  certificadoCalibracaoUrl: string;
+  laboratorioCalibracao: string;
+  numeroCertificadoCalibracao: string;
+  observacoesCalibracao: string;
+  responsavelCalibracao: string;
+  telefoneResponsavelCalibracao: string;
+  emailResponsavelCalibracao: string;
 }
 
 interface EquipamentosContextType {
@@ -78,6 +90,17 @@ const rowToEquipamento = (r: any): Equipamento => ({
   numeroAnvisa: r.numero_anvisa ?? "",
   fotoUrl: r.foto_url ?? "",
   manualUrl: r.manual_url ?? "",
+  requerCalibracao: !!r.requer_calibracao,
+  dataCalibracao: r.data_calibracao ?? "",
+  validadeCalibracao: r.validade_calibracao ?? "",
+  frequenciaCalibracaoMeses: Number(r.frequencia_calibracao_meses) || 12,
+  certificadoCalibracaoUrl: r.certificado_calibracao_url ?? "",
+  laboratorioCalibracao: r.laboratorio_calibracao ?? "",
+  numeroCertificadoCalibracao: r.numero_certificado_calibracao ?? "",
+  observacoesCalibracao: r.observacoes_calibracao ?? "",
+  responsavelCalibracao: r.responsavel_calibracao ?? "",
+  telefoneResponsavelCalibracao: r.telefone_responsavel_calibracao ?? "",
+  emailResponsavelCalibracao: r.email_responsavel_calibracao ?? "",
 });
 
 const equipamentoToRow = (e: Partial<Omit<Equipamento, "id">>) => ({
@@ -112,6 +135,17 @@ const equipamentoToRow = (e: Partial<Omit<Equipamento, "id">>) => ({
   numero_anvisa: e.numeroAnvisa,
   foto_url: e.fotoUrl,
   manual_url: e.manualUrl,
+  requer_calibracao: e.requerCalibracao,
+  data_calibracao: e.dataCalibracao || null,
+  validade_calibracao: e.validadeCalibracao || null,
+  frequencia_calibracao_meses: e.frequenciaCalibracaoMeses,
+  certificado_calibracao_url: e.certificadoCalibracaoUrl,
+  laboratorio_calibracao: e.laboratorioCalibracao,
+  numero_certificado_calibracao: e.numeroCertificadoCalibracao,
+  observacoes_calibracao: e.observacoesCalibracao,
+  responsavel_calibracao: e.responsavelCalibracao,
+  telefone_responsavel_calibracao: e.telefoneResponsavelCalibracao,
+  email_responsavel_calibracao: e.emailResponsavelCalibracao,
 });
 
 export function EquipamentosProvider({ children }: { children: ReactNode }) {

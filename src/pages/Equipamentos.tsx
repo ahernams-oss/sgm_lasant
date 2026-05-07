@@ -1,16 +1,18 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
-import { Monitor, Trash2, Search, Plus, ChevronDown, ChevronUp, Pencil, Upload, Image, FileText } from "lucide-react";
+import { Monitor, Trash2, Search, Plus, ChevronDown, ChevronUp, Pencil, Upload, Image, FileText, Award, History, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useEquipamentos, type Equipamento } from "@/contexts/EquipamentosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +29,11 @@ const emptyForm = {
   nivelManutencao: "", expectativaVida: "", dataGarantia: "", tensao: "",
   corrente: "", potencia: "", capacidadeBtu: "", contrato: "", planoManutencao: "",
   numeroAnvisa: "", fotoUrl: "", manualUrl: "",
+  requerCalibracao: false, dataCalibracao: "", validadeCalibracao: "",
+  frequenciaCalibracaoMeses: 12, certificadoCalibracaoUrl: "",
+  laboratorioCalibracao: "", numeroCertificadoCalibracao: "",
+  observacoesCalibracao: "", responsavelCalibracao: "",
+  telefoneResponsavelCalibracao: "", emailResponsavelCalibracao: "",
 };
 
 export default function Equipamentos() {
@@ -45,6 +52,11 @@ export default function Equipamentos() {
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [uploadingFoto, setUploadingFoto] = useState(false);
   const [uploadingManual, setUploadingManual] = useState(false);
+  const [uploadingCert, setUploadingCert] = useState(false);
+  const [historicoEquip, setHistoricoEquip] = useState<Equipamento | null>(null);
+  const [historico, setHistorico] = useState<any[]>([]);
+  const [novaCalibOpen, setNovaCalibOpen] = useState(false);
+  const [novaCalib, setNovaCalib] = useState({ data_calibracao: "", validade_calibracao: "", laboratorio: "", numero_certificado: "", certificado_url: "", responsavel: "", resultado: "Aprovado", observacoes: "", custo: 0 });
 
   const selectedCliente = useMemo(() => clientesList.find(c => c.id === form.clienteId), [clientesList, form.clienteId]);
   const locais = useMemo(() => selectedCliente?.locais || [], [selectedCliente]);
@@ -75,17 +87,74 @@ export default function Equipamentos() {
     setForm(prev => ({ ...prev, setorId: id, setorDescricao: s?.descricao || "" }));
   };
 
-  const handleUpload = async (file: File, type: "foto" | "manual") => {
-    const setter = type === "foto" ? setUploadingFoto : setUploadingManual;
+  const handleUpload = async (file: File, type: "foto" | "manual" | "certificado") => {
+    const setter = type === "foto" ? setUploadingFoto : type === "manual" ? setUploadingManual : setUploadingCert;
     setter(true);
     const ext = file.name.split(".").pop();
     const path = `equipamentos/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
     const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
     if (error) { toast.error("Erro no upload."); setter(false); return; }
     const { data: { publicUrl } } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
-    setField(type === "foto" ? "fotoUrl" : "manualUrl", publicUrl);
+    if (type === "foto") setField("fotoUrl", publicUrl);
+    else if (type === "manual") setField("manualUrl", publicUrl);
+    else setField("certificadoCalibracaoUrl", publicUrl);
     setter(false);
-    toast.success(`${type === "foto" ? "Foto" : "Manual"} enviado!`);
+    toast.success(`Arquivo enviado!`);
+  };
+
+  const loadHistorico = async (equipId: string) => {
+    const { data } = await supabase
+      .from("equipamentos_calibracoes_historico" as any)
+      .select("*")
+      .eq("equipamento_id", equipId)
+      .order("data_calibracao", { ascending: false });
+    setHistorico((data as any) || []);
+  };
+
+  const openHistorico = async (eq: Equipamento) => {
+    setHistoricoEquip(eq);
+    await loadHistorico(eq.id);
+  };
+
+  const uploadCertificadoNova = async (file: File) => {
+    const ext = file.name.split(".").pop();
+    const path = `equipamentos/cert_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
+    if (error) { toast.error("Erro no upload."); return; }
+    const { data: { publicUrl } } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
+    setNovaCalib(p => ({ ...p, certificado_url: publicUrl }));
+    toast.success("Certificado enviado!");
+  };
+
+  const registrarCalibracao = async () => {
+    if (!historicoEquip) return;
+    if (!novaCalib.data_calibracao) { toast.error("Informe a data de calibração."); return; }
+    const { error } = await supabase.from("equipamentos_calibracoes_historico" as any).insert({
+      equipamento_id: historicoEquip.id,
+      equipamento_nome: historicoEquip.equipamento,
+      equipamento_tag: historicoEquip.tag,
+      ...novaCalib,
+      validade_calibracao: novaCalib.validade_calibracao || null,
+    });
+    if (error) { toast.error("Erro ao registrar."); return; }
+    // Atualiza o equipamento com a calibração mais recente e zera flags
+    await updateEquipamento(historicoEquip.id, {
+      dataCalibracao: novaCalib.data_calibracao,
+      validadeCalibracao: novaCalib.validade_calibracao,
+      laboratorioCalibracao: novaCalib.laboratorio,
+      numeroCertificadoCalibracao: novaCalib.numero_certificado,
+      certificadoCalibracaoUrl: novaCalib.certificado_url,
+    } as any);
+    // Reset flags via direct update
+    await supabase.from("equipamentos").update({
+      calibracao_notificado_30d: false,
+      calibracao_notificado_15d: false,
+      calibracao_notificado_7d: false,
+    }).eq("id", historicoEquip.id);
+    toast.success("Calibração registrada!");
+    setNovaCalibOpen(false);
+    setNovaCalib({ data_calibracao: "", validade_calibracao: "", laboratorio: "", numero_certificado: "", certificado_url: "", responsavel: "", resultado: "Aprovado", observacoes: "", custo: 0 });
+    await loadHistorico(historicoEquip.id);
   };
 
   const handleSubmit = () => {
@@ -255,7 +324,57 @@ export default function Equipamentos() {
               <div><Label>Nº Anvisa</Label><Input value={form.numeroAnvisa} onChange={e => setField("numeroAnvisa", e.target.value)} /></div>
             </div>
 
-            {/* Uploads */}
+            {/* Calibração */}
+            <Card className="border-primary/30 bg-primary/5">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Award className="h-4 w-4 text-primary" />
+                  Calibração de Equipamento
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Switch checked={form.requerCalibracao} onCheckedChange={v => setField("requerCalibracao", v)} />
+                  <Label className="cursor-pointer">Este equipamento requer calibração periódica</Label>
+                </div>
+                {form.requerCalibracao && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div><Label>Última Calibração</Label><Input type="date" value={form.dataCalibracao} onChange={e => setField("dataCalibracao", e.target.value)} /></div>
+                      <div><Label>Validade</Label><Input type="date" value={form.validadeCalibracao} onChange={e => setField("validadeCalibracao", e.target.value)} /></div>
+                      <div><Label>Frequência (meses)</Label><Input type="number" value={form.frequenciaCalibracaoMeses || ""} onChange={e => setField("frequenciaCalibracaoMeses", Number(e.target.value))} /></div>
+                      <div><Label>Nº Certificado</Label><Input value={form.numeroCertificadoCalibracao} onChange={e => setField("numeroCertificadoCalibracao", e.target.value)} /></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div><Label>Laboratório</Label><Input value={form.laboratorioCalibracao} onChange={e => setField("laboratorioCalibracao", e.target.value)} /></div>
+                      <div><Label>Responsável</Label><Input value={form.responsavelCalibracao} onChange={e => setField("responsavelCalibracao", e.target.value)} /></div>
+                      <div><Label>Telefone (WhatsApp)</Label><Input value={form.telefoneResponsavelCalibracao} onChange={e => setField("telefoneResponsavelCalibracao", e.target.value)} placeholder="+55 (11) 99999-9999" /></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div><Label>E-mail Responsável</Label><Input type="email" value={form.emailResponsavelCalibracao} onChange={e => setField("emailResponsavelCalibracao", e.target.value)} /></div>
+                      <div>
+                        <Label>Certificado (arquivo)</Label>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" disabled={uploadingCert} onClick={() => document.getElementById("cert-upload")?.click()}>
+                            <FileText className="h-4 w-4 mr-1" />{uploadingCert ? "Enviando..." : "Upload Certificado"}
+                          </Button>
+                          <input id="cert-upload" type="file" accept=".pdf,image/*" className="hidden" onChange={e => e.target.files?.[0] && handleUpload(e.target.files[0], "certificado")} />
+                          {form.certificadoCalibracaoUrl && <a href={form.certificadoCalibracaoUrl} target="_blank" rel="noreferrer" className="text-xs text-primary underline">Ver</a>}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Observações</Label>
+                      <Textarea value={form.observacoesCalibracao} onChange={e => setField("observacoesCalibracao", e.target.value)} rows={2} />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      ⚡ Alertas automáticos por WhatsApp e e-mail serão enviados ao responsável 30, 15 e 7 dias antes do vencimento.
+                    </p>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Foto</Label>
@@ -314,33 +433,45 @@ export default function Equipamentos() {
                   <TableHead>Cliente</TableHead>
                   <TableHead>Setor</TableHead>
                   <TableHead>Situação</TableHead>
+                  <TableHead>Calibração</TableHead>
                   <TableHead>Fabricante</TableHead>
-                  <TableHead className="w-[100px]">Ações</TableHead>
+                  <TableHead className="w-[140px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedItems.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum equipamento encontrado.</TableCell></TableRow>
-                ) : paginatedItems.map(eq => (
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum equipamento encontrado.</TableCell></TableRow>
+                ) : paginatedItems.map(eq => {
+                  let calibBadge: React.ReactNode = <span className="text-xs text-muted-foreground">-</span>;
+                  if (eq.requerCalibracao) {
+                    if (!eq.validadeCalibracao) calibBadge = <Badge variant="outline" className="text-xs">Pendente</Badge>;
+                    else {
+                      const dias = Math.ceil((new Date(eq.validadeCalibracao).getTime() - Date.now()) / 86400000);
+                      if (dias < 0) calibBadge = <Badge variant="destructive" className="text-xs gap-1"><AlertTriangle className="h-3 w-3" />Vencida</Badge>;
+                      else if (dias <= 30) calibBadge = <Badge className="text-xs bg-orange-500 hover:bg-orange-500 gap-1"><AlertTriangle className="h-3 w-3" />{dias}d</Badge>;
+                      else calibBadge = <Badge variant="secondary" className="text-xs">{eq.validadeCalibracao.split("-").reverse().join("/")}</Badge>;
+                    }
+                  }
+                  return (
                   <TableRow key={eq.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setViewEquip(eq)}>
                     <TableCell className="font-mono text-xs">{eq.tag || "-"}</TableCell>
                     <TableCell className="font-medium">{eq.equipamento}</TableCell>
                     <TableCell className="text-sm">{eq.clienteNome}</TableCell>
                     <TableCell className="text-sm">{eq.setorDescricao || eq.localDescricao || "-"}</TableCell>
                     <TableCell>
-                      <Badge variant={eq.situacao === "Ativo" ? "default" : eq.situacao === "Em Manutenção" ? "secondary" : "destructive"}>
-                        {eq.situacao}
-                      </Badge>
+                      <Badge variant={eq.situacao === "Ativo" ? "default" : eq.situacao === "Em Manutenção" ? "secondary" : "destructive"}>{eq.situacao}</Badge>
                     </TableCell>
+                    <TableCell>{calibBadge}</TableCell>
                     <TableCell className="text-sm">{eq.fabricante || "-"}</TableCell>
                     <TableCell onClick={e => e.stopPropagation()}>
                       <div className="flex gap-1">
+                        {eq.requerCalibracao && <Button size="icon" variant="ghost" title="Histórico de Calibração" onClick={() => openHistorico(eq)}><History className="h-4 w-4 text-primary" /></Button>}
                         <Button size="icon" variant="ghost" onClick={() => handleEdit(eq)}><Pencil className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" onClick={() => requestDelete(eq.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                );})}
               </TableBody>
             </Table>
           </div>
@@ -387,6 +518,95 @@ export default function Equipamentos() {
       </Dialog>
 
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => { if (!open) cancelDelete(); }} onConfirm={() => { if (deleteId) handleDelete(deleteId); }} />
+
+      {/* Histórico de Calibração */}
+      <Dialog open={!!historicoEquip} onOpenChange={() => { setHistoricoEquip(null); setNovaCalibOpen(false); }}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-primary" />
+              Histórico de Calibração — {historicoEquip?.equipamento}
+            </DialogTitle>
+          </DialogHeader>
+          {historicoEquip && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-muted-foreground">
+                  TAG: <span className="font-mono">{historicoEquip.tag || "-"}</span> · Frequência: {historicoEquip.frequenciaCalibracaoMeses} meses
+                </div>
+                <Button size="sm" onClick={() => setNovaCalibOpen(v => !v)}>
+                  <Plus className="h-4 w-4 mr-1" />Nova Calibração
+                </Button>
+              </div>
+              {novaCalibOpen && (
+                <Card className="border-primary/30">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      <div><Label>Data Calibração *</Label><Input type="date" value={novaCalib.data_calibracao} onChange={e => setNovaCalib(p => ({ ...p, data_calibracao: e.target.value }))} /></div>
+                      <div><Label>Validade</Label><Input type="date" value={novaCalib.validade_calibracao} onChange={e => setNovaCalib(p => ({ ...p, validade_calibracao: e.target.value }))} /></div>
+                      <div><Label>Resultado</Label>
+                        <Select value={novaCalib.resultado} onValueChange={v => setNovaCalib(p => ({ ...p, resultado: v }))}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Aprovado">Aprovado</SelectItem>
+                            <SelectItem value="Aprovado com Ressalvas">Aprovado com Ressalvas</SelectItem>
+                            <SelectItem value="Reprovado">Reprovado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div><Label>Laboratório</Label><Input value={novaCalib.laboratorio} onChange={e => setNovaCalib(p => ({ ...p, laboratorio: e.target.value }))} /></div>
+                      <div><Label>Nº Certificado</Label><Input value={novaCalib.numero_certificado} onChange={e => setNovaCalib(p => ({ ...p, numero_certificado: e.target.value }))} /></div>
+                      <div><Label>Responsável</Label><Input value={novaCalib.responsavel} onChange={e => setNovaCalib(p => ({ ...p, responsavel: e.target.value }))} /></div>
+                      <div><Label>Custo (R$)</Label><Input type="number" value={novaCalib.custo || ""} onChange={e => setNovaCalib(p => ({ ...p, custo: Number(e.target.value) }))} /></div>
+                      <div className="col-span-2">
+                        <Label>Certificado</Label>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" onClick={() => document.getElementById("cert-nova-upload")?.click()}>
+                            <FileText className="h-4 w-4 mr-1" />Upload
+                          </Button>
+                          <input id="cert-nova-upload" type="file" accept=".pdf,image/*" className="hidden" onChange={e => e.target.files?.[0] && uploadCertificadoNova(e.target.files[0])} />
+                          {novaCalib.certificado_url && <a href={novaCalib.certificado_url} target="_blank" rel="noreferrer" className="text-xs text-primary underline">Ver</a>}
+                        </div>
+                      </div>
+                    </div>
+                    <div><Label>Observações</Label><Textarea rows={2} value={novaCalib.observacoes} onChange={e => setNovaCalib(p => ({ ...p, observacoes: e.target.value }))} /></div>
+                    <div className="flex gap-2 justify-end">
+                      <Button variant="outline" size="sm" onClick={() => setNovaCalibOpen(false)}>Cancelar</Button>
+                      <Button size="sm" onClick={registrarCalibracao}>Registrar</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Validade</TableHead>
+                    <TableHead>Laboratório</TableHead>
+                    <TableHead>Nº Cert.</TableHead>
+                    <TableHead>Resultado</TableHead>
+                    <TableHead>Cert.</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {historico.length === 0 ? (
+                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">Nenhuma calibração registrada.</TableCell></TableRow>
+                  ) : historico.map(h => (
+                    <TableRow key={h.id}>
+                      <TableCell className="text-sm">{h.data_calibracao?.split("-").reverse().join("/")}</TableCell>
+                      <TableCell className="text-sm">{h.validade_calibracao?.split("-").reverse().join("/") || "-"}</TableCell>
+                      <TableCell className="text-sm">{h.laboratorio || "-"}</TableCell>
+                      <TableCell className="font-mono text-xs">{h.numero_certificado || "-"}</TableCell>
+                      <TableCell><Badge variant={h.resultado === "Reprovado" ? "destructive" : "default"} className="text-xs">{h.resultado}</Badge></TableCell>
+                      <TableCell>{h.certificado_url ? <a href={h.certificado_url} target="_blank" rel="noreferrer" className="text-primary underline text-xs">Ver</a> : "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
