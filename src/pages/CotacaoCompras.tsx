@@ -53,19 +53,20 @@ export default function CotacaoComprasPage() {
   const { toast } = useToast();
 
   const assinarPedidoAutomatico = useCallback(async (pedido: PedidoCompra) => {
+    if (!usuarioLogado) return;
     try {
       const hash = await gerarHashPc(pedido);
       const ip = await obterIpOrigem();
-      const cargo = usuarioLogado ? cargos.find((c) => c.id === usuarioLogado.cargoId) : null;
+      const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
       await registrarAssinaturaPc({
         pedido_id: pedido.id,
         pedido_numero: pedido.numero,
         papel: "aprovador",
-        signatario_user_id: usuarioLogado?.id || "modo-teste-pc-102030",
-        signatario_nome: usuarioLogado?.nome || "Usuário de Teste",
-        signatario_email: usuarioLogado?.email || "teste@lasant.com.br",
-        signatario_cargo: cargo?.nome || "Modo Teste",
-        signatario_matricula: usuarioLogado?.matricula || "TESTE",
+        signatario_user_id: usuarioLogado.id,
+        signatario_nome: usuarioLogado.nome,
+        signatario_email: usuarioLogado.email,
+        signatario_cargo: cargo?.nome || "",
+        signatario_matricula: usuarioLogado.matricula || "",
         hash_documento: hash,
         ip_origem: ip,
         user_agent: navigator.userAgent,
