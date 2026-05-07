@@ -382,6 +382,18 @@ function PageInner() {
           )}
         </DialogContent>
       </Dialog>
+
+      <DoubleConfirmDelete
+        open={!!deleteId}
+        onOpenChange={(o) => !o && cancelDelete()}
+        onConfirm={async () => {
+          if (deleteId) {
+            await deleteAvaliacao(deleteId);
+            toast.success("Avaliação removida.");
+            cancelDelete();
+          }
+        }}
+      />
     </div>
   );
 }
