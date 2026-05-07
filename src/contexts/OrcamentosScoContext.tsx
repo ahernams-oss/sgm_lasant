@@ -51,6 +51,7 @@ export interface OrcamentoSco {
   bdi: number;
   desconto: number;
   observacoes?: string;
+  referencia?: string;
   itens: OrcamentoScoItem[];
   subtotal: number;
   valor_total: number;
