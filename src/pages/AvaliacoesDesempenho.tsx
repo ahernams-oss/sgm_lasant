@@ -159,7 +159,7 @@ function PageInner() {
     const payload = {
       funcionarioId: form.funcionarioId,
       dataAvaliacao: form.dataAvaliacao,
-      periodoReferencia: form.periodoReferencia,
+      periodoReferencia: form.periodoMes && form.periodoAno ? `${form.periodoMes}/${form.periodoAno}` : (form.periodoMes || form.periodoAno || ""),
       avaliadorId: usuarioLogado?.id || "",
       avaliadorNome: usuarioLogado?.nome || "",
       notas: form.notas,
