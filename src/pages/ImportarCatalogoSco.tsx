@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Upload, Loader2 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
@@ -205,6 +206,19 @@ export default function ImportarCatalogoSco() {
       <Card>
         <CardHeader><CardTitle className="text-lg">Carregar planilhas FGV</CardTitle></CardHeader>
         <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-3 p-3 rounded-md border" style={{ borderColor: "#673ab7" }}>
+            <div>
+              <Label>Mês da tabela</Label>
+              <Select value={mes} onValueChange={setMes}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{MESES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Ano</Label>
+              <Input value={ano} onChange={(e) => setAno(e.target.value.replace(/\D/g, "").slice(0, 4))} />
+            </div>
+          </div>
           <div>
             <Label>FGV04 — Itens Elementares (.xlsx)</Label>
             <Input type="file" accept=".xlsx" onChange={(e) => setFgv04(e.target.files?.[0] || null)} />
@@ -217,7 +231,7 @@ export default function ImportarCatalogoSco() {
             <Label>FGV07 — Composições (.xlsx)</Label>
             <Input type="file" accept=".xlsx" onChange={(e) => setFgv07(e.target.files?.[0] || null)} />
           </div>
-          <p className="text-xs text-muted-foreground">A importação substitui completamente o catálogo anterior. O processamento é feito no navegador em lotes — pode levar alguns minutos para o FGV07.</p>
+          <p className="text-xs text-muted-foreground">A importação substitui apenas a tabela da referência informada (Mês/Ano), preservando outras versões. O processamento é feito no navegador em lotes — pode levar alguns minutos para o FGV07.</p>
           {progress && <p className="text-xs font-semibold" style={{ color: "#673ab7" }}>{progress}</p>}
           <Button onClick={importar} disabled={loading} style={{ background: "#673ab7" }}>
             {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Upload className="h-4 w-4 mr-1" />}
