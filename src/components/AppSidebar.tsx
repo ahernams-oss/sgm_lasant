@@ -85,15 +85,25 @@ const menuItems = [
       { title: "Dashboard SS / OS", url: "/engenharia/dashboard", icon: BarChart3, perm: "dashboard_engenharia" },
       { title: "Dashboard Medições", url: "/engenharia/dashboard-medicoes", icon: BarChart3, perm: "dashboard_engenharia" },
       { title: "Medição de Serviços", url: "/engenharia/medicoes", icon: Ruler, perm: "medicoes" },
+      { title: "Plano de Manutenção", url: "/engenharia/plano-manutencao", icon: Wrench, perm: "plano_manutencao" },
+      { title: "Base de Conhecimento", url: "/engenharia/base-conhecimento", icon: BookOpen, perm: "base_conhecimento" },
+    ],
+  },
+  {
+    group: "Solicitações de Serviço",
+    items: [
       { title: "Solicitação de Serviços", url: "/engenharia/solicitacao-servicos", icon: ClipboardList, perm: "solicitacao_servicos" },
       { title: "Aprovar SS em Lote", url: "/engenharia/aprovar-lote-ss", icon: ClipboardCheck, perm: "solicitacao_servicos.aprovar_lote" },
+    ],
+  },
+  {
+    group: "Ordens de Serviço",
+    items: [
       { title: "Ordem de Serviço", url: "/engenharia/ordem-servico", icon: Wrench, perm: "ordem_servico" },
       { title: "Confirmar OS em Lote", url: "/engenharia/confirmar-lote-os", icon: ClipboardCheck, perm: "os.confirmar_lote" },
       { title: "Validar OS em Lote", url: "/engenharia/validar-lote-os", icon: ClipboardCheck, perm: "os.validar_lote" },
       { title: "Assinar OS em Lote", url: "/engenharia/assinar-lote-os", icon: ClipboardCheck, perm: "os.assinar_lote" },
       { title: "Imprimir OS Validadas", url: "/engenharia/imprimir-lote-os", icon: ClipboardCheck, perm: "os.imprimir_lote" },
-      { title: "Plano de Manutenção", url: "/engenharia/plano-manutencao", icon: Wrench, perm: "plano_manutencao" },
-      { title: "Base de Conhecimento", url: "/engenharia/base-conhecimento", icon: BookOpen, perm: "base_conhecimento" },
     ],
   },
   {
@@ -124,9 +134,6 @@ const menuItems = [
       { title: "Recebimento", url: "/compras/recebimento", icon: PackageCheck, perm: "recebimento" },
       { title: "Estoque", url: "/compras/estoque", icon: Warehouse, perm: "estoque" },
       { title: "Relatórios de Estoque", url: "/compras/relatorios-estoque", icon: FileBarChart, perm: "estoque" },
-      { title: "Materiais e Serviços", url: "/compras/materiais", icon: Package, perm: "materiais_servicos" },
-      { title: "Categorias de Compras", url: "/compras/categorias", icon: Tags, perm: "categorias_compras" },
-      { title: "Fabricantes", url: "/compras/fabricantes", icon: Factory, perm: "fabricantes" },
     ],
   },
   {
@@ -178,6 +185,9 @@ const menuItems = [
       { title: "Responsáveis Técnicos", url: "/cadastros/responsaveis-tecnicos", icon: UserCheck, perm: "responsaveis_tecnicos" },
       { title: "SCO", url: "/sco", icon: FileSpreadsheet, perm: "sco" },
       { title: "I0", url: "/i0", icon: DollarSign, perm: "sco" },
+      { title: "Materiais e Serviços", url: "/compras/materiais", icon: Package, perm: "materiais_servicos" },
+      { title: "Categorias de Compras", url: "/compras/categorias", icon: Tags, perm: "categorias_compras" },
+      { title: "Fabricantes", url: "/compras/fabricantes", icon: Factory, perm: "fabricantes" },
     ],
   },
 ];
