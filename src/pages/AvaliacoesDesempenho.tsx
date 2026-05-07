@@ -55,6 +55,8 @@ function badgeMedia(m: number) {
 function PageInner() {
   const { avaliacoes, addAvaliacao, updateAvaliacao, deleteAvaliacao } = useAvaliacoesDesempenho();
   const { funcionarios } = useFuncionarios();
+  const { cargos } = useCargos();
+  const cargoMap = useMemo(() => Object.fromEntries(cargos.map((c) => [c.id, c.nome])), [cargos]);
   const { usuarioLogado, clientesPermitidosIds } = useAuth();
   const { tem, acessoTotal } = usePermissao();
 
@@ -206,7 +208,9 @@ function PageInner() {
               <SelectContent>
                 <SelectItem value="__all__">Todos</SelectItem>
                 {funcionariosVisiveis.map((f) => (
-                  <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
+                  <SelectItem key={f.id} value={f.id}>
+                    {f.nome}{cargoMap[f.cargoId] ? ` — ${cargoMap[f.cargoId]}` : ""}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -298,7 +302,9 @@ function PageInner() {
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   {funcionariosVisiveis.map((f) => (
-                    <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
+                    <SelectItem key={f.id} value={f.id}>
+                      {f.nome}{cargoMap[f.cargoId] ? ` — ${cargoMap[f.cargoId]}` : ""}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
