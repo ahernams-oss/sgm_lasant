@@ -236,8 +236,8 @@ export function AssinaturaEletronicaOs({
               <strong>{labelPapel(papel)}</strong>.
             </p>
             <div className="bg-muted/50 border rounded p-3 text-xs space-y-1">
-              <p><strong>Signatário:</strong> {usuarioLogado?.nome || ASSINANTE_TESTE_OS.nome}</p>
-              <p><strong>E-mail:</strong> {usuarioLogado?.email || ASSINANTE_TESTE_OS.email}</p>
+              <p><strong>Signatário:</strong> {usuarioLogado?.nome}</p>
+              <p><strong>E-mail:</strong> {usuarioLogado?.email}</p>
               <p className="italic text-muted-foreground mt-2">
                 Esta assinatura tem valor jurídico conforme Lei nº 14.063, de 23 de Setembro de 2020. A operação será registrada com data,
                 hora, IP e código verificador único.
