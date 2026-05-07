@@ -38,7 +38,7 @@ export interface Faturamento {
   dataPagamento: string;
 }
 export interface Contrato {
-  id: string; numero: string; descricao: string; dataInicio: string; dataFim: string;
+  id: string; numero: string; numeroProcesso?: string; descricao: string; dataInicio: string; dataFim: string;
   bdi: string; valorBase: string; valorBase2: string; valorBase3: string;
   mesSco: string; anoSco: string;
   faturamentos: Faturamento[];
