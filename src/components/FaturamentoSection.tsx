@@ -35,9 +35,11 @@ interface Props {
   faturamentos: Faturamento[];
   onChange: (faturamentos: Faturamento[]) => void;
   contratoNumero: string;
+  cliente?: Cliente;
+  contrato?: Contrato;
 }
 
-export default function FaturamentoSection({ faturamentos, onChange, contratoNumero }: Props) {
+export default function FaturamentoSection({ faturamentos, onChange, contratoNumero, cliente, contrato }: Props) {
   const [form, setForm] = useState<Omit<Faturamento, "id">>(emptyFaturamento);
   const [editingId, setEditingId] = useState<string | null>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
