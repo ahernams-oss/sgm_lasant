@@ -116,6 +116,8 @@ async function chunkUpsert(table: string, rows: any[], opts: { onConflict?: stri
   }
 }
 
+const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
 export default function ImportarCatalogoSco() {
   const nav = useNavigate();
   const { countCatalog } = useOrcamentosSco();
@@ -125,12 +127,17 @@ export default function ImportarCatalogoSco() {
   const [fgv07, setFgv07] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState("");
+  const now = new Date();
+  const [mes, setMes] = useState<string>(MESES[now.getMonth()]);
+  const [ano, setAno] = useState<string>(String(now.getFullYear()));
 
   const refresh = () => countCatalog().then(setCounts);
   useEffect(() => { refresh(); }, []);
 
   const importar = async () => {
     if (!fgv04 && !fgv06 && !fgv07) { toast.error("Selecione ao menos um arquivo"); return; }
+    if (!mes || !ano) { toast.error("Informe mês e ano da tabela de preços"); return; }
+    const referencia = `${mes}/${ano}`;
     setLoading(true);
     try {
       const result: Record<string, number> = {};
@@ -138,37 +145,37 @@ export default function ImportarCatalogoSco() {
       if (fgv04) {
         setProgress("Lendo FGV04...");
         const rows = await readRows(fgv04);
-        const parsed = parseElementares(rows);
-        setProgress(`Apagando elementares antigos...`);
-        await supabase.from("sco_elementares").delete().neq("codigo", "");
-        await chunkUpsert("sco_elementares", parsed, { onConflict: "codigo" }, (d, t) =>
-          setProgress(`Elementares: ${d}/${t}`));
+        const parsed = parseElementares(rows, referencia);
+        setProgress(`Apagando elementares de ${referencia}...`);
+        await supabase.from("sco_elementares").delete().eq("referencia", referencia);
+        await chunkUpsert("sco_elementares", parsed, { onConflict: "codigo,referencia" }, (d, t) =>
+          setProgress(`Elementares (${referencia}): ${d}/${t}`));
         result.elementares = parsed.length;
       }
 
       if (fgv06) {
         setProgress("Lendo FGV06...");
         const rows = await readRows(fgv06);
-        const parsed = parseServicos(rows);
-        setProgress(`Apagando serviços antigos...`);
-        await supabase.from("sco_servicos").delete().neq("codigo", "");
-        await chunkUpsert("sco_servicos", parsed, { onConflict: "codigo" }, (d, t) =>
-          setProgress(`Serviços: ${d}/${t}`));
+        const parsed = parseServicos(rows, referencia);
+        setProgress(`Apagando serviços de ${referencia}...`);
+        await supabase.from("sco_servicos").delete().eq("referencia", referencia);
+        await chunkUpsert("sco_servicos", parsed, { onConflict: "codigo,referencia" }, (d, t) =>
+          setProgress(`Serviços (${referencia}): ${d}/${t}`));
         result.servicos = parsed.length;
       }
 
       if (fgv07) {
         setProgress("Lendo FGV07...");
         const rows = await readRows(fgv07);
-        const parsed = parseComposicoes(rows);
-        setProgress(`Apagando composições antigas...`);
-        await supabase.from("sco_composicoes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+        const parsed = parseComposicoes(rows, referencia);
+        setProgress(`Apagando composições de ${referencia}...`);
+        await supabase.from("sco_composicoes").delete().eq("referencia", referencia);
         await chunkUpsert("sco_composicoes", parsed, {}, (d, t) =>
-          setProgress(`Composições: ${d}/${t}`));
+          setProgress(`Composições (${referencia}): ${d}/${t}`));
         result.composicoes = parsed.length;
       }
 
-      toast.success(`Importação concluída: ${JSON.stringify(result)}`);
+      toast.success(`Importação concluída (${referencia}): ${JSON.stringify(result)}`);
       await refresh();
       setFgv04(null); setFgv06(null); setFgv07(null);
       setProgress("");
@@ -177,6 +184,7 @@ export default function ImportarCatalogoSco() {
       toast.error("Erro: " + (e.message || e));
     } finally { setLoading(false); }
   };
+
 
   return (
     <div className="p-6 space-y-4 max-w-3xl">
