@@ -39,20 +39,12 @@ import {
 import { toast } from "sonner";
 import { FileSignature, Search, ShieldCheck } from "lucide-react";
 
-const SENHA_TESTE_ASSINATURA_OS = "102030";
-const ASSINANTE_TESTE_OS = {
-  id: "modo-teste-os-102030",
-  nome: "Usuário de Teste",
-  email: "teste@lasant.com.br",
-  cargo: "Modo Teste",
-  matricula: "TESTE",
-};
-
 export default function AssinarLoteOs() {
   const { ordens } = useOrdensServico();
   const { usuarioLogado } = useAuth();
   const { clientes } = useClientes();
   const { cargos } = useCargos();
+  const { tem } = usePermissao();
   const { assinaturas, registrar, refresh } = useOsAssinaturas();
 
   const [search, setSearch] = useState("");
