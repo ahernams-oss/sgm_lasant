@@ -1,3 +1,4 @@
+import { verificarSenhaUsuario } from "@/lib/verifySenha";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,7 +70,8 @@ export function AssinaturaEletronicaOficial({ rdo, papel, assinaturaExistente, o
   const handleAssinar = async () => {
     if (!usuarioLogado) { toast.error("Usuário não autenticado."); return; }
     if (!rdo.id) { toast.error("Salve o RDO antes de assiná-lo."); return; }
-    if (senha !== usuarioLogado.senha) { toast.error("Senha incorreta. A autenticação falhou."); return; }
+    const senhaOk = await verificarSenhaUsuario(usuarioLogado.email, senha);
+    if (!senhaOk) { toast.error("Senha incorreta. A autenticação falhou."); return; }
 
     setLoading(true);
     try {

@@ -1,3 +1,4 @@
+import { verificarSenhaUsuario } from "@/lib/verifySenha";
 import { useState, useMemo } from "react";
 import { useOrdensServico, OrdemServico } from "@/contexts/OrdensServicoContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -128,7 +129,8 @@ export default function AssinarLoteOs() {
       toast.error("Usuário não autenticado.");
       return;
     }
-    if (senha !== usuarioLogado.senha) {
+    const senhaOk = await verificarSenhaUsuario(usuarioLogado.email, senha);
+    if (!senhaOk) {
       toast.error("Senha incorreta.");
       return;
     }

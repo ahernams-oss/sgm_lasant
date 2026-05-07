@@ -1,3 +1,4 @@
+import { verificarSenhaUsuario } from "@/lib/verifySenha";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -147,7 +148,8 @@ export function AssinaturaEletronicaOs({
       toast.error("A OS precisa estar Validada para ser assinada.");
       return;
     }
-    if (senha !== usuarioLogado.senha) {
+    const senhaOk = await verificarSenhaUsuario(usuarioLogado.email, senha);
+    if (!senhaOk) {
       toast.error("Senha incorreta. A autenticação falhou.");
       return;
     }

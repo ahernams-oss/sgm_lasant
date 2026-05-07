@@ -1,3 +1,4 @@
+import { verificarSenhaUsuario } from "@/lib/verifySenha";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +41,8 @@ export function AssinaturaEletronicaPc({ pedido, onAssinado, variant = "default"
       toast.error("Usuário não autenticado.");
       return;
     }
-    if (senha !== usuarioLogado.senha) {
+    const senhaOk = await verificarSenhaUsuario(usuarioLogado.email, senha);
+    if (!senhaOk) {
       toast.error("Senha incorreta.");
       return;
     }
