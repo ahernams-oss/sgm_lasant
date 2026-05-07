@@ -145,7 +145,7 @@ const Clientes = () => {
   const [locaisClienteId, setLocaisClienteId] = useState<string | null>(null);
    const [locaisEntregaClienteId, setLocaisEntregaClienteId] = useState<string | null>(null);
    const [contratosClienteId, setContratosClienteId] = useState<string | null>(null);
-  const emptyContrato = { numero: "", descricao: "", dataInicio: "", dataFim: "", bdi: "", valorBase: "", valorBase2: "", valorBase3: "", mesSco: "", anoSco: "" };
+  const emptyContrato = { numero: "", numeroProcesso: "", descricao: "", dataInicio: "", dataFim: "", bdi: "", valorBase: "", valorBase2: "", valorBase3: "", mesSco: "", anoSco: "" };
   const [contratoForm, setContratoForm] = useState(emptyContrato);
   const [editingContratoId, setEditingContratoId] = useState<string | null>(null);
   const [faturamentoContratoId, setFaturamentoContratoId] = useState<string | null>(null);
