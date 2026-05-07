@@ -518,6 +518,95 @@ export default function Equipamentos() {
       </Dialog>
 
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => { if (!open) cancelDelete(); }} onConfirm={() => { if (deleteId) handleDelete(deleteId); }} />
+
+      {/* Histórico de Calibração */}
+      <Dialog open={!!historicoEquip} onOpenChange={() => { setHistoricoEquip(null); setNovaCalibOpen(false); }}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-primary" />
+              Histórico de Calibração — {historicoEquip?.equipamento}
+            </DialogTitle>
+          </DialogHeader>
+          {historicoEquip && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-muted-foreground">
+                  TAG: <span className="font-mono">{historicoEquip.tag || "-"}</span> · Frequência: {historicoEquip.frequenciaCalibracaoMeses} meses
+                </div>
+                <Button size="sm" onClick={() => setNovaCalibOpen(v => !v)}>
+                  <Plus className="h-4 w-4 mr-1" />Nova Calibração
+                </Button>
+              </div>
+              {novaCalibOpen && (
+                <Card className="border-primary/30">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      <div><Label>Data Calibração *</Label><Input type="date" value={novaCalib.data_calibracao} onChange={e => setNovaCalib(p => ({ ...p, data_calibracao: e.target.value }))} /></div>
+                      <div><Label>Validade</Label><Input type="date" value={novaCalib.validade_calibracao} onChange={e => setNovaCalib(p => ({ ...p, validade_calibracao: e.target.value }))} /></div>
+                      <div><Label>Resultado</Label>
+                        <Select value={novaCalib.resultado} onValueChange={v => setNovaCalib(p => ({ ...p, resultado: v }))}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Aprovado">Aprovado</SelectItem>
+                            <SelectItem value="Aprovado com Ressalvas">Aprovado com Ressalvas</SelectItem>
+                            <SelectItem value="Reprovado">Reprovado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div><Label>Laboratório</Label><Input value={novaCalib.laboratorio} onChange={e => setNovaCalib(p => ({ ...p, laboratorio: e.target.value }))} /></div>
+                      <div><Label>Nº Certificado</Label><Input value={novaCalib.numero_certificado} onChange={e => setNovaCalib(p => ({ ...p, numero_certificado: e.target.value }))} /></div>
+                      <div><Label>Responsável</Label><Input value={novaCalib.responsavel} onChange={e => setNovaCalib(p => ({ ...p, responsavel: e.target.value }))} /></div>
+                      <div><Label>Custo (R$)</Label><Input type="number" value={novaCalib.custo || ""} onChange={e => setNovaCalib(p => ({ ...p, custo: Number(e.target.value) }))} /></div>
+                      <div className="col-span-2">
+                        <Label>Certificado</Label>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" onClick={() => document.getElementById("cert-nova-upload")?.click()}>
+                            <FileText className="h-4 w-4 mr-1" />Upload
+                          </Button>
+                          <input id="cert-nova-upload" type="file" accept=".pdf,image/*" className="hidden" onChange={e => e.target.files?.[0] && uploadCertificadoNova(e.target.files[0])} />
+                          {novaCalib.certificado_url && <a href={novaCalib.certificado_url} target="_blank" rel="noreferrer" className="text-xs text-primary underline">Ver</a>}
+                        </div>
+                      </div>
+                    </div>
+                    <div><Label>Observações</Label><Textarea rows={2} value={novaCalib.observacoes} onChange={e => setNovaCalib(p => ({ ...p, observacoes: e.target.value }))} /></div>
+                    <div className="flex gap-2 justify-end">
+                      <Button variant="outline" size="sm" onClick={() => setNovaCalibOpen(false)}>Cancelar</Button>
+                      <Button size="sm" onClick={registrarCalibracao}>Registrar</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Validade</TableHead>
+                    <TableHead>Laboratório</TableHead>
+                    <TableHead>Nº Cert.</TableHead>
+                    <TableHead>Resultado</TableHead>
+                    <TableHead>Cert.</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {historico.length === 0 ? (
+                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">Nenhuma calibração registrada.</TableCell></TableRow>
+                  ) : historico.map(h => (
+                    <TableRow key={h.id}>
+                      <TableCell className="text-sm">{h.data_calibracao?.split("-").reverse().join("/")}</TableCell>
+                      <TableCell className="text-sm">{h.validade_calibracao?.split("-").reverse().join("/") || "-"}</TableCell>
+                      <TableCell className="text-sm">{h.laboratorio || "-"}</TableCell>
+                      <TableCell className="font-mono text-xs">{h.numero_certificado || "-"}</TableCell>
+                      <TableCell><Badge variant={h.resultado === "Reprovado" ? "destructive" : "default"} className="text-xs">{h.resultado}</Badge></TableCell>
+                      <TableCell>{h.certificado_url ? <a href={h.certificado_url} target="_blank" rel="noreferrer" className="text-primary underline text-xs">Ver</a> : "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
