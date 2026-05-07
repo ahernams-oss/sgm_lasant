@@ -24,15 +24,6 @@ import {
 import { toast } from "sonner";
 import { FileSignature, Search, ShieldCheck } from "lucide-react";
 
-const SENHA_TESTE = "102030";
-const ASSINANTE_TESTE = {
-  id: "modo-teste-pc-102030",
-  nome: "Usuário de Teste",
-  email: "teste@lasant.com.br",
-  cargo: "Modo Teste",
-  matricula: "TESTE",
-};
-
 export default function AssinarLotePc() {
   const { pedidos } = usePedidoCompra();
   const { usuarioLogado } = useAuth();
