@@ -4,10 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, Upload, FileText, X, Lock } from "lucide-react";
-import type { Faturamento } from "@/contexts/ClientesContext";
+import { Plus, Trash2, Upload, FileText, X, Lock, FileDown } from "lucide-react";
+import type { Cliente, Contrato, Faturamento } from "@/contexts/ClientesContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { usePermissao } from "@/hooks/usePermissao";
+import { useOrdensServico } from "@/contexts/OrdensServicoContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
+import { gerarPdfMedicaoControle } from "@/lib/gerarPdfMedicaoControle";
 
 const emptyFaturamento: Omit<Faturamento, "id"> = {
   periodoInicio: "",
@@ -32,14 +35,27 @@ interface Props {
   faturamentos: Faturamento[];
   onChange: (faturamentos: Faturamento[]) => void;
   contratoNumero: string;
+  cliente?: Cliente;
+  contrato?: Contrato;
 }
 
-export default function FaturamentoSection({ faturamentos, onChange, contratoNumero }: Props) {
+export default function FaturamentoSection({ faturamentos, onChange, contratoNumero, cliente, contrato }: Props) {
   const [form, setForm] = useState<Omit<Faturamento, "id">>(emptyFaturamento);
   const [editingId, setEditingId] = useState<string | null>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { tem } = usePermissao();
   const podeVerValorFolha = tem("clientes.ver_valor_folha");
+  const { ordens } = useOrdensServico();
+  const { empresa } = useEmpresa();
+
+  const handleGerarRelatorio = (f: Faturamento) => {
+    if (!cliente || !contrato) { toast.error("Dados do contrato indisponíveis."); return; }
+    const doc = gerarPdfMedicaoControle({
+      cliente, contrato, faturamento: f, ordens,
+      empresaNome: empresa?.razaoSocial || empresa?.nomeFantasia || "",
+    });
+    doc.save(`Medicao_${contrato.numero}_${f.numeroMedicao || f.id.slice(0, 6)}.pdf`);
+  };
 
   const update = <K extends keyof Omit<Faturamento, "id">>(field: K, value: Omit<Faturamento, "id">[K]) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -292,6 +308,9 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
                 )}
               </div>
               <div className="flex gap-1 shrink-0">
+                <Button variant="ghost" size="sm" type="button" onClick={() => handleGerarRelatorio(f)} className="text-xs gap-1" title="Relatório de Medição (PDF)">
+                  <FileDown className="h-3.5 w-3.5" /> Relatório
+                </Button>
                 <Button variant="ghost" size="sm" type="button" onClick={() => handleEdit(f)} className="text-xs">Editar</Button>
                 <Button variant="ghost" size="sm" type="button" onClick={() => requestDelete(f.id)} className="text-destructive hover:text-destructive">
                   <Trash2 className="h-3.5 w-3.5" />
