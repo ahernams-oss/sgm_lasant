@@ -131,7 +131,7 @@ function ProtectedAppRoutes() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/clientes" element={<Clientes />} />
+        <Route path="/clientes" element={<OrdensServicoProvider><Clientes /></OrdensServicoProvider>} />
         <Route path="/fornecedores" element={<Fornecedores />} />
         <Route path="/cargos" element={<Cargos />} />
         <Route path="/funcionarios" element={<Funcionarios />} />
