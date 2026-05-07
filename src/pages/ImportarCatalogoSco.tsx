@@ -26,7 +26,7 @@ async function readRows(file: File): Promise<any[][]> {
   return XLSX.utils.sheet_to_json(ws, { header: 1, defval: null }) as any[][];
 }
 
-function parseElementares(rows: any[][]) {
+function parseElementares(rows: any[][], referencia: string) {
   const out: any[] = [];
   for (const r of rows) {
     const cod = r[0] ? String(r[0]).trim() : "";
