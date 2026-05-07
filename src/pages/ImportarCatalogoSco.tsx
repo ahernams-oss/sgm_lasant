@@ -38,13 +38,13 @@ function parseElementares(rows: any[][], referencia: string) {
       grupo: cod.slice(0, 3),
       reutilizado: r[3] ? String(r[3]).trim() : "",
       preco: parseNum(r[4]),
-      referencia: "Março/2026",
+      referencia,
     });
   }
   return out;
 }
 
-function parseServicos(rows: any[][]) {
+function parseServicos(rows: any[][], referencia: string) {
   const out: any[] = [];
   let cap = "", capD = "", sec = "", secD = "", sub = "", subD = "";
   for (const r of rows) {
@@ -68,7 +68,7 @@ function parseServicos(rows: any[][]) {
         capitulo: cap, capitulo_descricao: capD,
         secao: sec, secao_descricao: secD,
         subsecao: sub, subsecao_descricao: subD,
-        referencia: "Março/2026",
+        referencia,
       });
     }
   }
@@ -76,7 +76,7 @@ function parseServicos(rows: any[][]) {
   return out.filter((x) => (seen.has(x.codigo) ? false : (seen.add(x.codigo), true)));
 }
 
-function parseComposicoes(rows: any[][]) {
+function parseComposicoes(rows: any[][], referencia: string) {
   const out: any[] = [];
   let serv = "";
   for (const r of rows) {
@@ -96,6 +96,7 @@ function parseComposicoes(rows: any[][]) {
         unidade: c4.slice(0, 20),
         reutilizado: c3.slice(0, 20),
         quantidade: parseNum(c5),
+        referencia,
       });
     }
   }
