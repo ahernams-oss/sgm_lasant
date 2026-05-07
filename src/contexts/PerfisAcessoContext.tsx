@@ -276,12 +276,18 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
       },
       {
         key: "sco",
-        label: "SCO",
+        label: "SCO / Orçamentos",
         acoes: [
           { key: "sco.criar", label: "Cadastrar SCO" },
           { key: "sco.editar", label: "Editar SCO" },
           { key: "sco.excluir", label: "Excluir SCO" },
           { key: "sco.importar", label: "Importar SCO" },
+          { key: "orcamentos_sco.criar", label: "Criar orçamento SCO" },
+          { key: "orcamentos_sco.editar", label: "Editar orçamento SCO" },
+          { key: "orcamentos_sco.excluir", label: "Excluir orçamento SCO" },
+          { key: "orcamentos_sco.exportar", label: "Exportar orçamento (Excel/PDF)" },
+          { key: "orcamentos_sco.importar_catalogo", label: "Importar Catálogo FGV" },
+          { key: "orcamentos_sco.visualizar_catalogo", label: "Visualizar Catálogo de Preços" },
         ],
       },
       {
