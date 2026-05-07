@@ -52,6 +52,11 @@ export default function Equipamentos() {
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [uploadingFoto, setUploadingFoto] = useState(false);
   const [uploadingManual, setUploadingManual] = useState(false);
+  const [uploadingCert, setUploadingCert] = useState(false);
+  const [historicoEquip, setHistoricoEquip] = useState<Equipamento | null>(null);
+  const [historico, setHistorico] = useState<any[]>([]);
+  const [novaCalibOpen, setNovaCalibOpen] = useState(false);
+  const [novaCalib, setNovaCalib] = useState({ data_calibracao: "", validade_calibracao: "", laboratorio: "", numero_certificado: "", certificado_url: "", responsavel: "", resultado: "Aprovado", observacoes: "", custo: 0 });
 
   const selectedCliente = useMemo(() => clientesList.find(c => c.id === form.clienteId), [clientesList, form.clienteId]);
   const locais = useMemo(() => selectedCliente?.locais || [], [selectedCliente]);
