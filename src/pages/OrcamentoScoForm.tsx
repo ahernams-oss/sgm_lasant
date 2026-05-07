@@ -173,10 +173,10 @@ export default function OrcamentoScoForm() {
           </div>
           <div>
             <Label>Cliente</Label>
-            <Select value={clienteId} onValueChange={setClienteId}>
+            <Select value={clienteId || "__none__"} onValueChange={(v) => setClienteId(v === "__none__" ? "" : v)}>
               <SelectTrigger><SelectValue placeholder="(opcional)" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">(nenhum)</SelectItem>
+                <SelectItem value="__none__">(nenhum)</SelectItem>
                 {clientes.filter((c: any) => c.tipo === "Cliente").map((c: any) => (
                   <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
                 ))}
