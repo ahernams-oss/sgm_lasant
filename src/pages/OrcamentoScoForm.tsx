@@ -68,10 +68,10 @@ export default function OrcamentoScoForm() {
 
   useEffect(() => {
     const t = setTimeout(async () => {
-      if (searchOpen) setSearchResults(await searchServicos(searchQ, 30));
+      if (searchOpen) setSearchResults(await searchServicos(searchQ, 30, referencia || undefined));
     }, 200);
     return () => clearTimeout(t);
-  }, [searchQ, searchOpen, searchServicos]);
+  }, [searchQ, searchOpen, searchServicos, referencia]);
 
   const subtotal = useMemo(() => itens.reduce((s, i) => s + (i.preco_total || 0), 0), [itens]);
   const bdiNum = parseFloat(bdi.replace(",", ".")) || 0;
