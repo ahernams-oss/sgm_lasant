@@ -85,15 +85,25 @@ const menuItems = [
       { title: "Dashboard SS / OS", url: "/engenharia/dashboard", icon: BarChart3, perm: "dashboard_engenharia" },
       { title: "Dashboard Medições", url: "/engenharia/dashboard-medicoes", icon: BarChart3, perm: "dashboard_engenharia" },
       { title: "Medição de Serviços", url: "/engenharia/medicoes", icon: Ruler, perm: "medicoes" },
+      { title: "Plano de Manutenção", url: "/engenharia/plano-manutencao", icon: Wrench, perm: "plano_manutencao" },
+      { title: "Base de Conhecimento", url: "/engenharia/base-conhecimento", icon: BookOpen, perm: "base_conhecimento" },
+    ],
+  },
+  {
+    group: "Solicitações de Serviço",
+    items: [
       { title: "Solicitação de Serviços", url: "/engenharia/solicitacao-servicos", icon: ClipboardList, perm: "solicitacao_servicos" },
       { title: "Aprovar SS em Lote", url: "/engenharia/aprovar-lote-ss", icon: ClipboardCheck, perm: "solicitacao_servicos.aprovar_lote" },
+    ],
+  },
+  {
+    group: "Ordens de Serviço",
+    items: [
       { title: "Ordem de Serviço", url: "/engenharia/ordem-servico", icon: Wrench, perm: "ordem_servico" },
       { title: "Confirmar OS em Lote", url: "/engenharia/confirmar-lote-os", icon: ClipboardCheck, perm: "os.confirmar_lote" },
       { title: "Validar OS em Lote", url: "/engenharia/validar-lote-os", icon: ClipboardCheck, perm: "os.validar_lote" },
       { title: "Assinar OS em Lote", url: "/engenharia/assinar-lote-os", icon: ClipboardCheck, perm: "os.assinar_lote" },
       { title: "Imprimir OS Validadas", url: "/engenharia/imprimir-lote-os", icon: ClipboardCheck, perm: "os.imprimir_lote" },
-      { title: "Plano de Manutenção", url: "/engenharia/plano-manutencao", icon: Wrench, perm: "plano_manutencao" },
-      { title: "Base de Conhecimento", url: "/engenharia/base-conhecimento", icon: BookOpen, perm: "base_conhecimento" },
     ],
   },
   {
