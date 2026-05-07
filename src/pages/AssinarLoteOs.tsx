@@ -57,9 +57,7 @@ export default function AssinarLoteOs() {
   const [senha, setSenha] = useState("");
   const [signing, setSigning] = useState(false);
 
-  // Permissões para cada papel
-  // [TESTES] Liberado para qualquer usuário. Em produção: `const podeFiscal = tem("os.assinar_fiscal");`
-  const podeFiscal = true;
+  const podeFiscal = tem("os.assinar_fiscal");
 
   // Apenas OS Validadas podem ser assinadas, e sem sobreposição (mesmo papel)
   const validadasDisponiveis = useMemo(() => {
