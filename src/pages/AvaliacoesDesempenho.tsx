@@ -17,6 +17,7 @@ import {
   type AvaliacaoDesempenho,
 } from "@/contexts/AvaliacoesDesempenhoContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
+import { useCargos } from "@/contexts/CargosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { gerarPdfAvaliacaoDesempenho, gerarPdfAvaliacoesLista } from "@/lib/gerarPdfAvaliacaoDesempenho";
