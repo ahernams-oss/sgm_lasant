@@ -172,11 +172,25 @@ function PageInner() {
             <p className="text-sm text-muted-foreground">Avaliação periódica dos funcionários — escala de 0 a 10 em 15 quesitos.</p>
           </div>
         </div>
-        {podeCriar && (
-          <Button onClick={openNew}>
-            <Plus className="h-4 w-4 mr-2" /> Nova Avaliação
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => {
+            if (filtered.length === 0) return toast.error("Nenhuma avaliação para exportar.");
+            gerarPdfAvaliacoesLista(filtered, funcMap);
+          }}>
+            <FileText className="h-4 w-4 mr-2" /> PDF
           </Button>
-        )}
+          <Button variant="outline" onClick={() => {
+            if (filtered.length === 0) return toast.error("Nenhuma avaliação para exportar.");
+            gerarExcelAvaliacoesDesempenho(filtered, funcMap);
+          }}>
+            <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel
+          </Button>
+          {podeCriar && (
+            <Button onClick={openNew}>
+              <Plus className="h-4 w-4 mr-2" /> Nova Avaliação
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card>
