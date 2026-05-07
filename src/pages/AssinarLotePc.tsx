@@ -24,15 +24,6 @@ import {
 import { toast } from "sonner";
 import { FileSignature, Search, ShieldCheck } from "lucide-react";
 
-const SENHA_TESTE = "102030";
-const ASSINANTE_TESTE = {
-  id: "modo-teste-pc-102030",
-  nome: "Usuário de Teste",
-  email: "teste@lasant.com.br",
-  cargo: "Modo Teste",
-  matricula: "TESTE",
-};
-
 export default function AssinarLotePc() {
   const { pedidos } = usePedidoCompra();
   const { usuarioLogado } = useAuth();
@@ -112,19 +103,18 @@ export default function AssinarLotePc() {
   );
 
   const handleAssinarLote = async () => {
-    const modoTeste = senha === SENHA_TESTE;
-    if (!usuarioLogado && !modoTeste) {
+    if (!usuarioLogado) {
       toast.error("Usuário não autenticado.");
       return;
     }
-    if (!modoTeste && senha !== usuarioLogado?.senha) {
+    if (senha !== usuarioLogado.senha) {
       toast.error("Senha incorreta.");
       return;
     }
 
     setSigning(true);
     const ip = await obterIpOrigem();
-    const cargo = usuarioLogado ? cargos.find((c) => c.id === usuarioLogado.cargoId) : null;
+    const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
 
     let ok = 0;
     let fail = 0;
@@ -145,11 +135,11 @@ export default function AssinarLotePc() {
           pedido_id: pedido.id,
           pedido_numero: pedido.numero,
           papel: "aprovador",
-          signatario_user_id: usuarioLogado?.id || ASSINANTE_TESTE.id,
-          signatario_nome: usuarioLogado?.nome || ASSINANTE_TESTE.nome,
-          signatario_email: usuarioLogado?.email || ASSINANTE_TESTE.email,
-          signatario_cargo: cargo?.nome || ASSINANTE_TESTE.cargo,
-          signatario_matricula: usuarioLogado?.matricula || ASSINANTE_TESTE.matricula,
+          signatario_user_id: usuarioLogado.id,
+          signatario_nome: usuarioLogado.nome,
+          signatario_email: usuarioLogado.email,
+          signatario_cargo: cargo?.nome || "",
+          signatario_matricula: usuarioLogado.matricula || "",
           hash_documento: hash,
           ip_origem: ip,
           user_agent: navigator.userAgent,
@@ -316,8 +306,8 @@ export default function AssinarLotePc() {
               <strong>Aprovador</strong>.
             </p>
             <div className="bg-muted/50 border rounded p-3 text-xs space-y-1">
-              <p><strong>Signatário:</strong> {usuarioLogado?.nome || ASSINANTE_TESTE.nome}</p>
-              <p><strong>E-mail:</strong> {usuarioLogado?.email || ASSINANTE_TESTE.email}</p>
+              <p><strong>Signatário:</strong> {usuarioLogado?.nome}</p>
+              <p><strong>E-mail:</strong> {usuarioLogado?.email}</p>
               <p className="italic text-muted-foreground mt-2">
                 Cada pedido receberá uma assinatura individual com data, hora, IP, hash e
                 código verificador único, conforme LEI Nº 14.063, DE 23 DE SETEMBRO DE 2020.

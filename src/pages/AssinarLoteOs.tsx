@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useOsAssinaturas, PapelOsAssinatura } from "@/contexts/OsAssinaturasContext";
+import { usePermissao } from "@/hooks/usePermissao";
 import { gerarHashOs, obterIpOrigem } from "@/lib/assinaturaHashOs";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { formatNumeroAno } from "@/lib/formatNumero";
@@ -38,20 +39,12 @@ import {
 import { toast } from "sonner";
 import { FileSignature, Search, ShieldCheck } from "lucide-react";
 
-const SENHA_TESTE_ASSINATURA_OS = "102030";
-const ASSINANTE_TESTE_OS = {
-  id: "modo-teste-os-102030",
-  nome: "Usuário de Teste",
-  email: "teste@lasant.com.br",
-  cargo: "Modo Teste",
-  matricula: "TESTE",
-};
-
 export default function AssinarLoteOs() {
   const { ordens } = useOrdensServico();
   const { usuarioLogado } = useAuth();
   const { clientes } = useClientes();
   const { cargos } = useCargos();
+  const { tem } = usePermissao();
   const { assinaturas, registrar, refresh } = useOsAssinaturas();
 
   const [search, setSearch] = useState("");
@@ -64,9 +57,7 @@ export default function AssinarLoteOs() {
   const [senha, setSenha] = useState("");
   const [signing, setSigning] = useState(false);
 
-  // Permissões para cada papel
-  // [TESTES] Liberado para qualquer usuário. Em produção: `const podeFiscal = tem("os.assinar_fiscal");`
-  const podeFiscal = true;
+  const podeFiscal = tem("os.assinar_fiscal");
 
   // Apenas OS Validadas podem ser assinadas, e sem sobreposição (mesmo papel)
   const validadasDisponiveis = useMemo(() => {
@@ -133,26 +124,22 @@ export default function AssinarLoteOs() {
   const podePapel = papel === "fiscal" ? podeFiscal : true;
 
   const handleAssinarLote = async () => {
-    const modoTeste = senha === SENHA_TESTE_ASSINATURA_OS;
-
-    if (!usuarioLogado && !modoTeste) {
+    if (!usuarioLogado) {
       toast.error("Usuário não autenticado.");
       return;
     }
-    // [TESTES] Senha padrão "102030" aceita mesmo sem usuário autenticado.
-    if (!modoTeste && senha !== usuarioLogado?.senha) {
+    if (senha !== usuarioLogado.senha) {
       toast.error("Senha incorreta.");
       return;
     }
-    // [TESTES] Checagem de permissão Fiscal desativada.
-    // if (papel === "fiscal" && !podeFiscal) {
-    //   toast.error("Sem permissão para assinar como Fiscal do Contrato.");
-    //   return;
-    // }
+    if (papel === "fiscal" && !podeFiscal) {
+      toast.error("Sem permissão para assinar como Fiscal do Contrato.");
+      return;
+    }
     setSigning(true);
     const ip = await obterIpOrigem();
-    const cargo = usuarioLogado ? cargos.find((c) => c.id === usuarioLogado.cargoId) : null;
-    const matricula = usuarioLogado?.matricula || ASSINANTE_TESTE_OS.matricula;
+    const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
+    const matricula = usuarioLogado.matricula || "";
 
     let ok = 0;
     let fail = 0;
@@ -174,10 +161,10 @@ export default function AssinarLoteOs() {
           os_id: os.id,
           os_numero: os.numero || 0,
           papel,
-          signatario_user_id: usuarioLogado?.id || ASSINANTE_TESTE_OS.id,
-          signatario_nome: usuarioLogado?.nome || ASSINANTE_TESTE_OS.nome,
-          signatario_email: usuarioLogado?.email || ASSINANTE_TESTE_OS.email,
-          signatario_cargo: cargo?.nome || ASSINANTE_TESTE_OS.cargo,
+          signatario_user_id: usuarioLogado.id,
+          signatario_nome: usuarioLogado.nome,
+          signatario_email: usuarioLogado.email,
+          signatario_cargo: cargo?.nome || "",
           signatario_matricula: matricula,
           hash_documento: hash,
           ip_origem: ip,
@@ -406,10 +393,10 @@ export default function AssinarLoteOs() {
             </p>
             <div className="bg-muted/50 border rounded p-3 text-xs space-y-1">
               <p>
-                <strong>Signatário:</strong> {usuarioLogado?.nome || ASSINANTE_TESTE_OS.nome}
+                <strong>Signatário:</strong> {usuarioLogado?.nome}
               </p>
               <p>
-                <strong>E-mail:</strong> {usuarioLogado?.email || ASSINANTE_TESTE_OS.email}
+                <strong>E-mail:</strong> {usuarioLogado?.email}
               </p>
               <p className="italic text-muted-foreground mt-2">
                 Cada OS receberá uma assinatura individual com data, hora, IP,

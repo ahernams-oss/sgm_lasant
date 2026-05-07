@@ -34,14 +34,6 @@ interface Props {
 const labelPapel = (p: PapelOsAssinatura) =>
   p === "fiscal" ? "Fiscal do Contrato" : "Solicitante";
 
-const SENHA_TESTE_ASSINATURA_OS = "102030";
-const ASSINANTE_TESTE_OS = {
-  id: "modo-teste-os-102030",
-  nome: "Usuário de Teste",
-  email: "teste@lasant.com.br",
-  cargo: "Modo Teste",
-  matricula: "TESTE",
-};
 
 const fmtDateTime = (d: string) =>
   new Date(d).toLocaleString("pt-BR", {
@@ -74,9 +66,7 @@ export function AssinaturaEletronicaOs({
     !os.clienteId ||
     clientesPermitidosIds.includes(os.clienteId);
 
-  // [TESTES] Checagem de permissão liberada para todos. Em produção, restaurar:
-  // const podeAssinar = papel === "fiscal" ? tem("os.assinar_fiscal") : temAcessoAoCliente;
-  const podeAssinar = true;
+  const podeAssinar = papel === "fiscal" ? tem("os.assinar_fiscal") : temAcessoAoCliente;
 
   // ========== JÁ ASSINADO ==========
   if (assinaturaExistente) {
@@ -145,9 +135,7 @@ export function AssinaturaEletronicaOs({
 
   // ========== NÃO ASSINADO ==========
   const handleAssinar = async () => {
-    const modoTeste = senha === SENHA_TESTE_ASSINATURA_OS;
-
-    if (!usuarioLogado && !modoTeste) {
+    if (!usuarioLogado) {
       toast.error("Usuário não autenticado.");
       return;
     }
@@ -155,14 +143,11 @@ export function AssinaturaEletronicaOs({
       toast.error("Salve a OS antes de assiná-la.");
       return;
     }
-    // [TESTES] Bloqueio por status "Validada" temporariamente desativado.
-    // Reativar antes de produção: descomentar o bloco abaixo.
-    // if (os.situacao !== "Validada") {
-    //   toast.error("A OS precisa estar Validada para ser assinada.");
-    //   return;
-    // }
-    // [TESTES] Senha padrão "102030" aceita mesmo sem usuário autenticado.
-    if (!modoTeste && senha !== usuarioLogado?.senha) {
+    if (os.situacao !== "Validada") {
+      toast.error("A OS precisa estar Validada para ser assinada.");
+      return;
+    }
+    if (senha !== usuarioLogado.senha) {
       toast.error("Senha incorreta. A autenticação falhou.");
       return;
     }
@@ -171,17 +156,17 @@ export function AssinaturaEletronicaOs({
     try {
       const hash = await gerarHashOs(os);
       const ip = await obterIpOrigem();
-      const cargo = usuarioLogado ? cargos.find((c) => c.id === usuarioLogado.cargoId) : null;
+      const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
 
       const result = await registrar({
         os_id: os.id,
         os_numero: os.numero || 0,
         papel,
-        signatario_user_id: usuarioLogado?.id || ASSINANTE_TESTE_OS.id,
-        signatario_nome: usuarioLogado?.nome || ASSINANTE_TESTE_OS.nome,
-        signatario_email: usuarioLogado?.email || ASSINANTE_TESTE_OS.email,
-        signatario_cargo: cargo?.nome || ASSINANTE_TESTE_OS.cargo,
-        signatario_matricula: usuarioLogado?.matricula || ASSINANTE_TESTE_OS.matricula,
+        signatario_user_id: usuarioLogado.id,
+        signatario_nome: usuarioLogado.nome,
+        signatario_email: usuarioLogado.email,
+        signatario_cargo: cargo?.nome || "",
+        signatario_matricula: usuarioLogado.matricula || "",
         hash_documento: hash,
         ip_origem: ip,
         user_agent: navigator.userAgent,
@@ -205,8 +190,7 @@ export function AssinaturaEletronicaOs({
     }
   };
 
-  // [TESTES] Liberado para qualquer status. Em produção: voltar para `!os.id || os.situacao !== "Validada"`.
-  const desabilitado = !os.id;
+  const desabilitado = !os.id || os.situacao !== "Validada";
 
   return (
     <>
@@ -252,8 +236,8 @@ export function AssinaturaEletronicaOs({
               <strong>{labelPapel(papel)}</strong>.
             </p>
             <div className="bg-muted/50 border rounded p-3 text-xs space-y-1">
-              <p><strong>Signatário:</strong> {usuarioLogado?.nome || ASSINANTE_TESTE_OS.nome}</p>
-              <p><strong>E-mail:</strong> {usuarioLogado?.email || ASSINANTE_TESTE_OS.email}</p>
+              <p><strong>Signatário:</strong> {usuarioLogado?.nome}</p>
+              <p><strong>E-mail:</strong> {usuarioLogado?.email}</p>
               <p className="italic text-muted-foreground mt-2">
                 Esta assinatura tem valor jurídico conforme Lei nº 14.063, de 23 de Setembro de 2020. A operação será registrada com data,
                 hora, IP e código verificador único.

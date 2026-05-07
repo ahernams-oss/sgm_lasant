@@ -69,7 +69,7 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
   const { usuarios } = useUsuarios();
   const { perfis } = usePerfisAcesso();
   const { tem, usuarioLogado } = usePermissao();
-  const podeAprovar = true; // [TESTES] liberado para todos. Em produção: tem("funcionarios.aprovar_promocoes")
+  const podeAprovar = tem("funcionarios.aprovar_promocoes");
 
   const [promocoes, setPromocoes] = useState<Promocao[]>([]);
   const [loading, setLoading] = useState(true);
