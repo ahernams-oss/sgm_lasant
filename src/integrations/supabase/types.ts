@@ -1160,6 +1160,9 @@ export type Database = {
           modelo: string | null
           nivel_manutencao: string | null
           nivel_risco: string | null
+          notificado_15d: boolean
+          notificado_30d: boolean
+          notificado_7d: boolean
           numero_anvisa: string | null
           numero_certificado_calibracao: string | null
           observacoes_calibracao: string | null
@@ -1169,6 +1172,8 @@ export type Database = {
           potencia: string | null
           requer_calibracao: boolean | null
           responsavel_calibracao: string | null
+          responsavel_email: string | null
+          responsavel_telefone: string | null
           serie: string | null
           setor_descricao: string | null
           setor_id: string | null
@@ -1209,6 +1214,9 @@ export type Database = {
           modelo?: string | null
           nivel_manutencao?: string | null
           nivel_risco?: string | null
+          notificado_15d?: boolean
+          notificado_30d?: boolean
+          notificado_7d?: boolean
           numero_anvisa?: string | null
           numero_certificado_calibracao?: string | null
           observacoes_calibracao?: string | null
@@ -1218,6 +1226,8 @@ export type Database = {
           potencia?: string | null
           requer_calibracao?: boolean | null
           responsavel_calibracao?: string | null
+          responsavel_email?: string | null
+          responsavel_telefone?: string | null
           serie?: string | null
           setor_descricao?: string | null
           setor_id?: string | null
@@ -1258,6 +1268,9 @@ export type Database = {
           modelo?: string | null
           nivel_manutencao?: string | null
           nivel_risco?: string | null
+          notificado_15d?: boolean
+          notificado_30d?: boolean
+          notificado_7d?: boolean
           numero_anvisa?: string | null
           numero_certificado_calibracao?: string | null
           observacoes_calibracao?: string | null
@@ -1267,6 +1280,8 @@ export type Database = {
           potencia?: string | null
           requer_calibracao?: boolean | null
           responsavel_calibracao?: string | null
+          responsavel_email?: string | null
+          responsavel_telefone?: string | null
           serie?: string | null
           setor_descricao?: string | null
           setor_id?: string | null
