@@ -433,33 +433,45 @@ export default function Equipamentos() {
                   <TableHead>Cliente</TableHead>
                   <TableHead>Setor</TableHead>
                   <TableHead>Situação</TableHead>
+                  <TableHead>Calibração</TableHead>
                   <TableHead>Fabricante</TableHead>
-                  <TableHead className="w-[100px]">Ações</TableHead>
+                  <TableHead className="w-[140px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedItems.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum equipamento encontrado.</TableCell></TableRow>
-                ) : paginatedItems.map(eq => (
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum equipamento encontrado.</TableCell></TableRow>
+                ) : paginatedItems.map(eq => {
+                  let calibBadge: React.ReactNode = <span className="text-xs text-muted-foreground">-</span>;
+                  if (eq.requerCalibracao) {
+                    if (!eq.validadeCalibracao) calibBadge = <Badge variant="outline" className="text-xs">Pendente</Badge>;
+                    else {
+                      const dias = Math.ceil((new Date(eq.validadeCalibracao).getTime() - Date.now()) / 86400000);
+                      if (dias < 0) calibBadge = <Badge variant="destructive" className="text-xs gap-1"><AlertTriangle className="h-3 w-3" />Vencida</Badge>;
+                      else if (dias <= 30) calibBadge = <Badge className="text-xs bg-orange-500 hover:bg-orange-500 gap-1"><AlertTriangle className="h-3 w-3" />{dias}d</Badge>;
+                      else calibBadge = <Badge variant="secondary" className="text-xs">{eq.validadeCalibracao.split("-").reverse().join("/")}</Badge>;
+                    }
+                  }
+                  return (
                   <TableRow key={eq.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setViewEquip(eq)}>
                     <TableCell className="font-mono text-xs">{eq.tag || "-"}</TableCell>
                     <TableCell className="font-medium">{eq.equipamento}</TableCell>
                     <TableCell className="text-sm">{eq.clienteNome}</TableCell>
                     <TableCell className="text-sm">{eq.setorDescricao || eq.localDescricao || "-"}</TableCell>
                     <TableCell>
-                      <Badge variant={eq.situacao === "Ativo" ? "default" : eq.situacao === "Em Manutenção" ? "secondary" : "destructive"}>
-                        {eq.situacao}
-                      </Badge>
+                      <Badge variant={eq.situacao === "Ativo" ? "default" : eq.situacao === "Em Manutenção" ? "secondary" : "destructive"}>{eq.situacao}</Badge>
                     </TableCell>
+                    <TableCell>{calibBadge}</TableCell>
                     <TableCell className="text-sm">{eq.fabricante || "-"}</TableCell>
                     <TableCell onClick={e => e.stopPropagation()}>
                       <div className="flex gap-1">
+                        {eq.requerCalibracao && <Button size="icon" variant="ghost" title="Histórico de Calibração" onClick={() => openHistorico(eq)}><History className="h-4 w-4 text-primary" /></Button>}
                         <Button size="icon" variant="ghost" onClick={() => handleEdit(eq)}><Pencil className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" onClick={() => requestDelete(eq.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                );})}
               </TableBody>
             </Table>
           </div>
