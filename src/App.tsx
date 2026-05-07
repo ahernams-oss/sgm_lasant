@@ -118,6 +118,7 @@ import OrcamentosSco from "./pages/OrcamentosSco.tsx";
 import OrcamentoScoForm from "./pages/OrcamentoScoForm.tsx";
 import ImportarCatalogoSco from "./pages/ImportarCatalogoSco.tsx";
 import CatalogoSco from "./pages/CatalogoSco.tsx";
+import AvaliacoesDesempenhoPage from "./pages/AvaliacoesDesempenho.tsx";
 const queryClient = new QueryClient();
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -139,6 +140,7 @@ function ProtectedAppRoutes() {
         <Route path="/exames" element={<ExamesPage />} />
         <Route path="/mapa-funcionarios" element={<MapaFuncionarios />} />
         <Route path="/mapa-plantoes" element={<MapaPlantoes />} />
+        <Route path="/avaliacoes-desempenho" element={<AvaliacoesDesempenhoPage />} />
         <Route path="/usuarios" element={<Usuarios />} />
         <Route path="/perfis-acesso" element={<PerfisAcessoPage />} />
         <Route path="/empresa" element={<EmpresaDadosPage />} />
