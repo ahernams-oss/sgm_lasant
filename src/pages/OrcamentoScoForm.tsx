@@ -20,7 +20,7 @@ import { toast } from "sonner";
 export default function OrcamentoScoForm() {
   const nav = useNavigate();
   const { id } = useParams();
-  const { orcamentos, add, update, searchServicos } = useOrcamentosSco();
+  const { orcamentos, add, update, searchServicos, listReferencias } = useOrcamentosSco();
   const { clientes } = useClientes() as any;
   const { empresa } = useEmpresa() as any;
 
@@ -35,6 +35,16 @@ export default function OrcamentoScoForm() {
   const [observacoes, setObservacoes] = useState("");
   const [itens, setItens] = useState<OrcamentoScoItem[]>([]);
   const [status, setStatus] = useState("Em elaboração");
+  const [referencia, setReferencia] = useState<string>("");
+  const [referencias, setReferencias] = useState<string[]>([]);
+
+  useEffect(() => {
+    listReferencias().then((r) => {
+      setReferencias(r);
+      if (!referencia && r.length > 0) setReferencia(r[0]);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // search
   const [searchOpen, setSearchOpen] = useState(false);
@@ -52,15 +62,16 @@ export default function OrcamentoScoForm() {
       setObservacoes(editing.observacoes || "");
       setItens(editing.itens || []);
       setStatus(editing.status);
+      if (editing.referencia) setReferencia(editing.referencia);
     }
   }, [editing]);
 
   useEffect(() => {
     const t = setTimeout(async () => {
-      if (searchOpen) setSearchResults(await searchServicos(searchQ, 30));
+      if (searchOpen) setSearchResults(await searchServicos(searchQ, 30, referencia || undefined));
     }, 200);
     return () => clearTimeout(t);
-  }, [searchQ, searchOpen, searchServicos]);
+  }, [searchQ, searchOpen, searchServicos, referencia]);
 
   const subtotal = useMemo(() => itens.reduce((s, i) => s + (i.preco_total || 0), 0), [itens]);
   const bdiNum = parseFloat(bdi.replace(",", ".")) || 0;
@@ -112,6 +123,7 @@ export default function OrcamentoScoForm() {
       bdi: bdiNum,
       desconto: descNum,
       observacoes,
+      referencia,
       itens,
       subtotal,
       valor_total: valorTotal,
@@ -135,7 +147,7 @@ export default function OrcamentoScoForm() {
         numero: editing?.numero || 0,
         created_at: editing?.created_at || new Date().toISOString(),
         titulo, cliente_nome: clientes.find((c: any) => c.id === clienteId)?.nome || "",
-        obra, tipo_analise: tipo, bdi: bdiNum, desconto: descNum, observacoes,
+        obra, tipo_analise: tipo, bdi: bdiNum, desconto: descNum, observacoes, referencia,
         itens, subtotal, valor_total: valorTotal, status,
       },
     };
@@ -195,6 +207,16 @@ export default function OrcamentoScoForm() {
           </div>
           <div><Label>BDI (%)</Label><Input value={bdi} onChange={(e) => setBdi(e.target.value)} /></div>
           <div><Label>Desconto (%)</Label><Input value={desconto} onChange={(e) => setDesconto(e.target.value)} /></div>
+          <div>
+            <Label>Tabela de Preços (Mês/Ano)</Label>
+            <Select value={referencia || "__auto__"} onValueChange={(v) => setReferencia(v === "__auto__" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__auto__">(qualquer)</SelectItem>
+                {referencias.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="md:col-span-3"><Label>Observações</Label><Textarea rows={2} value={observacoes} onChange={(e) => setObservacoes(e.target.value)} /></div>
         </CardContent>
       </Card>

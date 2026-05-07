@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Upload, Loader2 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +27,7 @@ async function readRows(file: File): Promise<any[][]> {
   return XLSX.utils.sheet_to_json(ws, { header: 1, defval: null }) as any[][];
 }
 
-function parseElementares(rows: any[][]) {
+function parseElementares(rows: any[][], referencia: string) {
   const out: any[] = [];
   for (const r of rows) {
     const cod = r[0] ? String(r[0]).trim() : "";
@@ -38,13 +39,13 @@ function parseElementares(rows: any[][]) {
       grupo: cod.slice(0, 3),
       reutilizado: r[3] ? String(r[3]).trim() : "",
       preco: parseNum(r[4]),
-      referencia: "Março/2026",
+      referencia,
     });
   }
   return out;
 }
 
-function parseServicos(rows: any[][]) {
+function parseServicos(rows: any[][], referencia: string) {
   const out: any[] = [];
   let cap = "", capD = "", sec = "", secD = "", sub = "", subD = "";
   for (const r of rows) {
@@ -68,7 +69,7 @@ function parseServicos(rows: any[][]) {
         capitulo: cap, capitulo_descricao: capD,
         secao: sec, secao_descricao: secD,
         subsecao: sub, subsecao_descricao: subD,
-        referencia: "Março/2026",
+        referencia,
       });
     }
   }
@@ -76,7 +77,7 @@ function parseServicos(rows: any[][]) {
   return out.filter((x) => (seen.has(x.codigo) ? false : (seen.add(x.codigo), true)));
 }
 
-function parseComposicoes(rows: any[][]) {
+function parseComposicoes(rows: any[][], referencia: string) {
   const out: any[] = [];
   let serv = "";
   for (const r of rows) {
@@ -96,6 +97,7 @@ function parseComposicoes(rows: any[][]) {
         unidade: c4.slice(0, 20),
         reutilizado: c3.slice(0, 20),
         quantidade: parseNum(c5),
+        referencia,
       });
     }
   }
@@ -115,6 +117,8 @@ async function chunkUpsert(table: string, rows: any[], opts: { onConflict?: stri
   }
 }
 
+const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
 export default function ImportarCatalogoSco() {
   const nav = useNavigate();
   const { countCatalog } = useOrcamentosSco();
@@ -124,12 +128,17 @@ export default function ImportarCatalogoSco() {
   const [fgv07, setFgv07] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState("");
+  const now = new Date();
+  const [mes, setMes] = useState<string>(MESES[now.getMonth()]);
+  const [ano, setAno] = useState<string>(String(now.getFullYear()));
 
   const refresh = () => countCatalog().then(setCounts);
   useEffect(() => { refresh(); }, []);
 
   const importar = async () => {
     if (!fgv04 && !fgv06 && !fgv07) { toast.error("Selecione ao menos um arquivo"); return; }
+    if (!mes || !ano) { toast.error("Informe mês e ano da tabela de preços"); return; }
+    const referencia = `${mes}/${ano}`;
     setLoading(true);
     try {
       const result: Record<string, number> = {};
@@ -137,37 +146,37 @@ export default function ImportarCatalogoSco() {
       if (fgv04) {
         setProgress("Lendo FGV04...");
         const rows = await readRows(fgv04);
-        const parsed = parseElementares(rows);
-        setProgress(`Apagando elementares antigos...`);
-        await supabase.from("sco_elementares").delete().neq("codigo", "");
-        await chunkUpsert("sco_elementares", parsed, { onConflict: "codigo" }, (d, t) =>
-          setProgress(`Elementares: ${d}/${t}`));
+        const parsed = parseElementares(rows, referencia);
+        setProgress(`Apagando elementares de ${referencia}...`);
+        await supabase.from("sco_elementares").delete().eq("referencia", referencia);
+        await chunkUpsert("sco_elementares", parsed, { onConflict: "codigo,referencia" }, (d, t) =>
+          setProgress(`Elementares (${referencia}): ${d}/${t}`));
         result.elementares = parsed.length;
       }
 
       if (fgv06) {
         setProgress("Lendo FGV06...");
         const rows = await readRows(fgv06);
-        const parsed = parseServicos(rows);
-        setProgress(`Apagando serviços antigos...`);
-        await supabase.from("sco_servicos").delete().neq("codigo", "");
-        await chunkUpsert("sco_servicos", parsed, { onConflict: "codigo" }, (d, t) =>
-          setProgress(`Serviços: ${d}/${t}`));
+        const parsed = parseServicos(rows, referencia);
+        setProgress(`Apagando serviços de ${referencia}...`);
+        await supabase.from("sco_servicos").delete().eq("referencia", referencia);
+        await chunkUpsert("sco_servicos", parsed, { onConflict: "codigo,referencia" }, (d, t) =>
+          setProgress(`Serviços (${referencia}): ${d}/${t}`));
         result.servicos = parsed.length;
       }
 
       if (fgv07) {
         setProgress("Lendo FGV07...");
         const rows = await readRows(fgv07);
-        const parsed = parseComposicoes(rows);
-        setProgress(`Apagando composições antigas...`);
-        await supabase.from("sco_composicoes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+        const parsed = parseComposicoes(rows, referencia);
+        setProgress(`Apagando composições de ${referencia}...`);
+        await supabase.from("sco_composicoes").delete().eq("referencia", referencia);
         await chunkUpsert("sco_composicoes", parsed, {}, (d, t) =>
-          setProgress(`Composições: ${d}/${t}`));
+          setProgress(`Composições (${referencia}): ${d}/${t}`));
         result.composicoes = parsed.length;
       }
 
-      toast.success(`Importação concluída: ${JSON.stringify(result)}`);
+      toast.success(`Importação concluída (${referencia}): ${JSON.stringify(result)}`);
       await refresh();
       setFgv04(null); setFgv06(null); setFgv07(null);
       setProgress("");
@@ -176,6 +185,7 @@ export default function ImportarCatalogoSco() {
       toast.error("Erro: " + (e.message || e));
     } finally { setLoading(false); }
   };
+
 
   return (
     <div className="p-6 space-y-4 max-w-3xl">
@@ -196,6 +206,19 @@ export default function ImportarCatalogoSco() {
       <Card>
         <CardHeader><CardTitle className="text-lg">Carregar planilhas FGV</CardTitle></CardHeader>
         <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-3 p-3 rounded-md border" style={{ borderColor: "#673ab7" }}>
+            <div>
+              <Label>Mês da tabela</Label>
+              <Select value={mes} onValueChange={setMes}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{MESES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Ano</Label>
+              <Input value={ano} onChange={(e) => setAno(e.target.value.replace(/\D/g, "").slice(0, 4))} />
+            </div>
+          </div>
           <div>
             <Label>FGV04 — Itens Elementares (.xlsx)</Label>
             <Input type="file" accept=".xlsx" onChange={(e) => setFgv04(e.target.files?.[0] || null)} />
@@ -208,7 +231,7 @@ export default function ImportarCatalogoSco() {
             <Label>FGV07 — Composições (.xlsx)</Label>
             <Input type="file" accept=".xlsx" onChange={(e) => setFgv07(e.target.files?.[0] || null)} />
           </div>
-          <p className="text-xs text-muted-foreground">A importação substitui completamente o catálogo anterior. O processamento é feito no navegador em lotes — pode levar alguns minutos para o FGV07.</p>
+          <p className="text-xs text-muted-foreground">A importação substitui apenas a tabela da referência informada (Mês/Ano), preservando outras versões. O processamento é feito no navegador em lotes — pode levar alguns minutos para o FGV07.</p>
           {progress && <p className="text-xs font-semibold" style={{ color: "#673ab7" }}>{progress}</p>}
           <Button onClick={importar} disabled={loading} style={{ background: "#673ab7" }}>
             {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Upload className="h-4 w-4 mr-1" />}

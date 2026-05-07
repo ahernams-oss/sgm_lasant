@@ -2683,6 +2683,7 @@ export type Database = {
           numero: number
           obra: string | null
           observacoes: string | null
+          referencia: string | null
           status: string
           subtotal: number
           tipo_analise: string
@@ -2702,6 +2703,7 @@ export type Database = {
           numero?: number
           obra?: string | null
           observacoes?: string | null
+          referencia?: string | null
           status?: string
           subtotal?: number
           tipo_analise?: string
@@ -2721,6 +2723,7 @@ export type Database = {
           numero?: number
           obra?: string | null
           observacoes?: string | null
+          referencia?: string | null
           status?: string
           subtotal?: number
           tipo_analise?: string
@@ -4402,6 +4405,7 @@ export type Database = {
           elementar_descricao: string | null
           id: string
           quantidade: number
+          referencia: string
           reutilizado: string | null
           servico_codigo: string
           unidade: string | null
@@ -4412,6 +4416,7 @@ export type Database = {
           elementar_descricao?: string | null
           id?: string
           quantidade?: number
+          referencia?: string
           reutilizado?: string | null
           servico_codigo: string
           unidade?: string | null
@@ -4422,6 +4427,7 @@ export type Database = {
           elementar_descricao?: string | null
           id?: string
           quantidade?: number
+          referencia?: string
           reutilizado?: string | null
           servico_codigo?: string
           unidade?: string | null
@@ -4435,7 +4441,7 @@ export type Database = {
           descricao: string
           grupo: string | null
           preco: number
-          referencia: string | null
+          referencia: string
           reutilizado: string | null
           unidade: string | null
           updated_at: string
@@ -4446,7 +4452,7 @@ export type Database = {
           descricao: string
           grupo?: string | null
           preco?: number
-          referencia?: string | null
+          referencia: string
           reutilizado?: string | null
           unidade?: string | null
           updated_at?: string
@@ -4457,7 +4463,7 @@ export type Database = {
           descricao?: string
           grupo?: string | null
           preco?: number
-          referencia?: string | null
+          referencia?: string
           reutilizado?: string | null
           unidade?: string | null
           updated_at?: string
@@ -4472,7 +4478,7 @@ export type Database = {
           created_at: string
           descricao: string
           preco: number
-          referencia: string | null
+          referencia: string
           secao: string | null
           secao_descricao: string | null
           subsecao: string | null
@@ -4487,7 +4493,7 @@ export type Database = {
           created_at?: string
           descricao: string
           preco?: number
-          referencia?: string | null
+          referencia: string
           secao?: string | null
           secao_descricao?: string | null
           subsecao?: string | null
@@ -4502,7 +4508,7 @@ export type Database = {
           created_at?: string
           descricao?: string
           preco?: number
-          referencia?: string | null
+          referencia?: string
           secao?: string | null
           secao_descricao?: string | null
           subsecao?: string | null
