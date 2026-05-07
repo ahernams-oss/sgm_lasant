@@ -30,13 +30,26 @@ const NOTA_MAX = 10;
 const TOTAL_QUESITOS = QUESITOS_AVALIACAO.length;
 const PONTUACAO_MAXIMA = TOTAL_QUESITOS * NOTA_MAX;
 
+const MESES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+const ANOS = Array.from({ length: 2035 - 2026 + 1 }, (_, i) => String(2026 + i));
+
 const emptyForm = {
   funcionarioId: "",
   dataAvaliacao: new Date().toISOString().slice(0, 10),
-  periodoReferencia: "",
+  periodoMes: "",
+  periodoAno: "",
   notas: {} as Record<string, number>,
   observacoes: "",
 };
+
+function parsePeriodo(p: string): { mes: string; ano: string } {
+  if (!p) return { mes: "", ano: "" };
+  const [mes, ano] = p.split("/");
+  return { mes: MESES.includes(mes) ? mes : "", ano: ANOS.includes(ano) ? ano : "" };
+}
 
 function calcularTotais(notas: Record<string, number>) {
   const valores = QUESITOS_AVALIACAO.map((q) => Number(notas[q.key]) || 0);
