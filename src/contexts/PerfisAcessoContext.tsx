@@ -104,6 +104,16 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "mapa_funcionarios.exportar_excel", label: "Exportar Excel" },
         ],
       },
+      {
+        key: "avaliacoes_desempenho",
+        label: "Avaliações de Desempenho",
+        acoes: [
+          { key: "avaliacoes_desempenho.visualizar", label: "Visualizar avaliações" },
+          { key: "avaliacoes_desempenho.criar", label: "Lançar avaliação" },
+          { key: "avaliacoes_desempenho.editar", label: "Editar avaliação" },
+          { key: "avaliacoes_desempenho.excluir", label: "Excluir avaliação" },
+        ],
+      },
     ],
   },
   {
