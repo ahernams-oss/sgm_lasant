@@ -499,9 +499,9 @@ const Clientes = () => {
                 <Input type="date" placeholder="Data Início" value={contratoForm.dataInicio} onChange={e => setContratoForm(p => ({ ...p, dataInicio: e.target.value }))} />
                 <Input type="date" placeholder="Data Fim" value={contratoForm.dataFim} onChange={e => setContratoForm(p => ({ ...p, dataFim: e.target.value }))} />
                 <Input placeholder="BDI" value={contratoForm.bdi} onChange={e => setContratoForm(p => ({ ...p, bdi: e.target.value }))} />
-                <Input placeholder="Valor Base" value={contratoForm.valorBase} onChange={e => setContratoForm(p => ({ ...p, valorBase: e.target.value }))} />
-                <Input placeholder="Valor Base 2" value={contratoForm.valorBase2} onChange={e => setContratoForm(p => ({ ...p, valorBase2: e.target.value }))} />
-                <Input placeholder="Valor Base 3" value={contratoForm.valorBase3} onChange={e => setContratoForm(p => ({ ...p, valorBase3: e.target.value }))} />
+                <Input placeholder="VTM Mensal" value={contratoForm.valorBase} onChange={e => setContratoForm(p => ({ ...p, valorBase: e.target.value }))} />
+                <Input placeholder="VTM Anual" value={contratoForm.valorBase2} onChange={e => setContratoForm(p => ({ ...p, valorBase2: e.target.value }))} />
+                <Input placeholder="VTM Contratual" value={contratoForm.valorBase3} onChange={e => setContratoForm(p => ({ ...p, valorBase3: e.target.value }))} />
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Mês SCO</label>
                   <Select value={contratoForm.mesSco} onValueChange={v => setContratoForm(p => ({ ...p, mesSco: v }))}>
@@ -551,9 +551,9 @@ const Clientes = () => {
                             {ct.dataInicio ? new Date(ct.dataInicio + "T00:00:00").toLocaleDateString("pt-BR") : "—"} a {ct.dataFim ? new Date(ct.dataFim + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
                           </p>
                           <p className="text-muted-foreground">BDI: {ct.bdi || "—"}</p>
-                          <p className="text-muted-foreground">Base: {ct.valorBase || "—"}</p>
-                          <p className="text-muted-foreground">Base 2: {ct.valorBase2 || "—"}</p>
-                          <p className="text-muted-foreground">Base 3: {ct.valorBase3 || "—"}</p>
+                          <p className="text-muted-foreground">VTM Mensal: {ct.valorBase || "—"}</p>
+                          <p className="text-muted-foreground">VTM Anual: {ct.valorBase2 || "—"}</p>
+                          <p className="text-muted-foreground">VTM Contratual: {ct.valorBase3 || "—"}</p>
                           <p className="text-muted-foreground">Mês SCO: {ct.mesSco || "—"}</p>
                           <p className="text-muted-foreground">Ano SCO: {ct.anoSco || "—"}</p>
                         </div>
