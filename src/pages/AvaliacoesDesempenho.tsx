@@ -54,7 +54,7 @@ function badgeMedia(m: number) {
 function PageInner() {
   const { avaliacoes, addAvaliacao, updateAvaliacao, deleteAvaliacao } = useAvaliacoesDesempenho();
   const { funcionarios } = useFuncionarios();
-  const { usuarioLogado } = useAuth();
+  const { usuarioLogado, clientesPermitidosIds } = useAuth();
   const { tem, acessoTotal } = usePermissao();
 
   const podeCriar = acessoTotal || tem("avaliacoes_desempenho.criar");
@@ -73,10 +73,19 @@ function PageInner() {
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
+  // Acesso: avaliador só vê funcionários dos clientes em que possui acesso (exceto acesso total)
+  const funcionariosVisiveis = useMemo(() => {
+    if (acessoTotal) return funcionarios;
+    const setIds = new Set(clientesPermitidosIds || []);
+    return funcionarios.filter((f) => f.clienteId && setIds.has(f.clienteId));
+  }, [funcionarios, clientesPermitidosIds, acessoTotal]);
+
   const funcMap = useMemo(() => Object.fromEntries(funcionarios.map((f) => [f.id, f.nome])), [funcionarios]);
+  const funcVisiveisIds = useMemo(() => new Set(funcionariosVisiveis.map((f) => f.id)), [funcionariosVisiveis]);
 
   const filtered = useMemo(() => {
     return avaliacoes.filter((a) => {
+      if (!acessoTotal && !funcVisiveisIds.has(a.funcionarioId)) return false;
       if (filtroFunc !== "__all__" && a.funcionarioId !== filtroFunc) return false;
       if (search.trim()) {
         const nome = (funcMap[a.funcionarioId] || "").toLowerCase();
@@ -85,7 +94,7 @@ function PageInner() {
       }
       return true;
     });
-  }, [avaliacoes, filtroFunc, search, funcMap]);
+  }, [avaliacoes, filtroFunc, search, funcMap, funcVisiveisIds, acessoTotal]);
 
   const { paginated, totalPages, safePage } = paginate(filtered, page, pageSize);
 
