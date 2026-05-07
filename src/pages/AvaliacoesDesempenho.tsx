@@ -69,6 +69,7 @@ function PageInner() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const funcMap = useMemo(() => Object.fromEntries(funcionarios.map((f) => [f.id, f.nome])), [funcionarios]);
 
