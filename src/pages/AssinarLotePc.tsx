@@ -103,19 +103,18 @@ export default function AssinarLotePc() {
   );
 
   const handleAssinarLote = async () => {
-    const modoTeste = senha === SENHA_TESTE;
-    if (!usuarioLogado && !modoTeste) {
+    if (!usuarioLogado) {
       toast.error("Usuário não autenticado.");
       return;
     }
-    if (!modoTeste && senha !== usuarioLogado?.senha) {
+    if (senha !== usuarioLogado.senha) {
       toast.error("Senha incorreta.");
       return;
     }
 
     setSigning(true);
     const ip = await obterIpOrigem();
-    const cargo = usuarioLogado ? cargos.find((c) => c.id === usuarioLogado.cargoId) : null;
+    const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
 
     let ok = 0;
     let fail = 0;
@@ -136,11 +135,11 @@ export default function AssinarLotePc() {
           pedido_id: pedido.id,
           pedido_numero: pedido.numero,
           papel: "aprovador",
-          signatario_user_id: usuarioLogado?.id || ASSINANTE_TESTE.id,
-          signatario_nome: usuarioLogado?.nome || ASSINANTE_TESTE.nome,
-          signatario_email: usuarioLogado?.email || ASSINANTE_TESTE.email,
-          signatario_cargo: cargo?.nome || ASSINANTE_TESTE.cargo,
-          signatario_matricula: usuarioLogado?.matricula || ASSINANTE_TESTE.matricula,
+          signatario_user_id: usuarioLogado.id,
+          signatario_nome: usuarioLogado.nome,
+          signatario_email: usuarioLogado.email,
+          signatario_cargo: cargo?.nome || "",
+          signatario_matricula: usuarioLogado.matricula || "",
           hash_documento: hash,
           ip_origem: ip,
           user_agent: navigator.userAgent,
