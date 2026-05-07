@@ -134,9 +134,6 @@ const menuItems = [
       { title: "Recebimento", url: "/compras/recebimento", icon: PackageCheck, perm: "recebimento" },
       { title: "Estoque", url: "/compras/estoque", icon: Warehouse, perm: "estoque" },
       { title: "Relatórios de Estoque", url: "/compras/relatorios-estoque", icon: FileBarChart, perm: "estoque" },
-      { title: "Materiais e Serviços", url: "/compras/materiais", icon: Package, perm: "materiais_servicos" },
-      { title: "Categorias de Compras", url: "/compras/categorias", icon: Tags, perm: "categorias_compras" },
-      { title: "Fabricantes", url: "/compras/fabricantes", icon: Factory, perm: "fabricantes" },
     ],
   },
   {
