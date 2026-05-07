@@ -113,6 +113,11 @@ import CronogramaPage from "./pages/Cronograma.tsx";
 import BimPage from "./pages/Bim.tsx";
 import { BimProvider } from "@/contexts/BimContext";
 import { CronogramasProvider } from "@/contexts/CronogramasContext";
+import { OrcamentosScoProvider } from "@/contexts/OrcamentosScoContext";
+import OrcamentosSco from "./pages/OrcamentosSco.tsx";
+import OrcamentoScoForm from "./pages/OrcamentoScoForm.tsx";
+import ImportarCatalogoSco from "./pages/ImportarCatalogoSco.tsx";
+import CatalogoSco from "./pages/CatalogoSco.tsx";
 const queryClient = new QueryClient();
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -251,6 +256,11 @@ function ProtectedAppRoutes() {
         <Route path="/comunicacao/notificacoes" element={<ComunicacaoNotificacoesPage />} />
         <Route path="/juridico" element={<JuridicoPage />} />
         <Route path="/chat-duda" element={<ChatDudaPage />} />
+        <Route path="/orcamentos" element={<OrcamentosSco />} />
+        <Route path="/orcamentos/novo" element={<OrcamentoScoForm />} />
+        <Route path="/orcamentos/:id" element={<OrcamentoScoForm />} />
+        <Route path="/orcamentos/catalogo" element={<CatalogoSco />} />
+        <Route path="/orcamentos/importar-catalogo" element={<ImportarCatalogoSco />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -315,6 +325,7 @@ const App = () => (
     <RdoAssinaturasProvider>
     <CronogramasProvider>
     <BimProvider>
+    <OrcamentosScoProvider>
     <OsAssinaturasProvider>
     <PcAssinaturasProvider>
     <AuthProvider> {/* auth wrapper */}
@@ -346,6 +357,7 @@ const App = () => (
     </AuthProvider>
     </PcAssinaturasProvider>
     </OsAssinaturasProvider>
+    </OrcamentosScoProvider>
     </BimProvider>
     </CronogramasProvider>
     </RdoAssinaturasProvider>

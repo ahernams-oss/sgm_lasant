@@ -105,6 +105,14 @@ const menuItems = [
     ],
   },
   {
+    group: "Orçamentos",
+    items: [
+      { title: "Orçamentos SCO", url: "/orcamentos", icon: FileSpreadsheet, perm: "sco" },
+      { title: "Catálogo de Preços", url: "/orcamentos/catalogo", icon: BookOpen, perm: "sco" },
+      { title: "Importar Catálogo FGV", url: "/orcamentos/importar-catalogo", icon: PackageCheck, perm: "sco" },
+    ],
+  },
+  {
     group: "Compras e Suprimentos",
     items: [
       { title: "Dashboard Compras", url: "/compras/dashboard", icon: LayoutDashboard, perm: "dashboard_compras" },
