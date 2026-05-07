@@ -542,7 +542,10 @@ const Clientes = () => {
                     <div key={ct.id}>
                       <div className="py-3 flex items-start justify-between gap-4">
                         <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-sm">
-                          <p className="font-medium text-foreground">{ct.numero}</p>
+                          <div>
+                            <p className="font-medium text-foreground">{ct.numero}</p>
+                            {ct.numeroProcesso && <p className="text-xs text-muted-foreground">Proc: {ct.numeroProcesso}</p>}
+                          </div>
                           <p className="text-muted-foreground truncate sm:col-span-2">{ct.descricao || "—"}</p>
                           <p className="text-muted-foreground tabular-nums">
                             {ct.dataInicio ? new Date(ct.dataInicio + "T00:00:00").toLocaleDateString("pt-BR") : "—"} a {ct.dataFim ? new Date(ct.dataFim + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
