@@ -90,6 +90,17 @@ const rowToEquipamento = (r: any): Equipamento => ({
   numeroAnvisa: r.numero_anvisa ?? "",
   fotoUrl: r.foto_url ?? "",
   manualUrl: r.manual_url ?? "",
+  requerCalibracao: !!r.requer_calibracao,
+  dataCalibracao: r.data_calibracao ?? "",
+  validadeCalibracao: r.validade_calibracao ?? "",
+  frequenciaCalibracaoMeses: Number(r.frequencia_calibracao_meses) || 12,
+  certificadoCalibracaoUrl: r.certificado_calibracao_url ?? "",
+  laboratorioCalibracao: r.laboratorio_calibracao ?? "",
+  numeroCertificadoCalibracao: r.numero_certificado_calibracao ?? "",
+  observacoesCalibracao: r.observacoes_calibracao ?? "",
+  responsavelCalibracao: r.responsavel_calibracao ?? "",
+  telefoneResponsavelCalibracao: r.telefone_responsavel_calibracao ?? "",
+  emailResponsavelCalibracao: r.email_responsavel_calibracao ?? "",
 });
 
 const equipamentoToRow = (e: Partial<Omit<Equipamento, "id">>) => ({
