@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardCheck, Plus, Pencil, Trash2, Eye } from "lucide-react";
+import { ClipboardCheck, Plus, Pencil, Trash2, Eye, FileSpreadsheet, FileText, Download } from "lucide-react";
 import { toast } from "sonner";
 import {
   AvaliacoesDesempenhoProvider,
@@ -19,6 +19,8 @@ import {
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissao } from "@/hooks/usePermissao";
+import { gerarPdfAvaliacaoDesempenho, gerarPdfAvaliacoesLista } from "@/lib/gerarPdfAvaliacaoDesempenho";
+import { gerarExcelAvaliacoesDesempenho } from "@/lib/gerarExcelAvaliacoesDesempenho";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 
@@ -52,7 +54,7 @@ function badgeMedia(m: number) {
 function PageInner() {
   const { avaliacoes, addAvaliacao, updateAvaliacao, deleteAvaliacao } = useAvaliacoesDesempenho();
   const { funcionarios } = useFuncionarios();
-  const { usuarioLogado } = useAuth();
+  const { usuarioLogado, clientesPermitidosIds } = useAuth();
   const { tem, acessoTotal } = usePermissao();
 
   const podeCriar = acessoTotal || tem("avaliacoes_desempenho.criar");
@@ -71,10 +73,19 @@ function PageInner() {
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
+  // Acesso: avaliador só vê funcionários dos clientes em que possui acesso (exceto acesso total)
+  const funcionariosVisiveis = useMemo(() => {
+    if (acessoTotal) return funcionarios;
+    const setIds = new Set(clientesPermitidosIds || []);
+    return funcionarios.filter((f) => f.clienteId && setIds.has(f.clienteId));
+  }, [funcionarios, clientesPermitidosIds, acessoTotal]);
+
   const funcMap = useMemo(() => Object.fromEntries(funcionarios.map((f) => [f.id, f.nome])), [funcionarios]);
+  const funcVisiveisIds = useMemo(() => new Set(funcionariosVisiveis.map((f) => f.id)), [funcionariosVisiveis]);
 
   const filtered = useMemo(() => {
     return avaliacoes.filter((a) => {
+      if (!acessoTotal && !funcVisiveisIds.has(a.funcionarioId)) return false;
       if (filtroFunc !== "__all__" && a.funcionarioId !== filtroFunc) return false;
       if (search.trim()) {
         const nome = (funcMap[a.funcionarioId] || "").toLowerCase();
@@ -83,7 +94,7 @@ function PageInner() {
       }
       return true;
     });
-  }, [avaliacoes, filtroFunc, search, funcMap]);
+  }, [avaliacoes, filtroFunc, search, funcMap, funcVisiveisIds, acessoTotal]);
 
   const { paginated, totalPages, safePage } = paginate(filtered, page, pageSize);
 
@@ -161,11 +172,25 @@ function PageInner() {
             <p className="text-sm text-muted-foreground">Avaliação periódica dos funcionários — escala de 0 a 10 em 15 quesitos.</p>
           </div>
         </div>
-        {podeCriar && (
-          <Button onClick={openNew}>
-            <Plus className="h-4 w-4 mr-2" /> Nova Avaliação
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => {
+            if (filtered.length === 0) return toast.error("Nenhuma avaliação para exportar.");
+            gerarPdfAvaliacoesLista(filtered, funcMap);
+          }}>
+            <FileText className="h-4 w-4 mr-2" /> PDF
           </Button>
-        )}
+          <Button variant="outline" onClick={() => {
+            if (filtered.length === 0) return toast.error("Nenhuma avaliação para exportar.");
+            gerarExcelAvaliacoesDesempenho(filtered, funcMap);
+          }}>
+            <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel
+          </Button>
+          {podeCriar && (
+            <Button onClick={openNew}>
+              <Plus className="h-4 w-4 mr-2" /> Nova Avaliação
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card>
@@ -179,7 +204,7 @@ function PageInner() {
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all__">Todos</SelectItem>
-                {funcionarios.map((f) => (
+                {funcionariosVisiveis.map((f) => (
                   <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
                 ))}
               </SelectContent>
@@ -203,7 +228,7 @@ function PageInner() {
                 <TableHead>Avaliador</TableHead>
                 <TableHead className="text-right">Pontuação Total</TableHead>
                 <TableHead className="text-right">Média Ponderada</TableHead>
-                <TableHead className="text-right w-[140px]">Ações</TableHead>
+                <TableHead className="text-right w-[180px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -223,6 +248,9 @@ function PageInner() {
                     <div className="flex justify-end gap-1">
                       <Button size="icon" variant="ghost" onClick={() => { setViewing(a); setViewOpen(true); }} title="Visualizar">
                         <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => gerarPdfAvaliacaoDesempenho(a, { funcionarioNome: funcMap[a.funcionarioId] || "" })} title="Baixar PDF">
+                        <Download className="h-4 w-4" />
                       </Button>
                       {podeEditar && (
                         <Button size="icon" variant="ghost" onClick={() => openEdit(a)} title="Editar">
@@ -268,7 +296,7 @@ function PageInner() {
               <Select value={form.funcionarioId} onValueChange={(v) => setForm({ ...form, funcionarioId: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  {funcionarios.map((f) => (
+                  {funcionariosVisiveis.map((f) => (
                     <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
                   ))}
                 </SelectContent>
