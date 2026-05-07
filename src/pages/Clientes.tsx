@@ -493,7 +493,7 @@ const Clientes = () => {
               <h2 className="section-title mb-4">Contratos — {cliente.nome}</h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-4">
-                <Input placeholder="Número *" value={contratoForm.numero} onChange={e => setContratoForm(p => ({ ...p, numero: e.target.value }))} />
+                <Input placeholder="Número do Contrato *" value={contratoForm.numero} onChange={e => setContratoForm(p => ({ ...p, numero: e.target.value }))} />
                 <Input placeholder="Número do Processo" value={contratoForm.numeroProcesso} onChange={e => setContratoForm(p => ({ ...p, numeroProcesso: e.target.value }))} className="sm:col-span-2" />
                 <Input placeholder="Descrição" value={contratoForm.descricao} onChange={e => setContratoForm(p => ({ ...p, descricao: e.target.value }))} className="sm:col-span-2 md:col-span-3" />
                 <Input type="date" placeholder="Data Início" value={contratoForm.dataInicio} onChange={e => setContratoForm(p => ({ ...p, dataInicio: e.target.value }))} />
