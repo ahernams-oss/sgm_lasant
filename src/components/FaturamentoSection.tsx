@@ -4,10 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, Upload, FileText, X, Lock } from "lucide-react";
-import type { Faturamento } from "@/contexts/ClientesContext";
+import { Plus, Trash2, Upload, FileText, X, Lock, FileDown } from "lucide-react";
+import type { Cliente, Contrato, Faturamento } from "@/contexts/ClientesContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { usePermissao } from "@/hooks/usePermissao";
+import { useOrdensServico } from "@/contexts/OrdensServicoContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
+import { gerarPdfMedicaoControle } from "@/lib/gerarPdfMedicaoControle";
 
 const emptyFaturamento: Omit<Faturamento, "id"> = {
   periodoInicio: "",
