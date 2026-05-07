@@ -124,26 +124,22 @@ export default function AssinarLoteOs() {
   const podePapel = papel === "fiscal" ? podeFiscal : true;
 
   const handleAssinarLote = async () => {
-    const modoTeste = senha === SENHA_TESTE_ASSINATURA_OS;
-
-    if (!usuarioLogado && !modoTeste) {
+    if (!usuarioLogado) {
       toast.error("Usuário não autenticado.");
       return;
     }
-    // [TESTES] Senha padrão "102030" aceita mesmo sem usuário autenticado.
-    if (!modoTeste && senha !== usuarioLogado?.senha) {
+    if (senha !== usuarioLogado.senha) {
       toast.error("Senha incorreta.");
       return;
     }
-    // [TESTES] Checagem de permissão Fiscal desativada.
-    // if (papel === "fiscal" && !podeFiscal) {
-    //   toast.error("Sem permissão para assinar como Fiscal do Contrato.");
-    //   return;
-    // }
+    if (papel === "fiscal" && !podeFiscal) {
+      toast.error("Sem permissão para assinar como Fiscal do Contrato.");
+      return;
+    }
     setSigning(true);
     const ip = await obterIpOrigem();
-    const cargo = usuarioLogado ? cargos.find((c) => c.id === usuarioLogado.cargoId) : null;
-    const matricula = usuarioLogado?.matricula || ASSINANTE_TESTE_OS.matricula;
+    const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
+    const matricula = usuarioLogado.matricula || "";
 
     let ok = 0;
     let fail = 0;
@@ -165,10 +161,10 @@ export default function AssinarLoteOs() {
           os_id: os.id,
           os_numero: os.numero || 0,
           papel,
-          signatario_user_id: usuarioLogado?.id || ASSINANTE_TESTE_OS.id,
-          signatario_nome: usuarioLogado?.nome || ASSINANTE_TESTE_OS.nome,
-          signatario_email: usuarioLogado?.email || ASSINANTE_TESTE_OS.email,
-          signatario_cargo: cargo?.nome || ASSINANTE_TESTE_OS.cargo,
+          signatario_user_id: usuarioLogado.id,
+          signatario_nome: usuarioLogado.nome,
+          signatario_email: usuarioLogado.email,
+          signatario_cargo: cargo?.nome || "",
           signatario_matricula: matricula,
           hash_documento: hash,
           ip_origem: ip,
