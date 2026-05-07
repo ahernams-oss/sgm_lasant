@@ -20,7 +20,7 @@ import { toast } from "sonner";
 export default function OrcamentoScoForm() {
   const nav = useNavigate();
   const { id } = useParams();
-  const { orcamentos, add, update, searchServicos } = useOrcamentosSco();
+  const { orcamentos, add, update, searchServicos, listReferencias } = useOrcamentosSco();
   const { clientes } = useClientes() as any;
   const { empresa } = useEmpresa() as any;
 
@@ -35,6 +35,16 @@ export default function OrcamentoScoForm() {
   const [observacoes, setObservacoes] = useState("");
   const [itens, setItens] = useState<OrcamentoScoItem[]>([]);
   const [status, setStatus] = useState("Em elaboração");
+  const [referencia, setReferencia] = useState<string>("");
+  const [referencias, setReferencias] = useState<string[]>([]);
+
+  useEffect(() => {
+    listReferencias().then((r) => {
+      setReferencias(r);
+      if (!referencia && r.length > 0) setReferencia(r[0]);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // search
   const [searchOpen, setSearchOpen] = useState(false);
@@ -52,6 +62,7 @@ export default function OrcamentoScoForm() {
       setObservacoes(editing.observacoes || "");
       setItens(editing.itens || []);
       setStatus(editing.status);
+      if (editing.referencia) setReferencia(editing.referencia);
     }
   }, [editing]);
 
