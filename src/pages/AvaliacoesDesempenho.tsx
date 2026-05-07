@@ -30,13 +30,26 @@ const NOTA_MAX = 10;
 const TOTAL_QUESITOS = QUESITOS_AVALIACAO.length;
 const PONTUACAO_MAXIMA = TOTAL_QUESITOS * NOTA_MAX;
 
+const MESES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+const ANOS = Array.from({ length: 2035 - 2026 + 1 }, (_, i) => String(2026 + i));
+
 const emptyForm = {
   funcionarioId: "",
   dataAvaliacao: new Date().toISOString().slice(0, 10),
-  periodoReferencia: "",
+  periodoMes: "",
+  periodoAno: "",
   notas: {} as Record<string, number>,
   observacoes: "",
 };
+
+function parsePeriodo(p: string): { mes: string; ano: string } {
+  if (!p) return { mes: "", ano: "" };
+  const [mes, ano] = p.split("/");
+  return { mes: MESES.includes(mes) ? mes : "", ano: ANOS.includes(ano) ? ano : "" };
+}
 
 function calcularTotais(notas: Record<string, number>) {
   const valores = QUESITOS_AVALIACAO.map((q) => Number(notas[q.key]) || 0);
@@ -113,10 +126,12 @@ function PageInner() {
 
   const openEdit = (a: AvaliacaoDesempenho) => {
     setEditId(a.id);
+    const { mes, ano } = parsePeriodo(a.periodoReferencia);
     setForm({
       funcionarioId: a.funcionarioId,
       dataAvaliacao: a.dataAvaliacao,
-      periodoReferencia: a.periodoReferencia,
+      periodoMes: mes,
+      periodoAno: ano,
       notas: { ...a.notas },
       observacoes: a.observacoes,
     });
@@ -144,7 +159,7 @@ function PageInner() {
     const payload = {
       funcionarioId: form.funcionarioId,
       dataAvaliacao: form.dataAvaliacao,
-      periodoReferencia: form.periodoReferencia,
+      periodoReferencia: form.periodoMes && form.periodoAno ? `${form.periodoMes}/${form.periodoAno}` : (form.periodoMes || form.periodoAno || ""),
       avaliadorId: usuarioLogado?.id || "",
       avaliadorNome: usuarioLogado?.nome || "",
       notas: form.notas,
@@ -295,7 +310,7 @@ function PageInner() {
             <DialogTitle>{editId ? "Editar Avaliação" : "Nova Avaliação de Desempenho"}</DialogTitle>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
               <Label>Funcionário *</Label>
               <Select value={form.funcionarioId} onValueChange={(v) => setForm({ ...form, funcionarioId: v })}>
@@ -314,8 +329,22 @@ function PageInner() {
               <Input type="date" value={form.dataAvaliacao} onChange={(e) => setForm({ ...form, dataAvaliacao: e.target.value })} />
             </div>
             <div>
-              <Label>Período de referência</Label>
-              <Input placeholder="Ex: 2026/Q1" value={form.periodoReferencia} onChange={(e) => setForm({ ...form, periodoReferencia: e.target.value })} />
+              <Label>Mês de referência</Label>
+              <Select value={form.periodoMes} onValueChange={(v) => setForm({ ...form, periodoMes: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione o mês" /></SelectTrigger>
+                <SelectContent>
+                  {MESES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Ano de referência</Label>
+              <Select value={form.periodoAno} onValueChange={(v) => setForm({ ...form, periodoAno: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione o ano" /></SelectTrigger>
+                <SelectContent>
+                  {ANOS.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
