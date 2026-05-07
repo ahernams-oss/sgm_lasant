@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      avaliacoes_desempenho: {
+        Row: {
+          avaliador_id: string | null
+          avaliador_nome: string | null
+          created_at: string
+          data_avaliacao: string
+          funcionario_id: string
+          id: string
+          media_ponderada: number
+          notas: Json
+          observacoes: string | null
+          periodo_referencia: string | null
+          pontuacao_total: number
+          updated_at: string
+        }
+        Insert: {
+          avaliador_id?: string | null
+          avaliador_nome?: string | null
+          created_at?: string
+          data_avaliacao?: string
+          funcionario_id: string
+          id?: string
+          media_ponderada?: number
+          notas?: Json
+          observacoes?: string | null
+          periodo_referencia?: string | null
+          pontuacao_total?: number
+          updated_at?: string
+        }
+        Update: {
+          avaliador_id?: string | null
+          avaliador_nome?: string | null
+          created_at?: string
+          data_avaliacao?: string
+          funcionario_id?: string
+          id?: string
+          media_ponderada?: number
+          notas?: Json
+          observacoes?: string | null
+          periodo_referencia?: string | null
+          pontuacao_total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_desempenho_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bim_modelos: {
         Row: {
           arquivo_nome: string | null
