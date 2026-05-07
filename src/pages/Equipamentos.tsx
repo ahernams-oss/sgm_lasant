@@ -324,7 +324,57 @@ export default function Equipamentos() {
               <div><Label>Nº Anvisa</Label><Input value={form.numeroAnvisa} onChange={e => setField("numeroAnvisa", e.target.value)} /></div>
             </div>
 
-            {/* Uploads */}
+            {/* Calibração */}
+            <Card className="border-primary/30 bg-primary/5">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Award className="h-4 w-4 text-primary" />
+                  Calibração de Equipamento
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Switch checked={form.requerCalibracao} onCheckedChange={v => setField("requerCalibracao", v)} />
+                  <Label className="cursor-pointer">Este equipamento requer calibração periódica</Label>
+                </div>
+                {form.requerCalibracao && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div><Label>Última Calibração</Label><Input type="date" value={form.dataCalibracao} onChange={e => setField("dataCalibracao", e.target.value)} /></div>
+                      <div><Label>Validade</Label><Input type="date" value={form.validadeCalibracao} onChange={e => setField("validadeCalibracao", e.target.value)} /></div>
+                      <div><Label>Frequência (meses)</Label><Input type="number" value={form.frequenciaCalibracaoMeses || ""} onChange={e => setField("frequenciaCalibracaoMeses", Number(e.target.value))} /></div>
+                      <div><Label>Nº Certificado</Label><Input value={form.numeroCertificadoCalibracao} onChange={e => setField("numeroCertificadoCalibracao", e.target.value)} /></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div><Label>Laboratório</Label><Input value={form.laboratorioCalibracao} onChange={e => setField("laboratorioCalibracao", e.target.value)} /></div>
+                      <div><Label>Responsável</Label><Input value={form.responsavelCalibracao} onChange={e => setField("responsavelCalibracao", e.target.value)} /></div>
+                      <div><Label>Telefone (WhatsApp)</Label><Input value={form.telefoneResponsavelCalibracao} onChange={e => setField("telefoneResponsavelCalibracao", e.target.value)} placeholder="+55 (11) 99999-9999" /></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div><Label>E-mail Responsável</Label><Input type="email" value={form.emailResponsavelCalibracao} onChange={e => setField("emailResponsavelCalibracao", e.target.value)} /></div>
+                      <div>
+                        <Label>Certificado (arquivo)</Label>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" disabled={uploadingCert} onClick={() => document.getElementById("cert-upload")?.click()}>
+                            <FileText className="h-4 w-4 mr-1" />{uploadingCert ? "Enviando..." : "Upload Certificado"}
+                          </Button>
+                          <input id="cert-upload" type="file" accept=".pdf,image/*" className="hidden" onChange={e => e.target.files?.[0] && handleUpload(e.target.files[0], "certificado")} />
+                          {form.certificadoCalibracaoUrl && <a href={form.certificadoCalibracaoUrl} target="_blank" rel="noreferrer" className="text-xs text-primary underline">Ver</a>}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Observações</Label>
+                      <Textarea value={form.observacoesCalibracao} onChange={e => setField("observacoesCalibracao", e.target.value)} rows={2} />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      ⚡ Alertas automáticos por WhatsApp e e-mail serão enviados ao responsável 30, 15 e 7 dias antes do vencimento.
+                    </p>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Foto</Label>
