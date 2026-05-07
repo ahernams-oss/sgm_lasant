@@ -479,7 +479,7 @@ const Clientes = () => {
           const handleEditContrato = (ct: Contrato) => {
             setEditingContratoId(ct.id);
             const { id, ...rest } = ct;
-            setContratoForm(rest);
+            setContratoForm({ ...emptyContrato, ...rest, numeroProcesso: rest.numeroProcesso || "" });
           };
 
           const handleDeleteContrato = (ctId: string) => {
