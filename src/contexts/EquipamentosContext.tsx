@@ -34,6 +34,18 @@ export interface Equipamento {
   numeroAnvisa: string;
   fotoUrl: string;
   manualUrl: string;
+  // Calibração
+  requerCalibracao: boolean;
+  dataCalibracao: string;
+  validadeCalibracao: string;
+  frequenciaCalibracaoMeses: number;
+  certificadoCalibracaoUrl: string;
+  laboratorioCalibracao: string;
+  numeroCertificadoCalibracao: string;
+  observacoesCalibracao: string;
+  responsavelCalibracao: string;
+  telefoneResponsavelCalibracao: string;
+  emailResponsavelCalibracao: string;
 }
 
 interface EquipamentosContextType {
