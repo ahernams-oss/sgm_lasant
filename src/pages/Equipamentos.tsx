@@ -27,6 +27,11 @@ const emptyForm = {
   nivelManutencao: "", expectativaVida: "", dataGarantia: "", tensao: "",
   corrente: "", potencia: "", capacidadeBtu: "", contrato: "", planoManutencao: "",
   numeroAnvisa: "", fotoUrl: "", manualUrl: "",
+  requerCalibracao: false, dataCalibracao: "", validadeCalibracao: "",
+  frequenciaCalibracaoMeses: 12, certificadoCalibracaoUrl: "",
+  laboratorioCalibracao: "", numeroCertificadoCalibracao: "",
+  observacoesCalibracao: "", responsavelCalibracao: "",
+  telefoneResponsavelCalibracao: "", emailResponsavelCalibracao: "",
 };
 
 export default function Equipamentos() {
