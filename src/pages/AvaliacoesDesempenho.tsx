@@ -204,7 +204,7 @@ function PageInner() {
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all__">Todos</SelectItem>
-                {funcionarios.map((f) => (
+                {funcionariosVisiveis.map((f) => (
                   <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
                 ))}
               </SelectContent>
@@ -228,7 +228,7 @@ function PageInner() {
                 <TableHead>Avaliador</TableHead>
                 <TableHead className="text-right">Pontuação Total</TableHead>
                 <TableHead className="text-right">Média Ponderada</TableHead>
-                <TableHead className="text-right w-[140px]">Ações</TableHead>
+                <TableHead className="text-right w-[180px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -248,6 +248,9 @@ function PageInner() {
                     <div className="flex justify-end gap-1">
                       <Button size="icon" variant="ghost" onClick={() => { setViewing(a); setViewOpen(true); }} title="Visualizar">
                         <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => gerarPdfAvaliacaoDesempenho(a, { funcionarioNome: funcMap[a.funcionarioId] || "" })} title="Baixar PDF">
+                        <Download className="h-4 w-4" />
                       </Button>
                       {podeEditar && (
                         <Button size="icon" variant="ghost" onClick={() => openEdit(a)} title="Editar">
@@ -293,7 +296,7 @@ function PageInner() {
               <Select value={form.funcionarioId} onValueChange={(v) => setForm({ ...form, funcionarioId: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  {funcionarios.map((f) => (
+                  {funcionariosVisiveis.map((f) => (
                     <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
                   ))}
                 </SelectContent>
