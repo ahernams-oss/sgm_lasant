@@ -8,7 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, FileText, ShoppingCart, AlertCircle, Building2 } from "lucide-react";
+import { LogOut, FileText, ShoppingCart, AlertCircle, Building2, FileDown, FileSpreadsheet } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 const STORAGE_KEY = "fornecedorPortalLogado";
 
@@ -165,6 +168,119 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const fmtMoney = (v: number) =>
     Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+  const statusCotacao = (c: ConviteRow) => {
+    if (c.status === "respondido") return "Respondida";
+    if (new Date(c.expires_at) < new Date()) return "Expirada";
+    return "Pendente";
+  };
+
+  const exportCotacoesPdf = () => {
+    const doc = new jsPDF();
+    const pw = doc.internal.pageSize.getWidth();
+    doc.setFillColor(30, 58, 107);
+    doc.rect(0, 0, pw, 24, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(13); doc.setFont("helvetica", "bold");
+    doc.text("Relatório de Cotações", 14, 11);
+    doc.setFontSize(8); doc.setFont("helvetica", "normal");
+    doc.text(session.nome, 14, 18);
+    doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pw - 14, 18, { align: "right" });
+    doc.setTextColor(30, 30, 30);
+    autoTable(doc, {
+      startY: 30,
+      head: [["Cotação", "Comprador", "Recebida em", "Validade", "Status"]],
+      body: convites.map((c) => [
+        `COT-${String(c.cotacao_numero).padStart(4, "0")}`,
+        c.comprador, fmtDate(c.created_at), fmtDate(c.expires_at), statusCotacao(c),
+      ]),
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [30, 58, 107], textColor: 255 },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+    });
+    doc.save(`cotacoes_${session.nome.replace(/\s+/g, "_")}.pdf`);
+  };
+
+  const exportCotacoesExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(convites.map((c) => ({
+      "Cotação": `COT-${String(c.cotacao_numero).padStart(4, "0")}`,
+      "Comprador": c.comprador,
+      "Recebida em": fmtDate(c.created_at),
+      "Validade": fmtDate(c.expires_at),
+      "Status": statusCotacao(c),
+    })));
+    ws["!cols"] = [{ wch: 14 }, { wch: 30 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Cotações");
+    XLSX.writeFile(wb, `cotacoes_${session.nome.replace(/\s+/g, "_")}.xlsx`);
+  };
+
+  const exportPedidosPdf = () => {
+    const doc = new jsPDF({ orientation: "landscape" });
+    const pw = doc.internal.pageSize.getWidth();
+    doc.setFillColor(30, 58, 107);
+    doc.rect(0, 0, pw, 24, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(13); doc.setFont("helvetica", "bold");
+    doc.text("Relatório de Pedidos de Compra", 14, 11);
+    doc.setFontSize(8); doc.setFont("helvetica", "normal");
+    doc.text(session.nome, 14, 18);
+    doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pw - 14, 18, { align: "right" });
+    doc.setTextColor(30, 30, 30);
+    autoTable(doc, {
+      startY: 30,
+      head: [["Pedido", "Data", "Comprador", "Status", "Pagamento", "Prazo", "Local", "Valor Total"]],
+      body: pedidos.map((p) => [
+        `PC-${String(p.numero).padStart(4, "0")}`,
+        fmtDate(p.data_criacao), p.comprador, p.status,
+        p.condicao_pagamento || "-", p.prazo_entrega || "-", p.local_entrega || "-",
+        fmtMoney(p.valor_total),
+      ]),
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [30, 58, 107], textColor: 255 },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      columnStyles: { 7: { halign: "right" } },
+    });
+    doc.save(`pedidos_${session.nome.replace(/\s+/g, "_")}.pdf`);
+  };
+
+  const exportPedidosExcel = () => {
+    const wb = XLSX.utils.book_new();
+    const wsResumo = XLSX.utils.json_to_sheet(pedidos.map((p) => ({
+      "Pedido": `PC-${String(p.numero).padStart(4, "0")}`,
+      "Data": fmtDate(p.data_criacao),
+      "Comprador": p.comprador,
+      "Status": p.status,
+      "Pagamento": p.condicao_pagamento || "",
+      "Prazo": p.prazo_entrega || "",
+      "Local": p.local_entrega || "",
+      "Valor Total": Number(p.valor_total || 0),
+    })));
+    wsResumo["!cols"] = [{ wch: 12 }, { wch: 12 }, { wch: 25 }, { wch: 14 }, { wch: 20 }, { wch: 16 }, { wch: 25 }, { wch: 14 }];
+    XLSX.utils.book_append_sheet(wb, wsResumo, "Pedidos");
+
+    const itens: any[] = [];
+    pedidos.forEach((p) => {
+      if (Array.isArray(p.itens)) {
+        p.itens.forEach((it: any) => {
+          itens.push({
+            "Pedido": `PC-${String(p.numero).padStart(4, "0")}`,
+            "Item": it.descricao,
+            "Qtd": Number(it.quantidade || 0),
+            "Unidade": it.unidadeMedida || it.unidade || "",
+            "Preço Unit.": Number(it.precoUnitario || 0),
+            "Total": Number(it.precoUnitario || 0) * Number(it.quantidade || 0),
+          });
+        });
+      }
+    });
+    if (itens.length > 0) {
+      const wsItens = XLSX.utils.json_to_sheet(itens);
+      wsItens["!cols"] = [{ wch: 12 }, { wch: 40 }, { wch: 8 }, { wch: 10 }, { wch: 14 }, { wch: 14 }];
+      XLSX.utils.book_append_sheet(wb, wsItens, "Itens");
+    }
+    XLSX.writeFile(wb, `pedidos_${session.nome.replace(/\s+/g, "_")}.xlsx`);
+  };
+
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="bg-background border-b">
@@ -216,9 +332,19 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
 
           <TabsContent value="cotacoes">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Cotações recebidas</CardTitle>
-                <CardDescription>Clique em "Responder" para enviar sua proposta.</CardDescription>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle className="text-base">Cotações recebidas</CardTitle>
+                  <CardDescription>Clique em "Responder" para enviar sua proposta.</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={exportCotacoesExcel} disabled={convites.length === 0}>
+                    <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={exportCotacoesPdf} disabled={convites.length === 0}>
+                    <FileDown className="h-4 w-4 mr-1" /> PDF
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {loading ? (
@@ -281,8 +407,16 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
 
           <TabsContent value="pedidos">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
                 <CardTitle className="text-base">Pedidos de Compra emitidos</CardTitle>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={exportPedidosExcel} disabled={pedidos.length === 0}>
+                    <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={exportPedidosPdf} disabled={pedidos.length === 0}>
+                    <FileDown className="h-4 w-4 mr-1" /> PDF
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {loading ? (
