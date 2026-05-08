@@ -503,6 +503,7 @@ export type Database = {
           rel_linha2: string | null
           rel_linha3: string | null
           rel_linha4: string | null
+          senha_portal: string | null
           telefone_celular: string | null
           telefones: Json | null
           telefones_whatsapp: string | null
@@ -547,6 +548,7 @@ export type Database = {
           rel_linha2?: string | null
           rel_linha3?: string | null
           rel_linha4?: string | null
+          senha_portal?: string | null
           telefone_celular?: string | null
           telefones?: Json | null
           telefones_whatsapp?: string | null
@@ -591,6 +593,7 @@ export type Database = {
           rel_linha2?: string | null
           rel_linha3?: string | null
           rel_linha4?: string | null
+          senha_portal?: string | null
           telefone_celular?: string | null
           telefones?: Json | null
           telefones_whatsapp?: string | null

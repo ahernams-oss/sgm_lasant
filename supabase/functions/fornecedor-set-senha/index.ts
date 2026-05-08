@@ -1,0 +1,64 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+function gerarSenha(): string {
+  const upp = "ABCDEFGHJKMNPQRSTUVWXYZ";
+  const low = "abcdefghjkmnpqrstuvwxyz";
+  const num = "23456789";
+  const sym = "!@#$%&*?";
+  const all = upp + low + num + sym;
+  const pick = (s: string) => s[Math.floor(Math.random() * s.length)];
+  let out = pick(upp) + pick(low) + pick(num) + pick(sym);
+  for (let i = 0; i < 6; i++) out += pick(all);
+  return out.split("").sort(() => Math.random() - 0.5).join("");
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  try {
+    const body = await req.json().catch(() => ({}));
+    const fornecedorId = String(body?.fornecedorId ?? "");
+    const senhaCustom = body?.senha ? String(body.senha) : null;
+
+    if (!fornecedorId) {
+      return new Response(JSON.stringify({ error: "fornecedorId é obrigatório." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    const senha = senhaCustom && senhaCustom.length >= 6 ? senhaCustom : gerarSenha();
+    const hash = bcrypt.hashSync(senha, bcrypt.genSaltSync(10));
+
+    const { error } = await supabase
+      .from("clientes")
+      .update({ senha_portal: hash })
+      .eq("id", fornecedorId);
+
+    if (error) {
+      console.error("[fornecedor-set-senha] DB error:", error);
+      return new Response(JSON.stringify({ error: "Erro ao salvar senha." }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ senha }), {
+      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    console.error("[fornecedor-set-senha] Unexpected:", e);
+    return new Response(JSON.stringify({ error: "Erro inesperado." }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});

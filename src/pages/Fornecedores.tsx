@@ -2,7 +2,9 @@ import { useState, useMemo } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
-import { Truck, Trash2, Search, MessageCircle, ChevronDown, ChevronUp, FileBarChart } from "lucide-react";
+import { Truck, Trash2, Search, MessageCircle, ChevronDown, ChevronUp, FileBarChart, KeyRound, Copy, Mail } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
 import RelatorioClienteFornecedorDialog from "@/components/RelatorioClienteFornecedorDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { enviarWhatsApp } from "@/lib/whatsapp";
@@ -27,6 +29,70 @@ const Fornecedores = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [relatorioOpen, setRelatorioOpen] = useState(false);
+  const [senhaDialog, setSenhaDialog] = useState<{ fornecedor: Cliente; senha: string } | null>(null);
+  const [gerandoSenhaId, setGerandoSenhaId] = useState<string | null>(null);
+
+  const portalUrl = `${window.location.origin}/portal-fornecedor`;
+
+  const handleGerarSenha = async (f: Cliente) => {
+    setGerandoSenhaId(f.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("fornecedor-set-senha", {
+        body: { fornecedorId: f.id },
+      });
+      if (error || !data?.senha) {
+        toast.error("Erro ao gerar senha do portal.");
+        return;
+      }
+      setSenhaDialog({ fornecedor: f, senha: data.senha });
+    } finally {
+      setGerandoSenhaId(null);
+    }
+  };
+
+  const enviarSenhaWhatsApp = async () => {
+    if (!senhaDialog) return;
+    const { fornecedor: f, senha } = senhaDialog;
+    const tel = f.telefonesWhatsapp || f.telefones?.[0];
+    if (!tel) { toast.error("Fornecedor sem WhatsApp cadastrado."); return; }
+    const msg = `Olá ${f.contato || f.nome}!\n\nSeu acesso ao Portal do Fornecedor está liberado.\n\n🔗 ${portalUrl}\nE-mail: ${f.email}\nSenha: ${senha}\n\nLá você poderá visualizar cotações e pedidos de compra.`;
+    toast.loading("Enviando WhatsApp...", { id: "wpp-senha" });
+    const r = await enviarWhatsApp(tel, msg);
+    if (r.success) toast.success("Senha enviada por WhatsApp!", { id: "wpp-senha" });
+    else toast.error("Falha ao enviar WhatsApp.", { id: "wpp-senha" });
+  };
+
+  const enviarSenhaEmail = async () => {
+    if (!senhaDialog) return;
+    const { fornecedor: f, senha } = senhaDialog;
+    if (!f.email) { toast.error("Fornecedor sem e-mail cadastrado."); return; }
+    toast.loading("Enviando e-mail...", { id: "eml-senha" });
+    try {
+      const { error } = await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "password-reset",
+          recipientEmail: f.email,
+          idempotencyKey: `portal-fornecedor-${f.id}-${Date.now()}`,
+          templateData: {
+            nomeUsuario: f.contato || f.nome,
+            senhaTemporaria: senha,
+            nomeEmpresa: "LASANT CONSTRUÇÕES",
+            portalUrl,
+          },
+        },
+      });
+      if (error) throw error;
+      toast.success("Senha enviada por e-mail!", { id: "eml-senha" });
+    } catch {
+      toast.error("Falha ao enviar e-mail.", { id: "eml-senha" });
+    }
+  };
+
+  const copiarSenha = () => {
+    if (!senhaDialog) return;
+    navigator.clipboard.writeText(senhaDialog.senha);
+    toast.success("Senha copiada!");
+  };
 
   const toggleOne = (id: string) =>
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -285,6 +351,9 @@ const Fornecedores = () => {
                       <p className="text-sm text-muted-foreground truncate">{fornecedor.cidade ? `${fornecedor.cidade}/${fornecedor.uf}` : "—"}</p>
                     </div>
                     <div className="flex gap-1 shrink-0">
+                      <Button variant="ghost" size="sm" onClick={() => handleGerarSenha(fornecedor)} disabled={gerandoSenhaId === fornecedor.id} className="text-primary" title="Gerar senha do Portal do Fornecedor">
+                        <KeyRound className="h-3.5 w-3.5" />
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleEnviarWhatsApp(fornecedor)} className="text-emerald-600 hover:text-emerald-700" title="Enviar WhatsApp">
                         <MessageCircle className="h-3.5 w-3.5" />
                       </Button>
@@ -311,6 +380,37 @@ const Fornecedores = () => {
         filtrados={filteredFornecedores}
         selecionados={fornecedores.filter(f => selectedIds.includes(f.id))}
       />
+      <Dialog open={!!senhaDialog} onOpenChange={(o) => !o && setSenhaDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Senha do Portal do Fornecedor</DialogTitle>
+            <DialogDescription>
+              Nova senha gerada para <strong>{senhaDialog?.fornecedor.nome}</strong>. Anote, copie ou envie agora — ela não será exibida novamente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">URL de acesso</p>
+              <code className="block bg-muted p-2 rounded text-xs break-all">{portalUrl}</code>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">E-mail (login)</p>
+              <code className="block bg-muted p-2 rounded text-xs">{senhaDialog?.fornecedor.email || "— sem e-mail —"}</code>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Senha</p>
+              <div className="flex gap-2">
+                <code className="flex-1 bg-muted p-2 rounded text-sm font-mono">{senhaDialog?.senha}</code>
+                <Button size="sm" variant="outline" onClick={copiarSenha}><Copy className="h-3.5 w-3.5" /></Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={enviarSenhaEmail}><Mail className="h-4 w-4 mr-2" /> Enviar por E-mail</Button>
+            <Button onClick={enviarSenhaWhatsApp} className="bg-emerald-600 hover:bg-emerald-700"><MessageCircle className="h-4 w-4 mr-2" /> Enviar por WhatsApp</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
