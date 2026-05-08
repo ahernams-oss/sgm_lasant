@@ -30,6 +30,7 @@ export default function EstoquePage() {
   const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, getSaldoPorLocal, transferirEntreLocais, criarInventario, atualizarInventario, fecharInventario } = useEstoque();
   const { materiais } = useMateriaisServicos();
   const { usuarioLogado } = useAuth();
+  const { tem } = usePermissao();
   const { clientes } = useClientes();
   const { pedidos } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
