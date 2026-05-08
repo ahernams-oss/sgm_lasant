@@ -641,6 +641,16 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
           </TabsContent>
         </Tabs>
       </main>
+
+      <Dialog open={trocaOpen} onOpenChange={setTrocaOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Trocar senha</DialogTitle>
+            <DialogDescription>Defina uma nova senha para acessar o portal.</DialogDescription>
+          </DialogHeader>
+          <TrocaSenhaForm session={session} onSuccess={() => setTrocaOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
