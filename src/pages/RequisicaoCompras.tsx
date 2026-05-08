@@ -465,10 +465,26 @@ export default function RequisicaoComprasPage() {
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>{["UN","M","M²","M³","KG","L","CX","PCT","SC","GL","HR","VB","JG","PR","RL","TB","FD","BD","CJ","DZ"].map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
                       </Select>
+                  </div>
+                  <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
+                    <div>
+                      <Label>Anexo do Item</Label>
+                      <div className="flex items-center gap-2">
+                        <Button type="button" variant="outline" onClick={() => itemAnexoInputRef.current?.click()} className="shrink-0">
+                          <Paperclip className="mr-2 h-4 w-4" />{itemAnexo ? "Trocar arquivo" : "Anexar arquivo"}
+                        </Button>
+                        <input ref={itemAnexoInputRef} type="file" className="hidden" onChange={handleItemAnexoChange} />
+                        {itemAnexo && (
+                          <div className="flex items-center gap-1 text-sm border rounded px-2 py-1 flex-1 min-w-0">
+                            <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            <span className="truncate">{itemAnexo.nome}</span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => { setItemAnexo(null); if (itemAnexoInputRef.current) itemAnexoInputRef.current.value = ""; }}><X className="h-3 w-3" /></Button>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Máx. 2MB por arquivo (opcional)</p>
                     </div>
-                    <div className="flex items-end">
-                      <Button onClick={addItem} className="w-full"><Plus className="mr-2 h-4 w-4" />Adicionar</Button>
-                    </div>
+                    <Button onClick={addItem}><Plus className="mr-2 h-4 w-4" />Adicionar</Button>
                   </div>
                 </CardContent>
               </Card>
