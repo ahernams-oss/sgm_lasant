@@ -680,6 +680,7 @@ const MedicoesServicos = () => {
                         <TableHead className="text-right">Valor</TableHead>
                         <TableHead className="text-right">%</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Anexos</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -691,6 +692,66 @@ const MedicoesServicos = () => {
                           <TableCell className="text-right">{fmt(l.valor_total)}</TableCell>
                           <TableCell className="text-right">{fmtPerc(l.percentual_total)}</TableCell>
                           <TableCell><Badge variant="outline">{l.status}</Badge></TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-1">
+                              {(l.anexos || []).map((a, i) => (
+                                <div key={i} className="flex items-center gap-1 text-xs">
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      const { data } = await supabase.storage.from("medicoes-anexos").createSignedUrl(a.path, 60);
+                                      if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+                                    }}
+                                    className="text-primary hover:underline flex items-center gap-1 truncate max-w-[160px]"
+                                    title={a.nome}
+                                  >
+                                    <Paperclip className="h-3 w-3" />
+                                    <span className="truncate">{a.nome}</span>
+                                  </button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-5 w-5"
+                                    onClick={async () => {
+                                      await supabase.storage.from("medicoes-anexos").remove([a.path]);
+                                      const novas = detailMedicao.medicoes.map(m =>
+                                        m.id === l.id ? { ...m, anexos: (m.anexos || []).filter((_, idx) => idx !== i) } : m
+                                      );
+                                      await updateMedicao(detailMedicao.id, { medicoes: novas });
+                                      toast({ title: "Anexo removido" });
+                                    }}
+                                  >
+                                    <X className="h-3 w-3 text-destructive" />
+                                  </Button>
+                                </div>
+                              ))}
+                              <label className="flex items-center gap-1 cursor-pointer text-xs text-primary hover:underline">
+                                <Upload className="h-3 w-3" />
+                                <span>Anexar</span>
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    if (file.size > 10 * 1024 * 1024) { toast({ title: "Arquivo muito grande (máx. 10MB)", variant: "destructive" }); return; }
+                                    const path = `${detailMedicao.id}/${l.id}/${Date.now()}_${file.name}`;
+                                    const { error } = await supabase.storage.from("medicoes-anexos").upload(path, file);
+                                    if (error) { toast({ title: "Erro ao enviar arquivo", variant: "destructive" }); return; }
+                                    const novas = detailMedicao.medicoes.map(m =>
+                                      m.id === l.id
+                                        ? { ...m, anexos: [...(m.anexos || []), { nome: file.name, path, tamanho: file.size }] }
+                                        : m
+                                    );
+                                    await updateMedicao(detailMedicao.id, { medicoes: novas });
+                                    toast({ title: "Anexo enviado" });
+                                    e.target.value = "";
+                                  }}
+                                />
+                              </label>
+                            </div>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
