@@ -3,6 +3,8 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useEstoque, MovimentacaoEstoque, SaldoEstoque } from "@/contexts/EstoqueContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissao } from "@/hooks/usePermissao";
+import { verificarSenhaUsuario } from "@/lib/verifySenha";
 import { useClientes } from "@/contexts/ClientesContext";
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
