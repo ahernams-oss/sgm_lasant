@@ -35,36 +35,60 @@ import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { toast } from "sonner";
 
 // Debounced Input to avoid saving on every keystroke
-function DebouncedInput({ value: externalValue, onChange, delay = 600, ...props }: React.ComponentProps<"input"> & { delay?: number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
+function DebouncedInput({ value: externalValue, onChange, delay = 800, ...props }: React.ComponentProps<"input"> & { delay?: number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
   const [localValue, setLocalValue] = useState(externalValue ?? "");
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
-  useEffect(() => { setLocalValue(externalValue ?? ""); }, [externalValue]);
+  const dirtyRef = useRef(false);
+  useEffect(() => {
+    if (!dirtyRef.current) setLocalValue(externalValue ?? "");
+  }, [externalValue]);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dirtyRef.current = true;
     setLocalValue(e.target.value);
     clearTimeout(timerRef.current);
     const val = e.target.value;
     timerRef.current = setTimeout(() => {
+      dirtyRef.current = false;
       onChange({ target: { value: val } } as React.ChangeEvent<HTMLInputElement>);
     }, delay);
   };
+  const handleBlur = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      dirtyRef.current = false;
+      onChange({ target: { value: localValue } } as unknown as React.ChangeEvent<HTMLInputElement>);
+    }
+  };
   useEffect(() => () => clearTimeout(timerRef.current), []);
-  return <Input {...props} value={localValue} onChange={handleChange} />;
+  return <Input {...props} value={localValue} onChange={handleChange} onBlur={handleBlur} />;
 }
 
-function DebouncedTextarea({ value: externalValue, onChange, delay = 600, ...props }: React.ComponentProps<typeof Textarea> & { delay?: number; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void }) {
+function DebouncedTextarea({ value: externalValue, onChange, delay = 800, ...props }: React.ComponentProps<typeof Textarea> & { delay?: number; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void }) {
   const [localValue, setLocalValue] = useState(externalValue ?? "");
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
-  useEffect(() => { setLocalValue(externalValue ?? ""); }, [externalValue]);
+  const dirtyRef = useRef(false);
+  useEffect(() => {
+    if (!dirtyRef.current) setLocalValue(externalValue ?? "");
+  }, [externalValue]);
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    dirtyRef.current = true;
     setLocalValue(e.target.value);
     clearTimeout(timerRef.current);
     const val = e.target.value;
     timerRef.current = setTimeout(() => {
+      dirtyRef.current = false;
       onChange({ target: { value: val } } as React.ChangeEvent<HTMLTextAreaElement>);
     }, delay);
   };
+  const handleBlur = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      dirtyRef.current = false;
+      onChange({ target: { value: localValue } } as unknown as React.ChangeEvent<HTMLTextAreaElement>);
+    }
+  };
   useEffect(() => () => clearTimeout(timerRef.current), []);
-  return <Textarea {...props} value={localValue} onChange={handleChange} />;
+  return <Textarea {...props} value={localValue} onChange={handleChange} onBlur={handleBlur} />;
 }
 
 const etapaLabels: Record<EtapaCandidato, string> = {
