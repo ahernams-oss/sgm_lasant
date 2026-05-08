@@ -3,6 +3,8 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useEstoque, MovimentacaoEstoque, SaldoEstoque } from "@/contexts/EstoqueContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissao } from "@/hooks/usePermissao";
+import { verificarSenhaUsuario } from "@/lib/verifySenha";
 import { useClientes } from "@/contexts/ClientesContext";
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
@@ -28,6 +30,7 @@ export default function EstoquePage() {
   const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, getSaldoPorLocal, transferirEntreLocais, criarInventario, atualizarInventario, fecharInventario } = useEstoque();
   const { materiais } = useMateriaisServicos();
   const { usuarioLogado } = useAuth();
+  const { tem } = usePermissao();
   const { clientes } = useClientes();
   const { pedidos } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
@@ -127,6 +130,8 @@ export default function EstoquePage() {
   const [transferDestino, setTransferDestino] = useState("");
   const [transferQuantidade, setTransferQuantidade] = useState("");
   const [transferObs, setTransferObs] = useState("");
+  const [transferSenha, setTransferSenha] = useState("");
+  const [transferLoading, setTransferLoading] = useState(false);
 
   const locais = useMemo(() => {
     const locs = new Set<string>();
@@ -357,12 +362,19 @@ export default function EstoquePage() {
     toast({ title: "Inventário fechado e ajustes aplicados" });
   };
 
+  const podeTransferir = tem("estoque.transferir_locais");
+
   const openTransferDialog = () => {
+    if (!podeTransferir) {
+      toast({ title: "Sem permissão", description: "Seu perfil não tem permissão para transferir entre locais.", variant: "destructive" });
+      return;
+    }
     setTransferMaterialId("");
     setTransferOrigem("");
     setTransferDestino("");
     setTransferQuantidade("");
     setTransferObs("");
+    setTransferSenha("");
     setTransferDialogOpen(true);
   };
 
@@ -379,6 +391,9 @@ export default function EstoquePage() {
   }, [transferMaterialId, transferOrigem, getSaldoPorLocal]);
 
   const handleTransferSave = async () => {
+    if (!podeTransferir) {
+      toast({ title: "Sem permissão para transferir", variant: "destructive" }); return;
+    }
     if (!transferMaterialId || !transferOrigem || !transferDestino || !transferQuantidade) {
       toast({ title: "Preencha Material, Origem, Destino e Quantidade", variant: "destructive" }); return;
     }
@@ -387,18 +402,29 @@ export default function EstoquePage() {
     }
     const qty = Number(transferQuantidade);
     if (qty <= 0) { toast({ title: "Quantidade deve ser maior que zero", variant: "destructive" }); return; }
+    if (!transferSenha) { toast({ title: "Informe sua senha para autorizar a transferência", variant: "destructive" }); return; }
     const mat = materiais.find(m => m.id === transferMaterialId);
     if (!mat) return;
+    setTransferLoading(true);
     try {
+      const ok = await verificarSenhaUsuario(usuarioLogado?.email || "", transferSenha);
+      if (!ok) {
+        toast({ title: "Senha incorreta", variant: "destructive" });
+        setTransferLoading(false);
+        return;
+      }
       await transferirEntreLocais({
         materialId: mat.id, materialCodigo: mat.codigo, materialDescricao: mat.descricao,
         quantidade: qty, localOrigem: transferOrigem, localDestino: transferDestino,
-        usuario: usuarioLogado?.nome || "", observacao: transferObs,
+        usuario: usuarioLogado?.nome || "",
+        observacao: transferObs ? `${transferObs} (autorizado por ${usuarioLogado?.nome || ""})` : `Autorizado por ${usuarioLogado?.nome || ""}`,
       });
       toast({ title: "Transferência realizada com sucesso" });
       setTransferDialogOpen(false);
     } catch (e: any) {
       toast({ title: e?.message || "Erro ao transferir", variant: "destructive" });
+    } finally {
+      setTransferLoading(false);
     }
   };
 
@@ -419,7 +445,7 @@ export default function EstoquePage() {
           <Button variant="outline" onClick={() => openMovDialog("saida")}>
             <ArrowUpCircle className="mr-2 h-4 w-4 text-red-600" />Saída
           </Button>
-          <Button variant="outline" onClick={openTransferDialog}>
+          <Button variant="outline" onClick={openTransferDialog} disabled={!podeTransferir} title={podeTransferir ? "" : "Sem permissão no perfil de acesso"}>
             <ArrowLeftRight className="mr-2 h-4 w-4 text-blue-600" />Transferir
           </Button>
           <Button onClick={openInvDialog}>
@@ -833,8 +859,13 @@ export default function EstoquePage() {
               <Input type="number" min="1" max={transferSaldoOrigem || undefined} value={transferQuantidade} onChange={e => setTransferQuantidade(e.target.value)} />
             </div>
             <div><Label>Observação</Label><Input value={transferObs} onChange={e => setTransferObs(e.target.value)} placeholder="Motivo da transferência..." /></div>
+            <div className="border-t pt-4">
+              <Label>Senha de autorização *</Label>
+              <Input type="password" value={transferSenha} onChange={e => setTransferSenha(e.target.value)} placeholder="Digite sua senha para confirmar" autoComplete="current-password" />
+              <p className="text-xs text-muted-foreground mt-1">Operação restrita: requer permissão no perfil e validação de senha do usuário <strong>{usuarioLogado?.nome}</strong>.</p>
+            </div>
           </div>
-          <DialogFooter><Button onClick={handleTransferSave}>Transferir</Button></DialogFooter>
+          <DialogFooter><Button onClick={handleTransferSave} disabled={transferLoading}>{transferLoading ? "Validando..." : "Autorizar e Transferir"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

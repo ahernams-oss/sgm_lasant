@@ -211,6 +211,7 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "estoque.registrar_ajuste", label: "Registrar ajuste" },
           { key: "estoque.criar_inventario", label: "Criar inventário" },
           { key: "estoque.finalizar_inventario", label: "Finalizar inventário" },
+          { key: "estoque.transferir_locais", label: "Transferir entre locais" },
         ],
         flags: [
           { key: "estoque.flag.alerta_minimo", label: "Ver alertas de estoque mínimo" },
