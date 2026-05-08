@@ -67,6 +67,7 @@ function parseDate(s?: string): Date | null {
 export default function DashboardSSOS() {
   const { solicitacoes } = useSolicitacoesServicos();
   const { ordens } = useOrdensServico();
+  const { orcamentos } = useOrcamentos();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
 
@@ -75,6 +76,7 @@ export default function DashboardSSOS() {
   const [clienteFilter, setClienteFilter] = useState("todos");
   const [statusSSFilter, setStatusSSFilter] = useState("todos");
   const [statusOSFilter, setStatusOSFilter] = useState("todos");
+  const [orcPeriodo, setOrcPeriodo] = useState<"dia" | "semana" | "quinzena" | "mes" | "todos">("mes");
 
   const clearFilters = () => {
     setDateFrom(undefined); setDateTo(undefined);
