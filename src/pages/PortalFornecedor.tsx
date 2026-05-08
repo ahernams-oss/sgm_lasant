@@ -58,15 +58,106 @@ export default function PortalFornecedorPage() {
     return raw ? JSON.parse(raw) : null;
   });
 
+  const updateSession = (s: FornecedorSession | null) => {
+    if (s) localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+    else localStorage.removeItem(STORAGE_KEY);
+    setSession(s);
+  };
+
   if (!session) {
-    return <LoginScreen onLogin={(s) => { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); setSession(s); }} />;
+    return <LoginScreen onLogin={updateSession} />;
+  }
+
+  if (session.mustChangePassword) {
+    return (
+      <ForcarTrocaSenhaScreen
+        session={session}
+        onDone={() => updateSession({ ...session, mustChangePassword: false })}
+        onLogout={() => updateSession(null)}
+      />
+    );
   }
 
   return (
     <Dashboard
       session={session}
-      onLogout={() => { localStorage.removeItem(STORAGE_KEY); setSession(null); }}
+      onLogout={() => updateSession(null)}
     />
+  );
+}
+
+function ForcarTrocaSenhaScreen({ session, onDone, onLogout }: { session: FornecedorSession; onDone: () => void; onLogout: () => void }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
+      <Card className="max-w-md w-full">
+        <CardHeader className="text-center">
+          <img src={logoLasant} alt="Lasant Construções" className="h-16 mx-auto mb-3 object-contain" />
+          <CardTitle>Defina sua nova senha</CardTitle>
+          <CardDescription>
+            Por segurança, você precisa trocar a senha provisória antes de acessar o portal.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TrocaSenhaForm session={session} onSuccess={onDone} />
+          <Button variant="ghost" size="sm" className="w-full mt-3" onClick={onLogout}>
+            <LogOut className="h-4 w-4 mr-2" /> Sair
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function TrocaSenhaForm({ session, onSuccess }: { session: FornecedorSession; onSuccess: () => void }) {
+  const [senhaAtual, setSenhaAtual] = useState("");
+  const [novaSenha, setNovaSenha] = useState("");
+  const [confirmar, setConfirmar] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (novaSenha !== confirmar) { setError("A confirmação não confere."); return; }
+    setLoading(true);
+    try {
+      const { data, error: err } = await supabase.functions.invoke("fornecedor-trocar-senha", {
+        body: { fornecedorId: session.id, senhaAtual, novaSenha },
+      });
+      if (err || !data?.ok) { setError(data?.error || "Não foi possível trocar a senha."); return; }
+      toast.success("Senha alterada com sucesso!");
+      onSuccess();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="space-y-3">
+      <div>
+        <Label>Senha atual</Label>
+        <Input type="password" value={senhaAtual} onChange={(e) => setSenhaAtual(e.target.value)} required autoFocus />
+      </div>
+      <div>
+        <Label>Nova senha</Label>
+        <Input type="password" value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} required />
+        <p className="text-[11px] text-muted-foreground mt-1">
+          Mín. 8 caracteres, com maiúscula, número e caractere especial.
+        </p>
+      </div>
+      <div>
+        <Label>Confirmar nova senha</Label>
+        <Input type="password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} required />
+      </div>
+      {error && (
+        <div className="bg-destructive/10 text-destructive p-2 rounded text-sm flex items-center gap-2">
+          <AlertCircle className="h-4 w-4" /> {error}
+        </div>
+      )}
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? "Salvando..." : "Salvar nova senha"}
+      </Button>
+    </form>
   );
 }
 
