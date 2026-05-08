@@ -1744,10 +1744,18 @@ export default function CotacaoComprasPage() {
                 </div>
                 <p className="text-xs text-muted-foreground -mt-2">Preenchidos automaticamente do cadastro. Ajuste se necessário. O envio ocorre nos canais preenchidos.</p>
 
-                <Button onClick={handleGerarEEnviarIndividual} disabled={enviarLoading || !enviarFornecedorId || (!enviarEmail && !enviarTelefone)} className="w-full">
-                  <Send className="mr-2 h-4 w-4" />
-                  {enviarLoading ? "Enviando..." : `Enviar Cotação${enviarEmail && enviarTelefone ? " por E-mail + WhatsApp" : enviarEmail ? " por E-mail" : enviarTelefone ? " por WhatsApp" : ""}`}
-                </Button>
+                {(() => {
+                  const canais = [canalEmail && "E-mail", canalWhatsapp && "WhatsApp"].filter(Boolean).join(" + ");
+                  const disabled = enviarLoading || !enviarFornecedorId || (!canalEmail && !canalWhatsapp) ||
+                    (canalEmail && !enviarEmail && (!canalWhatsapp || !enviarTelefone)) ||
+                    (canalWhatsapp && !enviarTelefone && (!canalEmail || !enviarEmail));
+                  return (
+                    <Button onClick={handleGerarEEnviarIndividual} disabled={disabled} className="w-full">
+                      <Send className="mr-2 h-4 w-4" />
+                      {enviarLoading ? "Enviando..." : canais ? `Enviar Cotação por ${canais}` : "Selecione um canal"}
+                    </Button>
+                  );
+                })()}
               </>
             )}
           </div>
