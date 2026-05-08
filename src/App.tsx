@@ -176,7 +176,7 @@ function ProtectedAppRoutes() {
             </SolicitacoesServicosProvider>
           }
         />
-        <Route path="/engenharia/medicoes" element={<MedicoesServicosPage />} />
+        <Route path="/engenharia/medicoes" element={<MedicoesProvider><MedicoesServicosPage /></MedicoesProvider>} />
         <Route path="/patrimonio/ferramentas" element={<FerramentasPage />} />
         <Route path="/qualidade/evidencias" element={<EvidenciasPage />} />
         <Route path="/qualidade/checklists" element={<ChecklistsPage />} />
