@@ -550,6 +550,128 @@ export default function CotacaoComprasPage() {
     }
   };
 
+  // Gerar + enviar individual em um clique
+  const handleGerarEEnviarIndividual = async () => {
+    if (!enviarFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
+    if (!enviarEmail) { toast({ title: "Informe o e-mail do fornecedor", variant: "destructive" }); return; }
+    setEnviarLoading(true);
+    try {
+      const cot = cotacoes.find(c => c.id === enviarCotacaoId);
+      const req = requisicoes.find(r => r.id === cot?.requisicaoId);
+      const forn = fornecedores.find(f => f.id === enviarFornecedorId);
+      if (!cot || !req || !forn) throw new Error("Dados não encontrados");
+
+      const itensConvite = req.itens.map(i => ({
+        itemId: i.id, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida,
+      }));
+
+      const { data, error } = await supabase.from("cotacao_convites").insert({
+        cotacao_id: cot.id,
+        cotacao_numero: cot.numero,
+        fornecedor_id: forn.id,
+        fornecedor_nome: forn.nome,
+        fornecedor_email: enviarEmail,
+        comprador: usuarioLogado?.nome || "Comprador",
+        itens: itensConvite,
+      }).select("token").single();
+      if (error) throw error;
+
+      const link = `${window.location.origin}/cotacao/proposta/${data.token}`;
+      const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
+      const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
+
+      const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "cotacao-confirmation",
+          recipientEmail: enviarEmail,
+          idempotencyKey: `cotacao-${cot.id}-${forn.id}`,
+          templateData: { fornecedorNome: forn.nome, cotacaoNumero: cot.numero, comprador, link, nomeEmpresa },
+        },
+      });
+      if (emailErr) throw emailErr;
+
+      toast({ title: `Cotação enviada para ${forn.nome}!`, description: enviarEmail });
+      setEnviarDialogOpen(false);
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Erro ao enviar cotação", description: e.message, variant: "destructive" });
+    } finally {
+      setEnviarLoading(false);
+    }
+  };
+
+  // Gerar + enviar para todos em um clique
+  const handleGerarEEnviarTodos = async () => {
+    setEnviarTodosLoading(true);
+    setLinksGeradosTodos([]);
+    try {
+      const cot = cotacoes.find(c => c.id === enviarCotacaoId);
+      const req = requisicoes.find(r => r.id === cot?.requisicaoId);
+      if (!cot || !req) throw new Error("Dados não encontrados");
+
+      const itensConvite = req.itens.map(i => ({
+        itemId: i.id, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida,
+      }));
+
+      const { data: existingConvites } = await supabase
+        .from("cotacao_convites").select("fornecedor_id, token, fornecedor_email")
+        .eq("cotacao_id", cot.id);
+      const existingMap = new Map((existingConvites || []).map(c => [c.fornecedor_id, c]));
+
+      const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
+      const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
+
+      const results: Array<{ fornecedorNome: string; link: string; erro?: string }> = [];
+      let enviados = 0;
+
+      for (const forn of fornecedores) {
+        const emailForn = forn.emailCompras || forn.email || "";
+        try {
+          let token: string;
+          const existing = existingMap.get(forn.id);
+          if (existing) {
+            token = (existing as any).token;
+          } else {
+            const { data, error } = await supabase.from("cotacao_convites").insert({
+              cotacao_id: cot.id, cotacao_numero: cot.numero,
+              fornecedor_id: forn.id, fornecedor_nome: forn.nome,
+              fornecedor_email: emailForn, comprador: usuarioLogado?.nome || "Comprador",
+              itens: itensConvite,
+            }).select("token").single();
+            if (error) throw error;
+            token = data.token;
+          }
+          const link = `${window.location.origin}/cotacao/proposta/${token}`;
+
+          if (!emailForn) {
+            results.push({ fornecedorNome: forn.nome, link, erro: "Sem e-mail cadastrado" });
+            continue;
+          }
+
+          await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "cotacao-confirmation",
+              recipientEmail: emailForn,
+              idempotencyKey: `cotacao-${cot.id}-${forn.id}`,
+              templateData: { fornecedorNome: forn.nome, cotacaoNumero: cot.numero, comprador, link, nomeEmpresa },
+            },
+          });
+          enviados++;
+          results.push({ fornecedorNome: forn.nome, link });
+        } catch (e: any) {
+          results.push({ fornecedorNome: forn.nome, link: "", erro: e.message });
+        }
+      }
+
+      setLinksGeradosTodos(results);
+      toast({ title: `Cotação enviada para ${enviados} de ${fornecedores.length} fornecedores` });
+    } catch (e: any) {
+      toast({ title: "Erro ao enviar cotações", description: e.message, variant: "destructive" });
+    } finally {
+      setEnviarTodosLoading(false);
+    }
+  };
+
   const handleCopyAllLinks = () => {
     const text = linksGeradosTodos
       .filter(r => r.link)
@@ -1473,11 +1595,11 @@ export default function CotacaoComprasPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">Enviar para todos os fornecedores</p>
-                    <p className="text-xs text-muted-foreground">{fornecedores.length} fornecedores cadastrados</p>
+                    <p className="text-xs text-muted-foreground">{fornecedores.length} fornecedores cadastrados — link gerado e e-mail disparado automaticamente</p>
                   </div>
-                  <Button onClick={handleGerarLinkTodos} disabled={enviarTodosLoading || fornecedores.length === 0}>
+                  <Button onClick={handleGerarEEnviarTodos} disabled={enviarTodosLoading || fornecedores.length === 0}>
                     <Send className="mr-2 h-4 w-4" />
-                    {enviarTodosLoading ? "Gerando..." : "Gerar Links para Todos"}
+                    {enviarTodosLoading ? "Enviando..." : "Enviar para Todos"}
                   </Button>
                 </div>
               </div>
@@ -1552,36 +1674,10 @@ export default function CotacaoComprasPage() {
                   <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente do cadastro. Ajuste se necessário.</p>
                 </div>
 
-                {!linkGerado && (
-                  <Button onClick={handleGerarLink} disabled={enviarLoading || !enviarFornecedorId} className="w-full">
-                    <Link2 className="mr-2 h-4 w-4" />
-                    {enviarLoading ? "Gerando..." : "Gerar Link do Formulário"}
-                  </Button>
-                )}
-
-                {linkGerado && (
-                  <div className="space-y-3">
-                    <div className="bg-muted p-3 rounded-lg">
-                      <Label className="text-xs text-muted-foreground">Link gerado:</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Input value={linkGerado} readOnly className="text-xs font-mono" />
-                        <Button variant="outline" size="icon" onClick={() => handleCopyLink()} title="Copiar link">
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      O fornecedor pode acessar este link para preencher seus preços. 
-                      Quando ele enviar a proposta, ela aparecerá automaticamente aqui.
-                    </p>
-                    {enviarEmail && (
-                      <Button onClick={handleEnviarEmailIndividual} disabled={enviarEmailLoading} className="w-full">
-                        <Mail className="mr-2 h-4 w-4" />
-                        {enviarEmailLoading ? "Enviando..." : `Enviar Link por E-mail para ${enviarEmail}`}
-                      </Button>
-                    )}
-                  </div>
-                )}
+                <Button onClick={handleGerarEEnviarIndividual} disabled={enviarLoading || !enviarFornecedorId || !enviarEmail} className="w-full">
+                  <Send className="mr-2 h-4 w-4" />
+                  {enviarLoading ? "Enviando..." : "Enviar Cotação por E-mail"}
+                </Button>
               </>
             )}
           </div>
