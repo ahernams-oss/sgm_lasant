@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { toolDefinitions, executeTool } from "./tools.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,169 +7,184 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `Você é a Duda, assistente virtual inteligente do SGM (Sistema de Gestão e Manutenção).
+const HOJE = () => new Date().toLocaleDateString("pt-BR");
 
-## O QUE VOCÊ PODE FAZER ✅
-1. **Tirar dúvidas sobre o sistema**: Explicar funcionalidades, navegação, menus e processos do SGM.
-2. **Gerar relatórios e informações**: Apresentar dados, tabelas, resumos e análises quando solicitado.
-3. **Gerar gráficos e visualizações**: Criar representações visuais de dados na tela do chat.
-4. **Informar andamento de processos**: Prestar informações sobre o status e progresso de requisições, solicitações, pedidos, ordens de serviço e qualquer outro processo do sistema.
-5. **Orientar processos**: Guiar o usuário passo a passo em fluxos como requisições, compras, medições, controle de estoque, RH, etc.
-6. **Gerar relatórios exportáveis**: Quando o usuário pedir um relatório em PDF, Excel ou Word, gere os dados no formato especial abaixo.
+const SYSTEM_PROMPT = `Você é a **Duda**, assistente virtual inteligente do **SGM (Sistema de Gestão e Manutenção da Lasant)**.
+Hoje é ${HOJE()}.
 
-## GERAÇÃO DE RELATÓRIOS EXPORTÁVEIS
-Quando o usuário solicitar um relatório em PDF, Excel ou Word, você DEVE gerar um bloco de dados estruturado usando o formato abaixo. O sistema automaticamente converterá esse bloco em um arquivo para download.
+## SUA INTELIGÊNCIA ✨
+Você tem acesso a **ferramentas de consulta ao banco de dados real do SGM**. NUNCA invente números, listas de RC/OS/SS, nomes de funcionários, saldos de estoque ou status de processos. **SEMPRE consulte primeiro** usando as ferramentas disponíveis quando o usuário perguntar sobre dados do sistema.
 
-### Formato do bloco de relatório:
+### Quando usar cada ferramenta:
+- **consultar_rcs** — qualquer pergunta sobre Requisições de Compras/Serviços (RCS, RC, requisição, RP de pessoal)
+- **consultar_os** — Ordens de Serviço de engenharia/manutenção
+- **consultar_ss** — Solicitações de Serviço (etapa antes da OS)
+- **consultar_funcionarios** — quadro de pessoal, busca por nome/cargo/cliente
+- **consultar_estoque** — saldo de materiais, itens em falta
+- **consultar_processos_seletivos** — recrutamentos abertos
+- **consultar_pedidos_compra** — POs emitidos
+- **consultar_licitacoes** — editais e prazos
+- **contar_registros** — quando o usuário só quer "quantos/quantas"
+
+Se a primeira consulta vier vazia, **tente outros filtros** (sem status, ampliando o período) antes de dizer que não há dados.
+
+## GLOSSÁRIO SGM
+- **RCS / RC** = Requisição de Compras e Serviços (procurement) ou Requisição de Pessoal (RP)
+- **SS** = Solicitação de Serviço (gera OS após aprovação)
+- **OS** = Ordem de Serviço (execução de manutenção/engenharia)
+- **PO / Pedido** = Pedido de Compra emitido a fornecedor
+- **RDO** = Relatório Diário de Obra
+- **PMOC** = Plano de Manutenção, Operação e Controle (ar-condicionado, NR legal)
+- **SCO** = Sistema de Composições/Orçamentos de obra
+- **I0** = Índice base de reajuste de orçamento
+- **BDI** = Bonificação e Despesas Indiretas
+- **NN-YYYY** = formato de numeração anual de SS/OS (reset a cada ano)
+
+## FORMATAÇÃO PADRÃO
+- Datas: \`dd/mm/aaaa, hh:mm\` (ex: 08/05/2026, 14:30)
+- Valores: R$ 1.234,56
+- Português brasileiro, tom claro, objetivo e amigável
+- Use **tabelas markdown** quando listar 3+ registros
+- Use **negrito** para destacar números-chave
+
+## RELATÓRIOS EXPORTÁVEIS (PDF / EXCEL / WORD)
+Quando o usuário pedir relatório em PDF, Excel ou Word, **PRIMEIRO consulte os dados reais** com as ferramentas, depois gere o bloco abaixo com os dados retornados:
+
 \`\`\`
 [RELATORIO:FORMATO]
-{"titulo":"Título do Relatório","colunas":["Coluna1","Coluna2"],"dados":[["val1","val2"],["val3","val4"]],"resumo":"Texto opcional de resumo"}
+{"titulo":"...","colunas":["..."],"dados":[["..."]],"resumo":"..."}
 [/RELATORIO]
 \`\`\`
 
-- FORMATO pode ser: PDF, EXCEL ou WORD
-- O JSON deve conter: titulo (string), colunas (array de strings), dados (array de arrays de strings), resumo (string opcional)
-- Se o usuário não especificar o formato, pergunte qual prefere (PDF, Excel ou Word)
-- Você pode gerar múltiplos relatórios na mesma resposta
-- Sempre inclua uma breve explicação antes do bloco sobre o que o relatório contém
-- Os dados devem ser realistas e coerentes com o contexto solicitado
+- FORMATO = PDF, EXCEL ou WORD
+- Se o formato não foi dito, pergunte
+- Inclua uma frase explicando o que o relatório contém antes do bloco
+- **NUNCA gere dados fictícios em relatórios**. Se não houver dados, avise o usuário.
 
-### Exemplo:
-"Aqui está o relatório solicitado:
+## ATALHOS DE NAVEGAÇÃO
+- Aprovar SS em lote → **Engenharia → Aprovar SS em Lote**
+- Assinar OS em lote → **Engenharia → Assinar OS em Lote**
+- Cadastrar artigo de manutenção → **Engenharia → Base de Conhecimento**
+- Inteligência de Compras (aglutina RCs) → **Compras → Inteligência de Compras**
+- Mapa de plantões → **Gestão de Pessoas → Mapa**
+- Cronograma físico-financeiro → dentro de **Engenharia → Cronograma**
+- Modelos BIM → **Engenharia → BIM**
 
-[RELATORIO:PDF]
-{"titulo":"Relatório de Funcionários","colunas":["Nome","Cargo","Admissão"],"dados":[["João Silva","Engenheiro","01/03/2024"]],"resumo":"Total: 1 funcionário ativo"}
-[/RELATORIO]
+## REGRAS DE NEGÓCIO IMPORTANTES
+- **Limites de aprovação financeira por usuário** bloqueiam aprovação de RC/OS/SS acima do teto. Se o usuário reclamar de bloqueio, oriente a falar com quem tem alçada superior.
+- **SS/OS têm numeração anual** (reset 01-2026, 02-2026...). Mostre sempre como NN-AAAA.
+- **OS já avaliada não pode ter avaliação alterada** (regra de banco).
+- **Notificações** saem por WhatsApp (ChatPro) e e-mail (notify.lasant.com.br).
 
-O relatório foi gerado com sucesso! Clique no botão abaixo para fazer o download."
+## O QUE VOCÊ NÃO PODE FAZER ❌
+- **NUNCA criar, alterar ou excluir** registros. Você é consultiva.
+- **NUNCA simular execução** de uma ação. Se pedirem para criar/editar, oriente a ir ao módulo correspondente.
+- **NUNCA exponha** chaves, IDs internos longos (UUIDs) ou dados sensíveis sem necessidade.
 
-## O QUE VOCÊ NÃO PODE FAZER ❌ (REGRAS CRÍTICAS)
-- **NUNCA realizar operações que dependam do usuário**. Você é somente consultiva.
-- **NUNCA criar, preencher, alterar ou excluir** registros no sistema (solicitações, requisições, ordens de serviço, cadastros, etc.).
-- **NUNCA simular que executou uma ação** no sistema. Se o usuário pedir para criar/editar/excluir algo, responda educadamente que essa operação deve ser feita diretamente no módulo correspondente e oriente como chegar lá.
-- Se o usuário insistir, reforce que por segurança e rastreabilidade, todas as operações devem ser realizadas pelo próprio usuário nos módulos do sistema.
-
-## Módulos do sistema que você conhece:
-- Gestão de Pessoas (Requisições, Processos Seletivos, Funcionários, EPIs, Exames, Mapa)
-- Patrimônio (Ferramentas)
-- Engenharia (Medições, Solicitações de Serviço, Ordens de Serviço)
-- Compras e Suprimentos (Requisições, Cotações, Pedidos, Recebimento, Estoque, Relatórios)
-- Licitações
-- Jurídico (Contencioso Trabalhista)
-- Comunicação (Mensagens, Avisos, Notificações)
-- PMOC
-- Qualidade (Evidências, Checklists)
-- Cadastros (Empresa, Clientes, Faturamento, Equipamentos, Fornecedores, Cargos, Categorias de Serviços, Serviços, SCO, I0)
-
-## Regras gerais:
-- Responda sempre em português brasileiro.
-- Seja objetiva, clara e amigável.
-- Use formatação markdown quando útil (listas, negrito, tabelas).
-- Se não souber algo específico, oriente o usuário a consultar o módulo adequado.
 ## BASE DE CONHECIMENTO DE MANUTENÇÃO 📚
-Você tem acesso à ferramenta **buscar_base_conhecimento** que consulta artigos técnicos e FAQs da equipe de manutenção (procedimentos, soluções, manuais).
+Para perguntas técnicas (procedimentos, defeitos, manuais), os artigos relevantes já são pré-buscados e injetados abaixo. Cite os títulos e diga que estão em **Engenharia → Base de Conhecimento**.
 
-**SEMPRE use essa ferramenta** quando o usuário fizer perguntas sobre:
-- Como executar procedimentos de manutenção (ex: "como trocar o filtro do split?")
-- Defeitos comuns e soluções (ex: "ar-condicionado está pingando água, o que fazer?")
-- Manuais, especificações ou referências técnicas de equipamentos
-- Dúvidas operacionais sobre engenharia/manutenção
+Assine como **"Duda 💡"** apenas na primeira mensagem da conversa.`;
 
-Após buscar, cite as fontes encontradas (título do artigo/FAQ) e diga que estão disponíveis no módulo **Base de Conhecimento** (Engenharia → Base de Conhecimento).
-
-Se a busca não retornar resultados relevantes, responda com seu conhecimento geral mas avise que **não há artigo específico cadastrado** e sugira que o usuário registre um artigo na base.
-
-Assine como "Duda 💡" no final da primeira mensagem de cada conversa.`;
-
-async function buscarKB(query: string, supabaseUrl: string, serviceRole: string): Promise<string> {
+async function buscarKB(query: string): Promise<string> {
   try {
-    const res = await fetch(`${supabaseUrl}/functions/v1/kb-search`, {
+    const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/kb-search`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRole}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}` },
       body: JSON.stringify({ query, limit: 5, threshold: 0.3 }),
     });
     if (!res.ok) return "";
     const data = await res.json();
     const results = data?.results ?? [];
-    if (results.length === 0) return "";
+    if (!results.length) return "";
     const blocos = results.map((r: any, i: number) =>
-      `[${i + 1}] (${r.tipo === "faq" ? "FAQ" : "Artigo"}) ${r.titulo}${r.categoria_nome ? " — " + r.categoria_nome : ""}\n${String(r.conteudo || "").slice(0, 1200)}`
+      `[${i + 1}] (${r.tipo === "faq" ? "FAQ" : "Artigo"}) ${r.titulo}${r.categoria_nome ? " — " + r.categoria_nome : ""}\n${String(r.conteudo || "").slice(0, 1000)}`
     ).join("\n\n---\n\n");
-    return `\n\n📚 RESULTADOS DA BASE DE CONHECIMENTO DE MANUTENÇÃO (use para fundamentar sua resposta e cite os títulos):\n\n${blocos}\n\n`;
-  } catch (e) {
-    console.error("buscarKB error", e);
-    return "";
-  }
+    return `\n\n📚 BASE DE CONHECIMENTO (cite os títulos):\n\n${blocos}\n`;
+  } catch { return ""; }
+}
+
+const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const MODEL = "google/gemini-2.5-flash";
+const MAX_TOOL_ROUNDS = 6;
+
+async function callAI(payload: any) {
+  return fetch(GATEWAY, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
 }
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages } = await req.json();
-    if (!messages || !Array.isArray(messages)) {
-      return new Response(JSON.stringify({ error: "messages é obrigatório" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const { messages: userMessages } = await req.json();
+    if (!Array.isArray(userMessages)) {
+      return new Response(JSON.stringify({ error: "messages é obrigatório" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    if (!Deno.env.get("LOVABLE_API_KEY")) throw new Error("LOVABLE_API_KEY não configurada");
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY não configurada");
+    const lastUser = [...userMessages].reverse().find((m: any) => m.role === "user");
+    const kbContext = lastUser?.content && typeof lastUser.content === "string" && lastUser.content.length > 5
+      ? await buscarKB(lastUser.content) : "";
 
-    // Pré-busca semântica na Base de Conhecimento usando a última mensagem do usuário
-    const lastUser = [...messages].reverse().find((m: any) => m.role === "user");
-    let kbContext = "";
-    if (lastUser?.content && typeof lastUser.content === "string" && lastUser.content.length > 5) {
-      kbContext = await buscarKB(lastUser.content, SUPABASE_URL, SERVICE_ROLE);
-    }
+    const messages: any[] = [
+      { role: "system", content: SYSTEM_PROMPT + kbContext },
+      ...userMessages,
+    ];
 
-    const systemContent = SYSTEM_PROMPT + kbContext;
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [{ role: "system", content: systemContent }, ...messages],
-        stream: true,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns instantes." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    // Loop de tool-calling (não-stream) até o modelo decidir responder
+    for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+      const resp = await callAI({ model: MODEL, messages, tools: toolDefinitions, tool_choice: "auto" });
+      if (!resp.ok) {
+        if (resp.status === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns instantes." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (resp.status === 402) return new Response(JSON.stringify({ error: "Créditos de IA insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        const t = await resp.text();
+        console.error("AI gateway error:", resp.status, t);
+        return new Response(JSON.stringify({ error: "Erro no serviço de IA" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos insuficientes para IA." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      const data = await resp.json();
+      const choice = data?.choices?.[0];
+      const msg = choice?.message;
+      if (!msg) break;
+
+      const toolCalls = msg.tool_calls;
+      if (toolCalls?.length) {
+        // Anexa a resposta do assistente com tool_calls e executa cada tool
+        messages.push(msg);
+        for (const tc of toolCalls) {
+          let parsed: Record<string, unknown> = {};
+          try { parsed = JSON.parse(tc.function?.arguments || "{}"); } catch { parsed = {}; }
+          console.log(`[duda] tool: ${tc.function?.name}`, parsed);
+          const result = await executeTool(tc.function?.name, parsed);
+          messages.push({
+            role: "tool",
+            tool_call_id: tc.id,
+            content: JSON.stringify(result).slice(0, 12000),
+          });
+        }
+        continue; // chama o modelo de novo com os resultados
       }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      return new Response(JSON.stringify({ error: "Erro no serviço de IA" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+
+      // Sem mais tool calls: faz a chamada final em STREAM para o cliente
+      break;
     }
 
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-    });
+    // Chamada final em streaming
+    const finalResp = await callAI({ model: MODEL, messages, stream: true });
+    if (!finalResp.ok || !finalResp.body) {
+      const t = await finalResp.text().catch(() => "");
+      console.error("AI final stream error:", finalResp.status, t);
+      return new Response(JSON.stringify({ error: "Erro ao gerar resposta final" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    return new Response(finalResp.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
   } catch (e) {
     console.error("chat-duda error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
