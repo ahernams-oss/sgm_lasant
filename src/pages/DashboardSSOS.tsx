@@ -225,6 +225,59 @@ export default function DashboardSSOS() {
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [osFiltradas]);
 
+  // === Orçamentos ===
+  const orcStartDate = useMemo(() => {
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (orcPeriodo === "dia") return d;
+    if (orcPeriodo === "semana") { const r = new Date(d); r.setDate(d.getDate() - 7); return r; }
+    if (orcPeriodo === "quinzena") { const r = new Date(d); r.setDate(d.getDate() - 15); return r; }
+    if (orcPeriodo === "mes") { const r = new Date(d); r.setDate(d.getDate() - 30); return r; }
+    return null;
+  }, [orcPeriodo]);
+
+  const orcamentosFiltrados = useMemo(() => {
+    return orcamentos.filter(o => {
+      const d = parseDate(o.dataCriacao || o.createdAt);
+      if (!inRange(d)) return false;
+      if (orcStartDate && d && d < orcStartDate) return false;
+      if (clienteFilter !== "todos" && o.clienteId !== clienteFilter) return false;
+      return true;
+    });
+  }, [orcamentos, dateFrom, dateTo, clienteFilter, orcStartDate]);
+
+  const orcTotalQtd = orcamentosFiltrados.length;
+  const orcValorTotal = orcamentosFiltrados.reduce((s, o) => s + (Number(o.valorTotal) || 0), 0);
+  const orcTicketMedio = orcTotalQtd > 0 ? orcValorTotal / orcTotalQtd : 0;
+  const fmtBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  const rankingOrcUsuarios = useMemo(() => {
+    const map: Record<string, { usuario: string; qtd: number; valor: number }> = {};
+    orcamentosFiltrados.forEach(o => {
+      const u = o.criadoPor || "Não informado";
+      if (!map[u]) map[u] = { usuario: u, qtd: 0, valor: 0 };
+      map[u].qtd += 1;
+      map[u].valor += Number(o.valorTotal) || 0;
+    });
+    return Object.values(map);
+  }, [orcamentosFiltrados]);
+
+  const rankingOrcUsuariosQtd = useMemo(() =>
+    [...rankingOrcUsuarios].sort((a, b) => b.qtd - a.qtd || b.valor - a.valor).slice(0, 10), [rankingOrcUsuarios]);
+  const rankingOrcUsuariosValor = useMemo(() =>
+    [...rankingOrcUsuarios].sort((a, b) => b.valor - a.valor || b.qtd - a.qtd).slice(0, 10), [rankingOrcUsuarios]);
+
+  const rankingOrcClientes = useMemo(() => {
+    const map: Record<string, { cliente: string; qtd: number; valor: number }> = {};
+    orcamentosFiltrados.forEach(o => {
+      const c = o.clienteNome || "Sem cliente";
+      if (!map[c]) map[c] = { cliente: c, qtd: 0, valor: 0 };
+      map[c].qtd += 1;
+      map[c].valor += Number(o.valorTotal) || 0;
+    });
+    return Object.values(map).sort((a, b) => b.valor - a.valor || b.qtd - a.qtd).slice(0, 10);
+  }, [orcamentosFiltrados]);
+
   // === Clientes para filtro ===
   const clientesAtivos = useMemo(() => {
     const ids = new Set<string>();
