@@ -444,8 +444,7 @@ export default function CotacaoComprasPage() {
   };
 
   const getTelefoneFornecedor = (forn: any): string => {
-    if (!forn) return "";
-    return forn.telefonesWhatsapp || forn.telefoneCelular || forn.celulares || (Array.isArray(forn.telefones) ? forn.telefones[0] : "") || "";
+    return forn?.telefonesWhatsapp || "";
   };
 
   const handleSelectFornecedorEnviar = (fornId: string) => {
