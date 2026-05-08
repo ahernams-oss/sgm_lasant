@@ -38,6 +38,8 @@ export interface Orcamento {
   revisaoMotivo: string;
   aprovadoPor: string;
   dataAprovacao: string;
+  criadoPor: string;
+  dataCriacao: string;
   createdAt: string;
 }
 
