@@ -1075,8 +1075,16 @@ const ProcessoSeletivoPage = () => {
                                   return;
                                 }
 
-                                // Encontra cargoId pelo nome
-                                const cargoId = requisicao?.cargoNome || "";
+                                // Recupera dados da requisição/processo seletivo
+                                const cargoId = requisicao?.cargoId || requisicao?.cargoNome || "";
+                                const salario = requisicao?.salarioVaga || "";
+                                // Converte dataContratacao (dd/mm/yyyy) para yyyy-mm-dd
+                                const toIsoDate = (br?: string) => {
+                                  if (!br) return new Date().toISOString().slice(0, 10);
+                                  const m = br.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+                                  return m ? `${m[3]}-${m[2]}-${m[1]}` : new Date().toISOString().slice(0, 10);
+                                };
+                                const dataAdmissao = toIsoDate(c.dataContratacao);
 
                                 addFuncionario({
                                   ...({} as any),
@@ -1089,9 +1097,9 @@ const ProcessoSeletivoPage = () => {
                                   nomeMae: "", nomePai: "", pcd: false, tipoPcd: "",
                                   cep: "", logradouro: "", numero: "", complemento: "",
                                   bairro: "", cidade: "", uf: "",
-                                  clienteId: requisicao?.unidade || "", dataAdmissao: new Date().toISOString().slice(0, 10),
-                                  dataDemissao: "", tipoContrato: "CLT", salario: "",
-                                  jornadaTrabalho: "", ctps: "", serieCtps: "", pis: "",
+                                  clienteId: requisicao?.unidade || "", dataAdmissao,
+                                  dataDemissao: "", tipoContrato: "CLT", salario,
+                                  jornadaTrabalho: requisicao?.jornada || "", ctps: "", serieCtps: "", pis: "",
                                   banco: c.dadosBancarios?.banco || "", agencia: c.dadosBancarios?.agencia || "",
                                   conta: c.dadosBancarios?.conta || "", tipoConta: "Corrente", chavePix: "",
                                   tituloEleitor: "", zonaEleitoral: "", secaoEleitoral: "",
