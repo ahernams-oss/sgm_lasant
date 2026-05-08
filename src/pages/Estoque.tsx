@@ -25,7 +25,7 @@ import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTable
 import type { ReactNode } from "react";
 
 export default function EstoquePage() {
-  const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, criarInventario, atualizarInventario, fecharInventario } = useEstoque();
+  const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, getSaldoPorLocal, transferirEntreLocais, criarInventario, atualizarInventario, fecharInventario } = useEstoque();
   const { materiais } = useMateriaisServicos();
   const { usuarioLogado } = useAuth();
   const { clientes } = useClientes();
