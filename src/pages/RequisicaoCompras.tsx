@@ -454,7 +454,7 @@ export default function RequisicaoComprasPage() {
                       </Select>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label>Quantidade *</Label>
                       <Input type="number" min="0" step="0.01" value={itemQtd} onChange={e => setItemQtd(e.target.value)} />
@@ -465,6 +465,7 @@ export default function RequisicaoComprasPage() {
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>{["UN","M","M²","M³","KG","L","CX","PCT","SC","GL","HR","VB","JG","PR","RL","TB","FD","BD","CJ","DZ"].map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
                       </Select>
+                    </div>
                   </div>
                   <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
                     <div>
