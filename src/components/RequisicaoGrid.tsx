@@ -337,7 +337,7 @@ const RequisicaoGrid = () => {
                               </DropdownMenuItem>
                             )}
                             {req.status !== "Reprovada" && (
-                              <DropdownMenuItem onClick={() => handleStatusChange(req, "Reprovada")}>
+                              <DropdownMenuItem onClick={() => { setReprovandoReq(req); setJustificativaReprovacao(""); }}>
                                 <XCircle className="mr-2 h-4 w-4 text-red-600" /> Reprovar
                               </DropdownMenuItem>
                             )}
