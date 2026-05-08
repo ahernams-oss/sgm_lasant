@@ -150,6 +150,17 @@ export default function RequisicaoComprasPage() {
 
   const resetItemForm = () => {
     setItemMaterialId(""); setItemDescricao(""); setItemEspec(""); setItemObs(""); setItemQtd(""); setItemUnidade("UN"); setItemFabricanteId("");
+    setItemAnexo(null);
+    if (itemAnexoInputRef.current) itemAnexoInputRef.current.value = "";
+  };
+
+  const handleItemAnexoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { toast({ title: `${file.name} excede 2MB`, variant: "destructive" }); e.target.value = ""; return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => setItemAnexo({ nome: file.name, tipo: file.type, base64: ev.target?.result as string });
+    reader.readAsDataURL(file);
   };
 
   const addItem = () => {
@@ -158,6 +169,7 @@ export default function RequisicaoComprasPage() {
     setItens(prev => [...prev, {
       id: crypto.randomUUID(), materialId: itemMaterialId, descricao: itemDescricao,
       especificacaoTecnica: itemEspec, observacao: itemObs, quantidade: Number(itemQtd), unidadeMedida: itemUnidade,
+      anexo: itemAnexo,
     }]);
     resetItemForm();
   };
