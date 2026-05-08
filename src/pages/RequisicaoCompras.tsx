@@ -498,6 +498,7 @@ export default function RequisicaoComprasPage() {
                       <TableHead>Especificação</TableHead>
                       <TableHead>Qtd</TableHead>
                       <TableHead>Un</TableHead>
+                      <TableHead>Anexo</TableHead>
                       <TableHead className="w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -508,6 +509,13 @@ export default function RequisicaoComprasPage() {
                         <TableCell className="text-muted-foreground text-xs">{item.especificacaoTecnica || "-"}</TableCell>
                         <TableCell>{item.quantidade}</TableCell>
                         <TableCell>{item.unidadeMedida}</TableCell>
+                        <TableCell className="text-xs">
+                          {item.anexo ? (
+                            <a href={item.anexo.base64} download={item.anexo.nome} className="text-primary hover:underline inline-flex items-center gap-1">
+                              <FileText className="h-3 w-3" />{item.anexo.nome}
+                            </a>
+                          ) : "-"}
+                        </TableCell>
                         <TableCell><Button variant="ghost" size="icon" onClick={() => removeItem(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
                       </TableRow>
                     ))}
