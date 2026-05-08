@@ -574,11 +574,36 @@ const RequisicaoGrid = () => {
                       </Badge>
                       <p className="text-xs text-muted-foreground tabular-nums">{h.dataHora}</p>
                       {h.usuario && <p className="text-xs text-muted-foreground">por {h.usuario}</p>}
+                      {h.observacao && <p className="text-xs text-foreground mt-1 italic">"{h.observacao}"</p>}
                     </div>
                   </div>
                 ))}
               </div>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!reprovandoReq} onOpenChange={(open) => { if (!open) { setReprovandoReq(null); setJustificativaReprovacao(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reprovar Requisição #{reprovandoReq?.numero}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <label className="field-label">Justificativa da reprovação <span className="text-red-600">*</span></label>
+            <Textarea
+              value={justificativaReprovacao}
+              onChange={(e) => setJustificativaReprovacao(e.target.value)}
+              placeholder="Descreva o motivo da reprovação..."
+              rows={5}
+              autoFocus
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => { setReprovandoReq(null); setJustificativaReprovacao(""); }}>Cancelar</Button>
+            <Button variant="destructive" onClick={confirmarReprovacao}>
+              <XCircle className="mr-2 h-4 w-4" /> Confirmar Reprovação
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
