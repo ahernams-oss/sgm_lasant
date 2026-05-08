@@ -26,7 +26,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText, CheckSquare } from "lucide-react";
+import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText, CheckSquare, MessageCircle } from "lucide-react";
+import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Checkbox } from "@/components/ui/checkbox";
 import { downloadPdfCotacao } from "@/lib/gerarPdfCotacao";
 import { downloadPdfPedidoCotacaoTodos } from "@/lib/gerarPdfPedidoCotacao";
@@ -153,6 +154,7 @@ export default function CotacaoComprasPage() {
   const [enviarCotacaoId, setEnviarCotacaoId] = useState("");
   const [enviarFornecedorId, setEnviarFornecedorId] = useState("");
   const [enviarEmail, setEnviarEmail] = useState("");
+  const [enviarTelefone, setEnviarTelefone] = useState("");
   const [enviarLoading, setEnviarLoading] = useState(false);
   const [linkGerado, setLinkGerado] = useState("");
   const [linksGeradosTodos, setLinksGeradosTodos] = useState<Array<{ fornecedorNome: string; link: string; erro?: string }>>([]);
@@ -441,10 +443,16 @@ export default function CotacaoComprasPage() {
     setEnviarDialogOpen(true);
   };
 
+  const getTelefoneFornecedor = (forn: any): string => {
+    if (!forn) return "";
+    return forn.telefonesWhatsapp || forn.telefoneCelular || forn.celulares || (Array.isArray(forn.telefones) ? forn.telefones[0] : "") || "";
+  };
+
   const handleSelectFornecedorEnviar = (fornId: string) => {
     setEnviarFornecedorId(fornId);
     const forn = fornecedores.find(f => f.id === fornId);
     setEnviarEmail(forn?.emailCompras || forn?.email || "");
+    setEnviarTelefone(getTelefoneFornecedor(forn));
     setLinkGerado("");
   };
 
@@ -551,9 +559,12 @@ export default function CotacaoComprasPage() {
   };
 
   // Gerar + enviar individual em um clique
+  const montarMensagemWhatsapp = (fornNome: string, cotNum: number, link: string, comprador: string, nomeEmpresa: string) =>
+    `Olá *${fornNome}*,\n\n${nomeEmpresa} convida sua empresa a participar da cotação *#${cotNum}*.\n\nPara enviar sua proposta de preços, acesse o link abaixo:\n${link}\n\nAtenciosamente,\n${comprador}\n${nomeEmpresa}`;
+
   const handleGerarEEnviarIndividual = async () => {
     if (!enviarFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
-    if (!enviarEmail) { toast({ title: "Informe o e-mail do fornecedor", variant: "destructive" }); return; }
+    if (!enviarEmail && !enviarTelefone) { toast({ title: "Informe e-mail ou telefone do fornecedor", variant: "destructive" }); return; }
     setEnviarLoading(true);
     try {
       const cot = cotacoes.find(c => c.id === enviarCotacaoId);
@@ -580,17 +591,27 @@ export default function CotacaoComprasPage() {
       const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
       const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
 
-      const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "cotacao-confirmation",
-          recipientEmail: enviarEmail,
-          idempotencyKey: `cotacao-${cot.id}-${forn.id}`,
-          templateData: { fornecedorNome: forn.nome, cotacaoNumero: cot.numero, comprador, link, nomeEmpresa },
-        },
-      });
-      if (emailErr) throw emailErr;
+      const canais: string[] = [];
+      if (enviarEmail) {
+        const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "cotacao-confirmation",
+            recipientEmail: enviarEmail,
+            idempotencyKey: `cotacao-${cot.id}-${forn.id}`,
+            templateData: { fornecedorNome: forn.nome, cotacaoNumero: cot.numero, comprador, link, nomeEmpresa },
+          },
+        });
+        if (emailErr) throw emailErr;
+        canais.push("e-mail");
+      }
+      if (enviarTelefone) {
+        const msg = montarMensagemWhatsapp(forn.nome, cot.numero, link, comprador, nomeEmpresa);
+        const r = await enviarWhatsApp(enviarTelefone, msg);
+        if (r.success) canais.push("WhatsApp");
+        else toast({ title: "Falha no envio do WhatsApp", description: r.error, variant: "destructive" });
+      }
 
-      toast({ title: `Cotação enviada para ${forn.nome}!`, description: enviarEmail });
+      toast({ title: `Cotação enviada para ${forn.nome}!`, description: `Canais: ${canais.join(" + ") || "nenhum"}` });
       setEnviarDialogOpen(false);
     } catch (e: any) {
       console.error(e);
@@ -600,7 +621,7 @@ export default function CotacaoComprasPage() {
     }
   };
 
-  // Gerar + enviar para todos em um clique
+  // Gerar + enviar para todos em um clique (e-mail + WhatsApp)
   const handleGerarEEnviarTodos = async () => {
     setEnviarTodosLoading(true);
     setLinksGeradosTodos([]);
@@ -622,10 +643,12 @@ export default function CotacaoComprasPage() {
       const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
 
       const results: Array<{ fornecedorNome: string; link: string; erro?: string }> = [];
-      let enviados = 0;
+      let enviadosEmail = 0;
+      let enviadosWpp = 0;
 
       for (const forn of fornecedores) {
         const emailForn = forn.emailCompras || forn.email || "";
+        const telForn = getTelefoneFornecedor(forn);
         try {
           let token: string;
           const existing = existingMap.get(forn.id);
@@ -643,28 +666,42 @@ export default function CotacaoComprasPage() {
           }
           const link = `${window.location.origin}/cotacao/proposta/${token}`;
 
-          if (!emailForn) {
-            results.push({ fornecedorNome: forn.nome, link, erro: "Sem e-mail cadastrado" });
+          if (!emailForn && !telForn) {
+            results.push({ fornecedorNome: forn.nome, link, erro: "Sem e-mail nem telefone cadastrados" });
             continue;
           }
 
-          await supabase.functions.invoke("send-transactional-email", {
-            body: {
-              templateName: "cotacao-confirmation",
-              recipientEmail: emailForn,
-              idempotencyKey: `cotacao-${cot.id}-${forn.id}`,
-              templateData: { fornecedorNome: forn.nome, cotacaoNumero: cot.numero, comprador, link, nomeEmpresa },
-            },
-          });
-          enviados++;
-          results.push({ fornecedorNome: forn.nome, link });
+          const canais: string[] = [];
+
+          if (emailForn) {
+            try {
+              await supabase.functions.invoke("send-transactional-email", {
+                body: {
+                  templateName: "cotacao-confirmation",
+                  recipientEmail: emailForn,
+                  idempotencyKey: `cotacao-${cot.id}-${forn.id}`,
+                  templateData: { fornecedorNome: forn.nome, cotacaoNumero: cot.numero, comprador, link, nomeEmpresa },
+                },
+              });
+              enviadosEmail++;
+              canais.push("e-mail");
+            } catch { /* ignore individual */ }
+          }
+
+          if (telForn) {
+            const msg = montarMensagemWhatsapp(forn.nome, cot.numero, link, comprador, nomeEmpresa);
+            const r = await enviarWhatsApp(telForn, msg);
+            if (r.success) { enviadosWpp++; canais.push("WhatsApp"); }
+          }
+
+          results.push({ fornecedorNome: forn.nome, link, erro: canais.length === 0 ? "Falha em todos os canais" : undefined });
         } catch (e: any) {
           results.push({ fornecedorNome: forn.nome, link: "", erro: e.message });
         }
       }
 
       setLinksGeradosTodos(results);
-      toast({ title: `Cotação enviada para ${enviados} de ${fornecedores.length} fornecedores` });
+      toast({ title: `Envios concluídos`, description: `${enviadosEmail} e-mail(s) e ${enviadosWpp} WhatsApp(s) enviados` });
     } catch (e: any) {
       toast({ title: "Erro ao enviar cotações", description: e.message, variant: "destructive" });
     } finally {
@@ -1595,7 +1632,7 @@ export default function CotacaoComprasPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">Enviar para todos os fornecedores</p>
-                    <p className="text-xs text-muted-foreground">{fornecedores.length} fornecedores cadastrados — link gerado e e-mail disparado automaticamente</p>
+                    <p className="text-xs text-muted-foreground">{fornecedores.length} fornecedores cadastrados — envio automático por e-mail e WhatsApp</p>
                   </div>
                   <Button onClick={handleGerarEEnviarTodos} disabled={enviarTodosLoading || fornecedores.length === 0}>
                     <Send className="mr-2 h-4 w-4" />
@@ -1663,20 +1700,31 @@ export default function CotacaoComprasPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label>E-mail do Fornecedor</Label>
-                  <Input
-                    type="email"
-                    value={enviarEmail}
-                    onChange={e => setEnviarEmail(e.target.value)}
-                    placeholder="email@fornecedor.com"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente do cadastro. Ajuste se necessário.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label>E-mail do Fornecedor</Label>
+                    <Input
+                      type="email"
+                      value={enviarEmail}
+                      onChange={e => setEnviarEmail(e.target.value)}
+                      placeholder="email@fornecedor.com"
+                    />
+                  </div>
+                  <div>
+                    <Label>WhatsApp do Fornecedor</Label>
+                    <Input
+                      type="tel"
+                      value={enviarTelefone}
+                      onChange={e => setEnviarTelefone(e.target.value)}
+                      placeholder="(11) 91234-5678"
+                    />
+                  </div>
                 </div>
+                <p className="text-xs text-muted-foreground -mt-2">Preenchidos automaticamente do cadastro. Ajuste se necessário. O envio ocorre nos canais preenchidos.</p>
 
-                <Button onClick={handleGerarEEnviarIndividual} disabled={enviarLoading || !enviarFornecedorId || !enviarEmail} className="w-full">
+                <Button onClick={handleGerarEEnviarIndividual} disabled={enviarLoading || !enviarFornecedorId || (!enviarEmail && !enviarTelefone)} className="w-full">
                   <Send className="mr-2 h-4 w-4" />
-                  {enviarLoading ? "Enviando..." : "Enviar Cotação por E-mail"}
+                  {enviarLoading ? "Enviando..." : `Enviar Cotação${enviarEmail && enviarTelefone ? " por E-mail + WhatsApp" : enviarEmail ? " por E-mail" : enviarTelefone ? " por WhatsApp" : ""}`}
                 </Button>
               </>
             )}
