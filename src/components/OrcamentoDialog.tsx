@@ -200,6 +200,8 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       await updateOrcamento(existingOrcamento.id, payload);
       toast({ title: "Orçamento atualizado" });
     } else {
+      payload.criado_por = usuarioLogado?.nome || "";
+      payload.data_criacao = new Date().toISOString();
       await addOrcamento(payload);
       toast({ title: "Orçamento criado com sucesso" });
     }
