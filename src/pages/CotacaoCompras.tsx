@@ -689,7 +689,7 @@ export default function CotacaoComprasPage() {
             } catch { /* ignore individual */ }
           }
 
-          if (telForn) {
+          if (canalWhatsapp && telForn) {
             const msg = montarMensagemWhatsapp(forn.nome, cot.numero, link, comprador, nomeEmpresa);
             const r = await enviarWhatsApp(telForn, msg);
             if (r.success) { enviadosWpp++; canais.push("WhatsApp"); }
