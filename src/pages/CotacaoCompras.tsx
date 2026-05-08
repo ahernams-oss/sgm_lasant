@@ -1674,36 +1674,10 @@ export default function CotacaoComprasPage() {
                   <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente do cadastro. Ajuste se necessário.</p>
                 </div>
 
-                {!linkGerado && (
-                  <Button onClick={handleGerarLink} disabled={enviarLoading || !enviarFornecedorId} className="w-full">
-                    <Link2 className="mr-2 h-4 w-4" />
-                    {enviarLoading ? "Gerando..." : "Gerar Link do Formulário"}
-                  </Button>
-                )}
-
-                {linkGerado && (
-                  <div className="space-y-3">
-                    <div className="bg-muted p-3 rounded-lg">
-                      <Label className="text-xs text-muted-foreground">Link gerado:</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Input value={linkGerado} readOnly className="text-xs font-mono" />
-                        <Button variant="outline" size="icon" onClick={() => handleCopyLink()} title="Copiar link">
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      O fornecedor pode acessar este link para preencher seus preços. 
-                      Quando ele enviar a proposta, ela aparecerá automaticamente aqui.
-                    </p>
-                    {enviarEmail && (
-                      <Button onClick={handleEnviarEmailIndividual} disabled={enviarEmailLoading} className="w-full">
-                        <Mail className="mr-2 h-4 w-4" />
-                        {enviarEmailLoading ? "Enviando..." : `Enviar Link por E-mail para ${enviarEmail}`}
-                      </Button>
-                    )}
-                  </div>
-                )}
+                <Button onClick={handleGerarEEnviarIndividual} disabled={enviarLoading || !enviarFornecedorId || !enviarEmail} className="w-full">
+                  <Send className="mr-2 h-4 w-4" />
+                  {enviarLoading ? "Enviando..." : "Enviar Cotação por E-mail"}
+                </Button>
               </>
             )}
           </div>
