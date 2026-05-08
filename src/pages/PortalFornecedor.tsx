@@ -12,6 +12,7 @@ import { LogOut, FileText, ShoppingCart, AlertCircle, Building2, FileDown, FileS
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import logoLasant from "@/assets/Logo_Lasant.png";
 
 const STORAGE_KEY = "fornecedorPortalLogado";
 
