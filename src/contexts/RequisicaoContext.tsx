@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 import { enviarNotificacaoRP } from "@/lib/notificacaoRP";
 
-export interface StatusHistorico { status: string; dataHora: string; usuario?: string; }
+export interface StatusHistorico { status: string; dataHora: string; usuario?: string; observacao?: string; }
 
 export interface Requisicao {
   id: string; numero: number; dataCriacao: string;
