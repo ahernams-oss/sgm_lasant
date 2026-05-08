@@ -67,6 +67,7 @@ interface EstoqueContextType {
   getSaldoPorMaterial: (materialId: string) => number;
   getSaldoPorLocal: (materialId: string, local: string) => number;
   getLotesFIFO: (materialId: string, local: string) => LoteFIFO[];
+  transferirEntreLocais: (data: { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number; localOrigem: string; localDestino: string; usuario: string; observacao?: string }) => Promise<void>;
   criarInventario: (data: Omit<Inventario, "id" | "dataInventario" | "status">) => Promise<void>;
   atualizarInventario: (id: string, itens: ItemInventario[], observacao: string) => Promise<void>;
   fecharInventario: (id: string, usuario: string) => Promise<void>;
