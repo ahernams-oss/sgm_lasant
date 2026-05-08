@@ -1896,6 +1896,7 @@ export type Database = {
           tamanho_calcado: string | null
           tamanho_camisa: string | null
           telefone: string | null
+          telefone_whatsapp: string
           tipo_conta: string | null
           tipo_contrato: string | null
           tipo_pcd: string | null
@@ -1962,6 +1963,7 @@ export type Database = {
           tamanho_calcado?: string | null
           tamanho_camisa?: string | null
           telefone?: string | null
+          telefone_whatsapp?: string
           tipo_conta?: string | null
           tipo_contrato?: string | null
           tipo_pcd?: string | null
@@ -2028,6 +2030,7 @@ export type Database = {
           tamanho_calcado?: string | null
           tamanho_camisa?: string | null
           telefone?: string | null
+          telefone_whatsapp?: string
           tipo_conta?: string | null
           tipo_contrato?: string | null
           tipo_pcd?: string | null

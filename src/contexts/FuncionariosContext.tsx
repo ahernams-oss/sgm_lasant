@@ -17,7 +17,7 @@ export const grausParentesco = ["Cônjuge", "Filho(a)", "Pai", "Mãe", "Irmão(�
 export interface Funcionario {
   id: string; nome: string; cpf: string; rg: string; orgaoEmissor: string;
   dataNascimento: string; sexo: string; estadoCivil: string; nacionalidade: string;
-  naturalidade: string; nomeMae: string; nomePai: string; telefone: string; email: string;
+  naturalidade: string; nomeMae: string; nomePai: string; telefone: string; telefoneWhatsapp: string; email: string;
   pcd: boolean; tipoPcd: string; cep: string; logradouro: string; numero: string;
   complemento: string; bairro: string; cidade: string; uf: string;
   cargoId: string; clienteId: string; dataAdmissao: string; dataDemissao: string;
@@ -38,7 +38,7 @@ export interface Funcionario {
 export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   nome: "", cpf: "", rg: "", orgaoEmissor: "", dataNascimento: "", sexo: "",
   estadoCivil: "", nacionalidade: "Brasileira", naturalidade: "", nomeMae: "", nomePai: "",
-  telefone: "+55 ", email: "", pcd: false, tipoPcd: "",
+  telefone: "+55 ", telefoneWhatsapp: "+55 ", email: "", pcd: false, tipoPcd: "",
   cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "",
   cargoId: "", clienteId: "", dataAdmissao: "", dataDemissao: "", tipoContrato: "CLT",
   salario: "", jornadaTrabalho: "", ctps: "", serieCtps: "", pis: "",
@@ -60,7 +60,7 @@ function rowToFuncionario(row: any): Funcionario {
     sexo: row.sexo ?? "", estadoCivil: row.estado_civil ?? "",
     nacionalidade: row.nacionalidade ?? "Brasileira", naturalidade: row.naturalidade ?? "",
     nomeMae: row.nome_mae ?? "", nomePai: row.nome_pai ?? "",
-    telefone: row.telefone ?? "+55 ", email: row.email ?? "",
+    telefone: row.telefone ?? "+55 ", telefoneWhatsapp: row.telefone_whatsapp ?? "+55 ", email: row.email ?? "",
     pcd: row.pcd ?? false, tipoPcd: row.tipo_pcd ?? "",
     cep: row.cep ?? "", logradouro: row.logradouro ?? "", numero: row.numero ?? "",
     complemento: row.complemento ?? "", bairro: row.bairro ?? "",
@@ -95,7 +95,7 @@ function funcionarioToRow(f: Omit<Funcionario, "id">) {
     nome: f.nome, cpf: f.cpf, rg: f.rg, orgao_emissor: f.orgaoEmissor,
     data_nascimento: f.dataNascimento, sexo: f.sexo, estado_civil: f.estadoCivil,
     nacionalidade: f.nacionalidade, naturalidade: f.naturalidade,
-    nome_mae: f.nomeMae, nome_pai: f.nomePai, telefone: f.telefone, email: f.email,
+    nome_mae: f.nomeMae, nome_pai: f.nomePai, telefone: f.telefone, telefone_whatsapp: f.telefoneWhatsapp, email: f.email,
     pcd: f.pcd, tipo_pcd: f.tipoPcd, cep: f.cep, logradouro: f.logradouro,
     numero: f.numero, complemento: f.complemento, bairro: f.bairro,
     cidade: f.cidade, uf: f.uf, cargo_id: f.cargoId, cliente_id: f.clienteId,
