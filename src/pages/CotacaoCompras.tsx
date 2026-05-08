@@ -674,7 +674,7 @@ export default function CotacaoComprasPage() {
 
           const canais: string[] = [];
 
-          if (emailForn) {
+          if (canalEmail && emailForn) {
             try {
               await supabase.functions.invoke("send-transactional-email", {
                 body: {
