@@ -1630,6 +1630,24 @@ export default function CotacaoComprasPage() {
             <DialogDescription>Gere o link para um fornecedor específico ou para todos de uma vez.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Seleção de canais de envio */}
+            {linksGeradosTodos.length === 0 && (
+              <div className="border rounded-lg p-3 bg-muted/30">
+                <p className="text-sm font-medium mb-2">Canais de envio</p>
+                <div className="flex items-center gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox checked={canalEmail} onCheckedChange={v => setCanalEmail(!!v)} />
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">E-mail</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox checked={canalWhatsapp} onCheckedChange={v => setCanalWhatsapp(!!v)} />
+                    <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">WhatsApp</span>
+                  </label>
+                </div>
+              </div>
+            )}
             {/* Enviar para todos */}
             {linksGeradosTodos.length === 0 && !linkGerado && (
               <div className="border border-dashed rounded-lg p-4 space-y-3">
