@@ -362,12 +362,19 @@ export default function EstoquePage() {
     toast({ title: "Inventário fechado e ajustes aplicados" });
   };
 
+  const podeTransferir = tem("estoque.transferir_locais");
+
   const openTransferDialog = () => {
+    if (!podeTransferir) {
+      toast({ title: "Sem permissão", description: "Seu perfil não tem permissão para transferir entre locais.", variant: "destructive" });
+      return;
+    }
     setTransferMaterialId("");
     setTransferOrigem("");
     setTransferDestino("");
     setTransferQuantidade("");
     setTransferObs("");
+    setTransferSenha("");
     setTransferDialogOpen(true);
   };
 
