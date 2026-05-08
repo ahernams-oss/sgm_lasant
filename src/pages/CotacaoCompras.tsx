@@ -605,7 +605,7 @@ export default function CotacaoComprasPage() {
         if (emailErr) throw emailErr;
         canais.push("e-mail");
       }
-      if (enviarTelefone) {
+      if (canalWhatsapp && enviarTelefone) {
         const msg = montarMensagemWhatsapp(forn.nome, cot.numero, link, comprador, nomeEmpresa);
         const r = await enviarWhatsApp(enviarTelefone, msg);
         if (r.success) canais.push("WhatsApp");
