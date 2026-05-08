@@ -461,10 +461,7 @@ export default function RequisicaoComprasPage() {
                     </div>
                     <div>
                       <Label>Unidade</Label>
-                      <Select value={itemUnidade} onValueChange={setItemUnidade}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>{["UN","M","M²","M³","KG","L","CX","PCT","SC","GL","HR","VB","JG","PR","RL","TB","FD","BD","CJ","DZ"].map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
-                      </Select>
+                      <Input value={itemUnidade} readOnly disabled className="bg-muted" />
                     </div>
                   </div>
                   <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
