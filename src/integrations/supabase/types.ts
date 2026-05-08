@@ -4921,6 +4921,104 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_campanhas: {
+        Row: {
+          agendado_para: string | null
+          ativo: boolean
+          created_at: string
+          dias_semana: number[] | null
+          hora_envio: string | null
+          id: string
+          mensagem: string
+          modo: string
+          nome: string
+          proximo_envio: string | null
+          recorrencia: string | null
+          total_destinatarios: number
+          total_erro: number
+          total_sucesso: number
+          ultimo_envio_em: string | null
+          updated_at: string
+        }
+        Insert: {
+          agendado_para?: string | null
+          ativo?: boolean
+          created_at?: string
+          dias_semana?: number[] | null
+          hora_envio?: string | null
+          id?: string
+          mensagem: string
+          modo?: string
+          nome: string
+          proximo_envio?: string | null
+          recorrencia?: string | null
+          total_destinatarios?: number
+          total_erro?: number
+          total_sucesso?: number
+          ultimo_envio_em?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agendado_para?: string | null
+          ativo?: boolean
+          created_at?: string
+          dias_semana?: number[] | null
+          hora_envio?: string | null
+          id?: string
+          mensagem?: string
+          modo?: string
+          nome?: string
+          proximo_envio?: string | null
+          recorrencia?: string | null
+          total_destinatarios?: number
+          total_erro?: number
+          total_sucesso?: number
+          ultimo_envio_em?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      whatsapp_envios: {
+        Row: {
+          campanha_id: string | null
+          enviado_em: string
+          erro: string | null
+          funcionario_id: string | null
+          funcionario_nome: string | null
+          id: string
+          sucesso: boolean
+          telefone: string | null
+        }
+        Insert: {
+          campanha_id?: string | null
+          enviado_em?: string
+          erro?: string | null
+          funcionario_id?: string | null
+          funcionario_nome?: string | null
+          id?: string
+          sucesso?: boolean
+          telefone?: string | null
+        }
+        Update: {
+          campanha_id?: string | null
+          enviado_em?: string
+          erro?: string | null
+          funcionario_id?: string | null
+          funcionario_nome?: string | null
+          id?: string
+          sucesso?: boolean
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_envios_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_campanhas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
