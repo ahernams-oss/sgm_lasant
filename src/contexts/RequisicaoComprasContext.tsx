@@ -8,9 +8,11 @@ export type StatusRequisicaoCompras =
 
 export type GrauUrgencia = "Baixa" | "Normal" | "Alta" | "Urgente";
 
+export interface AnexoItemRequisicao { nome: string; tipo: string; base64: string; }
 export interface ItemRequisicaoCompras {
   id: string; materialId: string; descricao: string; especificacaoTecnica: string;
   observacao: string; quantidade: number; unidadeMedida: string;
+  anexo?: AnexoItemRequisicao | null;
 }
 export interface HistoricoStatusCompras { status: StatusRequisicaoCompras; dataHora: string; usuario: string; observacao: string; }
 export interface AnexoRequisicaoCompras { id: string; nome: string; tipo: string; base64: string; }

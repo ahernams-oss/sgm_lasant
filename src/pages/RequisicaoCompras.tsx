@@ -95,6 +95,8 @@ export default function RequisicaoComprasPage() {
   const [itemQtd, setItemQtd] = useState("");
   const [itemUnidade, setItemUnidade] = useState("UN");
   const [itemFabricanteId, setItemFabricanteId] = useState("");
+  const [itemAnexo, setItemAnexo] = useState<{ nome: string; tipo: string; base64: string } | null>(null);
+  const itemAnexoInputRef = useRef<HTMLInputElement>(null);
 
   const clientesLista = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
 
@@ -148,6 +150,17 @@ export default function RequisicaoComprasPage() {
 
   const resetItemForm = () => {
     setItemMaterialId(""); setItemDescricao(""); setItemEspec(""); setItemObs(""); setItemQtd(""); setItemUnidade("UN"); setItemFabricanteId("");
+    setItemAnexo(null);
+    if (itemAnexoInputRef.current) itemAnexoInputRef.current.value = "";
+  };
+
+  const handleItemAnexoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { toast({ title: `${file.name} excede 2MB`, variant: "destructive" }); e.target.value = ""; return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => setItemAnexo({ nome: file.name, tipo: file.type, base64: ev.target?.result as string });
+    reader.readAsDataURL(file);
   };
 
   const addItem = () => {
@@ -156,6 +169,7 @@ export default function RequisicaoComprasPage() {
     setItens(prev => [...prev, {
       id: crypto.randomUUID(), materialId: itemMaterialId, descricao: itemDescricao,
       especificacaoTecnica: itemEspec, observacao: itemObs, quantidade: Number(itemQtd), unidadeMedida: itemUnidade,
+      anexo: itemAnexo,
     }]);
     resetItemForm();
   };
@@ -440,7 +454,7 @@ export default function RequisicaoComprasPage() {
                       </Select>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label>Quantidade *</Label>
                       <Input type="number" min="0" step="0.01" value={itemQtd} onChange={e => setItemQtd(e.target.value)} />
@@ -452,9 +466,26 @@ export default function RequisicaoComprasPage() {
                         <SelectContent>{["UN","M","M²","M³","KG","L","CX","PCT","SC","GL","HR","VB","JG","PR","RL","TB","FD","BD","CJ","DZ"].map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
-                    <div className="flex items-end">
-                      <Button onClick={addItem} className="w-full"><Plus className="mr-2 h-4 w-4" />Adicionar</Button>
+                  </div>
+                  <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
+                    <div>
+                      <Label>Anexo do Item</Label>
+                      <div className="flex items-center gap-2">
+                        <Button type="button" variant="outline" onClick={() => itemAnexoInputRef.current?.click()} className="shrink-0">
+                          <Paperclip className="mr-2 h-4 w-4" />{itemAnexo ? "Trocar arquivo" : "Anexar arquivo"}
+                        </Button>
+                        <input ref={itemAnexoInputRef} type="file" className="hidden" onChange={handleItemAnexoChange} />
+                        {itemAnexo && (
+                          <div className="flex items-center gap-1 text-sm border rounded px-2 py-1 flex-1 min-w-0">
+                            <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            <span className="truncate">{itemAnexo.nome}</span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => { setItemAnexo(null); if (itemAnexoInputRef.current) itemAnexoInputRef.current.value = ""; }}><X className="h-3 w-3" /></Button>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Máx. 2MB por arquivo (opcional)</p>
                     </div>
+                    <Button onClick={addItem}><Plus className="mr-2 h-4 w-4" />Adicionar</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -467,6 +498,7 @@ export default function RequisicaoComprasPage() {
                       <TableHead>Especificação</TableHead>
                       <TableHead>Qtd</TableHead>
                       <TableHead>Un</TableHead>
+                      <TableHead>Anexo</TableHead>
                       <TableHead className="w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -477,6 +509,13 @@ export default function RequisicaoComprasPage() {
                         <TableCell className="text-muted-foreground text-xs">{item.especificacaoTecnica || "-"}</TableCell>
                         <TableCell>{item.quantidade}</TableCell>
                         <TableCell>{item.unidadeMedida}</TableCell>
+                        <TableCell className="text-xs">
+                          {item.anexo ? (
+                            <a href={item.anexo.base64} download={item.anexo.nome} className="text-primary hover:underline inline-flex items-center gap-1">
+                              <FileText className="h-3 w-3" />{item.anexo.nome}
+                            </a>
+                          ) : "-"}
+                        </TableCell>
                         <TableCell><Button variant="ghost" size="icon" onClick={() => removeItem(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
                       </TableRow>
                     ))}
@@ -533,7 +572,7 @@ export default function RequisicaoComprasPage() {
               <div>
                 <span className="font-medium text-muted-foreground text-sm">Itens ({viewReq.itens.length})</span>
                 <Table>
-                  <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Especificação</TableHead><TableHead>Obs</TableHead><TableHead>Qtd</TableHead><TableHead>Un</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Especificação</TableHead><TableHead>Obs</TableHead><TableHead>Qtd</TableHead><TableHead>Un</TableHead><TableHead>Anexo</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {viewReq.itens.map(i => (
                       <TableRow key={i.id}>
@@ -542,6 +581,13 @@ export default function RequisicaoComprasPage() {
                         <TableCell className="text-xs">{i.observacao || "-"}</TableCell>
                         <TableCell>{i.quantidade}</TableCell>
                         <TableCell>{i.unidadeMedida}</TableCell>
+                        <TableCell className="text-xs">
+                          {i.anexo ? (
+                            <a href={i.anexo.base64} download={i.anexo.nome} className="text-primary hover:underline inline-flex items-center gap-1">
+                              <FileText className="h-3 w-3" />{i.anexo.nome}
+                            </a>
+                          ) : "-"}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
