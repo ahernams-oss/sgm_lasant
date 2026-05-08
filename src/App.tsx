@@ -30,6 +30,7 @@ import PedidoCompraPage from "./pages/PedidoCompra.tsx";
 import InteligenciaComprasPage from "./pages/InteligenciaCompras.tsx";
 import AssinarLotePcPage from "./pages/AssinarLotePc.tsx";
 import PropostaFornecedorPage from "./pages/PropostaFornecedor.tsx";
+import PortalFornecedorPage from "./pages/PortalFornecedor.tsx";
 import RecebimentoComprasPage from "./pages/RecebimentoCompras.tsx";
 import EstoquePage from "./pages/Estoque.tsx";
 import RelatoriosEstoquePage from "./pages/RelatoriosEstoque.tsx";
@@ -339,6 +340,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/cotacao/proposta/:token" element={<PropostaFornecedorPage />} />
+          <Route path="/portal-fornecedor" element={<PortalFornecedorPage />} />
           <Route path="/unsubscribe" element={<UnsubscribePage />} />
           <Route path="/verificar-assinatura" element={<VerificarAssinaturaPage />} />
           <Route path="/verificar-assinatura/:codigo" element={<VerificarAssinaturaPage />} />
