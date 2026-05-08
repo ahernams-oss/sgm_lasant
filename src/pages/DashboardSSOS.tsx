@@ -119,10 +119,21 @@ export default function DashboardSSOS() {
 
   // === KPIs SS ===
   const ssTotal = ssFiltradas.length;
-  const ssAguardando = ssFiltradas.filter(s => s.situacao === "Aguardando aprovação").length;
-  const ssAprovadas = ssFiltradas.filter(s => s.situacao === "Aprovada").length;
-  const ssConcluidas = ssFiltradas.filter(s => s.situacao === "Concluída").length;
-  const ssCanceladas = ssFiltradas.filter(s => s.situacao === "Cancelada").length;
+  const SS_STATUS_LIST: { label: string; key: string; icon: any; idx: number }[] = [
+    { label: "Aguardando", key: "Aguardando aprovação", icon: Clock, idx: 2 },
+    { label: "Aprovadas", key: "Aprovada", icon: CheckCircle2, idx: 1 },
+    { label: "Reprovadas", key: "Reprovada", icon: X, idx: 3 },
+    { label: "Orç. Solicitado", key: "Orçamento Solicitado", icon: Calculator, idx: 5 },
+    { label: "Orç. Disponível", key: "Orçamento Disponível", icon: DollarSign, idx: 5 },
+    { label: "Em Execução", key: "Em execução", icon: Activity, idx: 0 },
+    { label: "Concluídas", key: "Concluída", icon: CheckCircle2, idx: 4 },
+    { label: "Canceladas", key: "Cancelada", icon: X, idx: 3 },
+  ];
+  const ssCountByStatus = (key: string) => ssFiltradas.filter(s => s.situacao === key).length;
+  const ssAguardando = ssCountByStatus("Aguardando aprovação");
+  const ssAprovadas = ssCountByStatus("Aprovada");
+  const ssConcluidas = ssCountByStatus("Concluída");
+  const ssCanceladas = ssCountByStatus("Cancelada");
 
   // === KPIs OS ===
   const osTotal = osFiltradas.length;
