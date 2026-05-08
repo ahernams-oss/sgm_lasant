@@ -26,6 +26,7 @@ export interface LancamentoMedicao {
   percentual_total: number;
   status: string;
   observacao: string;
+  anexos?: { nome: string; path: string; tamanho: number }[];
 }
 
 export interface MedicaoServico {
