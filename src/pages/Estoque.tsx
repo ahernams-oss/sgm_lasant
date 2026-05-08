@@ -127,6 +127,8 @@ export default function EstoquePage() {
   const [transferDestino, setTransferDestino] = useState("");
   const [transferQuantidade, setTransferQuantidade] = useState("");
   const [transferObs, setTransferObs] = useState("");
+  const [transferSenha, setTransferSenha] = useState("");
+  const [transferLoading, setTransferLoading] = useState(false);
 
   const locais = useMemo(() => {
     const locs = new Set<string>();
