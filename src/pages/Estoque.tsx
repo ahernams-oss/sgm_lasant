@@ -391,6 +391,9 @@ export default function EstoquePage() {
   }, [transferMaterialId, transferOrigem, getSaldoPorLocal]);
 
   const handleTransferSave = async () => {
+    if (!podeTransferir) {
+      toast({ title: "Sem permissão para transferir", variant: "destructive" }); return;
+    }
     if (!transferMaterialId || !transferOrigem || !transferDestino || !transferQuantidade) {
       toast({ title: "Preencha Material, Origem, Destino e Quantidade", variant: "destructive" }); return;
     }
@@ -399,18 +402,29 @@ export default function EstoquePage() {
     }
     const qty = Number(transferQuantidade);
     if (qty <= 0) { toast({ title: "Quantidade deve ser maior que zero", variant: "destructive" }); return; }
+    if (!transferSenha) { toast({ title: "Informe sua senha para autorizar a transferência", variant: "destructive" }); return; }
     const mat = materiais.find(m => m.id === transferMaterialId);
     if (!mat) return;
+    setTransferLoading(true);
     try {
+      const ok = await verificarSenhaUsuario(usuarioLogado?.email || "", transferSenha);
+      if (!ok) {
+        toast({ title: "Senha incorreta", variant: "destructive" });
+        setTransferLoading(false);
+        return;
+      }
       await transferirEntreLocais({
         materialId: mat.id, materialCodigo: mat.codigo, materialDescricao: mat.descricao,
         quantidade: qty, localOrigem: transferOrigem, localDestino: transferDestino,
-        usuario: usuarioLogado?.nome || "", observacao: transferObs,
+        usuario: usuarioLogado?.nome || "",
+        observacao: transferObs ? `${transferObs} (autorizado por ${usuarioLogado?.nome || ""})` : `Autorizado por ${usuarioLogado?.nome || ""}`,
       });
       toast({ title: "Transferência realizada com sucesso" });
       setTransferDialogOpen(false);
     } catch (e: any) {
       toast({ title: e?.message || "Erro ao transferir", variant: "destructive" });
+    } finally {
+      setTransferLoading(false);
     }
   };
 
