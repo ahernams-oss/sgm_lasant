@@ -69,6 +69,8 @@ const rowToOrcamento = (r: any): Orcamento => ({
   revisaoMotivo: r.revisao_motivo ?? "",
   aprovadoPor: r.aprovado_por ?? "",
   dataAprovacao: r.data_aprovacao ?? "",
+  criadoPor: r.criado_por ?? "",
+  dataCriacao: r.data_criacao ?? r.created_at ?? "",
   createdAt: r.created_at ?? "",
 });
 
