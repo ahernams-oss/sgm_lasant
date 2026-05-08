@@ -407,8 +407,16 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
 
           <TabsContent value="pedidos">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
                 <CardTitle className="text-base">Pedidos de Compra emitidos</CardTitle>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={exportPedidosExcel} disabled={pedidos.length === 0}>
+                    <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={exportPedidosPdf} disabled={pedidos.length === 0}>
+                    <FileDown className="h-4 w-4 mr-1" /> PDF
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {loading ? (
