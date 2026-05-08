@@ -446,9 +446,14 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               <p className="text-xs text-muted-foreground">{session.nome}</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={onLogout}>
-            <LogOut className="h-4 w-4 mr-2" /> Sair
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setTrocaOpen(true)}>
+              <KeyRound className="h-4 w-4 mr-2" /> Trocar senha
+            </Button>
+            <Button variant="outline" size="sm" onClick={onLogout}>
+              <LogOut className="h-4 w-4 mr-2" /> Sair
+            </Button>
+          </div>
         </div>
       </header>
 
