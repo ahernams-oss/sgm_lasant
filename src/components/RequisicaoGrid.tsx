@@ -63,6 +63,8 @@ const RequisicaoGrid = () => {
   const [filterDataAte, setFilterDataAte] = useState<string>("");
   const [editingReq, setEditingReq] = useState<Requisicao | null>(null);
   const [historicoReq, setHistoricoReq] = useState<Requisicao | null>(null);
+  const [reprovandoReq, setReprovandoReq] = useState<Requisicao | null>(null);
+  const [justificativaReprovacao, setJustificativaReprovacao] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(7);
   const [editForm, setEditForm] = useState({
@@ -143,14 +145,14 @@ const RequisicaoGrid = () => {
   const formacaoOptions = ["Ensino Fundamental", "Ensino Médio", "Ensino Superior", "Curso Técnico", "Outros"];
   const experienciaOptions = ["Não Necessita", "Até 1 ano", "De 1 a 3 anos", "De 3 a 5 anos", "Acima de 5 anos"];
 
-  const handleStatusChange = (req: Requisicao, newStatus: Requisicao["status"]) => {
+  const handleStatusChange = (req: Requisicao, newStatus: Requisicao["status"], observacao?: string) => {
     const nomeAprovador = (newStatus === "Aprovada" || newStatus === "Reprovada") ? usuarioLogado?.nome : undefined;
-    updateStatus(req.id, newStatus, nomeAprovador);
+    updateStatus(req.id, newStatus, nomeAprovador, observacao);
 
     // Encontrar o cliente pela unidade e enviar WhatsApp
     const cliente = clientes.find((c) => c.nome === req.unidade);
     if (cliente && cliente.telefones.length > 0) {
-      const mensagem = `A requisição de contratação do cargo "${req.cargoNome}" para o "${req.unidade}" encontra-se com status de "${newStatus}".`;
+      const mensagem = `A requisição de contratação do cargo "${req.cargoNome}" para o "${req.unidade}" encontra-se com status de "${newStatus}".${observacao ? `\n\nJustificativa: ${observacao}` : ""}`;
       for (const tel of cliente.telefones) {
         enviarWhatsApp(tel, mensagem).then((result) => {
           if (result.success) {
@@ -161,6 +163,19 @@ const RequisicaoGrid = () => {
         });
       }
     }
+  };
+
+  const confirmarReprovacao = () => {
+    if (!reprovandoReq) return;
+    const just = justificativaReprovacao.trim();
+    if (!just) {
+      toast.error("Informe a justificativa da reprovação.");
+      return;
+    }
+    handleStatusChange(reprovandoReq, "Reprovada", just);
+    setReprovandoReq(null);
+    setJustificativaReprovacao("");
+    toast.success("Requisição reprovada.");
   };
 
   const parseDataBR = (d: string): Date | null => {
@@ -322,7 +337,7 @@ const RequisicaoGrid = () => {
                               </DropdownMenuItem>
                             )}
                             {req.status !== "Reprovada" && (
-                              <DropdownMenuItem onClick={() => handleStatusChange(req, "Reprovada")}>
+                              <DropdownMenuItem onClick={() => { setReprovandoReq(req); setJustificativaReprovacao(""); }}>
                                 <XCircle className="mr-2 h-4 w-4 text-red-600" /> Reprovar
                               </DropdownMenuItem>
                             )}
@@ -559,11 +574,36 @@ const RequisicaoGrid = () => {
                       </Badge>
                       <p className="text-xs text-muted-foreground tabular-nums">{h.dataHora}</p>
                       {h.usuario && <p className="text-xs text-muted-foreground">por {h.usuario}</p>}
+                      {h.observacao && <p className="text-xs text-foreground mt-1 italic">"{h.observacao}"</p>}
                     </div>
                   </div>
                 ))}
               </div>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!reprovandoReq} onOpenChange={(open) => { if (!open) { setReprovandoReq(null); setJustificativaReprovacao(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reprovar Requisição #{reprovandoReq?.numero}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <label className="field-label">Justificativa da reprovação <span className="text-red-600">*</span></label>
+            <Textarea
+              value={justificativaReprovacao}
+              onChange={(e) => setJustificativaReprovacao(e.target.value)}
+              placeholder="Descreva o motivo da reprovação..."
+              rows={5}
+              autoFocus
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => { setReprovandoReq(null); setJustificativaReprovacao(""); }}>Cancelar</Button>
+            <Button variant="destructive" onClick={confirmarReprovacao}>
+              <XCircle className="mr-2 h-4 w-4" /> Confirmar Reprovação
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

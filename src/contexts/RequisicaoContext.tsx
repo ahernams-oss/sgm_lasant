@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 import { enviarNotificacaoRP } from "@/lib/notificacaoRP";
 
-export interface StatusHistorico { status: string; dataHora: string; usuario?: string; }
+export interface StatusHistorico { status: string; dataHora: string; usuario?: string; observacao?: string; }
 
 export interface Requisicao {
   id: string; numero: number; dataCriacao: string;
@@ -23,7 +23,7 @@ interface RequisicaoContextType {
   requisicoes: Requisicao[];
   addRequisicao: (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor" | "historicoStatus">) => void;
   updateRequisicao: (id: string, data: Partial<Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor" | "historicoStatus">>) => void;
-  updateStatus: (id: string, status: Requisicao["status"], aprovadoPor?: string) => void;
+  updateStatus: (id: string, status: Requisicao["status"], aprovadoPor?: string, observacao?: string) => void;
 }
 
 const RequisicaoContext = createContext<RequisicaoContextType | undefined>(undefined);
@@ -106,13 +106,13 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
     await load();
   };
 
-  const updateStatus = async (id: string, status: Requisicao["status"], aprovadoPor?: string) => {
+  const updateStatus = async (id: string, status: Requisicao["status"], aprovadoPor?: string, observacao?: string) => {
     const current = requisicoes.find(r => r.id === id);
     if (!current) return;
     const agora = new Date().toLocaleString("pt-BR");
     const updated = {
       ...current, status, aprovadoPor: aprovadoPor || current.aprovadoPor,
-      historicoStatus: [...(current.historicoStatus || []), { status, dataHora: agora, usuario: aprovadoPor }],
+      historicoStatus: [...(current.historicoStatus || []), { status, dataHora: agora, usuario: aprovadoPor, observacao }],
     };
     await updateRow("requisicoes", id, reqToRow(updated));
     await load();
@@ -123,6 +123,7 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
       `Cargo: ${current.cargoNome || "-"}\n` +
       `Status: ${status}\n` +
       (aprovadoPor ? `Por: ${aprovadoPor}\n` : "") +
+      (observacao ? `Justificativa: ${observacao}\n` : "") +
       `Data: ${agora}`;
     await enviarNotificacaoRP({ mensagem: msg, solicitante: current.solicitante });
   };
