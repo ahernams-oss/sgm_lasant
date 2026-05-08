@@ -97,8 +97,8 @@ function LoginScreen({ onLogin }: { onLogin: (s: FornecedorSession) => void }) {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
       <Card className="max-w-md w-full">
         <CardHeader className="text-center">
-          <Building2 className="h-12 w-12 text-primary mx-auto mb-2" />
-          <CardTitle>Portal do Fornecedor</CardTitle>
+          <img src={logoLasant} alt="Lasant Construções" className="h-16 mx-auto mb-3 object-contain" />
+          <CardTitle>Portal de fornecedores Lasant Construções</CardTitle>
           <CardDescription>Acesse suas cotações e pedidos de compra</CardDescription>
         </CardHeader>
         <CardContent>
