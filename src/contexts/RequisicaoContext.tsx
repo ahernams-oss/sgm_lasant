@@ -23,7 +23,7 @@ interface RequisicaoContextType {
   requisicoes: Requisicao[];
   addRequisicao: (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor" | "historicoStatus">) => void;
   updateRequisicao: (id: string, data: Partial<Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "aprovadoPor" | "historicoStatus">>) => void;
-  updateStatus: (id: string, status: Requisicao["status"], aprovadoPor?: string) => void;
+  updateStatus: (id: string, status: Requisicao["status"], aprovadoPor?: string, observacao?: string) => void;
 }
 
 const RequisicaoContext = createContext<RequisicaoContextType | undefined>(undefined);
