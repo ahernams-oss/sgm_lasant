@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, ArrowDownCircle, ArrowUpCircle, AlertTriangle, ClipboardList, Package, Warehouse, TrendingDown, ChevronsUpDown, Check, Pencil } from "lucide-react";
+import { Plus, Search, ArrowDownCircle, ArrowUpCircle, AlertTriangle, ClipboardList, Package, Warehouse, TrendingDown, ChevronsUpDown, Check, Pencil, ArrowLeftRight } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
@@ -25,7 +25,7 @@ import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTable
 import type { ReactNode } from "react";
 
 export default function EstoquePage() {
-  const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, criarInventario, atualizarInventario, fecharInventario } = useEstoque();
+  const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, getSaldoPorLocal, transferirEntreLocais, criarInventario, atualizarInventario, fecharInventario } = useEstoque();
   const { materiais } = useMateriaisServicos();
   const { usuarioLogado } = useAuth();
   const { clientes } = useClientes();
@@ -118,6 +118,15 @@ export default function EstoquePage() {
   const [minDialogOpen, setMinDialogOpen] = useState(false);
   const [minMaterialId, setMinMaterialId] = useState("");
   const [minValue, setMinValue] = useState("");
+
+  // Transferência dialog
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [transferMaterialId, setTransferMaterialId] = useState("");
+  const [transferMaterialPopoverOpen, setTransferMaterialPopoverOpen] = useState(false);
+  const [transferOrigem, setTransferOrigem] = useState("");
+  const [transferDestino, setTransferDestino] = useState("");
+  const [transferQuantidade, setTransferQuantidade] = useState("");
+  const [transferObs, setTransferObs] = useState("");
 
   const locais = useMemo(() => {
     const locs = new Set<string>();
@@ -348,6 +357,51 @@ export default function EstoquePage() {
     toast({ title: "Inventário fechado e ajustes aplicados" });
   };
 
+  const openTransferDialog = () => {
+    setTransferMaterialId("");
+    setTransferOrigem("");
+    setTransferDestino("");
+    setTransferQuantidade("");
+    setTransferObs("");
+    setTransferDialogOpen(true);
+  };
+
+  const transferLocaisOrigem = useMemo(() => {
+    if (!transferMaterialId) return [];
+    const locs = new Set<string>();
+    movimentacoes.filter(m => m.materialId === transferMaterialId).forEach(m => { if (m.local) locs.add(m.local); });
+    return Array.from(locs).filter(l => getSaldoPorLocal(transferMaterialId, l) > 0).sort();
+  }, [movimentacoes, transferMaterialId, getSaldoPorLocal]);
+
+  const transferSaldoOrigem = useMemo(() => {
+    if (!transferMaterialId || !transferOrigem) return 0;
+    return getSaldoPorLocal(transferMaterialId, transferOrigem);
+  }, [transferMaterialId, transferOrigem, getSaldoPorLocal]);
+
+  const handleTransferSave = async () => {
+    if (!transferMaterialId || !transferOrigem || !transferDestino || !transferQuantidade) {
+      toast({ title: "Preencha Material, Origem, Destino e Quantidade", variant: "destructive" }); return;
+    }
+    if (transferOrigem === transferDestino) {
+      toast({ title: "Origem e destino devem ser diferentes", variant: "destructive" }); return;
+    }
+    const qty = Number(transferQuantidade);
+    if (qty <= 0) { toast({ title: "Quantidade deve ser maior que zero", variant: "destructive" }); return; }
+    const mat = materiais.find(m => m.id === transferMaterialId);
+    if (!mat) return;
+    try {
+      await transferirEntreLocais({
+        materialId: mat.id, materialCodigo: mat.codigo, materialDescricao: mat.descricao,
+        quantidade: qty, localOrigem: transferOrigem, localDestino: transferDestino,
+        usuario: usuarioLogado?.nome || "", observacao: transferObs,
+      });
+      toast({ title: "Transferência realizada com sucesso" });
+      setTransferDialogOpen(false);
+    } catch (e: any) {
+      toast({ title: e?.message || "Erro ao transferir", variant: "destructive" });
+    }
+  };
+
   const tipoColor = (tipo: string) => {
     if (tipo === "entrada") return "bg-emerald-500/10 text-emerald-700 border-emerald-200";
     if (tipo === "saida") return "bg-red-500/10 text-red-700 border-red-200";
@@ -364,6 +418,9 @@ export default function EstoquePage() {
           </Button>
           <Button variant="outline" onClick={() => openMovDialog("saida")}>
             <ArrowUpCircle className="mr-2 h-4 w-4 text-red-600" />Saída
+          </Button>
+          <Button variant="outline" onClick={openTransferDialog}>
+            <ArrowLeftRight className="mr-2 h-4 w-4 text-blue-600" />Transferir
           </Button>
           <Button onClick={openInvDialog}>
             <ClipboardList className="mr-2 h-4 w-4" />Inventário
@@ -707,6 +764,77 @@ export default function EstoquePage() {
             <div><Label>Observação Geral</Label><Input value={invObs} onChange={e => setInvObs(e.target.value)} /></div>
           </div>
           <DialogFooter><Button onClick={handleInvSave}>{editInvId ? "Salvar Alterações" : "Criar Inventário"}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Transferência */}
+      <Dialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle><ArrowLeftRight className="inline mr-2 h-5 w-5 text-blue-600" />Transferir entre Locais</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Material *</Label>
+              <Popover open={transferMaterialPopoverOpen} onOpenChange={setTransferMaterialPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-10">
+                    {transferMaterialId
+                      ? (() => { const m = materiais.find(m => m.id === transferMaterialId); return m ? `${m.codigo} - ${m.descricao}` : "Selecione..."; })()
+                      : "Selecione..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar material/serviço..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum material encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {materiais.map(m => (
+                          <CommandItem key={m.id} value={`${m.codigo} ${m.descricao}`}
+                            onSelect={() => { setTransferMaterialId(m.id); setTransferOrigem(""); setTransferMaterialPopoverOpen(false); }}>
+                            <Check className={cn("mr-2 h-4 w-4", transferMaterialId === m.id ? "opacity-100" : "opacity-0")} />
+                            {m.codigo} - {m.descricao}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Local de Origem *</Label>
+                <Select value={transferOrigem} onValueChange={setTransferOrigem} disabled={!transferMaterialId}>
+                  <SelectTrigger><SelectValue placeholder={transferMaterialId ? "Selecione..." : "Selecione o material primeiro"} /></SelectTrigger>
+                  <SelectContent>
+                    {transferLocaisOrigem.length === 0 ? (
+                      <div className="p-2 text-xs text-muted-foreground">Nenhum local com saldo</div>
+                    ) : transferLocaisOrigem.map(l => (
+                      <SelectItem key={l} value={l}>{l} ({getSaldoPorLocal(transferMaterialId, l)})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Local de Destino *</Label>
+                <Select value={transferDestino} onValueChange={setTransferDestino}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    {locais.filter(l => l !== transferOrigem).map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>Quantidade * {transferOrigem && <span className="text-xs text-muted-foreground ml-2">Disponível: {transferSaldoOrigem}</span>}</Label>
+              <Input type="number" min="1" max={transferSaldoOrigem || undefined} value={transferQuantidade} onChange={e => setTransferQuantidade(e.target.value)} />
+            </div>
+            <div><Label>Observação</Label><Input value={transferObs} onChange={e => setTransferObs(e.target.value)} placeholder="Motivo da transferência..." /></div>
+          </div>
+          <DialogFooter><Button onClick={handleTransferSave}>Transferir</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
