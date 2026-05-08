@@ -175,6 +175,12 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     return "Pendente";
   };
 
+  const parseItens = (raw: any): any[] => {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    try { const p = JSON.parse(raw); return Array.isArray(p) ? p : []; } catch { return []; }
+  };
+
   const exportCotacoesPdf = () => {
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
@@ -198,20 +204,71 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       headStyles: { fillColor: [30, 58, 107], textColor: 255 },
       alternateRowStyles: { fillColor: [245, 247, 250] },
     });
+
+    // Detalhamento dos itens por cotação
+    convites.forEach((c) => {
+      const itens = parseItens(c.itens);
+      if (itens.length === 0) return;
+      doc.addPage();
+      doc.setFillColor(30, 58, 107);
+      doc.rect(0, 0, pw, 18, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(11); doc.setFont("helvetica", "bold");
+      doc.text(`Itens — COT-${String(c.cotacao_numero).padStart(4, "0")}`, 14, 11);
+      doc.setTextColor(30, 30, 30);
+      doc.setFontSize(8); doc.setFont("helvetica", "normal");
+      doc.text(`Comprador: ${c.comprador}    |    Status: ${statusCotacao(c)}    |    Validade: ${fmtDate(c.expires_at)}`, 14, 24);
+      autoTable(doc, {
+        startY: 30,
+        head: [["#", "Descrição", "Qtd", "Unidade"]],
+        body: itens.map((it: any, i: number) => [
+          i + 1,
+          it.descricao || "-",
+          Number(it.quantidade || 0),
+          it.unidadeMedida || it.unidade || "-",
+        ]),
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [30, 58, 107], textColor: 255 },
+        alternateRowStyles: { fillColor: [245, 247, 250] },
+        columnStyles: { 0: { cellWidth: 12, halign: "center" }, 2: { halign: "center", cellWidth: 20 }, 3: { halign: "center", cellWidth: 24 } },
+      });
+    });
+
     doc.save(`cotacoes_${session.nome.replace(/\s+/g, "_")}.pdf`);
   };
 
   const exportCotacoesExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(convites.map((c) => ({
+    const wb = XLSX.utils.book_new();
+    const wsResumo = XLSX.utils.json_to_sheet(convites.map((c) => ({
       "Cotação": `COT-${String(c.cotacao_numero).padStart(4, "0")}`,
       "Comprador": c.comprador,
       "Recebida em": fmtDate(c.created_at),
       "Validade": fmtDate(c.expires_at),
       "Status": statusCotacao(c),
+      "Qtd Itens": parseItens(c.itens).length,
     })));
-    ws["!cols"] = [{ wch: 14 }, { wch: 30 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Cotações");
+    wsResumo["!cols"] = [{ wch: 14 }, { wch: 30 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 10 }];
+    XLSX.utils.book_append_sheet(wb, wsResumo, "Cotações");
+
+    const linhas: any[] = [];
+    convites.forEach((c) => {
+      parseItens(c.itens).forEach((it: any, i: number) => {
+        linhas.push({
+          "Cotação": `COT-${String(c.cotacao_numero).padStart(4, "0")}`,
+          "Comprador": c.comprador,
+          "Status": statusCotacao(c),
+          "#": i + 1,
+          "Descrição": it.descricao || "",
+          "Quantidade": Number(it.quantidade || 0),
+          "Unidade": it.unidadeMedida || it.unidade || "",
+        });
+      });
+    });
+    if (linhas.length > 0) {
+      const wsItens = XLSX.utils.json_to_sheet(linhas);
+      wsItens["!cols"] = [{ wch: 14 }, { wch: 30 }, { wch: 14 }, { wch: 6 }, { wch: 40 }, { wch: 12 }, { wch: 12 }];
+      XLSX.utils.book_append_sheet(wb, wsItens, "Itens");
+    }
     XLSX.writeFile(wb, `cotacoes_${session.nome.replace(/\s+/g, "_")}.xlsx`);
   };
 
