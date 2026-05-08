@@ -145,14 +145,14 @@ const RequisicaoGrid = () => {
   const formacaoOptions = ["Ensino Fundamental", "Ensino Médio", "Ensino Superior", "Curso Técnico", "Outros"];
   const experienciaOptions = ["Não Necessita", "Até 1 ano", "De 1 a 3 anos", "De 3 a 5 anos", "Acima de 5 anos"];
 
-  const handleStatusChange = (req: Requisicao, newStatus: Requisicao["status"]) => {
+  const handleStatusChange = (req: Requisicao, newStatus: Requisicao["status"], observacao?: string) => {
     const nomeAprovador = (newStatus === "Aprovada" || newStatus === "Reprovada") ? usuarioLogado?.nome : undefined;
-    updateStatus(req.id, newStatus, nomeAprovador);
+    updateStatus(req.id, newStatus, nomeAprovador, observacao);
 
     // Encontrar o cliente pela unidade e enviar WhatsApp
     const cliente = clientes.find((c) => c.nome === req.unidade);
     if (cliente && cliente.telefones.length > 0) {
-      const mensagem = `A requisição de contratação do cargo "${req.cargoNome}" para o "${req.unidade}" encontra-se com status de "${newStatus}".`;
+      const mensagem = `A requisição de contratação do cargo "${req.cargoNome}" para o "${req.unidade}" encontra-se com status de "${newStatus}".${observacao ? `\n\nJustificativa: ${observacao}` : ""}`;
       for (const tel of cliente.telefones) {
         enviarWhatsApp(tel, mensagem).then((result) => {
           if (result.success) {
@@ -163,6 +163,19 @@ const RequisicaoGrid = () => {
         });
       }
     }
+  };
+
+  const confirmarReprovacao = () => {
+    if (!reprovandoReq) return;
+    const just = justificativaReprovacao.trim();
+    if (!just) {
+      toast.error("Informe a justificativa da reprovação.");
+      return;
+    }
+    handleStatusChange(reprovandoReq, "Reprovada", just);
+    setReprovandoReq(null);
+    setJustificativaReprovacao("");
+    toast.success("Requisição reprovada.");
   };
 
   const parseDataBR = (d: string): Date | null => {
