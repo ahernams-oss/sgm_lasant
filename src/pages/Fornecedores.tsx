@@ -380,6 +380,37 @@ const Fornecedores = () => {
         filtrados={filteredFornecedores}
         selecionados={fornecedores.filter(f => selectedIds.includes(f.id))}
       />
+      <Dialog open={!!senhaDialog} onOpenChange={(o) => !o && setSenhaDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Senha do Portal do Fornecedor</DialogTitle>
+            <DialogDescription>
+              Nova senha gerada para <strong>{senhaDialog?.fornecedor.nome}</strong>. Anote, copie ou envie agora — ela não será exibida novamente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">URL de acesso</p>
+              <code className="block bg-muted p-2 rounded text-xs break-all">{portalUrl}</code>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">E-mail (login)</p>
+              <code className="block bg-muted p-2 rounded text-xs">{senhaDialog?.fornecedor.email || "— sem e-mail —"}</code>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Senha</p>
+              <div className="flex gap-2">
+                <code className="flex-1 bg-muted p-2 rounded text-sm font-mono">{senhaDialog?.senha}</code>
+                <Button size="sm" variant="outline" onClick={copiarSenha}><Copy className="h-3.5 w-3.5" /></Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={enviarSenhaEmail}><Mail className="h-4 w-4 mr-2" /> Enviar por E-mail</Button>
+            <Button onClick={enviarSenhaWhatsApp} className="bg-emerald-600 hover:bg-emerald-700"><MessageCircle className="h-4 w-4 mr-2" /> Enviar por WhatsApp</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
