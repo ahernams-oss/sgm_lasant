@@ -419,6 +419,9 @@ export default function EstoquePage() {
           <Button variant="outline" onClick={() => openMovDialog("saida")}>
             <ArrowUpCircle className="mr-2 h-4 w-4 text-red-600" />Saída
           </Button>
+          <Button variant="outline" onClick={openTransferDialog}>
+            <ArrowLeftRight className="mr-2 h-4 w-4 text-blue-600" />Transferir
+          </Button>
           <Button onClick={openInvDialog}>
             <ClipboardList className="mr-2 h-4 w-4" />Inventário
           </Button>
