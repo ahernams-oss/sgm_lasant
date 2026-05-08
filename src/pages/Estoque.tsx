@@ -766,6 +766,77 @@ export default function EstoquePage() {
           <DialogFooter><Button onClick={handleInvSave}>{editInvId ? "Salvar Alterações" : "Criar Inventário"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Transferência */}
+      <Dialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle><ArrowLeftRight className="inline mr-2 h-5 w-5 text-blue-600" />Transferir entre Locais</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Material *</Label>
+              <Popover open={transferMaterialPopoverOpen} onOpenChange={setTransferMaterialPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-10">
+                    {transferMaterialId
+                      ? (() => { const m = materiais.find(m => m.id === transferMaterialId); return m ? `${m.codigo} - ${m.descricao}` : "Selecione..."; })()
+                      : "Selecione..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar material/serviço..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum material encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {materiais.map(m => (
+                          <CommandItem key={m.id} value={`${m.codigo} ${m.descricao}`}
+                            onSelect={() => { setTransferMaterialId(m.id); setTransferOrigem(""); setTransferMaterialPopoverOpen(false); }}>
+                            <Check className={cn("mr-2 h-4 w-4", transferMaterialId === m.id ? "opacity-100" : "opacity-0")} />
+                            {m.codigo} - {m.descricao}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Local de Origem *</Label>
+                <Select value={transferOrigem} onValueChange={setTransferOrigem} disabled={!transferMaterialId}>
+                  <SelectTrigger><SelectValue placeholder={transferMaterialId ? "Selecione..." : "Selecione o material primeiro"} /></SelectTrigger>
+                  <SelectContent>
+                    {transferLocaisOrigem.length === 0 ? (
+                      <div className="p-2 text-xs text-muted-foreground">Nenhum local com saldo</div>
+                    ) : transferLocaisOrigem.map(l => (
+                      <SelectItem key={l} value={l}>{l} ({getSaldoPorLocal(transferMaterialId, l)})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Local de Destino *</Label>
+                <Select value={transferDestino} onValueChange={setTransferDestino}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    {locais.filter(l => l !== transferOrigem).map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>Quantidade * {transferOrigem && <span className="text-xs text-muted-foreground ml-2">Disponível: {transferSaldoOrigem}</span>}</Label>
+              <Input type="number" min="1" max={transferSaldoOrigem || undefined} value={transferQuantidade} onChange={e => setTransferQuantidade(e.target.value)} />
+            </div>
+            <div><Label>Observação</Label><Input value={transferObs} onChange={e => setTransferObs(e.target.value)} placeholder="Motivo da transferência..." /></div>
+          </div>
+          <DialogFooter><Button onClick={handleTransferSave}>Transferir</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
