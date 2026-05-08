@@ -119,6 +119,15 @@ export default function EstoquePage() {
   const [minMaterialId, setMinMaterialId] = useState("");
   const [minValue, setMinValue] = useState("");
 
+  // Transferência dialog
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [transferMaterialId, setTransferMaterialId] = useState("");
+  const [transferMaterialPopoverOpen, setTransferMaterialPopoverOpen] = useState(false);
+  const [transferOrigem, setTransferOrigem] = useState("");
+  const [transferDestino, setTransferDestino] = useState("");
+  const [transferQuantidade, setTransferQuantidade] = useState("");
+  const [transferObs, setTransferObs] = useState("");
+
   const locais = useMemo(() => {
     const locs = new Set<string>();
     clientes.filter(c => c.tipo !== "Fornecedor").forEach(c => {
