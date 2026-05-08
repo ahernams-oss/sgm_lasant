@@ -1632,7 +1632,7 @@ export default function CotacaoComprasPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">Enviar para todos os fornecedores</p>
-                    <p className="text-xs text-muted-foreground">{fornecedores.length} fornecedores cadastrados — link gerado e e-mail disparado automaticamente</p>
+                    <p className="text-xs text-muted-foreground">{fornecedores.length} fornecedores cadastrados — envio automático por e-mail e WhatsApp</p>
                   </div>
                   <Button onClick={handleGerarEEnviarTodos} disabled={enviarTodosLoading || fornecedores.length === 0}>
                     <Send className="mr-2 h-4 w-4" />
