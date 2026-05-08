@@ -332,9 +332,19 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
 
           <TabsContent value="cotacoes">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Cotações recebidas</CardTitle>
-                <CardDescription>Clique em "Responder" para enviar sua proposta.</CardDescription>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle className="text-base">Cotações recebidas</CardTitle>
+                  <CardDescription>Clique em "Responder" para enviar sua proposta.</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={exportCotacoesExcel} disabled={convites.length === 0}>
+                    <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={exportCotacoesPdf} disabled={convites.length === 0}>
+                    <FileDown className="h-4 w-4 mr-1" /> PDF
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {loading ? (
