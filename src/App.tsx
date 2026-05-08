@@ -89,6 +89,7 @@ import { ComunicacaoProvider } from "@/contexts/ComunicacaoContext";
 import ComunicacaoMensagensPage from "./pages/ComunicacaoMensagens";
 import ComunicacaoAvisosPage from "./pages/ComunicacaoAvisos";
 import ComunicacaoNotificacoesPage from "./pages/ComunicacaoNotificacoes";
+import ComunicacaoWhatsappPage from "./pages/ComunicacaoWhatsapp";
 import JuridicoPage from "./pages/Juridico";
 import { ProcessosTrabalhalistasProvider } from "@/contexts/ProcessosTrabalhistas";
 import ChatDudaPage from "./pages/ChatDuda";
@@ -256,6 +257,7 @@ function ProtectedAppRoutes() {
         <Route path="/comunicacao/mensagens" element={<ComunicacaoMensagensPage />} />
         <Route path="/comunicacao/avisos" element={<ComunicacaoAvisosPage />} />
         <Route path="/comunicacao/notificacoes" element={<ComunicacaoNotificacoesPage />} />
+        <Route path="/comunicacao/whatsapp" element={<ComunicacaoWhatsappPage />} />
         <Route path="/juridico" element={<JuridicoPage />} />
         <Route path="/chat-duda" element={<ChatDudaPage />} />
         <Route path="/orcamentos" element={<OrcamentosSco />} />
