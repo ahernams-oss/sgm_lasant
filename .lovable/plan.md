@@ -1,64 +1,64 @@
-## Módulo de Orçamentos SCO (FGV)
+# Tornar a Duda mais inteligente
 
-Construção de um módulo completo para confecção de orçamentos baseado nos catálogos SCO/FGV (Março/2026), com seleção de itens, recuperação automática de preços e geração de relatórios sintéticos e analíticos.
+Você escolheu os 4 eixos de melhoria. Abaixo o plano dividido em fases independentes — podemos executar tudo ou só parte.
 
-### 1. Banco de dados (3 tabelas de catálogo + 1 de orçamentos)
+---
 
-**`sco_elementares`** (≈3.918 itens — FGV04)
-- `codigo` (PK, ex: MAT000050), `descricao`, `unidade`, `grupo` (MAT/MOB/MOD/MOI/EVE/RSE/REQ), `preco`, `referencia` (Mar/2026).
+## Fase 1 — Acesso a dados reais do sistema (maior impacto)
 
-**`sco_servicos`** (≈5.514 itens — FGV06)
-- `codigo` (PK, ex: AD 04.05.0050), `descricao`, `unidade`, `preco`, `capitulo` (ex: AD), `secao`, `subsecao`, `referencia`.
+Hoje a Duda **inventa números** nos relatórios porque só recebe o prompt + base de conhecimento. Vamos dar a ela **ferramentas (tools)** que consultam o Supabase em tempo real via Vercel AI SDK.
 
-**`sco_composicoes`** (≈29.171 linhas — FGV07)
-- `servico_codigo` (FK), `elementar_codigo` (FK), `elementar_descricao`, `unidade`, `quantidade`. Define quanto de cada elementar entra em 1 unidade do serviço.
+**Ferramentas que ela ganhará:**
+- `consultar_rcs` — RCs por status, solicitante, unidade, período
+- `consultar_os` / `consultar_ss` — Ordens e Solicitações de Serviço com filtros
+- `consultar_funcionarios` — quadro ativo, admissões, experiência vencendo
+- `consultar_estoque` — saldo de materiais, itens críticos
+- `consultar_processos_seletivos` — andamento de processos abertos
+- `consultar_pedidos_compra` — POs por status e fornecedor
+- `consultar_licitacoes` — editais com prazo próximo
+- `contar_registros` — totalizadores genéricos por tabela/filtro
 
-**`orcamentos_sco`** (orçamentos do usuário)
-- `numero` (sequencial), `titulo`, `cliente_id` (opcional), `obra_id` (opcional), `tipo_analise` (sintetica/analitica), `bdi` (%), `desconto` (%), `observacoes`, `itens` (JSONB: lista `{servico_codigo, descricao, unidade, quantidade, preco_unit, preco_total}`), `valor_total`, `status`.
+Cada tool valida a entrada (Zod), respeita o cliente vinculado ao usuário (mesma regra de RLS que já usamos) e retorna **dados compactos**. A Duda passa a montar relatórios reais a partir disso.
 
-### 2. Importação dos catálogos
-- **Migração inicial**: cria as 3 tabelas com RLS pública.
-- **Edge Function `import-sco-catalogs`**: recebe os 3 XLSX (base64), faz parse e popula. Acessível pela tela `/orcamentos/importar-catalogo` com botão de upload — permite reimportar quando a FGV publicar nova referência.
-- Carga inicial via script — eu rodo a importação após a migração ser aprovada.
+## Fase 2 — Modelo mais potente
 
-### 3. UI — Novo grupo "Orçamentos" na sidebar
+Migrar `chat-duda` para o **Vercel AI SDK** com Lovable AI Gateway e usar:
+- **Padrão (rápido):** `google/gemini-3-flash-preview` (atual)
+- **Modo "Pensar mais":** `openai/gpt-5.2` ou `google/gemini-3.1-pro-preview`
 
-Páginas:
-- **`/orcamentos`** — Grid listando orçamentos (nº, título, cliente, valor total, BDI, status, ações).
-- **`/orcamentos/novo`** e **`/orcamentos/:id`** — Formulário do orçamento:
-  - Cabeçalho: título, cliente (combobox opcional), obra (opcional), BDI %, desconto %, observações.
-  - **Adicionar item**: combobox de busca em `sco_servicos` (por código ou descrição, com hierarquia capítulo→seção). Ao selecionar, traz unidade e preço unitário. Usuário informa quantidade.
-  - Tabela de itens: código, descrição, un, qtd, preço unit, total, ação.
-  - Totais: subtotal + BDI + desconto = valor total.
-- **`/orcamentos/importar-catalogo`** — Upload dos 3 XLSX para reimportar.
-- **`/orcamentos/catalogo`** — Visualização/busca livre do catálogo SCO (consulta de preços).
+Adicionar um **toggle no chat** ("Resposta rápida" ↔ "Análise aprofundada") para o usuário escolher. Custo só cresce quando o usuário pede.
 
-### 4. Análise Sintética × Analítica
+## Fase 3 — Memória persistente por usuário
 
-- **Sintética**: lista os serviços escolhidos com qtd × preço unitário do serviço.
-- **Analítica**: para cada serviço, expande sua composição (`sco_composicoes`) — mostra cada elementar (material, mão-de-obra, equipamento) com quantidade unitária, quantidade total (qtd serviço × qtd elementar), preço unitário do elementar e subtotal. Soma por serviço e total geral.
+- Nova tabela `duda_conversas` (usuario_email, titulo, criado_em)
+- Nova tabela `duda_mensagens` (conversa_id, role, parts JSONB, criado_em)
+- Sidebar com lista de conversas anteriores + botão "Nova conversa"
+- Ao trocar de conversa, recarrega o histórico completo
 
-Toggle no formulário e nos botões de exportação.
+## Fase 4 — System prompt expandido
 
-### 5. Exportações
-- **PDF Sintético** (`gerarPdfOrcamentoSco.ts`) — layout Lasant azul royal.
-- **PDF Analítico** — adiciona sub-tabela de composição por serviço.
-- **Excel Sintético** e **Excel Analítico** — usando `xlsx` (já no projeto).
+Reescrever o prompt com:
+- Glossário SGM (RCS, OS, SS, RP, RDO, PMOC, SCO, I0, BDI…)
+- Regras de negócio (limites de aprovação, numeração anual NN-YYYY, fluxos)
+- Atalhos por módulo ("para aprovar lote de SS, vá em Engenharia → Aprovar SS em Lote")
+- Padrão de datas `dd/mm/yyyy, hh:mm`
+- Quando usar cada tool
 
-### 6. Permissões e padrões
-- Aplicar padrão Berry (roxo #673ab7), Combobox para busca, paginação 7/10/20/50, DoubleConfirmDelete, datetime `dd/mm/yyyy, hh:mm`.
-- Adicionar módulo "Orçamentos" em PerfisAcesso.
+---
 
-### Detalhes técnicos
-- Parsing XLSX no edge function via `xlsx` (npm/esm).
-- Composição navegada por `servico_codigo` indexado.
-- BDI aplicado sobre subtotal antes do desconto.
-- Numeração de orçamento via trigger anual (padrão SS/OS).
+## Mudanças técnicas resumidas
 
-### Etapas de execução
-1. Criar migração com 3 tabelas catálogo + tabela orçamentos + trigger numeração + RLS.
-2. Eu populo o catálogo após a migração aprovada (via script SQL/Supabase).
-3. Criar Context, edge function de importação, páginas, dialog, geradores PDF/Excel.
-4. Adicionar grupo "Orçamentos" na sidebar e rotas em App.tsx.
+- **Edge function `chat-duda`** reescrita com `streamText` + `tools` (AI SDK) substituindo o `fetch` manual atual
+- **Novo arquivo** `supabase/functions/_shared/ai-gateway.ts` com o provider helper
+- **Novo arquivo** `supabase/functions/chat-duda/tools.ts` com as 8 ferramentas
+- **Migração** criando `duda_conversas` e `duda_mensagens` (RLS público, padrão do projeto)
+- **`src/pages/ChatDuda.tsx`** migrado para `useChat` do `@ai-sdk/react`, renderizando `message.parts` (texto + chamadas de tool em accordion fechado)
+- **Sidebar de conversas** com novo contexto `DudaConversasContext`
 
-Após sua aprovação eu executo tudo de uma vez.
+---
+
+## Como prefere executar?
+
+Posso fazer tudo de uma vez (mudança grande, ~6-8 arquivos novos/editados) **ou** ir por fases. **Recomendo começar pela Fase 1 + Fase 4** — é o que mais melhora a "inteligência percebida" sem mexer na UI. Memória e modelo potente entram depois.
+
+Me diga: **tudo de uma vez**, **só Fase 1+4 agora**, ou **outra ordem**?
