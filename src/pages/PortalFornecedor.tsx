@@ -31,6 +31,7 @@ interface ConviteRow {
   status: string;
   expires_at: string;
   created_at: string;
+  itens: any;
 }
 
 interface PedidoRow {
