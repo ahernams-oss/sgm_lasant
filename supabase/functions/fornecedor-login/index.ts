@@ -64,6 +64,7 @@ Deno.serve(async (req) => {
       nomeFantasia: user.nome_fantasia,
       email: user.email,
       cnpj: user.cnpj,
+      mustChangePassword: user.senha_portal_trocada === false,
     };
 
     return new Response(JSON.stringify({ fornecedor: safe }), {

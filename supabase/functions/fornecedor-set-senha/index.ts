@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
 
     const { error } = await supabase
       .from("clientes")
-      .update({ senha_portal: hash })
+      .update({ senha_portal: hash, senha_portal_trocada: false })
       .eq("id", fornecedorId);
 
     if (error) {

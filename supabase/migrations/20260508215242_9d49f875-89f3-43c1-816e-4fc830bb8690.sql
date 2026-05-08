@@ -1,0 +1,1 @@
+ALTER TABLE public.clientes ADD COLUMN IF NOT EXISTS senha_portal_trocada boolean NOT NULL DEFAULT false;
