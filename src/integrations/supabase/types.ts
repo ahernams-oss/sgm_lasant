@@ -2790,7 +2790,9 @@ export type Database = {
           cliente_id: string
           cliente_nome: string
           created_at: string | null
+          criado_por: string | null
           data_aprovacao: string | null
+          data_criacao: string | null
           id: string
           itens_materiais: Json
           itens_sco: Json
@@ -2808,7 +2810,9 @@ export type Database = {
           cliente_id?: string
           cliente_nome?: string
           created_at?: string | null
+          criado_por?: string | null
           data_aprovacao?: string | null
+          data_criacao?: string | null
           id?: string
           itens_materiais?: Json
           itens_sco?: Json
@@ -2826,7 +2830,9 @@ export type Database = {
           cliente_id?: string
           cliente_nome?: string
           created_at?: string | null
+          criado_por?: string | null
           data_aprovacao?: string | null
+          data_criacao?: string | null
           id?: string
           itens_materiais?: Json
           itens_sco?: Json
