@@ -156,6 +156,8 @@ export default function CotacaoComprasPage() {
   const [enviarEmail, setEnviarEmail] = useState("");
   const [enviarTelefone, setEnviarTelefone] = useState("");
   const [enviarLoading, setEnviarLoading] = useState(false);
+  const [canalEmail, setCanalEmail] = useState(true);
+  const [canalWhatsapp, setCanalWhatsapp] = useState(true);
   const [linkGerado, setLinkGerado] = useState("");
   const [linksGeradosTodos, setLinksGeradosTodos] = useState<Array<{ fornecedorNome: string; link: string; erro?: string }>>([]);
   const [enviarTodosLoading, setEnviarTodosLoading] = useState(false);
