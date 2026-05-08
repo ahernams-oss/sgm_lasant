@@ -535,6 +535,17 @@ const Funcionarios = () => {
                       placeholder="+55 21 99999-9999"
                     />
                   </Field>
+                   <Field label="Telefone WhatsApp">
+                    <Input
+                      value={form.telefoneWhatsapp}
+                      onChange={(e) => {
+                        let v = e.target.value;
+                        if (!v.startsWith("+55 ")) v = "+55 " + v.replace(/^\+55\s?/, "");
+                        update("telefoneWhatsapp", v);
+                      }}
+                      placeholder="+55 21 99999-9999"
+                    />
+                  </Field>
                   <Field label="E-mail">
                     <Input type="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="email@exemplo.com" />
                   </Field>
