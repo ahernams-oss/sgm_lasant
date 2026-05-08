@@ -357,6 +357,51 @@ export default function EstoquePage() {
     toast({ title: "Inventário fechado e ajustes aplicados" });
   };
 
+  const openTransferDialog = () => {
+    setTransferMaterialId("");
+    setTransferOrigem("");
+    setTransferDestino("");
+    setTransferQuantidade("");
+    setTransferObs("");
+    setTransferDialogOpen(true);
+  };
+
+  const transferLocaisOrigem = useMemo(() => {
+    if (!transferMaterialId) return [];
+    const locs = new Set<string>();
+    movimentacoes.filter(m => m.materialId === transferMaterialId).forEach(m => { if (m.local) locs.add(m.local); });
+    return Array.from(locs).filter(l => getSaldoPorLocal(transferMaterialId, l) > 0).sort();
+  }, [movimentacoes, transferMaterialId, getSaldoPorLocal]);
+
+  const transferSaldoOrigem = useMemo(() => {
+    if (!transferMaterialId || !transferOrigem) return 0;
+    return getSaldoPorLocal(transferMaterialId, transferOrigem);
+  }, [transferMaterialId, transferOrigem, getSaldoPorLocal]);
+
+  const handleTransferSave = async () => {
+    if (!transferMaterialId || !transferOrigem || !transferDestino || !transferQuantidade) {
+      toast({ title: "Preencha Material, Origem, Destino e Quantidade", variant: "destructive" }); return;
+    }
+    if (transferOrigem === transferDestino) {
+      toast({ title: "Origem e destino devem ser diferentes", variant: "destructive" }); return;
+    }
+    const qty = Number(transferQuantidade);
+    if (qty <= 0) { toast({ title: "Quantidade deve ser maior que zero", variant: "destructive" }); return; }
+    const mat = materiais.find(m => m.id === transferMaterialId);
+    if (!mat) return;
+    try {
+      await transferirEntreLocais({
+        materialId: mat.id, materialCodigo: mat.codigo, materialDescricao: mat.descricao,
+        quantidade: qty, localOrigem: transferOrigem, localDestino: transferDestino,
+        usuario: usuarioLogado?.nome || "", observacao: transferObs,
+      });
+      toast({ title: "Transferência realizada com sucesso" });
+      setTransferDialogOpen(false);
+    } catch (e: any) {
+      toast({ title: e?.message || "Erro ao transferir", variant: "destructive" });
+    }
+  };
+
   const tipoColor = (tipo: string) => {
     if (tipo === "entrada") return "bg-emerald-500/10 text-emerald-700 border-emerald-200";
     if (tipo === "saida") return "bg-red-500/10 text-red-700 border-red-200";
