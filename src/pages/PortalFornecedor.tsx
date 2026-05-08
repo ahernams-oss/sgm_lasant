@@ -228,6 +228,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const [convites, setConvites] = useState<ConviteRow[]>([]);
   const [pedidos, setPedidos] = useState<PedidoRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [trocaOpen, setTrocaOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
