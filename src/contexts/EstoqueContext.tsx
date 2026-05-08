@@ -259,10 +259,52 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
     await load();
   };
 
+  const transferirEntreLocais = async (data: { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number; localOrigem: string; localDestino: string; usuario: string; observacao?: string }) => {
+    const { materialId, materialCodigo, materialDescricao, quantidade, localOrigem, localDestino, usuario, observacao } = data;
+    if (!materialId || !localOrigem || !localDestino || quantidade <= 0) return;
+    if (localOrigem === localDestino) throw new Error("Local de origem e destino devem ser diferentes");
+    const saldoOrigem = getSaldoPorLocal(materialId, localOrigem);
+    if (quantidade > saldoOrigem) throw new Error(`Saldo insuficiente em ${localOrigem}. Disponível: ${saldoOrigem}`);
+
+    const lotes = getLotesFIFO(materialId, localOrigem);
+    const dataMov = new Date().toISOString();
+    const docRef = `Transferência ${localOrigem} → ${localDestino}`;
+    let restante = quantidade;
+
+    // Saída do origem (uma única movimentação com valor médio FIFO)
+    const valorTotalConsumido = (() => {
+      let v = 0; let q = quantidade;
+      for (const l of lotes) { if (q <= 0) break; const u = Math.min(q, l.quantidade); v += u * l.valorUnitario; q -= u; }
+      return v;
+    })();
+    const valorMedio = quantidade > 0 ? valorTotalConsumido / quantidade : 0;
+
+    await insertRow("estoque_movimentacoes", {
+      material_id: materialId, material_codigo: materialCodigo, material_descricao: materialDescricao,
+      tipo: "saida", quantidade, local: localOrigem,
+      documento_ref: docRef, observacao: observacao || "Transferência entre locais",
+      usuario, data_movimentacao: dataMov, valor_unitario: valorMedio,
+    });
+
+    // Entrada no destino: cria uma movimentação por lote para preservar custos FIFO
+    for (const lote of lotes) {
+      if (restante <= 0) break;
+      const usar = Math.min(restante, lote.quantidade);
+      await insertRow("estoque_movimentacoes", {
+        material_id: materialId, material_codigo: materialCodigo, material_descricao: materialDescricao,
+        tipo: "entrada", quantidade: usar, local: localDestino,
+        documento_ref: docRef, observacao: observacao || "Transferência entre locais",
+        usuario, data_movimentacao: dataMov, valor_unitario: lote.valorUnitario,
+      });
+      restante -= usar;
+    }
+    await load();
+  };
+
   return (
     <EstoqueContext.Provider value={{
       movimentacoes, inventarios, registrarMovimentacao, registrarEntradaRecebimento,
-      getSaldos, getSaldoPorMaterial, getSaldoPorLocal, getLotesFIFO, criarInventario, atualizarInventario, fecharInventario, reload: load,
+      getSaldos, getSaldoPorMaterial, getSaldoPorLocal, getLotesFIFO, transferirEntreLocais, criarInventario, atualizarInventario, fecharInventario, reload: load,
     }}>
       {children}
     </EstoqueContext.Provider>
