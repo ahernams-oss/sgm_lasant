@@ -443,10 +443,16 @@ export default function CotacaoComprasPage() {
     setEnviarDialogOpen(true);
   };
 
+  const getTelefoneFornecedor = (forn: any): string => {
+    if (!forn) return "";
+    return forn.telefonesWhatsapp || forn.telefoneCelular || forn.celulares || (Array.isArray(forn.telefones) ? forn.telefones[0] : "") || "";
+  };
+
   const handleSelectFornecedorEnviar = (fornId: string) => {
     setEnviarFornecedorId(fornId);
     const forn = fornecedores.find(f => f.id === fornId);
     setEnviarEmail(forn?.emailCompras || forn?.email || "");
+    setEnviarTelefone(getTelefoneFornecedor(forn));
     setLinkGerado("");
   };
 
