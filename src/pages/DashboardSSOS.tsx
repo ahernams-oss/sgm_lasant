@@ -447,12 +447,11 @@ export default function DashboardSSOS() {
         <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
           <ClipboardList className="h-4 w-4 text-primary" /> Solicitações de Serviço (SS)
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9 gap-3">
           <KpiCard icon={ClipboardList} label="Total SS" value={ssTotal} gradientIdx={0} />
-          <KpiCard icon={Clock} label="Aguardando" value={ssAguardando} gradientIdx={2} />
-          <KpiCard icon={CheckCircle2} label="Aprovadas" value={ssAprovadas} gradientIdx={1} />
-          <KpiCard icon={CheckCircle2} label="Concluídas" value={ssConcluidas} gradientIdx={4} />
-          <KpiCard icon={X} label="Canceladas" value={ssCanceladas} gradientIdx={3} />
+          {SS_STATUS_LIST.map(s => (
+            <KpiCard key={s.key} icon={s.icon} label={s.label} value={ssCountByStatus(s.key)} gradientIdx={s.idx} />
+          ))}
         </div>
       </div>
 
