@@ -17,7 +17,7 @@ export const grausParentesco = ["Cônjuge", "Filho(a)", "Pai", "Mãe", "Irmão(�
 export interface Funcionario {
   id: string; nome: string; cpf: string; rg: string; orgaoEmissor: string;
   dataNascimento: string; sexo: string; estadoCivil: string; nacionalidade: string;
-  naturalidade: string; nomeMae: string; nomePai: string; telefone: string; email: string;
+  naturalidade: string; nomeMae: string; nomePai: string; telefone: string; telefoneWhatsapp: string; email: string;
   pcd: boolean; tipoPcd: string; cep: string; logradouro: string; numero: string;
   complemento: string; bairro: string; cidade: string; uf: string;
   cargoId: string; clienteId: string; dataAdmissao: string; dataDemissao: string;
