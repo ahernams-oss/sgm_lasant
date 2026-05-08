@@ -140,7 +140,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       const [{ data: c }, { data: p }] = await Promise.all([
         supabase
           .from("cotacao_convites")
-          .select("id,token,cotacao_numero,comprador,status,expires_at,created_at")
+          .select("id,token,cotacao_numero,comprador,status,expires_at,created_at,itens")
           .eq("fornecedor_id", session.id)
           .order("created_at", { ascending: false }),
         supabase
