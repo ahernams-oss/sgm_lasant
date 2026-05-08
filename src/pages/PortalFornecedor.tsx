@@ -345,9 +345,9 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       <header className="bg-background border-b">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Building2 className="h-7 w-7 text-primary" />
+            <img src={logoLasant} alt="Lasant Construções" className="h-10 object-contain" />
             <div>
-              <h1 className="font-semibold text-base leading-tight">Portal do Fornecedor</h1>
+              <h1 className="font-semibold text-base leading-tight">Portal de fornecedores Lasant Construções</h1>
               <p className="text-xs text-muted-foreground">{session.nome}</p>
             </div>
           </div>
