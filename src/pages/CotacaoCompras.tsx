@@ -156,6 +156,8 @@ export default function CotacaoComprasPage() {
   const [enviarEmail, setEnviarEmail] = useState("");
   const [enviarTelefone, setEnviarTelefone] = useState("");
   const [enviarLoading, setEnviarLoading] = useState(false);
+  const [canalEmail, setCanalEmail] = useState(true);
+  const [canalWhatsapp, setCanalWhatsapp] = useState(true);
   const [linkGerado, setLinkGerado] = useState("");
   const [linksGeradosTodos, setLinksGeradosTodos] = useState<Array<{ fornecedorNome: string; link: string; erro?: string }>>([]);
   const [enviarTodosLoading, setEnviarTodosLoading] = useState(false);
@@ -563,7 +565,10 @@ export default function CotacaoComprasPage() {
 
   const handleGerarEEnviarIndividual = async () => {
     if (!enviarFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
-    if (!enviarEmail && !enviarTelefone) { toast({ title: "Informe e-mail ou telefone do fornecedor", variant: "destructive" }); return; }
+    if (!canalEmail && !canalWhatsapp) { toast({ title: "Selecione ao menos um canal de envio", variant: "destructive" }); return; }
+    if (canalEmail && !enviarEmail && !canalWhatsapp) { toast({ title: "Informe o e-mail do fornecedor", variant: "destructive" }); return; }
+    if (canalWhatsapp && !enviarTelefone && !canalEmail) { toast({ title: "Informe o WhatsApp do fornecedor", variant: "destructive" }); return; }
+    if ((canalEmail && !enviarEmail) && (canalWhatsapp && !enviarTelefone)) { toast({ title: "Informe e-mail e/ou WhatsApp", variant: "destructive" }); return; }
     setEnviarLoading(true);
     try {
       const cot = cotacoes.find(c => c.id === enviarCotacaoId);
@@ -591,7 +596,7 @@ export default function CotacaoComprasPage() {
       const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
 
       const canais: string[] = [];
-      if (enviarEmail) {
+      if (canalEmail && enviarEmail) {
         const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
           body: {
             templateName: "cotacao-confirmation",
@@ -603,7 +608,7 @@ export default function CotacaoComprasPage() {
         if (emailErr) throw emailErr;
         canais.push("e-mail");
       }
-      if (enviarTelefone) {
+      if (canalWhatsapp && enviarTelefone) {
         const msg = montarMensagemWhatsapp(forn.nome, cot.numero, link, comprador, nomeEmpresa);
         const r = await enviarWhatsApp(enviarTelefone, msg);
         if (r.success) canais.push("WhatsApp");
@@ -672,7 +677,7 @@ export default function CotacaoComprasPage() {
 
           const canais: string[] = [];
 
-          if (emailForn) {
+          if (canalEmail && emailForn) {
             try {
               await supabase.functions.invoke("send-transactional-email", {
                 body: {
@@ -687,7 +692,7 @@ export default function CotacaoComprasPage() {
             } catch { /* ignore individual */ }
           }
 
-          if (telForn) {
+          if (canalWhatsapp && telForn) {
             const msg = montarMensagemWhatsapp(forn.nome, cot.numero, link, comprador, nomeEmpresa);
             const r = await enviarWhatsApp(telForn, msg);
             if (r.success) { enviadosWpp++; canais.push("WhatsApp"); }
@@ -1625,13 +1630,31 @@ export default function CotacaoComprasPage() {
             <DialogDescription>Gere o link para um fornecedor específico ou para todos de uma vez.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Seleção de canais de envio */}
+            {linksGeradosTodos.length === 0 && (
+              <div className="border rounded-lg p-3 bg-muted/30">
+                <p className="text-sm font-medium mb-2">Canais de envio</p>
+                <div className="flex items-center gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox checked={canalEmail} onCheckedChange={v => setCanalEmail(!!v)} />
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">E-mail</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox checked={canalWhatsapp} onCheckedChange={v => setCanalWhatsapp(!!v)} />
+                    <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">WhatsApp</span>
+                  </label>
+                </div>
+              </div>
+            )}
             {/* Enviar para todos */}
             {linksGeradosTodos.length === 0 && !linkGerado && (
               <div className="border border-dashed rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">Enviar para todos os fornecedores</p>
-                    <p className="text-xs text-muted-foreground">{fornecedores.length} fornecedores cadastrados — envio automático por e-mail e WhatsApp</p>
+                    <p className="text-xs text-muted-foreground">{fornecedores.length} fornecedores — envio por {[canalEmail && "e-mail", canalWhatsapp && "WhatsApp"].filter(Boolean).join(" e ") || "nenhum canal selecionado"}</p>
                   </div>
                   <Button onClick={handleGerarEEnviarTodos} disabled={enviarTodosLoading || fornecedores.length === 0}>
                     <Send className="mr-2 h-4 w-4" />
@@ -1721,10 +1744,18 @@ export default function CotacaoComprasPage() {
                 </div>
                 <p className="text-xs text-muted-foreground -mt-2">Preenchidos automaticamente do cadastro. Ajuste se necessário. O envio ocorre nos canais preenchidos.</p>
 
-                <Button onClick={handleGerarEEnviarIndividual} disabled={enviarLoading || !enviarFornecedorId || (!enviarEmail && !enviarTelefone)} className="w-full">
-                  <Send className="mr-2 h-4 w-4" />
-                  {enviarLoading ? "Enviando..." : `Enviar Cotação${enviarEmail && enviarTelefone ? " por E-mail + WhatsApp" : enviarEmail ? " por E-mail" : enviarTelefone ? " por WhatsApp" : ""}`}
-                </Button>
+                {(() => {
+                  const canais = [canalEmail && "E-mail", canalWhatsapp && "WhatsApp"].filter(Boolean).join(" + ");
+                  const disabled = enviarLoading || !enviarFornecedorId || (!canalEmail && !canalWhatsapp) ||
+                    (canalEmail && !enviarEmail && (!canalWhatsapp || !enviarTelefone)) ||
+                    (canalWhatsapp && !enviarTelefone && (!canalEmail || !enviarEmail));
+                  return (
+                    <Button onClick={handleGerarEEnviarIndividual} disabled={disabled} className="w-full">
+                      <Send className="mr-2 h-4 w-4" />
+                      {enviarLoading ? "Enviando..." : canais ? `Enviar Cotação por ${canais}` : "Selecione um canal"}
+                    </Button>
+                  );
+                })()}
               </>
             )}
           </div>
