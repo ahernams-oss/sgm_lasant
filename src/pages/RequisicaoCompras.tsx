@@ -572,7 +572,7 @@ export default function RequisicaoComprasPage() {
               <div>
                 <span className="font-medium text-muted-foreground text-sm">Itens ({viewReq.itens.length})</span>
                 <Table>
-                  <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Especificação</TableHead><TableHead>Obs</TableHead><TableHead>Qtd</TableHead><TableHead>Un</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Especificação</TableHead><TableHead>Obs</TableHead><TableHead>Qtd</TableHead><TableHead>Un</TableHead><TableHead>Anexo</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {viewReq.itens.map(i => (
                       <TableRow key={i.id}>
@@ -581,6 +581,13 @@ export default function RequisicaoComprasPage() {
                         <TableCell className="text-xs">{i.observacao || "-"}</TableCell>
                         <TableCell>{i.quantidade}</TableCell>
                         <TableCell>{i.unidadeMedida}</TableCell>
+                        <TableCell className="text-xs">
+                          {i.anexo ? (
+                            <a href={i.anexo.base64} download={i.anexo.nome} className="text-primary hover:underline inline-flex items-center gap-1">
+                              <FileText className="h-3 w-3" />{i.anexo.nome}
+                            </a>
+                          ) : "-"}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
