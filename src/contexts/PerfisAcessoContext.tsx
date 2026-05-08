@@ -619,6 +619,16 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
         ],
       },
       {
+        key: "comunicacao_whatsapp",
+        label: "Notificação WhatsApp",
+        acoes: [
+          { key: "comunicacao_whatsapp.criar", label: "Criar campanha" },
+          { key: "comunicacao_whatsapp.editar", label: "Editar campanha" },
+          { key: "comunicacao_whatsapp.excluir", label: "Excluir campanha" },
+          { key: "comunicacao_whatsapp.enviar", label: "Enviar agora" },
+        ],
+      },
+      {
         key: "chat_duda",
         label: "Assistente Duda (IA)",
         acoes: [
