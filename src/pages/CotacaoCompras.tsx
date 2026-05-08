@@ -565,7 +565,10 @@ export default function CotacaoComprasPage() {
 
   const handleGerarEEnviarIndividual = async () => {
     if (!enviarFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
-    if (!enviarEmail && !enviarTelefone) { toast({ title: "Informe e-mail ou telefone do fornecedor", variant: "destructive" }); return; }
+    if (!canalEmail && !canalWhatsapp) { toast({ title: "Selecione ao menos um canal de envio", variant: "destructive" }); return; }
+    if (canalEmail && !enviarEmail && !canalWhatsapp) { toast({ title: "Informe o e-mail do fornecedor", variant: "destructive" }); return; }
+    if (canalWhatsapp && !enviarTelefone && !canalEmail) { toast({ title: "Informe o WhatsApp do fornecedor", variant: "destructive" }); return; }
+    if ((canalEmail && !enviarEmail) && (canalWhatsapp && !enviarTelefone)) { toast({ title: "Informe e-mail e/ou WhatsApp", variant: "destructive" }); return; }
     setEnviarLoading(true);
     try {
       const cot = cotacoes.find(c => c.id === enviarCotacaoId);
