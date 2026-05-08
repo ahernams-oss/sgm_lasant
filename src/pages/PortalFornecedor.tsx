@@ -12,6 +12,7 @@ import { LogOut, FileText, ShoppingCart, AlertCircle, Building2, FileDown, FileS
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import logoLasant from "@/assets/Logo_Lasant.png";
 
 const STORAGE_KEY = "fornecedorPortalLogado";
 
@@ -96,8 +97,8 @@ function LoginScreen({ onLogin }: { onLogin: (s: FornecedorSession) => void }) {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
       <Card className="max-w-md w-full">
         <CardHeader className="text-center">
-          <Building2 className="h-12 w-12 text-primary mx-auto mb-2" />
-          <CardTitle>Portal do Fornecedor</CardTitle>
+          <img src={logoLasant} alt="Lasant Construções" className="h-16 mx-auto mb-3 object-contain" />
+          <CardTitle>Portal de fornecedores Lasant Construções</CardTitle>
           <CardDescription>Acesse suas cotações e pedidos de compra</CardDescription>
         </CardHeader>
         <CardContent>
@@ -344,9 +345,9 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       <header className="bg-background border-b">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Building2 className="h-7 w-7 text-primary" />
+            <img src={logoLasant} alt="Lasant Construções" className="h-10 object-contain" />
             <div>
-              <h1 className="font-semibold text-base leading-tight">Portal do Fornecedor</h1>
+              <h1 className="font-semibold text-base leading-tight">Portal de fornecedores Lasant Construções</h1>
               <p className="text-xs text-muted-foreground">{session.nome}</p>
             </div>
           </div>
