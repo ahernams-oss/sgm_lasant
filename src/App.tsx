@@ -169,7 +169,9 @@ function ProtectedAppRoutes() {
           element={
             <SolicitacoesServicosProvider>
               <OrdensServicoProvider>
-                <DashboardSSOSPage />
+                <OrcamentosProvider>
+                  <DashboardSSOSPage />
+                </OrcamentosProvider>
               </OrdensServicoProvider>
             </SolicitacoesServicosProvider>
           }
