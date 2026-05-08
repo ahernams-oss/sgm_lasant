@@ -859,8 +859,13 @@ export default function EstoquePage() {
               <Input type="number" min="1" max={transferSaldoOrigem || undefined} value={transferQuantidade} onChange={e => setTransferQuantidade(e.target.value)} />
             </div>
             <div><Label>Observação</Label><Input value={transferObs} onChange={e => setTransferObs(e.target.value)} placeholder="Motivo da transferência..." /></div>
+            <div className="border-t pt-4">
+              <Label>Senha de autorização *</Label>
+              <Input type="password" value={transferSenha} onChange={e => setTransferSenha(e.target.value)} placeholder="Digite sua senha para confirmar" autoComplete="current-password" />
+              <p className="text-xs text-muted-foreground mt-1">Operação restrita: requer permissão no perfil e validação de senha do usuário <strong>{usuarioLogado?.nome}</strong>.</p>
+            </div>
           </div>
-          <DialogFooter><Button onClick={handleTransferSave}>Transferir</Button></DialogFooter>
+          <DialogFooter><Button onClick={handleTransferSave} disabled={transferLoading}>{transferLoading ? "Validando..." : "Autorizar e Transferir"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
