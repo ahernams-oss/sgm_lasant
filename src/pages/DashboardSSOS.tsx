@@ -15,10 +15,11 @@ import {
 import {
   ClipboardList, Wrench, Filter, X, CalendarIcon, TrendingUp, Trophy, Users,
   CheckCircle2, Clock, AlertTriangle, Sparkles, Building2, BarChart3, Activity,
-  FileDown, FileSpreadsheet,
+  FileDown, FileSpreadsheet, DollarSign, Calculator, UserCheck,
 } from "lucide-react";
 import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
+import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { downloadPdfDashboardSSOS, downloadExcelDashboardSSOS } from "@/lib/gerarRelatorioDashboardSSOS";
@@ -66,6 +67,7 @@ function parseDate(s?: string): Date | null {
 export default function DashboardSSOS() {
   const { solicitacoes } = useSolicitacoesServicos();
   const { ordens } = useOrdensServico();
+  const { orcamentos } = useOrcamentos();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
 
@@ -74,6 +76,7 @@ export default function DashboardSSOS() {
   const [clienteFilter, setClienteFilter] = useState("todos");
   const [statusSSFilter, setStatusSSFilter] = useState("todos");
   const [statusOSFilter, setStatusOSFilter] = useState("todos");
+  const [orcPeriodo, setOrcPeriodo] = useState<"dia" | "semana" | "quinzena" | "mes" | "todos">("mes");
 
   const clearFilters = () => {
     setDateFrom(undefined); setDateTo(undefined);
@@ -221,6 +224,59 @@ export default function DashboardSSOS() {
     });
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [osFiltradas]);
+
+  // === Orçamentos ===
+  const orcStartDate = useMemo(() => {
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (orcPeriodo === "dia") return d;
+    if (orcPeriodo === "semana") { const r = new Date(d); r.setDate(d.getDate() - 7); return r; }
+    if (orcPeriodo === "quinzena") { const r = new Date(d); r.setDate(d.getDate() - 15); return r; }
+    if (orcPeriodo === "mes") { const r = new Date(d); r.setDate(d.getDate() - 30); return r; }
+    return null;
+  }, [orcPeriodo]);
+
+  const orcamentosFiltrados = useMemo(() => {
+    return orcamentos.filter(o => {
+      const d = parseDate(o.dataCriacao || o.createdAt);
+      if (!inRange(d)) return false;
+      if (orcStartDate && d && d < orcStartDate) return false;
+      if (clienteFilter !== "todos" && o.clienteId !== clienteFilter) return false;
+      return true;
+    });
+  }, [orcamentos, dateFrom, dateTo, clienteFilter, orcStartDate]);
+
+  const orcTotalQtd = orcamentosFiltrados.length;
+  const orcValorTotal = orcamentosFiltrados.reduce((s, o) => s + (Number(o.valorTotal) || 0), 0);
+  const orcTicketMedio = orcTotalQtd > 0 ? orcValorTotal / orcTotalQtd : 0;
+  const fmtBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  const rankingOrcUsuarios = useMemo(() => {
+    const map: Record<string, { usuario: string; qtd: number; valor: number }> = {};
+    orcamentosFiltrados.forEach(o => {
+      const u = o.criadoPor || "Não informado";
+      if (!map[u]) map[u] = { usuario: u, qtd: 0, valor: 0 };
+      map[u].qtd += 1;
+      map[u].valor += Number(o.valorTotal) || 0;
+    });
+    return Object.values(map);
+  }, [orcamentosFiltrados]);
+
+  const rankingOrcUsuariosQtd = useMemo(() =>
+    [...rankingOrcUsuarios].sort((a, b) => b.qtd - a.qtd || b.valor - a.valor).slice(0, 10), [rankingOrcUsuarios]);
+  const rankingOrcUsuariosValor = useMemo(() =>
+    [...rankingOrcUsuarios].sort((a, b) => b.valor - a.valor || b.qtd - a.qtd).slice(0, 10), [rankingOrcUsuarios]);
+
+  const rankingOrcClientes = useMemo(() => {
+    const map: Record<string, { cliente: string; qtd: number; valor: number }> = {};
+    orcamentosFiltrados.forEach(o => {
+      const c = o.clienteNome || "Sem cliente";
+      if (!map[c]) map[c] = { cliente: c, qtd: 0, valor: 0 };
+      map[c].qtd += 1;
+      map[c].valor += Number(o.valorTotal) || 0;
+    });
+    return Object.values(map).sort((a, b) => b.valor - a.valor || b.qtd - a.qtd).slice(0, 10);
+  }, [orcamentosFiltrados]);
 
   // === Clientes para filtro ===
   const clientesAtivos = useMemo(() => {
@@ -404,7 +460,161 @@ export default function DashboardSSOS() {
         </div>
       </div>
 
-      {/* Gráficos */}
+      {/* Orçamentos — KPIs e Rankings */}
+      <div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Calculator className="h-4 w-4 text-primary" /> Orçamentos
+          </h2>
+          <div className="flex items-center gap-2">
+            <Label className="text-xs font-medium text-muted-foreground">Período:</Label>
+            <Select value={orcPeriodo} onValueChange={(v: any) => setOrcPeriodo(v)}>
+              <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dia">Hoje</SelectItem>
+                <SelectItem value="semana">Últimos 7 dias</SelectItem>
+                <SelectItem value="quinzena">Últimos 15 dias</SelectItem>
+                <SelectItem value="mes">Últimos 30 dias</SelectItem>
+                <SelectItem value="todos">Todos</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <KpiCard icon={Calculator} label="Orçamentos" value={orcTotalQtd} gradientIdx={0} />
+          <KpiCard icon={DollarSign} label="Valor Total Orçado" value={fmtBRL(orcValorTotal)} gradientIdx={1} />
+          <KpiCard icon={TrendingUp} label="Ticket Médio" value={fmtBRL(orcTicketMedio)} gradientIdx={4} />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
+          {/* Ranking por Quantidade */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <UserCheck className="h-4 w-4 text-primary" /> Top Orçamentistas — Quantidade
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {rankingOrcUsuariosQtd.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-10">Sem orçamentos no período.</p>
+              ) : (
+                <div className="space-y-2">
+                  {rankingOrcUsuariosQtd.map((u, idx) => {
+                    const max = rankingOrcUsuariosQtd[0]?.qtd || 1;
+                    const pct = (u.qtd / max) * 100;
+                    return (
+                      <div key={u.usuario} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs gap-2">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span className={cn("shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold",
+                              idx === 0 && "bg-amber-100 text-amber-700",
+                              idx === 1 && "bg-slate-200 text-slate-700",
+                              idx === 2 && "bg-orange-100 text-orange-700",
+                              idx > 2 && "bg-muted text-muted-foreground")}>{idx + 1}</span>
+                            <span className="font-medium truncate">{u.usuario}</span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Badge variant="outline" className="text-[10px] h-5">{fmtBRL(u.valor)}</Badge>
+                            <span className="font-bold text-foreground w-8 text-right">{u.qtd}</span>
+                          </div>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Ranking por Valor */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <DollarSign className="h-4 w-4 text-emerald-600" /> Top Orçamentistas — Valor
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {rankingOrcUsuariosValor.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-10">Sem orçamentos no período.</p>
+              ) : (
+                <div className="space-y-2">
+                  {rankingOrcUsuariosValor.map((u, idx) => {
+                    const max = rankingOrcUsuariosValor[0]?.valor || 1;
+                    const pct = (u.valor / max) * 100;
+                    return (
+                      <div key={u.usuario} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs gap-2">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span className={cn("shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold",
+                              idx === 0 && "bg-amber-100 text-amber-700",
+                              idx === 1 && "bg-slate-200 text-slate-700",
+                              idx === 2 && "bg-orange-100 text-orange-700",
+                              idx > 2 && "bg-muted text-muted-foreground")}>{idx + 1}</span>
+                            <span className="font-medium truncate">{u.usuario}</span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Badge variant="outline" className="text-[10px] h-5">{u.qtd} orç.</Badge>
+                            <span className="font-bold text-foreground tabular-nums">{fmtBRL(u.valor)}</span>
+                          </div>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Ranking por Cliente */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-primary" /> Orçamentos por Cliente
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {rankingOrcClientes.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-10">Sem orçamentos no período.</p>
+              ) : (
+                <div className="space-y-2">
+                  {rankingOrcClientes.map((c, idx) => {
+                    const max = rankingOrcClientes[0]?.valor || 1;
+                    const pct = (c.valor / max) * 100;
+                    return (
+                      <div key={c.cliente} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs gap-2">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span className={cn("shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold",
+                              idx === 0 && "bg-amber-100 text-amber-700",
+                              idx === 1 && "bg-slate-200 text-slate-700",
+                              idx === 2 && "bg-orange-100 text-orange-700",
+                              idx > 2 && "bg-muted text-muted-foreground")}>{idx + 1}</span>
+                            <span className="font-medium truncate">{c.cliente}</span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Badge variant="outline" className="text-[10px] h-5">{c.qtd}</Badge>
+                            <span className="font-bold text-foreground tabular-nums">{fmtBRL(c.valor)}</span>
+                          </div>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader className="pb-2">
