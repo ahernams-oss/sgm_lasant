@@ -593,7 +593,7 @@ export default function CotacaoComprasPage() {
       const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
 
       const canais: string[] = [];
-      if (enviarEmail) {
+      if (canalEmail && enviarEmail) {
         const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
           body: {
             templateName: "cotacao-confirmation",
