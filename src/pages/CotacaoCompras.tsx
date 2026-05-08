@@ -1700,20 +1700,31 @@ export default function CotacaoComprasPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label>E-mail do Fornecedor</Label>
-                  <Input
-                    type="email"
-                    value={enviarEmail}
-                    onChange={e => setEnviarEmail(e.target.value)}
-                    placeholder="email@fornecedor.com"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente do cadastro. Ajuste se necessário.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label>E-mail do Fornecedor</Label>
+                    <Input
+                      type="email"
+                      value={enviarEmail}
+                      onChange={e => setEnviarEmail(e.target.value)}
+                      placeholder="email@fornecedor.com"
+                    />
+                  </div>
+                  <div>
+                    <Label>WhatsApp do Fornecedor</Label>
+                    <Input
+                      type="tel"
+                      value={enviarTelefone}
+                      onChange={e => setEnviarTelefone(e.target.value)}
+                      placeholder="(11) 91234-5678"
+                    />
+                  </div>
                 </div>
+                <p className="text-xs text-muted-foreground -mt-2">Preenchidos automaticamente do cadastro. Ajuste se necessário. O envio ocorre nos canais preenchidos.</p>
 
-                <Button onClick={handleGerarEEnviarIndividual} disabled={enviarLoading || !enviarFornecedorId || !enviarEmail} className="w-full">
+                <Button onClick={handleGerarEEnviarIndividual} disabled={enviarLoading || !enviarFornecedorId || (!enviarEmail && !enviarTelefone)} className="w-full">
                   <Send className="mr-2 h-4 w-4" />
-                  {enviarLoading ? "Enviando..." : "Enviar Cotação por E-mail"}
+                  {enviarLoading ? "Enviando..." : `Enviar Cotação${enviarEmail && enviarTelefone ? " por E-mail + WhatsApp" : enviarEmail ? " por E-mail" : enviarTelefone ? " por WhatsApp" : ""}`}
                 </Button>
               </>
             )}
