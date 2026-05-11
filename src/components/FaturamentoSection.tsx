@@ -131,14 +131,23 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
       toast.error("Informe o período do faturamento.");
       return;
     }
+    let savedId = editingId;
     if (editingId) {
       const updated = faturamentos.map((f) => (f.id === editingId ? { ...f, ...form } : f));
       onChange(updated);
       toast.success("Faturamento atualizado!");
     } else {
       const novo: Faturamento = { id: crypto.randomUUID(), ...form };
+      savedId = novo.id;
       onChange([...faturamentos, novo]);
       toast.success("Faturamento adicionado!");
+    }
+    // gera/atualiza Conta a Receber se houver NF e valor
+    if (savedId && (form.numeroNf || form.numeroMedicao) && (form.valorLiquido || form.valorBruto)) {
+      gerarContaReceberDeFaturamento(
+        { id: savedId, ...form },
+        { clienteId: cliente?.id, clienteNome: cliente?.razaoSocial || cliente?.nomeFantasia, contratoId: contrato?.id, contratoNumero: contratoNumero }
+      );
     }
     setForm(emptyFaturamento);
     setEditingId(null);
