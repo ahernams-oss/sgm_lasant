@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, AlertCircle, Paperclip, X } from "lucide-react";
 import { useFinanceiro, formatBRL, formatDate, isVencida, ContaPagar } from "@/contexts/FinanceiroContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import BaixaDialog from "@/components/financeiro/BaixaDialog";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const empty = {
@@ -19,6 +20,7 @@ const empty = {
   conta_bancaria_id: null as string | null, plano_conta_id: null as string | null,
   centro_custo_id: null as string | null, parcela_num: 1, parcela_total: 1,
   observacao: "", origem: "manual",
+  anexo_url: "" as string, anexo_nome: "" as string,
 };
 
 export default function ContasPagar() {
