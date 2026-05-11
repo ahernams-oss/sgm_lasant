@@ -368,7 +368,7 @@ export default function RelatoriosFinanceiros() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Período (para relatórios por data)</CardTitle>
+          <CardTitle className="text-base">Filtros</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
@@ -378,6 +378,18 @@ export default function RelatoriosFinanceiros() {
           <div>
             <Label>Data Final</Label>
             <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+          </div>
+          <div>
+            <Label>Centro de Custo</Label>
+            <Select value={fCentroCusto} onValueChange={setFCentroCusto}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {fin.centrosCusto.filter(c => c.ativo).map(c => (
+                  <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
