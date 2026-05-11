@@ -1843,6 +1843,467 @@ export type Database = {
         }
         Relationships: []
       }
+      fin_centros_custo: {
+        Row: {
+          ativo: boolean
+          cliente_id: string | null
+          codigo: string | null
+          created_at: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          cliente_id?: string | null
+          codigo?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          cliente_id?: string | null
+          codigo?: string | null
+          created_at?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fin_contas_bancarias: {
+        Row: {
+          agencia: string | null
+          ativo: boolean
+          banco: string | null
+          conta: string | null
+          created_at: string
+          id: string
+          nome: string
+          observacao: string | null
+          saldo_inicial: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          agencia?: string | null
+          ativo?: boolean
+          banco?: string | null
+          conta?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          observacao?: string | null
+          saldo_inicial?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          agencia?: string | null
+          ativo?: boolean
+          banco?: string | null
+          conta?: string | null
+          created_at?: string
+          id?: string
+          nome?: string
+          observacao?: string | null
+          saldo_inicial?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fin_contas_pagar: {
+        Row: {
+          anexo_nome: string | null
+          anexo_url: string | null
+          centro_custo_id: string | null
+          conta_bancaria_id: string | null
+          created_at: string
+          data_emissao: string | null
+          data_pagamento: string | null
+          data_vencimento: string
+          descricao: string
+          fornecedor_id: string | null
+          fornecedor_nome: string | null
+          id: string
+          observacao: string | null
+          origem: string | null
+          parcela_num: number
+          parcela_total: number
+          pedido_compra_id: string | null
+          plano_conta_id: string | null
+          recorrencia: Json | null
+          status: string
+          updated_at: string
+          valor_pago: number
+          valor_total: number
+        }
+        Insert: {
+          anexo_nome?: string | null
+          anexo_url?: string | null
+          centro_custo_id?: string | null
+          conta_bancaria_id?: string | null
+          created_at?: string
+          data_emissao?: string | null
+          data_pagamento?: string | null
+          data_vencimento: string
+          descricao: string
+          fornecedor_id?: string | null
+          fornecedor_nome?: string | null
+          id?: string
+          observacao?: string | null
+          origem?: string | null
+          parcela_num?: number
+          parcela_total?: number
+          pedido_compra_id?: string | null
+          plano_conta_id?: string | null
+          recorrencia?: Json | null
+          status?: string
+          updated_at?: string
+          valor_pago?: number
+          valor_total?: number
+        }
+        Update: {
+          anexo_nome?: string | null
+          anexo_url?: string | null
+          centro_custo_id?: string | null
+          conta_bancaria_id?: string | null
+          created_at?: string
+          data_emissao?: string | null
+          data_pagamento?: string | null
+          data_vencimento?: string
+          descricao?: string
+          fornecedor_id?: string | null
+          fornecedor_nome?: string | null
+          id?: string
+          observacao?: string | null
+          origem?: string | null
+          parcela_num?: number
+          parcela_total?: number
+          pedido_compra_id?: string | null
+          plano_conta_id?: string | null
+          recorrencia?: Json | null
+          status?: string
+          updated_at?: string
+          valor_pago?: number
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_contas_pagar_centro_custo_id_fkey"
+            columns: ["centro_custo_id"]
+            isOneToOne: false
+            referencedRelation: "fin_centros_custo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_contas_pagar_conta_bancaria_id_fkey"
+            columns: ["conta_bancaria_id"]
+            isOneToOne: false
+            referencedRelation: "fin_contas_bancarias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_contas_pagar_plano_conta_id_fkey"
+            columns: ["plano_conta_id"]
+            isOneToOne: false
+            referencedRelation: "fin_plano_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_contas_receber: {
+        Row: {
+          anexo_nome: string | null
+          anexo_url: string | null
+          centro_custo_id: string | null
+          cliente_id: string | null
+          cliente_nome: string | null
+          conta_bancaria_id: string | null
+          contrato_id: string | null
+          created_at: string
+          data_emissao: string | null
+          data_recebimento: string | null
+          data_vencimento: string
+          descricao: string
+          faturamento_id: string | null
+          id: string
+          observacao: string | null
+          origem: string | null
+          parcela_num: number
+          parcela_total: number
+          plano_conta_id: string | null
+          status: string
+          updated_at: string
+          valor_recebido: number
+          valor_total: number
+        }
+        Insert: {
+          anexo_nome?: string | null
+          anexo_url?: string | null
+          centro_custo_id?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          conta_bancaria_id?: string | null
+          contrato_id?: string | null
+          created_at?: string
+          data_emissao?: string | null
+          data_recebimento?: string | null
+          data_vencimento: string
+          descricao: string
+          faturamento_id?: string | null
+          id?: string
+          observacao?: string | null
+          origem?: string | null
+          parcela_num?: number
+          parcela_total?: number
+          plano_conta_id?: string | null
+          status?: string
+          updated_at?: string
+          valor_recebido?: number
+          valor_total?: number
+        }
+        Update: {
+          anexo_nome?: string | null
+          anexo_url?: string | null
+          centro_custo_id?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          conta_bancaria_id?: string | null
+          contrato_id?: string | null
+          created_at?: string
+          data_emissao?: string | null
+          data_recebimento?: string | null
+          data_vencimento?: string
+          descricao?: string
+          faturamento_id?: string | null
+          id?: string
+          observacao?: string | null
+          origem?: string | null
+          parcela_num?: number
+          parcela_total?: number
+          plano_conta_id?: string | null
+          status?: string
+          updated_at?: string
+          valor_recebido?: number
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_contas_receber_centro_custo_id_fkey"
+            columns: ["centro_custo_id"]
+            isOneToOne: false
+            referencedRelation: "fin_centros_custo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_contas_receber_conta_bancaria_id_fkey"
+            columns: ["conta_bancaria_id"]
+            isOneToOne: false
+            referencedRelation: "fin_contas_bancarias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_contas_receber_plano_conta_id_fkey"
+            columns: ["plano_conta_id"]
+            isOneToOne: false
+            referencedRelation: "fin_plano_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_lancamentos: {
+        Row: {
+          centro_custo_id: string | null
+          conciliado: boolean
+          conta_bancaria_id: string
+          conta_destino_id: string | null
+          conta_pagar_id: string | null
+          conta_receber_id: string | null
+          created_at: string
+          data: string
+          descricao: string | null
+          id: string
+          plano_conta_id: string | null
+          tipo: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          centro_custo_id?: string | null
+          conciliado?: boolean
+          conta_bancaria_id: string
+          conta_destino_id?: string | null
+          conta_pagar_id?: string | null
+          conta_receber_id?: string | null
+          created_at?: string
+          data: string
+          descricao?: string | null
+          id?: string
+          plano_conta_id?: string | null
+          tipo: string
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          centro_custo_id?: string | null
+          conciliado?: boolean
+          conta_bancaria_id?: string
+          conta_destino_id?: string | null
+          conta_pagar_id?: string | null
+          conta_receber_id?: string | null
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          id?: string
+          plano_conta_id?: string | null
+          tipo?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_lancamentos_centro_custo_id_fkey"
+            columns: ["centro_custo_id"]
+            isOneToOne: false
+            referencedRelation: "fin_centros_custo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_lancamentos_conta_bancaria_id_fkey"
+            columns: ["conta_bancaria_id"]
+            isOneToOne: false
+            referencedRelation: "fin_contas_bancarias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_lancamentos_conta_destino_id_fkey"
+            columns: ["conta_destino_id"]
+            isOneToOne: false
+            referencedRelation: "fin_contas_bancarias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_lancamentos_conta_pagar_id_fkey"
+            columns: ["conta_pagar_id"]
+            isOneToOne: false
+            referencedRelation: "fin_contas_pagar"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_lancamentos_conta_receber_id_fkey"
+            columns: ["conta_receber_id"]
+            isOneToOne: false
+            referencedRelation: "fin_contas_receber"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_lancamentos_plano_conta_id_fkey"
+            columns: ["plano_conta_id"]
+            isOneToOne: false
+            referencedRelation: "fin_plano_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_movimentos_ofx: {
+        Row: {
+          conciliado: boolean
+          conta_bancaria_id: string
+          created_at: string
+          data: string
+          descricao: string | null
+          fitid: string
+          id: string
+          lancamento_id: string | null
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          conciliado?: boolean
+          conta_bancaria_id: string
+          created_at?: string
+          data: string
+          descricao?: string | null
+          fitid: string
+          id?: string
+          lancamento_id?: string | null
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          conciliado?: boolean
+          conta_bancaria_id?: string
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          fitid?: string
+          id?: string
+          lancamento_id?: string | null
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_movimentos_ofx_conta_bancaria_id_fkey"
+            columns: ["conta_bancaria_id"]
+            isOneToOne: false
+            referencedRelation: "fin_contas_bancarias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_movimentos_ofx_lancamento_id_fkey"
+            columns: ["lancamento_id"]
+            isOneToOne: false
+            referencedRelation: "fin_lancamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_plano_contas: {
+        Row: {
+          ativo: boolean
+          codigo: string | null
+          created_at: string
+          id: string
+          nome: string
+          parent_id: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          codigo?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          parent_id?: string | null
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          codigo?: string | null
+          created_at?: string
+          id?: string
+          nome?: string
+          parent_id?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_plano_contas_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "fin_plano_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       funcionarios: {
         Row: {
           agencia: string | null

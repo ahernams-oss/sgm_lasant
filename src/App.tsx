@@ -121,6 +121,17 @@ import OrcamentoScoForm from "./pages/OrcamentoScoForm.tsx";
 import ImportarCatalogoSco from "./pages/ImportarCatalogoSco.tsx";
 import CatalogoSco from "./pages/CatalogoSco.tsx";
 import AvaliacoesDesempenhoPage from "./pages/AvaliacoesDesempenho.tsx";
+import { FinanceiroProvider } from "@/contexts/FinanceiroContext";
+import DashboardFinanceiro from "./pages/financeiro/DashboardFinanceiro.tsx";
+import ContasPagar from "./pages/financeiro/ContasPagar.tsx";
+import ContasReceber from "./pages/financeiro/ContasReceber.tsx";
+import ContasBancarias from "./pages/financeiro/ContasBancarias.tsx";
+import PlanoContas from "./pages/financeiro/PlanoContas.tsx";
+import CentrosCusto from "./pages/financeiro/CentrosCusto.tsx";
+import FluxoCaixa from "./pages/financeiro/FluxoCaixa.tsx";
+import Dre from "./pages/financeiro/Dre.tsx";
+import Conciliacao from "./pages/financeiro/Conciliacao.tsx";
+import Lancamentos from "./pages/financeiro/Lancamentos.tsx";
 const queryClient = new QueryClient();
 
 function RequireAuth({ children }: { children: ReactNode }) {
