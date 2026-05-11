@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle, AlertCircle, Clock, FileText } from "lucide-react";
+import { CheckCircle, AlertCircle, Clock, FileText, ArrowLeft } from "lucide-react";
 
 interface ConviteItem {
   itemId: string;
@@ -188,6 +188,14 @@ export default function PropostaFornecedorPage() {
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
       <div className="max-w-3xl mx-auto space-y-6">
+        <div>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/portal-fornecedor">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar ao Portal do Fornecedor
+            </Link>
+          </Button>
+        </div>
         {/* Header */}
         <Card>
           <CardHeader>
