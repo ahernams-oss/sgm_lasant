@@ -313,6 +313,84 @@ export default function PedidoCompraPage() {
     toast({ title: `${lista.length} PDF${lista.length > 1 ? "s gerados" : " gerado"} com sucesso` });
   };
 
+  const handleBatchSend = async () => {
+    if (!batchMethod) { toast({ title: "Selecione o método de envio", variant: "destructive" }); return; }
+    const lista = pedidos.filter(p => selectedIds.includes(p.id));
+    if (lista.length === 0) return;
+    setBatchSending(true);
+    setBatchProgress({ done: 0, total: lista.length, ok: 0, fail: 0 });
+    const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
+    let ok = 0, fail = 0;
+    const erros: string[] = [];
+    for (const p of lista) {
+      try {
+        const fornecedor = getFornecedor(p.fornecedorId);
+        const assinatura = assinaturasPorPedido(p.id).find(a => a.papel === "aprovador") || null;
+        const pdfUrl = await uploadPdfOrdemCompra({
+          pedido: p,
+          empresa: empresa.id ? empresa : null,
+          fornecedor,
+          autorizadoPor: usuarioLogado?.nome || "Usuário",
+          assinatura,
+        });
+        const pcNum = `PC-${String(p.numero).padStart(4, "0")}`;
+        if (batchMethod === "email") {
+          const email = fornecedor?.email || fornecedor?.emailCompras || "";
+          if (!email) throw new Error(`${pcNum}: fornecedor sem e-mail`);
+          const { error } = await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "ordem-compra-confirmation",
+              recipientEmail: email,
+              idempotencyKey: `ordem-compra-${p.id}-${Date.now()}`,
+              templateData: {
+                fornecedorNome: p.fornecedorNome,
+                pedidoNumero: p.numero,
+                valorTotal: formatCurrency(p.valorTotal),
+                condicaoPagamento: p.condicaoPagamento || "A vista",
+                prazoEntrega: p.prazoEntrega || "A combinar",
+                comprador: usuarioLogado?.nome || "Departamento de Compras",
+                nomeEmpresa,
+                pdfUrl,
+              },
+            },
+          });
+          if (error) throw new Error(error.message);
+        } else {
+          const phone = fornecedor?.telefoneCelular || fornecedor?.telefonesWhatsapp || "";
+          if (!phone) throw new Error(`${pcNum}: fornecedor sem WhatsApp`);
+          const mensagem = `*Ordem de Compra ${pcNum}*\n\n` +
+            `Fornecedor: ${p.fornecedorNome}\n` +
+            `Valor Total: ${formatCurrency(p.valorTotal)}\n` +
+            `Prazo de Entrega: ${p.prazoEntrega || "A combinar"}\n` +
+            `Condição de Pagamento: ${p.condicaoPagamento || "A vista"}`;
+          const result = await enviarWhatsAppComDocumento({
+            telefone: phone,
+            mensagem,
+            documentUrl: pdfUrl,
+            documentFilename: `Ordem_Compra_${pcNum}.pdf`,
+          });
+          if (!result.success) throw new Error(`${pcNum}: ${result.error || "falha WhatsApp"}`);
+        }
+        ok++;
+      } catch (err: unknown) {
+        fail++;
+        erros.push(err instanceof Error ? err.message : "erro desconhecido");
+      } finally {
+        setBatchProgress(prev => ({ ...prev, done: prev.done + 1, ok, fail }));
+      }
+    }
+    setBatchSending(false);
+    toast({
+      title: `Envio em lote concluído: ${ok} sucesso, ${fail} falha${fail !== 1 ? "s" : ""}`,
+      description: erros.length ? erros.slice(0, 3).join(" | ") : undefined,
+      variant: fail > 0 ? "destructive" : "default",
+    });
+    if (fail === 0) {
+      setBatchSendOpen(false);
+      setSelectedIds([]);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
