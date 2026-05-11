@@ -68,7 +68,11 @@ export function PedidoCompraProvider({ children }: { children: ReactNode }) {
       valorTotal, status: "Emitido",
       historicoStatus: [{ status: "Emitido", dataHora: now, usuario: data.comprador, observacao: "Pedido emitido" }],
     };
-    insertRow("pedidos_compra", pedidoToRow(pedido)).then(() => load());
+    insertRow("pedidos_compra", pedidoToRow(pedido)).then(async () => {
+      await load();
+      // auto-gera lançamentos no Contas a Pagar (silencioso para não poluir UI)
+      gerarContasPagarDePC(pedido, { silent: false });
+    });
     return pedido;
   };
 
