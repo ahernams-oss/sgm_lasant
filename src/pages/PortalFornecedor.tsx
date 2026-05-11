@@ -233,6 +233,9 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const [recusarConvite, setRecusarConvite] = useState<ConviteRow | null>(null);
   const [recusarStep, setRecusarStep] = useState<1 | 2>(1);
   const [recusando, setRecusando] = useState(false);
+  const [pageCotacoes, setPageCotacoes] = useState(1);
+  const [pagePedidos, setPagePedidos] = useState(1);
+  const PAGE_SIZE = 10;
 
   const handleRecusarConfirm = async () => {
     if (!recusarConvite) return;
