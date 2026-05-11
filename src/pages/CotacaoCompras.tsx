@@ -444,6 +444,8 @@ export default function CotacaoComprasPage() {
     setEnviarEmail("");
     setLinkGerado("");
     setLinksGeradosTodos([]);
+    setFornecedoresSelecionadosIds(fornecedores.map(f => f.id));
+    setFiltroFornecedor("");
     setEnviarDialogOpen(true);
   };
 
