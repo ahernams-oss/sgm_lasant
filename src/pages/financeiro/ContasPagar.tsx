@@ -249,23 +249,94 @@ export default function ContasPagar() {
       </Card>
 
       <Card>
-        <CardHeader className="flex-row items-center justify-between gap-2">
-          <CardTitle className="text-base">
-            {filtradas.length} conta(s) — Total: {formatBRL(totais.total)} | Pago: {formatBRL(totais.pago)}
-          </CardTitle>
-          <div className="flex gap-2">
-            <Input placeholder="Buscar..." value={busca} onChange={(e) => { setBusca(e.target.value); setPage(1); }} className="w-48" />
-            <Select value={filtroStatus} onValueChange={(v) => { setFiltroStatus(v); setPage(1); }}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                <SelectItem value="aberta">Em aberto</SelectItem>
-                <SelectItem value="vencida">Vencidas</SelectItem>
-                <SelectItem value="parcial">Parcial</SelectItem>
-                <SelectItem value="paga">Pagas</SelectItem>
-                <SelectItem value="cancelada">Canceladas</SelectItem>
-              </SelectContent>
-            </Select>
+        <CardHeader className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="text-base">
+              {filtradas.length} conta(s) — Total: {formatBRL(totais.total)} | Pago: {formatBRL(totais.pago)}
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Input placeholder="Buscar descrição/fornecedor..." value={busca} onChange={(e) => { setBusca(e.target.value); setPage(1); }} className="w-64" />
+              {hasFiltros && (
+                <Button variant="ghost" size="sm" onClick={limparFiltros} className="h-9 gap-1 text-xs text-muted-foreground">
+                  <X className="h-3.5 w-3.5" /> Limpar filtros
+                </Button>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-end gap-2 pt-3 border-t">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mr-1 pb-2">
+              <Filter className="h-3.5 w-3.5" /> Filtros:
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Vencimento de</label>
+              <Input type="date" value={fDataIni} onChange={(e) => { setFDataIni(e.target.value); setPage(1); }} className="h-9 w-40 text-xs" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">até</label>
+              <Input type="date" value={fDataFim} onChange={(e) => { setFDataFim(e.target.value); setPage(1); }} className="h-9 w-40 text-xs" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Status</label>
+              <Select value={filtroStatus} onValueChange={(v) => { setFiltroStatus(v); setPage(1); }}>
+                <SelectTrigger className="h-9 w-36 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="aberta">Em aberto</SelectItem>
+                  <SelectItem value="vencida">Vencidas</SelectItem>
+                  <SelectItem value="parcial">Parcial</SelectItem>
+                  <SelectItem value="paga">Pagas</SelectItem>
+                  <SelectItem value="cancelada">Canceladas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Fornecedor</label>
+              <Select value={fFornecedor} onValueChange={(v) => { setFFornecedor(v); setPage(1); }}>
+                <SelectTrigger className="h-9 w-52 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  {fornecedores.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Categoria DRE</label>
+              <Select value={fPlanoConta} onValueChange={(v) => { setFPlanoConta(v); setPage(1); }}>
+                <SelectTrigger className="h-9 w-48 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todas</SelectItem>
+                  {planoContas.filter(p => p.tipo === "despesa").map(p => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Centro de custo</label>
+              <Select value={fCentroCusto} onValueChange={(v) => { setFCentroCusto(v); setPage(1); }}>
+                <SelectTrigger className="h-9 w-48 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  {centrosCusto.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Conta bancária</label>
+              <Select value={fContaBanc} onValueChange={(v) => { setFContaBanc(v); setPage(1); }}>
+                <SelectTrigger className="h-9 w-48 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todas</SelectItem>
+                  {contasBancarias.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Valor mín</label>
+              <Input value={fValorMin} onChange={(e) => { setFValorMin(e.target.value); setPage(1); }} placeholder="0,00" className="h-9 w-28 text-xs" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Valor máx</label>
+              <Input value={fValorMax} onChange={(e) => { setFValorMax(e.target.value); setPage(1); }} placeholder="0,00" className="h-9 w-28 text-xs" />
+            </div>
           </div>
         </CardHeader>
         <CardContent>
