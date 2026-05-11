@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, AlertCircle, Paperclip, X } from "lucide-react";
 import { useFinanceiro, formatBRL, formatDate, isVencida, ContaPagar } from "@/contexts/FinanceiroContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import BaixaDialog from "@/components/financeiro/BaixaDialog";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const empty = {
@@ -19,6 +20,7 @@ const empty = {
   conta_bancaria_id: null as string | null, plano_conta_id: null as string | null,
   centro_custo_id: null as string | null, parcela_num: 1, parcela_total: 1,
   observacao: "", origem: "manual",
+  anexo_url: "" as string, anexo_nome: "" as string,
 };
 
 export default function ContasPagar() {
@@ -32,7 +34,26 @@ export default function ContasPagar() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [baixaConta, setBaixaConta] = useState<ContaPagar | null>(null);
+  const [uploading, setUploading] = useState(false);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+
+  const handleUploadAnexo = async (file: File) => {
+    if (file.size > 10 * 1024 * 1024) { toast.error("Arquivo deve ter até 10MB."); return; }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `cp/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from("financeiro-anexos").upload(path, file);
+      if (error) throw error;
+      const { data } = supabase.storage.from("financeiro-anexos").getPublicUrl(path);
+      setForm((f: any) => ({ ...f, anexo_url: data.publicUrl, anexo_nome: file.name }));
+      toast.success("Anexo enviado!");
+    } catch (e: any) {
+      toast.error("Falha no upload: " + (e.message || e));
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!form.descricao || !form.data_vencimento || !form.valor_total) {
@@ -137,7 +158,29 @@ export default function ContasPagar() {
               {contasBancarias.filter(c => c.ativo).map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Input placeholder="Observação" value={form.observacao} onChange={(e) => setForm({ ...form, observacao: e.target.value })} className="md:col-span-2 lg:col-span-3" />
+          <Input placeholder="Observação" value={form.observacao} onChange={(e) => setForm({ ...form, observacao: e.target.value })} className="md:col-span-2 lg:col-span-2" />
+          <div className="md:col-span-1 lg:col-span-2 flex items-center gap-2">
+            <input
+              id="cp-anexo-input"
+              type="file"
+              className="hidden"
+              accept="application/pdf,image/*,.xml"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUploadAnexo(f); e.currentTarget.value = ""; }}
+            />
+            <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => document.getElementById("cp-anexo-input")?.click()}>
+              <Paperclip className="h-4 w-4 mr-1" />{uploading ? "Enviando..." : (form.anexo_url ? "Trocar anexo" : "Anexar boleto/NF")}
+            </Button>
+            {form.anexo_url && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+                <a href={form.anexo_url} target="_blank" rel="noreferrer" className="text-primary hover:underline truncate max-w-[200px]" title={form.anexo_nome}>
+                  {form.anexo_nome || "anexo"}
+                </a>
+                <button type="button" onClick={() => setForm({ ...form, anexo_url: "", anexo_nome: "" })} className="text-destructive">
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+          </div>
           <div className="md:col-span-3 lg:col-span-4 flex gap-2">
             <Button onClick={handleSave}><Plus className="h-4 w-4 mr-1" />{editingId ? "Salvar" : "Adicionar"}</Button>
             {editingId && <Button variant="outline" onClick={() => { setEditingId(null); setForm(empty); }}>Cancelar</Button>}
