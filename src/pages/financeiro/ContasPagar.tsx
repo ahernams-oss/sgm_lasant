@@ -31,11 +31,59 @@ export default function ContasPagar() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [busca, setBusca] = useState("");
+  const [fFornecedor, setFFornecedor] = useState<string>("todos");
+  const [fPlanoConta, setFPlanoConta] = useState<string>("todos");
+  const [fCentroCusto, setFCentroCusto] = useState<string>("todos");
+  const [fContaBanc, setFContaBanc] = useState<string>("todos");
+  const [fDataIni, setFDataIni] = useState<string>("");
+  const [fDataFim, setFDataFim] = useState<string>("");
+  const [fValorMin, setFValorMin] = useState<string>("");
+  const [fValorMax, setFValorMax] = useState<string>("");
+  const FILTERS_KEY = "filtros_contas_pagar";
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [baixaConta, setBaixaConta] = useState<ContaPagar | null>(null);
   const [uploading, setUploading] = useState(false);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+
+  // Carrega filtros salvos
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(FILTERS_KEY);
+      if (!raw) return;
+      const p = JSON.parse(raw);
+      setFiltroStatus(p.filtroStatus ?? "todos");
+      setBusca(p.busca ?? "");
+      setFFornecedor(p.fFornecedor ?? "todos");
+      setFPlanoConta(p.fPlanoConta ?? "todos");
+      setFCentroCusto(p.fCentroCusto ?? "todos");
+      setFContaBanc(p.fContaBanc ?? "todos");
+      setFDataIni(p.fDataIni ?? "");
+      setFDataFim(p.fDataFim ?? "");
+      setFValorMin(p.fValorMin ?? "");
+      setFValorMax(p.fValorMax ?? "");
+    } catch { /* ignore */ }
+  }, []);
+  // Persiste
+  useEffect(() => {
+    try {
+      localStorage.setItem(FILTERS_KEY, JSON.stringify({
+        filtroStatus, busca, fFornecedor, fPlanoConta, fCentroCusto, fContaBanc,
+        fDataIni, fDataFim, fValorMin, fValorMax,
+      }));
+    } catch { /* ignore */ }
+  }, [filtroStatus, busca, fFornecedor, fPlanoConta, fCentroCusto, fContaBanc, fDataIni, fDataFim, fValorMin, fValorMax]);
+
+  const limparFiltros = () => {
+    setFiltroStatus("todos"); setBusca("");
+    setFFornecedor("todos"); setFPlanoConta("todos"); setFCentroCusto("todos"); setFContaBanc("todos");
+    setFDataIni(""); setFDataFim(""); setFValorMin(""); setFValorMax("");
+    setPage(1);
+  };
+
+  const hasFiltros = filtroStatus !== "todos" || busca || fFornecedor !== "todos" ||
+    fPlanoConta !== "todos" || fCentroCusto !== "todos" || fContaBanc !== "todos" ||
+    fDataIni || fDataFim || fValorMin || fValorMax;
 
   const handleUploadAnexo = async (file: File) => {
     if (file.size > 10 * 1024 * 1024) { toast.error("Arquivo deve ter até 10MB."); return; }
