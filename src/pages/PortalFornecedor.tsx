@@ -16,6 +16,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import logoLasant from "@/assets/Logo_Lasant.png";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 const STORAGE_KEY = "fornecedorPortalLogado";
 
