@@ -772,6 +772,15 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               <CardHeader className="flex flex-row items-start justify-between gap-4">
                 <CardTitle className="text-base">Pedidos de Compra emitidos</CardTitle>
                 <div className="flex gap-2">
+                  {pedidos.length > 0 && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setExpandedPedidos(allExpanded ? new Set() : new Set(allPedidoIds))}
+                    >
+                      {allExpanded ? "Recolher todos" : "Expandir todos"}
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" onClick={exportPedidosExcel} disabled={pedidos.length === 0}>
                     <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
                   </Button>
