@@ -212,6 +212,7 @@ export default function PropostaFornecedorPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12 text-center">Não tem</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead className="w-20 text-center">Qtd</TableHead>
                     <TableHead className="w-16 text-center">Un</TableHead>
@@ -221,26 +222,40 @@ export default function PropostaFornecedorPage() {
                 </TableHeader>
                 <TableBody>
                   {itens.map((item, idx) => (
-                    <TableRow key={item.itemId}>
+                    <TableRow key={item.itemId} className={item.naoTem ? "opacity-60" : ""}>
+                      <TableCell className="text-center">
+                        <Checkbox
+                          checked={!!item.naoTem}
+                          onCheckedChange={(c) => {
+                            const checked = c === true;
+                            setItens(prev => prev.map((it, i) => i === idx ? { ...it, naoTem: checked, precoUnitario: checked ? 0 : it.precoUnitario } : it));
+                          }}
+                          aria-label="Marcar como não disponível"
+                        />
+                      </TableCell>
                       <TableCell className="text-sm font-medium">{item.descricao}</TableCell>
                       <TableCell className="text-center">{item.quantidade}</TableCell>
                       <TableCell className="text-center">{item.unidadeMedida}</TableCell>
                       <TableCell>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder="0,00"
-                          value={item.precoUnitario || ""}
-                          onChange={e => {
-                            const val = Number(e.target.value);
-                            setItens(prev => prev.map((it, i) => i === idx ? { ...it, precoUnitario: val } : it));
-                          }}
-                          className="h-9"
-                        />
+                        {item.naoTem ? (
+                          <span className="text-xs italic text-muted-foreground">Não disponível</span>
+                        ) : (
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="0,00"
+                            value={item.precoUnitario || ""}
+                            onChange={e => {
+                              const val = Number(e.target.value);
+                              setItens(prev => prev.map((it, i) => i === idx ? { ...it, precoUnitario: val } : it));
+                            }}
+                            className="h-9"
+                          />
+                        )}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatCurrency(item.precoUnitario * item.quantidade)}
+                        {item.naoTem ? "—" : formatCurrency(item.precoUnitario * item.quantidade)}
                       </TableCell>
                     </TableRow>
                   ))}
