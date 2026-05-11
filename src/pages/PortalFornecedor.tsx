@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { LogOut, FileText, ShoppingCart, AlertCircle, Building2, FileDown, FileSpreadsheet, KeyRound } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -229,6 +230,27 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const [pedidos, setPedidos] = useState<PedidoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [trocaOpen, setTrocaOpen] = useState(false);
+  const [recusarConvite, setRecusarConvite] = useState<ConviteRow | null>(null);
+  const [recusarStep, setRecusarStep] = useState<1 | 2>(1);
+  const [recusando, setRecusando] = useState(false);
+
+  const handleRecusarConfirm = async () => {
+    if (!recusarConvite) return;
+    setRecusando(true);
+    const { error } = await supabase
+      .from("cotacao_convites")
+      .update({ status: "recusado" })
+      .eq("id", recusarConvite.id);
+    setRecusando(false);
+    if (error) {
+      toast.error("Erro ao recusar cotação.");
+      return;
+    }
+    setConvites((prev) => prev.map((x) => (x.id === recusarConvite.id ? { ...x, status: "recusado" } : x)));
+    toast.success("Cotação recusada.");
+    setRecusarConvite(null);
+    setRecusarStep(1);
+  };
 
   useEffect(() => {
     (async () => {
@@ -538,6 +560,8 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                               <TableCell>
                                 {c.status === "respondido" ? (
                                   <Badge variant="secondary">Respondida</Badge>
+                                ) : c.status === "recusado" ? (
+                                  <Badge variant="destructive">Recusada</Badge>
                                 ) : expirado ? (
                                   <Badge variant="outline">Expirada</Badge>
                                 ) : (
@@ -546,9 +570,18 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                               </TableCell>
                               <TableCell className="text-right">
                                 {podeResponder ? (
-                                  <Link to={`/cotacao/proposta/${c.token}`}>
-                                    <Button size="sm">Responder</Button>
-                                  </Link>
+                                  <div className="flex justify-end gap-2">
+                                    <Link to={`/cotacao/proposta/${c.token}`}>
+                                      <Button size="sm">Responder</Button>
+                                    </Link>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => { setRecusarStep(1); setRecusarConvite(c); }}
+                                    >
+                                      Recusar
+                                    </Button>
+                                  </div>
                                 ) : (
                                   <Button size="sm" variant="ghost" disabled>—</Button>
                                 )}
@@ -641,6 +674,36 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
           </TabsContent>
         </Tabs>
       </main>
+
+      <AlertDialog
+        open={!!recusarConvite}
+        onOpenChange={(v) => { if (!v) { setRecusarConvite(null); setRecusarStep(1); } }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Recusar apresentação de proposta</AlertDialogTitle>
+            <AlertDialogDescription>
+              {recusarStep === 1
+                ? `Deseja realmente recusar a cotação COT-${String(recusarConvite?.cotacao_numero || 0).padStart(4, "0")}? Você não poderá enviar proposta depois.`
+                : "Esta ação é definitiva. O comprador será notificado da recusa. Confirma?"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => { setRecusarConvite(null); setRecusarStep(1); }}>
+              Cancelar
+            </Button>
+            {recusarStep === 1 ? (
+              <Button variant="destructive" onClick={() => setRecusarStep(2)}>
+                Sim, recusar
+              </Button>
+            ) : (
+              <Button variant="destructive" onClick={handleRecusarConfirm} disabled={recusando}>
+                {recusando ? "Recusando..." : "Confirmo a recusa"}
+              </Button>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={trocaOpen} onOpenChange={setTrocaOpen}>
         <DialogContent>
