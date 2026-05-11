@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, FileSpreadsheet, BarChart3 } from "lucide-react";
 import { useFinanceiro, formatBRL, formatDate, isVencida } from "@/contexts/FinanceiroContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -23,13 +24,17 @@ export default function RelatoriosFinanceiros() {
   const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
   const [dataIni, setDataIni] = useState(inicioMes);
   const [dataFim, setDataFim] = useState(hoje);
+  const [fCentroCusto, setFCentroCusto] = useState<string>("todos");
 
-  const filtrosTxt = `Período: ${formatDate(dataIni)} a ${formatDate(dataFim)}`;
+  const ccNome = fCentroCusto === "todos" ? "Todos" : (fin.centrosCusto.find(c => c.id === fCentroCusto)?.nome || "—");
+  const filtrosTxt = `Período: ${formatDate(dataIni)} a ${formatDate(dataFim)} | C. Custo: ${ccNome}`;
 
   const nomePC = (id?: string | null) => fin.planoContas.find(p => p.id === id)?.nome || "—";
   const nomeCC = (id?: string | null) => fin.centrosCusto.find(c => c.id === id)?.nome || "—";
   const nomeCB = (id?: string | null) => fin.contasBancarias.find(c => c.id === id)?.nome || "—";
   const nomeCli = (id?: string | null) => clientes.find(c => c.id === id)?.nome || "—";
+
+  const matchCC = (id?: string | null) => fCentroCusto === "todos" || id === fCentroCusto;
 
   const inRange = (d?: string | null) => {
     if (!d) return false;
@@ -42,7 +47,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Contas a Pagar - Em Aberto",
       descricao: "Todas as contas a pagar com status em aberto ou parcial.",
       build: () => {
-        const dados = fin.contasPagar.filter(c => c.status === "aberta" || c.status === "parcial");
+        const dados = fin.contasPagar.filter(c => (c.status === "aberta" || c.status === "parcial") && matchCC(c.centro_custo_id));
         const total = dados.reduce((s, c) => s + (Number(c.valor_total) - Number(c.valor_pago)), 0);
         return {
           titulo: "Contas a Pagar - Em Aberto",
@@ -64,7 +69,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Contas a Pagar - Pagas",
       descricao: "Contas pagas dentro do período selecionado.",
       build: () => {
-        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento));
+        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento) && matchCC(c.centro_custo_id));
         const total = dados.reduce((s, c) => s + Number(c.valor_pago), 0);
         return {
           titulo: "Contas a Pagar - Pagas",
@@ -84,7 +89,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Contas a Pagar - Vencidas",
       descricao: "Contas em aberto cuja data de vencimento já passou.",
       build: () => {
-        const dados = fin.contasPagar.filter(c => isVencida(c));
+        const dados = fin.contasPagar.filter(c => isVencida(c) && matchCC(c.centro_custo_id));
         const total = dados.reduce((s, c) => s + (Number(c.valor_total) - Number(c.valor_pago)), 0);
         return {
           titulo: "Contas a Pagar - Vencidas",
@@ -107,7 +112,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Contas a Receber - Em Aberto",
       descricao: "Recebíveis em aberto ou parcialmente recebidos.",
       build: () => {
-        const dados = fin.contasReceber.filter(c => c.status === "aberta" || c.status === "parcial");
+        const dados = fin.contasReceber.filter(c => (c.status === "aberta" || c.status === "parcial") && matchCC(c.centro_custo_id));
         const total = dados.reduce((s, c) => s + (Number(c.valor_total) - Number(c.valor_recebido)), 0);
         return {
           titulo: "Contas a Receber - Em Aberto",
@@ -129,7 +134,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Contas a Receber - Recebidas",
       descricao: "Recebimentos efetivados no período.",
       build: () => {
-        const dados = fin.contasReceber.filter(c => c.status === "recebida" && inRange(c.data_recebimento));
+        const dados = fin.contasReceber.filter(c => c.status === "recebida" && inRange(c.data_recebimento) && matchCC(c.centro_custo_id));
         const total = dados.reduce((s, c) => s + Number(c.valor_recebido), 0);
         return {
           titulo: "Contas a Receber - Recebidas",
@@ -149,7 +154,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Contas a Receber - Vencidas",
       descricao: "Recebíveis em aberto com vencimento expirado.",
       build: () => {
-        const dados = fin.contasReceber.filter(c => isVencida(c as any));
+        const dados = fin.contasReceber.filter(c => isVencida(c as any) && matchCC(c.centro_custo_id));
         const total = dados.reduce((s, c) => s + (Number(c.valor_total) - Number(c.valor_recebido)), 0);
         return {
           titulo: "Contas a Receber - Vencidas",
@@ -172,7 +177,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Fluxo de Caixa Realizado",
       descricao: "Lançamentos (entradas, saídas e transferências) do período.",
       build: () => {
-        const dados = fin.lancamentos.filter(l => inRange(l.data));
+        const dados = fin.lancamentos.filter(l => inRange(l.data) && matchCC(l.centro_custo_id));
         const entradas = dados.filter(l => l.tipo === "entrada").reduce((s, l) => s + Number(l.valor), 0);
         const saidas = dados.filter(l => l.tipo === "saida").reduce((s, l) => s + Number(l.valor), 0);
         return {
@@ -217,7 +222,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "DRE Sintético",
       descricao: "Receitas, despesas e resultado líquido do período (caixa).",
       build: () => {
-        const lanc = fin.lancamentos.filter(l => inRange(l.data));
+        const lanc = fin.lancamentos.filter(l => inRange(l.data) && matchCC(l.centro_custo_id));
         const map = new Map<string, { tipo: string; total: number }>();
         lanc.forEach(l => {
           const pc = fin.planoContas.find(p => p.id === l.plano_conta_id);
@@ -252,7 +257,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Despesas por Centro de Custo",
       descricao: "Consolidação de despesas pagas por centro de custo no período.",
       build: () => {
-        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento));
+        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento) && matchCC(c.centro_custo_id));
         const map = new Map<string, number>();
         dados.forEach(c => {
           const k = nomeCC(c.centro_custo_id);
@@ -274,7 +279,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Despesas por Categoria (Plano de Contas)",
       descricao: "Total pago por categoria do plano de contas no período.",
       build: () => {
-        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento));
+        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento) && matchCC(c.centro_custo_id));
         const map = new Map<string, number>();
         dados.forEach(c => {
           const k = nomePC(c.plano_conta_id);
@@ -296,7 +301,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Top Fornecedores (Pagamentos)",
       descricao: "Ranking de fornecedores por valor pago no período.",
       build: () => {
-        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento));
+        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento) && matchCC(c.centro_custo_id));
         const map = new Map<string, { total: number; qt: number }>();
         dados.forEach(c => {
           const k = c.fornecedor_nome || "—";
@@ -321,7 +326,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Top Clientes (Recebimentos)",
       descricao: "Ranking de clientes por valor recebido no período.",
       build: () => {
-        const dados = fin.contasReceber.filter(c => c.status === "recebida" && inRange(c.data_recebimento));
+        const dados = fin.contasReceber.filter(c => c.status === "recebida" && inRange(c.data_recebimento) && matchCC(c.centro_custo_id));
         const map = new Map<string, { total: number; qt: number }>();
         dados.forEach(c => {
           const k = c.cliente_nome || nomeCli(c.cliente_id) || "—";
@@ -341,7 +346,7 @@ export default function RelatoriosFinanceiros() {
         };
       },
     },
-  ], [fin, clientes, dataIni, dataFim]);
+  ], [fin, clientes, dataIni, dataFim, fCentroCusto]);
 
   const exportar = (def: RelDef, tipo: "pdf" | "excel") => {
     const r = def.build();
@@ -363,7 +368,7 @@ export default function RelatoriosFinanceiros() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Período (para relatórios por data)</CardTitle>
+          <CardTitle className="text-base">Filtros</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
@@ -373,6 +378,18 @@ export default function RelatoriosFinanceiros() {
           <div>
             <Label>Data Final</Label>
             <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+          </div>
+          <div>
+            <Label>Centro de Custo</Label>
+            <Select value={fCentroCusto} onValueChange={setFCentroCusto}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {fin.centrosCusto.filter(c => c.ativo).map(c => (
+                  <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
