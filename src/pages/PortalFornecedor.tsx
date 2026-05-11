@@ -550,7 +550,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {convites.map((c) => {
+                        {paginate(convites, pageCotacoes, PAGE_SIZE).paginated.map((c) => {
                           const expirado = new Date(c.expires_at) < new Date();
                           const podeResponder = c.status === "pendente" && !expirado;
                           return (
