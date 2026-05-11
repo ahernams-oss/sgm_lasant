@@ -133,6 +133,7 @@ import FluxoCaixa from "./pages/financeiro/FluxoCaixa.tsx";
 import Dre from "./pages/financeiro/Dre.tsx";
 import Conciliacao from "./pages/financeiro/Conciliacao.tsx";
 import Lancamentos from "./pages/financeiro/Lancamentos.tsx";
+import RelatoriosFinanceiros from "./pages/financeiro/RelatoriosFinanceiros.tsx";
 const queryClient = new QueryClient();
 
 function RequireAuth({ children }: { children: ReactNode }) {
