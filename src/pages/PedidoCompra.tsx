@@ -18,7 +18,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send, FilterX } from "lucide-react";
+import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send, FilterX, Wallet } from "lucide-react";
+import { gerarContasPagarDePC } from "@/lib/financeiroFromPC";
 import { format } from "date-fns";
 import { downloadPdfOrdemCompra, uploadPdfOrdemCompra } from "@/lib/gerarPdfOrdemCompra";
 import { enviarWhatsApp, enviarWhatsAppComDocumento } from "@/lib/whatsapp";
@@ -518,6 +519,7 @@ export default function PedidoCompraPage() {
                           <Button variant="ghost" size="icon" title="Histórico" onClick={() => setHistoricoPedido(p)}><Clock className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" title="Baixar PDF" onClick={() => handleDownloadPdf(p)}><FileDown className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" title="Enviar ao Fornecedor" onClick={() => openSendDialog(p)}><Send className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" title="Gerar Financeiro (Contas a Pagar)" onClick={() => gerarContasPagarDePC(p)}><Wallet className="h-4 w-4" /></Button>
                           {assinatura ? (
                             <span title={`Assinado por ${assinatura.signatario_nome} em ${format(new Date(assinatura.signed_at), "dd/MM/yyyy HH:mm")}`}>
                               <ShieldCheck className="h-4 w-4 text-green-600" />

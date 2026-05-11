@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
+import { gerarContasPagarDePC } from "@/lib/financeiroFromPC";
 
 export type StatusPedido = "Emitido" | "Comprado" | "Em Entrega" | "Entregue Parcial" | "Entregue" | "Cancelado";
 
@@ -67,7 +68,11 @@ export function PedidoCompraProvider({ children }: { children: ReactNode }) {
       valorTotal, status: "Emitido",
       historicoStatus: [{ status: "Emitido", dataHora: now, usuario: data.comprador, observacao: "Pedido emitido" }],
     };
-    insertRow("pedidos_compra", pedidoToRow(pedido)).then(() => load());
+    insertRow("pedidos_compra", pedidoToRow(pedido)).then(async () => {
+      await load();
+      // auto-gera lançamentos no Contas a Pagar (silencioso para não poluir UI)
+      gerarContasPagarDePC(pedido, { silent: false });
+    });
     return pedido;
   };
 

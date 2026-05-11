@@ -11,6 +11,7 @@ import { usePermissao } from "@/hooks/usePermissao";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfMedicaoControle } from "@/lib/gerarPdfMedicaoControle";
+import { gerarContaReceberDeFaturamento } from "@/lib/financeiroFromPC";
 
 const emptyFaturamento: Omit<Faturamento, "id"> = {
   periodoInicio: "",
@@ -130,14 +131,23 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
       toast.error("Informe o período do faturamento.");
       return;
     }
+    let savedId = editingId;
     if (editingId) {
       const updated = faturamentos.map((f) => (f.id === editingId ? { ...f, ...form } : f));
       onChange(updated);
       toast.success("Faturamento atualizado!");
     } else {
       const novo: Faturamento = { id: crypto.randomUUID(), ...form };
+      savedId = novo.id;
       onChange([...faturamentos, novo]);
       toast.success("Faturamento adicionado!");
+    }
+    // gera/atualiza Conta a Receber se houver NF e valor
+    if (savedId && (form.numeroNf || form.numeroMedicao) && (form.valorLiquido || form.valorBruto)) {
+      gerarContaReceberDeFaturamento(
+        { id: savedId, ...form },
+        { clienteId: cliente?.id, clienteNome: cliente?.nome || cliente?.nomeFantasia, contratoId: contrato?.id, contratoNumero: contratoNumero }
+      );
     }
     setForm(emptyFaturamento);
     setEditingId(null);
