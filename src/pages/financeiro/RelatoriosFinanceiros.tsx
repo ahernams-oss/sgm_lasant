@@ -47,7 +47,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Contas a Pagar - Em Aberto",
       descricao: "Todas as contas a pagar com status em aberto ou parcial.",
       build: () => {
-        const dados = fin.contasPagar.filter(c => c.status === "aberta" || c.status === "parcial");
+        const dados = fin.contasPagar.filter(c => (c.status === "aberta" || c.status === "parcial") && matchCC(c.centro_custo_id));
         const total = dados.reduce((s, c) => s + (Number(c.valor_total) - Number(c.valor_pago)), 0);
         return {
           titulo: "Contas a Pagar - Em Aberto",
@@ -69,7 +69,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Contas a Pagar - Pagas",
       descricao: "Contas pagas dentro do período selecionado.",
       build: () => {
-        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento));
+        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento) && matchCC(c.centro_custo_id));
         const total = dados.reduce((s, c) => s + Number(c.valor_pago), 0);
         return {
           titulo: "Contas a Pagar - Pagas",
@@ -89,7 +89,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Contas a Pagar - Vencidas",
       descricao: "Contas em aberto cuja data de vencimento já passou.",
       build: () => {
-        const dados = fin.contasPagar.filter(c => isVencida(c));
+        const dados = fin.contasPagar.filter(c => isVencida(c) && matchCC(c.centro_custo_id));
         const total = dados.reduce((s, c) => s + (Number(c.valor_total) - Number(c.valor_pago)), 0);
         return {
           titulo: "Contas a Pagar - Vencidas",
@@ -112,7 +112,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Contas a Receber - Em Aberto",
       descricao: "Recebíveis em aberto ou parcialmente recebidos.",
       build: () => {
-        const dados = fin.contasReceber.filter(c => c.status === "aberta" || c.status === "parcial");
+        const dados = fin.contasReceber.filter(c => (c.status === "aberta" || c.status === "parcial") && matchCC(c.centro_custo_id));
         const total = dados.reduce((s, c) => s + (Number(c.valor_total) - Number(c.valor_recebido)), 0);
         return {
           titulo: "Contas a Receber - Em Aberto",
@@ -134,7 +134,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Contas a Receber - Recebidas",
       descricao: "Recebimentos efetivados no período.",
       build: () => {
-        const dados = fin.contasReceber.filter(c => c.status === "recebida" && inRange(c.data_recebimento));
+        const dados = fin.contasReceber.filter(c => c.status === "recebida" && inRange(c.data_recebimento) && matchCC(c.centro_custo_id));
         const total = dados.reduce((s, c) => s + Number(c.valor_recebido), 0);
         return {
           titulo: "Contas a Receber - Recebidas",
@@ -154,7 +154,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Contas a Receber - Vencidas",
       descricao: "Recebíveis em aberto com vencimento expirado.",
       build: () => {
-        const dados = fin.contasReceber.filter(c => isVencida(c as any));
+        const dados = fin.contasReceber.filter(c => isVencida(c as any) && matchCC(c.centro_custo_id));
         const total = dados.reduce((s, c) => s + (Number(c.valor_total) - Number(c.valor_recebido)), 0);
         return {
           titulo: "Contas a Receber - Vencidas",
@@ -177,7 +177,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Fluxo de Caixa Realizado",
       descricao: "Lançamentos (entradas, saídas e transferências) do período.",
       build: () => {
-        const dados = fin.lancamentos.filter(l => inRange(l.data));
+        const dados = fin.lancamentos.filter(l => inRange(l.data) && matchCC(l.centro_custo_id));
         const entradas = dados.filter(l => l.tipo === "entrada").reduce((s, l) => s + Number(l.valor), 0);
         const saidas = dados.filter(l => l.tipo === "saida").reduce((s, l) => s + Number(l.valor), 0);
         return {
@@ -222,7 +222,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "DRE Sintético",
       descricao: "Receitas, despesas e resultado líquido do período (caixa).",
       build: () => {
-        const lanc = fin.lancamentos.filter(l => inRange(l.data));
+        const lanc = fin.lancamentos.filter(l => inRange(l.data) && matchCC(l.centro_custo_id));
         const map = new Map<string, { tipo: string; total: number }>();
         lanc.forEach(l => {
           const pc = fin.planoContas.find(p => p.id === l.plano_conta_id);
@@ -257,7 +257,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Despesas por Centro de Custo",
       descricao: "Consolidação de despesas pagas por centro de custo no período.",
       build: () => {
-        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento));
+        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento) && matchCC(c.centro_custo_id));
         const map = new Map<string, number>();
         dados.forEach(c => {
           const k = nomeCC(c.centro_custo_id);
@@ -279,7 +279,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Despesas por Categoria (Plano de Contas)",
       descricao: "Total pago por categoria do plano de contas no período.",
       build: () => {
-        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento));
+        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento) && matchCC(c.centro_custo_id));
         const map = new Map<string, number>();
         dados.forEach(c => {
           const k = nomePC(c.plano_conta_id);
@@ -301,7 +301,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Top Fornecedores (Pagamentos)",
       descricao: "Ranking de fornecedores por valor pago no período.",
       build: () => {
-        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento));
+        const dados = fin.contasPagar.filter(c => c.status === "paga" && inRange(c.data_pagamento) && matchCC(c.centro_custo_id));
         const map = new Map<string, { total: number; qt: number }>();
         dados.forEach(c => {
           const k = c.fornecedor_nome || "—";
@@ -326,7 +326,7 @@ export default function RelatoriosFinanceiros() {
       titulo: "Top Clientes (Recebimentos)",
       descricao: "Ranking de clientes por valor recebido no período.",
       build: () => {
-        const dados = fin.contasReceber.filter(c => c.status === "recebida" && inRange(c.data_recebimento));
+        const dados = fin.contasReceber.filter(c => c.status === "recebida" && inRange(c.data_recebimento) && matchCC(c.centro_custo_id));
         const map = new Map<string, { total: number; qt: number }>();
         dados.forEach(c => {
           const k = c.cliente_nome || nomeCli(c.cliente_id) || "—";
@@ -346,7 +346,7 @@ export default function RelatoriosFinanceiros() {
         };
       },
     },
-  ], [fin, clientes, dataIni, dataFim]);
+  ], [fin, clientes, dataIni, dataFim, fCentroCusto]);
 
   const exportar = (def: RelDef, tipo: "pdf" | "excel") => {
     const r = def.build();
