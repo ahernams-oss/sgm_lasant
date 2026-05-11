@@ -560,6 +560,8 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                               <TableCell>
                                 {c.status === "respondido" ? (
                                   <Badge variant="secondary">Respondida</Badge>
+                                ) : c.status === "recusado" ? (
+                                  <Badge variant="destructive">Recusada</Badge>
                                 ) : expirado ? (
                                   <Badge variant="outline">Expirada</Badge>
                                 ) : (
@@ -568,9 +570,18 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                               </TableCell>
                               <TableCell className="text-right">
                                 {podeResponder ? (
-                                  <Link to={`/cotacao/proposta/${c.token}`}>
-                                    <Button size="sm">Responder</Button>
-                                  </Link>
+                                  <div className="flex justify-end gap-2">
+                                    <Link to={`/cotacao/proposta/${c.token}`}>
+                                      <Button size="sm">Responder</Button>
+                                    </Link>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => { setRecusarStep(1); setRecusarConvite(c); }}
+                                    >
+                                      Recusar
+                                    </Button>
+                                  </div>
                                 ) : (
                                   <Button size="sm" variant="ghost" disabled>—</Button>
                                 )}
