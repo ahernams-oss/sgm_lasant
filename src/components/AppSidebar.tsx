@@ -182,6 +182,7 @@ const menuItems = [
       { title: "DRE Gerencial", url: "/financeiro/dre", icon: FileBarChart, perm: "financeiro.dre" },
       { title: "Conciliação Bancária", url: "/financeiro/conciliacao", icon: FileCheck, perm: "financeiro.conciliacao" },
       { title: "Lançamentos", url: "/financeiro/lancamentos", icon: ClipboardList, perm: "financeiro.lancamentos" },
+      { title: "Relatórios Financeiros", url: "/financeiro/relatorios", icon: FileBarChart, perm: "financeiro.dashboard" },
     ],
   },
   {
