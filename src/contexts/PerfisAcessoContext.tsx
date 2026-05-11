@@ -683,6 +683,52 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
       },
     ],
   },
+  {
+    grupo: "Financeiro",
+    modulos: [
+      { key: "financeiro.dashboard", label: "Dashboard Financeiro", acoes: [{ key: "financeiro.dashboard.visualizar", label: "Visualizar dashboard" }] },
+      { key: "financeiro.contas_pagar", label: "Contas a Pagar", acoes: [
+        { key: "financeiro.contas_pagar.criar", label: "Criar conta a pagar" },
+        { key: "financeiro.contas_pagar.editar", label: "Editar conta a pagar" },
+        { key: "financeiro.contas_pagar.excluir", label: "Excluir conta a pagar" },
+        { key: "financeiro.contas_pagar.baixar", label: "Dar baixa (pagamento)" },
+      ]},
+      { key: "financeiro.contas_receber", label: "Contas a Receber", acoes: [
+        { key: "financeiro.contas_receber.criar", label: "Criar conta a receber" },
+        { key: "financeiro.contas_receber.editar", label: "Editar conta a receber" },
+        { key: "financeiro.contas_receber.excluir", label: "Excluir conta a receber" },
+        { key: "financeiro.contas_receber.baixar", label: "Dar baixa (recebimento)" },
+      ]},
+      { key: "financeiro.contas_bancarias", label: "Contas Bancárias", acoes: [
+        { key: "financeiro.contas_bancarias.criar", label: "Criar conta bancária" },
+        { key: "financeiro.contas_bancarias.editar", label: "Editar conta bancária" },
+        { key: "financeiro.contas_bancarias.excluir", label: "Excluir conta bancária" },
+        { key: "financeiro.contas_bancarias.transferir", label: "Realizar transferências" },
+      ]},
+      { key: "financeiro.plano_contas", label: "Plano de Contas", acoes: [
+        { key: "financeiro.plano_contas.gerenciar", label: "Gerenciar plano de contas" },
+      ]},
+      { key: "financeiro.centros_custo", label: "Centros de Custo", acoes: [
+        { key: "financeiro.centros_custo.gerenciar", label: "Gerenciar centros de custo" },
+      ]},
+      { key: "financeiro.fluxo_caixa", label: "Fluxo de Caixa", acoes: [
+        { key: "financeiro.fluxo_caixa.visualizar", label: "Visualizar fluxo" },
+        { key: "financeiro.fluxo_caixa.exportar", label: "Exportar Excel/PDF" },
+      ]},
+      { key: "financeiro.dre", label: "DRE Gerencial", acoes: [
+        { key: "financeiro.dre.visualizar", label: "Visualizar DRE" },
+        { key: "financeiro.dre.exportar_pdf", label: "Exportar PDF" },
+      ]},
+      { key: "financeiro.conciliacao", label: "Conciliação Bancária", acoes: [
+        { key: "financeiro.conciliacao.importar_ofx", label: "Importar OFX" },
+        { key: "financeiro.conciliacao.conciliar", label: "Conciliar movimentos" },
+      ]},
+      { key: "financeiro.lancamentos", label: "Lançamentos", acoes: [
+        { key: "financeiro.lancamentos.visualizar", label: "Visualizar lançamentos" },
+        { key: "financeiro.lancamentos.estornar", label: "Estornar lançamento" },
+      ]},
+    ],
+  },
 ];
 
 // Collect all permission keys
