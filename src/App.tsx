@@ -134,6 +134,7 @@ import Dre from "./pages/financeiro/Dre.tsx";
 import Conciliacao from "./pages/financeiro/Conciliacao.tsx";
 import Lancamentos from "./pages/financeiro/Lancamentos.tsx";
 import RelatoriosFinanceiros from "./pages/financeiro/RelatoriosFinanceiros.tsx";
+import CondicoesPagamento from "./pages/financeiro/CondicoesPagamento.tsx";
 const queryClient = new QueryClient();
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -292,6 +293,7 @@ function ProtectedAppRoutes() {
         <Route path="/financeiro/conciliacao" element={<Conciliacao />} />
         <Route path="/financeiro/lancamentos" element={<Lancamentos />} />
         <Route path="/financeiro/relatorios" element={<RelatoriosFinanceiros />} />
+        <Route path="/financeiro/condicoes-pagamento" element={<CondicoesPagamento />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
