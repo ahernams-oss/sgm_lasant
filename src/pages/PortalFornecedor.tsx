@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, FileText, ShoppingCart, AlertCircle, Building2, FileDown, FileSpreadsheet, KeyRound, LayoutDashboard, Clock, CheckCircle2, Truck, XCircle, PackageCheck } from "lucide-react";
+import { LogOut, FileText, ShoppingCart, AlertCircle, Building2, FileDown, FileSpreadsheet, KeyRound, LayoutDashboard, Clock, CheckCircle2, Truck, XCircle, PackageCheck, ChevronDown, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
@@ -383,7 +383,11 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const [recusando, setRecusando] = useState(false);
   const [pageCotacoes, setPageCotacoes] = useState(1);
   const [pagePedidos, setPagePedidos] = useState(1);
+  const [expandedPedidos, setExpandedPedidos] = useState<Set<string>>(new Set());
   const PAGE_SIZE = 10;
+  const togglePedido = (id: string) => setExpandedPedidos((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const allPedidoIds = pedidos.map((p) => p.id);
+  const allExpanded = allPedidoIds.length > 0 && allPedidoIds.every((id) => expandedPedidos.has(id));
 
   const handleRecusarConfirm = async () => {
     if (!recusarConvite) return;
@@ -768,6 +772,15 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               <CardHeader className="flex flex-row items-start justify-between gap-4">
                 <CardTitle className="text-base">Pedidos de Compra emitidos</CardTitle>
                 <div className="flex gap-2">
+                  {pedidos.length > 0 && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setExpandedPedidos(allExpanded ? new Set() : new Set(allPedidoIds))}
+                    >
+                      {allExpanded ? "Recolher todos" : "Expandir todos"}
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" onClick={exportPedidosExcel} disabled={pedidos.length === 0}>
                     <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
                   </Button>
@@ -783,56 +796,70 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                   <p className="text-muted-foreground text-sm">Nenhum pedido encontrado.</p>
                 ) : (
                   <div className="space-y-4">
-                    {paginate(pedidos, pagePedidos, PAGE_SIZE).paginated.map((p) => (
+                    {paginate(pedidos, pagePedidos, PAGE_SIZE).paginated.map((p) => {
+                      const isOpen = expandedPedidos.has(p.id);
+                      return (
                       <div key={p.id} className="border rounded-lg p-4">
-                        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                          <div>
-                            <p className="font-semibold">PC-{String(p.numero).padStart(4, "0")}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {fmtDate(p.data_criacao)} • {p.comprador}
-                            </p>
+                        <button
+                          type="button"
+                          onClick={() => togglePedido(p.id)}
+                          className="w-full flex flex-wrap items-center justify-between gap-2 text-left hover:opacity-80 transition-opacity"
+                        >
+                          <div className="flex items-center gap-2">
+                            {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                            <div>
+                              <p className="font-semibold">PC-{String(p.numero).padStart(4, "0")}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {fmtDate(p.data_criacao)} • {p.comprador}
+                              </p>
+                            </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary">{p.status}</Badge>
                             <span className="font-semibold text-primary">{fmtMoney(p.valor_total)}</span>
                           </div>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-muted-foreground mb-2">
-                          <div><strong>Pagamento:</strong> {p.condicao_pagamento || "-"}</div>
-                          <div><strong>Prazo:</strong> {p.prazo_entrega || "-"}</div>
-                          <div><strong>Local:</strong> {p.local_entrega || "-"}</div>
-                        </div>
-                        {Array.isArray(p.itens) && p.itens.length > 0 && (
-                          <div className="border-t pt-2 mt-2">
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>Item</TableHead>
-                                  <TableHead className="w-20 text-center">Qtd</TableHead>
-                                  <TableHead className="w-16 text-center">Un</TableHead>
-                                  <TableHead className="w-32 text-right">Preço</TableHead>
-                                  <TableHead className="w-32 text-right">Total</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {p.itens.map((it: any, i: number) => (
-                                  <TableRow key={i}>
-                                    <TableCell className="text-sm">{it.descricao}</TableCell>
-                                    <TableCell className="text-center">{it.quantidade}</TableCell>
-                                    <TableCell className="text-center">{it.unidadeMedida || it.unidade}</TableCell>
-                                    <TableCell className="text-right">{fmtMoney(Number(it.precoUnitario || 0))}</TableCell>
-                                    <TableCell className="text-right">{fmtMoney(Number(it.precoUnitario || 0) * Number(it.quantidade || 0))}</TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
+                        </button>
+                        {isOpen && (
+                          <div className="mt-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-muted-foreground mb-2">
+                              <div><strong>Pagamento:</strong> {p.condicao_pagamento || "-"}</div>
+                              <div><strong>Prazo:</strong> {p.prazo_entrega || "-"}</div>
+                              <div><strong>Local:</strong> {p.local_entrega || "-"}</div>
+                            </div>
+                            {Array.isArray(p.itens) && p.itens.length > 0 && (
+                              <div className="border-t pt-2 mt-2">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead>Item</TableHead>
+                                      <TableHead className="w-20 text-center">Qtd</TableHead>
+                                      <TableHead className="w-16 text-center">Un</TableHead>
+                                      <TableHead className="w-32 text-right">Preço</TableHead>
+                                      <TableHead className="w-32 text-right">Total</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {p.itens.map((it: any, i: number) => (
+                                      <TableRow key={i}>
+                                        <TableCell className="text-sm">{it.descricao}</TableCell>
+                                        <TableCell className="text-center">{it.quantidade}</TableCell>
+                                        <TableCell className="text-center">{it.unidadeMedida || it.unidade}</TableCell>
+                                        <TableCell className="text-right">{fmtMoney(Number(it.precoUnitario || 0))}</TableCell>
+                                        <TableCell className="text-right">{fmtMoney(Number(it.precoUnitario || 0) * Number(it.quantidade || 0))}</TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            )}
+                            {p.observacoes && (
+                              <p className="text-xs text-muted-foreground mt-2"><strong>Obs:</strong> {p.observacoes}</p>
+                            )}
                           </div>
                         )}
-                        {p.observacoes && (
-                          <p className="text-xs text-muted-foreground mt-2"><strong>Obs:</strong> {p.observacoes}</p>
-                        )}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
                 {pedidos.length > 0 && (
