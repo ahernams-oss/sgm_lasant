@@ -160,6 +160,8 @@ export default function CotacaoComprasPage() {
   const [canalWhatsapp, setCanalWhatsapp] = useState(true);
   const [linkGerado, setLinkGerado] = useState("");
   const [linksGeradosTodos, setLinksGeradosTodos] = useState<Array<{ fornecedorNome: string; link: string; erro?: string }>>([]);
+  const [fornecedoresSelecionadosIds, setFornecedoresSelecionadosIds] = useState<string[]>([]);
+  const [filtroFornecedor, setFiltroFornecedor] = useState("");
   const [enviarTodosLoading, setEnviarTodosLoading] = useState(false);
   const [enviarEmailLoading, setEnviarEmailLoading] = useState(false);
   const [enviarEmailTodosLoading, setEnviarEmailTodosLoading] = useState(false);
