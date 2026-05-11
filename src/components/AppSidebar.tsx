@@ -170,6 +170,21 @@ const menuItems = [
     items: [{ title: "Duda - Assistente", url: "/chat-duda", icon: BotMessageSquare, perm: "chat_duda" }],
   },
   {
+    group: "Financeiro",
+    items: [
+      { title: "Dashboard Financeiro", url: "/financeiro/dashboard", icon: LayoutDashboard, perm: "financeiro.dashboard" },
+      { title: "Contas a Pagar", url: "/financeiro/contas-pagar", icon: DollarSign, perm: "financeiro.contas_pagar" },
+      { title: "Contas a Receber", url: "/financeiro/contas-receber", icon: DollarSign, perm: "financeiro.contas_receber" },
+      { title: "Contas Bancárias", url: "/financeiro/contas-bancarias", icon: Building2, perm: "financeiro.contas_bancarias" },
+      { title: "Plano de Contas", url: "/financeiro/plano-contas", icon: BookOpen, perm: "financeiro.plano_contas" },
+      { title: "Centros de Custo", url: "/financeiro/centros-custo", icon: Tags, perm: "financeiro.centros_custo" },
+      { title: "Fluxo de Caixa", url: "/financeiro/fluxo-caixa", icon: BarChart3, perm: "financeiro.fluxo_caixa" },
+      { title: "DRE Gerencial", url: "/financeiro/dre", icon: FileBarChart, perm: "financeiro.dre" },
+      { title: "Conciliação Bancária", url: "/financeiro/conciliacao", icon: FileCheck, perm: "financeiro.conciliacao" },
+      { title: "Lançamentos", url: "/financeiro/lancamentos", icon: ClipboardList, perm: "financeiro.lancamentos" },
+    ],
+  },
+  {
     group: "Gerencial",
     items: [{ title: "Painel TV (Tempo Real)", url: "/monitor-tv", icon: Monitor, perm: "monitor_tv" }],
   },
