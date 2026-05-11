@@ -385,6 +385,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </FinanceiroProvider>
     </PcAssinaturasProvider>
     </OsAssinaturasProvider>
     </OrcamentosScoProvider>
