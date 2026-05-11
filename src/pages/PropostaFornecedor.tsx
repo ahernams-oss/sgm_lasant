@@ -117,7 +117,8 @@ export default function PropostaFornecedorPage() {
           descricao: i.descricao,
           quantidade: i.quantidade,
           unidadeMedida: i.unidadeMedida,
-          precoUnitario: i.precoUnitario,
+          precoUnitario: i.naoTem ? 0 : i.precoUnitario,
+          naoTem: !!i.naoTem,
         })),
         valor_total: valorTotal,
       });
