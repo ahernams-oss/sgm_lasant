@@ -763,6 +763,70 @@ export default function PedidoCompraPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Enviar em Lote */}
+      <Dialog open={batchSendOpen} onOpenChange={(o) => { if (!batchSending) setBatchSendOpen(o); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enviar Pedidos em Lote</DialogTitle>
+            <DialogDescription>
+              {selectedIds.length} pedido{selectedIds.length > 1 ? "s" : ""} selecionado{selectedIds.length > 1 ? "s" : ""}. Cada pedido será enviado ao seu respectivo fornecedor cadastrado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Método de Envio *</Label>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                <Button
+                  type="button"
+                  variant={batchMethod === "email" ? "default" : "outline"}
+                  className="h-20 flex flex-col gap-2"
+                  onClick={() => setBatchMethod("email")}
+                  disabled={batchSending}
+                >
+                  <Mail className="h-6 w-6" />
+                  <span>E-mail</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant={batchMethod === "whatsapp" ? "default" : "outline"}
+                  className="h-20 flex flex-col gap-2"
+                  onClick={() => setBatchMethod("whatsapp")}
+                  disabled={batchSending}
+                >
+                  <MessageCircle className="h-6 w-6" />
+                  <span>WhatsApp</span>
+                </Button>
+              </div>
+            </div>
+            {batchMethod && (() => {
+              const lista = pedidos.filter(p => selectedIds.includes(p.id));
+              const semContato = lista.filter(p => {
+                const f = getFornecedor(p.fornecedorId);
+                if (batchMethod === "email") return !(f?.email || f?.emailCompras);
+                return !(f?.telefoneCelular || f?.telefonesWhatsapp);
+              });
+              return semContato.length > 0 ? (
+                <div className="text-xs p-2 rounded border border-amber-300 bg-amber-50 text-amber-900">
+                  ⚠ {semContato.length} fornecedor{semContato.length > 1 ? "es" : ""} sem {batchMethod === "email" ? "e-mail" : "WhatsApp"} cadastrado. Esses pedidos falharão.
+                </div>
+              ) : null;
+            })()}
+            {batchProgress.total > 0 && (
+              <div className="text-sm space-y-1">
+                <div>Progresso: {batchProgress.done} / {batchProgress.total}</div>
+                <div className="text-xs text-muted-foreground">✓ {batchProgress.ok} sucesso · ✗ {batchProgress.fail} falha{batchProgress.fail !== 1 ? "s" : ""}</div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBatchSendOpen(false)} disabled={batchSending}>Fechar</Button>
+            <Button onClick={handleBatchSend} disabled={!batchMethod || batchSending}>
+              {batchSending ? `Enviando ${batchProgress.done}/${batchProgress.total}...` : `Enviar ${selectedIds.length} pedido${selectedIds.length > 1 ? "s" : ""}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
