@@ -158,7 +158,29 @@ export default function ContasPagar() {
               {contasBancarias.filter(c => c.ativo).map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Input placeholder="Observação" value={form.observacao} onChange={(e) => setForm({ ...form, observacao: e.target.value })} className="md:col-span-2 lg:col-span-3" />
+          <Input placeholder="Observação" value={form.observacao} onChange={(e) => setForm({ ...form, observacao: e.target.value })} className="md:col-span-2 lg:col-span-2" />
+          <div className="md:col-span-1 lg:col-span-2 flex items-center gap-2">
+            <input
+              id="cp-anexo-input"
+              type="file"
+              className="hidden"
+              accept="application/pdf,image/*,.xml"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUploadAnexo(f); e.currentTarget.value = ""; }}
+            />
+            <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => document.getElementById("cp-anexo-input")?.click()}>
+              <Paperclip className="h-4 w-4 mr-1" />{uploading ? "Enviando..." : (form.anexo_url ? "Trocar anexo" : "Anexar boleto/NF")}
+            </Button>
+            {form.anexo_url && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+                <a href={form.anexo_url} target="_blank" rel="noreferrer" className="text-primary hover:underline truncate max-w-[200px]" title={form.anexo_nome}>
+                  {form.anexo_nome || "anexo"}
+                </a>
+                <button type="button" onClick={() => setForm({ ...form, anexo_url: "", anexo_nome: "" })} className="text-destructive">
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+          </div>
           <div className="md:col-span-3 lg:col-span-4 flex gap-2">
             <Button onClick={handleSave}><Plus className="h-4 w-4 mr-1" />{editingId ? "Salvar" : "Adicionar"}</Button>
             {editingId && <Button variant="outline" onClick={() => { setEditingId(null); setForm(empty); }}>Cancelar</Button>}
