@@ -505,8 +505,11 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
           </Card>
         </div>
 
-        <Tabs defaultValue="cotacoes">
+        <Tabs defaultValue="dashboard">
           <TabsList>
+            <TabsTrigger value="dashboard">
+              <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
+            </TabsTrigger>
             <TabsTrigger value="cotacoes">
               <FileText className="h-4 w-4 mr-2" /> Cotações
             </TabsTrigger>
@@ -514,6 +517,10 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               <ShoppingCart className="h-4 w-4 mr-2" /> Pedidos de Compra
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="dashboard">
+            <DashboardFornecedor pedidos={pedidos} convites={convites} loading={loading} />
+          </TabsContent>
 
           <TabsContent value="cotacoes">
             <Card>
