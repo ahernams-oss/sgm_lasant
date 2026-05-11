@@ -291,6 +291,7 @@ function ProtectedAppRoutes() {
         <Route path="/financeiro/dre" element={<Dre />} />
         <Route path="/financeiro/conciliacao" element={<Conciliacao />} />
         <Route path="/financeiro/lancamentos" element={<Lancamentos />} />
+        <Route path="/financeiro/relatorios" element={<RelatoriosFinanceiros />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
