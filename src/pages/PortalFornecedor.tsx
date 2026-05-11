@@ -383,7 +383,11 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const [recusando, setRecusando] = useState(false);
   const [pageCotacoes, setPageCotacoes] = useState(1);
   const [pagePedidos, setPagePedidos] = useState(1);
+  const [expandedPedidos, setExpandedPedidos] = useState<Set<string>>(new Set());
   const PAGE_SIZE = 10;
+  const togglePedido = (id: string) => setExpandedPedidos((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const allPedidoIds = pedidos.map((p) => p.id);
+  const allExpanded = allPedidoIds.length > 0 && allPedidoIds.every((id) => expandedPedidos.has(id));
 
   const handleRecusarConfirm = async () => {
     if (!recusarConvite) return;
