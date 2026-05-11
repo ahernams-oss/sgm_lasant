@@ -279,6 +279,16 @@ function ProtectedAppRoutes() {
         <Route path="/orcamentos/:id" element={<OrcamentoScoForm />} />
         <Route path="/orcamentos/catalogo" element={<CatalogoSco />} />
         <Route path="/orcamentos/importar-catalogo" element={<ImportarCatalogoSco />} />
+        <Route path="/financeiro/dashboard" element={<DashboardFinanceiro />} />
+        <Route path="/financeiro/contas-pagar" element={<ContasPagar />} />
+        <Route path="/financeiro/contas-receber" element={<ContasReceber />} />
+        <Route path="/financeiro/contas-bancarias" element={<ContasBancarias />} />
+        <Route path="/financeiro/plano-contas" element={<PlanoContas />} />
+        <Route path="/financeiro/centros-custo" element={<CentrosCusto />} />
+        <Route path="/financeiro/fluxo-caixa" element={<FluxoCaixa />} />
+        <Route path="/financeiro/dre" element={<Dre />} />
+        <Route path="/financeiro/conciliacao" element={<Conciliacao />} />
+        <Route path="/financeiro/lancamentos" element={<Lancamentos />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -346,6 +356,7 @@ const App = () => (
     <OrcamentosScoProvider>
     <OsAssinaturasProvider>
     <PcAssinaturasProvider>
+    <FinanceiroProvider>
     <AuthProvider> {/* auth wrapper */}
     <TooltipProvider>
       <Toaster />
@@ -374,6 +385,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </FinanceiroProvider>
     </PcAssinaturasProvider>
     </OsAssinaturasProvider>
     </OrcamentosScoProvider>
