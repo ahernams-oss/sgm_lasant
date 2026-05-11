@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CheckCircle, AlertCircle, Clock, FileText } from "lucide-react";
 
 interface ConviteItem {
@@ -30,6 +31,7 @@ interface Convite {
 
 interface ItemProposta extends ConviteItem {
   precoUnitario: number;
+  naoTem?: boolean;
 }
 
 export default function PropostaFornecedorPage() {
@@ -82,17 +84,21 @@ export default function PropostaFornecedorPage() {
     const conviteData = data as unknown as Convite;
     setConvite(conviteData);
     const parsedItens = (Array.isArray(conviteData.itens) ? conviteData.itens : JSON.parse(conviteData.itens as unknown as string)) as ConviteItem[];
-    setItens(parsedItens.map(i => ({ ...i, precoUnitario: 0 })));
+    setItens(parsedItens.map(i => ({ ...i, precoUnitario: 0, naoTem: false })));
     setLoading(false);
   };
 
-  const valorTotal = useMemo(() => itens.reduce((s, i) => s + i.precoUnitario * i.quantidade, 0), [itens]);
+  const valorTotal = useMemo(() => itens.reduce((s, i) => s + (i.naoTem ? 0 : i.precoUnitario * i.quantidade), 0), [itens]);
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   const handleSubmit = async () => {
-    if (itens.some(i => i.precoUnitario <= 0)) {
-      setError("Preencha todos os preços unitários.");
+    if (itens.every(i => i.naoTem)) {
+      setError("Marque ao menos um item com preço.");
+      return;
+    }
+    if (itens.some(i => !i.naoTem && i.precoUnitario <= 0)) {
+      setError("Preencha o preço dos itens disponíveis ou marque-os como indisponíveis.");
       return;
     }
     setError("");
@@ -111,7 +117,8 @@ export default function PropostaFornecedorPage() {
           descricao: i.descricao,
           quantidade: i.quantidade,
           unidadeMedida: i.unidadeMedida,
-          precoUnitario: i.precoUnitario,
+          precoUnitario: i.naoTem ? 0 : i.precoUnitario,
+          naoTem: !!i.naoTem,
         })),
         valor_total: valorTotal,
       });
@@ -205,6 +212,7 @@ export default function PropostaFornecedorPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12 text-center">Não tem</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead className="w-20 text-center">Qtd</TableHead>
                     <TableHead className="w-16 text-center">Un</TableHead>
@@ -214,26 +222,40 @@ export default function PropostaFornecedorPage() {
                 </TableHeader>
                 <TableBody>
                   {itens.map((item, idx) => (
-                    <TableRow key={item.itemId}>
+                    <TableRow key={item.itemId} className={item.naoTem ? "opacity-60" : ""}>
+                      <TableCell className="text-center">
+                        <Checkbox
+                          checked={!!item.naoTem}
+                          onCheckedChange={(c) => {
+                            const checked = c === true;
+                            setItens(prev => prev.map((it, i) => i === idx ? { ...it, naoTem: checked, precoUnitario: checked ? 0 : it.precoUnitario } : it));
+                          }}
+                          aria-label="Marcar como não disponível"
+                        />
+                      </TableCell>
                       <TableCell className="text-sm font-medium">{item.descricao}</TableCell>
                       <TableCell className="text-center">{item.quantidade}</TableCell>
                       <TableCell className="text-center">{item.unidadeMedida}</TableCell>
                       <TableCell>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder="0,00"
-                          value={item.precoUnitario || ""}
-                          onChange={e => {
-                            const val = Number(e.target.value);
-                            setItens(prev => prev.map((it, i) => i === idx ? { ...it, precoUnitario: val } : it));
-                          }}
-                          className="h-9"
-                        />
+                        {item.naoTem ? (
+                          <span className="text-xs italic text-muted-foreground">Não disponível</span>
+                        ) : (
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="0,00"
+                            value={item.precoUnitario || ""}
+                            onChange={e => {
+                              const val = Number(e.target.value);
+                              setItens(prev => prev.map((it, i) => i === idx ? { ...it, precoUnitario: val } : it));
+                            }}
+                            className="h-9"
+                          />
+                        )}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatCurrency(item.precoUnitario * item.quantidade)}
+                        {item.naoTem ? "—" : formatCurrency(item.precoUnitario * item.quantidade)}
                       </TableCell>
                     </TableRow>
                   ))}
