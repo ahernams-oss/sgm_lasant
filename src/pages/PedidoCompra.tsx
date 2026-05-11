@@ -94,6 +94,12 @@ export default function PedidoCompraPage() {
   const [sendPhone, setSendPhone] = useState("");
   const [sending, setSending] = useState(false);
 
+  // Batch send state
+  const [batchSendOpen, setBatchSendOpen] = useState(false);
+  const [batchMethod, setBatchMethod] = useState<"email" | "whatsapp" | "">("");
+  const [batchSending, setBatchSending] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0, ok: 0, fail: 0 });
+
   const filtered = useMemo(() => {
     let list = pedidos;
     if (filterStatus !== "Todos") list = list.filter(p => p.status === filterStatus);
