@@ -200,6 +200,8 @@ function DashboardFornecedor({ pedidos, convites, loading }: { pedidos: PedidoRo
     </div>
   );
 }
+
+export default function PortalFornecedorPage() {
   const [session, setSession] = useState<FornecedorSession | null>(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : null;
