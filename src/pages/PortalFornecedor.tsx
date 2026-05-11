@@ -597,6 +597,14 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                     </Table>
                   </div>
                 )}
+                {convites.length > 0 && (
+                  <PaginationControls
+                    currentPage={pageCotacoes}
+                    totalItems={convites.length}
+                    onPageChange={setPageCotacoes}
+                    pageSize={PAGE_SIZE}
+                  />
+                )}
               </CardContent>
             </Card>
           </TabsContent>
