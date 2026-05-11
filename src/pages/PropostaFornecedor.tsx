@@ -84,17 +84,21 @@ export default function PropostaFornecedorPage() {
     const conviteData = data as unknown as Convite;
     setConvite(conviteData);
     const parsedItens = (Array.isArray(conviteData.itens) ? conviteData.itens : JSON.parse(conviteData.itens as unknown as string)) as ConviteItem[];
-    setItens(parsedItens.map(i => ({ ...i, precoUnitario: 0 })));
+    setItens(parsedItens.map(i => ({ ...i, precoUnitario: 0, naoTem: false })));
     setLoading(false);
   };
 
-  const valorTotal = useMemo(() => itens.reduce((s, i) => s + i.precoUnitario * i.quantidade, 0), [itens]);
+  const valorTotal = useMemo(() => itens.reduce((s, i) => s + (i.naoTem ? 0 : i.precoUnitario * i.quantidade), 0), [itens]);
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   const handleSubmit = async () => {
-    if (itens.some(i => i.precoUnitario <= 0)) {
-      setError("Preencha todos os preços unitários.");
+    if (itens.every(i => i.naoTem)) {
+      setError("Marque ao menos um item com preço.");
+      return;
+    }
+    if (itens.some(i => !i.naoTem && i.precoUnitario <= 0)) {
+      setError("Preencha o preço dos itens disponíveis ou marque-os como indisponíveis.");
       return;
     }
     setError("");
