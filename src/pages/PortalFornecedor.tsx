@@ -629,7 +629,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                   <p className="text-muted-foreground text-sm">Nenhum pedido encontrado.</p>
                 ) : (
                   <div className="space-y-4">
-                    {pedidos.map((p) => (
+                    {paginate(pedidos, pagePedidos, PAGE_SIZE).paginated.map((p) => (
                       <div key={p.id} className="border rounded-lg p-4">
                         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                           <div>
