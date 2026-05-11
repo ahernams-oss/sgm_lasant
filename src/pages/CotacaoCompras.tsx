@@ -160,6 +160,8 @@ export default function CotacaoComprasPage() {
   const [canalWhatsapp, setCanalWhatsapp] = useState(true);
   const [linkGerado, setLinkGerado] = useState("");
   const [linksGeradosTodos, setLinksGeradosTodos] = useState<Array<{ fornecedorNome: string; link: string; erro?: string }>>([]);
+  const [fornecedoresSelecionadosIds, setFornecedoresSelecionadosIds] = useState<string[]>([]);
+  const [filtroFornecedor, setFiltroFornecedor] = useState("");
   const [enviarTodosLoading, setEnviarTodosLoading] = useState(false);
   const [enviarEmailLoading, setEnviarEmailLoading] = useState(false);
   const [enviarEmailTodosLoading, setEnviarEmailTodosLoading] = useState(false);
@@ -442,6 +444,8 @@ export default function CotacaoComprasPage() {
     setEnviarEmail("");
     setLinkGerado("");
     setLinksGeradosTodos([]);
+    setFornecedoresSelecionadosIds(fornecedores.map(f => f.id));
+    setFiltroFornecedor("");
     setEnviarDialogOpen(true);
   };
 
@@ -650,7 +654,9 @@ export default function CotacaoComprasPage() {
       let enviadosEmail = 0;
       let enviadosWpp = 0;
 
-      for (const forn of fornecedores) {
+      const alvos = fornecedores.filter(f => fornecedoresSelecionadosIds.includes(f.id));
+      if (alvos.length === 0) throw new Error("Selecione ao menos um fornecedor");
+      for (const forn of alvos) {
         const emailForn = forn.emailCompras || forn.email || "";
         const telForn = getTelefoneFornecedor(forn);
         try {
@@ -1648,21 +1654,83 @@ export default function CotacaoComprasPage() {
                 </div>
               </div>
             )}
-            {/* Enviar para todos */}
-            {linksGeradosTodos.length === 0 && !linkGerado && (
-              <div className="border border-dashed rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">Enviar para todos os fornecedores</p>
-                    <p className="text-xs text-muted-foreground">{fornecedores.length} fornecedores — envio por {[canalEmail && "e-mail", canalWhatsapp && "WhatsApp"].filter(Boolean).join(" e ") || "nenhum canal selecionado"}</p>
+            {/* Seleção de fornecedores */}
+            {linksGeradosTodos.length === 0 && !linkGerado && (() => {
+              const fornFiltrados = fornecedores.filter(f => {
+                const t = filtroFornecedor.trim().toLowerCase();
+                if (!t) return true;
+                return (f.nome || "").toLowerCase().includes(t) || (f.nomeFantasia || "").toLowerCase().includes(t);
+              });
+              const allFilteredSelected = fornFiltrados.length > 0 && fornFiltrados.every(f => fornecedoresSelecionadosIds.includes(f.id));
+              const someFilteredSelected = fornFiltrados.some(f => fornecedoresSelecionadosIds.includes(f.id));
+              const toggleAll = () => {
+                if (allFilteredSelected) {
+                  setFornecedoresSelecionadosIds(prev => prev.filter(id => !fornFiltrados.some(f => f.id === id)));
+                } else {
+                  setFornecedoresSelecionadosIds(prev => Array.from(new Set([...prev, ...fornFiltrados.map(f => f.id)])));
+                }
+              };
+              const toggleOne = (id: string) => {
+                setFornecedoresSelecionadosIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+              };
+              const canais = [canalEmail && "e-mail", canalWhatsapp && "WhatsApp"].filter(Boolean).join(" e ") || "nenhum canal";
+              return (
+                <div className="border rounded-lg p-3 space-y-3">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div>
+                      <p className="text-sm font-medium">Selecionar fornecedores</p>
+                      <p className="text-xs text-muted-foreground">
+                        {fornecedoresSelecionadosIds.length} de {fornecedores.length} selecionado(s) — envio por {canais}
+                      </p>
+                    </div>
+                    <Button onClick={handleGerarEEnviarTodos} disabled={enviarTodosLoading || fornecedoresSelecionadosIds.length === 0}>
+                      <Send className="mr-2 h-4 w-4" />
+                      {enviarTodosLoading ? "Enviando..." : `Enviar para Selecionados (${fornecedoresSelecionadosIds.length})`}
+                    </Button>
                   </div>
-                  <Button onClick={handleGerarEEnviarTodos} disabled={enviarTodosLoading || fornecedores.length === 0}>
-                    <Send className="mr-2 h-4 w-4" />
-                    {enviarTodosLoading ? "Enviando..." : "Enviar para Todos"}
-                  </Button>
+                  <Input
+                    placeholder="Filtrar fornecedores..."
+                    value={filtroFornecedor}
+                    onChange={e => setFiltroFornecedor(e.target.value)}
+                    className="h-8"
+                  />
+                  <div className="flex items-center gap-2 px-1 py-1 border-b">
+                    <Checkbox
+                      checked={allFilteredSelected ? true : someFilteredSelected ? "indeterminate" : false}
+                      onCheckedChange={toggleAll}
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      {allFilteredSelected ? "Desmarcar todos" : "Selecionar todos"}
+                      {filtroFornecedor && " (filtrados)"}
+                    </span>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto divide-y">
+                    {fornFiltrados.length === 0 ? (
+                      <p className="text-xs text-muted-foreground py-4 text-center">Nenhum fornecedor encontrado</p>
+                    ) : fornFiltrados.map(f => {
+                      const emailForn = (f as any).emailCompras || f.email || "";
+                      const telForn = getTelefoneFornecedor(f);
+                      const semContato = !emailForn && !telForn;
+                      return (
+                        <label key={f.id} className="flex items-center gap-2 py-2 px-1 cursor-pointer hover:bg-muted/30">
+                          <Checkbox
+                            checked={fornecedoresSelecionadosIds.includes(f.id)}
+                            onCheckedChange={() => toggleOne(f.id)}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm truncate">{f.nome}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {emailForn || "sem e-mail"} · {telForn || "sem WhatsApp"}
+                            </p>
+                          </div>
+                          {semContato && <span className="text-xs text-amber-600 shrink-0">⚠ sem contato</span>}
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Resultados envio em massa */}
             {linksGeradosTodos.length > 0 && (
