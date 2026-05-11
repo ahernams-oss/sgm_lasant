@@ -1,11 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, CheckCircle2, AlertCircle, Paperclip, X } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, AlertCircle, Paperclip, X, Filter } from "lucide-react";
 import { useFinanceiro, formatBRL, formatDate, isVencida, ContaPagar } from "@/contexts/FinanceiroContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
@@ -31,11 +31,59 @@ export default function ContasPagar() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [busca, setBusca] = useState("");
+  const [fFornecedor, setFFornecedor] = useState<string>("todos");
+  const [fPlanoConta, setFPlanoConta] = useState<string>("todos");
+  const [fCentroCusto, setFCentroCusto] = useState<string>("todos");
+  const [fContaBanc, setFContaBanc] = useState<string>("todos");
+  const [fDataIni, setFDataIni] = useState<string>("");
+  const [fDataFim, setFDataFim] = useState<string>("");
+  const [fValorMin, setFValorMin] = useState<string>("");
+  const [fValorMax, setFValorMax] = useState<string>("");
+  const FILTERS_KEY = "filtros_contas_pagar";
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [baixaConta, setBaixaConta] = useState<ContaPagar | null>(null);
   const [uploading, setUploading] = useState(false);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+
+  // Carrega filtros salvos
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(FILTERS_KEY);
+      if (!raw) return;
+      const p = JSON.parse(raw);
+      setFiltroStatus(p.filtroStatus ?? "todos");
+      setBusca(p.busca ?? "");
+      setFFornecedor(p.fFornecedor ?? "todos");
+      setFPlanoConta(p.fPlanoConta ?? "todos");
+      setFCentroCusto(p.fCentroCusto ?? "todos");
+      setFContaBanc(p.fContaBanc ?? "todos");
+      setFDataIni(p.fDataIni ?? "");
+      setFDataFim(p.fDataFim ?? "");
+      setFValorMin(p.fValorMin ?? "");
+      setFValorMax(p.fValorMax ?? "");
+    } catch { /* ignore */ }
+  }, []);
+  // Persiste
+  useEffect(() => {
+    try {
+      localStorage.setItem(FILTERS_KEY, JSON.stringify({
+        filtroStatus, busca, fFornecedor, fPlanoConta, fCentroCusto, fContaBanc,
+        fDataIni, fDataFim, fValorMin, fValorMax,
+      }));
+    } catch { /* ignore */ }
+  }, [filtroStatus, busca, fFornecedor, fPlanoConta, fCentroCusto, fContaBanc, fDataIni, fDataFim, fValorMin, fValorMax]);
+
+  const limparFiltros = () => {
+    setFiltroStatus("todos"); setBusca("");
+    setFFornecedor("todos"); setFPlanoConta("todos"); setFCentroCusto("todos"); setFContaBanc("todos");
+    setFDataIni(""); setFDataFim(""); setFValorMin(""); setFValorMax("");
+    setPage(1);
+  };
+
+  const hasFiltros = filtroStatus !== "todos" || busca || fFornecedor !== "todos" ||
+    fPlanoConta !== "todos" || fCentroCusto !== "todos" || fContaBanc !== "todos" ||
+    fDataIni || fDataFim || fValorMin || fValorMax;
 
   const handleUploadAnexo = async (file: File) => {
     if (file.size > 10 * 1024 * 1024) { toast.error("Arquivo deve ter até 10MB."); return; }
@@ -96,13 +144,25 @@ export default function ContasPagar() {
   };
 
   const filtradas = useMemo(() => {
+    const vmin = fValorMin ? parseFloat(fValorMin.replace(",", ".")) : null;
+    const vmax = fValorMax ? parseFloat(fValorMax.replace(",", ".")) : null;
     return contasPagar.filter((c) => {
       if (busca && !c.descricao.toLowerCase().includes(busca.toLowerCase()) && !(c.fornecedor_nome || "").toLowerCase().includes(busca.toLowerCase())) return false;
-      if (filtroStatus === "todos") return true;
-      if (filtroStatus === "vencida") return isVencida(c);
-      return c.status === filtroStatus;
+      if (filtroStatus !== "todos") {
+        if (filtroStatus === "vencida") { if (!isVencida(c)) return false; }
+        else if (c.status !== filtroStatus) return false;
+      }
+      if (fFornecedor !== "todos" && c.fornecedor_id !== fFornecedor) return false;
+      if (fPlanoConta !== "todos" && c.plano_conta_id !== fPlanoConta) return false;
+      if (fCentroCusto !== "todos" && c.centro_custo_id !== fCentroCusto) return false;
+      if (fContaBanc !== "todos" && c.conta_bancaria_id !== fContaBanc) return false;
+      if (fDataIni && c.data_vencimento < fDataIni) return false;
+      if (fDataFim && c.data_vencimento > fDataFim) return false;
+      if (vmin !== null && Number(c.valor_total) < vmin) return false;
+      if (vmax !== null && Number(c.valor_total) > vmax) return false;
+      return true;
     }).sort((a, b) => a.data_vencimento.localeCompare(b.data_vencimento));
-  }, [contasPagar, busca, filtroStatus]);
+  }, [contasPagar, busca, filtroStatus, fFornecedor, fPlanoConta, fCentroCusto, fContaBanc, fDataIni, fDataFim, fValorMin, fValorMax]);
 
   const { paginated, totalPages } = paginate(filtradas, page, pageSize);
   const totais = useMemo(() => ({
@@ -189,23 +249,94 @@ export default function ContasPagar() {
       </Card>
 
       <Card>
-        <CardHeader className="flex-row items-center justify-between gap-2">
-          <CardTitle className="text-base">
-            {filtradas.length} conta(s) — Total: {formatBRL(totais.total)} | Pago: {formatBRL(totais.pago)}
-          </CardTitle>
-          <div className="flex gap-2">
-            <Input placeholder="Buscar..." value={busca} onChange={(e) => { setBusca(e.target.value); setPage(1); }} className="w-48" />
-            <Select value={filtroStatus} onValueChange={(v) => { setFiltroStatus(v); setPage(1); }}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                <SelectItem value="aberta">Em aberto</SelectItem>
-                <SelectItem value="vencida">Vencidas</SelectItem>
-                <SelectItem value="parcial">Parcial</SelectItem>
-                <SelectItem value="paga">Pagas</SelectItem>
-                <SelectItem value="cancelada">Canceladas</SelectItem>
-              </SelectContent>
-            </Select>
+        <CardHeader className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="text-base">
+              {filtradas.length} conta(s) — Total: {formatBRL(totais.total)} | Pago: {formatBRL(totais.pago)}
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Input placeholder="Buscar descrição/fornecedor..." value={busca} onChange={(e) => { setBusca(e.target.value); setPage(1); }} className="w-64" />
+              {hasFiltros && (
+                <Button variant="ghost" size="sm" onClick={limparFiltros} className="h-9 gap-1 text-xs text-muted-foreground">
+                  <X className="h-3.5 w-3.5" /> Limpar filtros
+                </Button>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-end gap-2 pt-3 border-t">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mr-1 pb-2">
+              <Filter className="h-3.5 w-3.5" /> Filtros:
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Vencimento de</label>
+              <Input type="date" value={fDataIni} onChange={(e) => { setFDataIni(e.target.value); setPage(1); }} className="h-9 w-40 text-xs" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">até</label>
+              <Input type="date" value={fDataFim} onChange={(e) => { setFDataFim(e.target.value); setPage(1); }} className="h-9 w-40 text-xs" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Status</label>
+              <Select value={filtroStatus} onValueChange={(v) => { setFiltroStatus(v); setPage(1); }}>
+                <SelectTrigger className="h-9 w-36 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="aberta">Em aberto</SelectItem>
+                  <SelectItem value="vencida">Vencidas</SelectItem>
+                  <SelectItem value="parcial">Parcial</SelectItem>
+                  <SelectItem value="paga">Pagas</SelectItem>
+                  <SelectItem value="cancelada">Canceladas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Fornecedor</label>
+              <Select value={fFornecedor} onValueChange={(v) => { setFFornecedor(v); setPage(1); }}>
+                <SelectTrigger className="h-9 w-52 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  {fornecedores.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Categoria DRE</label>
+              <Select value={fPlanoConta} onValueChange={(v) => { setFPlanoConta(v); setPage(1); }}>
+                <SelectTrigger className="h-9 w-48 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todas</SelectItem>
+                  {planoContas.filter(p => p.tipo === "despesa").map(p => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Centro de custo</label>
+              <Select value={fCentroCusto} onValueChange={(v) => { setFCentroCusto(v); setPage(1); }}>
+                <SelectTrigger className="h-9 w-48 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  {centrosCusto.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Conta bancária</label>
+              <Select value={fContaBanc} onValueChange={(v) => { setFContaBanc(v); setPage(1); }}>
+                <SelectTrigger className="h-9 w-48 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todas</SelectItem>
+                  {contasBancarias.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Valor mín</label>
+              <Input value={fValorMin} onChange={(e) => { setFValorMin(e.target.value); setPage(1); }} placeholder="0,00" className="h-9 w-28 text-xs" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] text-muted-foreground">Valor máx</label>
+              <Input value={fValorMax} onChange={(e) => { setFValorMax(e.target.value); setPage(1); }} placeholder="0,00" className="h-9 w-28 text-xs" />
+            </div>
           </div>
         </CardHeader>
         <CardContent>
