@@ -1873,6 +1873,51 @@ export type Database = {
         }
         Relationships: []
       }
+      fin_condicoes_pagamento: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          dias_parcelas: Json
+          id: string
+          intervalo_dias: number | null
+          nome: string
+          num_parcelas: number
+          observacao: string | null
+          percentual_entrada: number | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          dias_parcelas?: Json
+          id?: string
+          intervalo_dias?: number | null
+          nome: string
+          num_parcelas?: number
+          observacao?: string | null
+          percentual_entrada?: number | null
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          dias_parcelas?: Json
+          id?: string
+          intervalo_dias?: number | null
+          nome?: string
+          num_parcelas?: number
+          observacao?: string | null
+          percentual_entrada?: number | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fin_contas_bancarias: {
         Row: {
           agencia: string | null
