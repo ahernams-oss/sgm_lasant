@@ -654,7 +654,9 @@ export default function CotacaoComprasPage() {
       let enviadosEmail = 0;
       let enviadosWpp = 0;
 
-      for (const forn of fornecedores) {
+      const alvos = fornecedores.filter(f => fornecedoresSelecionadosIds.includes(f.id));
+      if (alvos.length === 0) throw new Error("Selecione ao menos um fornecedor");
+      for (const forn of alvos) {
         const emailForn = forn.emailCompras || forn.email || "";
         const telForn = getTelefoneFornecedor(forn);
         try {
