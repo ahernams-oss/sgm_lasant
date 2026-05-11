@@ -24,13 +24,17 @@ export default function RelatoriosFinanceiros() {
   const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
   const [dataIni, setDataIni] = useState(inicioMes);
   const [dataFim, setDataFim] = useState(hoje);
+  const [fCentroCusto, setFCentroCusto] = useState<string>("todos");
 
-  const filtrosTxt = `Período: ${formatDate(dataIni)} a ${formatDate(dataFim)}`;
+  const ccNome = fCentroCusto === "todos" ? "Todos" : (fin.centrosCusto.find(c => c.id === fCentroCusto)?.nome || "—");
+  const filtrosTxt = `Período: ${formatDate(dataIni)} a ${formatDate(dataFim)} | C. Custo: ${ccNome}`;
 
   const nomePC = (id?: string | null) => fin.planoContas.find(p => p.id === id)?.nome || "—";
   const nomeCC = (id?: string | null) => fin.centrosCusto.find(c => c.id === id)?.nome || "—";
   const nomeCB = (id?: string | null) => fin.contasBancarias.find(c => c.id === id)?.nome || "—";
   const nomeCli = (id?: string | null) => clientes.find(c => c.id === id)?.nome || "—";
+
+  const matchCC = (id?: string | null) => fCentroCusto === "todos" || id === fCentroCusto;
 
   const inRange = (d?: string | null) => {
     if (!d) return false;
