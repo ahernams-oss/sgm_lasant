@@ -519,7 +519,7 @@ export default function PedidoCompraPage() {
                           <Button variant="ghost" size="icon" title="Histórico" onClick={() => setHistoricoPedido(p)}><Clock className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" title="Baixar PDF" onClick={() => handleDownloadPdf(p)}><FileDown className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" title="Enviar ao Fornecedor" onClick={() => openSendDialog(p)}><Send className="h-4 w-4" /></Button>
-                          {assinatura ? (
+                          <Button variant="ghost" size="icon" title="Gerar Financeiro (Contas a Pagar)" onClick={() => gerarContasPagarDePC(p)}><Wallet className="h-4 w-4" /></Button>
                             <span title={`Assinado por ${assinatura.signatario_nome} em ${format(new Date(assinatura.signed_at), "dd/MM/yyyy HH:mm")}`}>
                               <ShieldCheck className="h-4 w-4 text-green-600" />
                             </span>
