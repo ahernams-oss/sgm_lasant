@@ -681,6 +681,14 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                     ))}
                   </div>
                 )}
+                {pedidos.length > 0 && (
+                  <PaginationControls
+                    currentPage={pagePedidos}
+                    totalItems={pedidos.length}
+                    onPageChange={setPagePedidos}
+                    pageSize={PAGE_SIZE}
+                  />
+                )}
               </CardContent>
             </Card>
           </TabsContent>
