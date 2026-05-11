@@ -16,6 +16,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import logoLasant from "@/assets/Logo_Lasant.png";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 const STORAGE_KEY = "fornecedorPortalLogado";
 
@@ -233,6 +234,9 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const [recusarConvite, setRecusarConvite] = useState<ConviteRow | null>(null);
   const [recusarStep, setRecusarStep] = useState<1 | 2>(1);
   const [recusando, setRecusando] = useState(false);
+  const [pageCotacoes, setPageCotacoes] = useState(1);
+  const [pagePedidos, setPagePedidos] = useState(1);
+  const PAGE_SIZE = 10;
 
   const handleRecusarConfirm = async () => {
     if (!recusarConvite) return;
@@ -546,7 +550,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {convites.map((c) => {
+                        {paginate(convites, pageCotacoes, PAGE_SIZE).paginated.map((c) => {
                           const expirado = new Date(c.expires_at) < new Date();
                           const podeResponder = c.status === "pendente" && !expirado;
                           return (
@@ -593,6 +597,14 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                     </Table>
                   </div>
                 )}
+                {convites.length > 0 && (
+                  <PaginationControls
+                    currentPage={pageCotacoes}
+                    totalItems={convites.length}
+                    onPageChange={setPageCotacoes}
+                    pageSize={PAGE_SIZE}
+                  />
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -617,7 +629,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                   <p className="text-muted-foreground text-sm">Nenhum pedido encontrado.</p>
                 ) : (
                   <div className="space-y-4">
-                    {pedidos.map((p) => (
+                    {paginate(pedidos, pagePedidos, PAGE_SIZE).paginated.map((p) => (
                       <div key={p.id} className="border rounded-lg p-4">
                         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                           <div>
@@ -668,6 +680,14 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                       </div>
                     ))}
                   </div>
+                )}
+                {pedidos.length > 0 && (
+                  <PaginationControls
+                    currentPage={pagePedidos}
+                    totalItems={pedidos.length}
+                    onPageChange={setPagePedidos}
+                    pageSize={PAGE_SIZE}
+                  />
                 )}
               </CardContent>
             </Card>
