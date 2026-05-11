@@ -144,13 +144,25 @@ export default function ContasPagar() {
   };
 
   const filtradas = useMemo(() => {
+    const vmin = fValorMin ? parseFloat(fValorMin.replace(",", ".")) : null;
+    const vmax = fValorMax ? parseFloat(fValorMax.replace(",", ".")) : null;
     return contasPagar.filter((c) => {
       if (busca && !c.descricao.toLowerCase().includes(busca.toLowerCase()) && !(c.fornecedor_nome || "").toLowerCase().includes(busca.toLowerCase())) return false;
-      if (filtroStatus === "todos") return true;
-      if (filtroStatus === "vencida") return isVencida(c);
-      return c.status === filtroStatus;
+      if (filtroStatus !== "todos") {
+        if (filtroStatus === "vencida") { if (!isVencida(c)) return false; }
+        else if (c.status !== filtroStatus) return false;
+      }
+      if (fFornecedor !== "todos" && c.fornecedor_id !== fFornecedor) return false;
+      if (fPlanoConta !== "todos" && c.plano_conta_id !== fPlanoConta) return false;
+      if (fCentroCusto !== "todos" && c.centro_custo_id !== fCentroCusto) return false;
+      if (fContaBanc !== "todos" && c.conta_bancaria_id !== fContaBanc) return false;
+      if (fDataIni && c.data_vencimento < fDataIni) return false;
+      if (fDataFim && c.data_vencimento > fDataFim) return false;
+      if (vmin !== null && Number(c.valor_total) < vmin) return false;
+      if (vmax !== null && Number(c.valor_total) > vmax) return false;
+      return true;
     }).sort((a, b) => a.data_vencimento.localeCompare(b.data_vencimento));
-  }, [contasPagar, busca, filtroStatus]);
+  }, [contasPagar, busca, filtroStatus, fFornecedor, fPlanoConta, fCentroCusto, fContaBanc, fDataIni, fDataFim, fValorMin, fValorMax]);
 
   const { paginated, totalPages } = paginate(filtradas, page, pageSize);
   const totais = useMemo(() => ({
