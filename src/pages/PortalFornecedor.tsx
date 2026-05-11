@@ -230,6 +230,27 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const [pedidos, setPedidos] = useState<PedidoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [trocaOpen, setTrocaOpen] = useState(false);
+  const [recusarConvite, setRecusarConvite] = useState<ConviteRow | null>(null);
+  const [recusarStep, setRecusarStep] = useState<1 | 2>(1);
+  const [recusando, setRecusando] = useState(false);
+
+  const handleRecusarConfirm = async () => {
+    if (!recusarConvite) return;
+    setRecusando(true);
+    const { error } = await supabase
+      .from("cotacao_convites")
+      .update({ status: "recusado" })
+      .eq("id", recusarConvite.id);
+    setRecusando(false);
+    if (error) {
+      toast.error("Erro ao recusar cotação.");
+      return;
+    }
+    setConvites((prev) => prev.map((x) => (x.id === recusarConvite.id ? { ...x, status: "recusado" } : x)));
+    toast.success("Cotação recusada.");
+    setRecusarConvite(null);
+    setRecusarStep(1);
+  };
 
   useEffect(() => {
     (async () => {
