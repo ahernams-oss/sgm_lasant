@@ -146,7 +146,7 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
     if (savedId && (form.numeroNf || form.numeroMedicao) && (form.valorLiquido || form.valorBruto)) {
       gerarContaReceberDeFaturamento(
         { id: savedId, ...form },
-        { clienteId: cliente?.id, clienteNome: cliente?.razaoSocial || cliente?.nomeFantasia, contratoId: contrato?.id, contratoNumero: contratoNumero }
+        { clienteId: cliente?.id, clienteNome: cliente?.nome || cliente?.nomeFantasia, contratoId: contrato?.id, contratoNumero: contratoNumero }
       );
     }
     setForm(emptyFaturamento);
