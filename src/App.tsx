@@ -356,6 +356,7 @@ const App = () => (
     <OrcamentosScoProvider>
     <OsAssinaturasProvider>
     <PcAssinaturasProvider>
+    <FinanceiroProvider>
     <AuthProvider> {/* auth wrapper */}
     <TooltipProvider>
       <Toaster />
