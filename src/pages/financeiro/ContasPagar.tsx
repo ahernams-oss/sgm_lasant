@@ -34,7 +34,26 @@ export default function ContasPagar() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [baixaConta, setBaixaConta] = useState<ContaPagar | null>(null);
+  const [uploading, setUploading] = useState(false);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+
+  const handleUploadAnexo = async (file: File) => {
+    if (file.size > 10 * 1024 * 1024) { toast.error("Arquivo deve ter até 10MB."); return; }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `cp/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from("financeiro-anexos").upload(path, file);
+      if (error) throw error;
+      const { data } = supabase.storage.from("financeiro-anexos").getPublicUrl(path);
+      setForm((f: any) => ({ ...f, anexo_url: data.publicUrl, anexo_nome: file.name }));
+      toast.success("Anexo enviado!");
+    } catch (e: any) {
+      toast.error("Falha no upload: " + (e.message || e));
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!form.descricao || !form.data_vencimento || !form.valor_total) {
