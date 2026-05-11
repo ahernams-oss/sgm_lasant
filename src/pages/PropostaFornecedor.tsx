@@ -31,6 +31,7 @@ interface Convite {
 
 interface ItemProposta extends ConviteItem {
   precoUnitario: number;
+  naoTem?: boolean;
 }
 
 export default function PropostaFornecedorPage() {
