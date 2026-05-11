@@ -75,6 +75,12 @@ export default function PropostaFornecedorPage() {
       return;
     }
 
+    if (data.status === "recusado") {
+      setError("Esta cotação foi recusada e não pode mais receber proposta.");
+      setLoading(false);
+      return;
+    }
+
     if (new Date(data.expires_at) < new Date()) {
       setError("Este convite expirou.");
       setLoading(false);
