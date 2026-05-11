@@ -675,6 +675,36 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
         </Tabs>
       </main>
 
+      <AlertDialog
+        open={!!recusarConvite}
+        onOpenChange={(v) => { if (!v) { setRecusarConvite(null); setRecusarStep(1); } }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Recusar apresentação de proposta</AlertDialogTitle>
+            <AlertDialogDescription>
+              {recusarStep === 1
+                ? `Deseja realmente recusar a cotação COT-${String(recusarConvite?.cotacao_numero || 0).padStart(4, "0")}? Você não poderá enviar proposta depois.`
+                : "Esta ação é definitiva. O comprador será notificado da recusa. Confirma?"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => { setRecusarConvite(null); setRecusarStep(1); }}>
+              Cancelar
+            </Button>
+            {recusarStep === 1 ? (
+              <Button variant="destructive" onClick={() => setRecusarStep(2)}>
+                Sim, recusar
+              </Button>
+            ) : (
+              <Button variant="destructive" onClick={handleRecusarConfirm} disabled={recusando}>
+                {recusando ? "Recusando..." : "Confirmo a recusa"}
+              </Button>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Dialog open={trocaOpen} onOpenChange={setTrocaOpen}>
         <DialogContent>
           <DialogHeader>
