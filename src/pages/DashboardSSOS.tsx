@@ -294,7 +294,16 @@ export default function DashboardSSOS() {
     const ids = new Set<string>();
     solicitacoes.forEach(s => s.clienteId && ids.add(s.clienteId));
     ordens.forEach(o => o.clienteId && ids.add(o.clienteId));
-    return clientes.filter(c => ids.has(c.id)).sort((a, b) => (a.nomeFantasia || a.nome).localeCompare(b.nomeFantasia || b.nome));
+    const filtrados = clientes.filter(c => ids.has(c.id));
+    // Deduplica por label visível (nomeFantasia || nome), mantendo o primeiro id
+    const seen = new Set<string>();
+    const unicos = filtrados.filter(c => {
+      const label = (c.nomeFantasia || c.nome || "").trim().toLowerCase();
+      if (seen.has(label)) return false;
+      seen.add(label);
+      return true;
+    });
+    return unicos.sort((a, b) => (a.nomeFantasia || a.nome).localeCompare(b.nomeFantasia || b.nome));
   }, [solicitacoes, ordens, clientes]);
 
   const ssStatusOptions = useMemo(() => Array.from(new Set(solicitacoes.map(s => s.situacao).filter(Boolean))), [solicitacoes]);
