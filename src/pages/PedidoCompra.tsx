@@ -18,7 +18,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send, FilterX } from "lucide-react";
+import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send, FilterX, Wallet } from "lucide-react";
+import { gerarContasPagarDePC } from "@/lib/financeiroFromPC";
 import { format } from "date-fns";
 import { downloadPdfOrdemCompra, uploadPdfOrdemCompra } from "@/lib/gerarPdfOrdemCompra";
 import { enviarWhatsApp, enviarWhatsAppComDocumento } from "@/lib/whatsapp";
