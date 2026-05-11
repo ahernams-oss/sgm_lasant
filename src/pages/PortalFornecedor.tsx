@@ -54,7 +54,152 @@ interface PedidoRow {
   observacoes: string;
 }
 
-export default function PortalFornecedorPage() {
+const STATUS_PEDIDO_COLORS: Record<string, string> = {
+  "Emitido": "hsl(217 91% 60%)",
+  "Comprado": "hsl(262 83% 58%)",
+  "Em Entrega": "hsl(38 92% 50%)",
+  "Entregue Parcial": "hsl(31 91% 55%)",
+  "Entregue": "hsl(142 71% 45%)",
+  "Cancelado": "hsl(0 84% 60%)",
+};
+
+const STATUS_PEDIDO_ICONS: Record<string, any> = {
+  "Emitido": FileText,
+  "Comprado": PackageCheck,
+  "Em Entrega": Truck,
+  "Entregue Parcial": Truck,
+  "Entregue": CheckCircle2,
+  "Cancelado": XCircle,
+};
+
+function DashboardFornecedor({ pedidos, convites, loading }: { pedidos: PedidoRow[]; convites: ConviteRow[]; loading: boolean }) {
+  const fmtMoney = (v: number) => (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString("pt-BR") : "-";
+
+  const statusOrder = ["Emitido", "Comprado", "Em Entrega", "Entregue Parcial", "Entregue", "Cancelado"];
+  const porStatus = statusOrder.map((s) => ({
+    status: s,
+    qtd: pedidos.filter((p) => p.status === s).length,
+    valor: pedidos.filter((p) => p.status === s).reduce((acc, p) => acc + (Number(p.valor_total) || 0), 0),
+  }));
+
+  const valorTotal = pedidos.reduce((acc, p) => acc + (Number(p.valor_total) || 0), 0);
+  const emAndamento = pedidos.filter((p) => ["Emitido", "Comprado", "Em Entrega", "Entregue Parcial"].includes(p.status));
+  const entregues = pedidos.filter((p) => p.status === "Entregue");
+  const cancelados = pedidos.filter((p) => p.status === "Cancelado");
+
+  const ultimos = [...pedidos]
+    .sort((a, b) => new Date(b.data_criacao).getTime() - new Date(a.data_criacao).getTime())
+    .slice(0, 5);
+
+  if (loading) {
+    return <Card><CardContent className="pt-6"><p className="text-muted-foreground text-sm">Carregando...</p></CardContent></Card>;
+  }
+
+  if (pedidos.length === 0) {
+    return <Card><CardContent className="pt-6"><p className="text-muted-foreground text-sm">Nenhum pedido de compra para acompanhar ainda.</p></CardContent></Card>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground"><Clock className="h-3.5 w-3.5" />Em andamento</div>
+            <p className="text-2xl font-semibold mt-1">{emAndamento.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground"><CheckCircle2 className="h-3.5 w-3.5" />Entregues</div>
+            <p className="text-2xl font-semibold mt-1 text-green-600">{entregues.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground"><XCircle className="h-3.5 w-3.5" />Cancelados</div>
+            <p className="text-2xl font-semibold mt-1 text-destructive">{cancelados.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">Valor total</div>
+            <p className="text-2xl font-semibold mt-1 text-primary">{fmtMoney(valorTotal)}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Pedidos por status</CardTitle>
+          <CardDescription>Distribuição dos seus pedidos de compra</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {porStatus.map((s) => {
+              const Icon = STATUS_PEDIDO_ICONS[s.status] || FileText;
+              const color = STATUS_PEDIDO_COLORS[s.status];
+              const pct = pedidos.length > 0 ? Math.round((s.qtd / pedidos.length) * 100) : 0;
+              return (
+                <div key={s.status} className="border rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Icon className="h-4 w-4" style={{ color }} />
+                      {s.status}
+                    </div>
+                    <span className="text-lg font-semibold" style={{ color }}>{s.qtd}</span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+                  </div>
+                  <div className="flex justify-between mt-1.5 text-xs text-muted-foreground">
+                    <span>{pct}%</span>
+                    <span>{fmtMoney(s.valor)}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Últimos pedidos</CardTitle>
+          <CardDescription>5 pedidos mais recentes</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="border rounded-lg overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Pedido</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {ultimos.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">PC-{String(p.numero).padStart(4, "0")}</TableCell>
+                    <TableCell>{fmtDate(p.data_criacao)}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" style={{ background: `${STATUS_PEDIDO_COLORS[p.status] || "#666"}20`, color: STATUS_PEDIDO_COLORS[p.status] || undefined }}>
+                        {p.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">{fmtMoney(Number(p.valor_total) || 0)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
   const [session, setSession] = useState<FornecedorSession | null>(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : null;
