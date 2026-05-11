@@ -11,6 +11,7 @@ import { usePermissao } from "@/hooks/usePermissao";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfMedicaoControle } from "@/lib/gerarPdfMedicaoControle";
+import { gerarContaReceberDeFaturamento } from "@/lib/financeiroFromPC";
 
 const emptyFaturamento: Omit<Faturamento, "id"> = {
   periodoInicio: "",
