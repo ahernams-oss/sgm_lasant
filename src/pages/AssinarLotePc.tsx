@@ -107,6 +107,10 @@ export default function AssinarLotePc() {
   );
 
   const handleAssinarLote = async () => {
+    if (!podeAssinarLote) {
+      toast.error("Você não possui permissão para esta ação.");
+      return;
+    }
     if (!usuarioLogado) {
       toast.error("Usuário não autenticado.");
       return;
