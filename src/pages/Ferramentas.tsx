@@ -20,6 +20,8 @@ import { Textarea } from "@/components/ui/textarea";
 import FormSection from "@/components/FormSection";
 import { Plus, Pencil, Trash2, Link, Unlink, ArrowRightLeft, Check, X, RotateCcw, FileText, Search, History } from "lucide-react";
 import { downloadPdfTermoResponsabilidade } from "@/lib/gerarPdfTermoResponsabilidade";
+import { usePermissao } from "@/hooks/usePermissao";
+import { toast } from "sonner";
 
 const estadosConservacao = ["Novo", "Bom", "Regular", "Ruim", "Inservível"];
 const statusOptions = ["Disponível", "Em Uso", "Emprestada", "Manutenção", "Baixada"];
