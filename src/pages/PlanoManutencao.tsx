@@ -21,6 +21,7 @@ import { useResponsaveisTecnicos } from "@/contexts/ResponsaveisTecnicosContext"
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { OrdensServicoProvider } from "@/contexts/OrdensServicoContext";
 import { OrcamentosProvider } from "@/contexts/OrcamentosContext";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const PERIODICIDADES = ["Diária", "Semanal", "Quinzenal", "Mensal", "Bimestral", "Trimestral", "Semestral", "Anual"];
 const PRIORIDADES = ["Baixa", "Média", "Alta", "Crítica"];
@@ -48,6 +49,8 @@ function PlanoManutencaoContent() {
   const { responsaveis } = useResponsaveisTecnicos();
   const { addOrdem } = useOrdensServico();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { tem } = usePermissao();
+  const podeExcluir = tem("plano_manutencao.excluir");
 
   const clientesList = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
   const [search, setSearch] = useState("");
@@ -112,6 +115,11 @@ function PlanoManutencaoContent() {
   };
 
   const confirmDelete = async () => {
+    if (!podeExcluir) {
+      toast.error("Você não possui permissão para excluir planos de manutenção.");
+      cancelDelete();
+      return;
+    }
     if (deleteId) {
       await deletePlano(deleteId);
       cancelDelete();
@@ -319,7 +327,13 @@ function PlanoManutencaoContent() {
         equipamentos={equipamentos}
         onAddAtividade={addAtividade}
         onUpdateAtividade={updateAtividade}
-        onDeleteAtividade={deleteAtividade}
+        onDeleteAtividade={async (id: string) => {
+          if (!podeExcluir) {
+            toast.error("Você não possui permissão para excluir atividades.");
+            return;
+          }
+          return deleteAtividade(id);
+        }}
         onAddExecucao={addExecucao}
         addOrdemServico={addOrdem}
       />

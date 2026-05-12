@@ -17,6 +17,7 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { useRdos } from "@/contexts/RdosContext";
 import { useCronogramas } from "@/contexts/CronogramasContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { usePermissao } from "@/hooks/usePermissao";
 import BimViewer from "@/components/BimViewer";
 
 const DISCIPLINAS = ["Arquitetura", "Estrutural", "Hidráulica", "Elétrica", "AVAC", "PCI", "Telecom", "Coordenação"];
@@ -49,6 +50,8 @@ export default function BimPage() {
   const { rdos } = useRdos();
   const { cronogramas } = useCronogramas();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { tem } = usePermissao();
+  const podeExcluir = tem("bim.excluir");
 
   const [search, setSearch] = useState("");
   const [filtroCliente, setFiltroCliente] = useState("todos");
@@ -547,7 +550,14 @@ export default function BimPage() {
       <DoubleConfirmDelete
         open={!!deleteId}
         onOpenChange={(o) => { if (!o) cancelDelete(); }}
-        onConfirm={() => { if (deleteId) { deleteModelo(deleteId); cancelDelete(); } }}
+        onConfirm={() => {
+          if (!podeExcluir) {
+            toast.error("Você não possui permissão para excluir modelos BIM.");
+            cancelDelete();
+            return;
+          }
+          if (deleteId) { deleteModelo(deleteId); cancelDelete(); }
+        }}
       />
     </div>
   );
