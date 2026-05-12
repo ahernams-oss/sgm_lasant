@@ -37,6 +37,7 @@ export default function PlanoContas() {
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-serif font-semibold">Plano de Contas</h1>
 
+      {podeGerenciar && (
       <Card>
         <CardHeader><CardTitle className="text-base">{editingId ? "Editar" : "Nova"} categoria</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -64,6 +65,7 @@ export default function PlanoContas() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">
