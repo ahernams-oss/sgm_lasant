@@ -44,6 +44,7 @@ export default function ContasBancarias() {
         {podeTransferir && <Button variant="outline" onClick={() => setTransfOpen(true)}><ArrowLeftRight className="h-4 w-4 mr-2" />Transferir</Button>}
       </div>
 
+      {(podeCriar || (editingId && podeEditar)) && (
       <Card>
         <CardHeader><CardTitle className="text-base">{editingId ? "Editar" : "Nova"} conta</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -67,6 +68,7 @@ export default function ContasBancarias() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader><CardTitle className="text-base">Contas cadastradas — Saldo total: {formatBRL(totalSaldo)}</CardTitle></CardHeader>
