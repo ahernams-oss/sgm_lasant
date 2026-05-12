@@ -102,7 +102,7 @@ export default function ContasBancarias() {
         </CardContent>
       </Card>
 
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (deleteId) { await deleteContaBancaria(deleteId); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { await deleteContaBancaria(deleteId); cancelDelete(); } }} />
       <TransferenciaDialog open={transfOpen} onOpenChange={setTransfOpen} />
     </div>
   );
