@@ -124,6 +124,7 @@ export default function CondicoesPagamento() {
         </div>
       </div>
 
+      {(podeCriar || (editingId && podeEditar)) && (
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{editingId ? "Editar condição" : "Nova condição"}</CardTitle>
