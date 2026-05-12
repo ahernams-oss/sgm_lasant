@@ -30,6 +30,7 @@ const ServicosPage = () => {
   const resetForm = () => { setNome(""); setDescricao(""); setCategoriaId(""); setEditId(null); setShowForm(false); };
 
   const handleSave = async () => {
+    if (editId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!nome.trim()) { toast.error("Nome é obrigatório"); return; }
     if (editId) {
       await updateServico(editId, { nome, descricao, categoriaId });
