@@ -323,8 +323,8 @@ export default function CategoriasCompras() {
                     {colOrderClasses.map(key => <TableCell key={key} className={colDefsClasses[key]?.className}>{cellMap[key]}</TableCell>)}
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEditClasse(c)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => { deleteClasse(c.id); toast({ title: "Classe excluída" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        {podeEditar && <Button variant="ghost" size="icon" onClick={() => openEditClasse(c)}><Pencil className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button variant="ghost" size="icon" onClick={() => { deleteClasse(c.id); toast({ title: "Classe excluída" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>
