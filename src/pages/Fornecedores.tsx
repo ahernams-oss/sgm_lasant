@@ -236,7 +236,7 @@ const Fornecedores = () => {
               <Button variant="outline" size="sm" onClick={() => setRelatorioOpen(true)} className="gap-2">
                 <FileBarChart className="h-4 w-4" /> Relatório
               </Button>
-              <ImportClientesFornecedores tipo="Fornecedor" />
+              {tem("fornecedores.importar") && <ImportClientesFornecedores tipo="Fornecedor" />}
             </div>
           </div>
         </div>
