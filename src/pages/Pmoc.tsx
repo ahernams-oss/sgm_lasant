@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissao } from "@/hooks/usePermissao";
 import {
   Plus, Pencil, Trash2, Search, FileText, ClipboardList, Settings, Users,
   Wind, AlertTriangle, BookOpen, BarChart3, CalendarClock, Wrench, ShieldCheck,
@@ -45,6 +46,8 @@ function PlanosTab() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { tem } = usePermissao();
+  const podeExcluir = tem("pmoc.excluir");
   const [form, setForm] = useState({
     titulo: "", descricao: "", cliente_id: "", cliente_nome: "", unidade: "",
     contrato: "", edificio: "", ambiente_critico: "", vigencia_inicio: "",
@@ -136,7 +139,7 @@ function PlanosTab() {
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => requestDelete(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDelete(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </div>
                 </TableCell>
               </TableRow>
@@ -177,7 +180,7 @@ function PlanosTab() {
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId) { deletePlano(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId && podeExcluir) { deletePlano(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
     </div>
   );
 }
@@ -194,6 +197,8 @@ function AtividadesTab() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { tem } = usePermissao();
+  const podeExcluir = tem("pmoc.excluir");
   const [form, setForm] = useState({
     plano_id: "", equipamento_id: "", equipamento_nome: "", descricao: "",
     tipo: "Preventiva", periodicidade: "Mensal", parametros_tecnicos: "",
@@ -277,7 +282,7 @@ function AtividadesTab() {
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(a)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => requestDelete(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDelete(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </div>
                 </TableCell>
               </TableRow>
@@ -330,7 +335,7 @@ function AtividadesTab() {
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId) { deleteAtividade(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId && podeExcluir) { deleteAtividade(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
     </div>
   );
 }
@@ -347,6 +352,8 @@ function OrdensServicoTab() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { tem } = usePermissao();
+  const podeExcluir = tem("pmoc.excluir");
   const [form, setForm] = useState({
     plano_id: "", equipamento_id: "", equipamento_nome: "", descricao: "",
     tipo: "Preventiva", prioridade: "Normal", status: "Aberta", origem: "PMOC",
@@ -443,7 +450,7 @@ function OrdensServicoTab() {
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(o)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => requestDelete(o.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDelete(o.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </div>
                 </TableCell>
               </TableRow>
@@ -498,7 +505,7 @@ function OrdensServicoTab() {
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId) { deleteOS(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId && podeExcluir) { deleteOS(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
     </div>
   );
 }
@@ -512,6 +519,8 @@ function ResponsaveisTecnicosTab() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { tem } = usePermissao();
+  const podeExcluir = tem("pmoc.excluir");
   const [form, setForm] = useState({
     nome: "", registro_profissional: "", tipo_registro: "CREA",
     especialidade: "", telefone: "", email: "", documento_art_rrt: "",
@@ -601,7 +610,7 @@ function ResponsaveisTecnicosTab() {
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(rt)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => requestDelete(rt.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDelete(rt.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </div>
                 </TableCell>
               </TableRow>
@@ -640,7 +649,7 @@ function ResponsaveisTecnicosTab() {
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId) { deleteRT(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId && podeExcluir) { deleteRT(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
     </div>
   );
 }
@@ -658,6 +667,8 @@ function QualidadeArTab() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { tem } = usePermissao();
+  const podeExcluir = tem("pmoc.excluir");
 
   const [pontoForm, setPontoForm] = useState({ descricao: "", cliente_id: "", local_id: "", pavimento_id: "", setor_id: "", tipo_ambiente: "", periodicidade_coleta: "Mensal" });
 
@@ -758,7 +769,7 @@ function QualidadeArTab() {
                     <TableCell>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" onClick={() => openEditPonto(p)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => requestDelete(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDelete(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -790,7 +801,7 @@ function QualidadeArTab() {
                     <TableCell>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" onClick={() => openEditMedicao(m)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => requestDelete(m.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDelete(m.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -869,7 +880,7 @@ function QualidadeArTab() {
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId) { if (subTab === "pontos") deletePontoQA(deleteId); else deleteMedicaoQA(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId && podeExcluir) { if (subTab === "pontos") deletePontoQA(deleteId); else deleteMedicaoQA(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
     </div>
   );
 }
@@ -883,6 +894,8 @@ function InconformidadesTab() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { tem } = usePermissao();
+  const podeExcluir = tem("pmoc.excluir");
   const [form, setForm] = useState({
     descricao: "", gravidade: "Moderada", causa_provavel: "", plano_acao: "",
     prazo: "", responsavel: "", status: "Aberta", ambiente: "",
@@ -925,7 +938,7 @@ function InconformidadesTab() {
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(i)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => requestDelete(i.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDelete(i.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </div>
                 </TableCell>
               </TableRow>
@@ -963,7 +976,7 @@ function InconformidadesTab() {
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId) { deleteInconformidade(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId && podeExcluir) { deleteInconformidade(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
     </div>
   );
 }
@@ -977,6 +990,8 @@ function BibliotecaTab() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { tem } = usePermissao();
+  const podeExcluir = tem("pmoc.excluir");
   const [form, setForm] = useState({
     titulo: "", tipo_equipamento: "", tipo_atividade: "Preventiva",
     descricao: "", periodicidade_sugerida: "Mensal", duracao_estimada: "",
@@ -1015,7 +1030,7 @@ function BibliotecaTab() {
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(b)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => requestDelete(b.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDelete(b.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </div>
                 </TableCell>
               </TableRow>
@@ -1049,7 +1064,7 @@ function BibliotecaTab() {
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId) { deleteRotina(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId && podeExcluir) { deleteRotina(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
     </div>
   );
 }
