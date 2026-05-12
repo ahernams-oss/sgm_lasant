@@ -5,6 +5,7 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRdoAssinaturas } from "@/contexts/RdoAssinaturasContext";
 import { useResponsaveisTecnicos } from "@/contexts/ResponsaveisTecnicosContext";
+import { usePermissao } from "@/hooks/usePermissao";
 import { AssinaturaEletronicaOficial } from "@/components/AssinaturaEletronicaOficial";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -589,7 +590,14 @@ export default function RdoPage() {
       <DoubleConfirmDelete
         open={!!deleteId}
         onOpenChange={(o) => !o && setDeleteId(null)}
-        onConfirm={async () => { if (deleteId) { await deleteRdo(deleteId); setDeleteId(null); } }}
+        onConfirm={async () => {
+          if (!podeExcluir) {
+            toast.error("Você não possui permissão para excluir RDOs.");
+            setDeleteId(null);
+            return;
+          }
+          if (deleteId) { await deleteRdo(deleteId); setDeleteId(null); }
+        }}
       />
     </div>
   );

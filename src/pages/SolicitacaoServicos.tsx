@@ -84,6 +84,10 @@ export default function SolicitacaoServicosPage() {
   const { toast } = useToast();
   const { usuarioLogado } = useAuth();
   const { podeAprovar } = useLimiteAprovacao();
+  const { tem } = usePermissao();
+  const podeCriar = tem("solicitacao_servicos.criar");
+  const podeEditar = tem("solicitacao_servicos.editar");
+  const podeExcluir = tem("solicitacao_servicos.excluir");
 
   const buildHistoricoEntry = (situacao: string, existingHistorico: HistoricoEntry[] = []): HistoricoEntry[] => [
     ...existingHistorico,

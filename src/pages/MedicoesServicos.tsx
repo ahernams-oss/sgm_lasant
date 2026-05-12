@@ -48,6 +48,8 @@ const MedicoesServicos = () => {
   const { requisicoes } = useRequisicaoCompras();
   const { materiais } = useMateriaisServicos();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeExcluir = tem("medicoes.excluir");
 
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [showForm, setShowForm] = useState(false);

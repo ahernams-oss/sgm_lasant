@@ -42,6 +42,8 @@ function CronogramaInner() {
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { rdos } = useRdos();
+  const { tem } = usePermissao();
+  const podeExcluir = tem("cronograma.excluir");
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Cronograma | null>(null);
