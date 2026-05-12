@@ -917,10 +917,14 @@ export default function OrdensServicoPage() {
                             <action.icon className="mr-2 h-4 w-4" /> {action.label}
                           </DropdownMenuItem>
                         ))}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => requestDelete(os.id)} className="text-destructive">
-                          <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                        </DropdownMenuItem>
+                        {podeExcluirOS && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => requestDelete(os.id)} className="text-destructive">
+                              <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
