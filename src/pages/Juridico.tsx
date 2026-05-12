@@ -848,9 +848,9 @@ export default function JuridicoPage() {
                           <p>{a.descricao}</p>
                           {a.responsavel && <p className="text-xs text-muted-foreground mt-1">Responsável: {a.responsavel}</p>}
                         </div>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { deleteAndamento(a.id); toast.success("Andamento removido"); }}>
+                        {podeEditar && <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { deleteAndamento(a.id); toast.success("Andamento removido"); }}>
                           <Trash2 className="h-3 w-3" />
-                        </Button>
+                        </Button>}
                       </div>
                     ))}
                   </div>
