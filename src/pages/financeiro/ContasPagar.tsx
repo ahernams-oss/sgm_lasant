@@ -189,6 +189,7 @@ export default function ContasPagar() {
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-serif font-semibold">Contas a Pagar</h1>
 
+      {(podeCriar || (editingId && podeEditar)) && (
       <Card>
         <CardHeader><CardTitle className="text-base">{editingId ? "Editar conta" : "Nova conta a pagar"}</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
