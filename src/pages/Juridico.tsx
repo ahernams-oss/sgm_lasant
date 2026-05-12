@@ -432,7 +432,7 @@ export default function JuridicoPage() {
           <TabsContent value="audiencias">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Agenda de Audiências</h2>
-              <Button onClick={() => { setAudForm(emptyAudiencia); setAudEditId(null); setShowAudForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Nova Audiência</Button>
+              {podeAudiencias && <Button onClick={() => { setAudForm(emptyAudiencia); setAudEditId(null); setShowAudForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Nova Audiência</Button>}
             </div>
 
             <div className="rounded-md border overflow-auto">
