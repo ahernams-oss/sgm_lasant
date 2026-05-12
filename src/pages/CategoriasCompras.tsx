@@ -101,8 +101,8 @@ export default function CategoriasCompras() {
   const openEditGrupo = (g: typeof grupos[0]) => { setGrupoForm({ codigo: g.codigo, nome: g.nome }); setEditGrupoId(g.id); setGrupoDialog(true); };
   const saveGrupo = () => {
     if (!grupoForm.codigo.trim() || !grupoForm.nome.trim()) { toast({ title: "Código e Nome são obrigatórios", variant: "destructive" }); return; }
-    if (editGrupoId) { updateGrupo(editGrupoId, grupoForm); toast({ title: "Grupo atualizado" }); }
-    else { addGrupo(grupoForm); toast({ title: "Grupo criado" }); }
+    if (editGrupoId) { if (!guard(podeEditar)) return; updateGrupo(editGrupoId, grupoForm); toast({ title: "Grupo atualizado" }); }
+    else { if (!guard(podeCriar)) return; addGrupo(grupoForm); toast({ title: "Grupo criado" }); }
     setGrupoDialog(false);
   };
 
