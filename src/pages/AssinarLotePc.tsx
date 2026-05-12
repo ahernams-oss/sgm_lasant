@@ -7,6 +7,7 @@ import { usePcAssinaturas } from "@/contexts/PcAssinaturasContext";
 import { gerarHashPc } from "@/lib/assinaturaHashPc";
 import { obterIpOrigem } from "@/lib/assinaturaHashOs";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+import { usePermissao } from "@/hooks/usePermissao";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
