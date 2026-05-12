@@ -56,7 +56,7 @@ export default function Conciliacao() {
           <CardTitle className="text-base">{filtrados.length} movimento(s) — {filtrados.filter(m => !m.conciliado).length} pendente(s)</CardTitle>
           <div className="flex gap-2">
             <Select value={conta} onValueChange={setConta}><SelectTrigger className="w-56"><SelectValue placeholder="Selecione a conta" /></SelectTrigger><SelectContent>{contasBancarias.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent></Select>
-            <label className="cursor-pointer"><Input type="file" accept=".ofx,.OFX" className="hidden" onChange={handleFile} /><Button asChild variant="outline"><span><Upload className="h-4 w-4 mr-1" />Importar OFX</span></Button></label>
+            {podeImportar && <label className="cursor-pointer"><Input type="file" accept=".ofx,.OFX" className="hidden" onChange={handleFile} /><Button asChild variant="outline"><span><Upload className="h-4 w-4 mr-1" />Importar OFX</span></Button></label>}
           </div>
         </CardHeader>
         <CardContent>
