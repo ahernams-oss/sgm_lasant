@@ -10,6 +10,7 @@ import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
 import { Plus, Edit, Trash2, Search, Upload, FileText, X } from "lucide-react";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const TITULOS = [
   "Engenheiro Civil",
@@ -31,6 +32,10 @@ const empty = (): Partial<ResponsavelTecnico> => ({
 
 export default function ResponsaveisTecnicosPage() {
   const { responsaveis, loading, add, update, remove, uploadCarteira } = useResponsaveisTecnicos();
+  const { tem } = usePermissao();
+  const podeCriar = tem("responsaveis_tecnicos.criar");
+  const podeEditar = tem("responsaveis_tecnicos.editar");
+  const podeExcluir = tem("responsaveis_tecnicos.excluir");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -61,6 +66,8 @@ export default function ResponsaveisTecnicosPage() {
   };
 
   const onSave = async () => {
+    if (editing && !podeEditar) { toast.error("Você não possui permissão para editar."); return; }
+    if (!editing && !podeCriar) { toast.error("Você não possui permissão para criar."); return; }
     if (!form.nome?.trim()) { toast.error("Informe o nome."); return; }
     if (!form.titulo) { toast.error("Selecione o título."); return; }
     if (!form.crea?.trim()) { toast.error("Informe o CREA."); return; }
@@ -76,7 +83,7 @@ export default function ResponsaveisTecnicosPage() {
           <h1 className="text-2xl font-serif font-semibold">Responsáveis Técnicos</h1>
           <p className="text-sm text-muted-foreground">Cadastro de profissionais habilitados (CREA/CAU).</p>
         </div>
-        <Button onClick={openNew}><Plus className="h-4 w-4 mr-2" /> Novo Responsável</Button>
+        {podeCriar && <Button onClick={openNew}><Plus className="h-4 w-4 mr-2" /> Novo Responsável</Button>}
       </div>
 
       <Card>
@@ -121,8 +128,8 @@ export default function ResponsaveisTecnicosPage() {
                     ) : <span className="text-muted-foreground text-sm">—</span>}
                   </TableCell>
                   <TableCell className="text-right space-x-1">
-                    <Button size="icon" variant="ghost" onClick={() => openEdit(r)}><Edit className="h-4 w-4" /></Button>
-                    <Button size="icon" variant="ghost" onClick={() => setDelId(r.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    {podeEditar && <Button size="icon" variant="ghost" onClick={() => openEdit(r)}><Edit className="h-4 w-4" /></Button>}
+                    {podeExcluir && <Button size="icon" variant="ghost" onClick={() => setDelId(r.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </TableCell>
                 </TableRow>
               ))}
@@ -198,7 +205,11 @@ export default function ResponsaveisTecnicosPage() {
       <DoubleConfirmDelete
         open={!!delId}
         onOpenChange={(v) => { if (!v) setDelId(null); }}
-        onConfirm={async () => { if (delId) await remove(delId); setDelId(null); }}
+        onConfirm={async () => {
+          if (!podeExcluir) { toast.error("Você não possui permissão para excluir."); setDelId(null); return; }
+          if (delId) await remove(delId);
+          setDelId(null);
+        }}
       />
     </div>
   );
