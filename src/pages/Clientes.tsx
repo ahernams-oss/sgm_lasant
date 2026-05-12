@@ -18,6 +18,7 @@ import LocaisEntregaSection from "@/components/LocaisEntregaSection";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ImportClientesFornecedores from "@/components/ImportClientesFornecedores";
 import FaturamentoSection from "@/components/FaturamentoSection";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const FaturamentoView = () => {
   const { clientes, updateCliente } = useClientes();
