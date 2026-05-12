@@ -275,9 +275,11 @@ export default function PedidoCompraPage() {
   const handleUpdateStatus = () => {
     if (!newStatus) { toast({ title: "Selecione um status", variant: "destructive" }); return; }
     if (newStatus === "Cancelado") {
+      if (!podeCancelar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       if (!statusObs.trim()) { toast({ title: "Motivo é obrigatório para cancelamento", variant: "destructive" }); return; }
       statusPedidoIds.forEach(id => cancelarPedido(id, usuarioLogado?.nome || "Usuário", statusObs));
     } else {
+      if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       statusPedidoIds.forEach(id => updateStatus(id, newStatus, usuarioLogado?.nome || "Usuário", statusObs));
     }
     toast({ title: `Status atualizado para: ${newStatus} (${statusPedidoIds.length} pedido${statusPedidoIds.length > 1 ? "s" : ""})` });
