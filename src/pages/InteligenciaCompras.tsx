@@ -211,9 +211,11 @@ export default function InteligenciaComprasPage() {
                 className="pl-8 w-64"
               />
             </div>
-            <Button onClick={() => setConfirmOpen(true)} disabled={selectedGroups.length === 0}>
-              <Combine className="h-4 w-4 mr-2" /> Gerar Cotação Consolidada
-            </Button>
+            {podeAglutinar && (
+              <Button onClick={() => setConfirmOpen(true)} disabled={selectedGroups.length === 0}>
+                <Combine className="h-4 w-4 mr-2" /> Gerar Cotação Consolidada
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
