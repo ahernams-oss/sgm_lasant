@@ -11,6 +11,7 @@ import { Plus, Pencil, Trash2, CreditCard } from "lucide-react";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 interface Condicao {
   id: string;
