@@ -52,7 +52,7 @@ export default function FabricantesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Fabricantes</h1>
-        <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo</Button>
+        {podeCriar && <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo</Button>}
       </div>
 
       <div className="relative max-w-sm">
