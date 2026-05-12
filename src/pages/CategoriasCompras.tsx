@@ -145,8 +145,8 @@ export default function CategoriasCompras() {
   const openEditClasse = (c: typeof classes[0]) => { setClasseForm({ subGrupoId: c.subGrupoId, codigo: c.codigo, nome: c.nome }); setEditClasseId(c.id); setClasseDialog(true); };
   const saveClasse = () => {
     if (!classeForm.subGrupoId || !classeForm.codigo.trim() || !classeForm.nome.trim()) { toast({ title: "SubGrupo, Código e Nome são obrigatórios", variant: "destructive" }); return; }
-    if (editClasseId) { updateClasse(editClasseId, classeForm); toast({ title: "Classe atualizada" }); }
-    else { addClasse(classeForm); toast({ title: "Classe criada" }); }
+    if (editClasseId) { if (!guard(podeEditar)) return; updateClasse(editClasseId, classeForm); toast({ title: "Classe atualizada" }); }
+    else { if (!guard(podeCriar)) return; addClasse(classeForm); toast({ title: "Classe criada" }); }
     setClasseDialog(false);
   };
 
