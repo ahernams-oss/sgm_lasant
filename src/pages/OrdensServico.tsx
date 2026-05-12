@@ -102,6 +102,8 @@ export default function OrdensServicoPage() {
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
+  const { tem } = usePermissao();
+  const podeExcluirOS = tem("ordem_servico.excluir");
 
   const buildOSHistorico = (situacao: string, existing: any[] = []) => [
     ...existing,
