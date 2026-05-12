@@ -126,6 +126,7 @@ export default function Sco() {
   };
 
   const handleSubmit = () => {
+    if (editId ? !podeEditar : !podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!form.codSco.trim() || !form.descricaoSco.trim()) {
       toast({ title: "Preencha código e descrição", variant: "destructive" });
       return;
@@ -141,6 +142,7 @@ export default function Sco() {
   };
 
   const handleDelete = (id: string) => {
+    if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     deleteSco(id);
     toast({ title: "Item removido" });
   };
