@@ -139,7 +139,10 @@ const Clientes = () => {
   const [formOpen, setFormOpen] = useState(true);
   const { items: i0Items } = useI0();
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
-  const { tem } = (await import("@/hooks/usePermissao")).usePermissao ? require("@/hooks/usePermissao").usePermissao() : { tem: () => true };
+  const { tem } = usePermissao();
+  const podeCriar = tem("clientes.criar");
+  const podeEditar = tem("clientes.editar");
+  const podeExcluir = tem("clientes.excluir");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
   const [search, setSearch] = useState("");
