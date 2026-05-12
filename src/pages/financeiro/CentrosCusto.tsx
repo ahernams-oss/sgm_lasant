@@ -9,17 +9,21 @@ import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const empty = { codigo: "", nome: "", cliente_id: null as string | null, ativo: true };
 
 export default function CentrosCusto() {
   const { centrosCusto, addCentroCusto, updateCentroCusto, deleteCentroCusto } = useFinanceiro();
   const { clientes } = useClientes();
+  const { tem } = usePermissao();
+  const podeGerenciar = tem("financeiro.centros_custo.gerenciar");
   const [form, setForm] = useState<any>(empty);
   const [editingId, setEditingId] = useState<string | null>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const handleSave = async () => {
+    if (!podeGerenciar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome) { toast.error("Informe o nome."); return; }
     const data = { ...form, cliente_id: form.cliente_id || null };
     if (editingId) await updateCentroCusto(editingId, data);
@@ -32,6 +36,7 @@ export default function CentrosCusto() {
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-serif font-semibold">Centros de Custo</h1>
 
+      {podeGerenciar && (
       <Card>
         <CardHeader><CardTitle className="text-base">{editingId ? "Editar" : "Novo"} centro de custo</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -50,6 +55,7 @@ export default function CentrosCusto() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardContent className="pt-6">
@@ -62,8 +68,8 @@ export default function CentrosCusto() {
                   <TableCell className="font-medium">{c.nome}</TableCell>
                   <TableCell>{clientes.find(x => x.id === c.cliente_id)?.nome || "—"}</TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm(c); }}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                    {podeGerenciar && <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm(c); }}><Pencil className="h-3.5 w-3.5" /></Button>}
+                    {podeGerenciar && <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
                   </TableCell>
                 </TableRow>
               ))}
@@ -73,7 +79,7 @@ export default function CentrosCusto() {
         </CardContent>
       </Card>
 
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (deleteId) { await deleteCentroCusto(deleteId); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (!podeGerenciar) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { await deleteCentroCusto(deleteId); cancelDelete(); } }} />
     </div>
   );
 }

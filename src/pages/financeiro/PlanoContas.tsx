@@ -8,17 +8,21 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const empty = { codigo: "", nome: "", tipo: "despesa" as "receita" | "despesa", parent_id: null as string | null, ativo: true };
 
 export default function PlanoContas() {
   const { planoContas, addPlanoConta, updatePlanoConta, deletePlanoConta } = useFinanceiro();
+  const { tem } = usePermissao();
+  const podeGerenciar = tem("financeiro.plano_contas.gerenciar");
   const [form, setForm] = useState<any>(empty);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filtroTipo, setFiltroTipo] = useState<"todos" | "receita" | "despesa">("todos");
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const handleSave = async () => {
+    if (!podeGerenciar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome) { toast.error("Informe o nome."); return; }
     const data = { ...form, parent_id: form.parent_id || null };
     if (editingId) await updatePlanoConta(editingId, data);
@@ -33,6 +37,7 @@ export default function PlanoContas() {
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-serif font-semibold">Plano de Contas</h1>
 
+      {podeGerenciar && (
       <Card>
         <CardHeader><CardTitle className="text-base">{editingId ? "Editar" : "Nova"} categoria</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -60,6 +65,7 @@ export default function PlanoContas() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">
@@ -84,8 +90,8 @@ export default function PlanoContas() {
                   <TableCell><span className={p.tipo === "receita" ? "text-emerald-600" : "text-red-600"}>{p.tipo}</span></TableCell>
                   <TableCell>{planoContas.find(x => x.id === p.parent_id)?.nome || "—"}</TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="ghost" onClick={() => { setEditingId(p.id); setForm(p); }}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => requestDelete(p.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                    {podeGerenciar && <Button size="sm" variant="ghost" onClick={() => { setEditingId(p.id); setForm(p); }}><Pencil className="h-3.5 w-3.5" /></Button>}
+                    {podeGerenciar && <Button size="sm" variant="ghost" onClick={() => requestDelete(p.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
                   </TableCell>
                 </TableRow>
               ))}
@@ -95,7 +101,7 @@ export default function PlanoContas() {
         </CardContent>
       </Card>
 
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (deleteId) { await deletePlanoConta(deleteId); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (!podeGerenciar) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { await deletePlanoConta(deleteId); cancelDelete(); } }} />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import BaixaDialog from "@/components/financeiro/BaixaDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const empty = {
   descricao: "", fornecedor_id: null as string | null, fornecedor_nome: "",
@@ -27,6 +28,11 @@ export default function ContasPagar() {
   const { contasPagar, planoContas, centrosCusto, contasBancarias, addContaPagar, updateContaPagar, deleteContaPagar } = useFinanceiro();
   const { clientes } = useClientes();
   const fornecedores = useMemo(() => clientes.filter(c => c.tipo === "Fornecedor"), [clientes]);
+  const { tem } = usePermissao();
+  const podeCriar = tem("financeiro.contas_pagar.criar");
+  const podeEditar = tem("financeiro.contas_pagar.editar");
+  const podeExcluir = tem("financeiro.contas_pagar.excluir");
+  const podeBaixar = tem("financeiro.contas_pagar.baixar");
   const [form, setForm] = useState<any>(empty);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
@@ -104,6 +110,7 @@ export default function ContasPagar() {
   };
 
   const handleSave = async () => {
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.descricao || !form.data_vencimento || !form.valor_total) {
       toast.error("Preencha descrição, vencimento e valor."); return;
     }
@@ -182,6 +189,7 @@ export default function ContasPagar() {
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-serif font-semibold">Contas a Pagar</h1>
 
+      {(podeCriar || (editingId && podeEditar)) && (
       <Card>
         <CardHeader><CardTitle className="text-base">{editingId ? "Editar conta" : "Nova conta a pagar"}</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -247,6 +255,7 @@ export default function ContasPagar() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader className="space-y-3">
@@ -358,11 +367,11 @@ export default function ContasPagar() {
                   <TableCell className="text-right tabular-nums">{formatBRL(Number(c.valor_pago))}</TableCell>
                   <TableCell>{statusBadge(c)}</TableCell>
                   <TableCell className="text-right">
-                    {c.status !== "paga" && c.status !== "cancelada" && (
+                    {podeBaixar && c.status !== "paga" && c.status !== "cancelada" && (
                       <Button size="sm" variant="ghost" onClick={() => setBaixaConta(c)} title="Baixar"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /></Button>
                     )}
-                    <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm({ ...c, valor_total: c.valor_total, data_emissao: c.data_emissao || "", data_vencimento: c.data_vencimento }); }}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                    {podeEditar && <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm({ ...c, valor_total: c.valor_total, data_emissao: c.data_emissao || "", data_vencimento: c.data_vencimento }); }}><Pencil className="h-3.5 w-3.5" /></Button>}
+                    {podeExcluir && <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
                   </TableCell>
                 </TableRow>
               ))}
@@ -374,7 +383,7 @@ export default function ContasPagar() {
       </Card>
 
       <BaixaDialog open={!!baixaConta} onOpenChange={(o) => !o && setBaixaConta(null)} conta={baixaConta} modo="pagar" />
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (deleteId) { await deleteContaPagar(deleteId); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { await deleteContaPagar(deleteId); cancelDelete(); } }} />
     </div>
   );
 }

@@ -9,17 +9,24 @@ import { useFinanceiro, formatBRL, ContaBancaria } from "@/contexts/FinanceiroCo
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
 import TransferenciaDialog from "@/components/financeiro/TransferenciaDialog";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const empty = { nome: "", banco: "", agencia: "", conta: "", tipo: "corrente" as const, saldo_inicial: 0, ativo: true, observacao: "" };
 
 export default function ContasBancarias() {
   const { contasBancarias, addContaBancaria, updateContaBancaria, deleteContaBancaria, saldoConta } = useFinanceiro();
+  const { tem } = usePermissao();
+  const podeCriar = tem("financeiro.contas_bancarias.criar");
+  const podeEditar = tem("financeiro.contas_bancarias.editar");
+  const podeExcluir = tem("financeiro.contas_bancarias.excluir");
+  const podeTransferir = tem("financeiro.contas_bancarias.transferir");
   const [form, setForm] = useState<any>(empty);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [transfOpen, setTransfOpen] = useState(false);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const handleSave = async () => {
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome) { toast.error("Informe o nome."); return; }
     const data = { ...form, saldo_inicial: parseFloat(String(form.saldo_inicial).replace(",", ".")) || 0 };
     if (editingId) await updateContaBancaria(editingId, data);
@@ -34,9 +41,10 @@ export default function ContasBancarias() {
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-serif font-semibold">Contas Bancárias / Caixas</h1>
-        <Button variant="outline" onClick={() => setTransfOpen(true)}><ArrowLeftRight className="h-4 w-4 mr-2" />Transferir</Button>
+        {podeTransferir && <Button variant="outline" onClick={() => setTransfOpen(true)}><ArrowLeftRight className="h-4 w-4 mr-2" />Transferir</Button>}
       </div>
 
+      {(podeCriar || (editingId && podeEditar)) && (
       <Card>
         <CardHeader><CardTitle className="text-base">{editingId ? "Editar" : "Nova"} conta</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -60,6 +68,7 @@ export default function ContasBancarias() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader><CardTitle className="text-base">Contas cadastradas — Saldo total: {formatBRL(totalSaldo)}</CardTitle></CardHeader>
@@ -82,8 +91,8 @@ export default function ContasBancarias() {
                   <TableCell className="text-right tabular-nums">{formatBRL(Number(c.saldo_inicial))}</TableCell>
                   <TableCell className="text-right tabular-nums font-medium">{formatBRL(saldoConta(c.id))}</TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm(c); }}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                    {podeEditar && <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm(c); }}><Pencil className="h-3.5 w-3.5" /></Button>}
+                    {podeExcluir && <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
                   </TableCell>
                 </TableRow>
               ))}
@@ -93,7 +102,7 @@ export default function ContasBancarias() {
         </CardContent>
       </Card>
 
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (deleteId) { await deleteContaBancaria(deleteId); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { await deleteContaBancaria(deleteId); cancelDelete(); } }} />
       <TransferenciaDialog open={transfOpen} onOpenChange={setTransfOpen} />
     </div>
   );
