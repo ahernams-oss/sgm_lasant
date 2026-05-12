@@ -305,11 +305,13 @@ export default function RelatoriosEstoquePage() {
 
   // Export buttons
   const ExportButtons = ({ onPdf, onExcel }: { onPdf: () => void; onExcel: () => void }) => (
-    <div className="flex gap-1">
-      <Button size="sm" variant="outline" onClick={onPdf}><FileText className="mr-1 h-3 w-3" />PDF</Button>
-      <Button size="sm" variant="outline" onClick={onExcel}><FileSpreadsheet className="mr-1 h-3 w-3" />Excel</Button>
-      <Button size="sm" variant="outline" onClick={handlePrint}><Printer className="mr-1 h-3 w-3" />Imprimir</Button>
-    </div>
+    podeExportar ? (
+      <div className="flex gap-1">
+        <Button size="sm" variant="outline" onClick={onPdf}><FileText className="mr-1 h-3 w-3" />PDF</Button>
+        <Button size="sm" variant="outline" onClick={onExcel}><FileSpreadsheet className="mr-1 h-3 w-3" />Excel</Button>
+        <Button size="sm" variant="outline" onClick={handlePrint}><Printer className="mr-1 h-3 w-3" />Imprimir</Button>
+      </div>
+    ) : null
   );
 
   return (
