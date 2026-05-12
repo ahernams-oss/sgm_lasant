@@ -8,6 +8,8 @@ import { FileText, FileSpreadsheet, BarChart3 } from "lucide-react";
 import { useFinanceiro, formatBRL, formatDate, isVencida } from "@/contexts/FinanceiroContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { gerarPdfFinanceiro, gerarExcelFinanceiro, FinReport } from "@/lib/gerarRelatoriosFinanceiros";
+import { usePermissao } from "@/hooks/usePermissao";
+import { toast } from "sonner";
 
 interface RelDef {
   id: string;
