@@ -291,6 +291,7 @@ const Fornecedores = () => {
             </div>
           )}
         </div>
+        )}
 
 
         <div className="section-card animate-fade-up" style={{ animationDelay: "160ms" }}>
