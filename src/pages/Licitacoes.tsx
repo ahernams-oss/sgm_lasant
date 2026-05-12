@@ -570,9 +570,11 @@ export default function LicitacoesPage() {
         {/* =============== TAB ANÁLISES =============== */}
         <TabsContent value="analises" className="space-y-4">
           <div className="flex flex-wrap gap-2 items-end">
-            <Button onClick={() => { setAnaliseForm({ ...EMPTY_ANALISE, analista: usuarioLogado?.nome || "", dataAnalise: format(new Date(), "yyyy-MM-dd") }); setEditAnaliseId(null); setAnaliseDialogOpen(true); }}>
-              <Plus className="h-4 w-4 mr-1" /> Nova Análise
-            </Button>
+            {podeCriar && (
+              <Button onClick={() => { setAnaliseForm({ ...EMPTY_ANALISE, analista: usuarioLogado?.nome || "", dataAnalise: format(new Date(), "yyyy-MM-dd") }); setEditAnaliseId(null); setAnaliseDialogOpen(true); }}>
+                <Plus className="h-4 w-4 mr-1" /> Nova Análise
+              </Button>
+            )}
           </div>
 
           <p className="text-sm text-muted-foreground">{analises.length} análise(s) registrada(s)</p>
