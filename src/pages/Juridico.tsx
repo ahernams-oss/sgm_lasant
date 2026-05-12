@@ -496,7 +496,7 @@ export default function JuridicoPage() {
                 <h2 className="text-lg font-semibold">Contatos para Notificação</h2>
                 <p className="text-sm text-muted-foreground">Advogados e contadores que receberão avisos de audiências via WhatsApp</p>
               </div>
-              <Button onClick={() => { setContatoForm(emptyContato); setContatoEditId(null); setShowContatoForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Novo Contato</Button>
+              {podeContatos && <Button onClick={() => { setContatoForm(emptyContato); setContatoEditId(null); setShowContatoForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Novo Contato</Button>}
             </div>
 
             <div className="rounded-md border overflow-auto">
