@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 export default function CategoriasCompras() {
   const {
@@ -24,6 +25,11 @@ export default function CategoriasCompras() {
     getCodigoCompleto,
   } = useCategoriasCompras();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriar = tem("categorias_compras.criar");
+  const podeEditar = tem("categorias_compras.editar");
+  const podeExcluir = tem("categorias_compras.excluir");
+  const guard = (ok: boolean) => { if (!ok) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return false; } return true; };
 
   const [activeTab, setActiveTab] = useState("grupos");
   const [search, setSearch] = useState("");
