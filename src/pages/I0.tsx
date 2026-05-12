@@ -167,15 +167,15 @@ export default function I0Page() {
             className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImport(f); e.target.value = ""; }}
           />
-          <Button variant="outline" onClick={downloadTemplate}>
+          {podeCriar && <Button variant="outline" onClick={downloadTemplate}>
             <Download className="mr-2 h-4 w-4" /> Modelo
-          </Button>
-          <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+          </Button>}
+          {podeCriar && <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-2 h-4 w-4" /> Importar
-          </Button>
-          <Button onClick={openNew}>
+          </Button>}
+          {podeCriar && <Button onClick={openNew}>
             <Plus className="mr-2 h-4 w-4" /> Novo Registro
-          </Button>
+          </Button>}
         </div>
       </div>
 
