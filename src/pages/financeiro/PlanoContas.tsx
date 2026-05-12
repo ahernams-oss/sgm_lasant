@@ -101,7 +101,7 @@ export default function PlanoContas() {
         </CardContent>
       </Card>
 
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (deleteId) { await deletePlanoConta(deleteId); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (!podeGerenciar) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { await deletePlanoConta(deleteId); cancelDelete(); } }} />
     </div>
   );
 }
