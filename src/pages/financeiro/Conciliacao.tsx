@@ -69,7 +69,7 @@ export default function Conciliacao() {
                   <TableCell>{m.descricao}</TableCell>
                   <TableCell className={`text-right tabular-nums ${Number(m.valor) >= 0 ? "text-emerald-600" : "text-red-600"}`}>{formatBRL(Number(m.valor))}</TableCell>
                   <TableCell>{m.conciliado ? <span className="text-emerald-600 text-xs">Conciliado</span> : <span className="text-amber-600 text-xs">Pendente</span>}</TableCell>
-                  <TableCell className="text-right">{!m.conciliado && <Button size="sm" variant="ghost" onClick={() => conciliarCriando(m)}><CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 mr-1" />Conciliar</Button>}</TableCell>
+                  <TableCell className="text-right">{podeConciliar && !m.conciliado && <Button size="sm" variant="ghost" onClick={() => conciliarCriando(m)}><CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 mr-1" />Conciliar</Button>}</TableCell>
                 </TableRow>
               ))}
               {filtrados.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Importe um OFX para começar.</TableCell></TableRow>}
