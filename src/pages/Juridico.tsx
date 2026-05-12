@@ -171,13 +171,6 @@ export default function JuridicoPage() {
   const openView = async (p: ProcessoTrabalhista) => { setViewProcesso(p); await loadAndamentos(p.id); };
 
   const handleSave = async () => {
-    if (!form.numero_processo.trim() || !form.autor_nome.trim()) { toast.error("Número do processo e nome do autor são obrigatórios"); return; }
-    if (editId) { await updateProcesso(editId, form); toast.success("Processo atualizado"); }
-    else { await addProcesso(form); toast.success("Processo cadastrado"); }
-    setShowForm(false);
-  };
-
-  const handleSave = async () => {
     if (editId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.numero_processo.trim() || !form.autor_nome.trim()) { toast.error("Número do processo e nome do autor são obrigatórios"); return; }
     if (editId) { await updateProcesso(editId, form); toast.success("Processo atualizado"); }
