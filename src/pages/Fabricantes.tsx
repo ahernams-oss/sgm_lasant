@@ -76,8 +76,8 @@ export default function FabricantesPage() {
                 <TableCell>{f.nome}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(f)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => requestDelete(f.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    {podeEditar && <Button variant="ghost" size="icon" onClick={() => openEdit(f)}><Pencil className="h-4 w-4" /></Button>}
+                    {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDelete(f.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </div>
                 </TableCell>
               </TableRow>
