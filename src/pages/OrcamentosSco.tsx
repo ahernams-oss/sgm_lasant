@@ -116,7 +116,7 @@ export default function OrcamentosSco() {
         <DoubleConfirmDelete
           open={!!delId}
           onOpenChange={(o) => { if (!o) setDelId(null); }}
-          onConfirm={async () => { await remove(delId!); setDelId(null); }}
+          onConfirm={async () => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); setDelId(null); return; } await remove(delId!); setDelId(null); }}
         />
       )}
     </div>
