@@ -79,7 +79,7 @@ export default function CentrosCusto() {
         </CardContent>
       </Card>
 
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (deleteId) { await deleteCentroCusto(deleteId); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (!podeGerenciar) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { await deleteCentroCusto(deleteId); cancelDelete(); } }} />
     </div>
   );
 }
