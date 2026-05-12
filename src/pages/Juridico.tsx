@@ -528,8 +528,8 @@ export default function JuridicoPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
-                          <Button variant="ghost" size="icon" onClick={() => { setContatoForm({ ...c }); setContatoEditId(c.id); setShowContatoForm(true); }}><Edit className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => setContatoDeleteId(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          {podeContatos && <Button variant="ghost" size="icon" onClick={() => { setContatoForm({ ...c }); setContatoEditId(c.id); setShowContatoForm(true); }}><Edit className="h-4 w-4" /></Button>}
+                          {podeContatos && <Button variant="ghost" size="icon" onClick={() => setContatoDeleteId(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                         </div>
                       </TableCell>
                     </TableRow>
