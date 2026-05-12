@@ -10,6 +10,7 @@ import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { useServicos } from "@/contexts/ServicosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissao } from "@/hooks/usePermissao";
 import { useSco } from "@/contexts/ScoContext";
 import { useI0 } from "@/contexts/I0Context";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
@@ -101,6 +102,8 @@ export default function OrdensServicoPage() {
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
+  const { tem } = usePermissao();
+  const podeExcluirOS = tem("ordem_servico.excluir");
 
   const buildOSHistorico = (situacao: string, existing: any[] = []) => [
     ...existing,
@@ -607,6 +610,11 @@ export default function OrdensServicoPage() {
   };
 
   const handleDelete = async () => {
+    if (!podeExcluirOS) {
+      toast.error("Você não possui permissão para excluir Ordens de Serviço.");
+      cancelDelete();
+      return;
+    }
     if (deleteId) {
       await deleteOrdem(deleteId);
       toast.success("Ordem de Serviço excluída!");
@@ -914,10 +922,14 @@ export default function OrdensServicoPage() {
                             <action.icon className="mr-2 h-4 w-4" /> {action.label}
                           </DropdownMenuItem>
                         ))}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => requestDelete(os.id)} className="text-destructive">
-                          <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                        </DropdownMenuItem>
+                        {podeExcluirOS && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => requestDelete(os.id)} className="text-destructive">
+                              <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
