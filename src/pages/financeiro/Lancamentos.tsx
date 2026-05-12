@@ -8,9 +8,13 @@ import { Trash2, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight } from "lucide-r
 import { useFinanceiro, formatBRL, formatDate } from "@/contexts/FinanceiroContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { usePermissao } from "@/hooks/usePermissao";
+import { toast } from "sonner";
 
 export default function Lancamentos() {
   const { lancamentos, contasBancarias, deleteLancamento } = useFinanceiro();
+  const { tem } = usePermissao();
+  const podeEstornar = tem("financeiro.lancamentos.estornar");
   const [contaFilter, setContaFilter] = useState("todas");
   const [tipoFilter, setTipoFilter] = useState("todos");
   const [dataIni, setDataIni] = useState("");
