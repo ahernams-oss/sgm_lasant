@@ -205,8 +205,8 @@ export default function CategoriasCompras() {
                     {colOrderGrupos.map(key => <TableCell key={key} className={colDefsGrupos[key]?.className}>{cellMap[key]}</TableCell>)}
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEditGrupo(g)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => { deleteGrupo(g.id); toast({ title: "Grupo excluído" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        {podeEditar && <Button variant="ghost" size="icon" onClick={() => openEditGrupo(g)}><Pencil className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button variant="ghost" size="icon" onClick={() => { deleteGrupo(g.id); toast({ title: "Grupo excluído" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>
