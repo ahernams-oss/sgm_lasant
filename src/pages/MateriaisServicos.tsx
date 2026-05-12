@@ -18,13 +18,19 @@ import * as XLSX from "xlsx";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const UNIDADES = ["UN", "M", "M²", "M³", "KG", "L", "CX", "PCT", "SC", "GL", "HR", "VB", "JG", "PR", "RL", "TB", "FD", "BD", "CJ", "DZ"];
 
 export default function MateriaisServicosPage() {
   const { materiais, addMaterial, updateMaterial, deleteMaterial } = useMateriaisServicos();
   const { classes, getDescricaoCompleta } = useCategoriasCompras();
-  
+  const { tem } = usePermissao();
+  const podeCriar = tem("materiais_servicos.criar");
+  const podeEditar = tem("materiais_servicos.editar");
+  const podeExcluir = tem("materiais_servicos.excluir");
+  const podeExportar = tem("materiais_servicos.exportar");
+
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -68,9 +74,11 @@ export default function MateriaisServicosPage() {
   const handleSave = () => {
     if (!form.descricao.trim()) { toast({ title: "Descrição é obrigatória", variant: "destructive" }); return; }
     if (editingId) {
+      if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       updateMaterial(editingId, { ...form, fabricanteId: "" });
       toast({ title: "Material/Serviço atualizado" });
     } else {
+      if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       addMaterial({ ...form, fabricanteId: "" });
       toast({ title: "Material/Serviço criado" });
     }
@@ -78,6 +86,7 @@ export default function MateriaisServicosPage() {
   };
 
   const handleImport = (file: File) => {
+    if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     const ext = file.name.split(".").pop()?.toLowerCase();
     const reader = new FileReader();
     if (ext === "csv" || ext === "txt") {
@@ -139,11 +148,11 @@ export default function MateriaisServicosPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Materiais e Serviços</h1>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => gerarPdfMateriaisServicos({ materiais: filtered, getCatNome: catNome })}><FileText className="mr-2 h-4 w-4" />PDF</Button>
-          <Button variant="outline" onClick={() => gerarExcelMateriaisServicos({ materiais: filtered, getCatNome: catNome })}><FileSpreadsheet className="mr-2 h-4 w-4" />Excel</Button>
-          <Button variant="outline" onClick={() => document.getElementById("import-mat")?.click()}><Upload className="mr-2 h-4 w-4" />Importar</Button>
+          {podeExportar && <Button variant="outline" onClick={() => gerarPdfMateriaisServicos({ materiais: filtered, getCatNome: catNome })}><FileText className="mr-2 h-4 w-4" />PDF</Button>}
+          {podeExportar && <Button variant="outline" onClick={() => gerarExcelMateriaisServicos({ materiais: filtered, getCatNome: catNome })}><FileSpreadsheet className="mr-2 h-4 w-4" />Excel</Button>}
+          {podeCriar && <Button variant="outline" onClick={() => document.getElementById("import-mat")?.click()}><Upload className="mr-2 h-4 w-4" />Importar</Button>}
           <input id="import-mat" type="file" accept=".xlsx,.xls,.csv,.txt" className="hidden" onChange={e => { if (e.target.files?.[0]) handleImport(e.target.files[0]); e.target.value = ""; }} />
-          <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo</Button>
+          {podeCriar && <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo</Button>}
         </div>
       </div>
 
@@ -191,8 +200,8 @@ export default function MateriaisServicosPage() {
                 {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
                 <TableCell>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(m)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => requestDelete(m.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    {podeEditar && <Button variant="ghost" size="icon" onClick={() => openEdit(m)}><Pencil className="h-4 w-4" /></Button>}
+                    {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDelete(m.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </div>
                 </TableCell>
               </TableRow>
@@ -256,7 +265,7 @@ export default function MateriaisServicosPage() {
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={() => { if (deleteId) { deleteMaterial(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={() => { if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); cancelDelete(); return; } if (deleteId) { deleteMaterial(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
     </div>
   );
 }

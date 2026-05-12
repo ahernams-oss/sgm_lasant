@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const statusColors: Record<StatusPedido, string> = {
   Emitido: "bg-blue-100 text-blue-800",
@@ -53,6 +54,9 @@ export default function PedidoCompraPage() {
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
   const { porPedido: assinaturasPorPedido } = usePcAssinaturas();
+  const { tem } = usePermissao();
+  const podeEditar = tem("pedidos_compra.editar");
+  const podeCancelar = tem("pedidos_compra.cancelar");
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
@@ -271,9 +275,11 @@ export default function PedidoCompraPage() {
   const handleUpdateStatus = () => {
     if (!newStatus) { toast({ title: "Selecione um status", variant: "destructive" }); return; }
     if (newStatus === "Cancelado") {
+      if (!podeCancelar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       if (!statusObs.trim()) { toast({ title: "Motivo é obrigatório para cancelamento", variant: "destructive" }); return; }
       statusPedidoIds.forEach(id => cancelarPedido(id, usuarioLogado?.nome || "Usuário", statusObs));
     } else {
+      if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       statusPedidoIds.forEach(id => updateStatus(id, newStatus, usuarioLogado?.nome || "Usuário", statusObs));
     }
     toast({ title: `Status atualizado para: ${newStatus} (${statusPedidoIds.length} pedido${statusPedidoIds.length > 1 ? "s" : ""})` });
@@ -461,7 +467,7 @@ export default function PedidoCompraPage() {
           <Button size="sm" variant="outline" onClick={() => { setBatchMethod(""); setBatchProgress({ done: 0, total: 0, ok: 0, fail: 0 }); setBatchSendOpen(true); }}>
             <Send className="h-4 w-4 mr-1" /> Enviar em Lote
           </Button>
-          {selectedCanUpdate && (
+          {selectedCanUpdate && podeEditar && (
             <Button size="sm" onClick={() => openStatusDialog(selectedIds.filter(id => {
               const p = pedidos.find(x => x.id === id);
               return p ? getNextStatuses(p.status).length > 0 : false;
@@ -527,7 +533,7 @@ export default function PedidoCompraPage() {
                           ) : (
                             <AssinaturaEletronicaPc pedido={p} variant="ghost" size="icon" label="" />
                           )}
-                          {canUpdate && (
+                          {canUpdate && podeEditar && (
                             <Button variant="ghost" size="icon" title="Atualizar Status" onClick={() => openStatusDialog(p)}><ArrowRight className="h-4 w-4" /></Button>
                           )}
                         </div>

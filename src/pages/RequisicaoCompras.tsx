@@ -24,6 +24,7 @@ import { format } from "date-fns";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const statusColors: Record<StatusRequisicaoCompras, string> = {
   Rascunho: "bg-muted text-muted-foreground",
@@ -48,6 +49,8 @@ export default function RequisicaoComprasPage() {
   const { fabricantes } = useFabricantes();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
+  const { tem } = usePermissao();
+  const podeCriar = tem("requisicoes_compras.criar");
   const { toast } = useToast();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -191,6 +194,7 @@ export default function RequisicaoComprasPage() {
   };
 
   const handleSubmit = () => {
+    if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!centroCusto) { toast({ title: "Centro de custo é obrigatório", variant: "destructive" }); return; }
     if (!justificativa.trim()) { toast({ title: "Justificativa é obrigatória", variant: "destructive" }); return; }
     if (itens.length === 0) { toast({ title: "Adicione pelo menos um item", variant: "destructive" }); return; }
@@ -226,7 +230,7 @@ export default function RequisicaoComprasPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground mx-[7px]">Requisições de Compras e Serviços</h1>
-        <Button onClick={() => { resetForm(); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" />Nova Requisição</Button>
+        {podeCriar && <Button onClick={() => { resetForm(); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" />Nova Requisição</Button>}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 items-end">

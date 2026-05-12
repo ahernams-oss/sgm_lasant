@@ -9,10 +9,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 export default function FabricantesPage() {
   const { fabricantes, addFabricante, updateFabricante, deleteFabricante } = useFabricantes();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriar = tem("fabricantes.criar");
+  const podeEditar = tem("fabricantes.editar");
+  const podeExcluir = tem("fabricantes.excluir");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [nome, setNome] = useState("");
@@ -32,9 +37,11 @@ export default function FabricantesPage() {
   const handleSave = () => {
     if (!nome.trim()) { toast({ title: "Nome é obrigatório", variant: "destructive" }); return; }
     if (editingId) {
+      if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       updateFabricante(editingId, nome.trim());
       toast({ title: "Fabricante atualizado" });
     } else {
+      if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       addFabricante(nome.trim());
       toast({ title: "Fabricante criado" });
     }
@@ -45,7 +52,7 @@ export default function FabricantesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Fabricantes</h1>
-        <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo</Button>
+        {podeCriar && <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo</Button>}
       </div>
 
       <div className="relative max-w-sm">
@@ -69,8 +76,8 @@ export default function FabricantesPage() {
                 <TableCell>{f.nome}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(f)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => requestDelete(f.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    {podeEditar && <Button variant="ghost" size="icon" onClick={() => openEdit(f)}><Pencil className="h-4 w-4" /></Button>}
+                    {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDelete(f.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </div>
                 </TableCell>
               </TableRow>
@@ -88,7 +95,7 @@ export default function FabricantesPage() {
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={() => { if (deleteId) { deleteFabricante(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={() => { if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); cancelDelete(); return; } if (deleteId) { deleteFabricante(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
     </div>
   );
 }

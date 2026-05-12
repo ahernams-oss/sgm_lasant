@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 export default function CategoriasCompras() {
   const {
@@ -24,6 +25,11 @@ export default function CategoriasCompras() {
     getCodigoCompleto,
   } = useCategoriasCompras();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriar = tem("categorias_compras.criar");
+  const podeEditar = tem("categorias_compras.editar");
+  const podeExcluir = tem("categorias_compras.excluir");
+  const guard = (ok: boolean) => { if (!ok) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return false; } return true; };
 
   const [activeTab, setActiveTab] = useState("grupos");
   const [search, setSearch] = useState("");
@@ -95,8 +101,8 @@ export default function CategoriasCompras() {
   const openEditGrupo = (g: typeof grupos[0]) => { setGrupoForm({ codigo: g.codigo, nome: g.nome }); setEditGrupoId(g.id); setGrupoDialog(true); };
   const saveGrupo = () => {
     if (!grupoForm.codigo.trim() || !grupoForm.nome.trim()) { toast({ title: "Código e Nome são obrigatórios", variant: "destructive" }); return; }
-    if (editGrupoId) { updateGrupo(editGrupoId, grupoForm); toast({ title: "Grupo atualizado" }); }
-    else { addGrupo(grupoForm); toast({ title: "Grupo criado" }); }
+    if (editGrupoId) { if (!guard(podeEditar)) return; updateGrupo(editGrupoId, grupoForm); toast({ title: "Grupo atualizado" }); }
+    else { if (!guard(podeCriar)) return; addGrupo(grupoForm); toast({ title: "Grupo criado" }); }
     setGrupoDialog(false);
   };
 
@@ -115,8 +121,8 @@ export default function CategoriasCompras() {
   const openEditSub = (s: typeof subGrupos[0]) => { setSubForm({ grupoId: s.grupoId, codigo: s.codigo, nome: s.nome }); setEditSubId(s.id); setSubDialog(true); };
   const saveSub = () => {
     if (!subForm.grupoId || !subForm.codigo.trim() || !subForm.nome.trim()) { toast({ title: "Grupo, Código e Nome são obrigatórios", variant: "destructive" }); return; }
-    if (editSubId) { updateSubGrupo(editSubId, subForm); toast({ title: "SubGrupo atualizado" }); }
-    else { addSubGrupo(subForm); toast({ title: "SubGrupo criado" }); }
+    if (editSubId) { if (!guard(podeEditar)) return; updateSubGrupo(editSubId, subForm); toast({ title: "SubGrupo atualizado" }); }
+    else { if (!guard(podeCriar)) return; addSubGrupo(subForm); toast({ title: "SubGrupo criado" }); }
     setSubDialog(false);
   };
 
@@ -139,8 +145,8 @@ export default function CategoriasCompras() {
   const openEditClasse = (c: typeof classes[0]) => { setClasseForm({ subGrupoId: c.subGrupoId, codigo: c.codigo, nome: c.nome }); setEditClasseId(c.id); setClasseDialog(true); };
   const saveClasse = () => {
     if (!classeForm.subGrupoId || !classeForm.codigo.trim() || !classeForm.nome.trim()) { toast({ title: "SubGrupo, Código e Nome são obrigatórios", variant: "destructive" }); return; }
-    if (editClasseId) { updateClasse(editClasseId, classeForm); toast({ title: "Classe atualizada" }); }
-    else { addClasse(classeForm); toast({ title: "Classe criada" }); }
+    if (editClasseId) { if (!guard(podeEditar)) return; updateClasse(editClasseId, classeForm); toast({ title: "Classe atualizada" }); }
+    else { if (!guard(podeCriar)) return; addClasse(classeForm); toast({ title: "Classe criada" }); }
     setClasseDialog(false);
   };
 
@@ -171,7 +177,7 @@ export default function CategoriasCompras() {
         {/* === GRUPOS === */}
         <TabsContent value="grupos" className="space-y-4">
           <div className="flex justify-end">
-            <Button onClick={openNewGrupo}><Plus className="mr-2 h-4 w-4" />Novo Grupo</Button>
+            {podeCriar && <Button onClick={openNewGrupo}><Plus className="mr-2 h-4 w-4" />Novo Grupo</Button>}
           </div>
           <div className="border rounded-lg">
             <SortableHeaderRow order={colOrderGrupos} onReorder={setColOrderGrupos}>
@@ -199,8 +205,8 @@ export default function CategoriasCompras() {
                     {colOrderGrupos.map(key => <TableCell key={key} className={colDefsGrupos[key]?.className}>{cellMap[key]}</TableCell>)}
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEditGrupo(g)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => { deleteGrupo(g.id); toast({ title: "Grupo excluído" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        {podeEditar && <Button variant="ghost" size="icon" onClick={() => openEditGrupo(g)}><Pencil className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button variant="ghost" size="icon" onClick={() => { deleteGrupo(g.id); toast({ title: "Grupo excluído" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -223,7 +229,7 @@ export default function CategoriasCompras() {
                 {grupos.map(g => <SelectItem key={g.id} value={g.id}>{g.codigo} - {g.nome}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button onClick={openNewSub}><Plus className="mr-2 h-4 w-4" />Novo SubGrupo</Button>
+            {podeCriar && <Button onClick={openNewSub}><Plus className="mr-2 h-4 w-4" />Novo SubGrupo</Button>}
           </div>
           <div className="border rounded-lg">
             <SortableHeaderRow order={colOrderSubs} onReorder={setColOrderSubs}>
@@ -252,8 +258,8 @@ export default function CategoriasCompras() {
                     {colOrderSubs.map(key => <TableCell key={key} className={colDefsSubs[key]?.className}>{cellMap[key]}</TableCell>)}
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEditSub(s)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => { deleteSubGrupo(s.id); toast({ title: "SubGrupo excluído" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        {podeEditar && <Button variant="ghost" size="icon" onClick={() => openEditSub(s)}><Pencil className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button variant="ghost" size="icon" onClick={() => { deleteSubGrupo(s.id); toast({ title: "SubGrupo excluído" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -287,7 +293,7 @@ export default function CategoriasCompras() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={openNewClasse}><Plus className="mr-2 h-4 w-4" />Nova Classe</Button>
+            {podeCriar && <Button onClick={openNewClasse}><Plus className="mr-2 h-4 w-4" />Nova Classe</Button>}
           </div>
           <div className="border rounded-lg">
             <SortableHeaderRow order={colOrderClasses} onReorder={setColOrderClasses}>
@@ -317,8 +323,8 @@ export default function CategoriasCompras() {
                     {colOrderClasses.map(key => <TableCell key={key} className={colDefsClasses[key]?.className}>{cellMap[key]}</TableCell>)}
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEditClasse(c)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => { deleteClasse(c.id); toast({ title: "Classe excluída" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        {podeEditar && <Button variant="ghost" size="icon" onClick={() => openEditClasse(c)}><Pencil className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button variant="ghost" size="icon" onClick={() => { deleteClasse(c.id); toast({ title: "Classe excluída" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>

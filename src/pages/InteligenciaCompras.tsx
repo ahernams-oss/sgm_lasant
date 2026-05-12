@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Search, ChevronDown, ChevronRight, Layers, TrendingUp, Combine } from "lucide-react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 interface OrigemItem {
   cotacaoId: string;
@@ -42,6 +43,8 @@ export default function InteligenciaComprasPage() {
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { tem } = usePermissao();
+  const podeAglutinar = tem("inteligencia_compras.aglutinar");
 
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -112,6 +115,10 @@ export default function InteligenciaComprasPage() {
   };
 
   const handleConsolidar = async () => {
+    if (!podeAglutinar) {
+      toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" });
+      return;
+    }
     if (selectedGroups.length === 0) {
       toast({ title: "Selecione ao menos 1 item para consolidar", variant: "destructive" });
       return;
@@ -204,9 +211,11 @@ export default function InteligenciaComprasPage() {
                 className="pl-8 w-64"
               />
             </div>
-            <Button onClick={() => setConfirmOpen(true)} disabled={selectedGroups.length === 0}>
-              <Combine className="h-4 w-4 mr-2" /> Gerar Cotação Consolidada
-            </Button>
+            {podeAglutinar && (
+              <Button onClick={() => setConfirmOpen(true)} disabled={selectedGroups.length === 0}>
+                <Combine className="h-4 w-4 mr-2" /> Gerar Cotação Consolidada
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>

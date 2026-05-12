@@ -275,6 +275,8 @@ export default function EstoquePage() {
   };
 
   const handleMovSave = async () => {
+    const podeMov = movTipo === "entrada" ? podeEntrada : podeSaida;
+    if (!podeMov) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!movMaterialId || !movQuantidade || !movLocal) {
       toast({ title: "Preencha Material, Quantidade e Local", variant: "destructive" });
       return;
@@ -345,6 +347,7 @@ export default function EstoquePage() {
   };
 
   const handleInvSave = async () => {
+    if (!podeCriarInv) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!invCentroCusto) { toast({ title: "Selecione um centro de custo", variant: "destructive" }); return; }
     if (invItens.length === 0) { toast({ title: "Nenhum item encontrado para este centro de custo", variant: "destructive" }); return; }
     if (editInvId) {
@@ -358,11 +361,16 @@ export default function EstoquePage() {
   };
 
   const handleFecharInventario = async (id: string) => {
+    if (!podeFecharInv) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     await fecharInventario(id, usuarioLogado?.nome || "");
     toast({ title: "Inventário fechado e ajustes aplicados" });
   };
 
   const podeTransferir = tem("estoque.transferir_locais");
+  const podeEntrada = tem("estoque.registrar_entrada");
+  const podeSaida = tem("estoque.registrar_saida");
+  const podeCriarInv = tem("estoque.criar_inventario");
+  const podeFecharInv = tem("estoque.finalizar_inventario");
 
   const openTransferDialog = () => {
     if (!podeTransferir) {
@@ -439,18 +447,26 @@ export default function EstoquePage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Controle de Estoque</h1>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => openMovDialog("entrada")}>
-            <ArrowDownCircle className="mr-2 h-4 w-4 text-emerald-600" />Entrada
-          </Button>
-          <Button variant="outline" onClick={() => openMovDialog("saida")}>
-            <ArrowUpCircle className="mr-2 h-4 w-4 text-red-600" />Saída
-          </Button>
-          <Button variant="outline" onClick={openTransferDialog} disabled={!podeTransferir} title={podeTransferir ? "" : "Sem permissão no perfil de acesso"}>
-            <ArrowLeftRight className="mr-2 h-4 w-4 text-blue-600" />Transferir
-          </Button>
-          <Button onClick={openInvDialog}>
-            <ClipboardList className="mr-2 h-4 w-4" />Inventário
-          </Button>
+          {podeEntrada && (
+            <Button variant="outline" onClick={() => openMovDialog("entrada")}>
+              <ArrowDownCircle className="mr-2 h-4 w-4 text-emerald-600" />Entrada
+            </Button>
+          )}
+          {podeSaida && (
+            <Button variant="outline" onClick={() => openMovDialog("saida")}>
+              <ArrowUpCircle className="mr-2 h-4 w-4 text-red-600" />Saída
+            </Button>
+          )}
+          {podeTransferir && (
+            <Button variant="outline" onClick={openTransferDialog}>
+              <ArrowLeftRight className="mr-2 h-4 w-4 text-blue-600" />Transferir
+            </Button>
+          )}
+          {podeCriarInv && (
+            <Button onClick={openInvDialog}>
+              <ClipboardList className="mr-2 h-4 w-4" />Inventário
+            </Button>
+          )}
         </div>
       </div>
 
@@ -642,12 +658,16 @@ export default function EstoquePage() {
                     <TableCell className="space-x-1">
                       {inv.status === "Aberto" && (
                         <>
-                          <Button variant="ghost" size="icon" onClick={() => handleEditInventario(inv)} title="Editar itens">
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleFecharInventario(inv.id)}>
-                            Fechar e Ajustar
-                          </Button>
+                          {podeCriarInv && (
+                            <Button variant="ghost" size="icon" onClick={() => handleEditInventario(inv)} title="Editar itens">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {podeFecharInv && (
+                            <Button variant="outline" size="sm" onClick={() => handleFecharInventario(inv.id)}>
+                              Fechar e Ajustar
+                            </Button>
+                          )}
                         </>
                       )}
                     </TableCell>

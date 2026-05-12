@@ -17,8 +17,8 @@ Para cada página:
 **Lote 1 — Engenharia (crítico)**
 - SolicitacaoServicos, OrdensServico (revisar todas as ações além do delete já feito), MedicoesServicos, Cronograma, Rdo, PlanoManutencao, Pmoc, Bim, ResponsaveisTecnicos, AssinarLoteOs, AssinarLotePc, ConfirmarLoteOs, ValidarLoteOs, ImprimirLoteOs, AprovarLoteSS
 
-**Lote 2 — Compras e Suprimentos**
-- RequisicaoCompras, CotacaoCompras, PedidoCompra, RecebimentoCompras, Estoque, RelatoriosEstoque, InteligenciaCompras, CategoriasCompras, MateriaisServicos, Fabricantes, DashboardCompras
+**Lote 2 — Compras e Suprimentos** ✅ concluído
+- Fabricantes, MateriaisServicos, CategoriasCompras, RelatoriosEstoque, InteligenciaCompras, Estoque, RecebimentoCompras, PedidoCompra, RequisicaoCompras (criar), CotacaoCompras (criar). DashboardCompras é só leitura.
 
 **Lote 3 — Financeiro**
 - DashboardFinanceiro, ContasPagar, ContasReceber, ContasBancarias, PlanoContas, CentrosCusto, FluxoCaixa, Dre, Conciliacao, Lancamentos, CondicoesPagamento, RelatoriosFinanceiros

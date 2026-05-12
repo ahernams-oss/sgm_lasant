@@ -27,6 +27,7 @@ import {
   ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent,
 } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, LineChart, Line, ResponsiveContainer } from "recharts";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--destructive))", "hsl(210,60%,50%)", "hsl(40,80%,50%)", "hsl(150,60%,40%)", "hsl(280,60%,50%)", "hsl(20,80%,50%)", "hsl(170,60%,40%)"];
 
@@ -36,6 +37,8 @@ export default function RelatoriosEstoquePage() {
   const { clientes } = useClientes();
   const { pedidos } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
+  const { tem } = usePermissao();
+  const podeExportar = tem("relatorios_estoque.exportar");
 
   const [tab, setTab] = useState("posicao");
   const [search, setSearch] = useState("");
@@ -302,11 +305,13 @@ export default function RelatoriosEstoquePage() {
 
   // Export buttons
   const ExportButtons = ({ onPdf, onExcel }: { onPdf: () => void; onExcel: () => void }) => (
-    <div className="flex gap-1">
-      <Button size="sm" variant="outline" onClick={onPdf}><FileText className="mr-1 h-3 w-3" />PDF</Button>
-      <Button size="sm" variant="outline" onClick={onExcel}><FileSpreadsheet className="mr-1 h-3 w-3" />Excel</Button>
-      <Button size="sm" variant="outline" onClick={handlePrint}><Printer className="mr-1 h-3 w-3" />Imprimir</Button>
-    </div>
+    podeExportar ? (
+      <div className="flex gap-1">
+        <Button size="sm" variant="outline" onClick={onPdf}><FileText className="mr-1 h-3 w-3" />PDF</Button>
+        <Button size="sm" variant="outline" onClick={onExcel}><FileSpreadsheet className="mr-1 h-3 w-3" />Excel</Button>
+        <Button size="sm" variant="outline" onClick={handlePrint}><Printer className="mr-1 h-3 w-3" />Imprimir</Button>
+      </div>
+    ) : null
   );
 
   return (

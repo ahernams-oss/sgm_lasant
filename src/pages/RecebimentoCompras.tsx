@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const statusColors: Record<string, string> = {
   Emitido: "bg-blue-100 text-blue-800",
@@ -33,6 +34,8 @@ export default function RecebimentoComprasPage() {
   const { pedidos, updateStatus: updatePedidoStatus } = usePedidoCompra();
   const { recebimentos, registrarRecebimento, getRecebimentosByPedido, getTotalRecebidoPorItem } = useRecebimento();
   const { usuarioLogado } = useAuth();
+  const { tem } = usePermissao();
+  const podeRegistrar = tem("recebimento.registrar");
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
@@ -127,6 +130,7 @@ export default function RecebimentoComprasPage() {
   };
 
   const handleRegistrarRecebimento = () => {
+    if (!podeRegistrar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!recPedido) return;
     const temRecebimento = recItens.some(i => i.quantidadeRecebida > 0);
     if (!temRecebimento) {
@@ -283,7 +287,7 @@ export default function RecebimentoComprasPage() {
                             <History className="mr-2 h-4 w-4" />Histórico de Recebimentos
                           </DropdownMenuItem>
                         )}
-                        {(["Comprado", "Em Entrega", "Entregue Parcial"].includes(p.status) || (p.status === "Entregue" && pedidoTemItensPendentes(p))) && (
+                        {podeRegistrar && (["Comprado", "Em Entrega", "Entregue Parcial"].includes(p.status) || (p.status === "Entregue" && pedidoTemItensPendentes(p))) && (
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => openRecebimentoDialog(p)}>

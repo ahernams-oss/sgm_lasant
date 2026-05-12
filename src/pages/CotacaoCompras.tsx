@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissao } from "@/hooks/usePermissao";
 import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText, CheckSquare, MessageCircle } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -52,6 +53,8 @@ export default function CotacaoComprasPage() {
   const { cargos } = useCargos();
   const { registrar: registrarAssinaturaPc } = usePcAssinaturas();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriarCot = tem("cotacoes.criar");
 
   const assinarPedidoAutomatico = useCallback(async (pedido: PedidoCompra) => {
     if (!usuarioLogado) return;
@@ -885,7 +888,7 @@ export default function CotacaoComprasPage() {
           <Button variant="outline" size="sm" onClick={syncPropostasExternas} title="Sincronizar propostas externas">
             <RefreshCw className="mr-2 h-4 w-4" />Sincronizar
           </Button>
-          <Button onClick={() => { setReqSearch(""); setReqFilterUrgencia("Todas"); setSelectedReqId(""); setNovaDialogOpen(true); }} disabled={reqDisponiveisParaCotacao.length === 0}><Plus className="mr-2 h-4 w-4" />Nova Cotação</Button>
+          {podeCriarCot && <Button onClick={() => { setReqSearch(""); setReqFilterUrgencia("Todas"); setSelectedReqId(""); setNovaDialogOpen(true); }} disabled={reqDisponiveisParaCotacao.length === 0}><Plus className="mr-2 h-4 w-4" />Nova Cotação</Button>}
         </div>
       </div>
 
