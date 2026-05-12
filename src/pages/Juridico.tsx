@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useProcessosTrabalhistas, ProcessoTrabalhista, Andamento } from "@/contexts/ProcessosTrabalhistas";
 import { useClientes } from "@/contexts/ClientesContext";
+import { usePermissao } from "@/hooks/usePermissao";
 import { supabase } from "@/integrations/supabase/client";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 
