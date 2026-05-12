@@ -99,10 +99,10 @@ export default function OrcamentosSco() {
                   <TableCell><Badge variant="outline">{o.status}</Badge></TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button size="icon" variant="ghost" title="PDF" onClick={() => gerarPdfOrcamentoSco(o, empresa?.nome || "")}><FileText className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" title="Excel" onClick={() => gerarExcelOrcamentoSco(o)}><FileSpreadsheet className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" title="Editar" onClick={() => nav(`/orcamentos/${o.id}`)}><Pencil className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" title="Excluir" onClick={() => setDelId(o.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                      {podeExportar && <Button size="icon" variant="ghost" title="PDF" onClick={() => gerarPdfOrcamentoSco(o, empresa?.nome || "")}><FileText className="h-4 w-4" /></Button>}
+                      {podeExportar && <Button size="icon" variant="ghost" title="Excel" onClick={() => gerarExcelOrcamentoSco(o)}><FileSpreadsheet className="h-4 w-4" /></Button>}
+                      {podeEditar && <Button size="icon" variant="ghost" title="Editar" onClick={() => nav(`/orcamentos/${o.id}`)}><Pencil className="h-4 w-4" /></Button>}
+                      {podeExcluir && <Button size="icon" variant="ghost" title="Excluir" onClick={() => setDelId(o.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button>}
                     </div>
                   </TableCell>
                 </TableRow>
