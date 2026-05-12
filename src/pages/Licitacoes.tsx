@@ -3,6 +3,7 @@ import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/Double
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useLicitacoes, Licitacao, DocumentoLicitacao, AnaliseLicitacao } from "@/contexts/LicitacoesContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissao } from "@/hooks/usePermissao";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
