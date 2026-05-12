@@ -38,6 +38,10 @@ export default function CondicoesPagamento() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { tem } = usePermissao();
+  const podeCriar = tem("financeiro.condicoes_pagamento.criar");
+  const podeEditar = tem("financeiro.condicoes_pagamento.editar");
+  const podeExcluir = tem("financeiro.condicoes_pagamento.excluir");
 
   const reload = async () => {
     setLoading(true);
