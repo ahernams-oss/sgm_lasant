@@ -121,8 +121,8 @@ export default function CategoriasCompras() {
   const openEditSub = (s: typeof subGrupos[0]) => { setSubForm({ grupoId: s.grupoId, codigo: s.codigo, nome: s.nome }); setEditSubId(s.id); setSubDialog(true); };
   const saveSub = () => {
     if (!subForm.grupoId || !subForm.codigo.trim() || !subForm.nome.trim()) { toast({ title: "Grupo, Código e Nome são obrigatórios", variant: "destructive" }); return; }
-    if (editSubId) { updateSubGrupo(editSubId, subForm); toast({ title: "SubGrupo atualizado" }); }
-    else { addSubGrupo(subForm); toast({ title: "SubGrupo criado" }); }
+    if (editSubId) { if (!guard(podeEditar)) return; updateSubGrupo(editSubId, subForm); toast({ title: "SubGrupo atualizado" }); }
+    else { if (!guard(podeCriar)) return; addSubGrupo(subForm); toast({ title: "SubGrupo criado" }); }
     setSubDialog(false);
   };
 
