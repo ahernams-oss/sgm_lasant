@@ -10,6 +10,7 @@ import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrcamentosSco } from "@/contexts/OrcamentosScoContext";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 function parseNum(v: any): number {
   if (v === null || v === undefined || v === "") return 0;
@@ -122,6 +123,8 @@ const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Ag
 export default function ImportarCatalogoSco() {
   const nav = useNavigate();
   const { countCatalog } = useOrcamentosSco();
+  const { tem } = usePermissao();
+  const podeImportar = tem("catalogo_sco.importar");
   const [counts, setCounts] = useState({ elementares: 0, servicos: 0, composicoes: 0 });
   const [fgv04, setFgv04] = useState<File | null>(null);
   const [fgv06, setFgv06] = useState<File | null>(null);
@@ -136,6 +139,7 @@ export default function ImportarCatalogoSco() {
   useEffect(() => { refresh(); }, []);
 
   const importar = async () => {
+    if (!podeImportar) { toast.error("Você não possui permissão para importar o catálogo."); return; }
     if (!fgv04 && !fgv06 && !fgv07) { toast.error("Selecione ao menos um arquivo"); return; }
     if (!mes || !ano) { toast.error("Informe mês e ano da tabela de preços"); return; }
     const referencia = `${mes}/${ano}`;

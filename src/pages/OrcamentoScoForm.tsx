@@ -16,6 +16,7 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfOrcamentoSco } from "@/lib/gerarPdfOrcamentoSco";
 import { gerarExcelOrcamentoSco } from "@/lib/gerarExcelOrcamentoSco";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 export default function OrcamentoScoForm() {
   const nav = useNavigate();
@@ -23,6 +24,11 @@ export default function OrcamentoScoForm() {
   const { orcamentos, add, update, searchServicos, listReferencias } = useOrcamentosSco();
   const { clientes } = useClientes() as any;
   const { empresa } = useEmpresa() as any;
+  const { tem } = usePermissao();
+  const podeCriar = tem("orcamentos_sco.criar");
+  const podeEditar = tem("orcamentos_sco.editar");
+  const podePdf = tem("orcamentos_sco.exportar_pdf");
+  const podeExcel = tem("orcamentos_sco.exportar_excel");
 
   const editing = id && id !== "novo" ? orcamentos.find((o) => o.id === id) : null;
 
@@ -111,6 +117,7 @@ export default function OrcamentoScoForm() {
   const removeItem = (idx: number) => setItens((p) => p.filter((_, i) => i !== idx));
 
   const salvar = async () => {
+    if (editing ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!titulo.trim()) { toast.error("Informe o título do orçamento"); return; }
     if (itens.length === 0) { toast.error("Adicione ao menos um item"); return; }
     const cliNome = clientes.find((c: any) => c.id === clienteId)?.nome || "";
@@ -140,6 +147,8 @@ export default function OrcamentoScoForm() {
   };
 
   const exportar = async (kind: "pdf" | "xlsx") => {
+    if (kind === "pdf" && !podePdf) { toast.error("Você não possui permissão para exportar PDF."); return; }
+    if (kind === "xlsx" && !podeExcel) { toast.error("Você não possui permissão para exportar Excel."); return; }
     const obj: any = {
       ...editing,
       ...{
@@ -163,9 +172,9 @@ export default function OrcamentoScoForm() {
           <h1 className="text-2xl font-serif font-bold">{editing ? `Orçamento Nº ${editing.numero}` : "Novo Orçamento SCO"}</h1>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => exportar("pdf")}><FileText className="h-4 w-4 mr-1" /> PDF</Button>
-          <Button variant="outline" onClick={() => exportar("xlsx")}><FileSpreadsheet className="h-4 w-4 mr-1" /> Excel</Button>
-          <Button onClick={salvar} style={{ background: "#673ab7" }}><Save className="h-4 w-4 mr-1" /> Salvar</Button>
+          {podePdf && <Button variant="outline" onClick={() => exportar("pdf")}><FileText className="h-4 w-4 mr-1" /> PDF</Button>}
+          {podeExcel && <Button variant="outline" onClick={() => exportar("xlsx")}><FileSpreadsheet className="h-4 w-4 mr-1" /> Excel</Button>}
+          {(editing ? podeEditar : podeCriar) && <Button onClick={salvar} style={{ background: "#673ab7" }}><Save className="h-4 w-4 mr-1" /> Salvar</Button>}
         </div>
       </div>
 
