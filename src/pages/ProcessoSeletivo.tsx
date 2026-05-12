@@ -241,6 +241,7 @@ const ProcessoSeletivoPage = () => {
   };
 
   const handleAprovarEtapa = async (candidato: Candidato, statusField: string, status: "aprovado" | "neutro" | "reprovado") => {
+    if (!podeAvaliar) { toast.error("Você não possui permissão para esta ação."); return; }
     const updates: Partial<Candidato> = { [statusField]: status };
 
     if (statusField === "statusLiberacao" && status === "aprovado") {
@@ -431,7 +432,7 @@ const ProcessoSeletivoPage = () => {
           <TabsContent value="candidatos">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-foreground">Lista de Candidatos</h2>
-              {processo.candidatos.length < 5 && !processo.candidatos.some((c) => c.etapaAtual === "contratacao" || c.contratacaoFinalizada) && (
+              {podeAddCandidato && processo.candidatos.length < 5 && !processo.candidatos.some((c) => c.etapaAtual === "contratacao" || c.contratacaoFinalizada) && (
                 <Button size="sm" onClick={() => setShowAddDialog(true)} className="gap-1">
                   <Plus className="h-4 w-4" /> Adicionar
                 </Button>
@@ -457,7 +458,7 @@ const ProcessoSeletivoPage = () => {
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => openEditDialog(c)}>
+                          {podeEditar && <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => openEditDialog(c)}>
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           <Badge variant="outline" className={statusBadge[getEtapaStatus(c, c.etapaAtual)]}>
