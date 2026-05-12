@@ -18,6 +18,7 @@ export default function Conciliacao() {
   const [conta, setConta] = useState("");
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!podeImportar) { toast.error("Você não possui permissão para esta ação."); return; }
     const f = e.target.files?.[0]; if (!f) return;
     if (!conta) { toast.error("Selecione a conta antes de importar."); return; }
     const text = await f.text();
