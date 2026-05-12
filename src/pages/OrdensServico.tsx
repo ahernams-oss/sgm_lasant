@@ -816,24 +816,28 @@ export default function OrdensServicoPage() {
         <Card>
           <CardContent className="py-3 flex items-center gap-4 flex-wrap">
             <span className="text-sm font-medium">{selectedIds.size} OS(s) selecionada(s)</span>
-            <Button size="sm" onClick={handleBatchExecutar}>
-              <Play className="mr-2 h-4 w-4" /> Executar em Lote
-            </Button>
-            <Button size="sm" variant="outline" onClick={async () => {
-              const lista = ordens
-                .filter(o => selectedIds.has(o.id))
-                .map(o => ({
-                  os: o,
-                  empresa,
-                  cliente: clientes.find(c => c.id === o.clienteId),
-                  assinaturas: assinaturasOs.filter(a => a.os_id === o.id),
-                }));
-              if (lista.length === 0) return;
-              await gerarPdfOrdemServicoLote(lista);
-              toast.success(`${lista.length} OS(s) impressas`);
-            }}>
-              <Printer className="mr-2 h-4 w-4" /> Imprimir em Lote
-            </Button>
+            {podeExecutarLote && (
+              <Button size="sm" onClick={handleBatchExecutar}>
+                <Play className="mr-2 h-4 w-4" /> Executar em Lote
+              </Button>
+            )}
+            {podeImprimirOS && (
+              <Button size="sm" variant="outline" onClick={async () => {
+                const lista = ordens
+                  .filter(o => selectedIds.has(o.id))
+                  .map(o => ({
+                    os: o,
+                    empresa,
+                    cliente: clientes.find(c => c.id === o.clienteId),
+                    assinaturas: assinaturasOs.filter(a => a.os_id === o.id),
+                  }));
+                if (lista.length === 0) return;
+                await gerarPdfOrdemServicoLote(lista);
+                toast.success(`${lista.length} OS(s) impressas`);
+              }}>
+                <Printer className="mr-2 h-4 w-4" /> Imprimir em Lote
+              </Button>
+            )}
             <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
               Limpar seleção
             </Button>
