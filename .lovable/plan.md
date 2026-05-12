@@ -29,8 +29,9 @@ Para cada página:
 **Lote 5 — Gestão de Pessoas**
 - RequisicaoPessoal (RequisicaoContext pages), ProcessosSeletivos/ProcessoSeletivo, Funcionarios, MapaFuncionarios, AvaliacoesDesempenho, EpisPage, ExamesPage, MapaPlantoes
 
-**Lote 6 — Demais (Licitações, Jurídico, Patrimônio, Qualidade, Comunicação, Administração, Base de Conhecimento)**
+**Lote 6 — Demais (Licitações, Jurídico, Patrimônio, Qualidade, Comunicação, Administração, Base de Conhecimento) + Proteção de Rotas**
 - Licitacoes, Juridico, Ferramentas, Evidencias, Checklists, ComunicacaoMensagens, ComunicacaoAvisos, ComunicacaoNotificacoes, ComunicacaoWhatsapp, ChatDuda, EmpresaDados, Usuarios, PerfisAcesso, MonitorTV, BaseConhecimento
+- **Proteção de rotas (concluído nesta etapa)**: novo componente `RotaProtegida` (`src/components/RotaProtegida.tsx`) que envolve cada `<Route>` em `App.tsx` e bloqueia o acesso direto via URL para usuários sem a permissão do módulo correspondente, exibindo tela "Acesso negado". Cargos com acesso total continuam liberados.
 
 ## Detalhes técnicos
 - Apenas frontend (sem edge functions adicionais nesta rodada).
