@@ -708,9 +708,12 @@ export default function OrdensServicoPage() {
           <Button variant="outline" onClick={() => setRelatorioOpen(true)}>
             <BarChart3 className="mr-2 h-4 w-4" /> Relatórios
           </Button>
-          <Button onClick={() => { resetForm(); setFormOpen(true); }}>
-            <Plus className="mr-2 h-4 w-4" /> Nova OS
-          </Button>
+          {/* Botão "Nova OS" oculto temporariamente para todos os usuários */}
+          {false && (
+            <Button onClick={() => { resetForm(); setFormOpen(true); }}>
+              <Plus className="mr-2 h-4 w-4" /> Nova OS
+            </Button>
+          )}
         </div>
       </div>
 
