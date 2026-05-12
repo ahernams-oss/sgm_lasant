@@ -285,7 +285,7 @@ export default function AssinarLoteOs() {
         </div>
       )}
 
-      {selectedIds.size > 0 && podePapel && (
+      {selectedIds.size > 0 && podePapel && podeAssinarLote && (
         <div className="flex items-center gap-3 p-3 bg-accent rounded-lg border border-border">
           <span className="text-sm font-medium">
             {selectedIds.size} OS selecionada(s)
