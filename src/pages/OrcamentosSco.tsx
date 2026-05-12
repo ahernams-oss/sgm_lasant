@@ -11,11 +11,20 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfOrcamentoSco } from "@/lib/gerarPdfOrcamentoSco";
 import { gerarExcelOrcamentoSco } from "@/lib/gerarExcelOrcamentoSco";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { usePermissao } from "@/hooks/usePermissao";
+import { toast } from "sonner";
 
 export default function OrcamentosSco() {
   const nav = useNavigate();
   const { orcamentos, remove, countCatalog } = useOrcamentosSco();
   const { empresa } = useEmpresa() as any;
+  const { tem } = usePermissao();
+  const podeCriar = tem("orcamentos_sco.criar");
+  const podeEditar = tem("orcamentos_sco.editar");
+  const podeExcluir = tem("orcamentos_sco.excluir");
+  const podeExportar = tem("orcamentos_sco.exportar");
+  const podeImportarCat = tem("orcamentos_sco.importar_catalogo");
+  const podeVerCat = tem("orcamentos_sco.visualizar_catalogo");
   const [filtro, setFiltro] = useState("");
   const [counts, setCounts] = useState({ elementares: 0, servicos: 0, composicoes: 0 });
   const [delId, setDelId] = useState<string | null>(null);
@@ -44,15 +53,15 @@ export default function OrcamentosSco() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => nav("/orcamentos/catalogo")}>
+          {podeVerCat && <Button variant="outline" onClick={() => nav("/orcamentos/catalogo")}>
             <Search className="h-4 w-4 mr-1" /> Catálogo SCO
-          </Button>
-          <Button variant="outline" onClick={() => nav("/orcamentos/importar")}>
+          </Button>}
+          {podeImportarCat && <Button variant="outline" onClick={() => nav("/orcamentos/importar")}>
             <Upload className="h-4 w-4 mr-1" /> Importar Catálogo
-          </Button>
-          <Button onClick={() => nav("/orcamentos/novo")} style={{ background: "#673ab7" }}>
+          </Button>}
+          {podeCriar && <Button onClick={() => nav("/orcamentos/novo")} style={{ background: "#673ab7" }}>
             <Plus className="h-4 w-4 mr-1" /> Novo Orçamento
-          </Button>
+          </Button>}
         </div>
       </div>
 
@@ -90,10 +99,10 @@ export default function OrcamentosSco() {
                   <TableCell><Badge variant="outline">{o.status}</Badge></TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button size="icon" variant="ghost" title="PDF" onClick={() => gerarPdfOrcamentoSco(o, empresa?.nome || "")}><FileText className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" title="Excel" onClick={() => gerarExcelOrcamentoSco(o)}><FileSpreadsheet className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" title="Editar" onClick={() => nav(`/orcamentos/${o.id}`)}><Pencil className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" title="Excluir" onClick={() => setDelId(o.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                      {podeExportar && <Button size="icon" variant="ghost" title="PDF" onClick={() => gerarPdfOrcamentoSco(o, empresa?.nome || "")}><FileText className="h-4 w-4" /></Button>}
+                      {podeExportar && <Button size="icon" variant="ghost" title="Excel" onClick={() => gerarExcelOrcamentoSco(o)}><FileSpreadsheet className="h-4 w-4" /></Button>}
+                      {podeEditar && <Button size="icon" variant="ghost" title="Editar" onClick={() => nav(`/orcamentos/${o.id}`)}><Pencil className="h-4 w-4" /></Button>}
+                      {podeExcluir && <Button size="icon" variant="ghost" title="Excluir" onClick={() => setDelId(o.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button>}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -107,7 +116,7 @@ export default function OrcamentosSco() {
         <DoubleConfirmDelete
           open={!!delId}
           onOpenChange={(o) => { if (!o) setDelId(null); }}
-          onConfirm={async () => { await remove(delId!); setDelId(null); }}
+          onConfirm={async () => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); setDelId(null); return; } await remove(delId!); setDelId(null); }}
         />
       )}
     </div>

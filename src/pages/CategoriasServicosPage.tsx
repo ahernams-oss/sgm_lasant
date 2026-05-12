@@ -7,9 +7,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { toast } from "sonner";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const CategoriasServicosPage = () => {
   const { categorias, addCategoria, updateCategoria, deleteCategoria } = useCategoriasServicos();
+  const { tem } = usePermissao();
+  const podeCriar = tem("categorias_servicos.criar");
+  const podeEditar = tem("categorias_servicos.editar");
+  const podeExcluir = tem("categorias_servicos.excluir");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [nome, setNome] = useState("");
@@ -20,6 +25,7 @@ const CategoriasServicosPage = () => {
   const resetForm = () => { setNome(""); setDescricao(""); setEditId(null); setShowForm(false); };
 
   const handleSave = async () => {
+    if (editId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!nome.trim()) { toast.error("Nome é obrigatório"); return; }
     if (editId) {
       await updateCategoria(editId, { nome, descricao });
@@ -51,7 +57,7 @@ const CategoriasServicosPage = () => {
             <h1 className="text-xl font-bold text-foreground mb-1">Categorias de Serviços</h1>
             <p className="text-sm text-muted-foreground">Gerencie as categorias para classificar serviços.</p>
           </div>
-          {!showForm && (
+          {!showForm && podeCriar && (
             <Button onClick={() => setShowForm(true)} className="gap-2">
               <Plus className="h-4 w-4" /> Nova Categoria
             </Button>
@@ -102,9 +108,9 @@ const CategoriasServicosPage = () => {
                   <TableCell className="text-muted-foreground">{c.descricao || "—"}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(c)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteOpen(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                      <DoubleConfirmDelete open={deleteOpen === c.id} onOpenChange={v => setDeleteOpen(v ? c.id : null)} onConfirm={() => { deleteCategoria(c.id); setDeleteOpen(null); }} />
+                      {podeEditar && <Button variant="ghost" size="icon" onClick={() => handleEdit(c)}><Pencil className="h-4 w-4" /></Button>}
+                      {podeExcluir && <Button variant="ghost" size="icon" onClick={() => setDeleteOpen(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                      {podeExcluir && <DoubleConfirmDelete open={deleteOpen === c.id} onOpenChange={v => setDeleteOpen(v ? c.id : null)} onConfirm={() => { deleteCategoria(c.id); setDeleteOpen(null); }} />}
                     </div>
                   </TableCell>
                 </TableRow>

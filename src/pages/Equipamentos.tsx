@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useEquipamentos, type Equipamento } from "@/contexts/EquipamentosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { supabase } from "@/integrations/supabase/client";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const SITUACOES = ["Ativo", "Inativo", "Em Manutenção", "Desativado"];
 const NIVEIS_RISCO = ["Baixo", "Médio", "Alto", "Crítico"];
@@ -39,6 +40,10 @@ const emptyForm = {
 export default function Equipamentos() {
   const { equipamentos, addEquipamento, updateEquipamento, deleteEquipamento } = useEquipamentos();
   const { clientes } = useClientes();
+  const { tem } = usePermissao();
+  const podeCriar = tem("equipamentos.criar");
+  const podeEditar = tem("equipamentos.editar");
+  const podeExcluir = tem("equipamentos.excluir");
   const clientesList = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
 
   const [formOpen, setFormOpen] = useState(true);
@@ -158,6 +163,7 @@ export default function Equipamentos() {
   };
 
   const handleSubmit = () => {
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.equipamento.trim()) { toast.error("Informe o nome do equipamento."); return; }
     if (!form.clienteId) { toast.error("Selecione um cliente."); return; }
     const { ...data } = form;
@@ -181,6 +187,7 @@ export default function Equipamentos() {
   };
 
   const handleDelete = (id: string) => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
     deleteEquipamento(id);
     toast.success("Equipamento removido.");
     if (editingId === id) resetForm();

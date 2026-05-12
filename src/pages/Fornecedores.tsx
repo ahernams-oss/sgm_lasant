@@ -15,9 +15,14 @@ import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm"
 import ImportClientesFornecedores from "@/components/ImportClientesFornecedores";
 import DadosBancariosTab from "@/components/DadosBancariosTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const Fornecedores = () => {
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
+  const { tem } = usePermissao();
+  const podeCriar = tem("fornecedores.criar");
+  const podeEditar = tem("fornecedores.editar");
+  const podeExcluir = tem("fornecedores.excluir");
   const [formOpen, setFormOpen] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
@@ -127,6 +132,7 @@ const Fornecedores = () => {
   );
 
   const handleSubmit = (data: FormData, id: string | null) => {
+    if (id ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!data.nome.trim()) {
       toast.error("Informe o nome do fornecedor.");
       return;
@@ -163,6 +169,7 @@ const Fornecedores = () => {
   };
 
   const handleDelete = (id: string) => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
     deleteCliente(id);
     toast.success("Fornecedor removido.");
     if (editingId === id) resetForm();
@@ -229,11 +236,12 @@ const Fornecedores = () => {
               <Button variant="outline" size="sm" onClick={() => setRelatorioOpen(true)} className="gap-2">
                 <FileBarChart className="h-4 w-4" /> Relatório
               </Button>
-              <ImportClientesFornecedores tipo="Fornecedor" />
+              {tem("fornecedores.importar") && <ImportClientesFornecedores tipo="Fornecedor" />}
             </div>
           </div>
         </div>
 
+        {(podeCriar || (editingId && podeEditar)) && (
         <div className="section-card animate-fade-up mb-6" style={{ animationDelay: "80ms" }}>
           <button
             type="button"
@@ -283,6 +291,7 @@ const Fornecedores = () => {
             </div>
           )}
         </div>
+        )}
 
 
         <div className="section-card animate-fade-up" style={{ animationDelay: "160ms" }}>
@@ -357,10 +366,10 @@ const Fornecedores = () => {
                       <Button variant="ghost" size="sm" onClick={() => handleEnviarWhatsApp(fornecedor)} className="text-emerald-600 hover:text-emerald-700" title="Enviar WhatsApp">
                         <MessageCircle className="h-3.5 w-3.5" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(fornecedor)} className="text-xs">Editar</Button>
-                      <Button variant="ghost" size="sm" onClick={() => requestDelete(fornecedor.id)} className="text-destructive hover:text-destructive">
+                      {podeEditar && <Button variant="ghost" size="sm" onClick={() => handleEdit(fornecedor)} className="text-xs">Editar</Button>}
+                      {podeExcluir && <Button variant="ghost" size="sm" onClick={() => requestDelete(fornecedor.id)} className="text-destructive hover:text-destructive">
                         <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                      </Button>}
                     </div>
                   </div>
                 ))}

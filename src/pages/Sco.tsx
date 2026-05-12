@@ -16,11 +16,17 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Search, Upload, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissao } from "@/hooks/usePermissao";
 import * as XLSX from "xlsx";
 
 export default function Sco() {
   const { scos, addSco, updateSco, deleteSco } = useSco();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriar = tem("sco.criar");
+  const podeEditar = tem("sco.editar");
+  const podeExcluir = tem("sco.excluir");
+  const podeImportar = tem("sco.importar");
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyScoForm);
@@ -45,6 +51,7 @@ export default function Sco() {
   };
 
   const handleImport = (file: File) => {
+    if (!podeImportar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     const ext = file.name.split(".").pop()?.toLowerCase();
     const reader = new FileReader();
 
@@ -120,6 +127,7 @@ export default function Sco() {
   };
 
   const handleSubmit = () => {
+    if (editId ? !podeEditar : !podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!form.codSco.trim() || !form.descricaoSco.trim()) {
       toast({ title: "Preencha código e descrição", variant: "destructive" });
       return;
@@ -135,6 +143,7 @@ export default function Sco() {
   };
 
   const handleDelete = (id: string) => {
+    if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     deleteSco(id);
     toast({ title: "Item removido" });
   };
@@ -156,15 +165,15 @@ export default function Sco() {
               e.target.value = "";
             }}
           />
-          <Button variant="outline" onClick={downloadTemplate}>
+          {podeImportar && <Button variant="outline" onClick={downloadTemplate}>
             <Download className="mr-2 h-4 w-4" /> Modelo
-          </Button>
-          <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+          </Button>}
+          {podeImportar && <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-2 h-4 w-4" /> Importar
-          </Button>
-          <Button onClick={openNew}>
+          </Button>}
+          {podeCriar && <Button onClick={openNew}>
             <Plus className="mr-2 h-4 w-4" /> Novo Item
-          </Button>
+          </Button>}
         </div>
       </div>
 
@@ -226,12 +235,12 @@ export default function Sco() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" onClick={() => openEdit(s)}>
+                      {podeEditar && <Button size="icon" variant="ghost" onClick={() => openEdit(s)}>
                         <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(s.id)}>
+                      </Button>}
+                      {podeExcluir && <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(s.id)}>
                         <Trash2 className="h-4 w-4" />
-                      </Button>
+                      </Button>}
                     </div>
                   </TableCell>
                 </TableRow>

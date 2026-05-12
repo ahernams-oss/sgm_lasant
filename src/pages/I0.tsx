@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Search, Upload, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissao } from "@/hooks/usePermissao";
 import * as XLSX from "xlsx";
 
 const meses = [
@@ -35,6 +36,10 @@ export default function I0Page() {
   const { items, addItem, updateItem, deleteItem } = useI0();
   const { scos } = useSco();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriar = tem("i0.criar");
+  const podeEditar = tem("i0.editar");
+  const podeExcluir = tem("i0.excluir");
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyI0Form);
@@ -68,6 +73,7 @@ export default function I0Page() {
   };
 
   const handleSubmit = () => {
+    if (editId ? !podeEditar : !podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!form.codSco) {
       toast({ title: "Selecione um código SCO", variant: "destructive" });
       return;
@@ -83,6 +89,7 @@ export default function I0Page() {
   };
 
   const handleDelete = (id: string) => {
+    if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     deleteItem(id);
     toast({ title: "Registro removido" });
   };
@@ -160,15 +167,15 @@ export default function I0Page() {
             className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImport(f); e.target.value = ""; }}
           />
-          <Button variant="outline" onClick={downloadTemplate}>
+          {podeCriar && <Button variant="outline" onClick={downloadTemplate}>
             <Download className="mr-2 h-4 w-4" /> Modelo
-          </Button>
-          <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+          </Button>}
+          {podeCriar && <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-2 h-4 w-4" /> Importar
-          </Button>
-          <Button onClick={openNew}>
+          </Button>}
+          {podeCriar && <Button onClick={openNew}>
             <Plus className="mr-2 h-4 w-4" /> Novo Registro
-          </Button>
+          </Button>}
         </div>
       </div>
 
@@ -222,12 +229,12 @@ export default function I0Page() {
                   <TableCell className="text-right tabular-nums">{formatCurrency(item.valor)}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" onClick={() => openEdit(item)}>
+                      {podeEditar && <Button size="icon" variant="ghost" onClick={() => openEdit(item)}>
                         <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(item.id)}>
+                      </Button>}
+                      {podeExcluir && <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(item.id)}>
                         <Trash2 className="h-4 w-4" />
-                      </Button>
+                      </Button>}
                     </div>
                   </TableCell>
                 </TableRow>

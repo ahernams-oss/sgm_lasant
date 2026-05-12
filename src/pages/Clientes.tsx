@@ -18,6 +18,7 @@ import LocaisEntregaSection from "@/components/LocaisEntregaSection";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ImportClientesFornecedores from "@/components/ImportClientesFornecedores";
 import FaturamentoSection from "@/components/FaturamentoSection";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const FaturamentoView = () => {
   const { clientes, updateCliente } = useClientes();
@@ -139,6 +140,10 @@ const Clientes = () => {
   const [formOpen, setFormOpen] = useState(true);
   const { items: i0Items } = useI0();
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
+  const { tem } = usePermissao();
+  const podeCriar = tem("clientes.criar");
+  const podeEditar = tem("clientes.editar");
+  const podeExcluir = tem("clientes.excluir");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
   const [search, setSearch] = useState("");
@@ -188,6 +193,7 @@ const Clientes = () => {
 
 
   const handleSubmit = (data: FormData, id: string | null) => {
+    if (id ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!data.nome.trim()) {
       toast.error("Informe o nome do cliente.");
       return;
@@ -223,6 +229,7 @@ const Clientes = () => {
   };
 
   const handleDelete = (id: string) => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
     deleteCliente(id);
     toast.success("Cliente removido.");
     if (editingId === id) resetForm();

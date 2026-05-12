@@ -9,10 +9,15 @@ import { useServicos } from "@/contexts/ServicosContext";
 import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { toast } from "sonner";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const ServicosPage = () => {
   const { servicos, addServico, updateServico, deleteServico } = useServicos();
   const { categorias } = useCategoriasServicos();
+  const { tem } = usePermissao();
+  const podeCriar = tem("servicos.criar");
+  const podeEditar = tem("servicos.editar");
+  const podeExcluir = tem("servicos.excluir");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [nome, setNome] = useState("");
@@ -25,6 +30,7 @@ const ServicosPage = () => {
   const resetForm = () => { setNome(""); setDescricao(""); setCategoriaId(""); setEditId(null); setShowForm(false); };
 
   const handleSave = async () => {
+    if (editId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!nome.trim()) { toast.error("Nome é obrigatório"); return; }
     if (editId) {
       await updateServico(editId, { nome, descricao, categoriaId });
@@ -60,7 +66,7 @@ const ServicosPage = () => {
             <h1 className="text-xl font-bold text-foreground mb-1">Serviços</h1>
             <p className="text-sm text-muted-foreground">Gerencie os serviços vinculados às categorias.</p>
           </div>
-          {!showForm && (
+          {!showForm && podeCriar && (
             <Button onClick={() => setShowForm(true)} className="gap-2">
               <Plus className="h-4 w-4" /> Novo Serviço
             </Button>
@@ -133,9 +139,9 @@ const ServicosPage = () => {
                   <TableCell className="text-muted-foreground">{s.descricao || "—"}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(s)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteOpen(s.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                      <DoubleConfirmDelete open={deleteOpen === s.id} onOpenChange={v => setDeleteOpen(v ? s.id : null)} onConfirm={() => { deleteServico(s.id); setDeleteOpen(null); }} />
+                      {podeEditar && <Button variant="ghost" size="icon" onClick={() => handleEdit(s)}><Pencil className="h-4 w-4" /></Button>}
+                      {podeExcluir && <Button variant="ghost" size="icon" onClick={() => setDeleteOpen(s.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                      {podeExcluir && <DoubleConfirmDelete open={deleteOpen === s.id} onOpenChange={v => setDeleteOpen(v ? s.id : null)} onConfirm={() => { deleteServico(s.id); setDeleteOpen(null); }} />}
                     </div>
                   </TableCell>
                 </TableRow>
