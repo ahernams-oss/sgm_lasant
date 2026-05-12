@@ -688,17 +688,17 @@ const MapaFuncionarios = () => {
                       <TableCell className="max-w-[200px] truncate text-muted-foreground text-xs">{l.observacao || "—"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          {l.tipo === "advertencia" && (
+                          {l.tipo === "advertencia" && podePdf && (
                             <Button size="icon" variant="ghost" onClick={() => handlePrintAdvertencia(l)} className="h-8 w-8" title="Imprimir Advertência">
                               <Printer className="h-3.5 w-3.5" />
                             </Button>
                           )}
-                          <Button size="icon" variant="ghost" onClick={() => handleEdit(l)} className="h-8 w-8">
+                          {podeGerenciar && <Button size="icon" variant="ghost" onClick={() => handleEdit(l)} className="h-8 w-8">
                             <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button size="icon" variant="ghost" onClick={() => requestDelete(l.id)} className="h-8 w-8 text-destructive hover:text-destructive">
+                          </Button>}
+                          {podeGerenciar && <Button size="icon" variant="ghost" onClick={() => requestDelete(l.id)} className="h-8 w-8 text-destructive hover:text-destructive">
                             <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
+                          </Button>}
                         </div>
                       </TableCell>
                     </TableRow>
