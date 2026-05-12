@@ -37,6 +37,8 @@ export default function RelatoriosEstoquePage() {
   const { clientes } = useClientes();
   const { pedidos } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
+  const { tem } = usePermissao();
+  const podeExportar = tem("relatorios_estoque.exportar");
 
   const [tab, setTab] = useState("posicao");
   const [search, setSearch] = useState("");
