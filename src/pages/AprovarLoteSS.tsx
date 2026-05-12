@@ -108,6 +108,10 @@ export default function AprovarLoteSS() {
   }, [aguardando]);
 
   const handleBatchApprove = async () => {
+    if (!podeAprovarLote) {
+      toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" });
+      return;
+    }
     if (!selectedPrioridade) {
       toast({ title: "Selecione o nível de prioridade", variant: "destructive" });
       return;
