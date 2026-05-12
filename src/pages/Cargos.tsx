@@ -68,6 +68,7 @@ const Cargos = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome.trim()) {
       toast.error("Informe o nome do cargo.");
       return;
