@@ -31,6 +31,8 @@ export default function AssinarLotePc() {
   const { usuarioLogado } = useAuth();
   const { cargos } = useCargos();
   const { assinaturas, registrar, refresh } = usePcAssinaturas();
+  const { tem } = usePermissao();
+  const podeAssinarLote = tem("pc.assinar_lote");
 
   const [search, setSearch] = useState("");
   const [filterFornecedor, setFilterFornecedor] = useState("all");
