@@ -9,17 +9,21 @@ import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const empty = { codigo: "", nome: "", cliente_id: null as string | null, ativo: true };
 
 export default function CentrosCusto() {
   const { centrosCusto, addCentroCusto, updateCentroCusto, deleteCentroCusto } = useFinanceiro();
   const { clientes } = useClientes();
+  const { tem } = usePermissao();
+  const podeGerenciar = tem("financeiro.centros_custo.gerenciar");
   const [form, setForm] = useState<any>(empty);
   const [editingId, setEditingId] = useState<string | null>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const handleSave = async () => {
+    if (!podeGerenciar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome) { toast.error("Informe o nome."); return; }
     const data = { ...form, cliente_id: form.cliente_id || null };
     if (editingId) await updateCentroCusto(editingId, data);
