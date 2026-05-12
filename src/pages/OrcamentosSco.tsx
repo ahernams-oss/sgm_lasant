@@ -53,15 +53,15 @@ export default function OrcamentosSco() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => nav("/orcamentos/catalogo")}>
+          {podeVerCat && <Button variant="outline" onClick={() => nav("/orcamentos/catalogo")}>
             <Search className="h-4 w-4 mr-1" /> Catálogo SCO
-          </Button>
-          <Button variant="outline" onClick={() => nav("/orcamentos/importar")}>
+          </Button>}
+          {podeImportarCat && <Button variant="outline" onClick={() => nav("/orcamentos/importar")}>
             <Upload className="h-4 w-4 mr-1" /> Importar Catálogo
-          </Button>
-          <Button onClick={() => nav("/orcamentos/novo")} style={{ background: "#673ab7" }}>
+          </Button>}
+          {podeCriar && <Button onClick={() => nav("/orcamentos/novo")} style={{ background: "#673ab7" }}>
             <Plus className="h-4 w-4 mr-1" /> Novo Orçamento
-          </Button>
+          </Button>}
         </div>
       </div>
 
