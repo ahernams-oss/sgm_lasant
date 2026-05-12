@@ -188,11 +188,11 @@ export default function ContasReceber() {
                   <TableCell className="text-right tabular-nums">{formatBRL(Number(c.valor_recebido))}</TableCell>
                   <TableCell>{statusBadge(c)}</TableCell>
                   <TableCell className="text-right">
-                    {c.status !== "recebida" && c.status !== "cancelada" && (
+                    {podeBaixar && c.status !== "recebida" && c.status !== "cancelada" && (
                       <Button size="sm" variant="ghost" onClick={() => setBaixaConta(c)} title="Receber"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /></Button>
                     )}
-                    <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm({ ...c, valor_total: c.valor_total, data_emissao: c.data_emissao || "", data_vencimento: c.data_vencimento }); }}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                    {podeEditar && <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm({ ...c, valor_total: c.valor_total, data_emissao: c.data_emissao || "", data_vencimento: c.data_vencimento }); }}><Pencil className="h-3.5 w-3.5" /></Button>}
+                    {podeExcluir && <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
                   </TableCell>
                 </TableRow>
               ))}
