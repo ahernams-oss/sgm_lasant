@@ -49,6 +49,8 @@ export default function RequisicaoComprasPage() {
   const { fabricantes } = useFabricantes();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
+  const { tem } = usePermissao();
+  const podeCriar = tem("requisicoes_compras.criar");
   const { toast } = useToast();
 
   const [dialogOpen, setDialogOpen] = useState(false);
