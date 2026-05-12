@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Search, ChevronDown, ChevronRight, Layers, TrendingUp, Combine } from "lucide-react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 interface OrigemItem {
   cotacaoId: string;
