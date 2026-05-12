@@ -293,7 +293,7 @@ export default function CategoriasCompras() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={openNewClasse}><Plus className="mr-2 h-4 w-4" />Nova Classe</Button>
+            {podeCriar && <Button onClick={openNewClasse}><Plus className="mr-2 h-4 w-4" />Nova Classe</Button>}
           </div>
           <div className="border rounded-lg">
             <SortableHeaderRow order={colOrderClasses} onReorder={setColOrderClasses}>
