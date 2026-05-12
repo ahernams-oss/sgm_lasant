@@ -98,6 +98,7 @@ const Cargos = () => {
   };
 
   const handleDelete = (id: string) => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
     deleteCargo(id);
     toast.success("Cargo removido.");
     if (editingId === id) resetForm();
