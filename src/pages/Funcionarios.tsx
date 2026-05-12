@@ -28,6 +28,7 @@ import { gerarPdfEpi } from "@/lib/gerarPdfEpi";
 import { ExamesPeriodicosTab } from "@/components/ExamesPeriodicosTab";
 import { PromocoesTab } from "@/components/PromocoesTab";
 import { NRsFuncionarioTab } from "@/components/NRsFuncionarioTab";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const UF_OPTIONS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const STATUS_OPTIONS = ["Ativo", "Inativo", "Afastado", "Férias"] as const;
@@ -311,6 +312,11 @@ const Funcionarios = () => {
   const { funcionarios, addFuncionario, updateFuncionario, deleteFuncionario } = useFuncionarios();
   const { cargos } = useCargos();
   const { clientes } = useClientes();
+  const { tem } = usePermissao();
+  const podeCriar = tem("funcionarios.criar");
+  const podeEditar = tem("funcionarios.editar");
+  const podeExcluir = tem("funcionarios.excluir");
+  const podeExportarPdf = tem("funcionarios.exportar_pdf");
 
   const [form, setForm] = useState(emptyFuncionarioForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -372,6 +378,7 @@ const Funcionarios = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome.trim()) { toast.error("Informe o nome."); return; }
     if (!form.cpf.trim()) { toast.error("Informe o CPF."); return; }
     if (!form.cargoId) { toast.error("Selecione o cargo."); return; }
@@ -394,6 +401,7 @@ const Funcionarios = () => {
   };
 
   const handleDelete = (id: string) => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
     deleteFuncionario(id);
     if (editingId === id) resetForm();
     toast.success("Funcionário removido.");
@@ -450,7 +458,7 @@ const Funcionarios = () => {
                 Gerencie o cadastro completo de funcionários da empresa.
               </p>
             </div>
-            {!showForm && (
+            {!showForm && podeCriar && (
               <Button onClick={() => setShowForm(true)} className="shadow-md">
                 <Plus className="h-4 w-4 mr-1" /> Novo Funcionário
               </Button>
@@ -999,19 +1007,19 @@ const Funcionarios = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => gerarPdfFuncionario(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })}>
+                            {podeExportarPdf && <DropdownMenuItem onClick={() => gerarPdfFuncionario(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })}>
                               <FileDown className="h-4 w-4 mr-2" /> Baixar PDF Ficha
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => gerarPdfEpi(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })}>
+                            </DropdownMenuItem>}
+                            {podeExportarPdf && <DropdownMenuItem onClick={() => gerarPdfEpi(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })}>
                               <HardHat className="h-4 w-4 mr-2" /> Baixar PDF EPI
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEdit(f)}>
+                            </DropdownMenuItem>}
+                            {podeEditar && <DropdownMenuItem onClick={() => handleEdit(f)}>
                               <Pencil className="h-4 w-4 mr-2" /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => requestDelete(f.id)} className="text-destructive focus:text-destructive">
+                            </DropdownMenuItem>}
+                            {podeExcluir && <DropdownMenuSeparator />}
+                            {podeExcluir && <DropdownMenuItem onClick={() => requestDelete(f.id)} className="text-destructive focus:text-destructive">
                               <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                            </DropdownMenuItem>
+                            </DropdownMenuItem>}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

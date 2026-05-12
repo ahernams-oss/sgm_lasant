@@ -153,6 +153,7 @@ function PageInner() {
   };
 
   const handleSubmit = async () => {
+    if (editId ? !podeEditar : !podeCriar) return toast.error("Você não possui permissão para esta ação.");
     if (!form.funcionarioId) return toast.error("Selecione o funcionário.");
     if (!form.dataAvaliacao) return toast.error("Informe a data.");
     const { total, media } = calcularTotais(form.notas);

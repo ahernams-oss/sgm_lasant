@@ -25,6 +25,7 @@ import { exportarExcelMapa } from "@/lib/gerarExcelMapa";
 import { gerarPdfAdvertencia } from "@/lib/gerarPdfAdvertencia";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const TIPO_FALTA_LABELS: Record<TipoFalta, string> = {
   justificada: "Justificada",
@@ -46,6 +47,11 @@ const MapaFuncionarios = () => {
   const { cargos } = useCargos();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
+  const { tem } = usePermissao();
+  const podeVisualizar = tem("mapa_funcionarios.visualizar") || tem("funcionarios.gerenciar_lancamentos");
+  const podeGerenciar = tem("funcionarios.gerenciar_lancamentos");
+  const podePdf = tem("mapa_funcionarios.exportar_pdf");
+  const podeExcel = tem("mapa_funcionarios.exportar_excel");
 
   const [activeTab, setActiveTab] = useState<"faltas" | "horas_extras" | "advertencias">("faltas");
   const [showForm, setShowForm] = useState(false);
@@ -93,6 +99,7 @@ const MapaFuncionarios = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!podeGerenciar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!funcionarioId) { toast.error("Selecione o funcionário."); return; }
     if (!data) { toast.error("Informe a data."); return; }
 
@@ -191,6 +198,7 @@ const MapaFuncionarios = () => {
 
 
   const handleDelete = (id: string) => {
+    if (!podeGerenciar) { toast.error("Você não possui permissão para esta ação."); return; }
     deleteLancamento(id);
     if (editingId === id) resetForm();
     toast.success("Lançamento removido.");
@@ -257,6 +265,7 @@ const MapaFuncionarios = () => {
   const funcionariosAtivos = funcionarios.filter((f) => !f.status || f.status === "Ativo");
 
   const handlePrintAdvertencia = (l: any) => {
+    if (!podePdf) { toast.error("Você não possui permissão para exportar PDF."); return; }
     const func = funcionarios.find((f) => f.id === l.funcionarioId);
     const cargoNome = func?.cargoId ? cargos.find((c) => c.id === func.cargoId)?.nome || "—" : "—";
     gerarPdfAdvertencia({
@@ -294,7 +303,7 @@ const MapaFuncionarios = () => {
             </div>
             {!showForm && (
               <div className="flex gap-2">
-                <Button
+                {podePdf && <Button
                   variant="outline"
                   onClick={() => gerarPdfMapaFuncionarios({
                     lancamentos: filteredLancamentos,
@@ -308,8 +317,8 @@ const MapaFuncionarios = () => {
                   className="shadow-sm gap-1.5"
                 >
                   <FileDown className="h-4 w-4" /> PDF
-                </Button>
-                <Button
+                </Button>}
+                {podeExcel && <Button
                   variant="outline"
                   onClick={() => exportarExcelMapa({
                     lancamentos: filteredLancamentos,
@@ -321,10 +330,10 @@ const MapaFuncionarios = () => {
                   className="shadow-sm gap-1.5"
                 >
                   <FileSpreadsheet className="h-4 w-4" /> Excel
-                </Button>
-                <Button onClick={() => setShowForm(true)} className="shadow-md">
+                </Button>}
+                {podeGerenciar && <Button onClick={() => setShowForm(true)} className="shadow-md">
                   <Plus className="h-4 w-4 mr-1" /> Novo Lançamento
-                </Button>
+                </Button>}
               </div>
             )}
           </div>
@@ -679,17 +688,17 @@ const MapaFuncionarios = () => {
                       <TableCell className="max-w-[200px] truncate text-muted-foreground text-xs">{l.observacao || "—"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          {l.tipo === "advertencia" && (
+                          {l.tipo === "advertencia" && podePdf && (
                             <Button size="icon" variant="ghost" onClick={() => handlePrintAdvertencia(l)} className="h-8 w-8" title="Imprimir Advertência">
                               <Printer className="h-3.5 w-3.5" />
                             </Button>
                           )}
-                          <Button size="icon" variant="ghost" onClick={() => handleEdit(l)} className="h-8 w-8">
+                          {podeGerenciar && <Button size="icon" variant="ghost" onClick={() => handleEdit(l)} className="h-8 w-8">
                             <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button size="icon" variant="ghost" onClick={() => requestDelete(l.id)} className="h-8 w-8 text-destructive hover:text-destructive">
+                          </Button>}
+                          {podeGerenciar && <Button size="icon" variant="ghost" onClick={() => requestDelete(l.id)} className="h-8 w-8 text-destructive hover:text-destructive">
                             <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
+                          </Button>}
                         </div>
                       </TableCell>
                     </TableRow>
