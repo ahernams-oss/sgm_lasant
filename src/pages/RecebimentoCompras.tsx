@@ -287,7 +287,7 @@ export default function RecebimentoComprasPage() {
                             <History className="mr-2 h-4 w-4" />Histórico de Recebimentos
                           </DropdownMenuItem>
                         )}
-                        {(["Comprado", "Em Entrega", "Entregue Parcial"].includes(p.status) || (p.status === "Entregue" && pedidoTemItensPendentes(p))) && (
+                        {podeRegistrar && (["Comprado", "Em Entrega", "Entregue Parcial"].includes(p.status) || (p.status === "Entregue" && pedidoTemItensPendentes(p))) && (
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => openRecebimentoDialog(p)}>
