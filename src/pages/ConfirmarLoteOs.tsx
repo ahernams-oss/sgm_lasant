@@ -103,6 +103,10 @@ export default function ConfirmarLoteOs() {
   );
 
   const handleConfirmarLote = async () => {
+    if (!podeConfirmarLote) {
+      toast.error("Você não possui permissão para esta ação.");
+      return;
+    }
     setConfirming(true);
     let ok = 0;
     let fail = 0;
