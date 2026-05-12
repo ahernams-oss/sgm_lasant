@@ -29,6 +29,8 @@ export default function ValidarLoteOs() {
   const { ordens, updateOrdem } = useOrdensServico();
   const { usuarioLogado } = useAuth();
   const { clientes } = useClientes();
+  const { tem } = usePermissao();
+  const podeValidarLote = tem("os.validar_lote");
 
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("all");
