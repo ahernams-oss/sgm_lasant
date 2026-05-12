@@ -169,6 +169,7 @@ const Fornecedores = () => {
   };
 
   const handleDelete = (id: string) => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
     deleteCliente(id);
     toast.success("Fornecedor removido.");
     if (editingId === id) resetForm();
