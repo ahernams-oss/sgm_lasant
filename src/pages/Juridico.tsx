@@ -77,6 +77,14 @@ const emptyContato: Omit<ContatoNotificacao, "id"> = {
 
 export default function JuridicoPage() {
   const { processos, andamentos, loading, addProcesso, updateProcesso, deleteProcesso, addAndamento, deleteAndamento, loadAndamentos } = useProcessosTrabalhistas();
+  const { tem } = usePermissao();
+  const podeCriar = tem("juridico.criar");
+  const podeEditar = tem("juridico.editar");
+  const podeExcluir = tem("juridico.excluir");
+  const podeAudiencias = tem("juridico.gerenciar_audiencias");
+  const podeContatos = tem("juridico.gerenciar_contatos");
+  const podeAnexos = tem("juridico.gerenciar_anexos");
+
   const { clientes } = useClientes();
 
   const [tab, setTab] = useState("dashboard");
