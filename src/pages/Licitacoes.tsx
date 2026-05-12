@@ -495,9 +495,11 @@ export default function LicitacoesPage() {
                 {STATUS_DOCUMENTO.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button onClick={() => { setDocForm(EMPTY_DOCUMENTO); setEditDocId(null); setDocDialogOpen(true); }}>
-              <Plus className="h-4 w-4 mr-1" /> Novo Documento
-            </Button>
+            {podeAnexar && (
+              <Button onClick={() => { setDocForm(EMPTY_DOCUMENTO); setEditDocId(null); setDocDialogOpen(true); }}>
+                <Plus className="h-4 w-4 mr-1" /> Novo Documento
+              </Button>
+            )}
             <Button variant="outline" onClick={() => { setPhoneDialogOpen(true); loadPhones(); }}>
               <Phone className="h-4 w-4 mr-1" /> Telefones WhatsApp
             </Button>
