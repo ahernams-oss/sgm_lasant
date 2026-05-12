@@ -594,8 +594,8 @@ export default function LicitacoesPage() {
                       <div className="flex items-center gap-2">
                         <Badge className={decisaoColors[a.decisaoParticipar] || "bg-gray-100"}>{a.decisaoParticipar}</Badge>
                         <Button variant="ghost" size="icon" onClick={() => setViewAnaliseId(a.id)}><Eye className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleEditAnalise(a)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => requestDeleteAna(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        {podeEditar && <Button variant="ghost" size="icon" onClick={() => handleEditAnalise(a)}><Pencil className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDeleteAna(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                       </div>
                     </div>
                   </CardHeader>
