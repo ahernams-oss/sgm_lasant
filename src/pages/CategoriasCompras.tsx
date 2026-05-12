@@ -229,7 +229,7 @@ export default function CategoriasCompras() {
                 {grupos.map(g => <SelectItem key={g.id} value={g.id}>{g.codigo} - {g.nome}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button onClick={openNewSub}><Plus className="mr-2 h-4 w-4" />Novo SubGrupo</Button>
+            {podeCriar && <Button onClick={openNewSub}><Plus className="mr-2 h-4 w-4" />Novo SubGrupo</Button>}
           </div>
           <div className="border rounded-lg">
             <SortableHeaderRow order={colOrderSubs} onReorder={setColOrderSubs}>
