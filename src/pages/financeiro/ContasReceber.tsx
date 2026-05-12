@@ -26,6 +26,11 @@ export default function ContasReceber() {
   const { contasReceber, planoContas, centrosCusto, contasBancarias, addContaReceber, updateContaReceber, deleteContaReceber } = useFinanceiro();
   const { clientes } = useClientes();
   const clientesLista = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
+  const { tem } = usePermissao();
+  const podeCriar = tem("financeiro.contas_receber.criar");
+  const podeEditar = tem("financeiro.contas_receber.editar");
+  const podeExcluir = tem("financeiro.contas_receber.excluir");
+  const podeBaixar = tem("financeiro.contas_receber.baixar");
   const [form, setForm] = useState<any>(empty);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
