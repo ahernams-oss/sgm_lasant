@@ -37,9 +37,11 @@ export default function FabricantesPage() {
   const handleSave = () => {
     if (!nome.trim()) { toast({ title: "Nome é obrigatório", variant: "destructive" }); return; }
     if (editingId) {
+      if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       updateFabricante(editingId, nome.trim());
       toast({ title: "Fabricante atualizado" });
     } else {
+      if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       addFabricante(nome.trim());
       toast({ title: "Fabricante criado" });
     }
