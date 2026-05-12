@@ -241,6 +241,7 @@ export default function LicitacoesPage() {
   };
 
   const handleDeleteLicitacao = async (id: string) => {
+    if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     await deleteLicitacao(id);
     toast({ title: "Licitação excluída!" });
   };
