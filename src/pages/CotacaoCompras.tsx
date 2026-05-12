@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissao } from "@/hooks/usePermissao";
 import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText, CheckSquare, MessageCircle } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Checkbox } from "@/components/ui/checkbox";
