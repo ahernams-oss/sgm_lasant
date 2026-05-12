@@ -364,10 +364,10 @@ const Fornecedores = () => {
                       <Button variant="ghost" size="sm" onClick={() => handleEnviarWhatsApp(fornecedor)} className="text-emerald-600 hover:text-emerald-700" title="Enviar WhatsApp">
                         <MessageCircle className="h-3.5 w-3.5" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(fornecedor)} className="text-xs">Editar</Button>
-                      <Button variant="ghost" size="sm" onClick={() => requestDelete(fornecedor.id)} className="text-destructive hover:text-destructive">
+                      {podeEditar && <Button variant="ghost" size="sm" onClick={() => handleEdit(fornecedor)} className="text-xs">Editar</Button>}
+                      {podeExcluir && <Button variant="ghost" size="sm" onClick={() => requestDelete(fornecedor.id)} className="text-destructive hover:text-destructive">
                         <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                      </Button>}
                     </div>
                   </div>
                 ))}
