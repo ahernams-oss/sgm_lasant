@@ -9,10 +9,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 export default function FabricantesPage() {
   const { fabricantes, addFabricante, updateFabricante, deleteFabricante } = useFabricantes();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriar = tem("fabricantes.criar");
+  const podeEditar = tem("fabricantes.editar");
+  const podeExcluir = tem("fabricantes.excluir");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [nome, setNome] = useState("");
