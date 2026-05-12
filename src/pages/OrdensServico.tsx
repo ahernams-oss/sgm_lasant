@@ -335,6 +335,10 @@ export default function OrdensServicoPage() {
 
   // Workflow action handler
    const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
+    if (!podeWorkflowOS) {
+      toast.error("Você não possui permissão para executar ações de workflow nesta OS.");
+      return;
+    }
     // If rejecting, open justification dialog instead
     if (novaSituacao === "Serviço Não Aprovado pela Fiscalização") {
       setNaoAprovarOS(os);
