@@ -12,6 +12,7 @@ import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/Double
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import BaixaDialog from "@/components/financeiro/BaixaDialog";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const empty = {
   descricao: "", cliente_id: null as string | null, cliente_nome: "",
