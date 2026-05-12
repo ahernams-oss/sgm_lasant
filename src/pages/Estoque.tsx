@@ -363,6 +363,10 @@ export default function EstoquePage() {
   };
 
   const podeTransferir = tem("estoque.transferir_locais");
+  const podeEntrada = tem("estoque.registrar_entrada");
+  const podeSaida = tem("estoque.registrar_saida");
+  const podeCriarInv = tem("estoque.criar_inventario");
+  const podeFecharInv = tem("estoque.finalizar_inventario");
 
   const openTransferDialog = () => {
     if (!podeTransferir) {
