@@ -423,6 +423,11 @@ export default function OrdensServicoPage() {
   };
 
   const handleCancelOS = async () => {
+    if (!podeWorkflowOS) {
+      toast.error("Você não possui permissão para cancelar OS.");
+      cancelCancelAction();
+      return;
+    }
     if (cancelId) {
       const os = ordens.find(o => o.id === cancelId);
       const financeiro = os ? recalcFinanceiro(os) : {};
