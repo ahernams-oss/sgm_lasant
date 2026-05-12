@@ -198,6 +198,7 @@ export default function CondicoesPagamento() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader><CardTitle className="text-base">Condições cadastradas</CardTitle></CardHeader>
