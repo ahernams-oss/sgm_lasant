@@ -91,8 +91,8 @@ export default function ContasBancarias() {
                   <TableCell className="text-right tabular-nums">{formatBRL(Number(c.saldo_inicial))}</TableCell>
                   <TableCell className="text-right tabular-nums font-medium">{formatBRL(saldoConta(c.id))}</TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm(c); }}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                    {podeEditar && <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm(c); }}><Pencil className="h-3.5 w-3.5" /></Button>}
+                    {podeExcluir && <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
                   </TableCell>
                 </TableRow>
               ))}
