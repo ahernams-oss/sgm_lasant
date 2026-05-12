@@ -57,7 +57,7 @@ const CategoriasServicosPage = () => {
             <h1 className="text-xl font-bold text-foreground mb-1">Categorias de Serviços</h1>
             <p className="text-sm text-muted-foreground">Gerencie as categorias para classificar serviços.</p>
           </div>
-          {!showForm && (
+          {!showForm && podeCriar && (
             <Button onClick={() => setShowForm(true)} className="gap-2">
               <Plus className="h-4 w-4" /> Nova Categoria
             </Button>
