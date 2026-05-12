@@ -31,6 +31,8 @@ export default function AprovarLoteSS() {
   const { addOrdem } = useOrdensServico();
   const { usuarioLogado } = useAuth();
   const { podeAprovar } = useLimiteAprovacao();
+  const { tem } = usePermissao();
+  const podeAprovarLote = tem("solicitacao_servicos.aprovar_lote");
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
