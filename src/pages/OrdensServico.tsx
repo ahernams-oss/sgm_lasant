@@ -104,6 +104,10 @@ export default function OrdensServicoPage() {
   const { usuarioLogado } = useAuth();
   const { tem } = usePermissao();
   const podeExcluirOS = tem("ordem_servico.excluir");
+  const podeEditarOS = tem("ordem_servico.editar");
+  const podeWorkflowOS = tem("ordem_servico.workflow");
+  const podeImprimirOS = tem("ordem_servico.imprimir");
+  const podeExecutarLote = tem("ordem_servico.executar_lote");
 
   const buildOSHistorico = (situacao: string, existing: any[] = []) => [
     ...existing,
