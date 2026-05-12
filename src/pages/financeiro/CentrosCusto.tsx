@@ -68,8 +68,8 @@ export default function CentrosCusto() {
                   <TableCell className="font-medium">{c.nome}</TableCell>
                   <TableCell>{clientes.find(x => x.id === c.cliente_id)?.nome || "—"}</TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm(c); }}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                    {podeGerenciar && <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm(c); }}><Pencil className="h-3.5 w-3.5" /></Button>}
+                    {podeGerenciar && <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
                   </TableCell>
                 </TableRow>
               ))}
