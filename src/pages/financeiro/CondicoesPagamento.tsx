@@ -99,6 +99,7 @@ export default function CondicoesPagamento() {
   };
 
   const handleDelete = async () => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; }
     if (!deleteId) return;
     await deleteRow("fin_condicoes_pagamento", deleteId);
     cancelDelete();
