@@ -101,6 +101,10 @@ export default function ImprimirLoteOs() {
   );
 
   const handleImprimirLote = async () => {
+    if (!podeImprimirLote) {
+      toast.error("Você não possui permissão para esta ação.");
+      return;
+    }
     const lista = ordens
       .filter((o) => selectedIds.has(o.id))
       .map((o) => ({
