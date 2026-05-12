@@ -11,11 +11,20 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfOrcamentoSco } from "@/lib/gerarPdfOrcamentoSco";
 import { gerarExcelOrcamentoSco } from "@/lib/gerarExcelOrcamentoSco";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { usePermissao } from "@/hooks/usePermissao";
+import { toast } from "sonner";
 
 export default function OrcamentosSco() {
   const nav = useNavigate();
   const { orcamentos, remove, countCatalog } = useOrcamentosSco();
   const { empresa } = useEmpresa() as any;
+  const { tem } = usePermissao();
+  const podeCriar = tem("orcamentos_sco.criar");
+  const podeEditar = tem("orcamentos_sco.editar");
+  const podeExcluir = tem("orcamentos_sco.excluir");
+  const podeExportar = tem("orcamentos_sco.exportar");
+  const podeImportarCat = tem("orcamentos_sco.importar_catalogo");
+  const podeVerCat = tem("orcamentos_sco.visualizar_catalogo");
   const [filtro, setFiltro] = useState("");
   const [counts, setCounts] = useState({ elementares: 0, servicos: 0, composicoes: 0 });
   const [delId, setDelId] = useState<string | null>(null);
