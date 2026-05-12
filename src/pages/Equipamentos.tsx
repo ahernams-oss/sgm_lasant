@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useEquipamentos, type Equipamento } from "@/contexts/EquipamentosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { supabase } from "@/integrations/supabase/client";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const SITUACOES = ["Ativo", "Inativo", "Em Manutenção", "Desativado"];
 const NIVEIS_RISCO = ["Baixo", "Médio", "Alto", "Crítico"];
