@@ -237,10 +237,10 @@ export default function ImportarCatalogoSco() {
           </div>
           <p className="text-xs text-muted-foreground">A importação substitui apenas a tabela da referência informada (Mês/Ano), preservando outras versões. O processamento é feito no navegador em lotes — pode levar alguns minutos para o FGV07.</p>
           {progress && <p className="text-xs font-semibold" style={{ color: "#673ab7" }}>{progress}</p>}
-          <Button onClick={importar} disabled={loading} style={{ background: "#673ab7" }}>
+          {podeImportar && <Button onClick={importar} disabled={loading} style={{ background: "#673ab7" }}>
             {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Upload className="h-4 w-4 mr-1" />}
             {loading ? "Importando..." : "Importar"}
-          </Button>
+          </Button>}
         </CardContent>
       </Card>
     </div>
