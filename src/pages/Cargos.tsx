@@ -17,6 +17,7 @@ import { useCargos, type SalarioDataBase, type AnexoCargo, type NrCargo } from "
 import { supabase } from "@/integrations/supabase/client";
 import * as XLSX from "xlsx";
 import { Badge } from "@/components/ui/badge";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const niveis = ["I", "II", "III", "IV", "V"] as const;
 
@@ -24,6 +25,13 @@ const emptyForm = { nome: "", descricao: "", nivel: "", missao: "", responsabili
 
 const Cargos = () => {
   const { cargos, addCargo, updateCargo, deleteCargo } = useCargos();
+  const { tem } = usePermissao();
+  const podeCriar = tem("cargos.criar");
+  const podeEditar = tem("cargos.editar");
+  const podeExcluir = tem("cargos.excluir");
+  const podeSal = tem("cargos.gerenciar_salarios");
+  const podeNrs = tem("cargos.gerenciar_nrs");
+  const podeAnexos = tem("cargos.gerenciar_anexos");
   const [form, setForm] = useState(emptyForm);
   const [formOpen, setFormOpen] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
