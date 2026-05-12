@@ -21,6 +21,7 @@ import { useResponsaveisTecnicos } from "@/contexts/ResponsaveisTecnicosContext"
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { OrdensServicoProvider } from "@/contexts/OrdensServicoContext";
 import { OrcamentosProvider } from "@/contexts/OrcamentosContext";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const PERIODICIDADES = ["Diária", "Semanal", "Quinzenal", "Mensal", "Bimestral", "Trimestral", "Semestral", "Anual"];
 const PRIORIDADES = ["Baixa", "Média", "Alta", "Crítica"];
