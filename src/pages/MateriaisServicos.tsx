@@ -18,13 +18,19 @@ import * as XLSX from "xlsx";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const UNIDADES = ["UN", "M", "M²", "M³", "KG", "L", "CX", "PCT", "SC", "GL", "HR", "VB", "JG", "PR", "RL", "TB", "FD", "BD", "CJ", "DZ"];
 
 export default function MateriaisServicosPage() {
   const { materiais, addMaterial, updateMaterial, deleteMaterial } = useMateriaisServicos();
   const { classes, getDescricaoCompleta } = useCategoriasCompras();
-  
+  const { tem } = usePermissao();
+  const podeCriar = tem("materiais_servicos.criar");
+  const podeEditar = tem("materiais_servicos.editar");
+  const podeExcluir = tem("materiais_servicos.excluir");
+  const podeExportar = tem("materiais_servicos.exportar");
+
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
