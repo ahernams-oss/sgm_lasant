@@ -347,6 +347,7 @@ export default function EstoquePage() {
   };
 
   const handleInvSave = async () => {
+    if (!podeCriarInv) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!invCentroCusto) { toast({ title: "Selecione um centro de custo", variant: "destructive" }); return; }
     if (invItens.length === 0) { toast({ title: "Nenhum item encontrado para este centro de custo", variant: "destructive" }); return; }
     if (editInvId) {
