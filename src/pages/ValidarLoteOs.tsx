@@ -99,6 +99,10 @@ export default function ValidarLoteOs() {
   );
 
   const handleValidarLote = async () => {
+    if (!podeValidarLote) {
+      toast.error("Você não possui permissão para esta ação.");
+      return;
+    }
     setValidating(true);
     let ok = 0;
     let fail = 0;
