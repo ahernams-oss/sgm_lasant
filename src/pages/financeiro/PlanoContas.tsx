@@ -90,8 +90,8 @@ export default function PlanoContas() {
                   <TableCell><span className={p.tipo === "receita" ? "text-emerald-600" : "text-red-600"}>{p.tipo}</span></TableCell>
                   <TableCell>{planoContas.find(x => x.id === p.parent_id)?.nome || "—"}</TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="ghost" onClick={() => { setEditingId(p.id); setForm(p); }}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => requestDelete(p.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                    {podeGerenciar && <Button size="sm" variant="ghost" onClick={() => { setEditingId(p.id); setForm(p); }}><Pencil className="h-3.5 w-3.5" /></Button>}
+                    {podeGerenciar && <Button size="sm" variant="ghost" onClick={() => requestDelete(p.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
                   </TableCell>
                 </TableRow>
               ))}
