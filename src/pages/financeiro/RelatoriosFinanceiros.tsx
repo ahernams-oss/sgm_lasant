@@ -21,6 +21,9 @@ interface RelDef {
 export default function RelatoriosFinanceiros() {
   const fin = useFinanceiro();
   const { clientes } = useClientes();
+  const { tem } = usePermissao();
+  const podePdf = tem("financeiro.relatorios.exportar_pdf");
+  const podeExcel = tem("financeiro.relatorios.exportar_excel");
 
   const hoje = new Date().toISOString().slice(0, 10);
   const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
