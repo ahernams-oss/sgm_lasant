@@ -447,18 +447,26 @@ export default function EstoquePage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Controle de Estoque</h1>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => openMovDialog("entrada")}>
-            <ArrowDownCircle className="mr-2 h-4 w-4 text-emerald-600" />Entrada
-          </Button>
-          <Button variant="outline" onClick={() => openMovDialog("saida")}>
-            <ArrowUpCircle className="mr-2 h-4 w-4 text-red-600" />Saída
-          </Button>
-          <Button variant="outline" onClick={openTransferDialog} disabled={!podeTransferir} title={podeTransferir ? "" : "Sem permissão no perfil de acesso"}>
-            <ArrowLeftRight className="mr-2 h-4 w-4 text-blue-600" />Transferir
-          </Button>
-          <Button onClick={openInvDialog}>
-            <ClipboardList className="mr-2 h-4 w-4" />Inventário
-          </Button>
+          {podeEntrada && (
+            <Button variant="outline" onClick={() => openMovDialog("entrada")}>
+              <ArrowDownCircle className="mr-2 h-4 w-4 text-emerald-600" />Entrada
+            </Button>
+          )}
+          {podeSaida && (
+            <Button variant="outline" onClick={() => openMovDialog("saida")}>
+              <ArrowUpCircle className="mr-2 h-4 w-4 text-red-600" />Saída
+            </Button>
+          )}
+          {podeTransferir && (
+            <Button variant="outline" onClick={openTransferDialog}>
+              <ArrowLeftRight className="mr-2 h-4 w-4 text-blue-600" />Transferir
+            </Button>
+          )}
+          {podeCriarInv && (
+            <Button onClick={openInvDialog}>
+              <ClipboardList className="mr-2 h-4 w-4" />Inventário
+            </Button>
+          )}
         </div>
       </div>
 
