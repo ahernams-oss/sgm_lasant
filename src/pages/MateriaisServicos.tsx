@@ -148,11 +148,11 @@ export default function MateriaisServicosPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Materiais e Serviços</h1>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => gerarPdfMateriaisServicos({ materiais: filtered, getCatNome: catNome })}><FileText className="mr-2 h-4 w-4" />PDF</Button>
-          <Button variant="outline" onClick={() => gerarExcelMateriaisServicos({ materiais: filtered, getCatNome: catNome })}><FileSpreadsheet className="mr-2 h-4 w-4" />Excel</Button>
-          <Button variant="outline" onClick={() => document.getElementById("import-mat")?.click()}><Upload className="mr-2 h-4 w-4" />Importar</Button>
+          {podeExportar && <Button variant="outline" onClick={() => gerarPdfMateriaisServicos({ materiais: filtered, getCatNome: catNome })}><FileText className="mr-2 h-4 w-4" />PDF</Button>}
+          {podeExportar && <Button variant="outline" onClick={() => gerarExcelMateriaisServicos({ materiais: filtered, getCatNome: catNome })}><FileSpreadsheet className="mr-2 h-4 w-4" />Excel</Button>}
+          {podeCriar && <Button variant="outline" onClick={() => document.getElementById("import-mat")?.click()}><Upload className="mr-2 h-4 w-4" />Importar</Button>}
           <input id="import-mat" type="file" accept=".xlsx,.xls,.csv,.txt" className="hidden" onChange={e => { if (e.target.files?.[0]) handleImport(e.target.files[0]); e.target.value = ""; }} />
-          <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo</Button>
+          {podeCriar && <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo</Button>}
         </div>
       </div>
 
