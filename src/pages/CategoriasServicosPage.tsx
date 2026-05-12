@@ -7,9 +7,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { toast } from "sonner";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const CategoriasServicosPage = () => {
   const { categorias, addCategoria, updateCategoria, deleteCategoria } = useCategoriasServicos();
+  const { tem } = usePermissao();
+  const podeCriar = tem("categorias_servicos.criar");
+  const podeEditar = tem("categorias_servicos.editar");
+  const podeExcluir = tem("categorias_servicos.excluir");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [nome, setNome] = useState("");
