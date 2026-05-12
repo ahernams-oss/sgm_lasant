@@ -235,12 +235,12 @@ export default function CondicoesPagamento() {
                     <Badge variant={c.ativo ? "default" : "secondary"}>{c.ativo ? "Ativo" : "Inativo"}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="ghost" onClick={() => handleEdit(c)}>
+                    {podeEditar && <Button size="sm" variant="ghost" onClick={() => handleEdit(c)}>
                       <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}>
+                    </Button>}
+                    {podeExcluir && <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}>
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                    </Button>
+                    </Button>}
                   </TableCell>
                 </TableRow>
               ))}
