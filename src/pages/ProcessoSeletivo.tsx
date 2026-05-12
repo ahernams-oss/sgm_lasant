@@ -32,6 +32,7 @@ const ESTADO_CIVIL_OPTIONS = ["Solteiro(a)", "Casado(a)", "Divorciado(a)", "Viú
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
+import { usePermissao } from "@/hooks/usePermissao";
 import { toast } from "sonner";
 
 // Debounced Input to avoid saving on every keystroke
@@ -121,6 +122,10 @@ const ProcessoSeletivoPage = () => {
   const { temAcessoTotal } = useAuth();
   const { clientes } = useClientes();
   const { funcionarios, addFuncionario } = useFuncionarios();
+  const { tem } = usePermissao();
+  const podeAddCandidato = tem("processos_seletivos.adicionar_candidato");
+  const podeEditar = tem("processos_seletivos.editar");
+  const podeAvaliar = tem("processos_seletivos.avaliar_candidato");
 
   const requisicao = requisicoes.find((r) => r.id === requisicaoId);
 
@@ -150,6 +155,7 @@ const ProcessoSeletivoPage = () => {
   }
 
   const handleAddCandidato = () => {
+    if (!podeAddCandidato) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!newCandidato.nome.trim()) {
       toast.error("Informe o nome do candidato.");
       return;
@@ -214,6 +220,7 @@ const ProcessoSeletivoPage = () => {
 
   const handleSaveEdit = () => {
     if (!editingCandidato) return;
+    if (!podeEditar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!editingCandidato.nome.trim()) {
       toast.error("Informe o nome do candidato.");
       return;
@@ -229,6 +236,7 @@ const ProcessoSeletivoPage = () => {
   };
 
   const handleSalvarParecer = (candidatoId: string, field: string, value: string) => {
+    if (!podeAvaliar) { toast.error("Você não possui permissão para esta ação."); return; }
     updateCandidato(processo!.id, candidatoId, { [field]: value });
   };
 
