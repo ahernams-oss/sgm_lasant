@@ -163,6 +163,7 @@ export default function Equipamentos() {
   };
 
   const handleSubmit = () => {
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.equipamento.trim()) { toast.error("Informe o nome do equipamento."); return; }
     if (!form.clienteId) { toast.error("Selecione um cliente."); return; }
     const { ...data } = form;
@@ -186,6 +187,7 @@ export default function Equipamentos() {
   };
 
   const handleDelete = (id: string) => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
     deleteEquipamento(id);
     toast.success("Equipamento removido.");
     if (editingId === id) resetForm();
