@@ -24,6 +24,7 @@ import { format } from "date-fns";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const statusColors: Record<StatusRequisicaoCompras, string> = {
   Rascunho: "bg-muted text-muted-foreground",
