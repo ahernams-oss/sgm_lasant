@@ -15,9 +15,14 @@ import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm"
 import ImportClientesFornecedores from "@/components/ImportClientesFornecedores";
 import DadosBancariosTab from "@/components/DadosBancariosTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const Fornecedores = () => {
   const { clientes, addCliente, updateCliente, deleteCliente } = useClientes();
+  const { tem } = usePermissao();
+  const podeCriar = tem("fornecedores.criar");
+  const podeEditar = tem("fornecedores.editar");
+  const podeExcluir = tem("fornecedores.excluir");
   const [formOpen, setFormOpen] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<FormData | undefined>(undefined);
