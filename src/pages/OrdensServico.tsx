@@ -925,24 +925,26 @@ export default function OrdensServicoPage() {
                         <DropdownMenuItem onClick={() => setViewOS(os)}>
                           <Eye className="mr-2 h-4 w-4" /> Visualizar
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={async () => {
-                          await gerarPdfOrdemServico({
-                            os,
-                            empresa,
-                            cliente: clientes.find(c => c.id === os.clienteId),
-                            assinaturas: assinaturasOs.filter(a => a.os_id === os.id),
-                          });
-                        }}>
-                          <Printer className="mr-2 h-4 w-4" /> Imprimir OS
-                        </DropdownMenuItem>
-                        {!["Validada", "Cancelada"].includes(os.situacao) && (
+                        {podeImprimirOS && (
+                          <DropdownMenuItem onClick={async () => {
+                            await gerarPdfOrdemServico({
+                              os,
+                              empresa,
+                              cliente: clientes.find(c => c.id === os.clienteId),
+                              assinaturas: assinaturasOs.filter(a => a.os_id === os.id),
+                            });
+                          }}>
+                            <Printer className="mr-2 h-4 w-4" /> Imprimir OS
+                          </DropdownMenuItem>
+                        )}
+                        {podeEditarOS && !["Validada", "Cancelada"].includes(os.situacao) && (
                           <DropdownMenuItem onClick={() => handleEdit(os)}>
                             <Pencil className="mr-2 h-4 w-4" /> Preencher OS
                           </DropdownMenuItem>
                         )}
                         {/* Workflow actions */}
-                        {getWorkflowActions(os).length > 0 && <DropdownMenuSeparator />}
-                        {getWorkflowActions(os).map((action, idx) => (
+                        {podeWorkflowOS && getWorkflowActions(os).length > 0 && <DropdownMenuSeparator />}
+                        {podeWorkflowOS && getWorkflowActions(os).map((action, idx) => (
                           <DropdownMenuItem
                             key={idx}
                             onClick={action.action}
