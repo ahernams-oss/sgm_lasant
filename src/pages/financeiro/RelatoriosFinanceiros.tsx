@@ -410,12 +410,12 @@ export default function RelatoriosFinanceiros() {
             <CardContent className="flex-1 flex flex-col justify-between gap-4">
               <p className="text-sm text-muted-foreground">{r.descricao}</p>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" className="flex-1" onClick={() => exportar(r, "pdf")}>
+                {podePdf && <Button size="sm" variant="outline" className="flex-1" onClick={() => exportar(r, "pdf")}>
                   <FileText className="h-4 w-4 mr-2" /> PDF
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1" onClick={() => exportar(r, "excel")}>
+                </Button>}
+                {podeExcel && <Button size="sm" variant="outline" className="flex-1" onClick={() => exportar(r, "excel")}>
                   <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel
-                </Button>
+                </Button>}
               </div>
             </CardContent>
           </Card>
