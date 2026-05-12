@@ -33,6 +33,8 @@ export default function ConfirmarLoteOs() {
   const { usuarioLogado } = useAuth();
   const { clientes } = useClientes();
   const { registrarMovimentacao } = useEstoque();
+  const { tem } = usePermissao();
+  const podeConfirmarLote = tem("os.confirmar_lote");
 
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("all");
