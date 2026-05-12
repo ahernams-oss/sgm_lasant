@@ -41,7 +41,7 @@ export default function ContasBancarias() {
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-serif font-semibold">Contas Bancárias / Caixas</h1>
-        <Button variant="outline" onClick={() => setTransfOpen(true)}><ArrowLeftRight className="h-4 w-4 mr-2" />Transferir</Button>
+        {podeTransferir && <Button variant="outline" onClick={() => setTransfOpen(true)}><ArrowLeftRight className="h-4 w-4 mr-2" />Transferir</Button>}
       </div>
 
       <Card>
