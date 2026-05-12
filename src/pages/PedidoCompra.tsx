@@ -533,7 +533,7 @@ export default function PedidoCompraPage() {
                           ) : (
                             <AssinaturaEletronicaPc pedido={p} variant="ghost" size="icon" label="" />
                           )}
-                          {canUpdate && (
+                          {canUpdate && podeEditar && (
                             <Button variant="ghost" size="icon" title="Atualizar Status" onClick={() => openStatusDialog(p)}><ArrowRight className="h-4 w-4" /></Button>
                           )}
                         </div>
