@@ -36,6 +36,7 @@ export default function Conciliacao() {
   const filtrados = useMemo(() => movimentosOfx.filter(m => !conta || m.conta_bancaria_id === conta).sort((a, b) => b.data.localeCompare(a.data)), [movimentosOfx, conta]);
 
   const conciliarCriando = async (m: typeof movimentosOfx[0]) => {
+    if (!podeConciliar) { toast.error("Você não possui permissão para esta ação."); return; }
     const lanc = await addLancamento({
       tipo: m.valor >= 0 ? "entrada" : "saida",
       conta_bancaria_id: m.conta_bancaria_id,
