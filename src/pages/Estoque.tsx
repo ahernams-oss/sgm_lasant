@@ -361,6 +361,7 @@ export default function EstoquePage() {
   };
 
   const handleFecharInventario = async (id: string) => {
+    if (!podeFecharInv) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     await fecharInventario(id, usuarioLogado?.nome || "");
     toast({ title: "Inventário fechado e ajustes aplicados" });
   };
