@@ -478,8 +478,8 @@ export default function JuridicoPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
-                          <Button variant="ghost" size="icon" onClick={() => { setAudForm({ ...a }); setAudEditId(a.id); setShowAudForm(true); }}><Edit className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => setAudDeleteId(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          {podeAudiencias && <Button variant="ghost" size="icon" onClick={() => { setAudForm({ ...a }); setAudEditId(a.id); setShowAudForm(true); }}><Edit className="h-4 w-4" /></Button>}
+                          {podeAudiencias && <Button variant="ghost" size="icon" onClick={() => setAudDeleteId(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                         </div>
                       </TableCell>
                     </TableRow>
