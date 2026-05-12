@@ -194,6 +194,7 @@ export default function RequisicaoComprasPage() {
   };
 
   const handleSubmit = () => {
+    if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!centroCusto) { toast({ title: "Centro de custo é obrigatório", variant: "destructive" }); return; }
     if (!justificativa.trim()) { toast({ title: "Justificativa é obrigatória", variant: "destructive" }); return; }
     if (itens.length === 0) { toast({ title: "Adicione pelo menos um item", variant: "destructive" }); return; }
