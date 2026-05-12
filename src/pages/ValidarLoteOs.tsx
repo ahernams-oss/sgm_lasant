@@ -182,10 +182,12 @@ export default function ValidarLoteOs() {
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-accent rounded-lg border border-border">
           <span className="text-sm font-medium">{selectedIds.size} OS selecionada(s)</span>
-          <Button size="sm" onClick={() => setOpenConfirm(true)}>
-            <CheckCircle2 className="mr-2 h-4 w-4" />
-            Validar selecionadas
-          </Button>
+          {podeValidarLote && (
+            <Button size="sm" onClick={() => setOpenConfirm(true)}>
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              Validar selecionadas
+            </Button>
+          )}
           <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
             Limpar seleção
           </Button>
