@@ -43,6 +43,8 @@ export default function InteligenciaComprasPage() {
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { tem } = usePermissao();
+  const podeAglutinar = tem("inteligencia_compras.aglutinar");
 
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Record<string, boolean>>({});
