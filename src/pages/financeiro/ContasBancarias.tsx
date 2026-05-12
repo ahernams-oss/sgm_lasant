@@ -9,17 +9,24 @@ import { useFinanceiro, formatBRL, ContaBancaria } from "@/contexts/FinanceiroCo
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
 import TransferenciaDialog from "@/components/financeiro/TransferenciaDialog";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const empty = { nome: "", banco: "", agencia: "", conta: "", tipo: "corrente" as const, saldo_inicial: 0, ativo: true, observacao: "" };
 
 export default function ContasBancarias() {
   const { contasBancarias, addContaBancaria, updateContaBancaria, deleteContaBancaria, saldoConta } = useFinanceiro();
+  const { tem } = usePermissao();
+  const podeCriar = tem("financeiro.contas_bancarias.criar");
+  const podeEditar = tem("financeiro.contas_bancarias.editar");
+  const podeExcluir = tem("financeiro.contas_bancarias.excluir");
+  const podeTransferir = tem("financeiro.contas_bancarias.transferir");
   const [form, setForm] = useState<any>(empty);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [transfOpen, setTransfOpen] = useState(false);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const handleSave = async () => {
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome) { toast.error("Informe o nome."); return; }
     const data = { ...form, saldo_inicial: parseFloat(String(form.saldo_inicial).replace(",", ".")) || 0 };
     if (editingId) await updateContaBancaria(editingId, data);
