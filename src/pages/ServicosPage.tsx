@@ -9,10 +9,15 @@ import { useServicos } from "@/contexts/ServicosContext";
 import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { toast } from "sonner";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const ServicosPage = () => {
   const { servicos, addServico, updateServico, deleteServico } = useServicos();
   const { categorias } = useCategoriasServicos();
+  const { tem } = usePermissao();
+  const podeCriar = tem("servicos.criar");
+  const podeEditar = tem("servicos.editar");
+  const podeExcluir = tem("servicos.excluir");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [nome, setNome] = useState("");
