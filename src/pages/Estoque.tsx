@@ -275,6 +275,8 @@ export default function EstoquePage() {
   };
 
   const handleMovSave = async () => {
+    const podeMov = movTipo === "entrada" ? podeEntrada : podeSaida;
+    if (!podeMov) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!movMaterialId || !movQuantidade || !movLocal) {
       toast({ title: "Preencha Material, Quantidade e Local", variant: "destructive" });
       return;
