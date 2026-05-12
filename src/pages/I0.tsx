@@ -36,7 +36,7 @@ export default function I0Page() {
   const { items, addItem, updateItem, deleteItem } = useI0();
   const { scos } = useSco();
   const { toast } = useToast();
-  const { tem } = (require("@/hooks/usePermissao") as typeof import("@/hooks/usePermissao")).usePermissao();
+  const { tem } = usePermissao();
   const podeCriar = tem("i0.criar");
   const podeEditar = tem("i0.editar");
   const podeExcluir = tem("i0.excluir");
