@@ -379,7 +379,7 @@ export default function JuridicoPage() {
                 </SelectContent>
               </Select>
               <div className="flex-1" />
-              <Button onClick={openNew} className="gap-2"><Plus className="h-4 w-4" /> Novo Processo</Button>
+              {podeCriar && <Button onClick={openNew} className="gap-2"><Plus className="h-4 w-4" /> Novo Processo</Button>}
             </div>
 
             <div className="rounded-md border overflow-auto">
