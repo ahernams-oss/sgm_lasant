@@ -86,6 +86,7 @@ export default function MateriaisServicosPage() {
   };
 
   const handleImport = (file: File) => {
+    if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     const ext = file.name.split(".").pop()?.toLowerCase();
     const reader = new FileReader();
     if (ext === "csv" || ext === "txt") {
