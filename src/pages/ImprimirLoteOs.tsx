@@ -29,6 +29,8 @@ export default function ImprimirLoteOs() {
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { assinaturas: assinaturasOs } = useOsAssinaturas();
+  const { tem } = usePermissao();
+  const podeImprimirLote = tem("os.imprimir_lote");
 
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("all");
