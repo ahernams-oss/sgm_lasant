@@ -105,6 +105,7 @@ export default function ContasReceber() {
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-serif font-semibold">Contas a Receber</h1>
 
+      {(podeCriar || (editingId && podeEditar)) && (
       <Card>
         <CardHeader><CardTitle className="text-base">{editingId ? "Editar conta" : "Nova conta a receber"}</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -148,6 +149,7 @@ export default function ContasReceber() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-2">
