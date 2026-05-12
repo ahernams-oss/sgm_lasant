@@ -177,7 +177,16 @@ export default function JuridicoPage() {
     setShowForm(false);
   };
 
+  const handleSave = async () => {
+    if (editId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
+    if (!form.numero_processo.trim() || !form.autor_nome.trim()) { toast.error("Número do processo e nome do autor são obrigatórios"); return; }
+    if (editId) { await updateProcesso(editId, form); toast.success("Processo atualizado"); }
+    else { await addProcesso(form); toast.success("Processo cadastrado"); }
+    setShowForm(false);
+  };
+
   const handleAddAndamento = async () => {
+    if (!podeEditar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!andForm.descricao.trim()) { toast.error("Descrição obrigatória"); return; }
     await addAndamento({ ...andForm, processo_id: viewProcesso!.id });
     setShowAndamentoForm(false);
@@ -187,6 +196,7 @@ export default function JuridicoPage() {
 
   // Audiências CRUD
   const handleSaveAudiencia = async () => {
+    if (!podeAudiencias) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!audForm.processo_id || !audForm.data_audiencia) { toast.error("Processo e data são obrigatórios"); return; }
     const proc = processos.find(p => p.id === audForm.processo_id);
     const payload = { ...audForm, processo_numero: proc?.numero_processo || "" };
@@ -204,6 +214,7 @@ export default function JuridicoPage() {
   };
 
   const handleDeleteAudiencia = async () => {
+    if (!podeAudiencias) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!audDeleteId) return;
     await (supabase as any).from("juridico_audiencias").delete().eq("id", audDeleteId);
     toast.success("Audiência removida");
@@ -213,6 +224,7 @@ export default function JuridicoPage() {
 
   // Contatos CRUD
   const handleSaveContato = async () => {
+    if (!podeContatos) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!contatoForm.nome.trim() || !contatoForm.telefone_whatsapp.trim()) { toast.error("Nome e WhatsApp são obrigatórios"); return; }
     if (contatoEditId) {
       await (supabase as any).from("juridico_contatos_notificacao").update(contatoForm).eq("id", contatoEditId);
@@ -228,6 +240,7 @@ export default function JuridicoPage() {
   };
 
   const handleDeleteContato = async () => {
+    if (!podeContatos) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!contatoDeleteId) return;
     await (supabase as any).from("juridico_contatos_notificacao").delete().eq("id", contatoDeleteId);
     toast.success("Contato removido");
