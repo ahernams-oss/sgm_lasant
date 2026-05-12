@@ -383,7 +383,7 @@ export default function ContasPagar() {
       </Card>
 
       <BaixaDialog open={!!baixaConta} onOpenChange={(o) => !o && setBaixaConta(null)} conta={baixaConta} modo="pagar" />
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (deleteId) { await deleteContaPagar(deleteId); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { await deleteContaPagar(deleteId); cancelDelete(); } }} />
     </div>
   );
 }
