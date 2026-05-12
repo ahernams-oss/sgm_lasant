@@ -8,17 +8,21 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const empty = { codigo: "", nome: "", tipo: "despesa" as "receita" | "despesa", parent_id: null as string | null, ativo: true };
 
 export default function PlanoContas() {
   const { planoContas, addPlanoConta, updatePlanoConta, deletePlanoConta } = useFinanceiro();
+  const { tem } = usePermissao();
+  const podeGerenciar = tem("financeiro.plano_contas.gerenciar");
   const [form, setForm] = useState<any>(empty);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filtroTipo, setFiltroTipo] = useState<"todos" | "receita" | "despesa">("todos");
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const handleSave = async () => {
+    if (!podeGerenciar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome) { toast.error("Informe o nome."); return; }
     const data = { ...form, parent_id: form.parent_id || null };
     if (editingId) await updatePlanoConta(editingId, data);
