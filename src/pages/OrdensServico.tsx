@@ -610,6 +610,11 @@ export default function OrdensServicoPage() {
   };
 
   const handleDelete = async () => {
+    if (!podeExcluirOS) {
+      toast.error("Você não possui permissão para excluir Ordens de Serviço.");
+      cancelDelete();
+      return;
+    }
     if (deleteId) {
       await deleteOrdem(deleteId);
       toast.success("Ordem de Serviço excluída!");
