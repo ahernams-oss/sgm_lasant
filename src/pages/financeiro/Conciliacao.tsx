@@ -8,9 +8,13 @@ import { Upload, CheckCircle2 } from "lucide-react";
 import { useFinanceiro, formatBRL, formatDate } from "@/contexts/FinanceiroContext";
 import { parseOfx } from "@/lib/ofxParser";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 export default function Conciliacao() {
   const { contasBancarias, movimentosOfx, addMovimentoOfx, updateMovimentoOfx, addLancamento } = useFinanceiro();
+  const { tem } = usePermissao();
+  const podeImportar = tem("financeiro.conciliacao.importar_ofx");
+  const podeConciliar = tem("financeiro.conciliacao.conciliar");
   const [conta, setConta] = useState("");
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
