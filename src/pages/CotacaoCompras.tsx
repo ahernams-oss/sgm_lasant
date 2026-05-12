@@ -888,7 +888,7 @@ export default function CotacaoComprasPage() {
           <Button variant="outline" size="sm" onClick={syncPropostasExternas} title="Sincronizar propostas externas">
             <RefreshCw className="mr-2 h-4 w-4" />Sincronizar
           </Button>
-          <Button onClick={() => { setReqSearch(""); setReqFilterUrgencia("Todas"); setSelectedReqId(""); setNovaDialogOpen(true); }} disabled={reqDisponiveisParaCotacao.length === 0}><Plus className="mr-2 h-4 w-4" />Nova Cotação</Button>
+          {podeCriarCot && <Button onClick={() => { setReqSearch(""); setReqFilterUrgencia("Todas"); setSelectedReqId(""); setNovaDialogOpen(true); }} disabled={reqDisponiveisParaCotacao.length === 0}><Plus className="mr-2 h-4 w-4" />Nova Cotação</Button>}
         </div>
       </div>
 
