@@ -316,6 +316,7 @@ export default function LicitacoesPage() {
   };
 
   const handleSaveDocumento = async () => {
+    if (editDocId ? !podeAnexar : !podeAnexar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!docForm.nome) {
       toast({ title: "Informe o nome do documento", variant: "destructive" });
       return;
@@ -340,6 +341,7 @@ export default function LicitacoesPage() {
   };
 
   const handleDeleteDocumento = async (id: string) => {
+    if (!podeAnexar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     await deleteDocumento(id);
     toast({ title: "Documento excluído!" });
   };
@@ -351,6 +353,7 @@ export default function LicitacoesPage() {
   const [viewAnaliseId, setViewAnaliseId] = useState<string | null>(null);
 
   const handleSaveAnalise = async () => {
+    if (editAnaliseId ? !podeEditar : !podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!analiseForm.licitacaoId) {
       toast({ title: "Selecione a licitação", variant: "destructive" });
       return;
@@ -375,6 +378,7 @@ export default function LicitacoesPage() {
   };
 
   const handleDeleteAnalise = async (id: string) => {
+    if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     await deleteAnalise(id);
     toast({ title: "Análise excluída!" });
   };
