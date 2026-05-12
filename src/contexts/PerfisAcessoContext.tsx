@@ -727,9 +727,47 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
         { key: "financeiro.lancamentos.visualizar", label: "Visualizar lançamentos" },
         { key: "financeiro.lancamentos.estornar", label: "Estornar lançamento" },
       ]},
+      { key: "financeiro.condicoes_pagamento", label: "Condições de Pagamento", acoes: [
+        { key: "financeiro.condicoes_pagamento.visualizar", label: "Visualizar condições" },
+        { key: "financeiro.condicoes_pagamento.criar", label: "Criar condição" },
+        { key: "financeiro.condicoes_pagamento.editar", label: "Editar condição" },
+        { key: "financeiro.condicoes_pagamento.excluir", label: "Excluir condição" },
+      ]},
+      { key: "financeiro.relatorios", label: "Relatórios Financeiros", acoes: [
+        { key: "financeiro.relatorios.visualizar", label: "Visualizar relatórios" },
+        { key: "financeiro.relatorios.exportar_pdf", label: "Exportar PDF" },
+        { key: "financeiro.relatorios.exportar_excel", label: "Exportar Excel" },
+        { key: "financeiro.relatorios.filtrar_centro_custo", label: "Filtrar por centro de custo" },
+      ]},
     ],
   },
 ];
+
+// Adiciona módulo de Inteligência de Compras ao grupo Compras e Suprimentos
+(() => {
+  const compras = MODULOS_SISTEMA.find(g => g.grupo === "Compras e Suprimentos");
+  if (compras && !compras.modulos.some(m => m.key === "inteligencia_compras")) {
+    compras.modulos.push({
+      key: "inteligencia_compras",
+      label: "Inteligência de Compras",
+      acoes: [
+        { key: "inteligencia_compras.visualizar", label: "Visualizar inteligência" },
+        { key: "inteligencia_compras.aglutinar", label: "Aglutinar itens e gerar RC" },
+      ],
+    });
+  }
+  const compras2 = MODULOS_SISTEMA.find(g => g.grupo === "Compras e Suprimentos");
+  if (compras2 && !compras2.modulos.some(m => m.key === "relatorios_estoque")) {
+    compras2.modulos.push({
+      key: "relatorios_estoque",
+      label: "Relatórios de Estoque",
+      acoes: [
+        { key: "relatorios_estoque.visualizar", label: "Visualizar relatórios" },
+        { key: "relatorios_estoque.exportar", label: "Exportar relatório" },
+      ],
+    });
+  }
+})();
 
 // Collect all permission keys
 export const ALL_MODULE_KEYS = MODULOS_SISTEMA.flatMap(g => g.modulos.map(m => m.key));
