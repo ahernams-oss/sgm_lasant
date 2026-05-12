@@ -557,8 +557,8 @@ export default function LicitacoesPage() {
                     </TableCell>
                     <TableCell>{d.licitacoesVinculadas.length}</TableCell>
                     <TableCell className="text-right space-x-1">
-                      <Button variant="ghost" size="icon" onClick={() => handleEditDocumento(d)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => requestDeleteDoc(d.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      {podeAnexar && <Button variant="ghost" size="icon" onClick={() => handleEditDocumento(d)}><Pencil className="h-4 w-4" /></Button>}
+                      {podeAnexar && <Button variant="ghost" size="icon" onClick={() => requestDeleteDoc(d.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                     </TableCell>
                   </TableRow>
                 ))}
