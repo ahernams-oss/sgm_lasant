@@ -229,12 +229,12 @@ export default function I0Page() {
                   <TableCell className="text-right tabular-nums">{formatCurrency(item.valor)}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" onClick={() => openEdit(item)}>
+                      {podeEditar && <Button size="icon" variant="ghost" onClick={() => openEdit(item)}>
                         <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(item.id)}>
+                      </Button>}
+                      {podeExcluir && <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(item.id)}>
                         <Trash2 className="h-4 w-4" />
-                      </Button>
+                      </Button>}
                     </div>
                   </TableCell>
                 </TableRow>
