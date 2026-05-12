@@ -29,6 +29,7 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const emptyItem = (): ItemServico => ({
   id: crypto.randomUUID(),
@@ -186,6 +187,10 @@ const MedicoesServicos = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!podeExcluir) {
+      toast({ title: "Você não possui permissão para excluir medições.", variant: "destructive" });
+      return;
+    }
     await deleteMedicao(id);
     toast({ title: "Medição excluída" });
   };

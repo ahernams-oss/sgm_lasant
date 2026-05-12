@@ -149,6 +149,8 @@ export default function RdoPage() {
   const { usuarioLogado } = useAuth();
   const { porRdo } = useRdoAssinaturas();
   const { responsaveis = [] } = useResponsaveisTecnicos();
+  const { tem } = usePermissao();
+  const podeExcluir = tem("rdo.excluir");
 
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("Todos");

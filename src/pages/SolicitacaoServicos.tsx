@@ -3,6 +3,7 @@ import { useSolicitacoesServicos, SolicitacaoServico, HistoricoEntry } from "@/c
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissao } from "@/hooks/usePermissao";
 import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useOrcamentos } from "@/contexts/OrcamentosContext";
@@ -278,6 +279,11 @@ export default function SolicitacaoServicosPage() {
   };
 
   const handleDelete = async () => {
+    if (!podeExcluir) {
+      toast({ title: "Você não possui permissão para excluir solicitações.", variant: "destructive" });
+      cancelDelete();
+      return;
+    }
     if (deleteId) {
       await deleteSolicitacao(deleteId);
       toast({ title: "Solicitação excluída" });
