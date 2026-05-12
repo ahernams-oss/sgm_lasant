@@ -16,11 +16,17 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Search, Upload, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissao } from "@/hooks/usePermissao";
 import * as XLSX from "xlsx";
 
 export default function Sco() {
   const { scos, addSco, updateSco, deleteSco } = useSco();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriar = tem("sco.criar");
+  const podeEditar = tem("sco.editar");
+  const podeExcluir = tem("sco.excluir");
+  const podeImportar = tem("sco.importar");
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyScoForm);
