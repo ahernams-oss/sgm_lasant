@@ -36,6 +36,7 @@ export default function CentrosCusto() {
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-serif font-semibold">Centros de Custo</h1>
 
+      {podeGerenciar && (
       <Card>
         <CardHeader><CardTitle className="text-base">{editingId ? "Editar" : "Novo"} centro de custo</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -54,6 +55,7 @@ export default function CentrosCusto() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardContent className="pt-6">
