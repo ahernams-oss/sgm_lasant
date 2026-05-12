@@ -177,7 +177,7 @@ export default function CategoriasCompras() {
         {/* === GRUPOS === */}
         <TabsContent value="grupos" className="space-y-4">
           <div className="flex justify-end">
-            <Button onClick={openNewGrupo}><Plus className="mr-2 h-4 w-4" />Novo Grupo</Button>
+            {podeCriar && <Button onClick={openNewGrupo}><Plus className="mr-2 h-4 w-4" />Novo Grupo</Button>}
           </div>
           <div className="border rounded-lg">
             <SortableHeaderRow order={colOrderGrupos} onReorder={setColOrderGrupos}>
