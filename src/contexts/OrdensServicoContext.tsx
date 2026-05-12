@@ -181,7 +181,23 @@ export function OrdensServicoProvider({ children }: { children: ReactNode }) {
 
   const addOrdem = async (d: any) => { await insertRow("ordens_servico", d); await load(); };
   const updateOrdem = async (id: string, d: any) => { await updateRow("ordens_servico", id, d); await load(); };
-  const deleteOrdem = async (id: string) => { await deleteRow("ordens_servico", id); await load(); };
+  const deleteOrdem = async (id: string) => {
+    const stored = localStorage.getItem("usuarioLogado") || sessionStorage.getItem("usuarioLogado");
+    const userId = stored ? (JSON.parse(stored)?.id ?? null) : null;
+    if (!userId) {
+      toast.error("Sessão inválida. Faça login novamente.");
+      throw new Error("Sem usuário logado");
+    }
+    const { data, error } = await supabase.functions.invoke("delete-ordem-servico", {
+      body: { userId, osId: id },
+    });
+    if (error || (data as any)?.error) {
+      const msg = (data as any)?.error || error?.message || "Erro ao excluir OS.";
+      toast.error(msg);
+      throw new Error(msg);
+    }
+    await load();
+  };
 
   return (
     <OrdensServicoContext.Provider value={{ ordens, addOrdem, updateOrdem, deleteOrdem, loading }}>
