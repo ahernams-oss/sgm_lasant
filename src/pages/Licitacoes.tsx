@@ -267,6 +267,7 @@ export default function LicitacoesPage() {
   }, [documentos, docSearch, filterDocCategoria, filterDocStatus]);
 
   const handleUploadDoc = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!podeAnexar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingDoc(true);
