@@ -165,15 +165,15 @@ export default function Sco() {
               e.target.value = "";
             }}
           />
-          <Button variant="outline" onClick={downloadTemplate}>
+          {podeImportar && <Button variant="outline" onClick={downloadTemplate}>
             <Download className="mr-2 h-4 w-4" /> Modelo
-          </Button>
-          <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+          </Button>}
+          {podeImportar && <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-2 h-4 w-4" /> Importar
-          </Button>
-          <Button onClick={openNew}>
+          </Button>}
+          {podeCriar && <Button onClick={openNew}>
             <Plus className="mr-2 h-4 w-4" /> Novo Item
-          </Button>
+          </Button>}
         </div>
       </div>
 
