@@ -258,8 +258,8 @@ export default function CategoriasCompras() {
                     {colOrderSubs.map(key => <TableCell key={key} className={colDefsSubs[key]?.className}>{cellMap[key]}</TableCell>)}
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEditSub(s)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => { deleteSubGrupo(s.id); toast({ title: "SubGrupo excluído" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        {podeEditar && <Button variant="ghost" size="icon" onClick={() => openEditSub(s)}><Pencil className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button variant="ghost" size="icon" onClick={() => { deleteSubGrupo(s.id); toast({ title: "SubGrupo excluído" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>
