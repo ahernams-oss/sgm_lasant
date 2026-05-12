@@ -422,9 +422,11 @@ export default function LicitacoesPage() {
                 {MODALIDADES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button onClick={() => { setLicForm({ ...EMPTY_LICITACAO, responsavelInterno: usuarioLogado?.nome || "" }); setEditLicId(null); setLicDialogOpen(true); }}>
-              <Plus className="h-4 w-4 mr-1" /> Nova Licitação
-            </Button>
+            {podeCriar && (
+              <Button onClick={() => { setLicForm({ ...EMPTY_LICITACAO, responsavelInterno: usuarioLogado?.nome || "" }); setEditLicId(null); setLicDialogOpen(true); }}>
+                <Plus className="h-4 w-4 mr-1" /> Nova Licitação
+              </Button>
+            )}
           </div>
 
           <p className="text-sm text-muted-foreground">{filteredLicitacoes.length} licitação(ões) encontrada(s)</p>
