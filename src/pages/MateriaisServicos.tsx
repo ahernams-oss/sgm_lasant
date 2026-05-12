@@ -74,9 +74,11 @@ export default function MateriaisServicosPage() {
   const handleSave = () => {
     if (!form.descricao.trim()) { toast({ title: "Descrição é obrigatória", variant: "destructive" }); return; }
     if (editingId) {
+      if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       updateMaterial(editingId, { ...form, fabricanteId: "" });
       toast({ title: "Material/Serviço atualizado" });
     } else {
+      if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       addMaterial({ ...form, fabricanteId: "" });
       toast({ title: "Material/Serviço criado" });
     }
