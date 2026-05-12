@@ -216,6 +216,7 @@ export default function LicitacoesPage() {
   }, [licitacoes, search, filterStatus, filterModalidade]);
 
   const handleSaveLicitacao = async () => {
+    if (editLicId ? !podeEditar : !podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!licForm.numeroProcesso || !licForm.orgaoLicitante) {
       toast({ title: "Preencha o número do processo e o órgão licitante", variant: "destructive" });
       return;
