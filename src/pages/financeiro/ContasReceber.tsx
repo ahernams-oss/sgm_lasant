@@ -41,6 +41,7 @@ export default function ContasReceber() {
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const handleSave = async () => {
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.descricao || !form.data_vencimento || !form.valor_total) {
       toast.error("Preencha descrição, vencimento e valor."); return;
     }
