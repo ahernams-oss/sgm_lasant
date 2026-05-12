@@ -6,6 +6,7 @@ import { useOsAssinaturas } from "@/contexts/OsAssinaturasContext";
 import { gerarPdfOrdemServicoLote } from "@/lib/gerarPdfOrdemServico";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { formatNumeroAno } from "@/lib/formatNumero";
+import { usePermissao } from "@/hooks/usePermissao";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,8 @@ export default function ImprimirLoteOs() {
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { assinaturas: assinaturasOs } = useOsAssinaturas();
+  const { tem } = usePermissao();
+  const podeImprimirLote = tem("os.imprimir_lote");
 
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("all");
@@ -98,6 +101,10 @@ export default function ImprimirLoteOs() {
   );
 
   const handleImprimirLote = async () => {
+    if (!podeImprimirLote) {
+      toast.error("Você não possui permissão para esta ação.");
+      return;
+    }
     const lista = ordens
       .filter((o) => selectedIds.has(o.id))
       .map((o) => ({
@@ -173,10 +180,12 @@ export default function ImprimirLoteOs() {
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-accent rounded-lg border border-border">
           <span className="text-sm font-medium">{selectedIds.size} OS selecionada(s)</span>
-          <Button size="sm" onClick={handleImprimirLote} disabled={printing}>
-            <Printer className="mr-2 h-4 w-4" />
-            {printing ? "Gerando PDF..." : "Imprimir selecionadas"}
-          </Button>
+          {podeImprimirLote && (
+            <Button size="sm" onClick={handleImprimirLote} disabled={printing}>
+              <Printer className="mr-2 h-4 w-4" />
+              {printing ? "Gerando PDF..." : "Imprimir selecionadas"}
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={selectAllFiltered}>
             Selecionar todas filtradas ({filtered.length})
           </Button>

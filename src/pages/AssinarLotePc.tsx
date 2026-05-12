@@ -7,6 +7,7 @@ import { usePcAssinaturas } from "@/contexts/PcAssinaturasContext";
 import { gerarHashPc } from "@/lib/assinaturaHashPc";
 import { obterIpOrigem } from "@/lib/assinaturaHashOs";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+import { usePermissao } from "@/hooks/usePermissao";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,8 @@ export default function AssinarLotePc() {
   const { usuarioLogado } = useAuth();
   const { cargos } = useCargos();
   const { assinaturas, registrar, refresh } = usePcAssinaturas();
+  const { tem } = usePermissao();
+  const podeAssinarLote = tem("pc.assinar_lote");
 
   const [search, setSearch] = useState("");
   const [filterFornecedor, setFilterFornecedor] = useState("all");
@@ -104,6 +107,10 @@ export default function AssinarLotePc() {
   );
 
   const handleAssinarLote = async () => {
+    if (!podeAssinarLote) {
+      toast.error("Você não possui permissão para esta ação.");
+      return;
+    }
     if (!usuarioLogado) {
       toast.error("Usuário não autenticado.");
       return;
@@ -219,10 +226,12 @@ export default function AssinarLotePc() {
           <span className="text-sm font-medium">
             {selectedIds.size} pedido(s) selecionado(s)
           </span>
-          <Button size="sm" onClick={() => setOpenConfirm(true)}>
-            <FileSignature className="mr-2 h-4 w-4" />
-            Assinar selecionados
-          </Button>
+          {podeAssinarLote && (
+            <Button size="sm" onClick={() => setOpenConfirm(true)}>
+              <FileSignature className="mr-2 h-4 w-4" />
+              Assinar selecionados
+            </Button>
+          )}
           <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
             Limpar seleção
           </Button>

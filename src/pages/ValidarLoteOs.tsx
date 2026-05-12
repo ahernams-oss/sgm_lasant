@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { formatNumeroAno } from "@/lib/formatNumero";
+import { usePermissao } from "@/hooks/usePermissao";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,8 @@ export default function ValidarLoteOs() {
   const { ordens, updateOrdem } = useOrdensServico();
   const { usuarioLogado } = useAuth();
   const { clientes } = useClientes();
+  const { tem } = usePermissao();
+  const podeValidarLote = tem("os.validar_lote");
 
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("all");
@@ -96,6 +99,10 @@ export default function ValidarLoteOs() {
   );
 
   const handleValidarLote = async () => {
+    if (!podeValidarLote) {
+      toast.error("Você não possui permissão para esta ação.");
+      return;
+    }
     setValidating(true);
     let ok = 0;
     let fail = 0;
@@ -175,10 +182,12 @@ export default function ValidarLoteOs() {
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-accent rounded-lg border border-border">
           <span className="text-sm font-medium">{selectedIds.size} OS selecionada(s)</span>
-          <Button size="sm" onClick={() => setOpenConfirm(true)}>
-            <CheckCircle2 className="mr-2 h-4 w-4" />
-            Validar selecionadas
-          </Button>
+          {podeValidarLote && (
+            <Button size="sm" onClick={() => setOpenConfirm(true)}>
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              Validar selecionadas
+            </Button>
+          )}
           <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
             Limpar seleção
           </Button>

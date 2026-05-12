@@ -4,6 +4,7 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
+import { usePermissao } from "@/hooks/usePermissao";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { formatNumeroAno } from "@/lib/formatNumero";
 
@@ -30,6 +31,8 @@ export default function AprovarLoteSS() {
   const { addOrdem } = useOrdensServico();
   const { usuarioLogado } = useAuth();
   const { podeAprovar } = useLimiteAprovacao();
+  const { tem } = usePermissao();
+  const podeAprovarLote = tem("solicitacao_servicos.aprovar_lote");
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
@@ -105,6 +108,10 @@ export default function AprovarLoteSS() {
   }, [aguardando]);
 
   const handleBatchApprove = async () => {
+    if (!podeAprovarLote) {
+      toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" });
+      return;
+    }
     if (!selectedPrioridade) {
       toast({ title: "Selecione o nível de prioridade", variant: "destructive" });
       return;
@@ -206,9 +213,11 @@ export default function AprovarLoteSS() {
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-accent rounded-lg border border-border">
           <span className="text-sm font-medium">{selectedIds.size} solicitação(ões) selecionada(s)</span>
-          <Button size="sm" onClick={() => { setSelectedPrioridade(""); setApprovalOpen(true); }}>
-            <CheckCircle2 className="mr-2 h-4 w-4" />Aprovar selecionadas
-          </Button>
+          {podeAprovarLote && (
+            <Button size="sm" onClick={() => { setSelectedPrioridade(""); setApprovalOpen(true); }}>
+              <CheckCircle2 className="mr-2 h-4 w-4" />Aprovar selecionadas
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={selectAll}>
             Selecionar todas ({filtered.length})
           </Button>

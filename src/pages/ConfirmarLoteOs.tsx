@@ -7,6 +7,7 @@ import { updateRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { formatNumeroAno } from "@/lib/formatNumero";
+import { usePermissao } from "@/hooks/usePermissao";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,8 @@ export default function ConfirmarLoteOs() {
   const { usuarioLogado } = useAuth();
   const { clientes } = useClientes();
   const { registrarMovimentacao } = useEstoque();
+  const { tem } = usePermissao();
+  const podeConfirmarLote = tem("os.confirmar_lote");
 
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("all");
@@ -100,6 +103,10 @@ export default function ConfirmarLoteOs() {
   );
 
   const handleConfirmarLote = async () => {
+    if (!podeConfirmarLote) {
+      toast.error("Você não possui permissão para esta ação.");
+      return;
+    }
     setConfirming(true);
     let ok = 0;
     let fail = 0;
@@ -222,10 +229,12 @@ export default function ConfirmarLoteOs() {
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-accent rounded-lg border border-border">
           <span className="text-sm font-medium">{selectedIds.size} OS selecionada(s)</span>
-          <Button size="sm" onClick={() => setOpenConfirm(true)}>
-            <CheckCircle2 className="mr-2 h-4 w-4" />
-            Confirmar serviço das selecionadas
-          </Button>
+          {podeConfirmarLote && (
+            <Button size="sm" onClick={() => setOpenConfirm(true)}>
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              Confirmar serviço das selecionadas
+            </Button>
+          )}
           <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
             Limpar seleção
           </Button>

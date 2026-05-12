@@ -59,6 +59,7 @@ export default function AssinarLoteOs() {
   const [signing, setSigning] = useState(false);
 
   const podeFiscal = tem("os.assinar_fiscal");
+  const podeAssinarLote = tem("os.assinar_lote");
 
   // Apenas OS Validadas podem ser assinadas, e sem sobreposição (mesmo papel)
   const validadasDisponiveis = useMemo(() => {
@@ -125,6 +126,10 @@ export default function AssinarLoteOs() {
   const podePapel = papel === "fiscal" ? podeFiscal : true;
 
   const handleAssinarLote = async () => {
+    if (!podeAssinarLote) {
+      toast.error("Você não possui permissão para esta ação.");
+      return;
+    }
     if (!usuarioLogado) {
       toast.error("Usuário não autenticado.");
       return;
@@ -280,7 +285,7 @@ export default function AssinarLoteOs() {
         </div>
       )}
 
-      {selectedIds.size > 0 && podePapel && (
+      {selectedIds.size > 0 && podePapel && podeAssinarLote && (
         <div className="flex items-center gap-3 p-3 bg-accent rounded-lg border border-border">
           <span className="text-sm font-medium">
             {selectedIds.size} OS selecionada(s)
