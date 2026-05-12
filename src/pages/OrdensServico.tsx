@@ -709,6 +709,10 @@ export default function OrdensServicoPage() {
   };
 
   const handleBatchExecutar = async () => {
+    if (!podeExecutarLote) {
+      toast.error("Você não possui permissão para executar OS em lote.");
+      return;
+    }
     const ids = Array.from(selectedIds);
     const abertasSelecionadas = ordens.filter(o => ids.includes(o.id) && o.situacao === "Aberta");
     if (abertasSelecionadas.length === 0) {
