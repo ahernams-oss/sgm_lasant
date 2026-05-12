@@ -193,6 +193,7 @@ const Clientes = () => {
 
 
   const handleSubmit = (data: FormData, id: string | null) => {
+    if (id ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!data.nome.trim()) {
       toast.error("Informe o nome do cliente.");
       return;
