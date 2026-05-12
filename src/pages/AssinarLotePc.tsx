@@ -226,10 +226,12 @@ export default function AssinarLotePc() {
           <span className="text-sm font-medium">
             {selectedIds.size} pedido(s) selecionado(s)
           </span>
-          <Button size="sm" onClick={() => setOpenConfirm(true)}>
-            <FileSignature className="mr-2 h-4 w-4" />
-            Assinar selecionados
-          </Button>
+          {podeAssinarLote && (
+            <Button size="sm" onClick={() => setOpenConfirm(true)}>
+              <FileSignature className="mr-2 h-4 w-4" />
+              Assinar selecionados
+            </Button>
+          )}
           <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
             Limpar seleção
           </Button>
