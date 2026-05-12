@@ -104,6 +104,10 @@ export default function OrdensServicoPage() {
   const { usuarioLogado } = useAuth();
   const { tem } = usePermissao();
   const podeExcluirOS = tem("ordem_servico.excluir");
+  const podeEditarOS = tem("ordem_servico.editar");
+  const podeWorkflowOS = tem("ordem_servico.workflow");
+  const podeImprimirOS = tem("ordem_servico.imprimir");
+  const podeExecutarLote = tem("ordem_servico.executar_lote");
 
   const buildOSHistorico = (situacao: string, existing: any[] = []) => [
     ...existing,
@@ -331,6 +335,10 @@ export default function OrdensServicoPage() {
 
   // Workflow action handler
    const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
+    if (!podeWorkflowOS) {
+      toast.error("Você não possui permissão para executar ações de workflow nesta OS.");
+      return;
+    }
     // If rejecting, open justification dialog instead
     if (novaSituacao === "Serviço Não Aprovado pela Fiscalização") {
       setNaoAprovarOS(os);
@@ -384,6 +392,10 @@ export default function OrdensServicoPage() {
   };
 
   const handleConfirmNaoAprovar = async () => {
+    if (!podeWorkflowOS) {
+      toast.error("Você não possui permissão para esta ação.");
+      return;
+    }
     if (!naoAprovarOS) return;
     if (!naoAprovarJustificativa.trim()) {
       toast.error("A justificativa é obrigatória.");
@@ -411,6 +423,11 @@ export default function OrdensServicoPage() {
   };
 
   const handleCancelOS = async () => {
+    if (!podeWorkflowOS) {
+      toast.error("Você não possui permissão para cancelar OS.");
+      cancelCancelAction();
+      return;
+    }
     if (cancelId) {
       const os = ordens.find(o => o.id === cancelId);
       const financeiro = os ? recalcFinanceiro(os) : {};
@@ -533,6 +550,10 @@ export default function OrdensServicoPage() {
   const [editSetorDesc, setEditSetorDesc] = useState("");
 
   const handleEdit = (os: OrdemServico) => {
+    if (!podeEditarOS) {
+      toast.error("Você não possui permissão para editar Ordens de Serviço.");
+      return;
+    }
     setEditingId(os.id);
     setClienteId(os.clienteId); setNCliente(os.nCliente); setSituacao(os.situacao); setTipoOs(os.tipoOs);
     setDataInicio(os.dataInicio); setHoraInicio(os.horaInicio);
@@ -688,6 +709,10 @@ export default function OrdensServicoPage() {
   };
 
   const handleBatchExecutar = async () => {
+    if (!podeExecutarLote) {
+      toast.error("Você não possui permissão para executar OS em lote.");
+      return;
+    }
     const ids = Array.from(selectedIds);
     const abertasSelecionadas = ordens.filter(o => ids.includes(o.id) && o.situacao === "Aberta");
     if (abertasSelecionadas.length === 0) {
@@ -791,24 +816,28 @@ export default function OrdensServicoPage() {
         <Card>
           <CardContent className="py-3 flex items-center gap-4 flex-wrap">
             <span className="text-sm font-medium">{selectedIds.size} OS(s) selecionada(s)</span>
-            <Button size="sm" onClick={handleBatchExecutar}>
-              <Play className="mr-2 h-4 w-4" /> Executar em Lote
-            </Button>
-            <Button size="sm" variant="outline" onClick={async () => {
-              const lista = ordens
-                .filter(o => selectedIds.has(o.id))
-                .map(o => ({
-                  os: o,
-                  empresa,
-                  cliente: clientes.find(c => c.id === o.clienteId),
-                  assinaturas: assinaturasOs.filter(a => a.os_id === o.id),
-                }));
-              if (lista.length === 0) return;
-              await gerarPdfOrdemServicoLote(lista);
-              toast.success(`${lista.length} OS(s) impressas`);
-            }}>
-              <Printer className="mr-2 h-4 w-4" /> Imprimir em Lote
-            </Button>
+            {podeExecutarLote && (
+              <Button size="sm" onClick={handleBatchExecutar}>
+                <Play className="mr-2 h-4 w-4" /> Executar em Lote
+              </Button>
+            )}
+            {podeImprimirOS && (
+              <Button size="sm" variant="outline" onClick={async () => {
+                const lista = ordens
+                  .filter(o => selectedIds.has(o.id))
+                  .map(o => ({
+                    os: o,
+                    empresa,
+                    cliente: clientes.find(c => c.id === o.clienteId),
+                    assinaturas: assinaturasOs.filter(a => a.os_id === o.id),
+                  }));
+                if (lista.length === 0) return;
+                await gerarPdfOrdemServicoLote(lista);
+                toast.success(`${lista.length} OS(s) impressas`);
+              }}>
+                <Printer className="mr-2 h-4 w-4" /> Imprimir em Lote
+              </Button>
+            )}
             <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
               Limpar seleção
             </Button>
@@ -896,24 +925,26 @@ export default function OrdensServicoPage() {
                         <DropdownMenuItem onClick={() => setViewOS(os)}>
                           <Eye className="mr-2 h-4 w-4" /> Visualizar
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={async () => {
-                          await gerarPdfOrdemServico({
-                            os,
-                            empresa,
-                            cliente: clientes.find(c => c.id === os.clienteId),
-                            assinaturas: assinaturasOs.filter(a => a.os_id === os.id),
-                          });
-                        }}>
-                          <Printer className="mr-2 h-4 w-4" /> Imprimir OS
-                        </DropdownMenuItem>
-                        {!["Validada", "Cancelada"].includes(os.situacao) && (
+                        {podeImprimirOS && (
+                          <DropdownMenuItem onClick={async () => {
+                            await gerarPdfOrdemServico({
+                              os,
+                              empresa,
+                              cliente: clientes.find(c => c.id === os.clienteId),
+                              assinaturas: assinaturasOs.filter(a => a.os_id === os.id),
+                            });
+                          }}>
+                            <Printer className="mr-2 h-4 w-4" /> Imprimir OS
+                          </DropdownMenuItem>
+                        )}
+                        {podeEditarOS && !["Validada", "Cancelada"].includes(os.situacao) && (
                           <DropdownMenuItem onClick={() => handleEdit(os)}>
                             <Pencil className="mr-2 h-4 w-4" /> Preencher OS
                           </DropdownMenuItem>
                         )}
                         {/* Workflow actions */}
-                        {getWorkflowActions(os).length > 0 && <DropdownMenuSeparator />}
-                        {getWorkflowActions(os).map((action, idx) => (
+                        {podeWorkflowOS && getWorkflowActions(os).length > 0 && <DropdownMenuSeparator />}
+                        {podeWorkflowOS && getWorkflowActions(os).map((action, idx) => (
                           <DropdownMenuItem
                             key={idx}
                             onClick={action.action}
