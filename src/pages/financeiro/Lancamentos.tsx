@@ -8,9 +8,13 @@ import { Trash2, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight } from "lucide-r
 import { useFinanceiro, formatBRL, formatDate } from "@/contexts/FinanceiroContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { usePermissao } from "@/hooks/usePermissao";
+import { toast } from "sonner";
 
 export default function Lancamentos() {
   const { lancamentos, contasBancarias, deleteLancamento } = useFinanceiro();
+  const { tem } = usePermissao();
+  const podeEstornar = tem("financeiro.lancamentos.estornar");
   const [contaFilter, setContaFilter] = useState("todas");
   const [tipoFilter, setTipoFilter] = useState("todos");
   const [dataIni, setDataIni] = useState("");
@@ -60,7 +64,7 @@ export default function Lancamentos() {
                   <TableCell>{l.descricao || "—"}</TableCell>
                   <TableCell className="text-xs">{nome(l.conta_bancaria_id)}{l.conta_destino_id ? ` → ${nome(l.conta_destino_id)}` : ""}</TableCell>
                   <TableCell className={`text-right tabular-nums ${l.tipo === "entrada" ? "text-emerald-600" : l.tipo === "saida" ? "text-red-600" : ""}`}>{formatBRL(Number(l.valor))}</TableCell>
-                  <TableCell className="text-right"><Button size="sm" variant="ghost" onClick={() => requestDelete(l.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button></TableCell>
+                  <TableCell className="text-right">{podeEstornar && <Button size="sm" variant="ghost" onClick={() => requestDelete(l.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}</TableCell>
                 </TableRow>
               ))}
               {paginated.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">Nenhum lançamento.</TableCell></TableRow>}
@@ -69,7 +73,7 @@ export default function Lancamentos() {
           <PaginationControls currentPage={page} totalItems={filtrados.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
         </CardContent>
       </Card>
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (deleteId) { await deleteLancamento(deleteId); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (!podeEstornar) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { await deleteLancamento(deleteId); cancelDelete(); } }} />
     </div>
   );
 }

@@ -8,12 +8,17 @@ import { Upload, CheckCircle2 } from "lucide-react";
 import { useFinanceiro, formatBRL, formatDate } from "@/contexts/FinanceiroContext";
 import { parseOfx } from "@/lib/ofxParser";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 export default function Conciliacao() {
   const { contasBancarias, movimentosOfx, addMovimentoOfx, updateMovimentoOfx, addLancamento } = useFinanceiro();
+  const { tem } = usePermissao();
+  const podeImportar = tem("financeiro.conciliacao.importar_ofx");
+  const podeConciliar = tem("financeiro.conciliacao.conciliar");
   const [conta, setConta] = useState("");
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!podeImportar) { toast.error("Você não possui permissão para esta ação."); return; }
     const f = e.target.files?.[0]; if (!f) return;
     if (!conta) { toast.error("Selecione a conta antes de importar."); return; }
     const text = await f.text();
@@ -31,6 +36,7 @@ export default function Conciliacao() {
   const filtrados = useMemo(() => movimentosOfx.filter(m => !conta || m.conta_bancaria_id === conta).sort((a, b) => b.data.localeCompare(a.data)), [movimentosOfx, conta]);
 
   const conciliarCriando = async (m: typeof movimentosOfx[0]) => {
+    if (!podeConciliar) { toast.error("Você não possui permissão para esta ação."); return; }
     const lanc = await addLancamento({
       tipo: m.valor >= 0 ? "entrada" : "saida",
       conta_bancaria_id: m.conta_bancaria_id,
@@ -50,7 +56,7 @@ export default function Conciliacao() {
           <CardTitle className="text-base">{filtrados.length} movimento(s) — {filtrados.filter(m => !m.conciliado).length} pendente(s)</CardTitle>
           <div className="flex gap-2">
             <Select value={conta} onValueChange={setConta}><SelectTrigger className="w-56"><SelectValue placeholder="Selecione a conta" /></SelectTrigger><SelectContent>{contasBancarias.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent></Select>
-            <label className="cursor-pointer"><Input type="file" accept=".ofx,.OFX" className="hidden" onChange={handleFile} /><Button asChild variant="outline"><span><Upload className="h-4 w-4 mr-1" />Importar OFX</span></Button></label>
+            {podeImportar && <label className="cursor-pointer"><Input type="file" accept=".ofx,.OFX" className="hidden" onChange={handleFile} /><Button asChild variant="outline"><span><Upload className="h-4 w-4 mr-1" />Importar OFX</span></Button></label>}
           </div>
         </CardHeader>
         <CardContent>
@@ -63,7 +69,7 @@ export default function Conciliacao() {
                   <TableCell>{m.descricao}</TableCell>
                   <TableCell className={`text-right tabular-nums ${Number(m.valor) >= 0 ? "text-emerald-600" : "text-red-600"}`}>{formatBRL(Number(m.valor))}</TableCell>
                   <TableCell>{m.conciliado ? <span className="text-emerald-600 text-xs">Conciliado</span> : <span className="text-amber-600 text-xs">Pendente</span>}</TableCell>
-                  <TableCell className="text-right">{!m.conciliado && <Button size="sm" variant="ghost" onClick={() => conciliarCriando(m)}><CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 mr-1" />Conciliar</Button>}</TableCell>
+                  <TableCell className="text-right">{podeConciliar && !m.conciliado && <Button size="sm" variant="ghost" onClick={() => conciliarCriando(m)}><CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 mr-1" />Conciliar</Button>}</TableCell>
                 </TableRow>
               ))}
               {filtrados.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Importe um OFX para começar.</TableCell></TableRow>}

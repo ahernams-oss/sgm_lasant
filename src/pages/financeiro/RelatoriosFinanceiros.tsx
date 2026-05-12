@@ -8,6 +8,8 @@ import { FileText, FileSpreadsheet, BarChart3 } from "lucide-react";
 import { useFinanceiro, formatBRL, formatDate, isVencida } from "@/contexts/FinanceiroContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { gerarPdfFinanceiro, gerarExcelFinanceiro, FinReport } from "@/lib/gerarRelatoriosFinanceiros";
+import { usePermissao } from "@/hooks/usePermissao";
+import { toast } from "sonner";
 
 interface RelDef {
   id: string;
@@ -19,6 +21,9 @@ interface RelDef {
 export default function RelatoriosFinanceiros() {
   const fin = useFinanceiro();
   const { clientes } = useClientes();
+  const { tem } = usePermissao();
+  const podePdf = tem("financeiro.relatorios.exportar_pdf");
+  const podeExcel = tem("financeiro.relatorios.exportar_excel");
 
   const hoje = new Date().toISOString().slice(0, 10);
   const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
@@ -349,6 +354,8 @@ export default function RelatoriosFinanceiros() {
   ], [fin, clientes, dataIni, dataFim, fCentroCusto]);
 
   const exportar = (def: RelDef, tipo: "pdf" | "excel") => {
+    if (tipo === "pdf" && !podePdf) { toast.error("Você não possui permissão para exportar PDF."); return; }
+    if (tipo === "excel" && !podeExcel) { toast.error("Você não possui permissão para exportar Excel."); return; }
     const r = def.build();
     if (tipo === "pdf") gerarPdfFinanceiro(r);
     else gerarExcelFinanceiro(r);
@@ -403,12 +410,12 @@ export default function RelatoriosFinanceiros() {
             <CardContent className="flex-1 flex flex-col justify-between gap-4">
               <p className="text-sm text-muted-foreground">{r.descricao}</p>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" className="flex-1" onClick={() => exportar(r, "pdf")}>
+                {podePdf && <Button size="sm" variant="outline" className="flex-1" onClick={() => exportar(r, "pdf")}>
                   <FileText className="h-4 w-4 mr-2" /> PDF
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1" onClick={() => exportar(r, "excel")}>
+                </Button>}
+                {podeExcel && <Button size="sm" variant="outline" className="flex-1" onClick={() => exportar(r, "excel")}>
                   <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel
-                </Button>
+                </Button>}
               </div>
             </CardContent>
           </Card>

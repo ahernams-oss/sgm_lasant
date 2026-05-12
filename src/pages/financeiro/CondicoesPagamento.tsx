@@ -11,6 +11,7 @@ import { Plus, Pencil, Trash2, CreditCard } from "lucide-react";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 interface Condicao {
   id: string;
@@ -37,6 +38,10 @@ export default function CondicoesPagamento() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { tem } = usePermissao();
+  const podeCriar = tem("financeiro.condicoes_pagamento.criar");
+  const podeEditar = tem("financeiro.condicoes_pagamento.editar");
+  const podeExcluir = tem("financeiro.condicoes_pagamento.excluir");
 
   const reload = async () => {
     setLoading(true);
@@ -50,6 +55,7 @@ export default function CondicoesPagamento() {
     s.split(/[,;\/\s]+/).map(x => parseInt(x.trim(), 10)).filter(n => !isNaN(n) && n >= 0);
 
   const handleSave = async () => {
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome.trim()) { toast.error("Informe o nome."); return; }
     const dias = form.tipo === "a_vista" ? [0] : parseDias(form.dias_parcelas);
     if (form.tipo === "a_prazo" && dias.length === 0) {
@@ -93,6 +99,7 @@ export default function CondicoesPagamento() {
   };
 
   const handleDelete = async () => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; }
     if (!deleteId) return;
     await deleteRow("fin_condicoes_pagamento", deleteId);
     cancelDelete();
@@ -117,6 +124,7 @@ export default function CondicoesPagamento() {
         </div>
       </div>
 
+      {(podeCriar || (editingId && podeEditar)) && (
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{editingId ? "Editar condição" : "Nova condição"}</CardTitle>
@@ -190,6 +198,7 @@ export default function CondicoesPagamento() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader><CardTitle className="text-base">Condições cadastradas</CardTitle></CardHeader>
@@ -226,12 +235,12 @@ export default function CondicoesPagamento() {
                     <Badge variant={c.ativo ? "default" : "secondary"}>{c.ativo ? "Ativo" : "Inativo"}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="ghost" onClick={() => handleEdit(c)}>
+                    {podeEditar && <Button size="sm" variant="ghost" onClick={() => handleEdit(c)}>
                       <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}>
+                    </Button>}
+                    {podeExcluir && <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}>
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                    </Button>
+                    </Button>}
                   </TableCell>
                 </TableRow>
               ))}

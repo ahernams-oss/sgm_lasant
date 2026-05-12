@@ -41,6 +41,7 @@ export default function ContasReceber() {
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const handleSave = async () => {
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.descricao || !form.data_vencimento || !form.valor_total) {
       toast.error("Preencha descrição, vencimento e valor."); return;
     }
@@ -104,6 +105,7 @@ export default function ContasReceber() {
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-serif font-semibold">Contas a Receber</h1>
 
+      {(podeCriar || (editingId && podeEditar)) && (
       <Card>
         <CardHeader><CardTitle className="text-base">{editingId ? "Editar conta" : "Nova conta a receber"}</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -147,6 +149,7 @@ export default function ContasReceber() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-2">
@@ -185,11 +188,11 @@ export default function ContasReceber() {
                   <TableCell className="text-right tabular-nums">{formatBRL(Number(c.valor_recebido))}</TableCell>
                   <TableCell>{statusBadge(c)}</TableCell>
                   <TableCell className="text-right">
-                    {c.status !== "recebida" && c.status !== "cancelada" && (
+                    {podeBaixar && c.status !== "recebida" && c.status !== "cancelada" && (
                       <Button size="sm" variant="ghost" onClick={() => setBaixaConta(c)} title="Receber"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /></Button>
                     )}
-                    <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm({ ...c, valor_total: c.valor_total, data_emissao: c.data_emissao || "", data_vencimento: c.data_vencimento }); }}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                    {podeEditar && <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm({ ...c, valor_total: c.valor_total, data_emissao: c.data_emissao || "", data_vencimento: c.data_vencimento }); }}><Pencil className="h-3.5 w-3.5" /></Button>}
+                    {podeExcluir && <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
                   </TableCell>
                 </TableRow>
               ))}
@@ -201,7 +204,7 @@ export default function ContasReceber() {
       </Card>
 
       <BaixaDialog open={!!baixaConta} onOpenChange={(o) => !o && setBaixaConta(null)} conta={baixaConta} modo="receber" />
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (deleteId) { await deleteContaReceber(deleteId); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { await deleteContaReceber(deleteId); cancelDelete(); } }} />
     </div>
   );
 }
