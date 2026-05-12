@@ -461,8 +461,8 @@ export default function LicitacoesPage() {
                     <TableCell><Badge variant="outline">{l.grauInteresse}</Badge></TableCell>
                     <TableCell className="text-right space-x-1">
                       <Button variant="ghost" size="icon" onClick={() => setViewLicId(l.id)}><Eye className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleEditLicitacao(l)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => requestDeleteLic(l.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      {podeEditar && <Button variant="ghost" size="icon" onClick={() => handleEditLicitacao(l)}><Pencil className="h-4 w-4" /></Button>}
+                      {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDeleteLic(l.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                     </TableCell>
                   </TableRow>
                 ))}
