@@ -550,6 +550,10 @@ export default function OrdensServicoPage() {
   const [editSetorDesc, setEditSetorDesc] = useState("");
 
   const handleEdit = (os: OrdemServico) => {
+    if (!podeEditarOS) {
+      toast.error("Você não possui permissão para editar Ordens de Serviço.");
+      return;
+    }
     setEditingId(os.id);
     setClienteId(os.clienteId); setNCliente(os.nCliente); setSituacao(os.situacao); setTipoOs(os.tipoOs);
     setDataInicio(os.dataInicio); setHoraInicio(os.horaInicio);
