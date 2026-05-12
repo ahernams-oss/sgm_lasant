@@ -66,7 +66,7 @@ const ServicosPage = () => {
             <h1 className="text-xl font-bold text-foreground mb-1">Serviços</h1>
             <p className="text-sm text-muted-foreground">Gerencie os serviços vinculados às categorias.</p>
           </div>
-          {!showForm && (
+          {!showForm && podeCriar && (
             <Button onClick={() => setShowForm(true)} className="gap-2">
               <Plus className="h-4 w-4" /> Novo Serviço
             </Button>
