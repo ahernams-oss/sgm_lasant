@@ -49,6 +49,8 @@ function PlanoManutencaoContent() {
   const { responsaveis } = useResponsaveisTecnicos();
   const { addOrdem } = useOrdensServico();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { tem } = usePermissao();
+  const podeExcluir = tem("plano_manutencao.excluir");
 
   const clientesList = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
   const [search, setSearch] = useState("");
