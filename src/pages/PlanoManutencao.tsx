@@ -115,6 +115,11 @@ function PlanoManutencaoContent() {
   };
 
   const confirmDelete = async () => {
+    if (!podeExcluir) {
+      toast.error("Você não possui permissão para excluir planos de manutenção.");
+      cancelDelete();
+      return;
+    }
     if (deleteId) {
       await deletePlano(deleteId);
       cancelDelete();
@@ -322,7 +327,13 @@ function PlanoManutencaoContent() {
         equipamentos={equipamentos}
         onAddAtividade={addAtividade}
         onUpdateAtividade={updateAtividade}
-        onDeleteAtividade={deleteAtividade}
+        onDeleteAtividade={async (id: string) => {
+          if (!podeExcluir) {
+            toast.error("Você não possui permissão para excluir atividades.");
+            return;
+          }
+          return deleteAtividade(id);
+        }}
         onAddExecucao={addExecucao}
         addOrdemServico={addOrdem}
       />
