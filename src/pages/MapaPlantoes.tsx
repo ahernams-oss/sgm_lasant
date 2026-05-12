@@ -16,6 +16,8 @@ import {
   gerarMapaPlantoesExcel,
   TipoJornada,
 } from "@/lib/gerarMapaPlantoes";
+import { usePermissao } from "@/hooks/usePermissao";
+import { toast } from "sonner";
 
 const MESES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -63,6 +65,7 @@ const MapaPlantoes = () => {
   };
 
   const handlePdf = () => {
+    if (!podePdf) { toast.error("Você não possui permissão para exportar PDF."); return; }
     gerarMapaPlantoesPdf({
       funcionarios: funcionariosFiltrados,
       cargos,
@@ -73,6 +76,7 @@ const MapaPlantoes = () => {
   };
 
   const handleExcel = () => {
+    if (!podeExcel) { toast.error("Você não possui permissão para exportar Excel."); return; }
     gerarMapaPlantoesExcel({
       funcionarios: funcionariosFiltrados,
       cargos,
@@ -95,12 +99,12 @@ const MapaPlantoes = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleExcel}>
+          {podeExcel && <Button variant="outline" onClick={handleExcel}>
             <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
-          </Button>
-          <Button onClick={handlePdf}>
+          </Button>}
+          {podePdf && <Button onClick={handlePdf}>
             <FileDown className="h-4 w-4 mr-1" /> PDF
-          </Button>
+          </Button>}
         </div>
       </div>
 
