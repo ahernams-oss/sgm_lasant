@@ -49,6 +49,8 @@ export default function BimPage() {
   const { rdos } = useRdos();
   const { cronogramas } = useCronogramas();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const { tem } = usePermissao();
+  const podeExcluir = tem("bim.excluir");
 
   const [search, setSearch] = useState("");
   const [filtroCliente, setFiltroCliente] = useState("todos");

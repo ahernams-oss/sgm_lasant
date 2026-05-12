@@ -17,6 +17,7 @@ import { useRdos } from "@/contexts/RdosContext";
 import { gerarPdfCronograma } from "@/lib/gerarPdfCronograma";
 import { gerarExcelCronograma } from "@/lib/gerarExcelCronograma";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { usePermissao } from "@/hooks/usePermissao";
 import { toast } from "sonner";
 
 const fmtMoney = (n: number) =>
@@ -586,7 +587,15 @@ function CronogramaInner() {
       <DoubleConfirmDelete
         open={!!deleteId}
         onOpenChange={(v) => { if (!v) cancelDelete(); }}
-        onConfirm={() => { if (deleteId) deleteCronograma(deleteId); cancelDelete(); }}
+        onConfirm={() => {
+          if (!podeExcluir) {
+            toast.error("Você não possui permissão para excluir cronogramas.");
+            cancelDelete();
+            return;
+          }
+          if (deleteId) deleteCronograma(deleteId);
+          cancelDelete();
+        }}
       />
     </div>
   );
