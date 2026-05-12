@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Search, Upload, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissao } from "@/hooks/usePermissao";
 import * as XLSX from "xlsx";
 
 const meses = [
