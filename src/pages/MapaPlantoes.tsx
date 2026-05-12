@@ -28,6 +28,9 @@ const MapaPlantoes = () => {
   const { funcionarios } = useFuncionarios();
   const { cargos } = useCargos();
   const { clientes } = useClientes();
+  const { tem } = usePermissao();
+  const podePdf = tem("mapa_funcionarios.exportar_pdf");
+  const podeExcel = tem("mapa_funcionarios.exportar_excel");
 
   const hoje = new Date();
   const [mes, setMes] = useState<number>(hoje.getMonth());
