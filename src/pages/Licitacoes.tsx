@@ -125,6 +125,12 @@ export default function LicitacoesPage() {
   } = useLicitacoes();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriar = tem("licitacoes.criar");
+  const podeEditar = tem("licitacoes.editar");
+  const podeExcluir = tem("licitacoes.excluir");
+  const podeAnexar = tem("licitacoes.gerenciar_anexos");
+  const podeIA = tem("licitacoes.extrair_datas_ia");
 
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
   const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
