@@ -795,7 +795,7 @@ export default function JuridicoPage() {
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-sm flex items-center gap-1"><Calendar className="h-4 w-4" /> Andamentos</h3>
-                    <Button size="sm" onClick={() => setShowAndamentoForm(true)} className="gap-1"><Plus className="h-3 w-3" /> Adicionar</Button>
+                    {podeEditar && <Button size="sm" onClick={() => setShowAndamentoForm(true)} className="gap-1"><Plus className="h-3 w-3" /> Adicionar</Button>}
                   </div>
 
                   {showAndamentoForm && (
