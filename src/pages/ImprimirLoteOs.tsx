@@ -6,6 +6,7 @@ import { useOsAssinaturas } from "@/contexts/OsAssinaturasContext";
 import { gerarPdfOrdemServicoLote } from "@/lib/gerarPdfOrdemServico";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { formatNumeroAno } from "@/lib/formatNumero";
+import { usePermissao } from "@/hooks/usePermissao";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
