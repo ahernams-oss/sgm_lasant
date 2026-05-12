@@ -869,7 +869,7 @@ export default function JuridicoPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <Button variant="outline" onClick={() => setDeleteId(null)}>Cancelar</Button>
-              <Button variant="destructive" onClick={() => { if (deleteId) { deleteProcesso(deleteId); toast.success("Processo removido"); setDeleteId(null); } }}>Excluir</Button>
+              <Button variant="destructive" onClick={() => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; } if (deleteId) { deleteProcesso(deleteId); toast.success("Processo removido"); setDeleteId(null); } }}>Excluir</Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
