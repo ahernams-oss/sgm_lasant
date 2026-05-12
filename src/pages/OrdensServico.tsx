@@ -392,6 +392,10 @@ export default function OrdensServicoPage() {
   };
 
   const handleConfirmNaoAprovar = async () => {
+    if (!podeWorkflowOS) {
+      toast.error("Você não possui permissão para esta ação.");
+      return;
+    }
     if (!naoAprovarOS) return;
     if (!naoAprovarJustificativa.trim()) {
       toast.error("A justificativa é obrigatória.");
