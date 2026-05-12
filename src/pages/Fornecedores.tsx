@@ -241,6 +241,7 @@ const Fornecedores = () => {
           </div>
         </div>
 
+        {(podeCriar || (editingId && podeEditar)) && (
         <div className="section-card animate-fade-up mb-6" style={{ animationDelay: "80ms" }}>
           <button
             type="button"
