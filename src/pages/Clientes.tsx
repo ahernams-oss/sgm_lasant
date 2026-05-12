@@ -229,6 +229,7 @@ const Clientes = () => {
   };
 
   const handleDelete = (id: string) => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
     deleteCliente(id);
     toast.success("Cliente removido.");
     if (editingId === id) resetForm();
