@@ -658,12 +658,16 @@ export default function EstoquePage() {
                     <TableCell className="space-x-1">
                       {inv.status === "Aberto" && (
                         <>
-                          <Button variant="ghost" size="icon" onClick={() => handleEditInventario(inv)} title="Editar itens">
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleFecharInventario(inv.id)}>
-                            Fechar e Ajustar
-                          </Button>
+                          {podeCriarInv && (
+                            <Button variant="ghost" size="icon" onClick={() => handleEditInventario(inv)} title="Editar itens">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {podeFecharInv && (
+                            <Button variant="outline" size="sm" onClick={() => handleFecharInventario(inv.id)}>
+                              Fechar e Ajustar
+                            </Button>
+                          )}
                         </>
                       )}
                     </TableCell>
