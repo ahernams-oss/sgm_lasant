@@ -467,7 +467,7 @@ export default function PedidoCompraPage() {
           <Button size="sm" variant="outline" onClick={() => { setBatchMethod(""); setBatchProgress({ done: 0, total: 0, ok: 0, fail: 0 }); setBatchSendOpen(true); }}>
             <Send className="h-4 w-4 mr-1" /> Enviar em Lote
           </Button>
-          {selectedCanUpdate && (
+          {selectedCanUpdate && podeEditar && (
             <Button size="sm" onClick={() => openStatusDialog(selectedIds.filter(id => {
               const p = pedidos.find(x => x.id === id);
               return p ? getNextStatuses(p.status).length > 0 : false;
