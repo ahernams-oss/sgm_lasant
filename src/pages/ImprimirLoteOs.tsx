@@ -180,10 +180,12 @@ export default function ImprimirLoteOs() {
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-accent rounded-lg border border-border">
           <span className="text-sm font-medium">{selectedIds.size} OS selecionada(s)</span>
-          <Button size="sm" onClick={handleImprimirLote} disabled={printing}>
-            <Printer className="mr-2 h-4 w-4" />
-            {printing ? "Gerando PDF..." : "Imprimir selecionadas"}
-          </Button>
+          {podeImprimirLote && (
+            <Button size="sm" onClick={handleImprimirLote} disabled={printing}>
+              <Printer className="mr-2 h-4 w-4" />
+              {printing ? "Gerando PDF..." : "Imprimir selecionadas"}
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={selectAllFiltered}>
             Selecionar todas filtradas ({filtered.length})
           </Button>
