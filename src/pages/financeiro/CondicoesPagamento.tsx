@@ -55,6 +55,7 @@ export default function CondicoesPagamento() {
     s.split(/[,;\/\s]+/).map(x => parseInt(x.trim(), 10)).filter(n => !isNaN(n) && n >= 0);
 
   const handleSave = async () => {
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome.trim()) { toast.error("Informe o nome."); return; }
     const dias = form.tipo === "a_vista" ? [0] : parseDias(form.dias_parcelas);
     if (form.tipo === "a_prazo" && dias.length === 0) {
