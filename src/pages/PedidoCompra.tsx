@@ -54,6 +54,9 @@ export default function PedidoCompraPage() {
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
   const { porPedido: assinaturasPorPedido } = usePcAssinaturas();
+  const { tem } = usePermissao();
+  const podeEditar = tem("pedidos_compra.editar");
+  const podeCancelar = tem("pedidos_compra.cancelar");
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
