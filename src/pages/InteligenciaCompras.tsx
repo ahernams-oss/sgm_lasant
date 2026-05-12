@@ -115,6 +115,10 @@ export default function InteligenciaComprasPage() {
   };
 
   const handleConsolidar = async () => {
+    if (!podeAglutinar) {
+      toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" });
+      return;
+    }
     if (selectedGroups.length === 0) {
       toast({ title: "Selecione ao menos 1 item para consolidar", variant: "destructive" });
       return;
