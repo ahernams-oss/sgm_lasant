@@ -51,6 +51,7 @@ export default function Sco() {
   };
 
   const handleImport = (file: File) => {
+    if (!podeImportar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     const ext = file.name.split(".").pop()?.toLowerCase();
     const reader = new FileReader();
 
