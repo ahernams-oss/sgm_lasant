@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const statusColors: Record<StatusPedido, string> = {
   Emitido: "bg-blue-100 text-blue-800",
