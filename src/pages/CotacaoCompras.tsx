@@ -53,6 +53,8 @@ export default function CotacaoComprasPage() {
   const { cargos } = useCargos();
   const { registrar: registrarAssinaturaPc } = usePcAssinaturas();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriarCot = tem("cotacoes.criar");
 
   const assinarPedidoAutomatico = useCallback(async (pedido: PedidoCompra) => {
     if (!usuarioLogado) return;
