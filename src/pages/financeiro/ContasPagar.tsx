@@ -13,6 +13,7 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import BaixaDialog from "@/components/financeiro/BaixaDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const empty = {
   descricao: "", fornecedor_id: null as string | null, fornecedor_nome: "",
@@ -27,6 +28,11 @@ export default function ContasPagar() {
   const { contasPagar, planoContas, centrosCusto, contasBancarias, addContaPagar, updateContaPagar, deleteContaPagar } = useFinanceiro();
   const { clientes } = useClientes();
   const fornecedores = useMemo(() => clientes.filter(c => c.tipo === "Fornecedor"), [clientes]);
+  const { tem } = usePermissao();
+  const podeCriar = tem("financeiro.contas_pagar.criar");
+  const podeEditar = tem("financeiro.contas_pagar.editar");
+  const podeExcluir = tem("financeiro.contas_pagar.excluir");
+  const podeBaixar = tem("financeiro.contas_pagar.baixar");
   const [form, setForm] = useState<any>(empty);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
