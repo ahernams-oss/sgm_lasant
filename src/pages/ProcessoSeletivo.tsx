@@ -458,9 +458,9 @@ const ProcessoSeletivoPage = () => {
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
-                          {podeEditar && <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => openEditDialog(c)}>
+                          {podeEditar && (<Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => openEditDialog(c)}>
                             <Pencil className="h-3.5 w-3.5" />
-                          </Button>
+                          </Button>)}
                           <Badge variant="outline" className={statusBadge[getEtapaStatus(c, c.etapaAtual)]}>
                             {etapaLabels[c.etapaAtual]}
                           </Badge>
