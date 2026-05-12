@@ -135,6 +135,7 @@ import Conciliacao from "./pages/financeiro/Conciliacao.tsx";
 import Lancamentos from "./pages/financeiro/Lancamentos.tsx";
 import RelatoriosFinanceiros from "./pages/financeiro/RelatoriosFinanceiros.tsx";
 import CondicoesPagamento from "./pages/financeiro/CondicoesPagamento.tsx";
+import { RotaProtegida } from "@/components/RotaProtegida";
 const queryClient = new QueryClient();
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -146,154 +147,170 @@ function ProtectedAppRoutes() {
   return (
     <AppLayout>
       <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/clientes" element={<OrdensServicoProvider><Clientes /></OrdensServicoProvider>} />
-        <Route path="/fornecedores" element={<Fornecedores />} />
-        <Route path="/cargos" element={<Cargos />} />
-        <Route path="/funcionarios" element={<Funcionarios />} />
-        <Route path="/epis" element={<EpisPage />} />
-        <Route path="/exames" element={<ExamesPage />} />
-        <Route path="/mapa-funcionarios" element={<MapaFuncionarios />} />
-        <Route path="/mapa-plantoes" element={<MapaPlantoes />} />
-        <Route path="/avaliacoes-desempenho" element={<AvaliacoesDesempenhoPage />} />
-        <Route path="/usuarios" element={<Usuarios />} />
-        <Route path="/perfis-acesso" element={<PerfisAcessoPage />} />
-        <Route path="/empresa" element={<EmpresaDadosPage />} />
-        <Route path="/processo-seletivo/:requisicaoId" element={<ProcessoSeletivo />} />
-        <Route path="/processos-seletivos" element={<ProcessosSeletivos />} />
-        <Route path="/sco" element={<Sco />} />
-        <Route path="/i0" element={<I0Page />} />
-        <Route path="/compras/categorias" element={<CategoriasCompras />} />
-        <Route path="/compras/materiais" element={<MateriaisServicos />} />
-        <Route path="/compras/requisicoes" element={<RequisicaoComprasPage />} />
-        <Route path="/compras/cotacoes" element={<CotacaoComprasPage />} />
-        <Route path="/compras/pedidos" element={<PedidoCompraPage />} />
-        <Route path="/compras/inteligencia" element={<InteligenciaComprasPage />} />
-        <Route path="/compras/assinar-lote-pc" element={<AssinarLotePcPage />} />
-        <Route path="/compras/recebimento" element={<RecebimentoComprasPage />} />
-        <Route path="/compras/estoque" element={<EstoquePage />} />
-        <Route path="/compras/relatorios-estoque" element={<RelatoriosEstoquePage />} />
-        <Route path="/compras/dashboard" element={<DashboardCompras />} />
-        <Route path="/compras/fabricantes" element={<FabricantesPage />} />
-        <Route path="/licitacoes" element={<LicitacoesPage />} />
-        <Route path="/engenharia/dashboard-medicoes" element={<DashboardMedicoesPage />} />
+        <Route path="/" element={<RotaProtegida perm="requisicao_colaboradores"><Index /></RotaProtegida>} />
+        <Route path="/dashboard" element={<RotaProtegida perm="dashboard_gp"><Dashboard /></RotaProtegida>} />
+        <Route path="/clientes" element={<RotaProtegida perm="clientes"><OrdensServicoProvider><Clientes /></OrdensServicoProvider></RotaProtegida>} />
+        <Route path="/fornecedores" element={<RotaProtegida perm="fornecedores"><Fornecedores /></RotaProtegida>} />
+        <Route path="/cargos" element={<RotaProtegida perm="cargos"><Cargos /></RotaProtegida>} />
+        <Route path="/funcionarios" element={<RotaProtegida perm="funcionarios"><Funcionarios /></RotaProtegida>} />
+        <Route path="/epis" element={<RotaProtegida perm="funcionarios"><EpisPage /></RotaProtegida>} />
+        <Route path="/exames" element={<RotaProtegida perm="funcionarios"><ExamesPage /></RotaProtegida>} />
+        <Route path="/mapa-funcionarios" element={<RotaProtegida perm="mapa_funcionarios"><MapaFuncionarios /></RotaProtegida>} />
+        <Route path="/mapa-plantoes" element={<RotaProtegida perm="mapa_funcionarios"><MapaPlantoes /></RotaProtegida>} />
+        <Route path="/avaliacoes-desempenho" element={<RotaProtegida perm="avaliacoes_desempenho"><AvaliacoesDesempenhoPage /></RotaProtegida>} />
+        <Route path="/usuarios" element={<RotaProtegida perm="usuarios"><Usuarios /></RotaProtegida>} />
+        <Route path="/perfis-acesso" element={<RotaProtegida perm="perfis_acesso"><PerfisAcessoPage /></RotaProtegida>} />
+        <Route path="/empresa" element={<RotaProtegida perm="empresa"><EmpresaDadosPage /></RotaProtegida>} />
+        <Route path="/processo-seletivo/:requisicaoId" element={<RotaProtegida perm="processos_seletivos"><ProcessoSeletivo /></RotaProtegida>} />
+        <Route path="/processos-seletivos" element={<RotaProtegida perm="processos_seletivos"><ProcessosSeletivos /></RotaProtegida>} />
+        <Route path="/sco" element={<RotaProtegida perm="sco"><Sco /></RotaProtegida>} />
+        <Route path="/i0" element={<RotaProtegida perm="i0"><I0Page /></RotaProtegida>} />
+        <Route path="/compras/categorias" element={<RotaProtegida perm="categorias_compras"><CategoriasCompras /></RotaProtegida>} />
+        <Route path="/compras/materiais" element={<RotaProtegida perm="materiais_servicos"><MateriaisServicos /></RotaProtegida>} />
+        <Route path="/compras/requisicoes" element={<RotaProtegida perm="requisicoes_compras"><RequisicaoComprasPage /></RotaProtegida>} />
+        <Route path="/compras/cotacoes" element={<RotaProtegida perm="cotacoes"><CotacaoComprasPage /></RotaProtegida>} />
+        <Route path="/compras/pedidos" element={<RotaProtegida perm="pedidos_compra"><PedidoCompraPage /></RotaProtegida>} />
+        <Route path="/compras/inteligencia" element={<RotaProtegida perm="requisicoes_compras"><InteligenciaComprasPage /></RotaProtegida>} />
+        <Route path="/compras/assinar-lote-pc" element={<RotaProtegida perm="pedidos_compra"><AssinarLotePcPage /></RotaProtegida>} />
+        <Route path="/compras/recebimento" element={<RotaProtegida perm="recebimento"><RecebimentoComprasPage /></RotaProtegida>} />
+        <Route path="/compras/estoque" element={<RotaProtegida perm="estoque"><EstoquePage /></RotaProtegida>} />
+        <Route path="/compras/relatorios-estoque" element={<RotaProtegida perm="estoque"><RelatoriosEstoquePage /></RotaProtegida>} />
+        <Route path="/compras/dashboard" element={<RotaProtegida perm="dashboard_compras"><DashboardCompras /></RotaProtegida>} />
+        <Route path="/compras/fabricantes" element={<RotaProtegida perm="fabricantes"><FabricantesPage /></RotaProtegida>} />
+        <Route path="/licitacoes" element={<RotaProtegida perm="licitacoes"><LicitacoesPage /></RotaProtegida>} />
+        <Route path="/engenharia/dashboard-medicoes" element={<RotaProtegida perm="dashboard_engenharia"><DashboardMedicoesPage /></RotaProtegida>} />
         <Route
           path="/engenharia/dashboard"
           element={
-            <SolicitacoesServicosProvider>
-              <OrdensServicoProvider>
-                <OrcamentosProvider>
-                  <DashboardSSOSPage />
-                </OrcamentosProvider>
-              </OrdensServicoProvider>
-            </SolicitacoesServicosProvider>
+            <RotaProtegida perm="dashboard_engenharia">
+              <SolicitacoesServicosProvider>
+                <OrdensServicoProvider>
+                  <OrcamentosProvider>
+                    <DashboardSSOSPage />
+                  </OrcamentosProvider>
+                </OrdensServicoProvider>
+              </SolicitacoesServicosProvider>
+            </RotaProtegida>
           }
         />
-        <Route path="/engenharia/medicoes" element={<MedicoesProvider><MedicoesServicosPage /></MedicoesProvider>} />
-        <Route path="/patrimonio/ferramentas" element={<FerramentasPage />} />
-        <Route path="/qualidade/evidencias" element={<EvidenciasPage />} />
-        <Route path="/qualidade/checklists" element={<ChecklistsPage />} />
-        <Route path="/cadastros/equipamentos" element={<EquipamentosPage />} />
-        <Route path="/pmoc" element={<PmocPage />} />
-        <Route path="/engenharia/plano-manutencao" element={<PlanoManutencaoPage />} />
-        <Route path="/engenharia/base-conhecimento" element={<BaseConhecimentoPage />} />
-        <Route path="/cadastros/categorias-servicos" element={<CategoriasServicosPage />} />
-        <Route path="/cadastros/servicos" element={<ServicosPage />} />
+        <Route path="/engenharia/medicoes" element={<RotaProtegida perm="medicoes"><MedicoesProvider><MedicoesServicosPage /></MedicoesProvider></RotaProtegida>} />
+        <Route path="/patrimonio/ferramentas" element={<RotaProtegida perm="ferramentas"><FerramentasPage /></RotaProtegida>} />
+        <Route path="/qualidade/evidencias" element={<RotaProtegida perm="evidencias"><EvidenciasPage /></RotaProtegida>} />
+        <Route path="/qualidade/checklists" element={<RotaProtegida perm="checklists"><ChecklistsPage /></RotaProtegida>} />
+        <Route path="/cadastros/equipamentos" element={<RotaProtegida perm="equipamentos"><EquipamentosPage /></RotaProtegida>} />
+        <Route path="/pmoc" element={<RotaProtegida perm="pmoc"><PmocPage /></RotaProtegida>} />
+        <Route path="/engenharia/plano-manutencao" element={<RotaProtegida perm="plano_manutencao"><PlanoManutencaoPage /></RotaProtegida>} />
+        <Route path="/engenharia/base-conhecimento" element={<RotaProtegida perm="base_conhecimento"><BaseConhecimentoPage /></RotaProtegida>} />
+        <Route path="/cadastros/categorias-servicos" element={<RotaProtegida perm="categorias_servicos"><CategoriasServicosPage /></RotaProtegida>} />
+        <Route path="/cadastros/servicos" element={<RotaProtegida perm="servicos"><ServicosPage /></RotaProtegida>} />
         <Route
           path="/engenharia/solicitacao-servicos"
           element={
-            <SolicitacoesServicosProvider>
-              <OrdensServicoProvider>
-                <OrcamentosProvider>
-                  <SolicitacaoServicosPage />
-                </OrcamentosProvider>
-              </OrdensServicoProvider>
-            </SolicitacoesServicosProvider>
+            <RotaProtegida perm="solicitacao_servicos">
+              <SolicitacoesServicosProvider>
+                <OrdensServicoProvider>
+                  <OrcamentosProvider>
+                    <SolicitacaoServicosPage />
+                  </OrcamentosProvider>
+                </OrdensServicoProvider>
+              </SolicitacoesServicosProvider>
+            </RotaProtegida>
           }
         />
         <Route
           path="/engenharia/aprovar-lote-ss"
           element={
-            <SolicitacoesServicosProvider>
-              <OrdensServicoProvider>
-                <AprovarLoteSS />
-              </OrdensServicoProvider>
-            </SolicitacoesServicosProvider>
+            <RotaProtegida perm="solicitacao_servicos">
+              <SolicitacoesServicosProvider>
+                <OrdensServicoProvider>
+                  <AprovarLoteSS />
+                </OrdensServicoProvider>
+              </SolicitacoesServicosProvider>
+            </RotaProtegida>
           }
         />
         <Route
           path="/engenharia/assinar-lote-os"
           element={
-            <OrdensServicoProvider>
-              <AssinarLoteOsPage />
-            </OrdensServicoProvider>
+            <RotaProtegida perm="ordem_servico">
+              <OrdensServicoProvider>
+                <AssinarLoteOsPage />
+              </OrdensServicoProvider>
+            </RotaProtegida>
           }
         />
         <Route
           path="/engenharia/confirmar-lote-os"
           element={
-            <SolicitacoesServicosProvider>
-              <OrdensServicoProvider>
-              <ConfirmarLoteOsPage />
-            </OrdensServicoProvider>
-          </SolicitacoesServicosProvider>
-        }
+            <RotaProtegida perm="ordem_servico">
+              <SolicitacoesServicosProvider>
+                <OrdensServicoProvider>
+                  <ConfirmarLoteOsPage />
+                </OrdensServicoProvider>
+              </SolicitacoesServicosProvider>
+            </RotaProtegida>
+          }
         />
         <Route
           path="/engenharia/validar-lote-os"
           element={
-            <OrdensServicoProvider>
-              <ValidarLoteOsPage />
-            </OrdensServicoProvider>
+            <RotaProtegida perm="ordem_servico">
+              <OrdensServicoProvider>
+                <ValidarLoteOsPage />
+              </OrdensServicoProvider>
+            </RotaProtegida>
           }
         />
         <Route
           path="/engenharia/imprimir-lote-os"
           element={
-            <OrdensServicoProvider>
-              <ImprimirLoteOsPage />
-            </OrdensServicoProvider>
+            <RotaProtegida perm="ordem_servico">
+              <OrdensServicoProvider>
+                <ImprimirLoteOsPage />
+              </OrdensServicoProvider>
+            </RotaProtegida>
           }
         />
         <Route
           path="/engenharia/ordem-servico"
           element={
-            <OrdensServicoProvider>
-              <OrcamentosProvider>
-                <OrdensServicoPage />
-              </OrcamentosProvider>
-            </OrdensServicoProvider>
+            <RotaProtegida perm="ordem_servico">
+              <OrdensServicoProvider>
+                <OrcamentosProvider>
+                  <OrdensServicoPage />
+                </OrcamentosProvider>
+              </OrdensServicoProvider>
+            </RotaProtegida>
           }
         />
-        <Route path="/engenharia/rdo" element={<RdoPage />} />
-        <Route path="/engenharia/cronograma" element={<CronogramaPage />} />
-        <Route path="/obras/bim" element={<BimPage />} />
-        <Route path="/engenharia/responsaveis-tecnicos" element={<ResponsaveisTecnicosPage />} />
-        <Route path="/cadastros/responsaveis-tecnicos" element={<ResponsaveisTecnicosPage />} />
-        <Route path="/comunicacao/mensagens" element={<ComunicacaoMensagensPage />} />
-        <Route path="/comunicacao/avisos" element={<ComunicacaoAvisosPage />} />
-        <Route path="/comunicacao/notificacoes" element={<ComunicacaoNotificacoesPage />} />
-        <Route path="/comunicacao/whatsapp" element={<ComunicacaoWhatsappPage />} />
-        <Route path="/juridico" element={<JuridicoPage />} />
-        <Route path="/chat-duda" element={<ChatDudaPage />} />
-        <Route path="/orcamentos" element={<OrcamentosSco />} />
-        <Route path="/orcamentos/novo" element={<OrcamentoScoForm />} />
-        <Route path="/orcamentos/:id" element={<OrcamentoScoForm />} />
-        <Route path="/orcamentos/catalogo" element={<CatalogoSco />} />
-        <Route path="/orcamentos/importar-catalogo" element={<ImportarCatalogoSco />} />
-        <Route path="/financeiro/dashboard" element={<DashboardFinanceiro />} />
-        <Route path="/financeiro/contas-pagar" element={<ContasPagar />} />
-        <Route path="/financeiro/contas-receber" element={<ContasReceber />} />
-        <Route path="/financeiro/contas-bancarias" element={<ContasBancarias />} />
-        <Route path="/financeiro/plano-contas" element={<PlanoContas />} />
-        <Route path="/financeiro/centros-custo" element={<CentrosCusto />} />
-        <Route path="/financeiro/fluxo-caixa" element={<FluxoCaixa />} />
-        <Route path="/financeiro/dre" element={<Dre />} />
-        <Route path="/financeiro/conciliacao" element={<Conciliacao />} />
-        <Route path="/financeiro/lancamentos" element={<Lancamentos />} />
-        <Route path="/financeiro/relatorios" element={<RelatoriosFinanceiros />} />
-        <Route path="/financeiro/condicoes-pagamento" element={<CondicoesPagamento />} />
+        <Route path="/engenharia/rdo" element={<RotaProtegida perm="rdo"><RdoPage /></RotaProtegida>} />
+        <Route path="/engenharia/cronograma" element={<RotaProtegida perm="cronograma"><CronogramaPage /></RotaProtegida>} />
+        <Route path="/obras/bim" element={<RotaProtegida perm="bim"><BimPage /></RotaProtegida>} />
+        <Route path="/engenharia/responsaveis-tecnicos" element={<RotaProtegida perm="responsaveis_tecnicos"><ResponsaveisTecnicosPage /></RotaProtegida>} />
+        <Route path="/cadastros/responsaveis-tecnicos" element={<RotaProtegida perm="responsaveis_tecnicos"><ResponsaveisTecnicosPage /></RotaProtegida>} />
+        <Route path="/comunicacao/mensagens" element={<RotaProtegida perm="comunicacao"><ComunicacaoMensagensPage /></RotaProtegida>} />
+        <Route path="/comunicacao/avisos" element={<RotaProtegida perm="comunicacao"><ComunicacaoAvisosPage /></RotaProtegida>} />
+        <Route path="/comunicacao/notificacoes" element={<RotaProtegida perm="comunicacao"><ComunicacaoNotificacoesPage /></RotaProtegida>} />
+        <Route path="/comunicacao/whatsapp" element={<RotaProtegida perm="whatsapp"><ComunicacaoWhatsappPage /></RotaProtegida>} />
+        <Route path="/juridico" element={<RotaProtegida perm="juridico"><JuridicoPage /></RotaProtegida>} />
+        <Route path="/chat-duda" element={<RotaProtegida perm="chat_duda"><ChatDudaPage /></RotaProtegida>} />
+        <Route path="/orcamentos" element={<RotaProtegida perm="orcamentos_sco"><OrcamentosSco /></RotaProtegida>} />
+        <Route path="/orcamentos/novo" element={<RotaProtegida perm="orcamentos_sco"><OrcamentoScoForm /></RotaProtegida>} />
+        <Route path="/orcamentos/:id" element={<RotaProtegida perm="orcamentos_sco"><OrcamentoScoForm /></RotaProtegida>} />
+        <Route path="/orcamentos/catalogo" element={<RotaProtegida perm="orcamentos_sco"><CatalogoSco /></RotaProtegida>} />
+        <Route path="/orcamentos/importar-catalogo" element={<RotaProtegida perm="orcamentos_sco"><ImportarCatalogoSco /></RotaProtegida>} />
+        <Route path="/financeiro/dashboard" element={<RotaProtegida perm="dashboard_financeiro"><DashboardFinanceiro /></RotaProtegida>} />
+        <Route path="/financeiro/contas-pagar" element={<RotaProtegida perm="contas_pagar"><ContasPagar /></RotaProtegida>} />
+        <Route path="/financeiro/contas-receber" element={<RotaProtegida perm="contas_receber"><ContasReceber /></RotaProtegida>} />
+        <Route path="/financeiro/contas-bancarias" element={<RotaProtegida perm="contas_bancarias"><ContasBancarias /></RotaProtegida>} />
+        <Route path="/financeiro/plano-contas" element={<RotaProtegida perm="plano_contas"><PlanoContas /></RotaProtegida>} />
+        <Route path="/financeiro/centros-custo" element={<RotaProtegida perm="centros_custo"><CentrosCusto /></RotaProtegida>} />
+        <Route path="/financeiro/fluxo-caixa" element={<RotaProtegida perm="fluxo_caixa"><FluxoCaixa /></RotaProtegida>} />
+        <Route path="/financeiro/dre" element={<RotaProtegida perm="dre"><Dre /></RotaProtegida>} />
+        <Route path="/financeiro/conciliacao" element={<RotaProtegida perm="conciliacao"><Conciliacao /></RotaProtegida>} />
+        <Route path="/financeiro/lancamentos" element={<RotaProtegida perm="lancamentos_financeiros"><Lancamentos /></RotaProtegida>} />
+        <Route path="/financeiro/relatorios" element={<RotaProtegida perm="relatorios_financeiros"><RelatoriosFinanceiros /></RotaProtegida>} />
+        <Route path="/financeiro/condicoes-pagamento" element={<RotaProtegida perm="condicoes_pagamento"><CondicoesPagamento /></RotaProtegida>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
