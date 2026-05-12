@@ -227,6 +227,7 @@ export default function Equipamentos() {
       </div>
 
       {/* Form */}
+      {(podeCriar || (editingId && podeEditar)) && (
       <Card>
         <CardHeader className="cursor-pointer" onClick={() => setFormOpen(!formOpen)}>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -412,6 +413,7 @@ export default function Equipamentos() {
           </CardContent>
         )}
       </Card>
+      )}
 
       {/* Filters & Table */}
       <Card>
@@ -473,8 +475,8 @@ export default function Equipamentos() {
                     <TableCell onClick={e => e.stopPropagation()}>
                       <div className="flex gap-1">
                         {eq.requerCalibracao && <Button size="icon" variant="ghost" title="Histórico de Calibração" onClick={() => openHistorico(eq)}><History className="h-4 w-4 text-primary" /></Button>}
-                        <Button size="icon" variant="ghost" onClick={() => handleEdit(eq)}><Pencil className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" onClick={() => requestDelete(eq.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        {podeEditar && <Button size="icon" variant="ghost" onClick={() => handleEdit(eq)}><Pencil className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button size="icon" variant="ghost" onClick={() => requestDelete(eq.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>

@@ -301,6 +301,7 @@ const Clientes = () => {
           </div>
         </div>
 
+        {(podeCriar || (editingId && podeEditar)) && (
         <div className="section-card animate-fade-up mb-6" style={{ animationDelay: "80ms" }}>
           <button
             type="button"
@@ -324,6 +325,7 @@ const Clientes = () => {
             </div>
           )}
         </div>
+        )}
 
         <div className="section-card animate-fade-up" style={{ animationDelay: "160ms" }}>
           <div className="flex items-center justify-between mb-4">
@@ -406,10 +408,10 @@ const Clientes = () => {
                     >
                       <FileText className="h-3.5 w-3.5" /> Contratos
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(cliente)} className="text-xs">Editar</Button>
-                    <Button variant="ghost" size="sm" onClick={() => requestDelete(cliente.id)} className="text-destructive hover:text-destructive">
+                    {podeEditar && <Button variant="ghost" size="sm" onClick={() => handleEdit(cliente)} className="text-xs">Editar</Button>}
+                    {podeExcluir && <Button variant="ghost" size="sm" onClick={() => requestDelete(cliente.id)} className="text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    </Button>}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
