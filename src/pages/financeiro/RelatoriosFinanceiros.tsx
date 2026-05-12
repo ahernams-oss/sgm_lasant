@@ -354,6 +354,8 @@ export default function RelatoriosFinanceiros() {
   ], [fin, clientes, dataIni, dataFim, fCentroCusto]);
 
   const exportar = (def: RelDef, tipo: "pdf" | "excel") => {
+    if (tipo === "pdf" && !podePdf) { toast.error("Você não possui permissão para exportar PDF."); return; }
+    if (tipo === "excel" && !podeExcel) { toast.error("Você não possui permissão para exportar Excel."); return; }
     const r = def.build();
     if (tipo === "pdf") gerarPdfFinanceiro(r);
     else gerarExcelFinanceiro(r);
