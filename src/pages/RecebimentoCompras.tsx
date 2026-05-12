@@ -130,6 +130,7 @@ export default function RecebimentoComprasPage() {
   };
 
   const handleRegistrarRecebimento = () => {
+    if (!podeRegistrar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!recPedido) return;
     const temRecebimento = recItens.some(i => i.quantidadeRecebida > 0);
     if (!temRecebimento) {
