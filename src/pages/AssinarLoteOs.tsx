@@ -59,6 +59,7 @@ export default function AssinarLoteOs() {
   const [signing, setSigning] = useState(false);
 
   const podeFiscal = tem("os.assinar_fiscal");
+  const podeAssinarLote = tem("os.assinar_lote");
 
   // Apenas OS Validadas podem ser assinadas, e sem sobreposição (mesmo papel)
   const validadasDisponiveis = useMemo(() => {
