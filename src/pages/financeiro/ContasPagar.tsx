@@ -255,6 +255,7 @@ export default function ContasPagar() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader className="space-y-3">
