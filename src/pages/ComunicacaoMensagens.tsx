@@ -133,9 +133,11 @@ export default function ComunicacaoMensagens() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm">Conversas</CardTitle>
-              <Button size="sm" onClick={() => setDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-1" /> Nova
-              </Button>
+              {podeCriarConversa && (
+                <Button size="sm" onClick={() => setDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-1" /> Nova
+                </Button>
+              )}
             </div>
             <Input
               placeholder="Buscar conversa..."
