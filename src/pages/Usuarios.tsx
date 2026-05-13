@@ -166,6 +166,7 @@ const Usuarios = () => {
   };
 
   const handleDelete = (id: string) => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
     deleteUsuario(id);
     if (editingId === id) resetForm();
     toast.success("Usuário removido.");
@@ -173,6 +174,7 @@ const Usuarios = () => {
   const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   const handleForcarReset = async (email: string) => {
+    if (!podeResetSenha) { toast.error("Você não possui permissão para esta ação."); return; }
     const r = await resetSenha(email);
     if (r.ok) toast.success(r.message);
     else toast.error(r.message);
