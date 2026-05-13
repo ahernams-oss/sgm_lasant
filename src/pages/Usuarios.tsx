@@ -231,10 +231,12 @@ const Usuarios = () => {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setAuditoriaOpen(true)}>
-                <Shield className="h-4 w-4 mr-2" /> Auditoria de Acessos
-              </Button>
-              {!showForm && (
+              {podeAuditoria && (
+                <Button variant="outline" onClick={() => setAuditoriaOpen(true)}>
+                  <Shield className="h-4 w-4 mr-2" /> Auditoria de Acessos
+                </Button>
+              )}
+              {!showForm && podeCriar && (
                 <Button onClick={() => setShowForm(true)} className="shadow-md">Novo Usuário</Button>
               )}
             </div>
