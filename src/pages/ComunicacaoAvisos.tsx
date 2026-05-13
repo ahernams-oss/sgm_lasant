@@ -256,6 +256,7 @@ export default function ComunicacaoAvisos() {
         open={!!deleteId}
         onOpenChange={(open) => { if (!open) cancelDelete(); }}
         onConfirm={async () => {
+          if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); cancelDelete(); return; }
           if (deleteId) {
             await deleteAviso(deleteId);
             cancelDelete();
