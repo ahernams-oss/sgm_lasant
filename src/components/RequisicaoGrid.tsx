@@ -57,6 +57,17 @@ const RequisicaoGrid = () => {
   const { empresa } = useEmpresa();
   const navigate = useNavigate();
   const { processos } = useProcessoSeletivo();
+  const { tem } = usePermissao();
+  const podeStatusRP = (s: Requisicao["status"]) => {
+    const map: Record<Requisicao["status"], string> = {
+      "Pendente": "requisicao_colaboradores.status.pendente",
+      "Em Análise": "requisicao_colaboradores.status.em_analise",
+      "Aprovada": "requisicao_colaboradores.status.aprovada",
+      "Reprovada": "requisicao_colaboradores.status.reprovada",
+      "Concluída": "requisicao_colaboradores.status.concluida",
+    };
+    return tem(map[s] || "");
+  };
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [filterUnidade, setFilterUnidade] = useState<string>("todos");
