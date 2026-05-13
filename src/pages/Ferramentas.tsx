@@ -291,7 +291,7 @@ export default function FerramentasPage() {
         {/* EMPRÉSTIMOS */}
         <TabsContent value="emprestimos" className="space-y-4">
           <div className="flex gap-2">
-            <Button onClick={() => { setEmpFerramentaId(""); setEmprestimoOpen(true); }}><Plus className="mr-1 h-4 w-4" />Solicitar Empréstimo</Button>
+            {podeEmprestimos && <Button onClick={() => { setEmpFerramentaId(""); setEmprestimoOpen(true); }}><Plus className="mr-1 h-4 w-4" />Solicitar Empréstimo</Button>}
           </div>
           <div className="border rounded-lg overflow-auto">
             <Table>
