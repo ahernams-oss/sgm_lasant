@@ -206,7 +206,7 @@ export default function ChecklistsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Buscar templates..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
             </div>
-            <Button onClick={openNewTemplate}><Plus className="h-4 w-4 mr-1" />Novo Template</Button>
+            {podeCriar && <Button onClick={openNewTemplate}><Plus className="h-4 w-4 mr-1" />Novo Template</Button>}
           </div>
 
           <div className="border rounded-lg overflow-hidden">
