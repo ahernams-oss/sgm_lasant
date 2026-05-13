@@ -279,8 +279,8 @@ export default function ChecklistsPage() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button size="icon" variant="ghost" title="Visualizar" onClick={() => { setViewing(p); setViewDialogOpen(true); }}><Eye className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Editar" onClick={() => openEditPreench(p)}><Edit className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" className="text-destructive" title="Excluir" onClick={() => { setDeleteId(p.id); setDeleteType("preenchimento"); }}><Trash2 className="h-4 w-4" /></Button>
+                        {podePreencher && <Button size="icon" variant="ghost" title="Editar" onClick={() => openEditPreench(p)}><Edit className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button size="icon" variant="ghost" className="text-destructive" title="Excluir" onClick={() => { setDeleteId(p.id); setDeleteType("preenchimento"); }}><Trash2 className="h-4 w-4" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>
