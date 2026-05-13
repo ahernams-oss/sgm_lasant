@@ -135,6 +135,7 @@ const PerfisAcesso = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome.trim()) { toast.error("Informe o nome do perfil."); return; }
     if (editingId) {
       await updatePerfil(editingId, form);
