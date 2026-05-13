@@ -951,7 +951,7 @@ export default function SolicitacaoServicosPage() {
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
-                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
+                      {podeStAprovada && !["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleOpenApproval(s.id)}>
                           <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
                         </DropdownMenuItem>
@@ -961,7 +961,7 @@ export default function SolicitacaoServicosPage() {
                           <Pencil className="mr-2 h-4 w-4" />Alterar Prioridade
                         </DropdownMenuItem>
                       )}
-                      {s.situacao === "Aguardando aprovação" && (
+                      {podeStEmAnalise && s.situacao === "Aguardando aprovação" && (
                         <DropdownMenuItem onClick={() => handleSolicitarOrcamento(s)}>
                           <FileText className="mr-2 h-4 w-4" />Solicitar Orçamento
                         </DropdownMenuItem>
