@@ -402,7 +402,7 @@ export default function OrdensServicoPage() {
   };
 
   const handleConfirmNaoAprovar = async () => {
-    if (!podeWorkflowOS) {
+    if (!podeWorkflowOS || !podeStEmExecOS) {
       toast.error("Você não possui permissão para esta ação.");
       return;
     }
