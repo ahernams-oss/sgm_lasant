@@ -88,6 +88,11 @@ export default function SolicitacaoServicosPage() {
   const podeCriar = tem("solicitacao_servicos.criar");
   const podeEditar = tem("solicitacao_servicos.editar");
   const podeExcluir = tem("solicitacao_servicos.excluir");
+  const podeStAprovada = tem("solicitacao_servicos.status.aprovada");
+  const podeStReprovada = tem("solicitacao_servicos.status.reprovada");
+  const podeStCancelada = tem("solicitacao_servicos.status.cancelada");
+  const podeStConcluida = tem("solicitacao_servicos.status.concluida");
+  const podeStEmAnalise = tem("solicitacao_servicos.status.em_analise");
 
   const buildHistoricoEntry = (situacao: string, existingHistorico: HistoricoEntry[] = []): HistoricoEntry[] => [
     ...existingHistorico,
@@ -310,6 +315,10 @@ export default function SolicitacaoServicosPage() {
       toast({ title: "Selecione o nível de prioridade", variant: "destructive" });
       return;
     }
+    if (!prioridadeOnly && !podeStAprovada) {
+      toast({ title: "Você não possui permissão para aprovar esta SS.", variant: "destructive" });
+      return;
+    }
     if (prioridadeOnly) {
       await updateSolicitacao(approvalTargetId, { prioridade: selectedPrioridade });
       const prioridadeOS =
@@ -369,6 +378,11 @@ export default function SolicitacaoServicosPage() {
 
   const handleCancelar = async () => {
     if (cancelId) {
+      if (!podeStCancelada) {
+        toast({ title: "Você não possui permissão para cancelar esta SS.", variant: "destructive" });
+        abortCancel();
+        return;
+      }
       const ss = solicitacoes.find(s => s.id === cancelId);
       await updateSolicitacao(cancelId, {
         situacao: "Cancelada",
@@ -380,6 +394,10 @@ export default function SolicitacaoServicosPage() {
   };
 
   const handleSolicitarOrcamento = async (s: any) => {
+    if (!podeStEmAnalise) {
+      toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" });
+      return;
+    }
     const full = solicitacoes.find(x => x.id === s.id);
     await updateSolicitacao(s.id, {
       situacao: "Orçamento Solicitado",
@@ -412,6 +430,11 @@ export default function SolicitacaoServicosPage() {
     // When budget is approved, create OS linked to it
     const ss = solicitacoes.find(s => s.id === orcamento.solicitacaoId);
     if (!ss) return;
+
+    if (!podeStAprovada) {
+      toast({ title: "Você não possui permissão para aprovar esta SS.", variant: "destructive" });
+      return;
+    }
 
     const valorOrc = Number(orcamento?.valorTotal ?? 0);
     if (!podeAprovar(valorOrc, "os")) return;
@@ -928,7 +951,7 @@ export default function SolicitacaoServicosPage() {
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
-                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
+                      {podeStAprovada && !["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleOpenApproval(s.id)}>
                           <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />Aprovar
                         </DropdownMenuItem>
@@ -938,7 +961,7 @@ export default function SolicitacaoServicosPage() {
                           <Pencil className="mr-2 h-4 w-4" />Alterar Prioridade
                         </DropdownMenuItem>
                       )}
-                      {s.situacao === "Aguardando aprovação" && (
+                      {podeStEmAnalise && s.situacao === "Aguardando aprovação" && (
                         <DropdownMenuItem onClick={() => handleSolicitarOrcamento(s)}>
                           <FileText className="mr-2 h-4 w-4" />Solicitar Orçamento
                         </DropdownMenuItem>
@@ -964,18 +987,18 @@ export default function SolicitacaoServicosPage() {
                           </DropdownMenuItem>
                         </>
                       )}
-                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
+                      {podeEditar && !["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleEdit(s)}>
                           <Pencil className="mr-2 h-4 w-4" />Editar
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
-                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
+                      {podeStCancelada && !["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => requestCancel(s.id)}>
                           <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar Solicitação
                         </DropdownMenuItem>
                       )}
-                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
+                      {podeExcluir && !["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => requestDelete(s.id)} className="text-destructive">
                           <Trash2 className="mr-2 h-4 w-4" />Excluir
                         </DropdownMenuItem>
