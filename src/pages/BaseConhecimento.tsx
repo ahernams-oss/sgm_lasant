@@ -163,6 +163,7 @@ export default function BaseConhecimentoPage() {
   };
 
   const salvarArtigo = async () => {
+    if (artigoEditId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!artigoForm.titulo?.trim()) { toast.error("Título obrigatório"); return; }
     const cat = categorias.find((c) => c.id === artigoForm.categoria_id);
     const tags = tagsInput.split(",").map((t) => t.trim()).filter(Boolean);
