@@ -72,20 +72,18 @@ async function renderSolicitacao(
     }
   }
 
-  // ===== TITLE (à direita do logo, para não sobrepor) =====
-  const titleX = ml + logoW + 6;
-  const titleW = pw - mr - titleX;
-  const titleCenter = titleX + titleW / 2;
+  // ===== TITLE (centralizado na página, ao lado do logo) =====
+  const titleCenter = pw / 2;
 
-  doc.setFontSize(13);
+  doc.setFontSize(18);
   doc.setFont("helvetica", "bolditalic");
   doc.setTextColor(...DARK_BLUE);
-  doc.text("SOLICITAÇÃO DE SERVIÇO — ENGENHARIA E MANUTENÇÃO", titleCenter, y + 8, { align: "center" });
+  doc.text("SOLICITAÇÃO DE SERVIÇO", titleCenter, y + 9, { align: "center" });
 
-  doc.setFontSize(11);
+  doc.setFontSize(12);
   doc.setFont("helvetica", "italic");
-  doc.setTextColor(80, 80, 80);
-  doc.text(ss.clienteNome || "Cliente", titleCenter, y + 16, { align: "center" });
+  doc.setTextColor(...DARK_BLUE);
+  doc.text(ss.clienteNome || "Cliente", titleCenter, y + 17, { align: "center" });
 
   y += logoH + 6;
   doc.setDrawColor(...BORDER_COLOR);
