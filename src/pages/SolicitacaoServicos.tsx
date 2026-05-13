@@ -431,6 +431,11 @@ export default function SolicitacaoServicosPage() {
     const ss = solicitacoes.find(s => s.id === orcamento.solicitacaoId);
     if (!ss) return;
 
+    if (!podeStAprovada) {
+      toast({ title: "Você não possui permissão para aprovar esta SS.", variant: "destructive" });
+      return;
+    }
+
     const valorOrc = Number(orcamento?.valorTotal ?? 0);
     if (!podeAprovar(valorOrc, "os")) return;
 
