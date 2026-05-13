@@ -91,6 +91,7 @@ const Usuarios = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome.trim()) { toast.error("Informe o nome."); return; }
     if (!form.cargoId) { toast.error("Selecione o cargo."); return; }
     if (!form.email.trim()) { toast.error("Informe o e-mail."); return; }
