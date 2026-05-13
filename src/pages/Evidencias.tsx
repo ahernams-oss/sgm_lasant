@@ -56,6 +56,12 @@ export default function EvidenciasPage() {
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
 
+  const { tem } = usePermissao();
+  const podeCriar = tem("evidencias.criar");
+  const podeEditar = tem("evidencias.editar");
+  const podeExcluir = tem("evidencias.excluir");
+  const podeAnexos = tem("evidencias.gerenciar_anexos");
+
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState("Todos");
   const [filterStatus, setFilterStatus] = useState("Todos");
