@@ -138,6 +138,7 @@ export default function EvidenciasPage() {
   };
 
   const handleFileUpload = async (files: FileList | null) => {
+    if (!podeAnexos) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!files || !editing) return;
     setUploading(true);
     const newAnexos = [...(form.anexos || [])];
