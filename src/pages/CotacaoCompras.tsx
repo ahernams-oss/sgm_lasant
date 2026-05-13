@@ -55,6 +55,7 @@ export default function CotacaoComprasPage() {
   const { toast } = useToast();
   const { tem } = usePermissao();
   const podeCriarCot = tem("cotacoes.criar");
+  const podeFinalizarCot = tem("cotacoes.status.finalizada");
 
   const assinarPedidoAutomatico = useCallback(async (pedido: PedidoCompra) => {
     if (!usuarioLogado) return;
