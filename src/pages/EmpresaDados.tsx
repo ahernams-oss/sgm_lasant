@@ -7,11 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark, MessageCircle } from "lucide-react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 
 export default function EmpresaDados() {
   const { empresa, loading, saveEmpresa, uploadLogo } = useEmpresa();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeEditar = tem("empresa.editar");
   const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<Empresa>(empresa);
   const [saving, setSaving] = useState(false);
