@@ -455,15 +455,21 @@ const PerfisAcesso = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" onClick={() => handleDuplicate(p)} className="h-8 w-8" title="Duplicar">
-                          <Copy className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => handleEdit(p)} className="h-8 w-8">
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => requestDelete(p.id)} className="h-8 w-8 text-destructive hover:text-destructive">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        {(podeDuplicar || podeCriar) && (
+                          <Button size="icon" variant="ghost" onClick={() => handleDuplicate(p)} className="h-8 w-8" title="Duplicar">
+                            <Copy className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        {podeEditar && (
+                          <Button size="icon" variant="ghost" onClick={() => handleEdit(p)} className="h-8 w-8">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        {podeExcluir && (
+                          <Button size="icon" variant="ghost" onClick={() => requestDelete(p.id)} className="h-8 w-8 text-destructive hover:text-destructive">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
