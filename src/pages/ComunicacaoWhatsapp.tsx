@@ -130,6 +130,7 @@ export default function ComunicacaoWhatsappPage() {
   }
 
   const onSave = async () => {
+    if (editing ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome?.trim()) { toast.error("Informe o nome da campanha"); return; }
     if (!form.mensagem?.trim()) { toast.error("Informe a mensagem"); return; }
     if (form.modo === "agendado" && !form.agendado_para) { toast.error("Informe data/hora do agendamento"); return; }
