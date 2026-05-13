@@ -34,6 +34,14 @@ export default function FerramentasPage() {
   const { cargos } = useCargos();
   const { usuarioLogado } = useAuth();
 
+  const { tem } = usePermissao();
+  const podeCriar = tem("ferramentas.criar");
+  const podeEditar = tem("ferramentas.editar");
+  const podeExcluir = tem("ferramentas.excluir");
+  const podeEmprestimos = tem("ferramentas.gerenciar_emprestimos");
+  const podeAprovar = tem("ferramentas.aprovar_emprestimo");
+  const podeVincular = tem("ferramentas.vincular_funcionario");
+
   const [form, setForm] = useState<Omit<Ferramenta, "id">>(emptyFerramentaForm);
   const [editId, setEditId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
