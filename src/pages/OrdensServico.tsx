@@ -345,8 +345,8 @@ export default function OrdensServicoPage() {
 
   // Workflow action handler
    const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
-    if (!podeWorkflowOS) {
-      toast.error("Você não possui permissão para executar ações de workflow nesta OS.");
+    if (!podeWorkflowOS || !podeStatusOS(novaSituacao)) {
+      toast.error(`Você não possui permissão para alterar a OS para "${novaSituacao}".`);
       return;
     }
     // If rejecting, open justification dialog instead
