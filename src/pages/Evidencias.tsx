@@ -190,9 +190,11 @@ export default function EvidenciasPage() {
             Cadastro, rastreabilidade e controle de evidências documentais e operacionais
           </p>
         </div>
-        <Button onClick={() => handleOpen()} className="gap-2">
-          <Plus className="h-4 w-4" /> Nova Evidência
-        </Button>
+        {podeCriar && (
+          <Button onClick={() => handleOpen()} className="gap-2">
+            <Plus className="h-4 w-4" /> Nova Evidência
+          </Button>
+        )}
       </div>
 
       {/* Resumo cards */}
