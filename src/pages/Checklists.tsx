@@ -122,6 +122,7 @@ export default function ChecklistsPage() {
   };
 
   const savePreench = async () => {
+    if (!podePreencher) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!preenchForm.checklist_id || preenchForm.itens.length === 0) return;
     const tpl = checklists.find(c => c.id === preenchForm.checklist_id);
     const ev = evidencias.find(e => e.id === preenchForm.evidencia_id);
