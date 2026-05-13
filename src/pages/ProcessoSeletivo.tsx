@@ -126,6 +126,8 @@ const ProcessoSeletivoPage = () => {
   const podeAddCandidato = tem("processos_seletivos.adicionar_candidato");
   const podeEditar = tem("processos_seletivos.editar");
   const podeAvaliar = tem("processos_seletivos.avaliar_candidato");
+  const podeStatusPS = (s: "aprovado" | "neutro" | "reprovado") =>
+    tem(`processos_seletivos.status.${s}`);
 
   const requisicao = requisicoes.find((r) => r.id === requisicaoId);
 
