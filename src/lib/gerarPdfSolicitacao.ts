@@ -59,29 +59,35 @@ async function renderSolicitacao(
   const cw = pw - ml - mr;
 
   let y = 14;
+  const logoH = 18;
+  const logoW = 40;
 
   // ===== LOGO =====
   if (empresa?.logoUrl) {
     const logoData = await loadImageAsDataUrl(empresa.logoUrl);
     if (logoData) {
       try {
-        doc.addImage(logoData, "PNG", ml, y, 40, 18);
+        doc.addImage(logoData, "PNG", ml, y, logoW, logoH);
       } catch { /* ignore */ }
     }
   }
 
-  // ===== TITLE =====
-  doc.setFontSize(16);
+  // ===== TITLE (à direita do logo, para não sobrepor) =====
+  const titleX = ml + logoW + 6;
+  const titleW = pw - mr - titleX;
+  const titleCenter = titleX + titleW / 2;
+
+  doc.setFontSize(13);
   doc.setFont("helvetica", "bolditalic");
   doc.setTextColor(...DARK_BLUE);
-  doc.text("SOLICITAÇÃO DE SERVIÇO — ENGENHARIA E MANUTENÇÃO", pw / 2, y + 10, { align: "center" });
+  doc.text("SOLICITAÇÃO DE SERVIÇO — ENGENHARIA E MANUTENÇÃO", titleCenter, y + 8, { align: "center" });
 
   doc.setFontSize(11);
   doc.setFont("helvetica", "italic");
   doc.setTextColor(80, 80, 80);
-  doc.text(ss.clienteNome || "Cliente", pw / 2, y + 18, { align: "center" });
+  doc.text(ss.clienteNome || "Cliente", titleCenter, y + 16, { align: "center" });
 
-  y += 24;
+  y += logoH + 6;
   doc.setDrawColor(...BORDER_COLOR);
   doc.setLineWidth(0.5);
   doc.line(ml, y, pw - mr, y);
