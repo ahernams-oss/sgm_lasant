@@ -154,6 +154,7 @@ const PerfisAcesso = () => {
   };
 
   const handleDuplicate = (p: typeof perfis[0]) => {
+    if (!podeDuplicar && !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     setForm({ nome: `${p.nome} (cópia)`, descricao: p.descricao, permissoes: { ...p.permissoes } });
     setEditingId(null);
     setShowForm(true);
@@ -161,6 +162,7 @@ const PerfisAcesso = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
     await deletePerfil(id);
     if (editingId === id) resetForm();
     toast.success("Perfil removido.");
