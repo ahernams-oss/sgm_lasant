@@ -47,6 +47,7 @@ export default function ComunicacaoNotificacoes() {
   const { paginated, totalPages } = paginate(filtered, page, pageSize);
 
   const handleSalvar = async () => {
+    if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     const dest = usuarios.find(u => u.id === form.destinatarioId);
     if (!dest || !form.titulo.trim()) {
       toast({ title: "Preencha destinatário e título", variant: "destructive" });
