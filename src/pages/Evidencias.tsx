@@ -112,6 +112,7 @@ export default function EvidenciasPage() {
   };
 
   const handleSave = async () => {
+    if (editing ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.titulo?.trim()) {
       return;
     }
