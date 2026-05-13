@@ -240,7 +240,7 @@ export default function ComunicacaoMensagens() {
                   onChange={e => setNovaMensagem(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleEnviarMensagem()}
                 />
-                <Button onClick={handleEnviarMensagem} disabled={!novaMensagem.trim()}>
+                <Button onClick={handleEnviarMensagem} disabled={!novaMensagem.trim() || !podeEnviar}>
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
