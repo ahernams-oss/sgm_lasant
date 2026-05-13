@@ -58,6 +58,8 @@ export default function ComunicacaoMensagens() {
   }, [mensagens]);
 
   const handleCriarConversa = async () => {
+    if (!podeCriarConversa) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
+    if (novaConversaTipo === "grupo" && !podeCriarGrupo) { toast({ title: "Você não possui permissão para criar grupos.", variant: "destructive" }); return; }
     if (participantesSelecionados.length === 0) {
       toast({ title: "Selecione ao menos um participante", variant: "destructive" });
       return;
