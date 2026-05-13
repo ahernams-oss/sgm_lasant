@@ -44,8 +44,8 @@ const Usuarios = () => {
   const podeCriar = tem("usuarios.criar");
   const podeEditar = tem("usuarios.editar");
   const podeExcluir = tem("usuarios.excluir");
-  const podeResetSenha = tem("usuarios.reset_senha");
-  const podeAuditoria = tem("usuarios.auditoria");
+  const podeResetSenha = tem("usuarios.resetar_senha");
+  const podeAuditoria = tem("usuarios.gerenciar_acessos");
 
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);

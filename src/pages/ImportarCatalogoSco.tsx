@@ -124,7 +124,7 @@ export default function ImportarCatalogoSco() {
   const nav = useNavigate();
   const { countCatalog } = useOrcamentosSco();
   const { tem } = usePermissao();
-  const podeImportar = tem("catalogo_sco.importar");
+  const podeImportar = tem("orcamentos_sco.importar_catalogo");
   const [counts, setCounts] = useState({ elementares: 0, servicos: 0, composicoes: 0 });
   const [fgv04, setFgv04] = useState<File | null>(null);
   const [fgv06, setFgv06] = useState<File | null>(null);
