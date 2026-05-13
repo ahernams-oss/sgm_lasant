@@ -433,12 +433,16 @@ export default function BaseConhecimentoPage() {
                     </div>
                   </AccordionTrigger>
                   <div className="flex gap-1 mr-2">
-                    <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); openEditFaq(f); }}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setDelFaq(f); }}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    {podeEditar && (
+                      <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); openEditFaq(f); }}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {podeExcluir && (
+                      <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setDelFaq(f); }}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <AccordionContent>
