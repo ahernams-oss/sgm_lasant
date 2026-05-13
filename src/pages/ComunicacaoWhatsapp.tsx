@@ -63,6 +63,11 @@ function fmtData(s: string | null) {
 
 export default function ComunicacaoWhatsappPage() {
   const { funcionarios } = useFuncionarios();
+  const { tem } = usePermissao();
+  const podeCriar = tem("comunicacao_whatsapp.criar");
+  const podeEditar = tem("comunicacao_whatsapp.editar");
+  const podeExcluir = tem("comunicacao_whatsapp.excluir");
+  const podeEnviar = tem("comunicacao_whatsapp.enviar");
   const [campanhas, setCampanhas] = useState<Campanha[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
