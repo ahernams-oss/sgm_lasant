@@ -46,6 +46,7 @@ export default function ComunicacaoAvisos() {
   const { paginated, totalPages } = paginate(filtered, page, pageSize);
 
   const handleSalvar = async () => {
+    if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!form.titulo.trim() || !form.conteudo.trim()) {
       toast({ title: "Preencha título e conteúdo", variant: "destructive" });
       return;
