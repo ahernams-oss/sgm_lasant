@@ -86,9 +86,11 @@ export default function ComunicacaoAvisos() {
     <div className="space-y-4 pt-[15px] pl-0 pr-[10px]">
       <div className="flex items-center justify-between mx-[7px]">
         <h1 className="text-2xl font-bold">Avisos e Comunicados</h1>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Novo Aviso
-        </Button>
+        {podeCriar && (
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" /> Novo Aviso
+          </Button>
+        )}
       </div>
 
       <div className="mx-[7px]">
