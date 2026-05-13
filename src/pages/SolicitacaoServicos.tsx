@@ -987,18 +987,18 @@ export default function SolicitacaoServicosPage() {
                           </DropdownMenuItem>
                         </>
                       )}
-                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
+                      {podeEditar && !["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => handleEdit(s)}>
                           <Pencil className="mr-2 h-4 w-4" />Editar
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
-                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
+                      {podeStCancelada && !["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => requestCancel(s.id)}>
                           <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar Solicitação
                         </DropdownMenuItem>
                       )}
-                      {!["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
+                      {podeExcluir && !["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
                         <DropdownMenuItem onClick={() => requestDelete(s.id)} className="text-destructive">
                           <Trash2 className="mr-2 h-4 w-4" />Excluir
                         </DropdownMenuItem>
