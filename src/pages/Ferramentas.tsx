@@ -275,8 +275,8 @@ export default function FerramentasPage() {
                     <TableCell className="text-right">
                       <div className="flex gap-1 justify-end">
                         <Button size="sm" variant="outline" title="Gerar Termo" onClick={() => handleGerarTermo(v)}><FileText className="mr-1 h-4 w-4" />Termo</Button>
-                        {v.status === "Ativo" && (
-                          {podeVincular && <Button size="sm" variant="outline" title="Devolver" onClick={() => devolverVinculo(v.id)}><Unlink className="mr-1 h-4 w-4" />Devolver</Button>}
+                        {v.status === "Ativo" && podeVincular && (
+                          <Button size="sm" variant="outline" title="Devolver" onClick={() => devolverVinculo(v.id)}><Unlink className="mr-1 h-4 w-4" />Devolver</Button>
                         )}
                       </div>
                     </TableCell>
