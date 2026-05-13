@@ -285,6 +285,10 @@ export default function PedidoCompraPage() {
 
   const handleUpdateStatus = () => {
     if (!newStatus) { toast({ title: "Selecione um status", variant: "destructive" }); return; }
+    if (!podeStatusPC(newStatus)) {
+      toast({ title: `Você não possui permissão para alterar o pedido para "${newStatus}".`, variant: "destructive" });
+      return;
+    }
     if (newStatus === "Cancelado") {
       if (!podeCancelar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       if (!statusObs.trim()) { toast({ title: "Motivo é obrigatório para cancelamento", variant: "destructive" }); return; }
