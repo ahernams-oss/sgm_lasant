@@ -168,6 +168,7 @@ export default function EvidenciasPage() {
   };
 
   const handleStatusChange = async (ev: Evidencia, newStatus: string) => {
+    if (!podeEditar) { toast.error("Você não possui permissão para esta ação."); return; }
     const historicoEntry = {
       acao: "Alteração de Status",
       usuario: usuarioLogado?.nome || "Sistema",
