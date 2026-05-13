@@ -702,7 +702,7 @@ export default function PedidoCompraPage() {
               <Select value={newStatus} onValueChange={v => setNewStatus(v as StatusPedido)}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  {commonNextStatuses.map(s => (
+                  {commonNextStatuses.filter(s => podeStatusPC(s)).map(s => (
                     <SelectItem key={s} value={s}>{s}</SelectItem>
                   ))}
                 </SelectContent>
