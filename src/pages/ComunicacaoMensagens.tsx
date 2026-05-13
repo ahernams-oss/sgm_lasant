@@ -23,6 +23,10 @@ export default function ComunicacaoMensagens() {
   const { usuarios } = useUsuarios();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriarConversa = tem("comunicacao_mensagens.criar_conversa");
+  const podeEnviar = tem("comunicacao_mensagens.enviar");
+  const podeCriarGrupo = tem("comunicacao_mensagens.criar_grupo");
 
   const [selectedConversa, setSelectedConversa] = useState<string | null>(null);
   const [novaMensagem, setNovaMensagem] = useState("");
