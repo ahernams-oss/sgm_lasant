@@ -81,6 +81,7 @@ export default function ChecklistsPage() {
   };
 
   const saveTemplate = async () => {
+    if (editingTemplate ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     const cleanItens = templateForm.itens.filter(i => i.descricao.trim());
     if (!templateForm.titulo.trim() || cleanItens.length === 0) return;
     const payload = { ...templateForm, itens: cleanItens };
