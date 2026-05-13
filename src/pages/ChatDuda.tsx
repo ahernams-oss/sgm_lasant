@@ -115,6 +115,9 @@ function AssistantMessage({ content }: { content: string }) {
 }
 
 export default function ChatDuda() {
+  const { tem } = usePermissao();
+  const podeUsar = tem("chat_duda.usar");
+  const podeExportar = tem("chat_duda.exportar");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
