@@ -97,6 +97,7 @@ export default function ComunicacaoMensagens() {
   };
 
   const handleEnviarMensagem = async () => {
+    if (!podeEnviar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!novaMensagem.trim() || !selectedConversa) return;
     await addMensagem({
       conversa_id: selectedConversa,
