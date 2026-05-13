@@ -14,6 +14,7 @@ import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
 import { Plus, Edit, Trash2, Send, MessageCircle, Eye, Power } from "lucide-react";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 
 interface Campanha {
