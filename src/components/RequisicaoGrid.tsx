@@ -158,6 +158,10 @@ const RequisicaoGrid = () => {
   const experienciaOptions = ["Não Necessita", "Até 1 ano", "De 1 a 3 anos", "De 3 a 5 anos", "Acima de 5 anos"];
 
   const handleStatusChange = (req: Requisicao, newStatus: Requisicao["status"], observacao?: string) => {
+    if (!podeStatusRP(newStatus)) {
+      toast.error(`Você não possui permissão para alterar a requisição para "${newStatus}".`);
+      return;
+    }
     const nomeAprovador = (newStatus === "Aprovada" || newStatus === "Reprovada") ? usuarioLogado?.nome : undefined;
     updateStatus(req.id, newStatus, nomeAprovador, observacao);
 
