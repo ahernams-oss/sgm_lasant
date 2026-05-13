@@ -57,6 +57,17 @@ export default function PedidoCompraPage() {
   const { tem } = usePermissao();
   const podeEditar = tem("pedidos_compra.editar");
   const podeCancelar = tem("pedidos_compra.cancelar");
+  const podeStatusPC = (status: string) => {
+    const map: Record<string, string> = {
+      "Emitido": "pedidos_compra.status.emitido",
+      "Comprado": "pedidos_compra.status.comprado",
+      "Em Entrega": "pedidos_compra.status.em_entrega",
+      "Entregue Parcial": "pedidos_compra.status.entregue_parcial",
+      "Entregue": "pedidos_compra.status.entregue",
+      "Cancelado": "pedidos_compra.status.cancelado",
+    };
+    return tem(map[status] || "");
+  };
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
