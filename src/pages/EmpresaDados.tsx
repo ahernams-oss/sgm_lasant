@@ -32,6 +32,7 @@ export default function EmpresaDados() {
   }, [empresa, loading]);
 
   const autoSave = useCallback(async (updatedForm: Empresa) => {
+    if (!podeEditar) return;
     if (!updatedForm.razaoSocial?.trim()) return;
     setAutoSaveStatus("saving");
     try {
@@ -42,9 +43,10 @@ export default function EmpresaDados() {
     } catch {
       setAutoSaveStatus("idle");
     }
-  }, [saveEmpresa]);
+  }, [saveEmpresa, podeEditar]);
 
   const update = (field: keyof Empresa, value: string) => {
+    if (!podeEditar) return;
     dirtyRef.current = true;
     setForm(prev => {
       const next = { ...prev, [field]: value };
