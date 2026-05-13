@@ -433,7 +433,7 @@ export default function OrdensServicoPage() {
   };
 
   const handleCancelOS = async () => {
-    if (!podeWorkflowOS) {
+    if (!podeWorkflowOS || !podeStCanceladaOS) {
       toast.error("Você não possui permissão para cancelar OS.");
       cancelCancelAction();
       return;
