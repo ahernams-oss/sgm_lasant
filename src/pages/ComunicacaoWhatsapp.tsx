@@ -178,6 +178,7 @@ export default function ComunicacaoWhatsappPage() {
   };
 
   const enviarAgora = async (c: Campanha) => {
+    if (!podeEnviar) { toast.error("Você não possui permissão para esta ação."); return; }
     toast.loading(`Enviando "${c.nome}"...`, { id: `send-${c.id}` });
     const { data, error } = await supabase.functions.invoke("process-whatsapp-campanhas", {
       body: { campanha_id: c.id },
