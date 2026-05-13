@@ -34,6 +34,13 @@ export default function ChecklistsPage() {
   const { evidencias } = useEvidencias();
   const { usuarioLogado } = useAuth();
 
+  const { tem } = usePermissao();
+  const podeCriar = tem("checklists.criar");
+  const podeEditar = tem("checklists.editar");
+  const podeExcluir = tem("checklists.excluir");
+  const podePreencher = tem("checklists.preencher");
+  const podeAprovar = tem("checklists.aprovar");
+
   const [activeTab, setActiveTab] = useState("templates");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
