@@ -39,6 +39,12 @@ const Usuarios = () => {
   const { clientes } = useClientes();
   const { perfis } = usePerfisAcesso();
   const { resetSenha } = useAuth();
+  const { tem } = usePermissao();
+  const podeCriar = tem("usuarios.criar");
+  const podeEditar = tem("usuarios.editar");
+  const podeExcluir = tem("usuarios.excluir");
+  const podeResetSenha = tem("usuarios.reset_senha");
+  const podeAuditoria = tem("usuarios.auditoria");
 
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
