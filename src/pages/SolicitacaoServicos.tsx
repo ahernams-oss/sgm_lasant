@@ -88,6 +88,11 @@ export default function SolicitacaoServicosPage() {
   const podeCriar = tem("solicitacao_servicos.criar");
   const podeEditar = tem("solicitacao_servicos.editar");
   const podeExcluir = tem("solicitacao_servicos.excluir");
+  const podeStAprovada = tem("solicitacao_servicos.status.aprovada");
+  const podeStReprovada = tem("solicitacao_servicos.status.reprovada");
+  const podeStCancelada = tem("solicitacao_servicos.status.cancelada");
+  const podeStConcluida = tem("solicitacao_servicos.status.concluida");
+  const podeStEmAnalise = tem("solicitacao_servicos.status.em_analise");
 
   const buildHistoricoEntry = (situacao: string, existingHistorico: HistoricoEntry[] = []): HistoricoEntry[] => [
     ...existingHistorico,
