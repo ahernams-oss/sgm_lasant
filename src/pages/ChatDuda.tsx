@@ -126,6 +126,7 @@ export default function ChatDuda() {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const send = useCallback(async () => {
+    if (!podeUsar) { toast.error("Você não possui permissão para esta ação."); return; }
     const text = input.trim();
     if (!text || loading) return;
     setInput("");
