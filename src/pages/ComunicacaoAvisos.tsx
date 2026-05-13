@@ -152,9 +152,9 @@ export default function ComunicacaoAvisos() {
                         <CheckCircle2 className="h-4 w-4" />
                       </Button>
                     )}
-                    <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(a.id)} title="Excluir">
+                    {podeExcluir && <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(a.id)} title="Excluir">
                       <Trash2 className="h-4 w-4" />
-                    </Button>
+                    </Button>}
                   </div>
                 </TableCell>
               </TableRow>
