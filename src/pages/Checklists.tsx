@@ -231,9 +231,9 @@ export default function ChecklistsPage() {
                     <TableCell className="text-center">{preenchimentos.filter(p => p.checklist_id === c.id).length}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" title="Editar" onClick={() => openEditTemplate(c)}><Edit className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Preencher" onClick={() => { setPreenchForm({ checklist_id: c.id, evidencia_id: "", itens: c.itens.map(i => ({ descricao: i.descricao, quantidade: i.quantidade || "", registro_fotografico: i.registro_fotografico || false, status: "", foto_url: "" })), observacoes: "" }); setEditingPreench(null); setPreenchDialogOpen(true); }}><Play className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" className="text-destructive" title="Excluir" onClick={() => { setDeleteId(c.id); setDeleteType("template"); }}><Trash2 className="h-4 w-4" /></Button>
+                        {podeEditar && <Button size="icon" variant="ghost" title="Editar" onClick={() => openEditTemplate(c)}><Edit className="h-4 w-4" /></Button>}
+                        {podePreencher && <Button size="icon" variant="ghost" title="Preencher" onClick={() => { setPreenchForm({ checklist_id: c.id, evidencia_id: "", itens: c.itens.map(i => ({ descricao: i.descricao, quantidade: i.quantidade || "", registro_fotografico: i.registro_fotografico || false, status: "", foto_url: "" })), observacoes: "" }); setEditingPreench(null); setPreenchDialogOpen(true); }}><Play className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button size="icon" variant="ghost" className="text-destructive" title="Excluir" onClick={() => { setDeleteId(c.id); setDeleteType("template"); }}><Trash2 className="h-4 w-4" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>
