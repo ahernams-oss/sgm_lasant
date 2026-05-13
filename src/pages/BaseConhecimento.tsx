@@ -148,6 +148,7 @@ export default function BaseConhecimentoPage() {
   };
 
   const handleUploadAnexo = async (file: File) => {
+    if (!podeAnexar) { toast.error("Você não possui permissão para esta ação."); return; }
     setUploading(true);
     const anexo = await uploadAnexo(file);
     setUploading(false);
