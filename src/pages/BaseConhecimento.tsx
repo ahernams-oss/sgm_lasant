@@ -467,11 +467,12 @@ export default function BaseConhecimentoPage() {
               <Input type="color" value={novaCat.cor}
                 onChange={(e) => setNovaCat({ ...novaCat, cor: e.target.value })} />
               <Button onClick={async () => {
+                if (!podeCategorias) { toast.error("Você não possui permissão para esta ação."); return; }
                 if (!novaCat.nome.trim()) { toast.error("Nome obrigatório"); return; }
                 await addCategoria({ ...novaCat, ordem: categorias.length + 1 });
                 setNovaCat({ nome: "", cor: "#673ab7", icone: "BookOpen", descricao: "" });
                 toast.success("Categoria criada");
-              }}><Plus className="h-4 w-4 mr-1" />Adicionar</Button>
+              }} disabled={!podeCategorias}><Plus className="h-4 w-4 mr-1" />Adicionar</Button>
             </CardContent>
           </Card>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -485,9 +486,11 @@ export default function BaseConhecimentoPage() {
                       {c.descricao && <p className="text-xs text-muted-foreground">{c.descricao}</p>}
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => setDelCat({ id: c.id, nome: c.nome })}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  {podeCategorias && (
+                    <Button variant="ghost" size="sm" onClick={() => setDelCat({ id: c.id, nome: c.nome })}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))}
