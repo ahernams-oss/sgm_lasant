@@ -315,6 +315,10 @@ export default function SolicitacaoServicosPage() {
       toast({ title: "Selecione o nível de prioridade", variant: "destructive" });
       return;
     }
+    if (!prioridadeOnly && !podeStAprovada) {
+      toast({ title: "Você não possui permissão para aprovar esta SS.", variant: "destructive" });
+      return;
+    }
     if (prioridadeOnly) {
       await updateSolicitacao(approvalTargetId, { prioridade: selectedPrioridade });
       const prioridadeOS =
