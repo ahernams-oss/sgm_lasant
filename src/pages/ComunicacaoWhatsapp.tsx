@@ -168,6 +168,7 @@ export default function ComunicacaoWhatsappPage() {
   };
 
   const onDelete = async () => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!delId) return;
     const { error } = await (supabase as any).from("whatsapp_campanhas").delete().eq("id", delId);
     if (error) { toast.error("Erro ao excluir"); return; }
