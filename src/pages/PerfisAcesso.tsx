@@ -215,7 +215,7 @@ const PerfisAcesso = () => {
                 Configure perfis com permissões granulares por módulo, ações, status e flags.
               </p>
             </div>
-            {!showForm && (
+            {!showForm && podeCriar && (
               <Button onClick={() => setShowForm(true)} className="shadow-md">Novo Perfil</Button>
             )}
           </div>
