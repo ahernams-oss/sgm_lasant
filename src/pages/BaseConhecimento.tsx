@@ -62,6 +62,12 @@ export default function BaseConhecimentoPage() {
   } = useKnowledgeBase();
   const { usuarioLogado } = useAuth();
   const { equipamentos } = useEquipamentos();
+  const { tem } = usePermissao();
+  const podeCriar = tem("base_conhecimento.criar");
+  const podeEditar = tem("base_conhecimento.editar");
+  const podeExcluir = tem("base_conhecimento.excluir");
+  const podeAnexar = tem("base_conhecimento.anexar");
+  const podeCategorias = tem("base_conhecimento.categorias");
 
   const [tab, setTab] = useState<"artigos" | "faq" | "categorias">("artigos");
   const [search, setSearch] = useState("");
