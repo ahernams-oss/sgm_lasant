@@ -70,9 +70,11 @@ export default function ComunicacaoNotificacoes() {
     <div className="space-y-4 pt-[15px] pl-0 pr-[10px]">
       <div className="flex items-center justify-between mx-[7px]">
         <h1 className="text-2xl font-bold">Notificações de Tarefas</h1>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Nova Notificação
-        </Button>
+        {podeCriar && (
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" /> Nova Notificação
+          </Button>
+        )}
       </div>
 
       <div className="flex gap-4 mx-[7px]">
