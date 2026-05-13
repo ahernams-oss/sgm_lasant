@@ -239,7 +239,7 @@ export default function FerramentasPage() {
         {/* VÍNCULOS */}
         <TabsContent value="vinculos" className="space-y-4">
           <div className="flex gap-2">
-            <Button onClick={() => { setVinculoFerramentaIds([]); setVinculoOpen(true); }}><Plus className="mr-1 h-4 w-4" />Novo Vínculo</Button>
+            {podeVincular && <Button onClick={() => { setVinculoFerramentaIds([]); setVinculoOpen(true); }}><Plus className="mr-1 h-4 w-4" />Novo Vínculo</Button>}
           </div>
           <div className="border rounded-lg overflow-auto">
             <Table>
