@@ -247,12 +247,12 @@ export default function BaseConhecimentoPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          {tab === "artigos" && (
+          {tab === "artigos" && podeCriar && (
             <Button onClick={openNovoArtigo}>
               <Plus className="h-4 w-4 mr-1" /> Novo artigo
             </Button>
           )}
-          {tab === "faq" && (
+          {tab === "faq" && podeCriar && (
             <Button onClick={openNovoFaq}>
               <Plus className="h-4 w-4 mr-1" /> Nova FAQ
             </Button>
