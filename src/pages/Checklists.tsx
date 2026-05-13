@@ -161,6 +161,7 @@ export default function ChecklistsPage() {
   const paginatedPreench = filteredPreench.slice((page - 1) * pageSize, page * pageSize);
 
   const handleDelete = async () => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); setDeleteId(null); return; }
     if (!deleteId) return;
     if (deleteType === "template") await deleteChecklist(deleteId);
     else await deletePreenchimento(deleteId);
