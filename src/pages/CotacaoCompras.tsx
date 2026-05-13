@@ -55,6 +55,7 @@ export default function CotacaoComprasPage() {
   const { toast } = useToast();
   const { tem } = usePermissao();
   const podeCriarCot = tem("cotacoes.criar");
+  const podeFinalizarCot = tem("cotacoes.status.finalizada");
 
   const assinarPedidoAutomatico = useCallback(async (pedido: PedidoCompra) => {
     if (!usuarioLogado) return;
@@ -297,6 +298,10 @@ export default function CotacaoComprasPage() {
   };
 
   const handleAprovar = async () => {
+    if (!podeFinalizarCot) {
+      toast({ title: "Você não possui permissão para finalizar/aprovar cotações.", variant: "destructive" });
+      return;
+    }
     const cot = cotacoes.find(c => c.id === aprovarCotacaoId);
     if (!cot) return;
     const req = requisicoes.find(r => r.id === cot.requisicaoId);

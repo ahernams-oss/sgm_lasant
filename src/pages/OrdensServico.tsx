@@ -108,6 +108,16 @@ export default function OrdensServicoPage() {
   const podeWorkflowOS = tem("ordem_servico.workflow");
   const podeImprimirOS = tem("ordem_servico.imprimir");
   const podeExecutarLote = tem("ordem_servico.executar_lote");
+  const podeStAbertaOS = tem("ordem_servico.status.aberta");
+  const podeStEmExecOS = tem("ordem_servico.status.em_execucao");
+  const podeStConcluidaOS = tem("ordem_servico.status.concluida");
+  const podeStCanceladaOS = tem("ordem_servico.status.cancelada");
+  const podeStatusOS = (sit: string) => {
+    if (sit === "Aberta") return podeStAbertaOS;
+    if (sit === "Cancelada") return podeStCanceladaOS;
+    if (sit === "Concluída" || sit === "Validada" || sit === "Serviço Confirmado") return podeStConcluidaOS;
+    return podeStEmExecOS;
+  };
 
   const buildOSHistorico = (situacao: string, existing: any[] = []) => [
     ...existing,
@@ -335,8 +345,8 @@ export default function OrdensServicoPage() {
 
   // Workflow action handler
    const handleWorkflowAction = async (os: OrdemServico, novaSituacao: string) => {
-    if (!podeWorkflowOS) {
-      toast.error("Você não possui permissão para executar ações de workflow nesta OS.");
+    if (!podeWorkflowOS || !podeStatusOS(novaSituacao)) {
+      toast.error(`Você não possui permissão para alterar a OS para "${novaSituacao}".`);
       return;
     }
     // If rejecting, open justification dialog instead
@@ -392,7 +402,7 @@ export default function OrdensServicoPage() {
   };
 
   const handleConfirmNaoAprovar = async () => {
-    if (!podeWorkflowOS) {
+    if (!podeWorkflowOS || !podeStEmExecOS) {
       toast.error("Você não possui permissão para esta ação.");
       return;
     }
@@ -423,7 +433,7 @@ export default function OrdensServicoPage() {
   };
 
   const handleCancelOS = async () => {
-    if (!podeWorkflowOS) {
+    if (!podeWorkflowOS || !podeStCanceladaOS) {
       toast.error("Você não possui permissão para cancelar OS.");
       cancelCancelAction();
       return;
@@ -443,35 +453,30 @@ export default function OrdensServicoPage() {
 
   // Get available workflow actions based on current situação
   const getWorkflowActions = (os: OrdemServico) => {
+    let acts: any[] = [];
     switch (os.situacao) {
       case "Aberta":
-        return [
-          { label: "Executar", icon: Play, action: () => handleWorkflowAction(os, "Executada") },
-          { label: "Cancelar OS", icon: Ban, action: () => requestCancel(os.id), destructive: true },
-        ];
+        acts = [
+          { label: "Executar", icon: Play, target: "Executada", action: () => handleWorkflowAction(os, "Executada") },
+          { label: "Cancelar OS", icon: Ban, target: "Cancelada", action: () => requestCancel(os.id), destructive: true },
+        ]; break;
       case "Executada":
-        return [
-          { label: "Serviço Confirmado", icon: ShieldCheck, action: () => handleWorkflowAction(os, "Serviço Confirmado") },
-          { label: "Serviço Não Aprovado pela Fiscalização", icon: ShieldX, action: () => handleWorkflowAction(os, "Serviço Não Aprovado pela Fiscalização") },
-        ];
+        acts = [
+          { label: "Serviço Confirmado", icon: ShieldCheck, target: "Serviço Confirmado", action: () => handleWorkflowAction(os, "Serviço Confirmado") },
+          { label: "Serviço Não Aprovado pela Fiscalização", icon: ShieldX, target: "Serviço Não Aprovado pela Fiscalização", action: () => handleWorkflowAction(os, "Serviço Não Aprovado pela Fiscalização") },
+        ]; break;
       case "Serviço Confirmado":
-        return [
-          { label: "Validar OS", icon: BadgeCheck, action: () => handleWorkflowAction(os, "Validada") },
-        ];
+        acts = [{ label: "Validar OS", icon: BadgeCheck, target: "Validada", action: () => handleWorkflowAction(os, "Validada") }]; break;
       case "Serviço Não Aprovado pela Fiscalização":
-        return [
-          { label: "Serviço Re-executado", icon: RotateCcw, action: () => handleWorkflowAction(os, "Serviço Re-executado") },
-        ];
+        acts = [{ label: "Serviço Re-executado", icon: RotateCcw, target: "Serviço Re-executado", action: () => handleWorkflowAction(os, "Serviço Re-executado") }]; break;
       case "Serviço Re-executado":
-        return [
-          { label: "Serviço Confirmado", icon: ShieldCheck, action: () => handleWorkflowAction(os, "Serviço Confirmado") },
-          { label: "Serviço Não Aprovado pela Fiscalização", icon: ShieldX, action: () => handleWorkflowAction(os, "Serviço Não Aprovado pela Fiscalização") },
-        ];
-      case "Validada":
-      case "Cancelada":
-      default:
-        return [];
+        acts = [
+          { label: "Serviço Confirmado", icon: ShieldCheck, target: "Serviço Confirmado", action: () => handleWorkflowAction(os, "Serviço Confirmado") },
+          { label: "Serviço Não Aprovado pela Fiscalização", icon: ShieldX, target: "Serviço Não Aprovado pela Fiscalização", action: () => handleWorkflowAction(os, "Serviço Não Aprovado pela Fiscalização") },
+        ]; break;
+      default: acts = [];
     }
+    return acts.filter(a => podeStatusOS(a.target));
   };
 
   const clienteSelecionado = clientesFiltrados.find(c => c.id === clienteId);

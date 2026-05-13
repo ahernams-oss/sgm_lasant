@@ -57,6 +57,17 @@ export default function PedidoCompraPage() {
   const { tem } = usePermissao();
   const podeEditar = tem("pedidos_compra.editar");
   const podeCancelar = tem("pedidos_compra.cancelar");
+  const podeStatusPC = (status: string) => {
+    const map: Record<string, string> = {
+      "Emitido": "pedidos_compra.status.emitido",
+      "Comprado": "pedidos_compra.status.comprado",
+      "Em Entrega": "pedidos_compra.status.em_entrega",
+      "Entregue Parcial": "pedidos_compra.status.entregue_parcial",
+      "Entregue": "pedidos_compra.status.entregue",
+      "Cancelado": "pedidos_compra.status.cancelado",
+    };
+    return tem(map[status] || "");
+  };
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
@@ -274,6 +285,10 @@ export default function PedidoCompraPage() {
 
   const handleUpdateStatus = () => {
     if (!newStatus) { toast({ title: "Selecione um status", variant: "destructive" }); return; }
+    if (!podeStatusPC(newStatus)) {
+      toast({ title: `Você não possui permissão para alterar o pedido para "${newStatus}".`, variant: "destructive" });
+      return;
+    }
     if (newStatus === "Cancelado") {
       if (!podeCancelar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       if (!statusObs.trim()) { toast({ title: "Motivo é obrigatório para cancelamento", variant: "destructive" }); return; }
@@ -687,7 +702,7 @@ export default function PedidoCompraPage() {
               <Select value={newStatus} onValueChange={v => setNewStatus(v as StatusPedido)}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  {commonNextStatuses.map(s => (
+                  {commonNextStatuses.filter(s => podeStatusPC(s)).map(s => (
                     <SelectItem key={s} value={s}>{s}</SelectItem>
                   ))}
                 </SelectContent>

@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useRequisicoes, Requisicao, StatusHistorico } from "@/contexts/RequisicaoContext";
+import { usePermissao } from "@/hooks/usePermissao";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -56,6 +57,17 @@ const RequisicaoGrid = () => {
   const { empresa } = useEmpresa();
   const navigate = useNavigate();
   const { processos } = useProcessoSeletivo();
+  const { tem } = usePermissao();
+  const podeStatusRP = (s: Requisicao["status"]) => {
+    const map: Record<Requisicao["status"], string> = {
+      "Pendente": "requisicao_colaboradores.status.pendente",
+      "Em Análise": "requisicao_colaboradores.status.em_analise",
+      "Aprovada": "requisicao_colaboradores.status.aprovada",
+      "Reprovada": "requisicao_colaboradores.status.reprovada",
+      "Concluída": "requisicao_colaboradores.status.concluida",
+    };
+    return tem(map[s] || "");
+  };
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [filterUnidade, setFilterUnidade] = useState<string>("todos");
@@ -146,6 +158,10 @@ const RequisicaoGrid = () => {
   const experienciaOptions = ["Não Necessita", "Até 1 ano", "De 1 a 3 anos", "De 3 a 5 anos", "Acima de 5 anos"];
 
   const handleStatusChange = (req: Requisicao, newStatus: Requisicao["status"], observacao?: string) => {
+    if (!podeStatusRP(newStatus)) {
+      toast.error(`Você não possui permissão para alterar a requisição para "${newStatus}".`);
+      return;
+    }
     const nomeAprovador = (newStatus === "Aprovada" || newStatus === "Reprovada") ? usuarioLogado?.nome : undefined;
     updateStatus(req.id, newStatus, nomeAprovador, observacao);
 
@@ -326,17 +342,17 @@ const RequisicaoGrid = () => {
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuLabel className="text-xs text-muted-foreground">Aprovação</DropdownMenuLabel>
-                            {req.status !== "Em Análise" && (
+                            {req.status !== "Em Análise" && podeStatusRP("Em Análise") && (
                               <DropdownMenuItem onClick={() => handleStatusChange(req, "Em Análise")}>
                                 <Clock className="mr-2 h-4 w-4 text-blue-600" /> Marcar Em Análise
                               </DropdownMenuItem>
                             )}
-                            {req.status !== "Aprovada" && (
+                            {req.status !== "Aprovada" && podeStatusRP("Aprovada") && (
                               <DropdownMenuItem onClick={() => handleStatusChange(req, "Aprovada")}>
                                 <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Aprovar
                               </DropdownMenuItem>
                             )}
-                            {req.status !== "Reprovada" && (
+                            {req.status !== "Reprovada" && podeStatusRP("Reprovada") && (
                               <DropdownMenuItem onClick={() => { setReprovandoReq(req); setJustificativaReprovacao(""); }}>
                                 <XCircle className="mr-2 h-4 w-4 text-red-600" /> Reprovar
                               </DropdownMenuItem>

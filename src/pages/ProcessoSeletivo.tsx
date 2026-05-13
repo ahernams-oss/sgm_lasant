@@ -126,6 +126,8 @@ const ProcessoSeletivoPage = () => {
   const podeAddCandidato = tem("processos_seletivos.adicionar_candidato");
   const podeEditar = tem("processos_seletivos.editar");
   const podeAvaliar = tem("processos_seletivos.avaliar_candidato");
+  const podeStatusPS = (s: "aprovado" | "neutro" | "reprovado") =>
+    tem(`processos_seletivos.status.${s}`);
 
   const requisicao = requisicoes.find((r) => r.id === requisicaoId);
 
@@ -242,6 +244,7 @@ const ProcessoSeletivoPage = () => {
 
   const handleAprovarEtapa = async (candidato: Candidato, statusField: string, status: "aprovado" | "neutro" | "reprovado") => {
     if (!podeAvaliar) { toast.error("Você não possui permissão para esta ação."); return; }
+    if (!podeStatusPS(status)) { toast.error(`Você não possui permissão para marcar candidato como "${status}".`); return; }
     const updates: Partial<Candidato> = { [statusField]: status };
 
     if (statusField === "statusLiberacao" && status === "aprovado") {
