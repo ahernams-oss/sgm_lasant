@@ -108,6 +108,16 @@ export default function OrdensServicoPage() {
   const podeWorkflowOS = tem("ordem_servico.workflow");
   const podeImprimirOS = tem("ordem_servico.imprimir");
   const podeExecutarLote = tem("ordem_servico.executar_lote");
+  const podeStAbertaOS = tem("ordem_servico.status.aberta");
+  const podeStEmExecOS = tem("ordem_servico.status.em_execucao");
+  const podeStConcluidaOS = tem("ordem_servico.status.concluida");
+  const podeStCanceladaOS = tem("ordem_servico.status.cancelada");
+  const podeStatusOS = (sit: string) => {
+    if (sit === "Aberta") return podeStAbertaOS;
+    if (sit === "Cancelada") return podeStCanceladaOS;
+    if (sit === "Concluída" || sit === "Validada" || sit === "Serviço Confirmado") return podeStConcluidaOS;
+    return podeStEmExecOS;
+  };
 
   const buildOSHistorico = (situacao: string, existing: any[] = []) => [
     ...existing,
