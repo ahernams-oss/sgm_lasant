@@ -707,7 +707,7 @@ export default function BaseConhecimentoPage() {
         <DoubleConfirmDelete
           open={!!delFaq}
           onOpenChange={(o) => !o && setDelFaq(null)}
-          onConfirm={async () => { await deleteFaq(delFaq.id); toast.success("FAQ removida"); setDelFaq(null); }}
+          onConfirm={async () => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; } await deleteFaq(delFaq.id); toast.success("FAQ removida"); setDelFaq(null); }}
         />
       )}
       {delCat && (
