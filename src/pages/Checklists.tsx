@@ -17,6 +17,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
+import { usePermissao } from "@/hooks/usePermissao";
+import { toast } from "sonner";
 
 const CATEGORIAS = ["Inspeção", "Qualidade", "Segurança", "Meio Ambiente", "Operacional", "Auditoria"];
 
