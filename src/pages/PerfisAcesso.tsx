@@ -18,11 +18,17 @@ import {
   Permissoes,
 } from "@/contexts/PerfisAcessoContext";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const emptyForm = { nome: "", descricao: "", permissoes: {} as Permissoes };
 
 const PerfisAcesso = () => {
   const { perfis, addPerfil, updatePerfil, deletePerfil } = usePerfisAcesso();
+  const { tem } = usePermissao();
+  const podeCriar = tem("perfis_acesso.criar");
+  const podeEditar = tem("perfis_acesso.editar");
+  const podeExcluir = tem("perfis_acesso.excluir");
+  const podeDuplicar = tem("perfis_acesso.duplicar");
 
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
