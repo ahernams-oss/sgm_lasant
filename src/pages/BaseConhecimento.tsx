@@ -700,7 +700,7 @@ export default function BaseConhecimentoPage() {
         <DoubleConfirmDelete
           open={!!delArtigo}
           onOpenChange={(o) => !o && setDelArtigo(null)}
-          onConfirm={async () => { await deleteArtigo(delArtigo.id); toast.success("Artigo removido"); setDelArtigo(null); }}
+          onConfirm={async () => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; } await deleteArtigo(delArtigo.id); toast.success("Artigo removido"); setDelArtigo(null); }}
         />
       )}
       {delFaq && (
