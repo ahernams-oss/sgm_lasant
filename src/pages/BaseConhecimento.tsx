@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const STATUS_OPCOES = ["rascunho", "publicado", "arquivado"] as const;
 
@@ -61,6 +62,12 @@ export default function BaseConhecimentoPage() {
   } = useKnowledgeBase();
   const { usuarioLogado } = useAuth();
   const { equipamentos } = useEquipamentos();
+  const { tem } = usePermissao();
+  const podeCriar = tem("base_conhecimento.criar");
+  const podeEditar = tem("base_conhecimento.editar");
+  const podeExcluir = tem("base_conhecimento.excluir");
+  const podeAnexar = tem("base_conhecimento.anexar");
+  const podeCategorias = tem("base_conhecimento.categorias");
 
   const [tab, setTab] = useState<"artigos" | "faq" | "categorias">("artigos");
   const [search, setSearch] = useState("");
@@ -141,6 +148,7 @@ export default function BaseConhecimentoPage() {
   };
 
   const handleUploadAnexo = async (file: File) => {
+    if (!podeAnexar) { toast.error("Você não possui permissão para esta ação."); return; }
     setUploading(true);
     const anexo = await uploadAnexo(file);
     setUploading(false);
@@ -155,6 +163,7 @@ export default function BaseConhecimentoPage() {
   };
 
   const salvarArtigo = async () => {
+    if (artigoEditId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!artigoForm.titulo?.trim()) { toast.error("Título obrigatório"); return; }
     const cat = categorias.find((c) => c.id === artigoForm.categoria_id);
     const tags = tagsInput.split(",").map((t) => t.trim()).filter(Boolean);
@@ -194,6 +203,7 @@ export default function BaseConhecimentoPage() {
     setFaqOpen(true);
   };
   const salvarFaq = async () => {
+    if (faqEditId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!faqForm.pergunta?.trim() || !faqForm.resposta?.trim()) {
       toast.error("Pergunta e resposta são obrigatórias"); return;
     }
@@ -237,12 +247,12 @@ export default function BaseConhecimentoPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          {tab === "artigos" && (
+          {tab === "artigos" && podeCriar && (
             <Button onClick={openNovoArtigo}>
               <Plus className="h-4 w-4 mr-1" /> Novo artigo
             </Button>
           )}
-          {tab === "faq" && (
+          {tab === "faq" && podeCriar && (
             <Button onClick={openNovoFaq}>
               <Plus className="h-4 w-4 mr-1" /> Nova FAQ
             </Button>
@@ -384,12 +394,16 @@ export default function BaseConhecimentoPage() {
                         <Button size="sm" variant="ghost" onClick={() => abrirVisualizacao(a)}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => openEditArtigo(a)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setDelArtigo(a)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        {podeEditar && (
+                          <Button size="sm" variant="ghost" onClick={() => openEditArtigo(a)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {podeExcluir && (
+                          <Button size="sm" variant="ghost" onClick={() => setDelArtigo(a)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -419,12 +433,16 @@ export default function BaseConhecimentoPage() {
                     </div>
                   </AccordionTrigger>
                   <div className="flex gap-1 mr-2">
-                    <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); openEditFaq(f); }}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setDelFaq(f); }}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    {podeEditar && (
+                      <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); openEditFaq(f); }}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {podeExcluir && (
+                      <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setDelFaq(f); }}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <AccordionContent>
@@ -449,11 +467,12 @@ export default function BaseConhecimentoPage() {
               <Input type="color" value={novaCat.cor}
                 onChange={(e) => setNovaCat({ ...novaCat, cor: e.target.value })} />
               <Button onClick={async () => {
+                if (!podeCategorias) { toast.error("Você não possui permissão para esta ação."); return; }
                 if (!novaCat.nome.trim()) { toast.error("Nome obrigatório"); return; }
                 await addCategoria({ ...novaCat, ordem: categorias.length + 1 });
                 setNovaCat({ nome: "", cor: "#673ab7", icone: "BookOpen", descricao: "" });
                 toast.success("Categoria criada");
-              }}><Plus className="h-4 w-4 mr-1" />Adicionar</Button>
+              }} disabled={!podeCategorias}><Plus className="h-4 w-4 mr-1" />Adicionar</Button>
             </CardContent>
           </Card>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -467,9 +486,11 @@ export default function BaseConhecimentoPage() {
                       {c.descricao && <p className="text-xs text-muted-foreground">{c.descricao}</p>}
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => setDelCat({ id: c.id, nome: c.nome })}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  {podeCategorias && (
+                    <Button variant="ghost" size="sm" onClick={() => setDelCat({ id: c.id, nome: c.nome })}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -679,21 +700,21 @@ export default function BaseConhecimentoPage() {
         <DoubleConfirmDelete
           open={!!delArtigo}
           onOpenChange={(o) => !o && setDelArtigo(null)}
-          onConfirm={async () => { await deleteArtigo(delArtigo.id); toast.success("Artigo removido"); setDelArtigo(null); }}
+          onConfirm={async () => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; } await deleteArtigo(delArtigo.id); toast.success("Artigo removido"); setDelArtigo(null); }}
         />
       )}
       {delFaq && (
         <DoubleConfirmDelete
           open={!!delFaq}
           onOpenChange={(o) => !o && setDelFaq(null)}
-          onConfirm={async () => { await deleteFaq(delFaq.id); toast.success("FAQ removida"); setDelFaq(null); }}
+          onConfirm={async () => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; } await deleteFaq(delFaq.id); toast.success("FAQ removida"); setDelFaq(null); }}
         />
       )}
       {delCat && (
         <DoubleConfirmDelete
           open={!!delCat}
           onOpenChange={(o) => !o && setDelCat(null)}
-          onConfirm={async () => { await deleteCategoria(delCat.id); toast.success("Categoria removida"); setDelCat(null); }}
+          onConfirm={async () => { if (!podeCategorias) { toast.error("Você não possui permissão para esta ação."); return; } await deleteCategoria(delCat.id); toast.success("Categoria removida"); setDelCat(null); }}
         />
       )}
     </div>

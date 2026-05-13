@@ -7,11 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark, MessageCircle } from "lucide-react";
+import { usePermissao } from "@/hooks/usePermissao";
 
 
 export default function EmpresaDados() {
   const { empresa, loading, saveEmpresa, uploadLogo } = useEmpresa();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeEditar = tem("empresa.editar");
   const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<Empresa>(empresa);
   const [saving, setSaving] = useState(false);
@@ -29,6 +32,7 @@ export default function EmpresaDados() {
   }, [empresa, loading]);
 
   const autoSave = useCallback(async (updatedForm: Empresa) => {
+    if (!podeEditar) return;
     if (!updatedForm.razaoSocial?.trim()) return;
     setAutoSaveStatus("saving");
     try {
@@ -39,9 +43,10 @@ export default function EmpresaDados() {
     } catch {
       setAutoSaveStatus("idle");
     }
-  }, [saveEmpresa]);
+  }, [saveEmpresa, podeEditar]);
 
   const update = (field: keyof Empresa, value: string) => {
+    if (!podeEditar) return;
     dirtyRef.current = true;
     setForm(prev => {
       const next = { ...prev, [field]: value };
@@ -53,6 +58,7 @@ export default function EmpresaDados() {
   };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -72,6 +78,7 @@ export default function EmpresaDados() {
   };
 
   const handleSave = async () => {
+    if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!form.razaoSocial.trim()) {
       toast({ title: "Informe a Razão Social", variant: "destructive" });
       return;
@@ -148,7 +155,7 @@ export default function EmpresaDados() {
           {autoSaveStatus === "saved" && (
             <span className="text-xs text-primary">✓ Salvo</span>
           )}
-          <Button onClick={handleSave} disabled={saving} className="gap-2">
+          <Button onClick={handleSave} disabled={saving || !podeEditar} className="gap-2">
             <Save className="h-4 w-4" />
             {saving ? "Salvando..." : "Salvar"}
           </Button>

@@ -17,6 +17,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { useUsuarios } from "@/contexts/UsuariosContext";
+import { usePermissao } from "@/hooks/usePermissao";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { usePerfisAcesso } from "@/contexts/PerfisAcessoContext";
@@ -39,6 +40,12 @@ const Usuarios = () => {
   const { clientes } = useClientes();
   const { perfis } = usePerfisAcesso();
   const { resetSenha } = useAuth();
+  const { tem } = usePermissao();
+  const podeCriar = tem("usuarios.criar");
+  const podeEditar = tem("usuarios.editar");
+  const podeExcluir = tem("usuarios.excluir");
+  const podeResetSenha = tem("usuarios.reset_senha");
+  const podeAuditoria = tem("usuarios.auditoria");
 
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -84,6 +91,7 @@ const Usuarios = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome.trim()) { toast.error("Informe o nome."); return; }
     if (!form.cargoId) { toast.error("Selecione o cargo."); return; }
     if (!form.email.trim()) { toast.error("Informe o e-mail."); return; }
@@ -158,6 +166,7 @@ const Usuarios = () => {
   };
 
   const handleDelete = (id: string) => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
     deleteUsuario(id);
     if (editingId === id) resetForm();
     toast.success("Usuário removido.");
@@ -165,6 +174,7 @@ const Usuarios = () => {
   const handleConfirmDelete = () => { if (deleteId) handleDelete(deleteId); };
 
   const handleForcarReset = async (email: string) => {
+    if (!podeResetSenha) { toast.error("Você não possui permissão para esta ação."); return; }
     const r = await resetSenha(email);
     if (r.ok) toast.success(r.message);
     else toast.error(r.message);
@@ -221,10 +231,12 @@ const Usuarios = () => {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setAuditoriaOpen(true)}>
-                <Shield className="h-4 w-4 mr-2" /> Auditoria de Acessos
-              </Button>
-              {!showForm && (
+              {podeAuditoria && (
+                <Button variant="outline" onClick={() => setAuditoriaOpen(true)}>
+                  <Shield className="h-4 w-4 mr-2" /> Auditoria de Acessos
+                </Button>
+              )}
+              {!showForm && podeCriar && (
                 <Button onClick={() => setShowForm(true)} className="shadow-md">Novo Usuário</Button>
               )}
             </div>
@@ -507,8 +519,8 @@ const Usuarios = () => {
                     <TableCell className="max-w-[200px] truncate">{getClientesNomes(u.clientesPermitidos)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" onClick={() => handleEdit(u)} className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>
-                        <Button size="icon" variant="ghost" onClick={() => requestDelete(u.id)} className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
+                        {podeEditar && <Button size="icon" variant="ghost" onClick={() => handleEdit(u)} className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>}
+                        {podeExcluir && <Button size="icon" variant="ghost" onClick={() => requestDelete(u.id)} className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>

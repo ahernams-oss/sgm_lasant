@@ -96,7 +96,7 @@ function ReportButton({ format, data }: { format: string; data: ReportData }) {
   );
 }
 
-function AssistantMessage({ content }: { content: string }) {
+function AssistantMessage({ content, podeExportar }: { content: string; podeExportar: boolean }) {
   const { text, reports } = parseReports(content);
   return (
     <div>
@@ -105,7 +105,7 @@ function AssistantMessage({ content }: { content: string }) {
           <ReactMarkdown>{text}</ReactMarkdown>
         </div>
       )}
-      {reports.length > 0 && (
+      {podeExportar && reports.length > 0 && (
         <div className="flex flex-wrap mt-1">
           {reports.map((r, i) => <ReportButton key={i} format={r.format} data={r.data} />)}
         </div>
@@ -211,7 +211,7 @@ export default function ChatDuda() {
             <div className={`max-w-[75%] rounded-lg px-4 py-3 text-sm ${
               m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
             }`}>
-              {m.role === "assistant" ? <AssistantMessage content={m.content} /> : <p className="whitespace-pre-wrap">{m.content}</p>}
+              {m.role === "assistant" ? <AssistantMessage content={m.content} podeExportar={podeExportar} /> : <p className="whitespace-pre-wrap">{m.content}</p>}
             </div>
             {m.role === "user" && (
               <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center shrink-0 mt-1">

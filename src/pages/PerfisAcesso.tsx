@@ -18,11 +18,17 @@ import {
   Permissoes,
 } from "@/contexts/PerfisAcessoContext";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const emptyForm = { nome: "", descricao: "", permissoes: {} as Permissoes };
 
 const PerfisAcesso = () => {
   const { perfis, addPerfil, updatePerfil, deletePerfil } = usePerfisAcesso();
+  const { tem } = usePermissao();
+  const podeCriar = tem("perfis_acesso.criar");
+  const podeEditar = tem("perfis_acesso.editar");
+  const podeExcluir = tem("perfis_acesso.excluir");
+  const podeDuplicar = tem("perfis_acesso.duplicar");
 
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -129,6 +135,7 @@ const PerfisAcesso = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome.trim()) { toast.error("Informe o nome do perfil."); return; }
     if (editingId) {
       await updatePerfil(editingId, form);
@@ -147,6 +154,7 @@ const PerfisAcesso = () => {
   };
 
   const handleDuplicate = (p: typeof perfis[0]) => {
+    if (!podeDuplicar && !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     setForm({ nome: `${p.nome} (cópia)`, descricao: p.descricao, permissoes: { ...p.permissoes } });
     setEditingId(null);
     setShowForm(true);
@@ -154,6 +162,7 @@ const PerfisAcesso = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
     await deletePerfil(id);
     if (editingId === id) resetForm();
     toast.success("Perfil removido.");
@@ -206,7 +215,7 @@ const PerfisAcesso = () => {
                 Configure perfis com permissões granulares por módulo, ações, status e flags.
               </p>
             </div>
-            {!showForm && (
+            {!showForm && podeCriar && (
               <Button onClick={() => setShowForm(true)} className="shadow-md">Novo Perfil</Button>
             )}
           </div>
@@ -446,15 +455,21 @@ const PerfisAcesso = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" onClick={() => handleDuplicate(p)} className="h-8 w-8" title="Duplicar">
-                          <Copy className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => handleEdit(p)} className="h-8 w-8">
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => requestDelete(p.id)} className="h-8 w-8 text-destructive hover:text-destructive">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        {(podeDuplicar || podeCriar) && (
+                          <Button size="icon" variant="ghost" onClick={() => handleDuplicate(p)} className="h-8 w-8" title="Duplicar">
+                            <Copy className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        {podeEditar && (
+                          <Button size="icon" variant="ghost" onClick={() => handleEdit(p)} className="h-8 w-8">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        {podeExcluir && (
+                          <Button size="icon" variant="ghost" onClick={() => requestDelete(p.id)} className="h-8 w-8 text-destructive hover:text-destructive">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
