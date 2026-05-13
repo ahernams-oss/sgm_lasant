@@ -394,12 +394,16 @@ export default function BaseConhecimentoPage() {
                         <Button size="sm" variant="ghost" onClick={() => abrirVisualizacao(a)}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => openEditArtigo(a)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setDelArtigo(a)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        {podeEditar && (
+                          <Button size="sm" variant="ghost" onClick={() => openEditArtigo(a)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {podeExcluir && (
+                          <Button size="sm" variant="ghost" onClick={() => setDelArtigo(a)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
