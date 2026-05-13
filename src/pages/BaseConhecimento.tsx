@@ -714,7 +714,7 @@ export default function BaseConhecimentoPage() {
         <DoubleConfirmDelete
           open={!!delCat}
           onOpenChange={(o) => !o && setDelCat(null)}
-          onConfirm={async () => { await deleteCategoria(delCat.id); toast.success("Categoria removida"); setDelCat(null); }}
+          onConfirm={async () => { if (!podeCategorias) { toast.error("Você não possui permissão para esta ação."); return; } await deleteCategoria(delCat.id); toast.success("Categoria removida"); setDelCat(null); }}
         />
       )}
     </div>
