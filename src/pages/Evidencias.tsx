@@ -286,12 +286,12 @@ export default function EvidenciasPage() {
                       <Button size="icon" variant="ghost" onClick={() => handleView(ev)} title="Visualizar">
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" onClick={() => handleOpen(ev)} title="Editar">
+                      {podeEditar && <Button size="icon" variant="ghost" onClick={() => handleOpen(ev)} title="Editar">
                         <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="ghost" onClick={() => setDeleteId(ev.id)} title="Excluir">
+                      </Button>}
+                      {podeExcluir && <Button size="icon" variant="ghost" onClick={() => setDeleteId(ev.id)} title="Excluir">
                         <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      </Button>}
                     </div>
                   </TableCell>
                 </TableRow>
