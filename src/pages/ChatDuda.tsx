@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 import { gerarPdfDuda, gerarExcelDuda, gerarWordDuda, type ReportData } from "@/lib/gerarRelatorioDuda";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
