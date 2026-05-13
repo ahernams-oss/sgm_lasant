@@ -378,6 +378,11 @@ export default function SolicitacaoServicosPage() {
 
   const handleCancelar = async () => {
     if (cancelId) {
+      if (!podeStCancelada) {
+        toast({ title: "Você não possui permissão para cancelar esta SS.", variant: "destructive" });
+        abortCancel();
+        return;
+      }
       const ss = solicitacoes.find(s => s.id === cancelId);
       await updateSolicitacao(cancelId, {
         situacao: "Cancelada",
@@ -389,6 +394,10 @@ export default function SolicitacaoServicosPage() {
   };
 
   const handleSolicitarOrcamento = async (s: any) => {
+    if (!podeStEmAnalise) {
+      toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" });
+      return;
+    }
     const full = solicitacoes.find(x => x.id === s.id);
     await updateSolicitacao(s.id, {
       situacao: "Orçamento Solicitado",
