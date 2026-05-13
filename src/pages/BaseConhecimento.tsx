@@ -203,6 +203,7 @@ export default function BaseConhecimentoPage() {
     setFaqOpen(true);
   };
   const salvarFaq = async () => {
+    if (faqEditId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!faqForm.pergunta?.trim() || !faqForm.resposta?.trim()) {
       toast.error("Pergunta e resposta são obrigatórias"); return;
     }
