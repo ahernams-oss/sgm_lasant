@@ -226,7 +226,7 @@ export default function ComunicacaoWhatsappPage() {
             Configure mensagens e agende envios para todos os funcionários com WhatsApp cadastrado.
           </p>
         </div>
-        <Button onClick={openNew}><Plus className="h-4 w-4 mr-2" /> Nova Campanha</Button>
+        {podeCriar && <Button onClick={openNew}><Plus className="h-4 w-4 mr-2" /> Nova Campanha</Button>}
       </div>
 
       <Card>
