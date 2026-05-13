@@ -342,17 +342,17 @@ const RequisicaoGrid = () => {
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuLabel className="text-xs text-muted-foreground">Aprovação</DropdownMenuLabel>
-                            {req.status !== "Em Análise" && (
+                            {req.status !== "Em Análise" && podeStatusRP("Em Análise") && (
                               <DropdownMenuItem onClick={() => handleStatusChange(req, "Em Análise")}>
                                 <Clock className="mr-2 h-4 w-4 text-blue-600" /> Marcar Em Análise
                               </DropdownMenuItem>
                             )}
-                            {req.status !== "Aprovada" && (
+                            {req.status !== "Aprovada" && podeStatusRP("Aprovada") && (
                               <DropdownMenuItem onClick={() => handleStatusChange(req, "Aprovada")}>
                                 <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Aprovar
                               </DropdownMenuItem>
                             )}
-                            {req.status !== "Reprovada" && (
+                            {req.status !== "Reprovada" && podeStatusRP("Reprovada") && (
                               <DropdownMenuItem onClick={() => { setReprovandoReq(req); setJustificativaReprovacao(""); }}>
                                 <XCircle className="mr-2 h-4 w-4 text-red-600" /> Reprovar
                               </DropdownMenuItem>
