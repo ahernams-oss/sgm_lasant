@@ -244,6 +244,7 @@ const ProcessoSeletivoPage = () => {
 
   const handleAprovarEtapa = async (candidato: Candidato, statusField: string, status: "aprovado" | "neutro" | "reprovado") => {
     if (!podeAvaliar) { toast.error("Você não possui permissão para esta ação."); return; }
+    if (!podeStatusPS(status)) { toast.error(`Você não possui permissão para marcar candidato como "${status}".`); return; }
     const updates: Partial<Candidato> = { [statusField]: status };
 
     if (statusField === "statusLiberacao" && status === "aprovado") {
