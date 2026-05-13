@@ -75,6 +75,7 @@ export default function FerramentasPage() {
   const clientesTipo = clientes.filter(c => c.tipo === "Cliente");
 
   const handleSave = async () => {
+    if (editId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.codigo || !form.descricao) return;
     if (editId) {
       await updateFerramenta(editId, form);
