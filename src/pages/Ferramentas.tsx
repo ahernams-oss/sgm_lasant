@@ -549,7 +549,7 @@ export default function FerramentasPage() {
           </Table>
         </DialogContent>
       </Dialog>
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={() => { if (deleteId) { deleteFerramenta(deleteId); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={() => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { deleteFerramenta(deleteId); cancelDelete(); } }} />
     </div>
   );
 }
