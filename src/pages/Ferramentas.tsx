@@ -221,11 +221,11 @@ export default function FerramentasPage() {
                     <TableCell><Badge className={statusColor(f.status)} variant="outline">{f.status}</Badge></TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-1 justify-end">
-                        <Button size="icon" variant="ghost" title="Editar" onClick={() => handleEdit(f)}><Pencil className="h-4 w-4" /></Button>
+                        {podeEditar && <Button size="icon" variant="ghost" title="Editar" onClick={() => handleEdit(f)}><Pencil className="h-4 w-4" /></Button>}
                         <Button size="icon" variant="ghost" title="Histórico" onClick={() => { setHistoricoFerramentaId(f.id); setHistoricoOpen(true); }}><History className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Vincular a Funcionário" disabled={f.status !== "Disponível"} onClick={() => { setVinculoFerramentaIds([f.id]); setVinculoOpen(true); }}><Link className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Emprestar" disabled={f.status !== "Disponível"} onClick={() => { setEmpFerramentaId(f.id); setEmprestimoOpen(true); }}><ArrowRightLeft className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Excluir" className="text-destructive" onClick={() => requestDelete(f.id)}><Trash2 className="h-4 w-4" /></Button>
+                        {podeVincular && <Button size="icon" variant="ghost" title="Vincular a Funcionário" disabled={f.status !== "Disponível"} onClick={() => { setVinculoFerramentaIds([f.id]); setVinculoOpen(true); }}><Link className="h-4 w-4" /></Button>}
+                        {podeEmprestimos && <Button size="icon" variant="ghost" title="Emprestar" disabled={f.status !== "Disponível"} onClick={() => { setEmpFerramentaId(f.id); setEmprestimoOpen(true); }}><ArrowRightLeft className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button size="icon" variant="ghost" title="Excluir" className="text-destructive" onClick={() => requestDelete(f.id)}><Trash2 className="h-4 w-4" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>
