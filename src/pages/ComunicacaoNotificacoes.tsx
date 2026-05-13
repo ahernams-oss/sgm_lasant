@@ -141,14 +141,14 @@ export default function ComunicacaoNotificacoes() {
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-1">
-                    {!n.lida && n.destinatarioEmail === usuarioLogado?.email && (
+                    {!n.lida && n.destinatarioEmail === usuarioLogado?.email && podeMarcarLida && (
                       <Button size="icon" variant="ghost" className="text-green-600" onClick={() => { marcarNotificacaoLida(n.id); toast({ title: "Marcada como lida" }); }}>
                         <CheckCircle2 className="h-4 w-4" />
                       </Button>
                     )}
-                    <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(n.id)}>
+                    {podeExcluir && <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(n.id)}>
                       <Trash2 className="h-4 w-4" />
-                    </Button>
+                    </Button>}
                   </div>
                 </TableCell>
               </TableRow>
