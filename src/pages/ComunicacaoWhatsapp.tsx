@@ -275,15 +275,15 @@ export default function ComunicacaoWhatsappPage() {
                     ) : "—"}
                   </TableCell>
                   <TableCell>
-                    <Button size="icon" variant="ghost" onClick={() => toggleAtivo(c)} title={c.ativo ? "Desativar" : "Ativar"}>
+                    {podeEditar && <Button size="icon" variant="ghost" onClick={() => toggleAtivo(c)} title={c.ativo ? "Desativar" : "Ativar"}>
                       <Power className={`h-4 w-4 ${c.ativo ? "text-emerald-600" : "text-muted-foreground"}`} />
-                    </Button>
+                    </Button>}
                   </TableCell>
                   <TableCell className="text-right space-x-1">
-                    <Button size="icon" variant="ghost" onClick={() => enviarAgora(c)} title="Enviar agora"><Send className="h-4 w-4 text-primary" /></Button>
+                    {podeEnviar && <Button size="icon" variant="ghost" onClick={() => enviarAgora(c)} title="Enviar agora"><Send className="h-4 w-4 text-primary" /></Button>}
                     <Button size="icon" variant="ghost" onClick={() => verHistorico(c)} title="Histórico"><Eye className="h-4 w-4" /></Button>
-                    <Button size="icon" variant="ghost" onClick={() => openEdit(c)}><Edit className="h-4 w-4" /></Button>
-                    <Button size="icon" variant="ghost" onClick={() => setDelId(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    {podeEditar && <Button size="icon" variant="ghost" onClick={() => openEdit(c)}><Edit className="h-4 w-4" /></Button>}
+                    {podeExcluir && <Button size="icon" variant="ghost" onClick={() => setDelId(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </TableCell>
                 </TableRow>
               ))}
