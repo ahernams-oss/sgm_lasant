@@ -96,7 +96,7 @@ function ReportButton({ format, data }: { format: string; data: ReportData }) {
   );
 }
 
-function AssistantMessage({ content }: { content: string }) {
+function AssistantMessage({ content, podeExportar }: { content: string; podeExportar: boolean }) {
   const { text, reports } = parseReports(content);
   return (
     <div>
@@ -105,7 +105,7 @@ function AssistantMessage({ content }: { content: string }) {
           <ReactMarkdown>{text}</ReactMarkdown>
         </div>
       )}
-      {reports.length > 0 && (
+      {podeExportar && reports.length > 0 && (
         <div className="flex flex-wrap mt-1">
           {reports.map((r, i) => <ReportButton key={i} format={r.format} data={r.data} />)}
         </div>
