@@ -14,6 +14,7 @@ import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
 import { Plus, Edit, Trash2, Send, MessageCircle, Eye, Power } from "lucide-react";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 
 interface Campanha {
@@ -62,6 +63,11 @@ function fmtData(s: string | null) {
 
 export default function ComunicacaoWhatsappPage() {
   const { funcionarios } = useFuncionarios();
+  const { tem } = usePermissao();
+  const podeCriar = tem("comunicacao_whatsapp.criar");
+  const podeEditar = tem("comunicacao_whatsapp.editar");
+  const podeExcluir = tem("comunicacao_whatsapp.excluir");
+  const podeEnviar = tem("comunicacao_whatsapp.enviar");
   const [campanhas, setCampanhas] = useState<Campanha[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -124,6 +130,7 @@ export default function ComunicacaoWhatsappPage() {
   }
 
   const onSave = async () => {
+    if (editing ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome?.trim()) { toast.error("Informe o nome da campanha"); return; }
     if (!form.mensagem?.trim()) { toast.error("Informe a mensagem"); return; }
     if (form.modo === "agendado" && !form.agendado_para) { toast.error("Informe data/hora do agendamento"); return; }
@@ -161,6 +168,7 @@ export default function ComunicacaoWhatsappPage() {
   };
 
   const onDelete = async () => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!delId) return;
     const { error } = await (supabase as any).from("whatsapp_campanhas").delete().eq("id", delId);
     if (error) { toast.error("Erro ao excluir"); return; }
@@ -170,6 +178,7 @@ export default function ComunicacaoWhatsappPage() {
   };
 
   const enviarAgora = async (c: Campanha) => {
+    if (!podeEnviar) { toast.error("Você não possui permissão para esta ação."); return; }
     toast.loading(`Enviando "${c.nome}"...`, { id: `send-${c.id}` });
     const { data, error } = await supabase.functions.invoke("process-whatsapp-campanhas", {
       body: { campanha_id: c.id },
@@ -217,7 +226,7 @@ export default function ComunicacaoWhatsappPage() {
             Configure mensagens e agende envios para todos os funcionários com WhatsApp cadastrado.
           </p>
         </div>
-        <Button onClick={openNew}><Plus className="h-4 w-4 mr-2" /> Nova Campanha</Button>
+        {podeCriar && <Button onClick={openNew}><Plus className="h-4 w-4 mr-2" /> Nova Campanha</Button>}
       </div>
 
       <Card>
@@ -266,15 +275,15 @@ export default function ComunicacaoWhatsappPage() {
                     ) : "—"}
                   </TableCell>
                   <TableCell>
-                    <Button size="icon" variant="ghost" onClick={() => toggleAtivo(c)} title={c.ativo ? "Desativar" : "Ativar"}>
+                    {podeEditar && <Button size="icon" variant="ghost" onClick={() => toggleAtivo(c)} title={c.ativo ? "Desativar" : "Ativar"}>
                       <Power className={`h-4 w-4 ${c.ativo ? "text-emerald-600" : "text-muted-foreground"}`} />
-                    </Button>
+                    </Button>}
                   </TableCell>
                   <TableCell className="text-right space-x-1">
-                    <Button size="icon" variant="ghost" onClick={() => enviarAgora(c)} title="Enviar agora"><Send className="h-4 w-4 text-primary" /></Button>
+                    {podeEnviar && <Button size="icon" variant="ghost" onClick={() => enviarAgora(c)} title="Enviar agora"><Send className="h-4 w-4 text-primary" /></Button>}
                     <Button size="icon" variant="ghost" onClick={() => verHistorico(c)} title="Histórico"><Eye className="h-4 w-4" /></Button>
-                    <Button size="icon" variant="ghost" onClick={() => openEdit(c)}><Edit className="h-4 w-4" /></Button>
-                    <Button size="icon" variant="ghost" onClick={() => setDelId(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    {podeEditar && <Button size="icon" variant="ghost" onClick={() => openEdit(c)}><Edit className="h-4 w-4" /></Button>}
+                    {podeExcluir && <Button size="icon" variant="ghost" onClick={() => setDelId(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </TableCell>
                 </TableRow>
               ))}

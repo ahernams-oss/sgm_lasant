@@ -17,6 +17,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
+import { usePermissao } from "@/hooks/usePermissao";
+import { toast } from "sonner";
 
 const CATEGORIAS = ["Inspeção", "Qualidade", "Segurança", "Meio Ambiente", "Operacional", "Auditoria"];
 
@@ -31,6 +33,13 @@ export default function ChecklistsPage() {
   const { checklists, preenchimentos, loading, addChecklist, updateChecklist, deleteChecklist, addPreenchimento, updatePreenchimento, deletePreenchimento } = useChecklists();
   const { evidencias } = useEvidencias();
   const { usuarioLogado } = useAuth();
+
+  const { tem } = usePermissao();
+  const podeCriar = tem("checklists.criar");
+  const podeEditar = tem("checklists.editar");
+  const podeExcluir = tem("checklists.excluir");
+  const podePreencher = tem("checklists.preencher");
+  const podeAprovar = tem("checklists.aprovar");
 
   const [activeTab, setActiveTab] = useState("templates");
   const [search, setSearch] = useState("");
@@ -72,6 +81,7 @@ export default function ChecklistsPage() {
   };
 
   const saveTemplate = async () => {
+    if (editingTemplate ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     const cleanItens = templateForm.itens.filter(i => i.descricao.trim());
     if (!templateForm.titulo.trim() || cleanItens.length === 0) return;
     const payload = { ...templateForm, itens: cleanItens };
@@ -112,6 +122,7 @@ export default function ChecklistsPage() {
   };
 
   const savePreench = async () => {
+    if (!podePreencher) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!preenchForm.checklist_id || preenchForm.itens.length === 0) return;
     const tpl = checklists.find(c => c.id === preenchForm.checklist_id);
     const ev = evidencias.find(e => e.id === preenchForm.evidencia_id);
@@ -150,6 +161,7 @@ export default function ChecklistsPage() {
   const paginatedPreench = filteredPreench.slice((page - 1) * pageSize, page * pageSize);
 
   const handleDelete = async () => {
+    if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); setDeleteId(null); return; }
     if (!deleteId) return;
     if (deleteType === "template") await deleteChecklist(deleteId);
     else await deletePreenchimento(deleteId);
@@ -194,7 +206,7 @@ export default function ChecklistsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Buscar templates..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
             </div>
-            <Button onClick={openNewTemplate}><Plus className="h-4 w-4 mr-1" />Novo Template</Button>
+            {podeCriar && <Button onClick={openNewTemplate}><Plus className="h-4 w-4 mr-1" />Novo Template</Button>}
           </div>
 
           <div className="border rounded-lg overflow-hidden">
@@ -219,9 +231,9 @@ export default function ChecklistsPage() {
                     <TableCell className="text-center">{preenchimentos.filter(p => p.checklist_id === c.id).length}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" title="Editar" onClick={() => openEditTemplate(c)}><Edit className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Preencher" onClick={() => { setPreenchForm({ checklist_id: c.id, evidencia_id: "", itens: c.itens.map(i => ({ descricao: i.descricao, quantidade: i.quantidade || "", registro_fotografico: i.registro_fotografico || false, status: "", foto_url: "" })), observacoes: "" }); setEditingPreench(null); setPreenchDialogOpen(true); }}><Play className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" className="text-destructive" title="Excluir" onClick={() => { setDeleteId(c.id); setDeleteType("template"); }}><Trash2 className="h-4 w-4" /></Button>
+                        {podeEditar && <Button size="icon" variant="ghost" title="Editar" onClick={() => openEditTemplate(c)}><Edit className="h-4 w-4" /></Button>}
+                        {podePreencher && <Button size="icon" variant="ghost" title="Preencher" onClick={() => { setPreenchForm({ checklist_id: c.id, evidencia_id: "", itens: c.itens.map(i => ({ descricao: i.descricao, quantidade: i.quantidade || "", registro_fotografico: i.registro_fotografico || false, status: "", foto_url: "" })), observacoes: "" }); setEditingPreench(null); setPreenchDialogOpen(true); }}><Play className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button size="icon" variant="ghost" className="text-destructive" title="Excluir" onClick={() => { setDeleteId(c.id); setDeleteType("template"); }}><Trash2 className="h-4 w-4" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -239,7 +251,7 @@ export default function ChecklistsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Buscar preenchimentos..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
             </div>
-            <Button onClick={openNewPreench}><Plus className="h-4 w-4 mr-1" />Novo Preenchimento</Button>
+            {podePreencher && <Button onClick={openNewPreench}><Plus className="h-4 w-4 mr-1" />Novo Preenchimento</Button>}
           </div>
 
           <div className="border rounded-lg overflow-hidden">
@@ -267,8 +279,8 @@ export default function ChecklistsPage() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button size="icon" variant="ghost" title="Visualizar" onClick={() => { setViewing(p); setViewDialogOpen(true); }}><Eye className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Editar" onClick={() => openEditPreench(p)}><Edit className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" className="text-destructive" title="Excluir" onClick={() => { setDeleteId(p.id); setDeleteType("preenchimento"); }}><Trash2 className="h-4 w-4" /></Button>
+                        {podePreencher && <Button size="icon" variant="ghost" title="Editar" onClick={() => openEditPreench(p)}><Edit className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button size="icon" variant="ghost" className="text-destructive" title="Excluir" onClick={() => { setDeleteId(p.id); setDeleteType("preenchimento"); }}><Trash2 className="h-4 w-4" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>

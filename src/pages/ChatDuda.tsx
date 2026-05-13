@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 import { gerarPdfDuda, gerarExcelDuda, gerarWordDuda, type ReportData } from "@/lib/gerarRelatorioDuda";
 import { toast } from "sonner";
+import { usePermissao } from "@/hooks/usePermissao";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -114,6 +115,9 @@ function AssistantMessage({ content }: { content: string }) {
 }
 
 export default function ChatDuda() {
+  const { tem } = usePermissao();
+  const podeUsar = tem("chat_duda.usar");
+  const podeExportar = tem("chat_duda.exportar");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -122,6 +126,7 @@ export default function ChatDuda() {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const send = useCallback(async () => {
+    if (!podeUsar) { toast.error("Você não possui permissão para esta ação."); return; }
     const text = input.trim();
     if (!text || loading) return;
     setInput("");

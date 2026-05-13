@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissao } from "@/hooks/usePermissao";
 import { Plus, Send, MessageSquare, Users, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -22,6 +23,10 @@ export default function ComunicacaoMensagens() {
   const { usuarios } = useUsuarios();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriarConversa = tem("comunicacao_mensagens.criar_conversa");
+  const podeEnviar = tem("comunicacao_mensagens.enviar");
+  const podeCriarGrupo = tem("comunicacao_mensagens.criar_grupo");
 
   const [selectedConversa, setSelectedConversa] = useState<string | null>(null);
   const [novaMensagem, setNovaMensagem] = useState("");
@@ -53,6 +58,8 @@ export default function ComunicacaoMensagens() {
   }, [mensagens]);
 
   const handleCriarConversa = async () => {
+    if (!podeCriarConversa) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
+    if (novaConversaTipo === "grupo" && !podeCriarGrupo) { toast({ title: "Você não possui permissão para criar grupos.", variant: "destructive" }); return; }
     if (participantesSelecionados.length === 0) {
       toast({ title: "Selecione ao menos um participante", variant: "destructive" });
       return;
@@ -90,6 +97,7 @@ export default function ComunicacaoMensagens() {
   };
 
   const handleEnviarMensagem = async () => {
+    if (!podeEnviar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!novaMensagem.trim() || !selectedConversa) return;
     await addMensagem({
       conversa_id: selectedConversa,
@@ -125,9 +133,11 @@ export default function ComunicacaoMensagens() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm">Conversas</CardTitle>
-              <Button size="sm" onClick={() => setDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-1" /> Nova
-              </Button>
+              {podeCriarConversa && (
+                <Button size="sm" onClick={() => setDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-1" /> Nova
+                </Button>
+              )}
             </div>
             <Input
               placeholder="Buscar conversa..."
@@ -230,7 +240,7 @@ export default function ComunicacaoMensagens() {
                   onChange={e => setNovaMensagem(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleEnviarMensagem()}
                 />
-                <Button onClick={handleEnviarMensagem} disabled={!novaMensagem.trim()}>
+                <Button onClick={handleEnviarMensagem} disabled={!novaMensagem.trim() || !podeEnviar}>
                   <Send className="h-4 w-4" />
                 </Button>
               </div>

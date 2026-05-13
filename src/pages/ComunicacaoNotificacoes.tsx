@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissao } from "@/hooks/usePermissao";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { Plus, Bell, CheckCircle2, Trash2 } from "lucide-react";
@@ -22,6 +23,10 @@ export default function ComunicacaoNotificacoes() {
   const { usuarios } = useUsuarios();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriar = tem("comunicacao_notificacoes.criar");
+  const podeExcluir = tem("comunicacao_notificacoes.excluir");
+  const podeMarcarLida = tem("comunicacao_notificacoes.marcar_lida");
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -42,6 +47,7 @@ export default function ComunicacaoNotificacoes() {
   const { paginated, totalPages } = paginate(filtered, page, pageSize);
 
   const handleSalvar = async () => {
+    if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     const dest = usuarios.find(u => u.id === form.destinatarioId);
     if (!dest || !form.titulo.trim()) {
       toast({ title: "Preencha destinatário e título", variant: "destructive" });
@@ -64,9 +70,11 @@ export default function ComunicacaoNotificacoes() {
     <div className="space-y-4 pt-[15px] pl-0 pr-[10px]">
       <div className="flex items-center justify-between mx-[7px]">
         <h1 className="text-2xl font-bold">Notificações de Tarefas</h1>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Nova Notificação
-        </Button>
+        {podeCriar && (
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" /> Nova Notificação
+          </Button>
+        )}
       </div>
 
       <div className="flex gap-4 mx-[7px]">
@@ -133,14 +141,14 @@ export default function ComunicacaoNotificacoes() {
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-1">
-                    {!n.lida && n.destinatarioEmail === usuarioLogado?.email && (
+                    {!n.lida && n.destinatarioEmail === usuarioLogado?.email && podeMarcarLida && (
                       <Button size="icon" variant="ghost" className="text-green-600" onClick={() => { marcarNotificacaoLida(n.id); toast({ title: "Marcada como lida" }); }}>
                         <CheckCircle2 className="h-4 w-4" />
                       </Button>
                     )}
-                    <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(n.id)}>
+                    {podeExcluir && <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(n.id)}>
                       <Trash2 className="h-4 w-4" />
-                    </Button>
+                    </Button>}
                   </div>
                 </TableCell>
               </TableRow>
@@ -199,6 +207,7 @@ export default function ComunicacaoNotificacoes() {
         open={!!deleteId}
         onOpenChange={(open) => { if (!open) cancelDelete(); }}
         onConfirm={async () => {
+          if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); cancelDelete(); return; }
           if (deleteId) {
             await deleteNotificacao(deleteId);
             cancelDelete();

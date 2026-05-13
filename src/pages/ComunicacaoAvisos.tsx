@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissao } from "@/hooks/usePermissao";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { Plus, Megaphone, Eye, CheckCircle2, Trash2 } from "lucide-react";
@@ -23,6 +24,10 @@ export default function ComunicacaoAvisos() {
   const { usuarios } = useUsuarios();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriar = tem("comunicacao_avisos.criar");
+  const podeEditar = tem("comunicacao_avisos.editar");
+  const podeExcluir = tem("comunicacao_avisos.excluir");
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -41,6 +46,7 @@ export default function ComunicacaoAvisos() {
   const { paginated, totalPages } = paginate(filtered, page, pageSize);
 
   const handleSalvar = async () => {
+    if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!form.titulo.trim() || !form.conteudo.trim()) {
       toast({ title: "Preencha título e conteúdo", variant: "destructive" });
       return;
@@ -80,9 +86,11 @@ export default function ComunicacaoAvisos() {
     <div className="space-y-4 pt-[15px] pl-0 pr-[10px]">
       <div className="flex items-center justify-between mx-[7px]">
         <h1 className="text-2xl font-bold">Avisos e Comunicados</h1>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Novo Aviso
-        </Button>
+        {podeCriar && (
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" /> Novo Aviso
+          </Button>
+        )}
       </div>
 
       <div className="mx-[7px]">
@@ -144,9 +152,9 @@ export default function ComunicacaoAvisos() {
                         <CheckCircle2 className="h-4 w-4" />
                       </Button>
                     )}
-                    <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(a.id)} title="Excluir">
+                    {podeExcluir && <Button size="icon" variant="ghost" className="text-destructive" onClick={() => requestDelete(a.id)} title="Excluir">
                       <Trash2 className="h-4 w-4" />
-                    </Button>
+                    </Button>}
                   </div>
                 </TableCell>
               </TableRow>
@@ -248,6 +256,7 @@ export default function ComunicacaoAvisos() {
         open={!!deleteId}
         onOpenChange={(open) => { if (!open) cancelDelete(); }}
         onConfirm={async () => {
+          if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); cancelDelete(); return; }
           if (deleteId) {
             await deleteAviso(deleteId);
             cancelDelete();
