@@ -17,6 +17,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { useUsuarios } from "@/contexts/UsuariosContext";
+import { usePermissao } from "@/hooks/usePermissao";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { usePerfisAcesso } from "@/contexts/PerfisAcessoContext";
