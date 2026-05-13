@@ -124,6 +124,7 @@ export default function FerramentasPage() {
   };
 
   const handleSolicitarEmprestimo = async () => {
+    if (!podeEmprestimos) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!empFerramentaId || !empDestinoId) return;
     const fer = ferramentas.find(f => f.id === empFerramentaId);
     if (!fer) return;
