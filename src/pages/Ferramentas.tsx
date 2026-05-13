@@ -20,6 +20,8 @@ import { Textarea } from "@/components/ui/textarea";
 import FormSection from "@/components/FormSection";
 import { Plus, Pencil, Trash2, Link, Unlink, ArrowRightLeft, Check, X, RotateCcw, FileText, Search, History } from "lucide-react";
 import { downloadPdfTermoResponsabilidade } from "@/lib/gerarPdfTermoResponsabilidade";
+import { usePermissao } from "@/hooks/usePermissao";
+import { toast } from "sonner";
 
 const estadosConservacao = ["Novo", "Bom", "Regular", "Ruim", "Inservível"];
 const statusOptions = ["Disponível", "Em Uso", "Emprestada", "Manutenção", "Baixada"];
@@ -31,6 +33,14 @@ export default function FerramentasPage() {
   const { empresa } = useEmpresa();
   const { cargos } = useCargos();
   const { usuarioLogado } = useAuth();
+
+  const { tem } = usePermissao();
+  const podeCriar = tem("ferramentas.criar");
+  const podeEditar = tem("ferramentas.editar");
+  const podeExcluir = tem("ferramentas.excluir");
+  const podeEmprestimos = tem("ferramentas.gerenciar_emprestimos");
+  const podeAprovar = tem("ferramentas.aprovar_emprestimo");
+  const podeVincular = tem("ferramentas.vincular_funcionario");
 
   const [form, setForm] = useState<Omit<Ferramenta, "id">>(emptyFerramentaForm);
   const [editId, setEditId] = useState<string | null>(null);
@@ -65,6 +75,7 @@ export default function FerramentasPage() {
   const clientesTipo = clientes.filter(c => c.tipo === "Cliente");
 
   const handleSave = async () => {
+    if (editId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.codigo || !form.descricao) return;
     if (editId) {
       await updateFerramenta(editId, form);
@@ -84,6 +95,7 @@ export default function FerramentasPage() {
   };
 
   const handleVincular = async () => {
+    if (!podeVincular) { toast.error("Você não possui permissão para esta ação."); return; }
     if (vinculoFerramentaIds.length === 0 || !vinculoFuncionarioId) return;
     const selectedFerramentas = ferramentas.filter(f => vinculoFerramentaIds.includes(f.id));
     const func = funcionarios.find(f => f.id === vinculoFuncionarioId);
@@ -112,6 +124,7 @@ export default function FerramentasPage() {
   };
 
   const handleSolicitarEmprestimo = async () => {
+    if (!podeEmprestimos) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!empFerramentaId || !empDestinoId) return;
     const fer = ferramentas.find(f => f.id === empFerramentaId);
     if (!fer) return;
@@ -174,7 +187,7 @@ export default function FerramentasPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Buscar ferramentas..." value={search} onChange={e => { setSearch(e.target.value); setPageCad(1); }} className="pl-9" />
             </div>
-            <Button onClick={() => { setForm(emptyFerramentaForm); setEditId(null); setFormOpen(true); }}><Plus className="mr-1 h-4 w-4" />Nova Ferramenta</Button>
+            {podeCriar && <Button onClick={() => { setForm(emptyFerramentaForm); setEditId(null); setFormOpen(true); }}><Plus className="mr-1 h-4 w-4" />Nova Ferramenta</Button>}
           </div>
 
           <div className="border rounded-lg overflow-auto">
@@ -208,11 +221,11 @@ export default function FerramentasPage() {
                     <TableCell><Badge className={statusColor(f.status)} variant="outline">{f.status}</Badge></TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-1 justify-end">
-                        <Button size="icon" variant="ghost" title="Editar" onClick={() => handleEdit(f)}><Pencil className="h-4 w-4" /></Button>
+                        {podeEditar && <Button size="icon" variant="ghost" title="Editar" onClick={() => handleEdit(f)}><Pencil className="h-4 w-4" /></Button>}
                         <Button size="icon" variant="ghost" title="Histórico" onClick={() => { setHistoricoFerramentaId(f.id); setHistoricoOpen(true); }}><History className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Vincular a Funcionário" disabled={f.status !== "Disponível"} onClick={() => { setVinculoFerramentaIds([f.id]); setVinculoOpen(true); }}><Link className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Emprestar" disabled={f.status !== "Disponível"} onClick={() => { setEmpFerramentaId(f.id); setEmprestimoOpen(true); }}><ArrowRightLeft className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" title="Excluir" className="text-destructive" onClick={() => requestDelete(f.id)}><Trash2 className="h-4 w-4" /></Button>
+                        {podeVincular && <Button size="icon" variant="ghost" title="Vincular a Funcionário" disabled={f.status !== "Disponível"} onClick={() => { setVinculoFerramentaIds([f.id]); setVinculoOpen(true); }}><Link className="h-4 w-4" /></Button>}
+                        {podeEmprestimos && <Button size="icon" variant="ghost" title="Emprestar" disabled={f.status !== "Disponível"} onClick={() => { setEmpFerramentaId(f.id); setEmprestimoOpen(true); }}><ArrowRightLeft className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button size="icon" variant="ghost" title="Excluir" className="text-destructive" onClick={() => requestDelete(f.id)}><Trash2 className="h-4 w-4" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -226,7 +239,7 @@ export default function FerramentasPage() {
         {/* VÍNCULOS */}
         <TabsContent value="vinculos" className="space-y-4">
           <div className="flex gap-2">
-            <Button onClick={() => { setVinculoFerramentaIds([]); setVinculoOpen(true); }}><Plus className="mr-1 h-4 w-4" />Novo Vínculo</Button>
+            {podeVincular && <Button onClick={() => { setVinculoFerramentaIds([]); setVinculoOpen(true); }}><Plus className="mr-1 h-4 w-4" />Novo Vínculo</Button>}
           </div>
           <div className="border rounded-lg overflow-auto">
             <Table>
@@ -262,7 +275,7 @@ export default function FerramentasPage() {
                     <TableCell className="text-right">
                       <div className="flex gap-1 justify-end">
                         <Button size="sm" variant="outline" title="Gerar Termo" onClick={() => handleGerarTermo(v)}><FileText className="mr-1 h-4 w-4" />Termo</Button>
-                        {v.status === "Ativo" && (
+                        {v.status === "Ativo" && podeVincular && (
                           <Button size="sm" variant="outline" title="Devolver" onClick={() => devolverVinculo(v.id)}><Unlink className="mr-1 h-4 w-4" />Devolver</Button>
                         )}
                       </div>
@@ -278,7 +291,7 @@ export default function FerramentasPage() {
         {/* EMPRÉSTIMOS */}
         <TabsContent value="emprestimos" className="space-y-4">
           <div className="flex gap-2">
-            <Button onClick={() => { setEmpFerramentaId(""); setEmprestimoOpen(true); }}><Plus className="mr-1 h-4 w-4" />Solicitar Empréstimo</Button>
+            {podeEmprestimos && <Button onClick={() => { setEmpFerramentaId(""); setEmprestimoOpen(true); }}><Plus className="mr-1 h-4 w-4" />Solicitar Empréstimo</Button>}
           </div>
           <div className="border rounded-lg overflow-auto">
             <Table>
@@ -309,13 +322,13 @@ export default function FerramentasPage() {
                     <TableCell><Badge variant="outline" className={empStatusColor(e.status)}>{e.status}</Badge></TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-1 justify-end">
-                        {e.status === "Pendente" && (
+                        {e.status === "Pendente" && podeAprovar && (
                           <>
                             <Button size="icon" variant="ghost" title="Aprovar" className="text-emerald-600" onClick={() => aprovarEmprestimo(e.id, usuarioLogado?.nome || "")}><Check className="h-4 w-4" /></Button>
                             <Button size="icon" variant="ghost" title="Rejeitar" className="text-destructive" onClick={() => rejeitarEmprestimo(e.id, usuarioLogado?.nome || "")}><X className="h-4 w-4" /></Button>
                           </>
                         )}
-                        {e.status === "Aprovado" && (
+                        {e.status === "Aprovado" && podeEmprestimos && (
                           <Button size="sm" variant="outline" onClick={() => devolverEmprestimo(e.id)}><RotateCcw className="mr-1 h-4 w-4" />Devolver</Button>
                         )}
                       </div>
@@ -536,7 +549,7 @@ export default function FerramentasPage() {
           </Table>
         </DialogContent>
       </Dialog>
-      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={() => { if (deleteId) { deleteFerramenta(deleteId); cancelDelete(); } }} />
+      <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={() => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { deleteFerramenta(deleteId); cancelDelete(); } }} />
     </div>
   );
 }

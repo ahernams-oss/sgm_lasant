@@ -3,6 +3,7 @@ import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/Double
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useLicitacoes, Licitacao, DocumentoLicitacao, AnaliseLicitacao } from "@/contexts/LicitacoesContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissao } from "@/hooks/usePermissao";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -124,6 +125,12 @@ export default function LicitacoesPage() {
   } = useLicitacoes();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
+  const { tem } = usePermissao();
+  const podeCriar = tem("licitacoes.criar");
+  const podeEditar = tem("licitacoes.editar");
+  const podeExcluir = tem("licitacoes.excluir");
+  const podeAnexar = tem("licitacoes.gerenciar_anexos");
+  const podeIA = tem("licitacoes.extrair_datas_ia");
 
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
   const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
@@ -209,6 +216,7 @@ export default function LicitacoesPage() {
   }, [licitacoes, search, filterStatus, filterModalidade]);
 
   const handleSaveLicitacao = async () => {
+    if (editLicId ? !podeEditar : !podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!licForm.numeroProcesso || !licForm.orgaoLicitante) {
       toast({ title: "Preencha o número do processo e o órgão licitante", variant: "destructive" });
       return;
@@ -233,6 +241,7 @@ export default function LicitacoesPage() {
   };
 
   const handleDeleteLicitacao = async (id: string) => {
+    if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     await deleteLicitacao(id);
     toast({ title: "Licitação excluída!" });
   };
@@ -258,6 +267,7 @@ export default function LicitacoesPage() {
   }, [documentos, docSearch, filterDocCategoria, filterDocStatus]);
 
   const handleUploadDoc = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!podeAnexar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingDoc(true);
@@ -306,6 +316,7 @@ export default function LicitacoesPage() {
   };
 
   const handleSaveDocumento = async () => {
+    if (editDocId ? !podeAnexar : !podeAnexar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!docForm.nome) {
       toast({ title: "Informe o nome do documento", variant: "destructive" });
       return;
@@ -330,6 +341,7 @@ export default function LicitacoesPage() {
   };
 
   const handleDeleteDocumento = async (id: string) => {
+    if (!podeAnexar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     await deleteDocumento(id);
     toast({ title: "Documento excluído!" });
   };
@@ -341,6 +353,7 @@ export default function LicitacoesPage() {
   const [viewAnaliseId, setViewAnaliseId] = useState<string | null>(null);
 
   const handleSaveAnalise = async () => {
+    if (editAnaliseId ? !podeEditar : !podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!analiseForm.licitacaoId) {
       toast({ title: "Selecione a licitação", variant: "destructive" });
       return;
@@ -365,6 +378,7 @@ export default function LicitacoesPage() {
   };
 
   const handleDeleteAnalise = async (id: string) => {
+    if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     await deleteAnalise(id);
     toast({ title: "Análise excluída!" });
   };
@@ -408,9 +422,11 @@ export default function LicitacoesPage() {
                 {MODALIDADES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button onClick={() => { setLicForm({ ...EMPTY_LICITACAO, responsavelInterno: usuarioLogado?.nome || "" }); setEditLicId(null); setLicDialogOpen(true); }}>
-              <Plus className="h-4 w-4 mr-1" /> Nova Licitação
-            </Button>
+            {podeCriar && (
+              <Button onClick={() => { setLicForm({ ...EMPTY_LICITACAO, responsavelInterno: usuarioLogado?.nome || "" }); setEditLicId(null); setLicDialogOpen(true); }}>
+                <Plus className="h-4 w-4 mr-1" /> Nova Licitação
+              </Button>
+            )}
           </div>
 
           <p className="text-sm text-muted-foreground">{filteredLicitacoes.length} licitação(ões) encontrada(s)</p>
@@ -445,8 +461,8 @@ export default function LicitacoesPage() {
                     <TableCell><Badge variant="outline">{l.grauInteresse}</Badge></TableCell>
                     <TableCell className="text-right space-x-1">
                       <Button variant="ghost" size="icon" onClick={() => setViewLicId(l.id)}><Eye className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleEditLicitacao(l)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => requestDeleteLic(l.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      {podeEditar && <Button variant="ghost" size="icon" onClick={() => handleEditLicitacao(l)}><Pencil className="h-4 w-4" /></Button>}
+                      {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDeleteLic(l.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -479,9 +495,11 @@ export default function LicitacoesPage() {
                 {STATUS_DOCUMENTO.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button onClick={() => { setDocForm(EMPTY_DOCUMENTO); setEditDocId(null); setDocDialogOpen(true); }}>
-              <Plus className="h-4 w-4 mr-1" /> Novo Documento
-            </Button>
+            {podeAnexar && (
+              <Button onClick={() => { setDocForm(EMPTY_DOCUMENTO); setEditDocId(null); setDocDialogOpen(true); }}>
+                <Plus className="h-4 w-4 mr-1" /> Novo Documento
+              </Button>
+            )}
             <Button variant="outline" onClick={() => { setPhoneDialogOpen(true); loadPhones(); }}>
               <Phone className="h-4 w-4 mr-1" /> Telefones WhatsApp
             </Button>
@@ -539,8 +557,8 @@ export default function LicitacoesPage() {
                     </TableCell>
                     <TableCell>{d.licitacoesVinculadas.length}</TableCell>
                     <TableCell className="text-right space-x-1">
-                      <Button variant="ghost" size="icon" onClick={() => handleEditDocumento(d)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => requestDeleteDoc(d.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      {podeAnexar && <Button variant="ghost" size="icon" onClick={() => handleEditDocumento(d)}><Pencil className="h-4 w-4" /></Button>}
+                      {podeAnexar && <Button variant="ghost" size="icon" onClick={() => requestDeleteDoc(d.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -552,9 +570,11 @@ export default function LicitacoesPage() {
         {/* =============== TAB ANÁLISES =============== */}
         <TabsContent value="analises" className="space-y-4">
           <div className="flex flex-wrap gap-2 items-end">
-            <Button onClick={() => { setAnaliseForm({ ...EMPTY_ANALISE, analista: usuarioLogado?.nome || "", dataAnalise: format(new Date(), "yyyy-MM-dd") }); setEditAnaliseId(null); setAnaliseDialogOpen(true); }}>
-              <Plus className="h-4 w-4 mr-1" /> Nova Análise
-            </Button>
+            {podeCriar && (
+              <Button onClick={() => { setAnaliseForm({ ...EMPTY_ANALISE, analista: usuarioLogado?.nome || "", dataAnalise: format(new Date(), "yyyy-MM-dd") }); setEditAnaliseId(null); setAnaliseDialogOpen(true); }}>
+                <Plus className="h-4 w-4 mr-1" /> Nova Análise
+              </Button>
+            )}
           </div>
 
           <p className="text-sm text-muted-foreground">{analises.length} análise(s) registrada(s)</p>
@@ -574,8 +594,8 @@ export default function LicitacoesPage() {
                       <div className="flex items-center gap-2">
                         <Badge className={decisaoColors[a.decisaoParticipar] || "bg-gray-100"}>{a.decisaoParticipar}</Badge>
                         <Button variant="ghost" size="icon" onClick={() => setViewAnaliseId(a.id)}><Eye className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleEditAnalise(a)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => requestDeleteAna(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        {podeEditar && <Button variant="ghost" size="icon" onClick={() => handleEditAnalise(a)}><Pencil className="h-4 w-4" /></Button>}
+                        {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDeleteAna(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                       </div>
                     </div>
                   </CardHeader>

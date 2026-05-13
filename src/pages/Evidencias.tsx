@@ -16,6 +16,8 @@ import { Search, Plus, Edit, Trash2, FileText, Upload, Download, Eye, X, Chevron
 import { format } from "date-fns";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
+import { usePermissao } from "@/hooks/usePermissao";
+import { toast } from "sonner";
 
 const TIPOS = ["Operacional", "Qualidade", "Inspeção", "Treinamento", "Auditoria"];
 const STATUS_LIST = ["Pendente", "Em Análise", "Aprovada", "Reprovada", "Em Revisão", "Encerrada"];
@@ -53,6 +55,12 @@ export default function EvidenciasPage() {
   const { evidencias, loading, addEvidencia, updateEvidencia, deleteEvidencia, uploadAnexo } = useEvidencias();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
+
+  const { tem } = usePermissao();
+  const podeCriar = tem("evidencias.criar");
+  const podeEditar = tem("evidencias.editar");
+  const podeExcluir = tem("evidencias.excluir");
+  const podeAnexos = tem("evidencias.gerenciar_anexos");
 
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState("Todos");
@@ -104,6 +112,7 @@ export default function EvidenciasPage() {
   };
 
   const handleSave = async () => {
+    if (editing ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.titulo?.trim()) {
       return;
     }
@@ -129,6 +138,7 @@ export default function EvidenciasPage() {
   };
 
   const handleFileUpload = async (files: FileList | null) => {
+    if (!podeAnexos) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!files || !editing) return;
     setUploading(true);
     const newAnexos = [...(form.anexos || [])];
@@ -158,6 +168,7 @@ export default function EvidenciasPage() {
   };
 
   const handleStatusChange = async (ev: Evidencia, newStatus: string) => {
+    if (!podeEditar) { toast.error("Você não possui permissão para esta ação."); return; }
     const historicoEntry = {
       acao: "Alteração de Status",
       usuario: usuarioLogado?.nome || "Sistema",
@@ -179,9 +190,11 @@ export default function EvidenciasPage() {
             Cadastro, rastreabilidade e controle de evidências documentais e operacionais
           </p>
         </div>
-        <Button onClick={() => handleOpen()} className="gap-2">
-          <Plus className="h-4 w-4" /> Nova Evidência
-        </Button>
+        {podeCriar && (
+          <Button onClick={() => handleOpen()} className="gap-2">
+            <Plus className="h-4 w-4" /> Nova Evidência
+          </Button>
+        )}
       </div>
 
       {/* Resumo cards */}
@@ -273,12 +286,12 @@ export default function EvidenciasPage() {
                       <Button size="icon" variant="ghost" onClick={() => handleView(ev)} title="Visualizar">
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" onClick={() => handleOpen(ev)} title="Editar">
+                      {podeEditar && <Button size="icon" variant="ghost" onClick={() => handleOpen(ev)} title="Editar">
                         <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="ghost" onClick={() => setDeleteId(ev.id)} title="Excluir">
+                      </Button>}
+                      {podeExcluir && <Button size="icon" variant="ghost" onClick={() => setDeleteId(ev.id)} title="Excluir">
                         <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      </Button>}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -293,7 +306,7 @@ export default function EvidenciasPage() {
       <DoubleConfirmDelete
         open={!!deleteId}
         onOpenChange={(open) => { if (!open) setDeleteId(null); }}
-        onConfirm={() => { if (deleteId) deleteEvidencia(deleteId); setDeleteId(null); }}
+        onConfirm={() => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); setDeleteId(null); return; } if (deleteId) deleteEvidencia(deleteId); setDeleteId(null); }}
       />
 
       {/* Dialog cadastro/edição */}

@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useProcessosTrabalhistas, ProcessoTrabalhista, Andamento } from "@/contexts/ProcessosTrabalhistas";
 import { useClientes } from "@/contexts/ClientesContext";
+import { usePermissao } from "@/hooks/usePermissao";
 import { supabase } from "@/integrations/supabase/client";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 
@@ -76,6 +77,14 @@ const emptyContato: Omit<ContatoNotificacao, "id"> = {
 
 export default function JuridicoPage() {
   const { processos, andamentos, loading, addProcesso, updateProcesso, deleteProcesso, addAndamento, deleteAndamento, loadAndamentos } = useProcessosTrabalhistas();
+  const { tem } = usePermissao();
+  const podeCriar = tem("juridico.criar");
+  const podeEditar = tem("juridico.editar");
+  const podeExcluir = tem("juridico.excluir");
+  const podeAudiencias = tem("juridico.gerenciar_audiencias");
+  const podeContatos = tem("juridico.gerenciar_contatos");
+  const podeAnexos = tem("juridico.gerenciar_anexos");
+
   const { clientes } = useClientes();
 
   const [tab, setTab] = useState("dashboard");
@@ -162,6 +171,7 @@ export default function JuridicoPage() {
   const openView = async (p: ProcessoTrabalhista) => { setViewProcesso(p); await loadAndamentos(p.id); };
 
   const handleSave = async () => {
+    if (editId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.numero_processo.trim() || !form.autor_nome.trim()) { toast.error("Número do processo e nome do autor são obrigatórios"); return; }
     if (editId) { await updateProcesso(editId, form); toast.success("Processo atualizado"); }
     else { await addProcesso(form); toast.success("Processo cadastrado"); }
@@ -169,6 +179,7 @@ export default function JuridicoPage() {
   };
 
   const handleAddAndamento = async () => {
+    if (!podeEditar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!andForm.descricao.trim()) { toast.error("Descrição obrigatória"); return; }
     await addAndamento({ ...andForm, processo_id: viewProcesso!.id });
     setShowAndamentoForm(false);
@@ -178,6 +189,7 @@ export default function JuridicoPage() {
 
   // Audiências CRUD
   const handleSaveAudiencia = async () => {
+    if (!podeAudiencias) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!audForm.processo_id || !audForm.data_audiencia) { toast.error("Processo e data são obrigatórios"); return; }
     const proc = processos.find(p => p.id === audForm.processo_id);
     const payload = { ...audForm, processo_numero: proc?.numero_processo || "" };
@@ -195,6 +207,7 @@ export default function JuridicoPage() {
   };
 
   const handleDeleteAudiencia = async () => {
+    if (!podeAudiencias) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!audDeleteId) return;
     await (supabase as any).from("juridico_audiencias").delete().eq("id", audDeleteId);
     toast.success("Audiência removida");
@@ -204,6 +217,7 @@ export default function JuridicoPage() {
 
   // Contatos CRUD
   const handleSaveContato = async () => {
+    if (!podeContatos) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!contatoForm.nome.trim() || !contatoForm.telefone_whatsapp.trim()) { toast.error("Nome e WhatsApp são obrigatórios"); return; }
     if (contatoEditId) {
       await (supabase as any).from("juridico_contatos_notificacao").update(contatoForm).eq("id", contatoEditId);
@@ -219,6 +233,7 @@ export default function JuridicoPage() {
   };
 
   const handleDeleteContato = async () => {
+    if (!podeContatos) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!contatoDeleteId) return;
     await (supabase as any).from("juridico_contatos_notificacao").delete().eq("id", contatoDeleteId);
     toast.success("Contato removido");
@@ -364,7 +379,7 @@ export default function JuridicoPage() {
                 </SelectContent>
               </Select>
               <div className="flex-1" />
-              <Button onClick={openNew} className="gap-2"><Plus className="h-4 w-4" /> Novo Processo</Button>
+              {podeCriar && <Button onClick={openNew} className="gap-2"><Plus className="h-4 w-4" /> Novo Processo</Button>}
             </div>
 
             <div className="rounded-md border overflow-auto">
@@ -401,8 +416,8 @@ export default function JuridicoPage() {
                       <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
                           <Button variant="ghost" size="icon" onClick={() => openView(p)}><Eye className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Edit className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => setDeleteId(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          {podeEditar && <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Edit className="h-4 w-4" /></Button>}
+                          {podeExcluir && <Button variant="ghost" size="icon" onClick={() => setDeleteId(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -417,7 +432,7 @@ export default function JuridicoPage() {
           <TabsContent value="audiencias">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Agenda de Audiências</h2>
-              <Button onClick={() => { setAudForm(emptyAudiencia); setAudEditId(null); setShowAudForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Nova Audiência</Button>
+              {podeAudiencias && <Button onClick={() => { setAudForm(emptyAudiencia); setAudEditId(null); setShowAudForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Nova Audiência</Button>}
             </div>
 
             <div className="rounded-md border overflow-auto">
@@ -463,8 +478,8 @@ export default function JuridicoPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
-                          <Button variant="ghost" size="icon" onClick={() => { setAudForm({ ...a }); setAudEditId(a.id); setShowAudForm(true); }}><Edit className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => setAudDeleteId(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          {podeAudiencias && <Button variant="ghost" size="icon" onClick={() => { setAudForm({ ...a }); setAudEditId(a.id); setShowAudForm(true); }}><Edit className="h-4 w-4" /></Button>}
+                          {podeAudiencias && <Button variant="ghost" size="icon" onClick={() => setAudDeleteId(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -481,7 +496,7 @@ export default function JuridicoPage() {
                 <h2 className="text-lg font-semibold">Contatos para Notificação</h2>
                 <p className="text-sm text-muted-foreground">Advogados e contadores que receberão avisos de audiências via WhatsApp</p>
               </div>
-              <Button onClick={() => { setContatoForm(emptyContato); setContatoEditId(null); setShowContatoForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Novo Contato</Button>
+              {podeContatos && <Button onClick={() => { setContatoForm(emptyContato); setContatoEditId(null); setShowContatoForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Novo Contato</Button>}
             </div>
 
             <div className="rounded-md border overflow-auto">
@@ -513,8 +528,8 @@ export default function JuridicoPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
-                          <Button variant="ghost" size="icon" onClick={() => { setContatoForm({ ...c }); setContatoEditId(c.id); setShowContatoForm(true); }}><Edit className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => setContatoDeleteId(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          {podeContatos && <Button variant="ghost" size="icon" onClick={() => { setContatoForm({ ...c }); setContatoEditId(c.id); setShowContatoForm(true); }}><Edit className="h-4 w-4" /></Button>}
+                          {podeContatos && <Button variant="ghost" size="icon" onClick={() => setContatoDeleteId(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -780,7 +795,7 @@ export default function JuridicoPage() {
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-sm flex items-center gap-1"><Calendar className="h-4 w-4" /> Andamentos</h3>
-                    <Button size="sm" onClick={() => setShowAndamentoForm(true)} className="gap-1"><Plus className="h-3 w-3" /> Adicionar</Button>
+                    {podeEditar && <Button size="sm" onClick={() => setShowAndamentoForm(true)} className="gap-1"><Plus className="h-3 w-3" /> Adicionar</Button>}
                   </div>
 
                   {showAndamentoForm && (
@@ -833,9 +848,9 @@ export default function JuridicoPage() {
                           <p>{a.descricao}</p>
                           {a.responsavel && <p className="text-xs text-muted-foreground mt-1">Responsável: {a.responsavel}</p>}
                         </div>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { deleteAndamento(a.id); toast.success("Andamento removido"); }}>
+                        {podeEditar && <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { deleteAndamento(a.id); toast.success("Andamento removido"); }}>
                           <Trash2 className="h-3 w-3" />
-                        </Button>
+                        </Button>}
                       </div>
                     ))}
                   </div>
@@ -854,7 +869,7 @@ export default function JuridicoPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <Button variant="outline" onClick={() => setDeleteId(null)}>Cancelar</Button>
-              <Button variant="destructive" onClick={() => { if (deleteId) { deleteProcesso(deleteId); toast.success("Processo removido"); setDeleteId(null); } }}>Excluir</Button>
+              <Button variant="destructive" onClick={() => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; } if (deleteId) { deleteProcesso(deleteId); toast.success("Processo removido"); setDeleteId(null); } }}>Excluir</Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
