@@ -322,13 +322,13 @@ export default function FerramentasPage() {
                     <TableCell><Badge variant="outline" className={empStatusColor(e.status)}>{e.status}</Badge></TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-1 justify-end">
-                        {e.status === "Pendente" && (
+                        {e.status === "Pendente" && podeAprovar && (
                           <>
                             <Button size="icon" variant="ghost" title="Aprovar" className="text-emerald-600" onClick={() => aprovarEmprestimo(e.id, usuarioLogado?.nome || "")}><Check className="h-4 w-4" /></Button>
                             <Button size="icon" variant="ghost" title="Rejeitar" className="text-destructive" onClick={() => rejeitarEmprestimo(e.id, usuarioLogado?.nome || "")}><X className="h-4 w-4" /></Button>
                           </>
                         )}
-                        {e.status === "Aprovado" && (
+                        {e.status === "Aprovado" && podeEmprestimos && (
                           <Button size="sm" variant="outline" onClick={() => devolverEmprestimo(e.id)}><RotateCcw className="mr-1 h-4 w-4" />Devolver</Button>
                         )}
                       </div>
