@@ -306,7 +306,7 @@ export default function EvidenciasPage() {
       <DoubleConfirmDelete
         open={!!deleteId}
         onOpenChange={(open) => { if (!open) setDeleteId(null); }}
-        onConfirm={() => { if (deleteId) deleteEvidencia(deleteId); setDeleteId(null); }}
+        onConfirm={() => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); setDeleteId(null); return; } if (deleteId) deleteEvidencia(deleteId); setDeleteId(null); }}
       />
 
       {/* Dialog cadastro/edição */}
