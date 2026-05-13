@@ -187,7 +187,7 @@ export default function FerramentasPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Buscar ferramentas..." value={search} onChange={e => { setSearch(e.target.value); setPageCad(1); }} className="pl-9" />
             </div>
-            <Button onClick={() => { setForm(emptyFerramentaForm); setEditId(null); setFormOpen(true); }}><Plus className="mr-1 h-4 w-4" />Nova Ferramenta</Button>
+            {podeCriar && <Button onClick={() => { setForm(emptyFerramentaForm); setEditId(null); setFormOpen(true); }}><Plus className="mr-1 h-4 w-4" />Nova Ferramenta</Button>}
           </div>
 
           <div className="border rounded-lg overflow-auto">
