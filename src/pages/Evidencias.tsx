@@ -16,6 +16,8 @@ import { Search, Plus, Edit, Trash2, FileText, Upload, Download, Eye, X, Chevron
 import { format } from "date-fns";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
+import { usePermissao } from "@/hooks/usePermissao";
+import { toast } from "sonner";
 
 const TIPOS = ["Operacional", "Qualidade", "Inspeção", "Treinamento", "Auditoria"];
 const STATUS_LIST = ["Pendente", "Em Análise", "Aprovada", "Reprovada", "Em Revisão", "Encerrada"];
