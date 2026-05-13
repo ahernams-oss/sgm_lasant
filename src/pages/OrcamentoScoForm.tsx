@@ -27,8 +27,8 @@ export default function OrcamentoScoForm() {
   const { tem } = usePermissao();
   const podeCriar = tem("orcamentos_sco.criar");
   const podeEditar = tem("orcamentos_sco.editar");
-  const podePdf = tem("orcamentos_sco.exportar_pdf");
-  const podeExcel = tem("orcamentos_sco.exportar_excel");
+  const podePdf = tem("orcamentos_sco.exportar");
+  const podeExcel = tem("orcamentos_sco.exportar");
 
   const editing = id && id !== "novo" ? orcamentos.find((o) => o.id === id) : null;
 
