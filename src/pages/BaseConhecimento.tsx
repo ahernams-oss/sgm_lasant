@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { usePermissao } from "@/hooks/usePermissao";
 
 const STATUS_OPCOES = ["rascunho", "publicado", "arquivado"] as const;
 
