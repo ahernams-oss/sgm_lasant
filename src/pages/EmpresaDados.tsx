@@ -58,6 +58,7 @@ export default function EmpresaDados() {
   };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -77,6 +78,7 @@ export default function EmpresaDados() {
   };
 
   const handleSave = async () => {
+    if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!form.razaoSocial.trim()) {
       toast({ title: "Informe a Razão Social", variant: "destructive" });
       return;
