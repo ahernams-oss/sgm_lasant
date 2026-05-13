@@ -95,6 +95,7 @@ export default function FerramentasPage() {
   };
 
   const handleVincular = async () => {
+    if (!podeVincular) { toast.error("Você não possui permissão para esta ação."); return; }
     if (vinculoFerramentaIds.length === 0 || !vinculoFuncionarioId) return;
     const selectedFerramentas = ferramentas.filter(f => vinculoFerramentaIds.includes(f.id));
     const func = funcionarios.find(f => f.id === vinculoFuncionarioId);
