@@ -298,6 +298,10 @@ export default function CotacaoComprasPage() {
   };
 
   const handleAprovar = async () => {
+    if (!podeFinalizarCot) {
+      toast({ title: "Você não possui permissão para finalizar/aprovar cotações.", variant: "destructive" });
+      return;
+    }
     const cot = cotacoes.find(c => c.id === aprovarCotacaoId);
     if (!cot) return;
     const req = requisicoes.find(r => r.id === cot.requisicaoId);
