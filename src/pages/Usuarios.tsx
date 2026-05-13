@@ -519,8 +519,8 @@ const Usuarios = () => {
                     <TableCell className="max-w-[200px] truncate">{getClientesNomes(u.clientesPermitidos)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" onClick={() => handleEdit(u)} className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>
-                        <Button size="icon" variant="ghost" onClick={() => requestDelete(u.id)} className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
+                        {podeEditar && <Button size="icon" variant="ghost" onClick={() => handleEdit(u)} className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>}
+                        {podeExcluir && <Button size="icon" variant="ghost" onClick={() => requestDelete(u.id)} className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>}
                       </div>
                     </TableCell>
                   </TableRow>
