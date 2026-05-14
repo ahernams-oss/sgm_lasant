@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
     new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   try {
-    const { empresaId, baixarXml = true } = await req.json().catch(() => ({}));
+    const { empresaId, baixarXml = true, dataInicial, dataFinal } = await req.json().catch(() => ({}));
     if (!empresaId) return json({ ok: false, error: "empresaId obrigatório" }, 400);
 
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -30,7 +30,10 @@ Deno.serve(async (req) => {
     const auth = "Basic " + btoa(`${token}:`);
 
     // Lista NFes recebidas
-    const listUrl = `${baseUrl}/v2/nfes_recebidas?cnpj=${cnpj}`;
+    const params = new URLSearchParams({ cnpj });
+    if (dataInicial) params.set("data_inicial", String(dataInicial));
+    if (dataFinal) params.set("data_final", String(dataFinal));
+    const listUrl = `${baseUrl}/v2/nfes_recebidas?${params.toString()}`;
     const lst = await fetch(listUrl, { headers: { Authorization: auth, Accept: "application/json" } });
     const lstText = await lst.text();
     let arr: any[] = [];
