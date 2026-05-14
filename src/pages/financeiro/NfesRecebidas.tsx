@@ -160,10 +160,15 @@ export default function NfesRecebidas() {
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-serif font-semibold">NFes Recebidas</h1>
-        <Button onClick={importar} disabled={importando || !empresa.id}>
-          {importando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-          Importar da SEFAZ
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={diagnosticar} disabled={!empresa.id}>
+            <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Focus
+          </Button>
+          <Button onClick={importar} disabled={importando || !empresa.id}>
+            {importando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+            Importar da SEFAZ
+          </Button>
+        </div>
       </div>
 
       <Card>
