@@ -6,19 +6,22 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark, MessageCircle } from "lucide-react";
+import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark, MessageCircle, ShieldCheck, FileKey2, Eye, EyeOff } from "lucide-react";
 import { usePermissao } from "@/hooks/usePermissao";
 
 
 export default function EmpresaDados() {
-  const { empresa, loading, saveEmpresa, uploadLogo } = useEmpresa();
+  const { empresa, loading, saveEmpresa, uploadLogo, uploadCertificadoA1, removerCertificadoA1 } = useEmpresa();
   const { toast } = useToast();
   const { tem } = usePermissao();
   const podeEditar = tem("empresa.editar");
   const fileRef = useRef<HTMLInputElement>(null);
+  const certRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<Empresa>(empresa);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingCert, setUploadingCert] = useState(false);
+  const [showSenha, setShowSenha] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "pending" | "saving" | "saved">("idle");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirtyRef = useRef(false);
