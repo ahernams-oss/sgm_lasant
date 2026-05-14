@@ -80,6 +80,48 @@ export default function EmpresaDados() {
     }
   };
 
+  const handleCertUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const nome = file.name.toLowerCase();
+    if (!nome.endsWith(".pfx") && !nome.endsWith(".p12")) {
+      toast({ title: "Selecione um arquivo .pfx ou .p12", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Arquivo muito grande (máx 5MB)", variant: "destructive" });
+      return;
+    }
+    setUploadingCert(true);
+    try {
+      const { url, nome: nomeArq } = await uploadCertificadoA1(file);
+      const next = { ...form, certificadoA1Url: url, certificadoA1Nome: nomeArq };
+      setForm(next);
+      await saveEmpresa(next);
+      toast({ title: "Certificado A1 enviado com sucesso" });
+    } catch (err) {
+      toast({ title: "Erro ao enviar certificado", description: String((err as Error).message), variant: "destructive" });
+    } finally {
+      setUploadingCert(false);
+      if (certRef.current) certRef.current.value = "";
+    }
+  };
+
+  const handleRemoverCert = async () => {
+    if (!podeEditar) return;
+    if (!confirm("Deseja remover o certificado digital?")) return;
+    try {
+      await removerCertificadoA1();
+      const next = { ...form, certificadoA1Url: "", certificadoA1Nome: "", certificadoA1Senha: "", certificadoA1Validade: "" };
+      setForm(next);
+      await saveEmpresa(next);
+      toast({ title: "Certificado removido" });
+    } catch {
+      toast({ title: "Erro ao remover certificado", variant: "destructive" });
+    }
+  };
+
   const handleSave = async () => {
     if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!form.razaoSocial.trim()) {
