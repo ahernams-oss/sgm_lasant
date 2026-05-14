@@ -312,7 +312,7 @@ function ProtectedAppRoutes() {
         <Route path="/financeiro/lancamentos" element={<RotaProtegida perm="lancamentos_financeiros"><Lancamentos /></RotaProtegida>} />
         <Route path="/financeiro/relatorios" element={<RotaProtegida perm="relatorios_financeiros"><RelatoriosFinanceiros /></RotaProtegida>} />
         <Route path="/financeiro/condicoes-pagamento" element={<RotaProtegida perm="condicoes_pagamento"><CondicoesPagamento /></RotaProtegida>} />
-        <Route path="/financeiro/nfes-recebidas" element={<RotaProtegida perm="financeiro.dashboard"><NfesRecebidas /></RotaProtegida>} />
+        <Route path="/financeiro/nfes-recebidas" element={<RotaProtegida perm="financeiro.nfes_recebidas.visualizar"><NfesRecebidas /></RotaProtegida>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
