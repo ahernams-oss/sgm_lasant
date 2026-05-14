@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, RefreshCw, FileText, Loader2, FileDown } from "lucide-react";
+import { Download, RefreshCw, FileText, Loader2, FileDown, Stethoscope } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
@@ -49,6 +50,23 @@ export default function NfesRecebidas() {
   const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [diagOpen, setDiagOpen] = useState(false);
+  const [diagLoading, setDiagLoading] = useState(false);
+  const [diagData, setDiagData] = useState<any>(null);
+
+  const diagnosticar = async () => {
+    if (!empresa.id) return toast.error("Empresa não cadastrada");
+    setDiagOpen(true); setDiagLoading(true); setDiagData(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("buscar-nfes-focus", { body: { empresaId: empresa.id } });
+      if (error) throw error;
+      setDiagData(data);
+    } catch (e: any) {
+      setDiagData({ ok: false, error: e.message });
+    } finally {
+      setDiagLoading(false);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
@@ -142,10 +160,15 @@ export default function NfesRecebidas() {
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-serif font-semibold">NFes Recebidas</h1>
-        <Button onClick={importar} disabled={importando || !empresa.id}>
-          {importando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-          Importar da SEFAZ
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={diagnosticar} disabled={!empresa.id}>
+            <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Focus
+          </Button>
+          <Button onClick={importar} disabled={importando || !empresa.id}>
+            {importando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+            Importar da SEFAZ
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -210,6 +233,26 @@ export default function NfesRecebidas() {
           <PaginationControls currentPage={page} pageSize={pageSize} totalItems={filtrados.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
         </CardContent>
       </Card>
+
+      <Dialog open={diagOpen} onOpenChange={setDiagOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader><DialogTitle>Diagnóstico Focus NFe</DialogTitle></DialogHeader>
+          {diagLoading ? (
+            <div className="py-8 text-center text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin inline mr-2" /> Consultando Focus…</div>
+          ) : diagData ? (
+            <div className="space-y-2 text-sm">
+              <div><b>Ambiente:</b> {diagData.ambiente || "—"}</div>
+              <div><b>HTTP Status:</b> {diagData.httpStatus ?? "—"} {diagData.ok ? "✅" : "❌"}</div>
+              <div className="break-all"><b>URL:</b> <code className="text-xs">{diagData.url}</code></div>
+              <div><b>CNPJ consultado:</b> {diagData.cnpj}</div>
+              <div><b>Total de documentos:</b> {diagData.totalDocumentos ?? 0}</div>
+              {diagData.error && <div className="text-destructive"><b>Erro:</b> {String(diagData.error)}</div>}
+              <div><b>Resposta da Focus (preview):</b></div>
+              <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-80">{JSON.stringify(diagData.preview ?? diagData, null, 2)}</pre>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
