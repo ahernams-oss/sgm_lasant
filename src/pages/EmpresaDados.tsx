@@ -174,26 +174,22 @@ export default function EmpresaDados() {
   };
 
   const handleTestarSefaz = async () => {
-    if (!form.certificadoA1Url || !form.certificadoA1Senha) {
-      toast({ title: "Envie o certificado e informe a senha primeiro", variant: "destructive" });
-      return;
-    }
     setBuscandoSefaz(true);
     setResultadoSefaz(null);
     try {
       if (dirtyRef.current) { await saveEmpresa(form); dirtyRef.current = false; }
-      const { data, error } = await supabase.functions.invoke("buscar-nfes-sefaz", {
-        body: { empresaId: form.id || empresa.id, ultNSU: "000000000000000" },
+      const { data, error } = await supabase.functions.invoke("buscar-nfes-focus", {
+        body: { empresaId: form.id || empresa.id },
       });
       if (error) throw error;
       setResultadoSefaz(data);
       if (data?.ok) {
-        toast({ title: "SEFAZ respondeu", description: `cStat ${data.cStat} — ${data.xMotivo || ""}` });
+        toast({ title: "Focus NFe respondeu", description: `${data.totalDocumentos} NFe(s) recebida(s)` });
       } else {
-        toast({ title: "Falha na consulta SEFAZ", description: data?.error || data?.xMotivo || "Erro desconhecido", variant: "destructive" });
+        toast({ title: "Falha na consulta", description: data?.error || "Erro desconhecido", variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "Erro ao consultar SEFAZ", description: String((err as Error).message), variant: "destructive" });
+      toast({ title: "Erro ao consultar Focus NFe", description: String((err as Error).message), variant: "destructive" });
     } finally {
       setBuscandoSefaz(false);
     }
