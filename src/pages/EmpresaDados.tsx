@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark, MessageCircle, ShieldCheck, FileKey2, Eye, EyeOff } from "lucide-react";
+import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark, MessageCircle, ShieldCheck, FileKey2, Eye, EyeOff, CheckCircle2, AlertTriangle, XCircle, Loader2 } from "lucide-react";
 import { usePermissao } from "@/hooks/usePermissao";
+import { supabase } from "@/integrations/supabase/client";
 
 
 export default function EmpresaDados() {
