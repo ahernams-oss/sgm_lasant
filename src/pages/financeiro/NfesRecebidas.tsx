@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, RefreshCw, FileText, Loader2 } from "lucide-react";
+import { Download, RefreshCw, FileText, Loader2, FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
@@ -99,6 +99,29 @@ export default function NfesRecebidas() {
     }
   };
 
+  const baixarDanfe = async (n: Nfe) => {
+    if (!empresa.id) return toast.error("Empresa não cadastrada");
+    try {
+      const { data, error } = await supabase.functions.invoke("nfe-danfe-focus", {
+        body: { empresaId: empresa.id, chave: n.chave },
+      });
+      if (error) throw error;
+      const r: any = data;
+      if (!r?.ok) throw new Error(r?.error || "Falha");
+      const bin = atob(r.pdfBase64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `DANFE-${n.chave}.pdf`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(a.href);
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao baixar DANFE");
+    }
+  };
+
   const filtrados = useMemo(() => rows.filter(r => {
     if (busca) {
       const q = busca.toLowerCase();
@@ -172,6 +195,9 @@ export default function NfesRecebidas() {
                   <TableCell className="text-right">
                     <Button size="sm" variant="ghost" disabled={!n.xml_url} onClick={() => baixarXml(n)} title="Baixar XML">
                       <Download className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => baixarDanfe(n)} title="Baixar DANFE (PDF)">
+                      <FileDown className="h-4 w-4" />
                     </Button>
                     <Button size="sm" variant="ghost" disabled title="Vincular ao Pedido de Compra (em breve)">
                       <FileText className="h-4 w-4" />
