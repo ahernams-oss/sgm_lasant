@@ -30,7 +30,10 @@ Deno.serve(async (req) => {
     const auth = "Basic " + btoa(`${token}:`);
 
     // Lista NFes recebidas
-    const listUrl = `${baseUrl}/v2/nfes_recebidas?cnpj=${cnpj}`;
+    const params = new URLSearchParams({ cnpj });
+    if (dataInicial) params.set("data_inicial", String(dataInicial));
+    if (dataFinal) params.set("data_final", String(dataFinal));
+    const listUrl = `${baseUrl}/v2/nfes_recebidas?${params.toString()}`;
     const lst = await fetch(listUrl, { headers: { Authorization: auth, Accept: "application/json" } });
     const lstText = await lst.text();
     let arr: any[] = [];
