@@ -23,6 +23,11 @@ export default function EmpresaDados() {
   const [uploading, setUploading] = useState(false);
   const [uploadingCert, setUploadingCert] = useState(false);
   const [showSenha, setShowSenha] = useState(false);
+  const [validandoCert, setValidandoCert] = useState(false);
+  const [validacaoCert, setValidacaoCert] = useState<{
+    ok: boolean; status?: string; titular?: string; emissor?: string; cnpj?: string | null;
+    validTo?: string; diasRestantes?: number; erros?: string[]; avisos?: string[]; error?: string;
+  } | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "pending" | "saving" | "saved">("idle");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirtyRef = useRef(false);
