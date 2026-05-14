@@ -40,6 +40,7 @@ import {
   Box,
   Sparkles,
   CreditCard,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissao } from "@/hooks/usePermissao";
