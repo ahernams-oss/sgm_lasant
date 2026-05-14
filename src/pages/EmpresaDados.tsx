@@ -726,6 +726,7 @@ export default function EmpresaDados() {
             )}
           </div>
 
+        </CardContent>
       </Card>
 
 
