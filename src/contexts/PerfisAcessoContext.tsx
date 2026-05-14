@@ -739,6 +739,13 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
         { key: "financeiro.relatorios.exportar_excel", label: "Exportar Excel" },
         { key: "financeiro.relatorios.filtrar_centro_custo", label: "Filtrar por centro de custo" },
       ]},
+      { key: "financeiro.nfes_recebidas", label: "NFes Recebidas", acoes: [
+        { key: "financeiro.nfes_recebidas.visualizar", label: "Visualizar NFes recebidas" },
+        { key: "financeiro.nfes_recebidas.importar", label: "Importar da SEFAZ (Focus)" },
+        { key: "financeiro.nfes_recebidas.baixar_xml", label: "Baixar XML" },
+        { key: "financeiro.nfes_recebidas.baixar_danfe", label: "Baixar DANFE (PDF)" },
+        { key: "financeiro.nfes_recebidas.vincular_pc", label: "Vincular ao Pedido de Compra" },
+      ]},
     ],
   },
 ];
