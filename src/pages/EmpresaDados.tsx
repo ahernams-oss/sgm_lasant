@@ -128,6 +128,49 @@ export default function EmpresaDados() {
     }
   };
 
+  const handleValidarCertificado = async () => {
+    if (!form.certificadoA1Url) {
+      toast({ title: "Envie o certificado .pfx primeiro", variant: "destructive" });
+      return;
+    }
+    if (!form.certificadoA1Senha) {
+      toast({ title: "Informe a senha do certificado", variant: "destructive" });
+      return;
+    }
+    setValidandoCert(true);
+    setValidacaoCert(null);
+    try {
+      // Garante que dados em edição estão salvos antes de validar
+      if (dirtyRef.current) {
+        await saveEmpresa(form);
+        dirtyRef.current = false;
+      }
+      const { data, error } = await supabase.functions.invoke("validar-certificado-a1", {
+        body: {
+          empresaId: form.id || empresa.id,
+          storagePath: form.certificadoA1Url,
+          senha: form.certificadoA1Senha,
+          uf: form.nfeUfAutor,
+          ambiente: form.nfeAmbiente,
+        },
+      });
+      if (error) throw error;
+      setValidacaoCert(data);
+      if (data?.ok) {
+        toast({ title: "Certificado válido", description: data.avisos?.length ? "Atenção aos avisos exibidos." : "Pronto para consultar a SEFAZ." });
+        if (data.validTo) {
+          setForm(prev => ({ ...prev, certificadoA1Validade: String(data.validTo).slice(0, 10) }));
+        }
+      } else {
+        toast({ title: "Certificado não validado", description: data?.error || data?.erros?.[0] || "Verifique os dados.", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Erro na validação", description: String((err as Error).message), variant: "destructive" });
+    } finally {
+      setValidandoCert(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!form.razaoSocial.trim()) {
