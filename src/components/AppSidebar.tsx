@@ -184,9 +184,9 @@ const menuItems = [
       { title: "DRE Gerencial", url: "/financeiro/dre", icon: FileBarChart, perm: "financeiro.dre" },
       { title: "Conciliação Bancária", url: "/financeiro/conciliacao", icon: FileCheck, perm: "financeiro.conciliacao" },
       { title: "Lançamentos", url: "/financeiro/lancamentos", icon: ClipboardList, perm: "financeiro.lancamentos" },
-      { title: "Condições de Pagamento", url: "/financeiro/condicoes-pagamento", icon: CreditCard, perm: "financeiro.dashboard" },
-      { title: "NFes Recebidas", url: "/financeiro/nfes-recebidas", icon: FileText, perm: "financeiro.nfes_recebidas.visualizar" },
-      { title: "Relatórios Financeiros", url: "/financeiro/relatorios", icon: FileBarChart, perm: "financeiro.relatorios.visualizar" },
+      { title: "Condições de Pagamento", url: "/financeiro/condicoes-pagamento", icon: CreditCard, perm: "financeiro.condicoes_pagamento" },
+      { title: "NFes Recebidas", url: "/financeiro/nfes-recebidas", icon: FileText, perm: "financeiro.nfes_recebidas" },
+      { title: "Relatórios Financeiros", url: "/financeiro/relatorios", icon: FileBarChart, perm: "financeiro.relatorios" },
     ],
   },
   {

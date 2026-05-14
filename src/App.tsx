@@ -300,19 +300,19 @@ function ProtectedAppRoutes() {
         <Route path="/orcamentos/:id" element={<RotaProtegida perm="orcamentos_sco"><OrcamentoScoForm /></RotaProtegida>} />
         <Route path="/orcamentos/catalogo" element={<RotaProtegida perm="orcamentos_sco"><CatalogoSco /></RotaProtegida>} />
         <Route path="/orcamentos/importar-catalogo" element={<RotaProtegida perm="orcamentos_sco"><ImportarCatalogoSco /></RotaProtegida>} />
-        <Route path="/financeiro/dashboard" element={<RotaProtegida perm="dashboard_financeiro"><DashboardFinanceiro /></RotaProtegida>} />
-        <Route path="/financeiro/contas-pagar" element={<RotaProtegida perm="contas_pagar"><ContasPagar /></RotaProtegida>} />
-        <Route path="/financeiro/contas-receber" element={<RotaProtegida perm="contas_receber"><ContasReceber /></RotaProtegida>} />
-        <Route path="/financeiro/contas-bancarias" element={<RotaProtegida perm="contas_bancarias"><ContasBancarias /></RotaProtegida>} />
-        <Route path="/financeiro/plano-contas" element={<RotaProtegida perm="plano_contas"><PlanoContas /></RotaProtegida>} />
-        <Route path="/financeiro/centros-custo" element={<RotaProtegida perm="centros_custo"><CentrosCusto /></RotaProtegida>} />
-        <Route path="/financeiro/fluxo-caixa" element={<RotaProtegida perm="fluxo_caixa"><FluxoCaixa /></RotaProtegida>} />
-        <Route path="/financeiro/dre" element={<RotaProtegida perm="dre"><Dre /></RotaProtegida>} />
-        <Route path="/financeiro/conciliacao" element={<RotaProtegida perm="conciliacao"><Conciliacao /></RotaProtegida>} />
-        <Route path="/financeiro/lancamentos" element={<RotaProtegida perm="lancamentos_financeiros"><Lancamentos /></RotaProtegida>} />
-        <Route path="/financeiro/relatorios" element={<RotaProtegida perm="financeiro.relatorios.visualizar"><RelatoriosFinanceiros /></RotaProtegida>} />
-        <Route path="/financeiro/condicoes-pagamento" element={<RotaProtegida perm="condicoes_pagamento"><CondicoesPagamento /></RotaProtegida>} />
-        <Route path="/financeiro/nfes-recebidas" element={<RotaProtegida perm="financeiro.nfes_recebidas.visualizar"><NfesRecebidas /></RotaProtegida>} />
+        <Route path="/financeiro/dashboard" element={<RotaProtegida perm="financeiro.dashboard"><DashboardFinanceiro /></RotaProtegida>} />
+        <Route path="/financeiro/contas-pagar" element={<RotaProtegida perm="financeiro.contas_pagar"><ContasPagar /></RotaProtegida>} />
+        <Route path="/financeiro/contas-receber" element={<RotaProtegida perm="financeiro.contas_receber"><ContasReceber /></RotaProtegida>} />
+        <Route path="/financeiro/contas-bancarias" element={<RotaProtegida perm="financeiro.contas_bancarias"><ContasBancarias /></RotaProtegida>} />
+        <Route path="/financeiro/plano-contas" element={<RotaProtegida perm="financeiro.plano_contas"><PlanoContas /></RotaProtegida>} />
+        <Route path="/financeiro/centros-custo" element={<RotaProtegida perm="financeiro.centros_custo"><CentrosCusto /></RotaProtegida>} />
+        <Route path="/financeiro/fluxo-caixa" element={<RotaProtegida perm="financeiro.fluxo_caixa"><FluxoCaixa /></RotaProtegida>} />
+        <Route path="/financeiro/dre" element={<RotaProtegida perm="financeiro.dre"><Dre /></RotaProtegida>} />
+        <Route path="/financeiro/conciliacao" element={<RotaProtegida perm="financeiro.conciliacao"><Conciliacao /></RotaProtegida>} />
+        <Route path="/financeiro/lancamentos" element={<RotaProtegida perm="financeiro.lancamentos"><Lancamentos /></RotaProtegida>} />
+        <Route path="/financeiro/relatorios" element={<RotaProtegida perm="financeiro.relatorios"><RelatoriosFinanceiros /></RotaProtegida>} />
+        <Route path="/financeiro/condicoes-pagamento" element={<RotaProtegida perm="financeiro.condicoes_pagamento"><CondicoesPagamento /></RotaProtegida>} />
+        <Route path="/financeiro/nfes-recebidas" element={<RotaProtegida perm="financeiro.nfes_recebidas"><NfesRecebidas /></RotaProtegida>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
