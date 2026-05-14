@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark, MessageCircle, ShieldCheck, FileKey2, Eye, EyeOff } from "lucide-react";
+import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark, MessageCircle, ShieldCheck, FileKey2, Eye, EyeOff, CheckCircle2, AlertTriangle, XCircle, Loader2 } from "lucide-react";
 import { usePermissao } from "@/hooks/usePermissao";
+import { supabase } from "@/integrations/supabase/client";
 
 
 export default function EmpresaDados() {
@@ -22,6 +23,11 @@ export default function EmpresaDados() {
   const [uploading, setUploading] = useState(false);
   const [uploadingCert, setUploadingCert] = useState(false);
   const [showSenha, setShowSenha] = useState(false);
+  const [validandoCert, setValidandoCert] = useState(false);
+  const [validacaoCert, setValidacaoCert] = useState<{
+    ok: boolean; status?: string; titular?: string; emissor?: string; cnpj?: string | null;
+    validTo?: string; diasRestantes?: number; erros?: string[]; avisos?: string[]; error?: string;
+  } | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "pending" | "saving" | "saved">("idle");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirtyRef = useRef(false);
@@ -119,6 +125,49 @@ export default function EmpresaDados() {
       toast({ title: "Certificado removido" });
     } catch {
       toast({ title: "Erro ao remover certificado", variant: "destructive" });
+    }
+  };
+
+  const handleValidarCertificado = async () => {
+    if (!form.certificadoA1Url) {
+      toast({ title: "Envie o certificado .pfx primeiro", variant: "destructive" });
+      return;
+    }
+    if (!form.certificadoA1Senha) {
+      toast({ title: "Informe a senha do certificado", variant: "destructive" });
+      return;
+    }
+    setValidandoCert(true);
+    setValidacaoCert(null);
+    try {
+      // Garante que dados em edição estão salvos antes de validar
+      if (dirtyRef.current) {
+        await saveEmpresa(form);
+        dirtyRef.current = false;
+      }
+      const { data, error } = await supabase.functions.invoke("validar-certificado-a1", {
+        body: {
+          empresaId: form.id || empresa.id,
+          storagePath: form.certificadoA1Url,
+          senha: form.certificadoA1Senha,
+          uf: form.nfeUfAutor,
+          ambiente: form.nfeAmbiente,
+        },
+      });
+      if (error) throw error;
+      setValidacaoCert(data);
+      if (data?.ok) {
+        toast({ title: "Certificado válido", description: data.avisos?.length ? "Atenção aos avisos exibidos." : "Pronto para consultar a SEFAZ." });
+        if (data.validTo) {
+          setForm(prev => ({ ...prev, certificadoA1Validade: String(data.validTo).slice(0, 10) }));
+        }
+      } else {
+        toast({ title: "Certificado não validado", description: data?.error || data?.erros?.[0] || "Verifique os dados.", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Erro na validação", description: String((err as Error).message), variant: "destructive" });
+    } finally {
+      setValidandoCert(false);
     }
   };
 
@@ -515,8 +564,86 @@ export default function EmpresaDados() {
               </p>
             </div>
           </div>
+
+          {/* Validação do Certificado */}
+          <div className="rounded-lg border bg-muted/10 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="text-sm">
+                <div className="font-medium">Validação do Certificado</div>
+                <div className="text-xs text-muted-foreground">
+                  Verifica senha, expiração, CNPJ titular, UF e ambiente antes de liberar a consulta à SEFAZ.
+                </div>
+              </div>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleValidarCertificado}
+                disabled={validandoCert || !form.certificadoA1Url || !form.certificadoA1Senha || !podeEditar}
+                className="gap-2"
+              >
+                {validandoCert ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                {validandoCert ? "Validando..." : "Validar Certificado"}
+              </Button>
+            </div>
+
+            {form.certificadoA1Status && !validacaoCert && (
+              <div className="text-xs text-muted-foreground">
+                Última validação: <strong>{form.certificadoA1Status}</strong>
+                {form.certificadoA1ValidadoEm && <> em {new Date(form.certificadoA1ValidadoEm).toLocaleString("pt-BR")}</>}
+                {form.certificadoA1Titular && <> · Titular: {form.certificadoA1Titular}</>}
+                {form.certificadoA1Cnpj && <> · CNPJ: {form.certificadoA1Cnpj}</>}
+              </div>
+            )}
+
+            {validacaoCert && (
+              <div className={`rounded-md border p-3 text-sm space-y-2 ${
+                validacaoCert.ok
+                  ? (validacaoCert.avisos?.length ? "border-yellow-500/40 bg-yellow-500/5" : "border-green-500/40 bg-green-500/5")
+                  : "border-destructive/40 bg-destructive/5"
+              }`}>
+                <div className="flex items-center gap-2 font-medium">
+                  {validacaoCert.ok
+                    ? (validacaoCert.avisos?.length
+                        ? <><AlertTriangle className="h-4 w-4 text-yellow-600" /> Válido com avisos</>
+                        : <><CheckCircle2 className="h-4 w-4 text-green-600" /> Certificado válido — pronto para SEFAZ</>)
+                    : <><XCircle className="h-4 w-4 text-destructive" /> Certificado inválido</>
+                  }
+                </div>
+                {(validacaoCert.titular || validacaoCert.cnpj) && (
+                  <div className="text-xs grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
+                    {validacaoCert.titular && <div><span className="text-muted-foreground">Titular:</span> {validacaoCert.titular}</div>}
+                    {validacaoCert.cnpj && <div><span className="text-muted-foreground">CNPJ:</span> {validacaoCert.cnpj}</div>}
+                    {validacaoCert.emissor && <div className="md:col-span-2"><span className="text-muted-foreground">Emissor:</span> {validacaoCert.emissor}</div>}
+                    {validacaoCert.validTo && (
+                      <div>
+                        <span className="text-muted-foreground">Expira:</span>{" "}
+                        {new Date(validacaoCert.validTo).toLocaleDateString("pt-BR")}
+                        {typeof validacaoCert.diasRestantes === "number" && validacaoCert.diasRestantes >= 0 &&
+                          <> ({validacaoCert.diasRestantes} dia{validacaoCert.diasRestantes === 1 ? "" : "s"})</>
+                        }
+                      </div>
+                    )}
+                  </div>
+                )}
+                {validacaoCert.erros && validacaoCert.erros.length > 0 && (
+                  <ul className="text-xs list-disc pl-5 text-destructive space-y-0.5">
+                    {validacaoCert.erros.map((e, i) => <li key={i}>{e}</li>)}
+                  </ul>
+                )}
+                {validacaoCert.avisos && validacaoCert.avisos.length > 0 && (
+                  <ul className="text-xs list-disc pl-5 text-yellow-700 space-y-0.5">
+                    {validacaoCert.avisos.map((a, i) => <li key={i}>{a}</li>)}
+                  </ul>
+                )}
+                {validacaoCert.error && !validacaoCert.erros?.length && (
+                  <div className="text-xs text-destructive">{validacaoCert.error}</div>
+                )}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
+
 
     </div>
   );

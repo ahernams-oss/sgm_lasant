@@ -1082,10 +1082,15 @@ export type Database = {
           banco: string | null
           celular: string | null
           cep: string | null
+          certificado_a1_cnpj: string | null
+          certificado_a1_emissor: string | null
           certificado_a1_nome: string | null
           certificado_a1_senha: string | null
+          certificado_a1_status: string | null
+          certificado_a1_titular: string | null
           certificado_a1_url: string | null
           certificado_a1_validade: string | null
+          certificado_a1_validado_em: string | null
           chave_pix: string | null
           cidade: string | null
           cnpj: string | null
@@ -1125,10 +1130,15 @@ export type Database = {
           banco?: string | null
           celular?: string | null
           cep?: string | null
+          certificado_a1_cnpj?: string | null
+          certificado_a1_emissor?: string | null
           certificado_a1_nome?: string | null
           certificado_a1_senha?: string | null
+          certificado_a1_status?: string | null
+          certificado_a1_titular?: string | null
           certificado_a1_url?: string | null
           certificado_a1_validade?: string | null
+          certificado_a1_validado_em?: string | null
           chave_pix?: string | null
           cidade?: string | null
           cnpj?: string | null
@@ -1168,10 +1178,15 @@ export type Database = {
           banco?: string | null
           celular?: string | null
           cep?: string | null
+          certificado_a1_cnpj?: string | null
+          certificado_a1_emissor?: string | null
           certificado_a1_nome?: string | null
           certificado_a1_senha?: string | null
+          certificado_a1_status?: string | null
+          certificado_a1_titular?: string | null
           certificado_a1_url?: string | null
           certificado_a1_validade?: string | null
+          certificado_a1_validado_em?: string | null
           chave_pix?: string | null
           cidade?: string | null
           cnpj?: string | null

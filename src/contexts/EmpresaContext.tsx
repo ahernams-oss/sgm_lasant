@@ -43,6 +43,11 @@ export interface Empresa {
   certificadoA1Senha: string;
   nfeAmbiente: "homologacao" | "producao" | "";
   nfeUfAutor: string;
+  certificadoA1Cnpj: string;
+  certificadoA1Titular: string;
+  certificadoA1Emissor: string;
+  certificadoA1ValidadoEm: string;
+  certificadoA1Status: string;
 }
 
 const EMPTY: Empresa = {
@@ -56,6 +61,8 @@ const EMPTY: Empresa = {
   whatsappComercial: "", whatsappFaturamento: "",
   certificadoA1Url: "", certificadoA1Nome: "", certificadoA1Validade: "",
   certificadoA1Senha: "", nfeAmbiente: "homologacao", nfeUfAutor: "",
+  certificadoA1Cnpj: "", certificadoA1Titular: "", certificadoA1Emissor: "",
+  certificadoA1ValidadoEm: "", certificadoA1Status: "",
 };
 
 interface EmpresaContextType {
@@ -110,6 +117,11 @@ const rowToEmpresa = (r: any): Empresa => ({
   certificadoA1Senha: r.certificado_a1_senha ?? "",
   nfeAmbiente: (r.nfe_ambiente ?? "homologacao") as Empresa["nfeAmbiente"],
   nfeUfAutor: r.nfe_uf_autor ?? "",
+  certificadoA1Cnpj: r.certificado_a1_cnpj ?? "",
+  certificadoA1Titular: r.certificado_a1_titular ?? "",
+  certificadoA1Emissor: r.certificado_a1_emissor ?? "",
+  certificadoA1ValidadoEm: r.certificado_a1_validado_em ?? "",
+  certificadoA1Status: r.certificado_a1_status ?? "",
 });
 
 const empresaToRow = (e: Empresa) => ({
