@@ -401,6 +401,123 @@ export default function EmpresaDados() {
         </CardContent>
       </Card>
 
+      {/* Certificado Digital A1 - NFe */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-primary" /> Certificado Digital A1 — NFe
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-xs text-muted-foreground">
+            Faça upload do certificado digital <strong>A1 (.pfx ou .p12)</strong> da empresa para que o sistema possa consultar
+            automaticamente as Notas Fiscais Eletrônicas emitidas contra o CNPJ da Lasant na SEFAZ.
+            O arquivo é armazenado de forma <strong>privada</strong> e usado apenas pelo backend.
+          </p>
+
+          <div className="rounded-lg border bg-muted/20 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <FileKey2 className="h-5 w-5 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  {form.certificadoA1Url ? (
+                    <>
+                      <div className="text-sm font-medium truncate">{form.certificadoA1Nome || "Certificado.pfx"}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Certificado armazenado com segurança
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-sm font-medium">Nenhum certificado enviado</div>
+                      <div className="text-xs text-muted-foreground">Envie o arquivo .pfx para começar</div>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  ref={certRef}
+                  type="file"
+                  accept=".pfx,.p12,application/x-pkcs12"
+                  className="hidden"
+                  onChange={handleCertUpload}
+                />
+                <Button variant="outline" size="sm" onClick={() => certRef.current?.click()} disabled={uploadingCert || !podeEditar} className="gap-2">
+                  <Upload className="h-4 w-4" />
+                  {uploadingCert ? "Enviando..." : (form.certificadoA1Url ? "Substituir" : "Enviar Certificado")}
+                </Button>
+                {form.certificadoA1Url && (
+                  <Button variant="ghost" size="sm" onClick={handleRemoverCert} disabled={!podeEditar} className="gap-2 text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                    Remover
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1.5 md:col-span-1">
+              <Label className="text-xs font-medium text-muted-foreground">Senha do Certificado</Label>
+              <div className="relative">
+                <Input
+                  type={showSenha ? "text" : "password"}
+                  value={form.certificadoA1Senha}
+                  onChange={e => update("certificadoA1Senha", e.target.value)}
+                  placeholder="Senha do .pfx"
+                  className="pr-9"
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSenha(s => !s)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Validade do Certificado</Label>
+              <Input
+                type="date"
+                value={form.certificadoA1Validade}
+                onChange={e => update("certificadoA1Validade", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">UF de Autorização</Label>
+              <Input
+                value={form.nfeUfAutor}
+                onChange={e => update("nfeUfAutor", e.target.value.toUpperCase())}
+                placeholder="Ex: SP"
+                maxLength={2}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Ambiente SEFAZ</Label>
+              <select
+                value={form.nfeAmbiente}
+                onChange={e => update("nfeAmbiente", e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="homologacao">Homologação (testes)</option>
+                <option value="producao">Produção</option>
+              </select>
+              <p className="text-[11px] text-muted-foreground">
+                Recomendado iniciar em <strong>Homologação</strong> antes de migrar para Produção.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
