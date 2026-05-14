@@ -196,6 +196,9 @@ export default function NfesRecebidas() {
                     <Button size="sm" variant="ghost" disabled={!n.xml_url} onClick={() => baixarXml(n)} title="Baixar XML">
                       <Download className="h-4 w-4" />
                     </Button>
+                    <Button size="sm" variant="ghost" onClick={() => baixarDanfe(n)} title="Baixar DANFE (PDF)">
+                      <FileDown className="h-4 w-4" />
+                    </Button>
                     <Button size="sm" variant="ghost" disabled title="Vincular ao Pedido de Compra (em breve)">
                       <FileText className="h-4 w-4" />
                     </Button>
