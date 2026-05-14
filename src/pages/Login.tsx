@@ -146,6 +146,15 @@ const Login = () => {
             <p className="text-xs italic text-muted-foreground text-center pt-2">
               Para acesso, contate a empresa.
             </p>
+
+            <div className="flex justify-center pt-4">
+              <Link
+                to="/portal-fornecedor"
+                className="inline-flex items-center justify-center h-11 px-8 rounded-full bg-[#f5a623] hover:bg-[#e69612] text-[#3a1d6e] font-semibold text-sm shadow-md transition-colors"
+              >
+                Portal do fornecedor
+              </Link>
+            </div>
           </form>
         </div>
 
