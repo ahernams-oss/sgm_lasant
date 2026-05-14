@@ -669,7 +669,63 @@ export default function EmpresaDados() {
               </div>
             )}
           </div>
-        </CardContent>
+
+          {/* Teste de busca SEFAZ */}
+          <div className="rounded-lg border bg-muted/10 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="text-sm">
+                <div className="font-medium">Teste de Consulta SEFAZ (NFeDistribuicaoDFe)</div>
+                <div className="text-xs text-muted-foreground">
+                  Faz uma chamada real à SEFAZ no ambiente configurado usando mTLS com o certificado A1.
+                  Em <strong>Homologação</strong> normalmente retorna <code>cStat 137</code> (nenhum documento) — isso confirma o canal funcionando.
+                </div>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleTestarSefaz}
+                disabled={buscandoSefaz || !form.certificadoA1Url || !form.certificadoA1Senha || !podeEditar}
+                className="gap-2"
+              >
+                {buscandoSefaz ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                {buscandoSefaz ? "Consultando..." : "Testar busca SEFAZ"}
+              </Button>
+            </div>
+
+            {resultadoSefaz && (
+              <div className={`rounded-md border p-3 text-sm space-y-2 ${
+                resultadoSefaz.ok ? "border-green-500/40 bg-green-500/5" : "border-destructive/40 bg-destructive/5"
+              }`}>
+                <div className="flex items-center gap-2 font-medium">
+                  {resultadoSefaz.ok
+                    ? <><CheckCircle2 className="h-4 w-4 text-green-600" /> SEFAZ respondeu (HTTP {resultadoSefaz.httpStatus})</>
+                    : <><XCircle className="h-4 w-4 text-destructive" /> Falha na consulta</>}
+                </div>
+                <div className="text-xs grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
+                  {resultadoSefaz.ambiente && <div><span className="text-muted-foreground">Ambiente:</span> {resultadoSefaz.ambiente}</div>}
+                  {resultadoSefaz.uf && <div><span className="text-muted-foreground">UF:</span> {resultadoSefaz.uf}</div>}
+                  {resultadoSefaz.cStat && <div><span className="text-muted-foreground">cStat:</span> <strong>{resultadoSefaz.cStat}</strong></div>}
+                  {resultadoSefaz.xMotivo && <div className="md:col-span-2"><span className="text-muted-foreground">Motivo:</span> {resultadoSefaz.xMotivo}</div>}
+                  {resultadoSefaz.dhResp && <div><span className="text-muted-foreground">Data resp.:</span> {resultadoSefaz.dhResp}</div>}
+                  {typeof resultadoSefaz.totalDocumentos === "number" && (
+                    <div><span className="text-muted-foreground">Documentos no lote:</span> <strong>{resultadoSefaz.totalDocumentos}</strong></div>
+                  )}
+                  {resultadoSefaz.ultNSU && <div><span className="text-muted-foreground">ultNSU:</span> {resultadoSefaz.ultNSU}</div>}
+                  {resultadoSefaz.maxNSU && <div><span className="text-muted-foreground">maxNSU:</span> {resultadoSefaz.maxNSU}</div>}
+                </div>
+                {resultadoSefaz.error && (
+                  <div className="text-xs text-destructive">{resultadoSefaz.error}</div>
+                )}
+                {resultadoSefaz.xmlPreview && (
+                  <details className="text-xs">
+                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Ver XML de resposta (prévia)</summary>
+                    <pre className="mt-2 max-h-64 overflow-auto rounded bg-background p-2 text-[11px] whitespace-pre-wrap break-all">{resultadoSefaz.xmlPreview}</pre>
+                  </details>
+                )}
+              </div>
+            )}
+          </div>
+
       </Card>
 
 
