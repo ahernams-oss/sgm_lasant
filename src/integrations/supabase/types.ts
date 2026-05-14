@@ -1082,6 +1082,10 @@ export type Database = {
           banco: string | null
           celular: string | null
           cep: string | null
+          certificado_a1_nome: string | null
+          certificado_a1_senha: string | null
+          certificado_a1_url: string | null
+          certificado_a1_validade: string | null
           chave_pix: string | null
           cidade: string | null
           cnpj: string | null
@@ -1100,6 +1104,8 @@ export type Database = {
           inscricao_municipal: string | null
           logo_url: string | null
           logradouro: string | null
+          nfe_ambiente: string | null
+          nfe_uf_autor: string | null
           nome_fantasia: string | null
           numero: string | null
           razao_social: string
@@ -1119,6 +1125,10 @@ export type Database = {
           banco?: string | null
           celular?: string | null
           cep?: string | null
+          certificado_a1_nome?: string | null
+          certificado_a1_senha?: string | null
+          certificado_a1_url?: string | null
+          certificado_a1_validade?: string | null
           chave_pix?: string | null
           cidade?: string | null
           cnpj?: string | null
@@ -1137,6 +1147,8 @@ export type Database = {
           inscricao_municipal?: string | null
           logo_url?: string | null
           logradouro?: string | null
+          nfe_ambiente?: string | null
+          nfe_uf_autor?: string | null
           nome_fantasia?: string | null
           numero?: string | null
           razao_social?: string
@@ -1156,6 +1168,10 @@ export type Database = {
           banco?: string | null
           celular?: string | null
           cep?: string | null
+          certificado_a1_nome?: string | null
+          certificado_a1_senha?: string | null
+          certificado_a1_url?: string | null
+          certificado_a1_validade?: string | null
           chave_pix?: string | null
           cidade?: string | null
           cnpj?: string | null
@@ -1174,6 +1190,8 @@ export type Database = {
           inscricao_municipal?: string | null
           logo_url?: string | null
           logradouro?: string | null
+          nfe_ambiente?: string | null
+          nfe_uf_autor?: string | null
           nome_fantasia?: string | null
           numero?: string | null
           razao_social?: string
