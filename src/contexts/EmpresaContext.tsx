@@ -43,6 +43,11 @@ export interface Empresa {
   certificadoA1Senha: string;
   nfeAmbiente: "homologacao" | "producao" | "";
   nfeUfAutor: string;
+  certificadoA1Cnpj: string;
+  certificadoA1Titular: string;
+  certificadoA1Emissor: string;
+  certificadoA1ValidadoEm: string;
+  certificadoA1Status: string;
 }
 
 const EMPTY: Empresa = {
