@@ -135,6 +135,7 @@ import Conciliacao from "./pages/financeiro/Conciliacao.tsx";
 import Lancamentos from "./pages/financeiro/Lancamentos.tsx";
 import RelatoriosFinanceiros from "./pages/financeiro/RelatoriosFinanceiros.tsx";
 import CondicoesPagamento from "./pages/financeiro/CondicoesPagamento.tsx";
+import NfesRecebidas from "./pages/financeiro/NfesRecebidas.tsx";
 import { RotaProtegida } from "@/components/RotaProtegida";
 const queryClient = new QueryClient();
 
