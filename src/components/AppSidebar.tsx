@@ -186,7 +186,7 @@ const menuItems = [
       { title: "Lançamentos", url: "/financeiro/lancamentos", icon: ClipboardList, perm: "financeiro.lancamentos" },
       { title: "Condições de Pagamento", url: "/financeiro/condicoes-pagamento", icon: CreditCard, perm: "financeiro.dashboard" },
       { title: "NFes Recebidas", url: "/financeiro/nfes-recebidas", icon: FileText, perm: "financeiro.nfes_recebidas.visualizar" },
-      { title: "Relatórios Financeiros", url: "/financeiro/relatorios", icon: FileBarChart, perm: "financeiro.dashboard" },
+      { title: "Relatórios Financeiros", url: "/financeiro/relatorios", icon: FileBarChart, perm: "financeiro.relatorios.visualizar" },
     ],
   },
   {
