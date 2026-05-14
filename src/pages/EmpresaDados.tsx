@@ -28,6 +28,8 @@ export default function EmpresaDados() {
     ok: boolean; status?: string; titular?: string; emissor?: string; cnpj?: string | null;
     validTo?: string; diasRestantes?: number; erros?: string[]; avisos?: string[]; error?: string;
   } | null>(null);
+  const [buscandoSefaz, setBuscandoSefaz] = useState(false);
+  const [resultadoSefaz, setResultadoSefaz] = useState<any>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "pending" | "saving" | "saved">("idle");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirtyRef = useRef(false);
