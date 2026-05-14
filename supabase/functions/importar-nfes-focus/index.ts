@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
     new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   try {
-    const { empresaId, baixarXml = true } = await req.json().catch(() => ({}));
+    const { empresaId, baixarXml = true, dataInicial, dataFinal } = await req.json().catch(() => ({}));
     if (!empresaId) return json({ ok: false, error: "empresaId obrigatório" }, 400);
 
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
