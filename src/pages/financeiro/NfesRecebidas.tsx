@@ -181,7 +181,7 @@ export default function NfesRecebidas() {
               ))}
             </TableBody>
           </Table>
-          <PaginationControls page={page} pageSize={pageSize} total={filtrados.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
+          <PaginationControls currentPage={page} pageSize={pageSize} totalItems={filtrados.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
         </CardContent>
       </Card>
     </div>
