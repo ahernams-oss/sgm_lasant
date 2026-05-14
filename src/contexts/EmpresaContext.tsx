@@ -37,6 +37,12 @@ export interface Empresa {
   whatsappEngenharia: string;
   whatsappComercial: string;
   whatsappFaturamento: string;
+  certificadoA1Url: string;
+  certificadoA1Nome: string;
+  certificadoA1Validade: string;
+  certificadoA1Senha: string;
+  nfeAmbiente: "homologacao" | "producao" | "";
+  nfeUfAutor: string;
 }
 
 const EMPTY: Empresa = {
@@ -48,6 +54,8 @@ const EMPTY: Empresa = {
   tipoConta: "", chavePix: "",
   whatsappCompras: "", whatsappRh: "", whatsappEngenharia: "",
   whatsappComercial: "", whatsappFaturamento: "",
+  certificadoA1Url: "", certificadoA1Nome: "", certificadoA1Validade: "",
+  certificadoA1Senha: "", nfeAmbiente: "homologacao", nfeUfAutor: "",
 };
 
 interface EmpresaContextType {
@@ -55,6 +63,8 @@ interface EmpresaContextType {
   loading: boolean;
   saveEmpresa: (data: Empresa) => Promise<void>;
   uploadLogo: (file: File) => Promise<string>;
+  uploadCertificadoA1: (file: File) => Promise<{ url: string; nome: string }>;
+  removerCertificadoA1: () => Promise<void>;
 }
 
 const EmpresaContext = createContext<EmpresaContextType | undefined>(undefined);
@@ -94,6 +104,12 @@ const rowToEmpresa = (r: any): Empresa => ({
   whatsappEngenharia: r.whatsapp_engenharia ?? "",
   whatsappComercial: r.whatsapp_comercial ?? "",
   whatsappFaturamento: r.whatsapp_faturamento ?? "",
+  certificadoA1Url: r.certificado_a1_url ?? "",
+  certificadoA1Nome: r.certificado_a1_nome ?? "",
+  certificadoA1Validade: r.certificado_a1_validade ?? "",
+  certificadoA1Senha: r.certificado_a1_senha ?? "",
+  nfeAmbiente: (r.nfe_ambiente ?? "homologacao") as Empresa["nfeAmbiente"],
+  nfeUfAutor: r.nfe_uf_autor ?? "",
 });
 
 const empresaToRow = (e: Empresa) => ({
@@ -130,6 +146,12 @@ const empresaToRow = (e: Empresa) => ({
   whatsapp_engenharia: e.whatsappEngenharia,
   whatsapp_comercial: e.whatsappComercial,
   whatsapp_faturamento: e.whatsappFaturamento,
+  certificado_a1_url: e.certificadoA1Url,
+  certificado_a1_nome: e.certificadoA1Nome,
+  certificado_a1_validade: e.certificadoA1Validade || null,
+  certificado_a1_senha: e.certificadoA1Senha,
+  nfe_ambiente: e.nfeAmbiente || "homologacao",
+  nfe_uf_autor: e.nfeUfAutor,
 });
 
 export function EmpresaProvider({ children }: { children: ReactNode }) {
@@ -167,8 +189,23 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
     return pub.publicUrl;
   };
 
+  const uploadCertificadoA1 = async (file: File): Promise<{ url: string; nome: string }> => {
+    const fileName = `certificado_${Date.now()}.pfx`;
+    const { error } = await supabase.storage
+      .from("certificados-digitais")
+      .upload(fileName, file, { upsert: true, contentType: "application/x-pkcs12" });
+    if (error) throw error;
+    return { url: fileName, nome: file.name };
+  };
+
+  const removerCertificadoA1 = async () => {
+    if (empresa.certificadoA1Url) {
+      await supabase.storage.from("certificados-digitais").remove([empresa.certificadoA1Url]);
+    }
+  };
+
   return (
-    <EmpresaContext.Provider value={{ empresa, loading, saveEmpresa, uploadLogo }}>
+    <EmpresaContext.Provider value={{ empresa, loading, saveEmpresa, uploadLogo, uploadCertificadoA1, removerCertificadoA1 }}>
       {children}
     </EmpresaContext.Provider>
   );
