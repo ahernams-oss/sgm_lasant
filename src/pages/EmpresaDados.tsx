@@ -6,19 +6,22 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark, MessageCircle } from "lucide-react";
+import { Building2, Upload, Save, MapPin, Phone, Mail, Globe, Trash2, Landmark, MessageCircle, ShieldCheck, FileKey2, Eye, EyeOff } from "lucide-react";
 import { usePermissao } from "@/hooks/usePermissao";
 
 
 export default function EmpresaDados() {
-  const { empresa, loading, saveEmpresa, uploadLogo } = useEmpresa();
+  const { empresa, loading, saveEmpresa, uploadLogo, uploadCertificadoA1, removerCertificadoA1 } = useEmpresa();
   const { toast } = useToast();
   const { tem } = usePermissao();
   const podeEditar = tem("empresa.editar");
   const fileRef = useRef<HTMLInputElement>(null);
+  const certRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<Empresa>(empresa);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingCert, setUploadingCert] = useState(false);
+  const [showSenha, setShowSenha] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "pending" | "saving" | "saved">("idle");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirtyRef = useRef(false);
@@ -74,6 +77,48 @@ export default function EmpresaDados() {
       toast({ title: "Erro ao enviar logo", variant: "destructive" });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleCertUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const nome = file.name.toLowerCase();
+    if (!nome.endsWith(".pfx") && !nome.endsWith(".p12")) {
+      toast({ title: "Selecione um arquivo .pfx ou .p12", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Arquivo muito grande (máx 5MB)", variant: "destructive" });
+      return;
+    }
+    setUploadingCert(true);
+    try {
+      const { url, nome: nomeArq } = await uploadCertificadoA1(file);
+      const next = { ...form, certificadoA1Url: url, certificadoA1Nome: nomeArq };
+      setForm(next);
+      await saveEmpresa(next);
+      toast({ title: "Certificado A1 enviado com sucesso" });
+    } catch (err) {
+      toast({ title: "Erro ao enviar certificado", description: String((err as Error).message), variant: "destructive" });
+    } finally {
+      setUploadingCert(false);
+      if (certRef.current) certRef.current.value = "";
+    }
+  };
+
+  const handleRemoverCert = async () => {
+    if (!podeEditar) return;
+    if (!confirm("Deseja remover o certificado digital?")) return;
+    try {
+      await removerCertificadoA1();
+      const next = { ...form, certificadoA1Url: "", certificadoA1Nome: "", certificadoA1Senha: "", certificadoA1Validade: "" };
+      setForm(next);
+      await saveEmpresa(next);
+      toast({ title: "Certificado removido" });
+    } catch {
+      toast({ title: "Erro ao remover certificado", variant: "destructive" });
     }
   };
 
@@ -352,6 +397,123 @@ export default function EmpresaDados() {
             <Field label="WhatsApp Engenharia e Manutenção" field="whatsappEngenharia" placeholder="55119... ou ID do grupo" icon={MessageCircle} />
             <Field label="WhatsApp Comercial" field="whatsappComercial" placeholder="55119... ou ID do grupo" icon={MessageCircle} />
             <Field label="WhatsApp Faturamento" field="whatsappFaturamento" placeholder="55119... ou ID do grupo" icon={MessageCircle} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Certificado Digital A1 - NFe */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-primary" /> Certificado Digital A1 — NFe
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-xs text-muted-foreground">
+            Faça upload do certificado digital <strong>A1 (.pfx ou .p12)</strong> da empresa para que o sistema possa consultar
+            automaticamente as Notas Fiscais Eletrônicas emitidas contra o CNPJ da Lasant na SEFAZ.
+            O arquivo é armazenado de forma <strong>privada</strong> e usado apenas pelo backend.
+          </p>
+
+          <div className="rounded-lg border bg-muted/20 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <FileKey2 className="h-5 w-5 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  {form.certificadoA1Url ? (
+                    <>
+                      <div className="text-sm font-medium truncate">{form.certificadoA1Nome || "Certificado.pfx"}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Certificado armazenado com segurança
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-sm font-medium">Nenhum certificado enviado</div>
+                      <div className="text-xs text-muted-foreground">Envie o arquivo .pfx para começar</div>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  ref={certRef}
+                  type="file"
+                  accept=".pfx,.p12,application/x-pkcs12"
+                  className="hidden"
+                  onChange={handleCertUpload}
+                />
+                <Button variant="outline" size="sm" onClick={() => certRef.current?.click()} disabled={uploadingCert || !podeEditar} className="gap-2">
+                  <Upload className="h-4 w-4" />
+                  {uploadingCert ? "Enviando..." : (form.certificadoA1Url ? "Substituir" : "Enviar Certificado")}
+                </Button>
+                {form.certificadoA1Url && (
+                  <Button variant="ghost" size="sm" onClick={handleRemoverCert} disabled={!podeEditar} className="gap-2 text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                    Remover
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1.5 md:col-span-1">
+              <Label className="text-xs font-medium text-muted-foreground">Senha do Certificado</Label>
+              <div className="relative">
+                <Input
+                  type={showSenha ? "text" : "password"}
+                  value={form.certificadoA1Senha}
+                  onChange={e => update("certificadoA1Senha", e.target.value)}
+                  placeholder="Senha do .pfx"
+                  className="pr-9"
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSenha(s => !s)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Validade do Certificado</Label>
+              <Input
+                type="date"
+                value={form.certificadoA1Validade}
+                onChange={e => update("certificadoA1Validade", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">UF de Autorização</Label>
+              <Input
+                value={form.nfeUfAutor}
+                onChange={e => update("nfeUfAutor", e.target.value.toUpperCase())}
+                placeholder="Ex: SP"
+                maxLength={2}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Ambiente SEFAZ</Label>
+              <select
+                value={form.nfeAmbiente}
+                onChange={e => update("nfeAmbiente", e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="homologacao">Homologação (testes)</option>
+                <option value="producao">Produção</option>
+              </select>
+              <p className="text-[11px] text-muted-foreground">
+                Recomendado iniciar em <strong>Homologação</strong> antes de migrar para Produção.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
