@@ -233,6 +233,26 @@ export default function NfesRecebidas() {
           <PaginationControls currentPage={page} pageSize={pageSize} totalItems={filtrados.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
         </CardContent>
       </Card>
+
+      <Dialog open={diagOpen} onOpenChange={setDiagOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader><DialogTitle>Diagnóstico Focus NFe</DialogTitle></DialogHeader>
+          {diagLoading ? (
+            <div className="py-8 text-center text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin inline mr-2" /> Consultando Focus…</div>
+          ) : diagData ? (
+            <div className="space-y-2 text-sm">
+              <div><b>Ambiente:</b> {diagData.ambiente || "—"}</div>
+              <div><b>HTTP Status:</b> {diagData.httpStatus ?? "—"} {diagData.ok ? "✅" : "❌"}</div>
+              <div className="break-all"><b>URL:</b> <code className="text-xs">{diagData.url}</code></div>
+              <div><b>CNPJ consultado:</b> {diagData.cnpj}</div>
+              <div><b>Total de documentos:</b> {diagData.totalDocumentos ?? 0}</div>
+              {diagData.error && <div className="text-destructive"><b>Erro:</b> {String(diagData.error)}</div>}
+              <div><b>Resposta da Focus (preview):</b></div>
+              <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-80">{JSON.stringify(diagData.preview ?? diagData, null, 2)}</pre>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
