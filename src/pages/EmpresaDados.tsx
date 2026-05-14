@@ -174,26 +174,22 @@ export default function EmpresaDados() {
   };
 
   const handleTestarSefaz = async () => {
-    if (!form.certificadoA1Url || !form.certificadoA1Senha) {
-      toast({ title: "Envie o certificado e informe a senha primeiro", variant: "destructive" });
-      return;
-    }
     setBuscandoSefaz(true);
     setResultadoSefaz(null);
     try {
       if (dirtyRef.current) { await saveEmpresa(form); dirtyRef.current = false; }
-      const { data, error } = await supabase.functions.invoke("buscar-nfes-sefaz", {
-        body: { empresaId: form.id || empresa.id, ultNSU: "000000000000000" },
+      const { data, error } = await supabase.functions.invoke("buscar-nfes-focus", {
+        body: { empresaId: form.id || empresa.id },
       });
       if (error) throw error;
       setResultadoSefaz(data);
       if (data?.ok) {
-        toast({ title: "SEFAZ respondeu", description: `cStat ${data.cStat} — ${data.xMotivo || ""}` });
+        toast({ title: "Focus NFe respondeu", description: `${data.totalDocumentos} NFe(s) recebida(s)` });
       } else {
-        toast({ title: "Falha na consulta SEFAZ", description: data?.error || data?.xMotivo || "Erro desconhecido", variant: "destructive" });
+        toast({ title: "Falha na consulta", description: data?.error || "Erro desconhecido", variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "Erro ao consultar SEFAZ", description: String((err as Error).message), variant: "destructive" });
+      toast({ title: "Erro ao consultar Focus NFe", description: String((err as Error).message), variant: "destructive" });
     } finally {
       setBuscandoSefaz(false);
     }
@@ -684,11 +680,11 @@ export default function EmpresaDados() {
                 variant="secondary"
                 size="sm"
                 onClick={handleTestarSefaz}
-                disabled={buscandoSefaz || !form.certificadoA1Url || !form.certificadoA1Senha || !podeEditar}
+                disabled={buscandoSefaz || !podeEditar}
                 className="gap-2"
               >
                 {buscandoSefaz ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                {buscandoSefaz ? "Consultando..." : "Testar busca SEFAZ"}
+                {buscandoSefaz ? "Consultando..." : "Testar busca NFe (Focus)"}
               </Button>
             </div>
 
@@ -698,28 +694,24 @@ export default function EmpresaDados() {
               }`}>
                 <div className="flex items-center gap-2 font-medium">
                   {resultadoSefaz.ok
-                    ? <><CheckCircle2 className="h-4 w-4 text-green-600" /> SEFAZ respondeu (HTTP {resultadoSefaz.httpStatus})</>
-                    : <><XCircle className="h-4 w-4 text-destructive" /> Falha na consulta</>}
+                    ? <><CheckCircle2 className="h-4 w-4 text-green-600" /> Focus NFe respondeu (HTTP {resultadoSefaz.httpStatus})</>
+                    : <><XCircle className="h-4 w-4 text-destructive" /> Falha na consulta (HTTP {resultadoSefaz.httpStatus})</>}
                 </div>
                 <div className="text-xs grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
+                  {resultadoSefaz.provider && <div><span className="text-muted-foreground">Provedor:</span> {resultadoSefaz.provider}</div>}
                   {resultadoSefaz.ambiente && <div><span className="text-muted-foreground">Ambiente:</span> {resultadoSefaz.ambiente}</div>}
-                  {resultadoSefaz.uf && <div><span className="text-muted-foreground">UF:</span> {resultadoSefaz.uf}</div>}
-                  {resultadoSefaz.cStat && <div><span className="text-muted-foreground">cStat:</span> <strong>{resultadoSefaz.cStat}</strong></div>}
-                  {resultadoSefaz.xMotivo && <div className="md:col-span-2"><span className="text-muted-foreground">Motivo:</span> {resultadoSefaz.xMotivo}</div>}
-                  {resultadoSefaz.dhResp && <div><span className="text-muted-foreground">Data resp.:</span> {resultadoSefaz.dhResp}</div>}
+                  {resultadoSefaz.cnpj && <div><span className="text-muted-foreground">CNPJ:</span> {resultadoSefaz.cnpj}</div>}
                   {typeof resultadoSefaz.totalDocumentos === "number" && (
-                    <div><span className="text-muted-foreground">Documentos no lote:</span> <strong>{resultadoSefaz.totalDocumentos}</strong></div>
+                    <div><span className="text-muted-foreground">NFe(s) recebida(s):</span> <strong>{resultadoSefaz.totalDocumentos}</strong></div>
                   )}
-                  {resultadoSefaz.ultNSU && <div><span className="text-muted-foreground">ultNSU:</span> {resultadoSefaz.ultNSU}</div>}
-                  {resultadoSefaz.maxNSU && <div><span className="text-muted-foreground">maxNSU:</span> {resultadoSefaz.maxNSU}</div>}
                 </div>
                 {resultadoSefaz.error && (
-                  <div className="text-xs text-destructive">{resultadoSefaz.error}</div>
+                  <div className="text-xs text-destructive break-all">{resultadoSefaz.error}</div>
                 )}
-                {resultadoSefaz.xmlPreview && (
+                {resultadoSefaz.preview && (
                   <details className="text-xs">
-                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Ver XML de resposta (prévia)</summary>
-                    <pre className="mt-2 max-h-64 overflow-auto rounded bg-background p-2 text-[11px] whitespace-pre-wrap break-all">{resultadoSefaz.xmlPreview}</pre>
+                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Ver resposta (prévia)</summary>
+                    <pre className="mt-2 max-h-64 overflow-auto rounded bg-background p-2 text-[11px] whitespace-pre-wrap break-all">{JSON.stringify(resultadoSefaz.preview, null, 2)}</pre>
                   </details>
                 )}
               </div>
