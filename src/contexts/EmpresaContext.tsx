@@ -117,6 +117,11 @@ const rowToEmpresa = (r: any): Empresa => ({
   certificadoA1Senha: r.certificado_a1_senha ?? "",
   nfeAmbiente: (r.nfe_ambiente ?? "homologacao") as Empresa["nfeAmbiente"],
   nfeUfAutor: r.nfe_uf_autor ?? "",
+  certificadoA1Cnpj: r.certificado_a1_cnpj ?? "",
+  certificadoA1Titular: r.certificado_a1_titular ?? "",
+  certificadoA1Emissor: r.certificado_a1_emissor ?? "",
+  certificadoA1ValidadoEm: r.certificado_a1_validado_em ?? "",
+  certificadoA1Status: r.certificado_a1_status ?? "",
 });
 
 const empresaToRow = (e: Empresa) => ({
