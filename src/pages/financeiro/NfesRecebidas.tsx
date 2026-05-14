@@ -84,7 +84,7 @@ export default function NfesRecebidas() {
     setImportando(true);
     try {
       const { data, error } = await supabase.functions.invoke("importar-nfes-focus", {
-        body: { empresaId: empresa.id, baixarXml: true },
+        body: { empresaId: empresa.id, baixarXml: true, dataInicial: dataIni || undefined, dataFinal: dataFim || undefined },
       });
       if (error) throw error;
       const r: any = data;
