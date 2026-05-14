@@ -61,6 +61,8 @@ const EMPTY: Empresa = {
   whatsappComercial: "", whatsappFaturamento: "",
   certificadoA1Url: "", certificadoA1Nome: "", certificadoA1Validade: "",
   certificadoA1Senha: "", nfeAmbiente: "homologacao", nfeUfAutor: "",
+  certificadoA1Cnpj: "", certificadoA1Titular: "", certificadoA1Emissor: "",
+  certificadoA1ValidadoEm: "", certificadoA1Status: "",
 };
 
 interface EmpresaContextType {
