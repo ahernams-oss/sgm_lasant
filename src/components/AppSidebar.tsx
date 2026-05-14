@@ -40,6 +40,7 @@ import {
   Box,
   Sparkles,
   CreditCard,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissao } from "@/hooks/usePermissao";
@@ -184,6 +185,7 @@ const menuItems = [
       { title: "Conciliação Bancária", url: "/financeiro/conciliacao", icon: FileCheck, perm: "financeiro.conciliacao" },
       { title: "Lançamentos", url: "/financeiro/lancamentos", icon: ClipboardList, perm: "financeiro.lancamentos" },
       { title: "Condições de Pagamento", url: "/financeiro/condicoes-pagamento", icon: CreditCard, perm: "financeiro.dashboard" },
+      { title: "NFes Recebidas", url: "/financeiro/nfes-recebidas", icon: FileText, perm: "financeiro.dashboard" },
       { title: "Relatórios Financeiros", url: "/financeiro/relatorios", icon: FileBarChart, perm: "financeiro.dashboard" },
     ],
   },

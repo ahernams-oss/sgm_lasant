@@ -3322,6 +3322,78 @@ export type Database = {
         }
         Relationships: []
       }
+      nfes_recebidas: {
+        Row: {
+          ambiente: string | null
+          chave: string
+          created_at: string
+          danfe_url: string | null
+          data_emissao: string | null
+          data_recebimento: string | null
+          destinatario_cnpj: string | null
+          emitente_cnpj: string | null
+          emitente_nome: string | null
+          empresa_id: string | null
+          id: string
+          manifestacao: string | null
+          numero: string | null
+          payload: Json | null
+          pedido_compra_id: string | null
+          serie: string | null
+          status: string | null
+          updated_at: string
+          valor_total: number | null
+          vinculado_em: string | null
+          xml_url: string | null
+        }
+        Insert: {
+          ambiente?: string | null
+          chave: string
+          created_at?: string
+          danfe_url?: string | null
+          data_emissao?: string | null
+          data_recebimento?: string | null
+          destinatario_cnpj?: string | null
+          emitente_cnpj?: string | null
+          emitente_nome?: string | null
+          empresa_id?: string | null
+          id?: string
+          manifestacao?: string | null
+          numero?: string | null
+          payload?: Json | null
+          pedido_compra_id?: string | null
+          serie?: string | null
+          status?: string | null
+          updated_at?: string
+          valor_total?: number | null
+          vinculado_em?: string | null
+          xml_url?: string | null
+        }
+        Update: {
+          ambiente?: string | null
+          chave?: string
+          created_at?: string
+          danfe_url?: string | null
+          data_emissao?: string | null
+          data_recebimento?: string | null
+          destinatario_cnpj?: string | null
+          emitente_cnpj?: string | null
+          emitente_nome?: string | null
+          empresa_id?: string | null
+          id?: string
+          manifestacao?: string | null
+          numero?: string | null
+          payload?: Json | null
+          pedido_compra_id?: string | null
+          serie?: string | null
+          status?: string | null
+          updated_at?: string
+          valor_total?: number | null
+          vinculado_em?: string | null
+          xml_url?: string | null
+        }
+        Relationships: []
+      }
       orcamentos: {
         Row: {
           anexos: Json
