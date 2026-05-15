@@ -473,14 +473,24 @@ export default function JuridicoPage() {
 
   const parcelasFiltradas = useMemo(() => {
     const idsDec = new Set(decisoesFiltradas.map(d => d.id));
+    const fAutor = filterParcelaAutor.trim().toLowerCase();
+    const fAdv = filterParcelaAdvogado.trim().toLowerCase();
     return parcelasComStatus.filter(p => {
       if (!idsDec.has(p.decisao_id)) return false;
       if (filterParcelaStatus !== "Todos" && p.status !== filterParcelaStatus) return false;
       if (filterParcelaDe && (!p.data_vencimento || p.data_vencimento < filterParcelaDe)) return false;
       if (filterParcelaAte && (!p.data_vencimento || p.data_vencimento > filterParcelaAte)) return false;
+      if (fAutor || fAdv) {
+        const dec = decisoes.find(d => d.id === p.decisao_id);
+        const proc = dec ? processos.find(pr => pr.id === dec.processo_id) : null;
+        const autorNome = (proc?.autor_nome || "").toLowerCase();
+        const advNome = ((dec?.patrono_nome || proc?.advogado_autor || "")).toLowerCase();
+        if (fAutor && !autorNome.includes(fAutor)) return false;
+        if (fAdv && !advNome.includes(fAdv)) return false;
+      }
       return true;
     });
-  }, [parcelasComStatus, decisoesFiltradas, filterParcelaStatus, filterParcelaDe, filterParcelaAte]);
+  }, [parcelasComStatus, decisoesFiltradas, filterParcelaStatus, filterParcelaDe, filterParcelaAte, filterParcelaAutor, filterParcelaAdvogado, decisoes, processos]);
 
   const decisaoStats = useMemo(() => {
     const totalAcordado = decisoes.reduce((s, d) => s + d.valor_total, 0);
