@@ -420,6 +420,12 @@ export default function JuridicoPage() {
     }).eq("id", parcelaPagar.id);
     if (error) { toast.error("Erro ao registrar pagamento"); return; }
     toast.success("Pagamento registrado");
+    // Reflete em Contas a Pagar
+    await (supabase as any).from("fin_contas_pagar").update({
+      status: "paga",
+      data_pagamento: pagamentoForm.data_pagamento,
+      valor_pago: pagamentoForm.valor_pago,
+    }).eq("juridico_parcela_id", parcelaPagar.id);
     // Atualiza status da decisão se todas pagas
     const restantes = parcelas.filter(x => x.decisao_id === parcelaPagar.decisao_id && x.id !== parcelaPagar.id && x.status !== "Pago" && x.status !== "Cancelado");
     if (restantes.length === 0) {
@@ -432,6 +438,7 @@ export default function JuridicoPage() {
 
   const handleCancelarParcela = async (p: Parcela) => {
     await (supabase as any).from("juridico_parcelas").update({ status: "Cancelado" }).eq("id", p.id);
+    await (supabase as any).from("fin_contas_pagar").update({ status: "cancelada" }).eq("juridico_parcela_id", p.id);
     toast.success("Parcela cancelada");
     await loadParcelas();
   };
