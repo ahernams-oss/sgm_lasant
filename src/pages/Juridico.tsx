@@ -1493,6 +1493,39 @@ export default function JuridicoPage() {
         </Dialog>
 
         {/* Delete decisão */}
+        {/* Confirmação de senha para gravar Decisão/Acordo */}
+        <Dialog open={showSenhaConfirm} onOpenChange={(v) => { if (!v) { setShowSenhaConfirm(false); setSenhaConfirm(""); } }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2"><Lock className="h-5 w-5 text-primary" /> Confirmação de Segurança</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 text-sm">
+              <p>Para registrar esta <strong>Decisão / Acordo</strong> e gerar as parcelas no módulo financeiro, confirme sua senha de acesso.</p>
+              <div className="bg-muted/50 border rounded p-3 text-xs">
+                <p><strong>Usuário:</strong> {usuarioLogado?.nome}</p>
+                <p><strong>E-mail:</strong> {usuarioLogado?.email}</p>
+              </div>
+              <div>
+                <Label>Senha *</Label>
+                <Input
+                  type="password"
+                  value={senhaConfirm}
+                  onChange={e => setSenhaConfirm(e.target.value)}
+                  placeholder="Digite sua senha"
+                  autoFocus
+                  onKeyDown={e => e.key === "Enter" && senhaConfirm && !validandoSenha && executarSaveDecisao()}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setShowSenhaConfirm(false); setSenhaConfirm(""); }} disabled={validandoSenha}>Cancelar</Button>
+              <Button onClick={executarSaveDecisao} disabled={!senhaConfirm || validandoSenha}>
+                {validandoSenha ? "Validando..." : "Confirmar e Salvar"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <AlertDialog open={!!decisaoDeleteId} onOpenChange={() => setDecisaoDeleteId(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
