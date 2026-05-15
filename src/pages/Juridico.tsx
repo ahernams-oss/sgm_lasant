@@ -1125,9 +1125,35 @@ export default function JuridicoPage() {
                   <div><Label>Principal</Label><Input type="number" step="0.01" value={decisaoForm.valor_principal} onChange={e => setDecisaoForm({ ...decisaoForm, valor_principal: Number(e.target.value) })} /></div>
                   <div><Label>Honorários</Label><Input type="number" step="0.01" value={decisaoForm.valor_honorarios} onChange={e => setDecisaoForm({ ...decisaoForm, valor_honorarios: Number(e.target.value) })} /></div>
                   <div><Label>Custas</Label><Input type="number" step="0.01" value={decisaoForm.valor_custas} onChange={e => setDecisaoForm({ ...decisaoForm, valor_custas: Number(e.target.value) })} /></div>
-                  <div><Label>Qtd Parcelas</Label><Input type="number" min={1} value={decisaoForm.qtd_parcelas} disabled={!!decisaoEditId} onChange={e => setDecisaoForm({ ...decisaoForm, qtd_parcelas: Math.max(1, Number(e.target.value)) })} /></div>
+                  <div>
+                    <Label>Entrada / 1ª Parcela</Label>
+                    <Input type="number" step="0.01" min={0} value={decisaoForm.valor_entrada} disabled={!!decisaoEditId}
+                      onChange={e => {
+                        const v = Math.max(0, Number(e.target.value) || 0);
+                        const max = Number(decisaoForm.valor_total) || 0;
+                        setDecisaoForm({ ...decisaoForm, valor_entrada: v > max ? max : v });
+                      }} />
+                    {decisaoForm.valor_total > 0 && decisaoForm.valor_entrada > 0 && (
+                      <p className="text-[10px] text-muted-foreground mt-1">{((decisaoForm.valor_entrada / decisaoForm.valor_total) * 100).toFixed(1)}% do total</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label>Vencimento da Entrada</Label>
+                    <Input type="date" value={decisaoForm.data_entrada || ""} disabled={!!decisaoEditId}
+                      onChange={e => setDecisaoForm({ ...decisaoForm, data_entrada: e.target.value || null })} />
+                  </div>
+                  <div>
+                    <Label>Qtd Parcelas {decisaoForm.valor_entrada > 0 ? "(após entrada)" : ""}</Label>
+                    <Input type="number" min={0} max={10} value={decisaoForm.qtd_parcelas} disabled={!!decisaoEditId}
+                      onChange={e => setDecisaoForm({ ...decisaoForm, qtd_parcelas: Math.max(0, Math.min(10, Number(e.target.value))) })} />
+                  </div>
                   <div><Label>Primeiro Vencimento</Label><Input type="date" value={decisaoForm.primeiro_vencimento || ""} disabled={!!decisaoEditId} onChange={e => setDecisaoForm({ ...decisaoForm, primeiro_vencimento: e.target.value || null })} /></div>
                 </div>
+                {!decisaoEditId && decisaoForm.valor_total > 0 && decisaoForm.qtd_parcelas > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Restante de {(decisaoForm.valor_total - (decisaoForm.valor_entrada || 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} dividido em {decisaoForm.qtd_parcelas}x de aprox. {((decisaoForm.valor_total - (decisaoForm.valor_entrada || 0)) / decisaoForm.qtd_parcelas).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </p>
+                )}
                 {decisaoEditId && <p className="text-xs text-muted-foreground mt-1">Para alterar parcelas existentes, use a tabela de programação.</p>}
               </div>
 
