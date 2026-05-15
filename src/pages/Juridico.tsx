@@ -8,6 +8,8 @@ import {
   gerarPdfContatos, gerarExcelContatos,
   gerarPdfProvisao, gerarExcelProvisao,
   gerarPdfSintese, gerarExcelSintese,
+  gerarPdfDecisoes, gerarExcelDecisoes,
+  gerarPdfParcelas, gerarExcelParcelas,
 } from "@/lib/gerarRelatoriosJuridico";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -204,6 +206,13 @@ export default function JuridicoPage() {
   const [parcelaPagar, setParcelaPagar] = useState<Parcela | null>(null);
   const [pagamentoForm, setPagamentoForm] = useState({ data_pagamento: "", valor_pago: 0, forma_pagamento: "PIX", comprovante_url: "", observacoes: "" });
   const [filterDecisaoStatus, setFilterDecisaoStatus] = useState("Todos");
+  const [filterDecisaoTipo, setFilterDecisaoTipo] = useState("Todos");
+  const [filterDecisaoBusca, setFilterDecisaoBusca] = useState("");
+  const [filterDecisaoDe, setFilterDecisaoDe] = useState("");
+  const [filterDecisaoAte, setFilterDecisaoAte] = useState("");
+  const [filterParcelaStatus, setFilterParcelaStatus] = useState("Todos");
+  const [filterParcelaDe, setFilterParcelaDe] = useState("");
+  const [filterParcelaAte, setFilterParcelaAte] = useState("");
 
   const loadAudiencias = useCallback(async () => {
     const { data, error } = await (supabase as any).from("juridico_audiencias").select("*").order("data_audiencia", { ascending: true });
@@ -358,8 +367,30 @@ export default function JuridicoPage() {
   }, [parcelas]);
 
   const decisoesFiltradas = useMemo(() => {
-    return decisoes.filter(d => filterDecisaoStatus === "Todos" || d.status === filterDecisaoStatus);
-  }, [decisoes, filterDecisaoStatus]);
+    const q = filterDecisaoBusca.trim().toLowerCase();
+    return decisoes.filter(d => {
+      if (filterDecisaoStatus !== "Todos" && d.status !== filterDecisaoStatus) return false;
+      if (filterDecisaoTipo !== "Todos" && d.tipo !== filterDecisaoTipo) return false;
+      if (filterDecisaoDe && (!d.data_decisao || d.data_decisao < filterDecisaoDe)) return false;
+      if (filterDecisaoAte && (!d.data_decisao || d.data_decisao > filterDecisaoAte)) return false;
+      if (q) {
+        const blob = `${d.processo_numero ?? ""} ${d.juiz ?? ""} ${d.patrono_nome ?? ""} ${d.patrono_oab ?? ""}`.toLowerCase();
+        if (!blob.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [decisoes, filterDecisaoStatus, filterDecisaoTipo, filterDecisaoBusca, filterDecisaoDe, filterDecisaoAte]);
+
+  const parcelasFiltradas = useMemo(() => {
+    const idsDec = new Set(decisoesFiltradas.map(d => d.id));
+    return parcelasComStatus.filter(p => {
+      if (!idsDec.has(p.decisao_id)) return false;
+      if (filterParcelaStatus !== "Todos" && p.status !== filterParcelaStatus) return false;
+      if (filterParcelaDe && (!p.data_vencimento || p.data_vencimento < filterParcelaDe)) return false;
+      if (filterParcelaAte && (!p.data_vencimento || p.data_vencimento > filterParcelaAte)) return false;
+      return true;
+    });
+  }, [parcelasComStatus, decisoesFiltradas, filterParcelaStatus, filterParcelaDe, filterParcelaAte]);
 
   const decisaoStats = useMemo(() => {
     const totalAcordado = decisoes.reduce((s, d) => s + d.valor_total, 0);
@@ -827,17 +858,66 @@ export default function JuridicoPage() {
             </div>
 
             <div className="flex flex-wrap gap-3 items-end mb-4">
+              <div className="min-w-[200px] flex-1">
+                <Label className="text-xs">Buscar</Label>
+                <Input value={filterDecisaoBusca} onChange={e => setFilterDecisaoBusca(e.target.value)} placeholder="Processo, juiz, patrono, OAB..." />
+              </div>
+              <div>
+                <Label className="text-xs">Tipo</Label>
+                <Select value={filterDecisaoTipo} onValueChange={setFilterDecisaoTipo}>
+                  <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Todos">Todos</SelectItem>
+                    {TIPO_DECISAO.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label className="text-xs">Status</Label>
                 <Select value={filterDecisaoStatus} onValueChange={setFilterDecisaoStatus}>
-                  <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Todos">Todos</SelectItem>
                     {STATUS_DECISAO.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <Label className="text-xs">Data de</Label>
+                <Input type="date" className="w-40" value={filterDecisaoDe} onChange={e => setFilterDecisaoDe(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-xs">Data até</Label>
+                <Input type="date" className="w-40" value={filterDecisaoAte} onChange={e => setFilterDecisaoAte(e.target.value)} />
+              </div>
+              {(filterDecisaoBusca || filterDecisaoTipo !== "Todos" || filterDecisaoStatus !== "Todos" || filterDecisaoDe || filterDecisaoAte) && (
+                <Button variant="ghost" size="sm" onClick={() => { setFilterDecisaoBusca(""); setFilterDecisaoTipo("Todos"); setFilterDecisaoStatus("Todos"); setFilterDecisaoDe(""); setFilterDecisaoAte(""); }}>
+                  <X className="h-4 w-4 mr-1" /> Limpar
+                </Button>
+              )}
               <div className="flex-1" />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="gap-2"><Download className="h-4 w-4" /> Relatórios</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <DropdownMenuLabel>Decisões / Acordos {decisoesFiltradas.length !== decisoes.length ? `(filtrados: ${decisoesFiltradas.length})` : ""}</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => gerarPdfDecisoes(decisoesFiltradas, parcelasComStatus, `Tipo: ${filterDecisaoTipo} | Status: ${filterDecisaoStatus}${filterDecisaoDe ? ` | De: ${filterDecisaoDe}` : ""}${filterDecisaoAte ? ` | Até: ${filterDecisaoAte}` : ""}`)}>
+                    <Printer className="h-4 w-4 mr-2" /> PDF — Decisões
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => gerarExcelDecisoes(decisoesFiltradas, parcelasComStatus, `Tipo: ${filterDecisaoTipo} | Status: ${filterDecisaoStatus}`)}>
+                    <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel — Decisões
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Programação de Parcelas {parcelasFiltradas.length !== parcelasComStatus.length ? `(filtrados: ${parcelasFiltradas.length})` : ""}</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => gerarPdfParcelas(parcelasFiltradas, decisoes, `Status: ${filterParcelaStatus}${filterParcelaDe ? ` | De: ${filterParcelaDe}` : ""}${filterParcelaAte ? ` | Até: ${filterParcelaAte}` : ""}`)}>
+                    <Printer className="h-4 w-4 mr-2" /> PDF — Parcelas
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => gerarExcelParcelas(parcelasFiltradas, decisoes, `Status: ${filterParcelaStatus}`)}>
+                    <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel — Parcelas
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               {podeCriar && <Button onClick={() => { setDecisaoForm(emptyDecisao); setDecisaoEditId(null); setShowDecisaoForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Nova Decisão / Acordo</Button>}
             </div>
 
@@ -891,7 +971,36 @@ export default function JuridicoPage() {
 
             {/* Programação geral de parcelas */}
             <div className="mt-6">
-              <h3 className="text-sm font-semibold mb-2 flex items-center gap-1"><CalendarCheck className="h-4 w-4" /> Programação de Parcelas</h3>
+              <div className="flex flex-wrap items-end gap-3 mb-2">
+                <h3 className="text-sm font-semibold flex items-center gap-1"><CalendarCheck className="h-4 w-4" /> Programação de Parcelas</h3>
+                <div className="flex-1" />
+                <div>
+                  <Label className="text-xs">Status</Label>
+                  <Select value={filterParcelaStatus} onValueChange={setFilterParcelaStatus}>
+                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Todos">Todos</SelectItem>
+                      <SelectItem value="Pendente">Pendente</SelectItem>
+                      <SelectItem value="Pago">Pago</SelectItem>
+                      <SelectItem value="Atrasado">Atrasado</SelectItem>
+                      <SelectItem value="Cancelado">Cancelado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Vencimento de</Label>
+                  <Input type="date" className="w-40" value={filterParcelaDe} onChange={e => setFilterParcelaDe(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Vencimento até</Label>
+                  <Input type="date" className="w-40" value={filterParcelaAte} onChange={e => setFilterParcelaAte(e.target.value)} />
+                </div>
+                {(filterParcelaStatus !== "Todos" || filterParcelaDe || filterParcelaAte) && (
+                  <Button variant="ghost" size="sm" onClick={() => { setFilterParcelaStatus("Todos"); setFilterParcelaDe(""); setFilterParcelaAte(""); }}>
+                    <X className="h-4 w-4 mr-1" /> Limpar
+                  </Button>
+                )}
+              </div>
               <div className="rounded-md border overflow-auto">
                 <Table>
                   <TableHeader>
@@ -906,10 +1015,10 @@ export default function JuridicoPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {parcelasComStatus.length === 0 && (
+                    {parcelasFiltradas.length === 0 && (
                       <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhuma parcela programada</TableCell></TableRow>
                     )}
-                    {parcelasComStatus.map(p => {
+                    {parcelasFiltradas.map(p => {
                       const dec = decisoes.find(d => d.id === p.decisao_id);
                       const cor = p.status === "Pago" ? "bg-green-600 text-white" : p.status === "Atrasado" ? "bg-destructive text-destructive-foreground" : p.status === "Cancelado" ? "bg-muted text-muted-foreground" : "bg-yellow-500 text-white";
                       return (

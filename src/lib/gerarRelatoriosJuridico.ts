@@ -268,3 +268,91 @@ function sinteseReport(processos: any[], audiencias: any[]): ReportInput {
 
 export const gerarPdfSintese = (p: any[], a: any[]) => basePdf(sinteseReport(p, a));
 export const gerarExcelSintese = (p: any[], a: any[]) => baseExcel(sinteseReport(p, a));
+
+// ===================== DECISÕES / PAGAMENTOS =====================
+function decisoesReport(decisoes: any[], parcelas: any[], filtros?: string): ReportInput {
+  const colunas = [
+    "Nº Processo", "Tipo", "Data", "Juiz", "Patrono Autor", "OAB",
+    "Valor Total", "Parcelas", "Pagas", "Pago (R$)", "Saldo (R$)", "Status",
+  ];
+  const linhas = decisoes.map((d) => {
+    const ps = parcelas.filter((p) => p.decisao_id === d.id);
+    const pagas = ps.filter((p) => p.status === "Pago");
+    const totalPago = pagas.reduce((s, p) => s + (Number(p.valor_pago ?? p.valor) || 0), 0);
+    const saldo = (Number(d.valor_total) || 0) - totalPago;
+    return [
+      d.processo_numero || "-",
+      d.tipo || "-",
+      fmtDate(d.data_decisao),
+      d.juiz || "-",
+      d.patrono_nome || "-",
+      d.patrono_oab || "-",
+      fmtBRL(d.valor_total),
+      ps.length || d.qtd_parcelas || 0,
+      pagas.length,
+      fmtBRL(totalPago),
+      fmtBRL(saldo),
+      d.status || "-",
+    ];
+  });
+  const tTotal = decisoes.reduce((s, d) => s + (Number(d.valor_total) || 0), 0);
+  const tPago = parcelas
+    .filter((p) => p.status === "Pago" && decisoes.some((d) => d.id === p.decisao_id))
+    .reduce((s, p) => s + (Number(p.valor_pago ?? p.valor) || 0), 0);
+  return {
+    titulo: "Relatório de Decisões e Acordos",
+    filtros,
+    colunas,
+    linhas,
+    totais: [
+      { label: "Total Acordado/Decidido", valor: fmtBRL(tTotal) },
+      { label: "Total Pago", valor: fmtBRL(tPago) },
+      { label: "Saldo", valor: fmtBRL(tTotal - tPago) },
+    ],
+  };
+}
+
+export const gerarPdfDecisoes = (d: any[], p: any[], f?: string) => basePdf(decisoesReport(d, p, f));
+export const gerarExcelDecisoes = (d: any[], p: any[], f?: string) => baseExcel(decisoesReport(d, p, f));
+
+// ===================== PARCELAS / PROGRAMAÇÃO =====================
+function parcelasReport(parcelas: any[], decisoes: any[], filtros?: string): ReportInput {
+  const colunas = [
+    "Nº Processo", "Tipo", "Parc.", "Vencimento", "Valor", "Status",
+    "Data Pagamento", "Valor Pago", "Forma", "Banco/PIX",
+  ];
+  const linhas = parcelas.map((p) => {
+    const d = decisoes.find((x) => x.id === p.decisao_id);
+    return [
+      d?.processo_numero || "-",
+      d?.tipo || "-",
+      p.numero,
+      fmtDate(p.data_vencimento),
+      fmtBRL(p.valor),
+      p.status || "-",
+      fmtDate(p.data_pagamento),
+      p.valor_pago != null ? fmtBRL(p.valor_pago) : "-",
+      p.forma_pagamento || "-",
+      d?.banco || d?.pix_chave || "-",
+    ];
+  });
+  const tProg = parcelas.reduce((s, p) => s + (Number(p.valor) || 0), 0);
+  const tPago = parcelas.filter((p) => p.status === "Pago").reduce((s, p) => s + (Number(p.valor_pago ?? p.valor) || 0), 0);
+  const tPend = parcelas.filter((p) => p.status === "Pendente").reduce((s, p) => s + (Number(p.valor) || 0), 0);
+  const tAtr = parcelas.filter((p) => p.status === "Atrasado").reduce((s, p) => s + (Number(p.valor) || 0), 0);
+  return {
+    titulo: "Programação de Parcelas",
+    filtros,
+    colunas,
+    linhas,
+    totais: [
+      { label: "Total Programado", valor: fmtBRL(tProg) },
+      { label: "Total Pago", valor: fmtBRL(tPago) },
+      { label: "Total Pendente", valor: fmtBRL(tPend) },
+      { label: "Total Atrasado", valor: fmtBRL(tAtr) },
+    ],
+  };
+}
+
+export const gerarPdfParcelas = (p: any[], d: any[], f?: string) => basePdf(parcelasReport(p, d, f));
+export const gerarExcelParcelas = (p: any[], d: any[], f?: string) => baseExcel(parcelasReport(p, d, f));
