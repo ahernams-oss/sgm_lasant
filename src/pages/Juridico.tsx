@@ -171,6 +171,12 @@ export default function JuridicoPage() {
   const podeAnexos = tem("juridico.gerenciar_anexos");
 
   const { clientes } = useClientes();
+  const { usuarioLogado } = useAuth();
+
+  // Confirmação de senha para lançar Decisão/Acordo
+  const [showSenhaConfirm, setShowSenhaConfirm] = useState(false);
+  const [senhaConfirm, setSenhaConfirm] = useState("");
+  const [validandoSenha, setValidandoSenha] = useState(false);
 
   const [tab, setTab] = useState("dashboard");
   const [showForm, setShowForm] = useState(false);
