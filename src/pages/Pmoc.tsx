@@ -41,7 +41,7 @@ const TIPOS_REGISTRO = ["CREA", "CRQ", "CRECI", "CFT", "Outro"];
 
 // ====================== PLANOS TAB ======================
 function PlanosTab() {
-  const { planos, addPlano, updatePlano, deletePlano } = usePmoc();
+  const { planos, atividades, addPlano, updatePlano, deletePlano } = usePmoc();
   const { clientes } = useClientes();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
