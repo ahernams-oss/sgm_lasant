@@ -47,6 +47,11 @@ const URGENCIAS: GrauUrgencia[] = ["Baixa", "Normal", "Alta", "Urgente"];
 export default function RequisicaoComprasPage() {
   const { requisicoes, addRequisicao, cancelarRequisicao } = useRequisicaoCompras();
   const { materiais } = useMateriaisServicos();
+  const { getCodigoCompleto } = useCategoriasCompras();
+  const codigoComposto = (m: any) => {
+    const cat = m?.categoriaId ? getCodigoCompleto(m.categoriaId) : "";
+    return cat ? `${cat}.${m.codigo}` : m.codigo;
+  };
   const { fabricantes } = useFabricantes();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
