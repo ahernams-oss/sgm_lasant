@@ -1378,7 +1378,7 @@ export default function JuridicoPage() {
                     const file = e.target.files?.[0];
                     if (!file) return;
                     if (file.size > 10 * 1024 * 1024) {
-                      toast({ title: "Arquivo muito grande", description: "Máximo 10MB", variant: "destructive" });
+                      toast.error("Arquivo muito grande (máx. 10MB)");
                       e.target.value = "";
                       return;
                     }
@@ -1388,9 +1388,9 @@ export default function JuridicoPage() {
                       if (upErr) throw upErr;
                       const { data: pub } = supabase.storage.from("processos-trabalhistas-anexos").getPublicUrl(path);
                       setPagamentoForm({ ...pagamentoForm, comprovante_url: pub.publicUrl });
-                      toast({ title: "Comprovante anexado" });
+                      toast.success("Comprovante anexado");
                     } catch (err: any) {
-                      toast({ title: "Erro ao anexar", description: err.message, variant: "destructive" });
+                      toast.error("Erro ao anexar: " + err.message);
                     }
                   }}
                 />
