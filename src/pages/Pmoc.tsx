@@ -926,7 +926,10 @@ function InconformidadesTab() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Inconformidades</h3>
-        <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova Inconformidade</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => downloadPdfPmocInconformidades(inconformidades)}><Printer className="mr-2 h-4 w-4" />Imprimir</Button>
+          <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova Inconformidade</Button>
+        </div>
       </div>
       <div className="border rounded-lg">
         <Table>
