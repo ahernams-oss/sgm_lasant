@@ -412,7 +412,7 @@ export default function RequisicaoComprasPage() {
                         <PopoverTrigger asChild>
                           <Button variant="outline" role="combobox" aria-expanded={materialPopoverOpen} className="w-full justify-between font-normal h-10">
                             {itemMaterialId
-                              ? (() => { const m = materiais.find(m => m.id === itemMaterialId); return m ? `${m.codigo ? m.codigo + " - " : ""}${m.descricao}` : "Selecionar..."; })()
+                              ? (() => { const m = materiais.find(m => m.id === itemMaterialId); return m ? `${codigoComposto(m)} - ${m.descricao}` : "Selecionar..."; })()
                               : "Selecionar (opcional)..."}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
