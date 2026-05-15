@@ -2831,6 +2831,8 @@ export type Database = {
           decisao_id: string
           forma_pagamento: string | null
           id: string
+          notificado_1d: boolean
+          notificado_3d: boolean
           numero: number
           observacoes: string | null
           status: string
@@ -2846,6 +2848,8 @@ export type Database = {
           decisao_id: string
           forma_pagamento?: string | null
           id?: string
+          notificado_1d?: boolean
+          notificado_3d?: boolean
           numero?: number
           observacoes?: string | null
           status?: string
@@ -2861,6 +2865,8 @@ export type Database = {
           decisao_id?: string
           forma_pagamento?: string | null
           id?: string
+          notificado_1d?: boolean
+          notificado_3d?: boolean
           numero?: number
           observacoes?: string | null
           status?: string
