@@ -193,6 +193,18 @@ export default function JuridicoPage() {
   const [contatoForm, setContatoForm] = useState(emptyContato);
   const [contatoDeleteId, setContatoDeleteId] = useState<string | null>(null);
 
+  // Decisões e Pagamentos
+  const [decisoes, setDecisoes] = useState<Decisao[]>([]);
+  const [parcelas, setParcelas] = useState<Parcela[]>([]);
+  const [showDecisaoForm, setShowDecisaoForm] = useState(false);
+  const [decisaoEditId, setDecisaoEditId] = useState<string | null>(null);
+  const [decisaoForm, setDecisaoForm] = useState(emptyDecisao);
+  const [decisaoDeleteId, setDecisaoDeleteId] = useState<string | null>(null);
+  const [viewDecisao, setViewDecisao] = useState<Decisao | null>(null);
+  const [parcelaPagar, setParcelaPagar] = useState<Parcela | null>(null);
+  const [pagamentoForm, setPagamentoForm] = useState({ data_pagamento: "", valor_pago: 0, forma_pagamento: "PIX", comprovante_url: "", observacoes: "" });
+  const [filterDecisaoStatus, setFilterDecisaoStatus] = useState("Todos");
+
   const loadAudiencias = useCallback(async () => {
     const { data, error } = await (supabase as any).from("juridico_audiencias").select("*").order("data_audiencia", { ascending: true });
     if (error) { console.error(error); return; }
