@@ -1,0 +1,270 @@
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+
+const fmtBRL = (v: number) =>
+  (Number(v) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+const fmtDate = (d: string | null | undefined) => {
+  if (!d) return "-";
+  try {
+    return new Date(d + "T12:00:00").toLocaleDateString("pt-BR");
+  } catch {
+    return String(d);
+  }
+};
+
+interface ReportInput {
+  titulo: string;
+  subtitulo?: string;
+  filtros?: string;
+  colunas: string[];
+  linhas: (string | number)[][];
+  totais?: { label: string; valor: string }[];
+}
+
+function basePdf(r: ReportInput) {
+  const orient = r.colunas.length > 6 ? "landscape" : "portrait";
+  const doc = new jsPDF({ orientation: orient });
+  const pw = doc.internal.pageSize.getWidth();
+
+  doc.setFillColor(30, 58, 107);
+  doc.rect(0, 0, pw, 28, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text(r.titulo, 14, 12);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  if (r.subtitulo) doc.text(r.subtitulo, 14, 20);
+  const dt = new Date();
+  doc.text(
+    `Gerado em: ${dt.toLocaleDateString("pt-BR")} ${dt.toLocaleTimeString("pt-BR")}`,
+    pw - 14,
+    12,
+    { align: "right" }
+  );
+  if (r.filtros) doc.text(r.filtros, pw - 14, 20, { align: "right" });
+
+  doc.setTextColor(30, 30, 30);
+  doc.setFontSize(10);
+  doc.text(`Total de registros: ${r.linhas.length}`, 14, 36);
+
+  autoTable(doc, {
+    startY: 42,
+    head: [r.colunas],
+    body: r.linhas.map((row) => row.map((c) => (c == null ? "" : String(c)))),
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
+    alternateRowStyles: { fillColor: [245, 247, 250] },
+  });
+
+  if (r.totais && r.totais.length) {
+    let y = (doc as any).lastAutoTable.finalY + 6;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    r.totais.forEach((t) => {
+      doc.text(`${t.label}: ${t.valor}`, pw - 14, y, { align: "right" });
+      y += 6;
+    });
+  }
+
+  const pages = doc.getNumberOfPages();
+  const ph = doc.internal.pageSize.getHeight();
+  for (let i = 1; i <= pages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text(`Página ${i} de ${pages}`, pw / 2, ph - 8, { align: "center" });
+    doc.text("SGM Lasant - Jurídico", 14, ph - 8);
+  }
+
+  doc.save(`${r.titulo.replace(/\s+/g, "_").toLowerCase()}.pdf`);
+}
+
+function baseExcel(r: ReportInput) {
+  const wb = XLSX.utils.book_new();
+  const data = r.linhas.map((row) => {
+    const o: Record<string, any> = {};
+    r.colunas.forEach((c, i) => { o[c] = row[i] ?? ""; });
+    return o;
+  });
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws["!cols"] = r.colunas.map(() => ({ wch: 22 }));
+  if (r.totais && r.totais.length) {
+    XLSX.utils.sheet_add_aoa(ws, [[]], { origin: -1 });
+    r.totais.forEach((t) => {
+      XLSX.utils.sheet_add_aoa(ws, [[t.label, t.valor]], { origin: -1 });
+    });
+  }
+  XLSX.utils.book_append_sheet(wb, ws, r.titulo.substring(0, 31));
+  XLSX.writeFile(wb, `${r.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
+}
+
+// ===================== PROCESSOS =====================
+function processosReport(processos: any[], filtros?: string): ReportInput {
+  const colunas = [
+    "Nº Processo", "Autor", "Vara", "Comarca", "UF", "Distribuição",
+    "Objeto", "Valor Causa", "Provisão", "Acordo", "Condenação",
+    "Risco", "Status", "Fase",
+  ];
+  const linhas = processos.map((p) => [
+    p.numero_processo || "-",
+    p.autor_nome || "-",
+    p.vara || "-",
+    p.comarca || "-",
+    p.estado || "-",
+    fmtDate(p.data_distribuicao),
+    p.objeto_acao || "-",
+    fmtBRL(p.valor_causa),
+    fmtBRL(p.provisao_contabil),
+    fmtBRL(p.valor_acordo),
+    fmtBRL(p.valor_condenacao),
+    p.risco || "-",
+    p.status || "-",
+    p.fase_processual || "-",
+  ]);
+  const tCausa = processos.reduce((s, p) => s + (Number(p.valor_causa) || 0), 0);
+  const tProv = processos.reduce((s, p) => s + (Number(p.provisao_contabil) || 0), 0);
+  const tAcordo = processos.reduce((s, p) => s + (Number(p.valor_acordo) || 0), 0);
+  const tCond = processos.reduce((s, p) => s + (Number(p.valor_condenacao) || 0), 0);
+  return {
+    titulo: "Relatório de Processos Trabalhistas",
+    filtros,
+    colunas,
+    linhas,
+    totais: [
+      { label: "Total Valor Causa", valor: fmtBRL(tCausa) },
+      { label: "Total Provisão", valor: fmtBRL(tProv) },
+      { label: "Total Acordos", valor: fmtBRL(tAcordo) },
+      { label: "Total Condenações", valor: fmtBRL(tCond) },
+    ],
+  };
+}
+
+export const gerarPdfProcessos = (p: any[], f?: string) => basePdf(processosReport(p, f));
+export const gerarExcelProcessos = (p: any[], f?: string) => baseExcel(processosReport(p, f));
+
+// ===================== AUDIÊNCIAS =====================
+function audienciasReport(audiencias: any[]): ReportInput {
+  const colunas = ["Processo", "Data", "Hora", "Tipo", "Local", "Vara", "Status", "Notif."];
+  const linhas = audiencias.map((a) => {
+    const notif = [
+      a.notificado_10d ? "10d" : null,
+      a.notificado_7d ? "7d" : null,
+      a.notificado_5d ? "5d" : null,
+      a.notificado_2d ? "2d" : null,
+    ].filter(Boolean).join(", ") || "Pendente";
+    return [
+      a.processo_numero || "-",
+      fmtDate(a.data_audiencia),
+      a.hora || "-",
+      a.tipo || "-",
+      a.local || "-",
+      a.vara || "-",
+      a.status || "-",
+      notif,
+    ];
+  });
+  return { titulo: "Relatório de Audiências", colunas, linhas };
+}
+
+export const gerarPdfAudiencias = (a: any[]) => basePdf(audienciasReport(a));
+export const gerarExcelAudiencias = (a: any[]) => baseExcel(audienciasReport(a));
+
+// ===================== CONTATOS =====================
+function contatosReport(contatos: any[]): ReportInput {
+  const colunas = ["Nome", "Tipo", "WhatsApp", "E-mail", "OAB", "CRC", "Ativo", "Observações"];
+  const linhas = contatos.map((c) => [
+    c.nome || "-",
+    c.tipo || "-",
+    c.telefone_whatsapp || "-",
+    c.email || "-",
+    c.oab || "-",
+    c.crc || "-",
+    c.ativo ? "Sim" : "Não",
+    c.observacoes || "-",
+  ]);
+  return { titulo: "Relatório de Contatos para Notificação", colunas, linhas };
+}
+
+export const gerarPdfContatos = (c: any[]) => basePdf(contatosReport(c));
+export const gerarExcelContatos = (c: any[]) => baseExcel(contatosReport(c));
+
+// ===================== PROVISÃO FINANCEIRA =====================
+function provisaoReport(processos: any[]): ReportInput {
+  const colunas = [
+    "Nº Processo", "Autor", "Status", "Risco", "Valor Causa",
+    "Provisão", "Acordo", "Condenação", "Honorários", "Exposição",
+  ];
+  const linhas = processos.map((p) => {
+    const exp = (Number(p.provisao_contabil) || 0) +
+      (Number(p.valor_acordo) || 0) +
+      (Number(p.valor_condenacao) || 0) +
+      (Number(p.honorarios) || 0);
+    return [
+      p.numero_processo || "-",
+      p.autor_nome || "-",
+      p.status || "-",
+      p.risco || "-",
+      fmtBRL(p.valor_causa),
+      fmtBRL(p.provisao_contabil),
+      fmtBRL(p.valor_acordo),
+      fmtBRL(p.valor_condenacao),
+      fmtBRL(p.honorarios),
+      fmtBRL(exp),
+    ];
+  });
+  const tProv = processos.reduce((s, p) => s + (Number(p.provisao_contabil) || 0), 0);
+  const tAcordo = processos.reduce((s, p) => s + (Number(p.valor_acordo) || 0), 0);
+  const tCond = processos.reduce((s, p) => s + (Number(p.valor_condenacao) || 0), 0);
+  const tHon = processos.reduce((s, p) => s + (Number(p.honorarios) || 0), 0);
+  return {
+    titulo: "Relatório de Provisão Financeira",
+    colunas,
+    linhas,
+    totais: [
+      { label: "Total Provisão", valor: fmtBRL(tProv) },
+      { label: "Total Acordos", valor: fmtBRL(tAcordo) },
+      { label: "Total Condenações", valor: fmtBRL(tCond) },
+      { label: "Total Honorários", valor: fmtBRL(tHon) },
+      { label: "Exposição Total", valor: fmtBRL(tProv + tAcordo + tCond + tHon) },
+    ],
+  };
+}
+
+export const gerarPdfProvisao = (p: any[]) => basePdf(provisaoReport(p));
+export const gerarExcelProvisao = (p: any[]) => baseExcel(provisaoReport(p));
+
+// ===================== SÍNTESE / DASHBOARD =====================
+function sinteseReport(processos: any[], audiencias: any[]): ReportInput {
+  const STATUS = ["Ativo", "Recurso", "Acordo", "Encerrado", "Arquivado"];
+  const RISCO = ["Baixo", "Médio", "Alto"];
+  const linhas: (string | number)[][] = [];
+  linhas.push(["Total de Processos", processos.length]);
+  STATUS.forEach((s) =>
+    linhas.push([`Processos - ${s}`, processos.filter((p) => p.status === s).length])
+  );
+  RISCO.forEach((r) =>
+    linhas.push([`Ativos Risco ${r}`, processos.filter((p) => p.risco === r && p.status === "Ativo").length])
+  );
+  linhas.push([
+    "Valor Causa Total",
+    fmtBRL(processos.reduce((s, p) => s + (Number(p.valor_causa) || 0), 0)),
+  ]);
+  linhas.push([
+    "Provisão Total",
+    fmtBRL(processos.reduce((s, p) => s + (Number(p.provisao_contabil) || 0), 0)),
+  ]);
+  linhas.push(["Audiências Cadastradas", audiencias.length]);
+  linhas.push(["Audiências Agendadas", audiencias.filter((a) => a.status === "Agendada").length]);
+  linhas.push(["Audiências Realizadas", audiencias.filter((a) => a.status === "Realizada").length]);
+  return {
+    titulo: "Síntese do Contencioso Trabalhista",
+    colunas: ["Indicador", "Valor"],
+    linhas,
+  };
+}
+
+export const gerarPdfSintese = (p: any[], a: any[]) => basePdf(sinteseReport(p, a));
+export const gerarExcelSintese = (p: any[], a: any[]) => baseExcel(sinteseReport(p, a));
