@@ -105,6 +105,8 @@ interface Decisao {
   valor_custas: number;
   qtd_parcelas: number;
   primeiro_vencimento: string | null;
+  valor_entrada: number;
+  data_entrada: string | null;
   status: string;
   patrono_nome: string;
   patrono_oab: string;
