@@ -1027,6 +1027,8 @@ export default function JuridicoPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Processo</TableHead>
+                      <TableHead>Autor</TableHead>
+                      <TableHead>Advogado do Autor</TableHead>
                       <TableHead className="text-center">Parc.</TableHead>
                       <TableHead>Vencimento</TableHead>
                       <TableHead className="text-right">Valor</TableHead>
@@ -1037,14 +1039,18 @@ export default function JuridicoPage() {
                   </TableHeader>
                   <TableBody>
                     {parcelasFiltradas.length === 0 && (
-                      <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhuma parcela programada</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">Nenhuma parcela programada</TableCell></TableRow>
                     )}
                     {parcelasFiltradas.map(p => {
                       const dec = decisoes.find(d => d.id === p.decisao_id);
+                      const proc = dec ? processos.find(pr => pr.id === dec.processo_id) : null;
+                      const advogadoAutor = dec?.patrono_nome || proc?.advogado_autor || "-";
                       const cor = p.status === "Pago" ? "bg-green-600 text-white" : p.status === "Atrasado" ? "bg-destructive text-destructive-foreground" : p.status === "Cancelado" ? "bg-muted text-muted-foreground" : "bg-yellow-500 text-white";
                       return (
                         <TableRow key={p.id}>
                           <TableCell className="text-xs font-medium">{dec?.processo_numero || "-"}</TableCell>
+                          <TableCell className="text-xs">{proc?.autor_nome || "-"}</TableCell>
+                          <TableCell className="text-xs">{advogadoAutor}{dec?.patrono_oab ? ` (${dec.patrono_oab})` : ""}</TableCell>
                           <TableCell className="text-center">{p.numero}</TableCell>
                           <TableCell>{p.data_vencimento ? new Date(p.data_vencimento + "T12:00:00").toLocaleDateString("pt-BR") : "-"}</TableCell>
                           <TableCell className="text-right">{fmt(p.valor)}</TableCell>
