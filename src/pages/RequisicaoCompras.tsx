@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from "react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras, GrauUrgencia, ItemRequisicaoCompras, AnexoRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
+import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
 import { useFabricantes } from "@/contexts/FabricantesContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,6 +47,11 @@ const URGENCIAS: GrauUrgencia[] = ["Baixa", "Normal", "Alta", "Urgente"];
 export default function RequisicaoComprasPage() {
   const { requisicoes, addRequisicao, cancelarRequisicao } = useRequisicaoCompras();
   const { materiais } = useMateriaisServicos();
+  const { getCodigoCompleto } = useCategoriasCompras();
+  const codigoComposto = (m: any) => {
+    const cat = m?.categoriaId ? getCodigoCompleto(m.categoriaId) : "";
+    return cat ? `${cat}.${m.codigo}` : m.codigo;
+  };
   const { fabricantes } = useFabricantes();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
@@ -406,7 +412,7 @@ export default function RequisicaoComprasPage() {
                         <PopoverTrigger asChild>
                           <Button variant="outline" role="combobox" aria-expanded={materialPopoverOpen} className="w-full justify-between font-normal h-10">
                             {itemMaterialId
-                              ? (() => { const m = materiais.find(m => m.id === itemMaterialId); return m ? `${m.codigo ? m.codigo + " - " : ""}${m.descricao}` : "Selecionar..."; })()
+                              ? (() => { const m = materiais.find(m => m.id === itemMaterialId); return m ? `${codigoComposto(m)} - ${m.descricao}` : "Selecionar..."; })()
                               : "Selecionar (opcional)..."}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
@@ -420,14 +426,14 @@ export default function RequisicaoComprasPage() {
                                 {materiais.map(m => (
                                   <CommandItem
                                     key={m.id}
-                                    value={`${m.codigo} ${m.descricao}`}
+                                    value={`${codigoComposto(m)} ${m.descricao}`}
                                     onSelect={() => {
                                       handleMaterialSelect(m.id);
                                       setMaterialPopoverOpen(false);
                                     }}
                                   >
                                     <Check className={cn("mr-2 h-4 w-4", itemMaterialId === m.id ? "opacity-100" : "opacity-0")} />
-                                    {m.codigo ? `${m.codigo} - ` : ""}{m.descricao}
+                                    {codigoComposto(m)} - {m.descricao}
                                   </CommandItem>
                                 ))}
                               </CommandGroup>
