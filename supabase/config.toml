@@ -20,3 +20,5 @@ verify_jwt = false
 
 [functions.kb-search]
 verify_jwt = false
+[functions.check-parcelas-vencimento]
+verify_jwt = false
