@@ -142,7 +142,7 @@ interface Parcela {
 const emptyDecisao: Omit<Decisao, "id"> = {
   processo_id: "", processo_numero: "", tipo: "Acordo", data_decisao: null, juiz: "", descricao: "",
   valor_total: 0, valor_principal: 0, valor_honorarios: 0, valor_custas: 0,
-  qtd_parcelas: 1, primeiro_vencimento: null, status: "Em andamento",
+  qtd_parcelas: 1, primeiro_vencimento: null, valor_entrada: 0, data_entrada: null, status: "Em andamento",
   patrono_nome: "", patrono_oab: "", patrono_telefone: "", patrono_email: "", patrono_escritorio: "",
   banco: "", agencia: "", conta: "", tipo_conta: "Corrente", pix_chave: "", pix_tipo: "CPF",
   titular_nome: "", titular_documento: "", observacoes: "", anexos: [],
