@@ -286,60 +286,111 @@ export default function JuridicoPage() {
 
   useEffect(() => { loadAudiencias(); loadContatos(); loadDecisoes(); loadParcelas(); }, [loadAudiencias, loadContatos, loadDecisoes, loadParcelas]);
 
-  // Decisões CRUD
-  const handleSaveDecisao = async () => {
+  // Decisões CRUD — abre confirmação de senha antes de gravar
+  const handleSaveDecisao = () => {
     if (!decisaoForm.processo_id) { toast.error("Selecione o processo"); return; }
     if (!decisaoForm.valor_total || decisaoForm.valor_total <= 0) { toast.error("Informe o valor total"); return; }
-    const proc = processos.find(p => p.id === decisaoForm.processo_id);
-    const payload = { ...decisaoForm, processo_numero: proc?.numero_processo || "" };
-    let decisaoId = decisaoEditId;
-    if (decisaoEditId) {
-      const { error } = await (supabase as any).from("juridico_decisoes_pagamentos").update(payload).eq("id", decisaoEditId);
-      if (error) { toast.error("Erro ao salvar"); console.error(error); return; }
-      toast.success("Decisão atualizada");
-    } else {
-      const { data, error } = await (supabase as any).from("juridico_decisoes_pagamentos").insert(payload).select().single();
-      if (error) { toast.error("Erro ao salvar"); console.error(error); return; }
-      decisaoId = data.id;
-      toast.success("Decisão registrada");
-    }
-    // Gerar parcelas (somente em criação): entrada opcional + qtd_parcelas mensais
-    if (!decisaoEditId && decisaoId) {
-      const entrada = Number(decisaoForm.valor_entrada) || 0;
-      const restante = +(decisaoForm.valor_total - entrada).toFixed(2);
-      const rows: any[] = [];
-      let numero = 1;
-      if (entrada > 0) {
-        rows.push({
-          decisao_id: decisaoId, numero: numero++,
-          data_vencimento: decisaoForm.data_entrada || decisaoForm.primeiro_vencimento || null,
-          valor: entrada, status: "Pendente",
-          observacoes: "Entrada / Primeira parcela",
-        });
+    if (!usuarioLogado) { toast.error("Usuário não autenticado"); return; }
+    setSenhaConfirm("");
+    setShowSenhaConfirm(true);
+  };
+
+  const executarSaveDecisao = async () => {
+    if (!usuarioLogado) return;
+    setValidandoSenha(true);
+    try {
+      const ok = await verificarSenhaUsuario(usuarioLogado.email, senhaConfirm);
+      if (!ok) { toast.error("Senha incorreta. Operação cancelada."); return; }
+
+      const proc = processos.find(p => p.id === decisaoForm.processo_id);
+      const payload = { ...decisaoForm, processo_numero: proc?.numero_processo || "" };
+      let decisaoId = decisaoEditId;
+      if (decisaoEditId) {
+        const { error } = await (supabase as any).from("juridico_decisoes_pagamentos").update(payload).eq("id", decisaoEditId);
+        if (error) { toast.error("Erro ao salvar"); console.error(error); return; }
+        toast.success("Decisão atualizada");
+      } else {
+        const { data, error } = await (supabase as any).from("juridico_decisoes_pagamentos").insert(payload).select().single();
+        if (error) { toast.error("Erro ao salvar"); console.error(error); return; }
+        decisaoId = data.id;
+        toast.success("Decisão registrada");
       }
-      if (decisaoForm.qtd_parcelas > 0 && restante > 0 && decisaoForm.primeiro_vencimento) {
-        const valorParcela = +(restante / decisaoForm.qtd_parcelas).toFixed(2);
-        for (let i = 0; i < decisaoForm.qtd_parcelas; i++) {
-          const isLast = i === decisaoForm.qtd_parcelas - 1;
-          const valor = isLast
-            ? +(restante - valorParcela * (decisaoForm.qtd_parcelas - 1)).toFixed(2)
-            : valorParcela;
+      // Gerar parcelas (somente em criação): entrada opcional + qtd_parcelas mensais
+      if (!decisaoEditId && decisaoId) {
+        const entrada = Number(decisaoForm.valor_entrada) || 0;
+        const restante = +(decisaoForm.valor_total - entrada).toFixed(2);
+        const rows: any[] = [];
+        let numero = 1;
+        if (entrada > 0) {
           rows.push({
             decisao_id: decisaoId, numero: numero++,
-            data_vencimento: addMonthsISO(decisaoForm.primeiro_vencimento!, i),
-            valor, status: "Pendente",
+            data_vencimento: decisaoForm.data_entrada || decisaoForm.primeiro_vencimento || null,
+            valor: entrada, status: "Pendente",
+            observacoes: "Entrada / Primeira parcela",
           });
         }
+        if (decisaoForm.qtd_parcelas > 0 && restante > 0 && decisaoForm.primeiro_vencimento) {
+          const valorParcela = +(restante / decisaoForm.qtd_parcelas).toFixed(2);
+          for (let i = 0; i < decisaoForm.qtd_parcelas; i++) {
+            const isLast = i === decisaoForm.qtd_parcelas - 1;
+            const valor = isLast
+              ? +(restante - valorParcela * (decisaoForm.qtd_parcelas - 1)).toFixed(2)
+              : valorParcela;
+            rows.push({
+              decisao_id: decisaoId, numero: numero++,
+              data_vencimento: addMonthsISO(decisaoForm.primeiro_vencimento!, i),
+              valor, status: "Pendente",
+            });
+          }
+        }
+        if (rows.length > 0) {
+          const { data: parcInseridas, error: errPar } = await (supabase as any)
+            .from("juridico_parcelas").insert(rows).select();
+          if (errPar) { console.error(errPar); }
+
+          // Integração com Contas a Pagar
+          if (parcInseridas && parcInseridas.length > 0) {
+            const total = parcInseridas.length;
+            const descBase = `Jurídico - Proc. ${proc?.numero_processo || ""}${proc?.autor_nome ? ` (${proc.autor_nome})` : ""}`;
+            const cpRows = parcInseridas
+              .filter((p: any) => !!p.data_vencimento)
+              .map((p: any) => ({
+                descricao: `${descBase} - Parcela ${p.numero}/${total}${decisaoForm.patrono_nome ? ` - Patrono: ${decisaoForm.patrono_nome}` : ""}`,
+                fornecedor_nome: decisaoForm.patrono_nome || proc?.advogado_autor || "",
+                valor_total: Number(p.valor) || 0,
+                valor_pago: 0,
+                data_emissao: new Date().toISOString().slice(0, 10),
+                data_vencimento: p.data_vencimento,
+                status: "aberta",
+                parcela_num: p.numero,
+                parcela_total: total,
+                origem: "juridico",
+                juridico_parcela_id: p.id,
+                observacao: [
+                  decisaoForm.banco ? `Banco: ${decisaoForm.banco}` : "",
+                  decisaoForm.agencia ? `Ag: ${decisaoForm.agencia}` : "",
+                  decisaoForm.conta ? `Conta: ${decisaoForm.conta}` : "",
+                  decisaoForm.pix_chave ? `PIX (${decisaoForm.pix_tipo || "chave"}): ${decisaoForm.pix_chave}` : "",
+                ].filter(Boolean).join(" | ") || null,
+              }));
+            if (cpRows.length > 0) {
+              const { error: errCp } = await (supabase as any).from("fin_contas_pagar").insert(cpRows);
+              if (errCp) console.error("Erro ao lançar em Contas a Pagar", errCp);
+              else toast.success(`${cpRows.length} parcela(s) lançada(s) em Contas a Pagar`);
+            }
+          }
+        }
       }
-      if (rows.length > 0) {
-        await (supabase as any).from("juridico_parcelas").insert(rows);
-      }
+      setShowDecisaoForm(false);
+      setShowSenhaConfirm(false);
+      setSenhaConfirm("");
+      setDecisaoEditId(null);
+      setDecisaoForm(emptyDecisao);
+      await loadDecisoes();
+      await loadParcelas();
+    } finally {
+      setValidandoSenha(false);
     }
-    setShowDecisaoForm(false);
-    setDecisaoEditId(null);
-    setDecisaoForm(emptyDecisao);
-    await loadDecisoes();
-    await loadParcelas();
   };
 
   const handleDeleteDecisao = async () => {
