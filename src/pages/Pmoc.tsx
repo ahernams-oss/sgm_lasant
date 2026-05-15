@@ -1022,7 +1022,10 @@ function BibliotecaTab() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Biblioteca de Rotinas e Modelos</h3>
-        <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova Rotina</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => downloadPdfPmocBiblioteca(biblioteca)}><Printer className="mr-2 h-4 w-4" />Imprimir</Button>
+          <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova Rotina</Button>
+        </div>
       </div>
       <div className="border rounded-lg">
         <Table>
