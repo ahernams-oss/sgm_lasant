@@ -374,7 +374,7 @@ export default function JuridicoPage() {
       if (filterDecisaoDe && (!d.data_decisao || d.data_decisao < filterDecisaoDe)) return false;
       if (filterDecisaoAte && (!d.data_decisao || d.data_decisao > filterDecisaoAte)) return false;
       if (q) {
-        const blob = `${d.processo_numero ?? ""} ${d.juiz_nome ?? ""} ${d.patrono_nome ?? ""} ${d.patrono_oab ?? ""}`.toLowerCase();
+        const blob = `${d.processo_numero ?? ""} ${d.juiz ?? ""} ${d.patrono_nome ?? ""} ${d.patrono_oab ?? ""}`.toLowerCase();
         if (!blob.includes(q)) return false;
       }
       return true;
