@@ -547,6 +547,7 @@ export default function JuridicoPage() {
             <TabsTrigger value="processos"><FileText className="h-4 w-4 mr-1" /> Processos</TabsTrigger>
             <TabsTrigger value="audiencias"><Calendar className="h-4 w-4 mr-1" /> Audiências</TabsTrigger>
             <TabsTrigger value="contatos"><Users className="h-4 w-4 mr-1" /> Contatos</TabsTrigger>
+            <TabsTrigger value="decisoes"><Banknote className="h-4 w-4 mr-1" /> Decisões e Pagamentos</TabsTrigger>
           </TabsList>
 
           {/* ============ DASHBOARD ============ */}
