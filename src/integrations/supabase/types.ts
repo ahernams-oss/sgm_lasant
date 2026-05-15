@@ -2709,6 +2709,7 @@ export type Database = {
       juridico_decisoes_pagamentos: {
         Row: {
           agencia: string | null
+          anexos: Json
           banco: string | null
           conta: string | null
           created_at: string
@@ -2741,6 +2742,7 @@ export type Database = {
         }
         Insert: {
           agencia?: string | null
+          anexos?: Json
           banco?: string | null
           conta?: string | null
           created_at?: string
@@ -2773,6 +2775,7 @@ export type Database = {
         }
         Update: {
           agencia?: string | null
+          anexos?: Json
           banco?: string | null
           conta?: string | null
           created_at?: string
