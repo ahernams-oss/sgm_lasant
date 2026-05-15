@@ -1,6 +1,14 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, Users, Phone, Send, Upload, X, Download } from "lucide-react";
+import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, Users, Phone, Send, Upload, X, Download, FileSpreadsheet, Printer } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  gerarPdfProcessos, gerarExcelProcessos,
+  gerarPdfAudiencias, gerarExcelAudiencias,
+  gerarPdfContatos, gerarExcelContatos,
+  gerarPdfProvisao, gerarExcelProvisao,
+  gerarPdfSintese, gerarExcelSintese,
+} from "@/lib/gerarRelatoriosJuridico";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
