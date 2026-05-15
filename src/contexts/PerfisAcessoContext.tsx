@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode, type Context } from "react";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface PermissaoModulo {
@@ -806,7 +806,19 @@ interface PerfisAcessoContextType {
   deletePerfil: (id: string) => Promise<void>;
 }
 
-const PerfisAcessoContext = createContext<PerfisAcessoContextType | undefined>(undefined);
+const getPerfisAcessoContext = (): Context<PerfisAcessoContextType | undefined> => {
+  const globalScope = globalThis as typeof globalThis & {
+    __PerfisAcessoContext?: Context<PerfisAcessoContextType | undefined>;
+  };
+
+  if (!globalScope.__PerfisAcessoContext) {
+    globalScope.__PerfisAcessoContext = createContext<PerfisAcessoContextType | undefined>(undefined);
+  }
+
+  return globalScope.__PerfisAcessoContext;
+};
+
+const PerfisAcessoContext = getPerfisAcessoContext();
 
 const rowToPerfil = (r: any): PerfilAcesso => ({
   id: r.id,
