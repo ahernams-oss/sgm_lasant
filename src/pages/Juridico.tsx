@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, Users, Phone, Send, Upload, X, Download, FileSpreadsheet, Printer, Banknote, CheckCircle2, CalendarCheck, CreditCard, MessageCircle } from "lucide-react";
+import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, Users, Phone, Send, Upload, X, Download, FileSpreadsheet, Printer, Banknote, CheckCircle2, CalendarCheck, CreditCard, MessageCircle, Lock as LockIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   gerarPdfProcessos, gerarExcelProcessos,
