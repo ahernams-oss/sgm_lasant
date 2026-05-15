@@ -225,6 +225,8 @@ export default function JuridicoPage() {
   const [filterParcelaStatus, setFilterParcelaStatus] = useState("Todos");
   const [filterParcelaDe, setFilterParcelaDe] = useState("");
   const [filterParcelaAte, setFilterParcelaAte] = useState("");
+  const [filterParcelaAutor, setFilterParcelaAutor] = useState("");
+  const [filterParcelaAdvogado, setFilterParcelaAdvogado] = useState("");
 
   const loadAudiencias = useCallback(async () => {
     const { data, error } = await (supabase as any).from("juridico_audiencias").select("*").order("data_audiencia", { ascending: true });
