@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, Users, Phone, Send, Upload, X, Download, FileSpreadsheet, Printer, Banknote, CheckCircle2, CalendarCheck, CreditCard } from "lucide-react";
+import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, Users, Phone, Send, Upload, X, Download, FileSpreadsheet, Printer, Banknote, CheckCircle2, CalendarCheck, CreditCard, MessageCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   gerarPdfProcessos, gerarExcelProcessos,
@@ -1249,6 +1249,12 @@ export default function JuridicoPage() {
                     <p className="text-xs text-muted-foreground">Limite de 3 anexos atingido. Remova um para adicionar outro.</p>
                   )}
                 </div>
+              </div>
+            </div>
+            <div className="mt-4 rounded-md border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground flex items-start gap-2">
+              <MessageCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <div>
+                <span className="font-semibold text-foreground">Avisos automáticos por WhatsApp:</span> as parcelas pendentes serão notificadas no grupo cadastrado em <span className="font-medium">Empresa › WhatsApp RH</span>, sempre às <span className="font-medium">10:30h</span>, com <span className="font-medium">3 dias</span> e <span className="font-medium">1 dia</span> de antecedência do vencimento.
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-4">
