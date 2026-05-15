@@ -143,7 +143,7 @@ const emptyDecisao: Omit<Decisao, "id"> = {
   qtd_parcelas: 1, primeiro_vencimento: null, status: "Em andamento",
   patrono_nome: "", patrono_oab: "", patrono_telefone: "", patrono_email: "", patrono_escritorio: "",
   banco: "", agencia: "", conta: "", tipo_conta: "Corrente", pix_chave: "", pix_tipo: "CPF",
-  titular_nome: "", titular_documento: "", observacoes: "",
+  titular_nome: "", titular_documento: "", observacoes: "", anexos: [],
 };
 
 function addMonthsISO(iso: string, months: number): string {
