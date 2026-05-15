@@ -112,7 +112,7 @@ function PlanosTab() {
           <Input placeholder="Buscar plano..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="pl-9" />
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => downloadPdfPmocPlanos(filtered, [])}><Printer className="mr-2 h-4 w-4" />Imprimir</Button>
+          <Button variant="outline" onClick={() => downloadPdfPmocPlanos(filtered, atividades)}><Printer className="mr-2 h-4 w-4" />Imprimir</Button>
           <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo Plano</Button>
         </div>
       </div>
