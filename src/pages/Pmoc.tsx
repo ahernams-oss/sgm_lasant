@@ -423,6 +423,7 @@ function OrdensServicoTab() {
             {STATUS_OS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Button variant="outline" onClick={() => downloadPdfPmocOS(filtered, true)}><Printer className="mr-2 h-4 w-4" />Imprimir</Button>
         <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova OS</Button>
       </div>
 
