@@ -1073,7 +1073,6 @@ export default function JuridicoPage() {
             <div className="mt-6">
               <div className="flex flex-wrap items-end gap-3 mb-2">
                 <h3 className="text-sm font-semibold flex items-center gap-1"><CalendarCheck className="h-4 w-4" /> Programação de Parcelas</h3>
-                <div className="flex-1" />
                 <div>
                   <Label className="text-xs">Status</Label>
                   <Select value={filterParcelaStatus} onValueChange={setFilterParcelaStatus}>
