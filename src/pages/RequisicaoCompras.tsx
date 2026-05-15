@@ -426,14 +426,14 @@ export default function RequisicaoComprasPage() {
                                 {materiais.map(m => (
                                   <CommandItem
                                     key={m.id}
-                                    value={`${m.codigo} ${m.descricao}`}
+                                    value={`${codigoComposto(m)} ${m.descricao}`}
                                     onSelect={() => {
                                       handleMaterialSelect(m.id);
                                       setMaterialPopoverOpen(false);
                                     }}
                                   >
                                     <Check className={cn("mr-2 h-4 w-4", itemMaterialId === m.id ? "opacity-100" : "opacity-0")} />
-                                    {m.codigo ? `${m.codigo} - ` : ""}{m.descricao}
+                                    {codigoComposto(m)} - {m.descricao}
                                   </CommandItem>
                                 ))}
                               </CommandGroup>
