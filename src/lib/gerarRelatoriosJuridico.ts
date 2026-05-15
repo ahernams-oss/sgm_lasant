@@ -284,7 +284,7 @@ function decisoesReport(decisoes: any[], parcelas: any[], filtros?: string): Rep
       d.processo_numero || "-",
       d.tipo || "-",
       fmtDate(d.data_decisao),
-      d.juiz_nome || "-",
+      d.juiz || "-",
       d.patrono_nome || "-",
       d.patrono_oab || "-",
       fmtBRL(d.valor_total),
@@ -333,7 +333,7 @@ function parcelasReport(parcelas: any[], decisoes: any[], filtros?: string): Rep
       fmtDate(p.data_pagamento),
       p.valor_pago != null ? fmtBRL(p.valor_pago) : "-",
       p.forma_pagamento || "-",
-      d?.banco_nome || d?.pix_chave || "-",
+      d?.banco || d?.pix_chave || "-",
     ];
   });
   const tProg = parcelas.reduce((s, p) => s + (Number(p.valor) || 0), 0);
