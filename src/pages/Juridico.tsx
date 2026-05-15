@@ -270,6 +270,54 @@ export default function JuridicoPage() {
             <h1 className="text-xl font-bold text-foreground mb-1">Contencioso Trabalhista</h1>
             <p className="text-sm text-muted-foreground">Acompanhamento de processos trabalhistas da empresa</p>
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Printer className="h-4 w-4" /> Relatórios
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuLabel>Síntese</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => gerarPdfSintese(processos, audiencias)}>
+                <FileText className="h-4 w-4 mr-2" /> Síntese (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => gerarExcelSintese(processos, audiencias)}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> Síntese (Excel)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Processos {filtered.length !== processos.length ? `(filtrados: ${filtered.length})` : ""}</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => gerarPdfProcessos(filtered, `Status: ${filterStatus} | Risco: ${filterRisco}`)}>
+                <FileText className="h-4 w-4 mr-2" /> Processos (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => gerarExcelProcessos(filtered, `Status: ${filterStatus} | Risco: ${filterRisco}`)}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> Processos (Excel)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Provisão Financeira</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => gerarPdfProvisao(processos)}>
+                <FileText className="h-4 w-4 mr-2" /> Provisão (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => gerarExcelProvisao(processos)}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> Provisão (Excel)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Audiências</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => gerarPdfAudiencias(audiencias)}>
+                <FileText className="h-4 w-4 mr-2" /> Audiências (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => gerarExcelAudiencias(audiencias)}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> Audiências (Excel)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Contatos</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => gerarPdfContatos(contatos)}>
+                <FileText className="h-4 w-4 mr-2" /> Contatos (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => gerarExcelContatos(contatos)}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> Contatos (Excel)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <Tabs value={tab} onValueChange={setTab}>
