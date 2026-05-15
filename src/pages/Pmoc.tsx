@@ -5,8 +5,12 @@ import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { supabase } from "@/integrations/supabase/client";
-import { downloadPdfPmoc } from "@/lib/gerarPdfPmoc";
+import {
+  downloadPdfPmoc, downloadPdfPmocPlanos, downloadPdfPmocOS,
+  downloadPdfPmocQualidadeAr, downloadPdfPmocInconformidades, downloadPdfPmocBiblioteca,
+} from "@/lib/gerarPdfPmoc";
 import { downloadExcelPmoc } from "@/lib/gerarExcelPmoc";
+import { Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +41,7 @@ const TIPOS_REGISTRO = ["CREA", "CRQ", "CRECI", "CFT", "Outro"];
 
 // ====================== PLANOS TAB ======================
 function PlanosTab() {
-  const { planos, addPlano, updatePlano, deletePlano } = usePmoc();
+  const { planos, atividades, addPlano, updatePlano, deletePlano } = usePmoc();
   const { clientes } = useClientes();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -107,7 +111,10 @@ function PlanosTab() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar plano..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="pl-9" />
         </div>
-        <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo Plano</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => downloadPdfPmocPlanos(filtered, atividades)}><Printer className="mr-2 h-4 w-4" />Imprimir</Button>
+          <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo Plano</Button>
+        </div>
       </div>
 
       <div className="border rounded-lg">
@@ -416,6 +423,7 @@ function OrdensServicoTab() {
             {STATUS_OS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Button variant="outline" onClick={() => downloadPdfPmocOS(filtered, true)}><Printer className="mr-2 h-4 w-4" />Imprimir</Button>
         <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova OS</Button>
       </div>
 
@@ -738,9 +746,10 @@ function QualidadeArTab() {
         </Card>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center">
         <Button variant={subTab === "pontos" ? "default" : "outline"} onClick={() => { setSubTab("pontos"); setPage(1); }}>Pontos de Medição</Button>
         <Button variant={subTab === "medicoes" ? "default" : "outline"} onClick={() => { setSubTab("medicoes"); setPage(1); }}>Medições</Button>
+        <Button variant="outline" className="ml-auto" onClick={() => downloadPdfPmocQualidadeAr(pontosQA, medicoesQA)}><Printer className="mr-2 h-4 w-4" />Imprimir</Button>
       </div>
 
       {subTab === "pontos" ? (
@@ -918,7 +927,10 @@ function InconformidadesTab() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Inconformidades</h3>
-        <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova Inconformidade</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => downloadPdfPmocInconformidades(inconformidades)}><Printer className="mr-2 h-4 w-4" />Imprimir</Button>
+          <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova Inconformidade</Button>
+        </div>
       </div>
       <div className="border rounded-lg">
         <Table>
@@ -1011,7 +1023,10 @@ function BibliotecaTab() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Biblioteca de Rotinas e Modelos</h3>
-        <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova Rotina</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => downloadPdfPmocBiblioteca(biblioteca)}><Printer className="mr-2 h-4 w-4" />Imprimir</Button>
+          <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Nova Rotina</Button>
+        </div>
       </div>
       <div className="border rounded-lg">
         <Table>
