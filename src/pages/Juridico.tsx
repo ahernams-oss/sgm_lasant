@@ -1369,7 +1369,41 @@ export default function JuridicoPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="md:col-span-2"><Label>URL do Comprovante</Label><Input value={pagamentoForm.comprovante_url} onChange={e => setPagamentoForm({ ...pagamentoForm, comprovante_url: e.target.value })} placeholder="Link/URL do recibo" /></div>
+              <div className="md:col-span-2">
+                <Label>Anexar Comprovante</Label>
+                <Input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 10 * 1024 * 1024) {
+                      toast.error("Arquivo muito grande (máx. 10MB)");
+                      e.target.value = "";
+                      return;
+                    }
+                    try {
+                      const path = `comprovantes/${parcelaPagar?.id || "tmp"}/${Date.now()}_${file.name}`;
+                      const { error: upErr } = await supabase.storage.from("processos-trabalhistas-anexos").upload(path, file, { upsert: false });
+                      if (upErr) throw upErr;
+                      const { data: pub } = supabase.storage.from("processos-trabalhistas-anexos").getPublicUrl(path);
+                      setPagamentoForm({ ...pagamentoForm, comprovante_url: pub.publicUrl });
+                      toast.success("Comprovante anexado");
+                    } catch (err: any) {
+                      toast.error("Erro ao anexar: " + err.message);
+                    }
+                  }}
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Label>URL do Comprovante</Label>
+                <Input value={pagamentoForm.comprovante_url} onChange={e => setPagamentoForm({ ...pagamentoForm, comprovante_url: e.target.value })} placeholder="Link/URL do recibo (preenchido ao anexar)" />
+                {pagamentoForm.comprovante_url && (
+                  <a href={pagamentoForm.comprovante_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline mt-1 inline-block">
+                    Visualizar comprovante
+                  </a>
+                )}
+              </div>
               <div className="md:col-span-2"><Label>Observações</Label><Textarea value={pagamentoForm.observacoes} onChange={e => setPagamentoForm({ ...pagamentoForm, observacoes: e.target.value })} rows={2} /></div>
             </div>
             <div className="flex justify-end gap-2 mt-4">
