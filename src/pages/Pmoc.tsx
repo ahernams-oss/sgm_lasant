@@ -5,8 +5,12 @@ import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { supabase } from "@/integrations/supabase/client";
-import { downloadPdfPmoc } from "@/lib/gerarPdfPmoc";
+import {
+  downloadPdfPmoc, downloadPdfPmocPlanos, downloadPdfPmocOS,
+  downloadPdfPmocQualidadeAr, downloadPdfPmocInconformidades, downloadPdfPmocBiblioteca,
+} from "@/lib/gerarPdfPmoc";
 import { downloadExcelPmoc } from "@/lib/gerarExcelPmoc";
+import { Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
