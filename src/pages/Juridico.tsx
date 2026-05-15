@@ -971,7 +971,36 @@ export default function JuridicoPage() {
 
             {/* Programação geral de parcelas */}
             <div className="mt-6">
-              <h3 className="text-sm font-semibold mb-2 flex items-center gap-1"><CalendarCheck className="h-4 w-4" /> Programação de Parcelas</h3>
+              <div className="flex flex-wrap items-end gap-3 mb-2">
+                <h3 className="text-sm font-semibold flex items-center gap-1"><CalendarCheck className="h-4 w-4" /> Programação de Parcelas</h3>
+                <div className="flex-1" />
+                <div>
+                  <Label className="text-xs">Status</Label>
+                  <Select value={filterParcelaStatus} onValueChange={setFilterParcelaStatus}>
+                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Todos">Todos</SelectItem>
+                      <SelectItem value="Pendente">Pendente</SelectItem>
+                      <SelectItem value="Pago">Pago</SelectItem>
+                      <SelectItem value="Atrasado">Atrasado</SelectItem>
+                      <SelectItem value="Cancelado">Cancelado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Vencimento de</Label>
+                  <Input type="date" className="w-40" value={filterParcelaDe} onChange={e => setFilterParcelaDe(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Vencimento até</Label>
+                  <Input type="date" className="w-40" value={filterParcelaAte} onChange={e => setFilterParcelaAte(e.target.value)} />
+                </div>
+                {(filterParcelaStatus !== "Todos" || filterParcelaDe || filterParcelaAte) && (
+                  <Button variant="ghost" size="sm" onClick={() => { setFilterParcelaStatus("Todos"); setFilterParcelaDe(""); setFilterParcelaAte(""); }}>
+                    <X className="h-4 w-4 mr-1" /> Limpar
+                  </Button>
+                )}
+              </div>
               <div className="rounded-md border overflow-auto">
                 <Table>
                   <TableHeader>
@@ -986,10 +1015,10 @@ export default function JuridicoPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {parcelasComStatus.length === 0 && (
+                    {parcelasFiltradas.length === 0 && (
                       <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhuma parcela programada</TableCell></TableRow>
                     )}
-                    {parcelasComStatus.map(p => {
+                    {parcelasFiltradas.map(p => {
                       const dec = decisoes.find(d => d.id === p.decisao_id);
                       const cor = p.status === "Pago" ? "bg-green-600 text-white" : p.status === "Atrasado" ? "bg-destructive text-destructive-foreground" : p.status === "Cancelado" ? "bg-muted text-muted-foreground" : "bg-yellow-500 text-white";
                       return (
