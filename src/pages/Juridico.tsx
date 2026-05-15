@@ -206,6 +206,13 @@ export default function JuridicoPage() {
   const [parcelaPagar, setParcelaPagar] = useState<Parcela | null>(null);
   const [pagamentoForm, setPagamentoForm] = useState({ data_pagamento: "", valor_pago: 0, forma_pagamento: "PIX", comprovante_url: "", observacoes: "" });
   const [filterDecisaoStatus, setFilterDecisaoStatus] = useState("Todos");
+  const [filterDecisaoTipo, setFilterDecisaoTipo] = useState("Todos");
+  const [filterDecisaoBusca, setFilterDecisaoBusca] = useState("");
+  const [filterDecisaoDe, setFilterDecisaoDe] = useState("");
+  const [filterDecisaoAte, setFilterDecisaoAte] = useState("");
+  const [filterParcelaStatus, setFilterParcelaStatus] = useState("Todos");
+  const [filterParcelaDe, setFilterParcelaDe] = useState("");
+  const [filterParcelaAte, setFilterParcelaAte] = useState("");
 
   const loadAudiencias = useCallback(async () => {
     const { data, error } = await (supabase as any).from("juridico_audiencias").select("*").order("data_audiencia", { ascending: true });
