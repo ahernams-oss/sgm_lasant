@@ -2706,6 +2706,169 @@ export type Database = {
         }
         Relationships: []
       }
+      juridico_decisoes_pagamentos: {
+        Row: {
+          agencia: string | null
+          banco: string | null
+          conta: string | null
+          created_at: string
+          data_decisao: string | null
+          descricao: string | null
+          id: string
+          juiz: string | null
+          observacoes: string | null
+          patrono_email: string | null
+          patrono_escritorio: string | null
+          patrono_nome: string | null
+          patrono_oab: string | null
+          patrono_telefone: string | null
+          pix_chave: string | null
+          pix_tipo: string | null
+          primeiro_vencimento: string | null
+          processo_id: string
+          processo_numero: string | null
+          qtd_parcelas: number
+          status: string
+          tipo: string
+          tipo_conta: string | null
+          titular_documento: string | null
+          titular_nome: string | null
+          updated_at: string
+          valor_custas: number
+          valor_honorarios: number
+          valor_principal: number
+          valor_total: number
+        }
+        Insert: {
+          agencia?: string | null
+          banco?: string | null
+          conta?: string | null
+          created_at?: string
+          data_decisao?: string | null
+          descricao?: string | null
+          id?: string
+          juiz?: string | null
+          observacoes?: string | null
+          patrono_email?: string | null
+          patrono_escritorio?: string | null
+          patrono_nome?: string | null
+          patrono_oab?: string | null
+          patrono_telefone?: string | null
+          pix_chave?: string | null
+          pix_tipo?: string | null
+          primeiro_vencimento?: string | null
+          processo_id: string
+          processo_numero?: string | null
+          qtd_parcelas?: number
+          status?: string
+          tipo?: string
+          tipo_conta?: string | null
+          titular_documento?: string | null
+          titular_nome?: string | null
+          updated_at?: string
+          valor_custas?: number
+          valor_honorarios?: number
+          valor_principal?: number
+          valor_total?: number
+        }
+        Update: {
+          agencia?: string | null
+          banco?: string | null
+          conta?: string | null
+          created_at?: string
+          data_decisao?: string | null
+          descricao?: string | null
+          id?: string
+          juiz?: string | null
+          observacoes?: string | null
+          patrono_email?: string | null
+          patrono_escritorio?: string | null
+          patrono_nome?: string | null
+          patrono_oab?: string | null
+          patrono_telefone?: string | null
+          pix_chave?: string | null
+          pix_tipo?: string | null
+          primeiro_vencimento?: string | null
+          processo_id?: string
+          processo_numero?: string | null
+          qtd_parcelas?: number
+          status?: string
+          tipo?: string
+          tipo_conta?: string | null
+          titular_documento?: string | null
+          titular_nome?: string | null
+          updated_at?: string
+          valor_custas?: number
+          valor_honorarios?: number
+          valor_principal?: number
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "juridico_decisoes_pagamentos_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos_trabalhistas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      juridico_parcelas: {
+        Row: {
+          comprovante_url: string | null
+          created_at: string
+          data_pagamento: string | null
+          data_vencimento: string | null
+          decisao_id: string
+          forma_pagamento: string | null
+          id: string
+          numero: number
+          observacoes: string | null
+          status: string
+          updated_at: string
+          valor: number
+          valor_pago: number | null
+        }
+        Insert: {
+          comprovante_url?: string | null
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          decisao_id: string
+          forma_pagamento?: string | null
+          id?: string
+          numero?: number
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          valor?: number
+          valor_pago?: number | null
+        }
+        Update: {
+          comprovante_url?: string | null
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          decisao_id?: string
+          forma_pagamento?: string | null
+          id?: string
+          numero?: number
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          valor?: number
+          valor_pago?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "juridico_parcelas_decisao_id_fkey"
+            columns: ["decisao_id"]
+            isOneToOne: false
+            referencedRelation: "juridico_decisoes_pagamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kb_artigo_equipamentos: {
         Row: {
           artigo_id: string
