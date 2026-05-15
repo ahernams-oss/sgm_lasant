@@ -83,6 +83,75 @@ const emptyContato: Omit<ContatoNotificacao, "id"> = {
   nome: "", tipo: "Advogado", telefone_whatsapp: "", email: "", oab: "", crc: "", ativo: true, observacoes: "",
 };
 
+const TIPO_DECISAO = ["Acordo", "Decisão", "Sentença", "Homologação"];
+const STATUS_DECISAO = ["Em andamento", "Quitado", "Inadimplente", "Cancelado"];
+const STATUS_PARCELA = ["Pendente", "Pago", "Atrasado", "Cancelado"];
+const TIPO_CONTA = ["Corrente", "Poupança"];
+const TIPO_PIX = ["CPF", "CNPJ", "E-mail", "Telefone", "Aleatória"];
+
+interface Decisao {
+  id: string;
+  processo_id: string;
+  processo_numero: string;
+  tipo: string;
+  data_decisao: string | null;
+  juiz: string;
+  descricao: string;
+  valor_total: number;
+  valor_principal: number;
+  valor_honorarios: number;
+  valor_custas: number;
+  qtd_parcelas: number;
+  primeiro_vencimento: string | null;
+  status: string;
+  patrono_nome: string;
+  patrono_oab: string;
+  patrono_telefone: string;
+  patrono_email: string;
+  patrono_escritorio: string;
+  banco: string;
+  agencia: string;
+  conta: string;
+  tipo_conta: string;
+  pix_chave: string;
+  pix_tipo: string;
+  titular_nome: string;
+  titular_documento: string;
+  observacoes: string;
+}
+
+interface Parcela {
+  id: string;
+  decisao_id: string;
+  numero: number;
+  data_vencimento: string | null;
+  valor: number;
+  status: string;
+  data_pagamento: string | null;
+  valor_pago: number | null;
+  forma_pagamento: string;
+  comprovante_url: string;
+  observacoes: string;
+}
+
+const emptyDecisao: Omit<Decisao, "id"> = {
+  processo_id: "", processo_numero: "", tipo: "Acordo", data_decisao: null, juiz: "", descricao: "",
+  valor_total: 0, valor_principal: 0, valor_honorarios: 0, valor_custas: 0,
+  qtd_parcelas: 1, primeiro_vencimento: null, status: "Em andamento",
+  patrono_nome: "", patrono_oab: "", patrono_telefone: "", patrono_email: "", patrono_escritorio: "",
+  banco: "", agencia: "", conta: "", tipo_conta: "Corrente", pix_chave: "", pix_tipo: "CPF",
+  titular_nome: "", titular_documento: "", observacoes: "",
+};
+
+function addMonthsISO(iso: string, months: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, (m - 1) + months, d);
+  const yy = dt.getFullYear();
+  const mm = String(dt.getMonth() + 1).padStart(2, "0");
+  const dd = String(dt.getDate()).padStart(2, "0");
+  return `${yy}-${mm}-${dd}`;
+}
+
 export default function JuridicoPage() {
   const { processos, andamentos, loading, addProcesso, updateProcesso, deleteProcesso, addAndamento, deleteAndamento, loadAndamentos } = useProcessosTrabalhistas();
   const { tem } = usePermissao();
