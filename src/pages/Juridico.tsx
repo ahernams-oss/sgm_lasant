@@ -1251,6 +1251,12 @@ export default function JuridicoPage() {
                 </div>
               </div>
             </div>
+            <div className="mt-4 rounded-md border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground flex items-start gap-2">
+              <MessageCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <div>
+                <span className="font-semibold text-foreground">Avisos automáticos por WhatsApp:</span> as parcelas pendentes serão notificadas no grupo cadastrado em <span className="font-medium">Empresa › WhatsApp RH</span>, sempre às <span className="font-medium">10:30h</span>, com <span className="font-medium">3 dias</span> e <span className="font-medium">1 dia</span> de antecedência do vencimento.
+              </div>
+            </div>
             <div className="flex justify-end gap-2 mt-4">
               <Button variant="outline" onClick={() => { setShowDecisaoForm(false); setDecisaoEditId(null); }}>Cancelar</Button>
               <Button onClick={handleSaveDecisao}>{decisaoEditId ? "Salvar" : "Cadastrar e Gerar Parcelas"}</Button>
