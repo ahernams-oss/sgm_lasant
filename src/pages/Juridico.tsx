@@ -816,7 +816,364 @@ export default function JuridicoPage() {
               </Table>
             </div>
           </TabsContent>
+
+          {/* ============ DECISÕES E PAGAMENTOS ============ */}
+          <TabsContent value="decisoes">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Total Acordado/Decidido</CardTitle></CardHeader><CardContent><p className="text-lg font-bold">{fmt(decisaoStats.totalAcordado)}</p></CardContent></Card>
+              <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-green-600" /> Pago</CardTitle></CardHeader><CardContent><p className="text-lg font-bold text-green-600">{fmt(decisaoStats.totalPago)}</p></CardContent></Card>
+              <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Pendente</CardTitle></CardHeader><CardContent><p className="text-lg font-bold text-yellow-600">{fmt(decisaoStats.totalPendente)}</p></CardContent></Card>
+              <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><AlertTriangle className="h-3 w-3 text-destructive" /> Atrasado</CardTitle></CardHeader><CardContent><p className="text-lg font-bold text-destructive">{fmt(decisaoStats.totalAtrasado)}</p></CardContent></Card>
+            </div>
+
+            <div className="flex flex-wrap gap-3 items-end mb-4">
+              <div>
+                <Label className="text-xs">Status</Label>
+                <Select value={filterDecisaoStatus} onValueChange={setFilterDecisaoStatus}>
+                  <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Todos">Todos</SelectItem>
+                    {STATUS_DECISAO.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1" />
+              {podeCriar && <Button onClick={() => { setDecisaoForm(emptyDecisao); setDecisaoEditId(null); setShowDecisaoForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Nova Decisão / Acordo</Button>}
+            </div>
+
+            <div className="rounded-md border overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Processo</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Patrono Autor</TableHead>
+                    <TableHead className="text-right">Valor Total</TableHead>
+                    <TableHead className="text-center">Parcelas</TableHead>
+                    <TableHead className="text-right">Pago</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {decisoesFiltradas.length === 0 && (
+                    <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma decisão registrada</TableCell></TableRow>
+                  )}
+                  {decisoesFiltradas.map(d => {
+                    const ps = parcelasComStatus.filter(x => x.decisao_id === d.id);
+                    const pagas = ps.filter(p => p.status === "Pago");
+                    const totalPago = pagas.reduce((s, p) => s + (p.valor_pago ?? p.valor), 0);
+                    const corStatus = d.status === "Quitado" ? "bg-green-600 text-white" : d.status === "Inadimplente" ? "bg-destructive text-destructive-foreground" : d.status === "Cancelado" ? "bg-muted text-muted-foreground" : "bg-primary";
+                    return (
+                      <TableRow key={d.id}>
+                        <TableCell className="font-medium">{d.processo_numero}</TableCell>
+                        <TableCell><Badge variant="outline">{d.tipo}</Badge></TableCell>
+                        <TableCell>{d.data_decisao ? new Date(d.data_decisao + "T12:00:00").toLocaleDateString("pt-BR") : "-"}</TableCell>
+                        <TableCell className="text-xs">{d.patrono_nome || "-"}{d.patrono_oab ? ` (${d.patrono_oab})` : ""}</TableCell>
+                        <TableCell className="text-right">{fmt(d.valor_total)}</TableCell>
+                        <TableCell className="text-center">{pagas.length}/{ps.length || d.qtd_parcelas}</TableCell>
+                        <TableCell className="text-right text-green-600">{fmt(totalPago)}</TableCell>
+                        <TableCell><Badge className={corStatus}>{d.status}</Badge></TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex gap-1 justify-end">
+                            <Button variant="ghost" size="icon" onClick={() => setViewDecisao(d)}><Eye className="h-4 w-4" /></Button>
+                            {podeEditar && <Button variant="ghost" size="icon" onClick={() => { setDecisaoForm({ ...d }); setDecisaoEditId(d.id); setShowDecisaoForm(true); }}><Edit className="h-4 w-4" /></Button>}
+                            {podeExcluir && <Button variant="ghost" size="icon" onClick={() => setDecisaoDeleteId(d.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Programação geral de parcelas */}
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold mb-2 flex items-center gap-1"><CalendarCheck className="h-4 w-4" /> Programação de Parcelas</h3>
+              <div className="rounded-md border overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Processo</TableHead>
+                      <TableHead className="text-center">Parc.</TableHead>
+                      <TableHead>Vencimento</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Pagamento</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {parcelasComStatus.length === 0 && (
+                      <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhuma parcela programada</TableCell></TableRow>
+                    )}
+                    {parcelasComStatus.map(p => {
+                      const dec = decisoes.find(d => d.id === p.decisao_id);
+                      const cor = p.status === "Pago" ? "bg-green-600 text-white" : p.status === "Atrasado" ? "bg-destructive text-destructive-foreground" : p.status === "Cancelado" ? "bg-muted text-muted-foreground" : "bg-yellow-500 text-white";
+                      return (
+                        <TableRow key={p.id}>
+                          <TableCell className="text-xs font-medium">{dec?.processo_numero || "-"}</TableCell>
+                          <TableCell className="text-center">{p.numero}</TableCell>
+                          <TableCell>{p.data_vencimento ? new Date(p.data_vencimento + "T12:00:00").toLocaleDateString("pt-BR") : "-"}</TableCell>
+                          <TableCell className="text-right">{fmt(p.valor)}</TableCell>
+                          <TableCell><Badge className={cor}>{p.status}</Badge></TableCell>
+                          <TableCell className="text-xs">
+                            {p.data_pagamento ? `${new Date(p.data_pagamento + "T12:00:00").toLocaleDateString("pt-BR")} - ${fmt(p.valor_pago ?? p.valor)}` : "-"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex gap-1 justify-end">
+                              {p.status !== "Pago" && p.status !== "Cancelado" && podeEditar && (
+                                <Button variant="ghost" size="icon" title="Registrar pagamento" onClick={() => openPagarParcela(p)}>
+                                  <CreditCard className="h-4 w-4 text-green-600" />
+                                </Button>
+                              )}
+                              {p.status !== "Cancelado" && podeEditar && (
+                                <Button variant="ghost" size="icon" title="Cancelar parcela" onClick={() => handleCancelarParcela(p)}>
+                                  <X className="h-4 w-4 text-destructive" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
+
+        {/* ============ FORM DECISÃO ============ */}
+        <Dialog open={showDecisaoForm} onOpenChange={v => { if (!v) { setShowDecisaoForm(false); setDecisaoEditId(null); } }}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader><DialogTitle>{decisaoEditId ? "Editar Decisão / Acordo" : "Nova Decisão / Acordo"}</DialogTitle></DialogHeader>
+            <div className="space-y-4">
+              {/* Dados da decisão */}
+              <div>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Dados da Decisão</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="md:col-span-2">
+                    <Label>Processo *</Label>
+                    <Select value={decisaoForm.processo_id} onValueChange={v => {
+                      const proc = processos.find(p => p.id === v);
+                      setDecisaoForm({ ...decisaoForm, processo_id: v, processo_numero: proc?.numero_processo || "", patrono_nome: decisaoForm.patrono_nome || proc?.advogado_autor || "" });
+                    }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o processo" /></SelectTrigger>
+                      <SelectContent>
+                        {processos.map(p => <SelectItem key={p.id} value={p.id}>{p.numero_processo} - {p.autor_nome}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Tipo</Label>
+                    <Select value={decisaoForm.tipo} onValueChange={v => setDecisaoForm({ ...decisaoForm, tipo: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{TIPO_DECISAO.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div><Label>Data</Label><Input type="date" value={decisaoForm.data_decisao || ""} onChange={e => setDecisaoForm({ ...decisaoForm, data_decisao: e.target.value || null })} /></div>
+                  <div><Label>Juiz</Label><Input value={decisaoForm.juiz} onChange={e => setDecisaoForm({ ...decisaoForm, juiz: e.target.value })} /></div>
+                  <div>
+                    <Label>Status</Label>
+                    <Select value={decisaoForm.status} onValueChange={v => setDecisaoForm({ ...decisaoForm, status: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{STATUS_DECISAO.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="md:col-span-3"><Label>Descrição / Termos</Label><Textarea value={decisaoForm.descricao} onChange={e => setDecisaoForm({ ...decisaoForm, descricao: e.target.value })} rows={2} /></div>
+                </div>
+              </div>
+
+              {/* Valores e parcelamento */}
+              <div>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Valores e Parcelamento</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div><Label>Valor Total *</Label><Input type="number" step="0.01" value={decisaoForm.valor_total} onChange={e => setDecisaoForm({ ...decisaoForm, valor_total: Number(e.target.value) })} /></div>
+                  <div><Label>Principal</Label><Input type="number" step="0.01" value={decisaoForm.valor_principal} onChange={e => setDecisaoForm({ ...decisaoForm, valor_principal: Number(e.target.value) })} /></div>
+                  <div><Label>Honorários</Label><Input type="number" step="0.01" value={decisaoForm.valor_honorarios} onChange={e => setDecisaoForm({ ...decisaoForm, valor_honorarios: Number(e.target.value) })} /></div>
+                  <div><Label>Custas</Label><Input type="number" step="0.01" value={decisaoForm.valor_custas} onChange={e => setDecisaoForm({ ...decisaoForm, valor_custas: Number(e.target.value) })} /></div>
+                  <div><Label>Qtd Parcelas</Label><Input type="number" min={1} value={decisaoForm.qtd_parcelas} disabled={!!decisaoEditId} onChange={e => setDecisaoForm({ ...decisaoForm, qtd_parcelas: Math.max(1, Number(e.target.value)) })} /></div>
+                  <div><Label>Primeiro Vencimento</Label><Input type="date" value={decisaoForm.primeiro_vencimento || ""} disabled={!!decisaoEditId} onChange={e => setDecisaoForm({ ...decisaoForm, primeiro_vencimento: e.target.value || null })} /></div>
+                </div>
+                {decisaoEditId && <p className="text-xs text-muted-foreground mt-1">Para alterar parcelas existentes, use a tabela de programação.</p>}
+              </div>
+
+              {/* Patrono */}
+              <div>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Patrono da Causa do Autor</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="md:col-span-2"><Label>Nome</Label><Input value={decisaoForm.patrono_nome} onChange={e => setDecisaoForm({ ...decisaoForm, patrono_nome: e.target.value })} /></div>
+                  <div><Label>OAB</Label><Input value={decisaoForm.patrono_oab} onChange={e => setDecisaoForm({ ...decisaoForm, patrono_oab: e.target.value })} placeholder="UF 000000" /></div>
+                  <div><Label>Telefone / WhatsApp</Label><Input value={decisaoForm.patrono_telefone} onChange={e => setDecisaoForm({ ...decisaoForm, patrono_telefone: e.target.value })} /></div>
+                  <div><Label>E-mail</Label><Input type="email" value={decisaoForm.patrono_email} onChange={e => setDecisaoForm({ ...decisaoForm, patrono_email: e.target.value })} /></div>
+                  <div><Label>Escritório</Label><Input value={decisaoForm.patrono_escritorio} onChange={e => setDecisaoForm({ ...decisaoForm, patrono_escritorio: e.target.value })} /></div>
+                </div>
+              </div>
+
+              {/* Bancários */}
+              <div>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Dados Bancários para Pagamento</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="md:col-span-2"><Label>Banco</Label><Input value={decisaoForm.banco} onChange={e => setDecisaoForm({ ...decisaoForm, banco: e.target.value })} /></div>
+                  <div><Label>Agência</Label><Input value={decisaoForm.agencia} onChange={e => setDecisaoForm({ ...decisaoForm, agencia: e.target.value })} /></div>
+                  <div><Label>Conta</Label><Input value={decisaoForm.conta} onChange={e => setDecisaoForm({ ...decisaoForm, conta: e.target.value })} /></div>
+                  <div>
+                    <Label>Tipo de Conta</Label>
+                    <Select value={decisaoForm.tipo_conta} onValueChange={v => setDecisaoForm({ ...decisaoForm, tipo_conta: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{TIPO_CONTA.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Tipo PIX</Label>
+                    <Select value={decisaoForm.pix_tipo} onValueChange={v => setDecisaoForm({ ...decisaoForm, pix_tipo: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{TIPO_PIX.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="md:col-span-2"><Label>Chave PIX</Label><Input value={decisaoForm.pix_chave} onChange={e => setDecisaoForm({ ...decisaoForm, pix_chave: e.target.value })} /></div>
+                  <div className="md:col-span-2"><Label>Titular</Label><Input value={decisaoForm.titular_nome} onChange={e => setDecisaoForm({ ...decisaoForm, titular_nome: e.target.value })} /></div>
+                  <div className="md:col-span-2"><Label>CPF / CNPJ do Titular</Label><Input value={decisaoForm.titular_documento} onChange={e => setDecisaoForm({ ...decisaoForm, titular_documento: e.target.value })} /></div>
+                </div>
+              </div>
+
+              <div><Label>Observações</Label><Textarea value={decisaoForm.observacoes} onChange={e => setDecisaoForm({ ...decisaoForm, observacoes: e.target.value })} rows={2} /></div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => { setShowDecisaoForm(false); setDecisaoEditId(null); }}>Cancelar</Button>
+              <Button onClick={handleSaveDecisao}>{decisaoEditId ? "Salvar" : "Cadastrar e Gerar Parcelas"}</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* ============ VIEW DECISÃO ============ */}
+        <Dialog open={!!viewDecisao} onOpenChange={() => setViewDecisao(null)}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            {viewDecisao && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Banknote className="h-5 w-5" /> {viewDecisao.tipo} - Processo {viewDecisao.processo_numero}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                  <Card className="p-3"><p className="text-xs text-muted-foreground">Valor Total</p><p className="font-bold">{fmt(viewDecisao.valor_total)}</p></Card>
+                  <Card className="p-3"><p className="text-xs text-muted-foreground">Principal</p><p className="font-bold">{fmt(viewDecisao.valor_principal)}</p></Card>
+                  <Card className="p-3"><p className="text-xs text-muted-foreground">Honorários</p><p className="font-bold">{fmt(viewDecisao.valor_honorarios)}</p></Card>
+                  <Card className="p-3"><p className="text-xs text-muted-foreground">Custas</p><p className="font-bold">{fmt(viewDecisao.valor_custas)}</p></Card>
+                </div>
+                {viewDecisao.descricao && (
+                  <div className="mt-3"><p className="text-xs text-muted-foreground mb-1">Descrição</p><p className="text-sm bg-muted p-2 rounded">{viewDecisao.descricao}</p></div>
+                )}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm mt-3">
+                  <div><span className="text-muted-foreground">Juiz:</span> {viewDecisao.juiz || "-"}</div>
+                  <div><span className="text-muted-foreground">Data:</span> {viewDecisao.data_decisao || "-"}</div>
+                  <div><span className="text-muted-foreground">Status:</span> {viewDecisao.status}</div>
+                </div>
+
+                <div className="mt-4">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Patrono do Autor</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                    <div><span className="text-muted-foreground">Nome:</span> {viewDecisao.patrono_nome || "-"}</div>
+                    <div><span className="text-muted-foreground">OAB:</span> {viewDecisao.patrono_oab || "-"}</div>
+                    <div><span className="text-muted-foreground">Escritório:</span> {viewDecisao.patrono_escritorio || "-"}</div>
+                    <div><span className="text-muted-foreground">Telefone:</span> {viewDecisao.patrono_telefone || "-"}</div>
+                    <div><span className="text-muted-foreground">E-mail:</span> {viewDecisao.patrono_email || "-"}</div>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Dados Bancários</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                    <div><span className="text-muted-foreground">Banco:</span> {viewDecisao.banco || "-"}</div>
+                    <div><span className="text-muted-foreground">Agência:</span> {viewDecisao.agencia || "-"}</div>
+                    <div><span className="text-muted-foreground">Conta:</span> {viewDecisao.conta || "-"} ({viewDecisao.tipo_conta})</div>
+                    <div><span className="text-muted-foreground">PIX:</span> {viewDecisao.pix_chave ? `${viewDecisao.pix_tipo} - ${viewDecisao.pix_chave}` : "-"}</div>
+                    <div><span className="text-muted-foreground">Titular:</span> {viewDecisao.titular_nome || "-"}</div>
+                    <div><span className="text-muted-foreground">CPF/CNPJ:</span> {viewDecisao.titular_documento || "-"}</div>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Parcelas</h4>
+                  <div className="rounded-md border overflow-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-center">#</TableHead>
+                          <TableHead>Vencimento</TableHead>
+                          <TableHead className="text-right">Valor</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Pagamento</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {parcelasComStatus.filter(p => p.decisao_id === viewDecisao.id).map(p => (
+                          <TableRow key={p.id}>
+                            <TableCell className="text-center">{p.numero}</TableCell>
+                            <TableCell>{p.data_vencimento ? new Date(p.data_vencimento + "T12:00:00").toLocaleDateString("pt-BR") : "-"}</TableCell>
+                            <TableCell className="text-right">{fmt(p.valor)}</TableCell>
+                            <TableCell><Badge variant="outline">{p.status}</Badge></TableCell>
+                            <TableCell className="text-xs">{p.data_pagamento ? `${new Date(p.data_pagamento + "T12:00:00").toLocaleDateString("pt-BR")} ${p.forma_pagamento ? `(${p.forma_pagamento})` : ""}` : "-"}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* ============ REGISTRAR PAGAMENTO ============ */}
+        <Dialog open={!!parcelaPagar} onOpenChange={() => setParcelaPagar(null)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader><DialogTitle>Registrar Pagamento - Parcela {parcelaPagar?.numero}</DialogTitle></DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div><Label>Data do Pagamento *</Label><Input type="date" value={pagamentoForm.data_pagamento} onChange={e => setPagamentoForm({ ...pagamentoForm, data_pagamento: e.target.value })} /></div>
+              <div><Label>Valor Pago *</Label><Input type="number" step="0.01" value={pagamentoForm.valor_pago} onChange={e => setPagamentoForm({ ...pagamentoForm, valor_pago: Number(e.target.value) })} /></div>
+              <div className="md:col-span-2">
+                <Label>Forma</Label>
+                <Select value={pagamentoForm.forma_pagamento} onValueChange={v => setPagamentoForm({ ...pagamentoForm, forma_pagamento: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PIX">PIX</SelectItem>
+                    <SelectItem value="TED">TED</SelectItem>
+                    <SelectItem value="DOC">DOC</SelectItem>
+                    <SelectItem value="Boleto">Boleto</SelectItem>
+                    <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="Outros">Outros</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-2"><Label>URL do Comprovante</Label><Input value={pagamentoForm.comprovante_url} onChange={e => setPagamentoForm({ ...pagamentoForm, comprovante_url: e.target.value })} placeholder="Link/URL do recibo" /></div>
+              <div className="md:col-span-2"><Label>Observações</Label><Textarea value={pagamentoForm.observacoes} onChange={e => setPagamentoForm({ ...pagamentoForm, observacoes: e.target.value })} rows={2} /></div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => setParcelaPagar(null)}>Cancelar</Button>
+              <Button onClick={handleConfirmarPagamento} className="gap-2"><CheckCircle2 className="h-4 w-4" /> Confirmar Pagamento</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete decisão */}
+        <AlertDialog open={!!decisaoDeleteId} onOpenChange={() => setDecisaoDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir decisão / acordo?</AlertDialogTitle>
+              <AlertDialogDescription>Todas as parcelas vinculadas serão removidas. Esta ação não pode ser desfeita.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button variant="outline" onClick={() => setDecisaoDeleteId(null)}>Cancelar</Button>
+              <Button variant="destructive" onClick={handleDeleteDecisao}>Excluir</Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
 
         {/* ============ FORM PROCESSO ============ */}
         <Dialog open={showForm} onOpenChange={setShowForm}>
