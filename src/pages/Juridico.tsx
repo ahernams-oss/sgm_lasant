@@ -1095,8 +1095,16 @@ export default function JuridicoPage() {
                   <Label className="text-xs">Vencimento até</Label>
                   <Input type="date" className="w-40" value={filterParcelaAte} onChange={e => setFilterParcelaAte(e.target.value)} />
                 </div>
-                {(filterParcelaStatus !== "Todos" || filterParcelaDe || filterParcelaAte) && (
-                  <Button variant="ghost" size="sm" onClick={() => { setFilterParcelaStatus("Todos"); setFilterParcelaDe(""); setFilterParcelaAte(""); }}>
+                <div>
+                  <Label className="text-xs">Autor</Label>
+                  <Input className="w-44" placeholder="Buscar autor..." value={filterParcelaAutor} onChange={e => setFilterParcelaAutor(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Advogado</Label>
+                  <Input className="w-44" placeholder="Buscar advogado..." value={filterParcelaAdvogado} onChange={e => setFilterParcelaAdvogado(e.target.value)} />
+                </div>
+                {(filterParcelaStatus !== "Todos" || filterParcelaDe || filterParcelaAte || filterParcelaAutor || filterParcelaAdvogado) && (
+                  <Button variant="ghost" size="sm" onClick={() => { setFilterParcelaStatus("Todos"); setFilterParcelaDe(""); setFilterParcelaAte(""); setFilterParcelaAutor(""); setFilterParcelaAdvogado(""); }}>
                     <X className="h-4 w-4 mr-1" /> Limpar
                   </Button>
                 )}
