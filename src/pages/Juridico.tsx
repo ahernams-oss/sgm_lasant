@@ -294,21 +294,37 @@ export default function JuridicoPage() {
       decisaoId = data.id;
       toast.success("Decisão registrada");
     }
-    // Regenerar parcelas se for nova OU se foi solicitada regeneração
-    if (!decisaoEditId && decisaoId && decisaoForm.qtd_parcelas > 0 && decisaoForm.primeiro_vencimento) {
-      const valorParcela = +(decisaoForm.valor_total / decisaoForm.qtd_parcelas).toFixed(2);
-      const rows = Array.from({ length: decisaoForm.qtd_parcelas }, (_, i) => {
-        const isLast = i === decisaoForm.qtd_parcelas - 1;
-        const valor = isLast
-          ? +(decisaoForm.valor_total - valorParcela * (decisaoForm.qtd_parcelas - 1)).toFixed(2)
-          : valorParcela;
-        return {
-          decisao_id: decisaoId, numero: i + 1,
-          data_vencimento: addMonthsISO(decisaoForm.primeiro_vencimento!, i),
-          valor, status: "Pendente",
-        };
-      });
-      await (supabase as any).from("juridico_parcelas").insert(rows);
+    // Gerar parcelas (somente em criação): entrada opcional + qtd_parcelas mensais
+    if (!decisaoEditId && decisaoId) {
+      const entrada = Number(decisaoForm.valor_entrada) || 0;
+      const restante = +(decisaoForm.valor_total - entrada).toFixed(2);
+      const rows: any[] = [];
+      let numero = 1;
+      if (entrada > 0) {
+        rows.push({
+          decisao_id: decisaoId, numero: numero++,
+          data_vencimento: decisaoForm.data_entrada || decisaoForm.primeiro_vencimento || null,
+          valor: entrada, status: "Pendente",
+          observacoes: "Entrada / Primeira parcela",
+        });
+      }
+      if (decisaoForm.qtd_parcelas > 0 && restante > 0 && decisaoForm.primeiro_vencimento) {
+        const valorParcela = +(restante / decisaoForm.qtd_parcelas).toFixed(2);
+        for (let i = 0; i < decisaoForm.qtd_parcelas; i++) {
+          const isLast = i === decisaoForm.qtd_parcelas - 1;
+          const valor = isLast
+            ? +(restante - valorParcela * (decisaoForm.qtd_parcelas - 1)).toFixed(2)
+            : valorParcela;
+          rows.push({
+            decisao_id: decisaoId, numero: numero++,
+            data_vencimento: addMonthsISO(decisaoForm.primeiro_vencimento!, i),
+            valor, status: "Pendente",
+          });
+        }
+      }
+      if (rows.length > 0) {
+        await (supabase as any).from("juridico_parcelas").insert(rows);
+      }
     }
     setShowDecisaoForm(false);
     setDecisaoEditId(null);
