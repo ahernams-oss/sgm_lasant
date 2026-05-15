@@ -1497,7 +1497,7 @@ export default function JuridicoPage() {
         <Dialog open={showSenhaConfirm} onOpenChange={(v) => { if (!v) { setShowSenhaConfirm(false); setSenhaConfirm(""); } }}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2"><Lock className="h-5 w-5 text-primary" /> Confirmação de Segurança</DialogTitle>
+              <DialogTitle className="flex items-center gap-2"><LockIcon className="h-5 w-5 text-primary" /> Confirmação de Segurança</DialogTitle>
             </DialogHeader>
             <div className="space-y-3 text-sm">
               <p>Para registrar esta <strong>Decisão / Acordo</strong> e gerar as parcelas no módulo financeiro, confirme sua senha de acesso.</p>
