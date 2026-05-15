@@ -1281,6 +1281,22 @@ export default function JuridicoPage() {
                     </Table>
                   </div>
                 </div>
+
+                {viewDecisao.anexos && viewDecisao.anexos.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-xs text-muted-foreground mb-1">Anexos</p>
+                    <div className="space-y-1">
+                      {viewDecisao.anexos.map((a, idx) => (
+                        <a key={idx} href={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/processos-trabalhistas-anexos/${a.path}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 rounded border bg-muted/50 text-sm hover:bg-muted transition-colors">
+                          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <span className="flex-1 truncate">{a.nome}</span>
+                          <span className="text-xs text-muted-foreground">{(a.tamanho / 1024 / 1024).toFixed(2)} MB</span>
+                          <Download className="h-3 w-3" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </DialogContent>
