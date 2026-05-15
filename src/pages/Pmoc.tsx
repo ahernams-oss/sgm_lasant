@@ -746,9 +746,10 @@ function QualidadeArTab() {
         </Card>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center">
         <Button variant={subTab === "pontos" ? "default" : "outline"} onClick={() => { setSubTab("pontos"); setPage(1); }}>Pontos de Medição</Button>
         <Button variant={subTab === "medicoes" ? "default" : "outline"} onClick={() => { setSubTab("medicoes"); setPage(1); }}>Medições</Button>
+        <Button variant="outline" className="ml-auto" onClick={() => downloadPdfPmocQualidadeAr(pontosQA, medicoesQA)}><Printer className="mr-2 h-4 w-4" />Imprimir</Button>
       </div>
 
       {subTab === "pontos" ? (
