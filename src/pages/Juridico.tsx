@@ -367,8 +367,30 @@ export default function JuridicoPage() {
   }, [parcelas]);
 
   const decisoesFiltradas = useMemo(() => {
-    return decisoes.filter(d => filterDecisaoStatus === "Todos" || d.status === filterDecisaoStatus);
-  }, [decisoes, filterDecisaoStatus]);
+    const q = filterDecisaoBusca.trim().toLowerCase();
+    return decisoes.filter(d => {
+      if (filterDecisaoStatus !== "Todos" && d.status !== filterDecisaoStatus) return false;
+      if (filterDecisaoTipo !== "Todos" && d.tipo !== filterDecisaoTipo) return false;
+      if (filterDecisaoDe && (!d.data_decisao || d.data_decisao < filterDecisaoDe)) return false;
+      if (filterDecisaoAte && (!d.data_decisao || d.data_decisao > filterDecisaoAte)) return false;
+      if (q) {
+        const blob = `${d.processo_numero ?? ""} ${d.juiz_nome ?? ""} ${d.patrono_nome ?? ""} ${d.patrono_oab ?? ""}`.toLowerCase();
+        if (!blob.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [decisoes, filterDecisaoStatus, filterDecisaoTipo, filterDecisaoBusca, filterDecisaoDe, filterDecisaoAte]);
+
+  const parcelasFiltradas = useMemo(() => {
+    const idsDec = new Set(decisoesFiltradas.map(d => d.id));
+    return parcelasComStatus.filter(p => {
+      if (!idsDec.has(p.decisao_id)) return false;
+      if (filterParcelaStatus !== "Todos" && p.status !== filterParcelaStatus) return false;
+      if (filterParcelaDe && (!p.data_vencimento || p.data_vencimento < filterParcelaDe)) return false;
+      if (filterParcelaAte && (!p.data_vencimento || p.data_vencimento > filterParcelaAte)) return false;
+      return true;
+    });
+  }, [parcelasComStatus, decisoesFiltradas, filterParcelaStatus, filterParcelaDe, filterParcelaAte]);
 
   const decisaoStats = useMemo(() => {
     const totalAcordado = decisoes.reduce((s, d) => s + d.valor_total, 0);
