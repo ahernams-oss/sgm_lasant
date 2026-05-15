@@ -105,6 +105,8 @@ interface Decisao {
   valor_custas: number;
   qtd_parcelas: number;
   primeiro_vencimento: string | null;
+  valor_entrada: number;
+  data_entrada: string | null;
   status: string;
   patrono_nome: string;
   patrono_oab: string;
@@ -140,7 +142,7 @@ interface Parcela {
 const emptyDecisao: Omit<Decisao, "id"> = {
   processo_id: "", processo_numero: "", tipo: "Acordo", data_decisao: null, juiz: "", descricao: "",
   valor_total: 0, valor_principal: 0, valor_honorarios: 0, valor_custas: 0,
-  qtd_parcelas: 1, primeiro_vencimento: null, status: "Em andamento",
+  qtd_parcelas: 1, primeiro_vencimento: null, valor_entrada: 0, data_entrada: null, status: "Em andamento",
   patrono_nome: "", patrono_oab: "", patrono_telefone: "", patrono_email: "", patrono_escritorio: "",
   banco: "", agencia: "", conta: "", tipo_conta: "Corrente", pix_chave: "", pix_tipo: "CPF",
   titular_nome: "", titular_documento: "", observacoes: "", anexos: [],
@@ -247,7 +249,9 @@ export default function JuridicoPage() {
       descricao: r.descricao ?? "", valor_total: Number(r.valor_total) || 0,
       valor_principal: Number(r.valor_principal) || 0, valor_honorarios: Number(r.valor_honorarios) || 0,
       valor_custas: Number(r.valor_custas) || 0, qtd_parcelas: Number(r.qtd_parcelas) || 1,
-      primeiro_vencimento: r.primeiro_vencimento ?? null, status: r.status ?? "Em andamento",
+      primeiro_vencimento: r.primeiro_vencimento ?? null,
+      valor_entrada: Number(r.valor_entrada) || 0, data_entrada: r.data_entrada ?? null,
+      status: r.status ?? "Em andamento",
       patrono_nome: r.patrono_nome ?? "", patrono_oab: r.patrono_oab ?? "",
       patrono_telefone: r.patrono_telefone ?? "", patrono_email: r.patrono_email ?? "",
       patrono_escritorio: r.patrono_escritorio ?? "",
@@ -290,21 +294,37 @@ export default function JuridicoPage() {
       decisaoId = data.id;
       toast.success("Decisão registrada");
     }
-    // Regenerar parcelas se for nova OU se foi solicitada regeneração
-    if (!decisaoEditId && decisaoId && decisaoForm.qtd_parcelas > 0 && decisaoForm.primeiro_vencimento) {
-      const valorParcela = +(decisaoForm.valor_total / decisaoForm.qtd_parcelas).toFixed(2);
-      const rows = Array.from({ length: decisaoForm.qtd_parcelas }, (_, i) => {
-        const isLast = i === decisaoForm.qtd_parcelas - 1;
-        const valor = isLast
-          ? +(decisaoForm.valor_total - valorParcela * (decisaoForm.qtd_parcelas - 1)).toFixed(2)
-          : valorParcela;
-        return {
-          decisao_id: decisaoId, numero: i + 1,
-          data_vencimento: addMonthsISO(decisaoForm.primeiro_vencimento!, i),
-          valor, status: "Pendente",
-        };
-      });
-      await (supabase as any).from("juridico_parcelas").insert(rows);
+    // Gerar parcelas (somente em criação): entrada opcional + qtd_parcelas mensais
+    if (!decisaoEditId && decisaoId) {
+      const entrada = Number(decisaoForm.valor_entrada) || 0;
+      const restante = +(decisaoForm.valor_total - entrada).toFixed(2);
+      const rows: any[] = [];
+      let numero = 1;
+      if (entrada > 0) {
+        rows.push({
+          decisao_id: decisaoId, numero: numero++,
+          data_vencimento: decisaoForm.data_entrada || decisaoForm.primeiro_vencimento || null,
+          valor: entrada, status: "Pendente",
+          observacoes: "Entrada / Primeira parcela",
+        });
+      }
+      if (decisaoForm.qtd_parcelas > 0 && restante > 0 && decisaoForm.primeiro_vencimento) {
+        const valorParcela = +(restante / decisaoForm.qtd_parcelas).toFixed(2);
+        for (let i = 0; i < decisaoForm.qtd_parcelas; i++) {
+          const isLast = i === decisaoForm.qtd_parcelas - 1;
+          const valor = isLast
+            ? +(restante - valorParcela * (decisaoForm.qtd_parcelas - 1)).toFixed(2)
+            : valorParcela;
+          rows.push({
+            decisao_id: decisaoId, numero: numero++,
+            data_vencimento: addMonthsISO(decisaoForm.primeiro_vencimento!, i),
+            valor, status: "Pendente",
+          });
+        }
+      }
+      if (rows.length > 0) {
+        await (supabase as any).from("juridico_parcelas").insert(rows);
+      }
     }
     setShowDecisaoForm(false);
     setDecisaoEditId(null);
@@ -1105,9 +1125,35 @@ export default function JuridicoPage() {
                   <div><Label>Principal</Label><Input type="number" step="0.01" value={decisaoForm.valor_principal} onChange={e => setDecisaoForm({ ...decisaoForm, valor_principal: Number(e.target.value) })} /></div>
                   <div><Label>Honorários</Label><Input type="number" step="0.01" value={decisaoForm.valor_honorarios} onChange={e => setDecisaoForm({ ...decisaoForm, valor_honorarios: Number(e.target.value) })} /></div>
                   <div><Label>Custas</Label><Input type="number" step="0.01" value={decisaoForm.valor_custas} onChange={e => setDecisaoForm({ ...decisaoForm, valor_custas: Number(e.target.value) })} /></div>
-                  <div><Label>Qtd Parcelas</Label><Input type="number" min={1} value={decisaoForm.qtd_parcelas} disabled={!!decisaoEditId} onChange={e => setDecisaoForm({ ...decisaoForm, qtd_parcelas: Math.max(1, Number(e.target.value)) })} /></div>
+                  <div>
+                    <Label>Entrada / 1ª Parcela</Label>
+                    <Input type="number" step="0.01" min={0} value={decisaoForm.valor_entrada} disabled={!!decisaoEditId}
+                      onChange={e => {
+                        const v = Math.max(0, Number(e.target.value) || 0);
+                        const max = Number(decisaoForm.valor_total) || 0;
+                        setDecisaoForm({ ...decisaoForm, valor_entrada: v > max ? max : v });
+                      }} />
+                    {decisaoForm.valor_total > 0 && decisaoForm.valor_entrada > 0 && (
+                      <p className="text-[10px] text-muted-foreground mt-1">{((decisaoForm.valor_entrada / decisaoForm.valor_total) * 100).toFixed(1)}% do total</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label>Vencimento da Entrada</Label>
+                    <Input type="date" value={decisaoForm.data_entrada || ""} disabled={!!decisaoEditId}
+                      onChange={e => setDecisaoForm({ ...decisaoForm, data_entrada: e.target.value || null })} />
+                  </div>
+                  <div>
+                    <Label>Qtd Parcelas {decisaoForm.valor_entrada > 0 ? "(após entrada)" : ""}</Label>
+                    <Input type="number" min={0} max={10} value={decisaoForm.qtd_parcelas} disabled={!!decisaoEditId}
+                      onChange={e => setDecisaoForm({ ...decisaoForm, qtd_parcelas: Math.max(0, Math.min(10, Number(e.target.value))) })} />
+                  </div>
                   <div><Label>Primeiro Vencimento</Label><Input type="date" value={decisaoForm.primeiro_vencimento || ""} disabled={!!decisaoEditId} onChange={e => setDecisaoForm({ ...decisaoForm, primeiro_vencimento: e.target.value || null })} /></div>
                 </div>
+                {!decisaoEditId && decisaoForm.valor_total > 0 && decisaoForm.qtd_parcelas > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Restante de {(decisaoForm.valor_total - (decisaoForm.valor_entrada || 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} dividido em {decisaoForm.qtd_parcelas}x de aprox. {((decisaoForm.valor_total - (decisaoForm.valor_entrada || 0)) / decisaoForm.qtd_parcelas).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </p>
+                )}
                 {decisaoEditId && <p className="text-xs text-muted-foreground mt-1">Para alterar parcelas existentes, use a tabela de programação.</p>}
               </div>
 

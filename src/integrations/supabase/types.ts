@@ -2714,6 +2714,7 @@ export type Database = {
           conta: string | null
           created_at: string
           data_decisao: string | null
+          data_entrada: string | null
           descricao: string | null
           id: string
           juiz: string | null
@@ -2736,6 +2737,7 @@ export type Database = {
           titular_nome: string | null
           updated_at: string
           valor_custas: number
+          valor_entrada: number
           valor_honorarios: number
           valor_principal: number
           valor_total: number
@@ -2747,6 +2749,7 @@ export type Database = {
           conta?: string | null
           created_at?: string
           data_decisao?: string | null
+          data_entrada?: string | null
           descricao?: string | null
           id?: string
           juiz?: string | null
@@ -2769,6 +2772,7 @@ export type Database = {
           titular_nome?: string | null
           updated_at?: string
           valor_custas?: number
+          valor_entrada?: number
           valor_honorarios?: number
           valor_principal?: number
           valor_total?: number
@@ -2780,6 +2784,7 @@ export type Database = {
           conta?: string | null
           created_at?: string
           data_decisao?: string | null
+          data_entrada?: string | null
           descricao?: string | null
           id?: string
           juiz?: string | null
@@ -2802,6 +2807,7 @@ export type Database = {
           titular_nome?: string | null
           updated_at?: string
           valor_custas?: number
+          valor_entrada?: number
           valor_honorarios?: number
           valor_principal?: number
           valor_total?: number
