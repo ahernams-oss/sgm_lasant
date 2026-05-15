@@ -858,17 +858,66 @@ export default function JuridicoPage() {
             </div>
 
             <div className="flex flex-wrap gap-3 items-end mb-4">
+              <div className="min-w-[200px] flex-1">
+                <Label className="text-xs">Buscar</Label>
+                <Input value={filterDecisaoBusca} onChange={e => setFilterDecisaoBusca(e.target.value)} placeholder="Processo, juiz, patrono, OAB..." />
+              </div>
+              <div>
+                <Label className="text-xs">Tipo</Label>
+                <Select value={filterDecisaoTipo} onValueChange={setFilterDecisaoTipo}>
+                  <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Todos">Todos</SelectItem>
+                    {TIPO_DECISAO.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label className="text-xs">Status</Label>
                 <Select value={filterDecisaoStatus} onValueChange={setFilterDecisaoStatus}>
-                  <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Todos">Todos</SelectItem>
                     {STATUS_DECISAO.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <Label className="text-xs">Data de</Label>
+                <Input type="date" className="w-40" value={filterDecisaoDe} onChange={e => setFilterDecisaoDe(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-xs">Data até</Label>
+                <Input type="date" className="w-40" value={filterDecisaoAte} onChange={e => setFilterDecisaoAte(e.target.value)} />
+              </div>
+              {(filterDecisaoBusca || filterDecisaoTipo !== "Todos" || filterDecisaoStatus !== "Todos" || filterDecisaoDe || filterDecisaoAte) && (
+                <Button variant="ghost" size="sm" onClick={() => { setFilterDecisaoBusca(""); setFilterDecisaoTipo("Todos"); setFilterDecisaoStatus("Todos"); setFilterDecisaoDe(""); setFilterDecisaoAte(""); }}>
+                  <X className="h-4 w-4 mr-1" /> Limpar
+                </Button>
+              )}
               <div className="flex-1" />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="gap-2"><Download className="h-4 w-4" /> Relatórios</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <DropdownMenuLabel>Decisões / Acordos {decisoesFiltradas.length !== decisoes.length ? `(filtrados: ${decisoesFiltradas.length})` : ""}</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => gerarPdfDecisoes(decisoesFiltradas, parcelasComStatus, `Tipo: ${filterDecisaoTipo} | Status: ${filterDecisaoStatus}${filterDecisaoDe ? ` | De: ${filterDecisaoDe}` : ""}${filterDecisaoAte ? ` | Até: ${filterDecisaoAte}` : ""}`)}>
+                    <Printer className="h-4 w-4 mr-2" /> PDF — Decisões
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => gerarExcelDecisoes(decisoesFiltradas, parcelasComStatus, `Tipo: ${filterDecisaoTipo} | Status: ${filterDecisaoStatus}`)}>
+                    <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel — Decisões
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Programação de Parcelas {parcelasFiltradas.length !== parcelasComStatus.length ? `(filtrados: ${parcelasFiltradas.length})` : ""}</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => gerarPdfParcelas(parcelasFiltradas, decisoes, `Status: ${filterParcelaStatus}${filterParcelaDe ? ` | De: ${filterParcelaDe}` : ""}${filterParcelaAte ? ` | Até: ${filterParcelaAte}` : ""}`)}>
+                    <Printer className="h-4 w-4 mr-2" /> PDF — Parcelas
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => gerarExcelParcelas(parcelasFiltradas, decisoes, `Status: ${filterParcelaStatus}`)}>
+                    <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel — Parcelas
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               {podeCriar && <Button onClick={() => { setDecisaoForm(emptyDecisao); setDecisaoEditId(null); setShowDecisaoForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Nova Decisão / Acordo</Button>}
             </div>
 
