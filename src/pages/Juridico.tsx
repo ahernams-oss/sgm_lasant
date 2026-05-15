@@ -120,6 +120,7 @@ interface Decisao {
   titular_nome: string;
   titular_documento: string;
   observacoes: string;
+  anexos: { nome: string; path: string; tamanho: number }[];
 }
 
 interface Parcela {
