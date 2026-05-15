@@ -227,3 +227,257 @@ export function downloadPdfPmoc(data: PmocReportData) {
   }
   doc.save(nome);
 }
+
+// ====================== Relatório de Planos ======================
+export function gerarPdfPmocPlanos(planos: PmocPlano[], atividades: PmocAtividade[], filtroCliente?: string): jsPDF {
+  const doc = new jsPDF();
+  const lista = filtroCliente ? planos.filter(p => p.clienteNome === filtroCliente) : planos;
+  header(doc, "Relatório de Planos PMOC", `${lista.length} plano(s)${filtroCliente ? ` — Cliente: ${filtroCliente}` : ""}`);
+  doc.setTextColor(30, 30, 30);
+  let y = 46;
+
+  autoTable(doc, {
+    startY: y,
+    head: [["Título", "Cliente", "Unidade", "Vigência", "Rev.", "Status", "RT", "Atividades"]],
+    body: lista.map(p => [
+      p.titulo, p.clienteNome || "-", p.unidade || "-",
+      p.vigenciaInicio && p.vigenciaFim ? `${p.vigenciaInicio} a ${p.vigenciaFim}` : "-",
+      p.revisao.toString(), p.status, p.responsavelTecnicoNome || "-",
+      atividades.filter(a => a.planoId === p.id).length.toString(),
+    ]),
+    theme: "striped",
+    styles: { fontSize: 8, cellPadding: 2.5 },
+    headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
+    margin: { left: 14, right: 14 },
+  });
+
+  footer(doc);
+  return doc;
+}
+
+// ====================== Relatório de OS ======================
+export function gerarPdfPmocOS(ordensServico: PmocOrdemServico[], detalhado = true): jsPDF {
+  const doc = new jsPDF();
+  header(doc, "Relatório de Ordens de Serviço PMOC", `${ordensServico.length} OS`);
+  doc.setTextColor(30, 30, 30);
+  let y = 46;
+
+  // Tabela resumo
+  autoTable(doc, {
+    startY: y,
+    head: [["Nº", "Equipamento", "Tipo", "Prioridade", "Status", "Abertura", "Prazo", "Conclusão", "Técnico"]],
+    body: ordensServico.map(o => [
+      o.numero.toString(), o.equipamentoNome || "-", o.tipo, o.prioridade,
+      o.status, o.dataAbertura || "-", o.dataPrazo || "-",
+      o.dataConclusao || "-", o.tecnicoResponsavel || "-",
+    ]),
+    theme: "striped",
+    styles: { fontSize: 8, cellPadding: 2.5 },
+    headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
+    margin: { left: 14, right: 14 },
+  });
+
+  if (detalhado) {
+    ordensServico.forEach(o => {
+      doc.addPage();
+      header(doc, `OS Nº ${o.numero}`, `${o.equipamentoNome || "-"} | ${o.status}`);
+      doc.setTextColor(30, 30, 30);
+      let yy = 46;
+
+      autoTable(doc, {
+        startY: yy,
+        head: [["Campo", "Valor"]],
+        body: [
+          ["Equipamento", o.equipamentoNome || "-"],
+          ["Origem", o.origem], ["Unidade", o.unidade || "-"],
+          ["Local", o.localDescricao || "-"], ["Tipo", o.tipo],
+          ["Prioridade", o.prioridade], ["Status", o.status],
+          ["Abertura", o.dataAbertura || "-"], ["Prazo", o.dataPrazo || "-"],
+          ["Início Execução", o.dataInicioExecucao || "-"],
+          ["Conclusão", o.dataConclusao || "-"],
+          ["Técnico Responsável", o.tecnicoResponsavel || "-"],
+          ["Equipe", o.equipe || "-"],
+          ["Aprovado por", o.aprovadoPor || "-"],
+          ["Data Aprovação", o.dataAprovacao || "-"],
+        ],
+        theme: "striped",
+        styles: { fontSize: 9, cellPadding: 2.5 },
+        headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
+        margin: { left: 14, right: 14 },
+      });
+      yy = (doc as any).lastAutoTable.finalY + 6;
+
+      if (o.descricao) {
+        doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("Descrição:", 14, yy); yy += 5;
+        doc.setFont("helvetica", "normal");
+        const linhas = doc.splitTextToSize(o.descricao, 180);
+        doc.text(linhas, 14, yy); yy += linhas.length * 5 + 4;
+      }
+
+      if (o.materiaisUtilizados?.length) {
+        autoTable(doc, {
+          startY: yy,
+          head: [["Material Utilizado", "Qtd", "Unidade"]],
+          body: o.materiaisUtilizados.map((m: any) => [m.descricao || m.nome || "-", (m.quantidade ?? "-").toString(), m.unidade || "-"]),
+          theme: "grid", styles: { fontSize: 8, cellPadding: 2 },
+          headStyles: { fillColor: [80, 80, 80], textColor: [255, 255, 255] },
+          margin: { left: 14, right: 14 },
+        });
+        yy = (doc as any).lastAutoTable.finalY + 6;
+      }
+
+      if (o.checklistResultado?.length) {
+        autoTable(doc, {
+          startY: yy,
+          head: [["Item Checklist", "Resultado", "Observação"]],
+          body: o.checklistResultado.map((c: any) => [c.item || c.descricao || "-", c.resultado || c.status || "-", c.observacao || "-"]),
+          theme: "grid", styles: { fontSize: 8, cellPadding: 2 },
+          headStyles: { fillColor: [80, 80, 80], textColor: [255, 255, 255] },
+          margin: { left: 14, right: 14 },
+        });
+        yy = (doc as any).lastAutoTable.finalY + 6;
+      }
+
+      if (o.observacoes) {
+        doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("Observações:", 14, yy); yy += 5;
+        doc.setFont("helvetica", "normal");
+        const linhas = doc.splitTextToSize(o.observacoes, 180);
+        doc.text(linhas, 14, yy);
+      }
+    });
+  }
+
+  footer(doc);
+  return doc;
+}
+
+// ====================== Relatório de Qualidade do Ar ======================
+export function gerarPdfPmocQualidadeAr(pontos: PmocQualidadeArPonto[], medicoes: PmocQualidadeArMedicao[]): jsPDF {
+  const doc = new jsPDF();
+  const naoConf = medicoes.filter(m => !m.conforme).length;
+  header(doc, "Relatório de Qualidade do Ar (QAI)", `${pontos.length} ponto(s) | ${medicoes.length} medição(ões) | ${naoConf} não conforme(s)`);
+  doc.setTextColor(30, 30, 30);
+  let y = 46;
+
+  y = tabelaResumo(doc, y, "Pontos de Monitoramento",
+    ["Descrição", "Ambiente", "Tipo", "Periodicidade", "Status"],
+    pontos.map(p => [p.descricao, p.ambiente || "-", p.tipoAmbiente || "-", p.periodicidadeColeta, p.status])
+  );
+
+  const ph = doc.internal.pageSize.getHeight();
+  if (y + 30 > ph - 30) { doc.addPage(); y = 20; }
+  doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.setTextColor(30, 58, 107);
+  doc.text("Medições", 14, y); y += 3;
+  autoTable(doc, {
+    startY: y,
+    head: [["Data", "Hora", "Ponto", "Temp.", "Umid.", "CO₂", "Renov.", "Pressão", "Conforme", "Resp."]],
+    body: medicoes.map(m => [
+      m.dataMedicao || "-", m.horaMedicao || "-", m.pontoDescricao || "-",
+      m.temperatura?.toString() ?? "-", m.umidade?.toString() ?? "-",
+      m.co2?.toString() ?? "-", m.renovacaoAr?.toString() ?? "-",
+      m.pressaoDiferencial?.toString() ?? "-",
+      m.conforme ? "Sim" : "NÃO", m.responsavel || "-",
+    ]),
+    theme: "striped",
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
+    didParseCell: (d) => {
+      if (d.section === "body" && d.column.index === 8 && d.cell.raw === "NÃO") {
+        d.cell.styles.textColor = [200, 30, 30]; d.cell.styles.fontStyle = "bold";
+      }
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  footer(doc);
+  return doc;
+}
+
+// ====================== Relatório de Inconformidades ======================
+export function gerarPdfPmocInconformidades(inconformidades: PmocInconformidade[]): jsPDF {
+  const doc = new jsPDF();
+  const abertas = inconformidades.filter(i => i.status !== "Encerrada" && i.status !== "Resolvida").length;
+  header(doc, "Relatório de Inconformidades PMOC", `${inconformidades.length} registro(s) | ${abertas} aberta(s)`);
+  doc.setTextColor(30, 30, 30);
+  let y = 46;
+
+  // Por gravidade
+  const porGrav: Record<string, number> = {};
+  inconformidades.forEach(i => { porGrav[i.gravidade] = (porGrav[i.gravidade] || 0) + 1; });
+  y = tabelaResumo(doc, y, "Por Gravidade", ["Gravidade", "Qtd"],
+    Object.entries(porGrav).map(([g, c]) => [g, c.toString()]));
+
+  autoTable(doc, {
+    startY: y,
+    head: [["Nº", "Equipamento", "Ambiente", "Descrição", "Gravidade", "Resp.", "Prazo", "Status", "Reinc."]],
+    body: inconformidades.map(i => [
+      i.numero.toString(), i.equipamentoNome || "-", i.ambiente || "-",
+      i.descricao || "-", i.gravidade, i.responsavel || "-",
+      i.prazo || "-", i.status, i.reincidencia.toString(),
+    ]),
+    theme: "striped",
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
+    margin: { left: 14, right: 14 },
+  });
+
+  footer(doc);
+  return doc;
+}
+
+// ====================== Relatório de Biblioteca ======================
+export function gerarPdfPmocBiblioteca(biblioteca: PmocBibliotecaRotina[]): jsPDF {
+  const doc = new jsPDF();
+  header(doc, "Biblioteca de Rotinas PMOC", `${biblioteca.length} rotina(s) cadastrada(s)`);
+  doc.setTextColor(30, 30, 30);
+  let y = 46;
+
+  autoTable(doc, {
+    startY: y,
+    head: [["Título", "Tipo Equipamento", "Tipo Atividade", "Periodicidade", "Duração", "Versão", "Ativa"]],
+    body: biblioteca.map(b => [
+      b.titulo, b.tipoEquipamento || "-", b.tipoAtividade,
+      b.periodicidadeSugerida, b.duracaoEstimada || "-",
+      b.versao.toString(), b.ativa ? "Sim" : "Não",
+    ]),
+    theme: "striped",
+    styles: { fontSize: 8, cellPadding: 2.5 },
+    headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
+    margin: { left: 14, right: 14 },
+  });
+
+  // Detalhar checklist por rotina
+  biblioteca.forEach(b => {
+    if (!b.checklistItens?.length) return;
+    doc.addPage();
+    header(doc, `Rotina: ${b.titulo}`, `${b.tipoEquipamento || "-"} | ${b.tipoAtividade} | v${b.versao}`);
+    doc.setTextColor(30, 30, 30);
+    autoTable(doc, {
+      startY: 46,
+      head: [["#", "Item de Checklist"]],
+      body: b.checklistItens.map((c: any, idx: number) => [
+        (idx + 1).toString(),
+        typeof c === "string" ? c : (c.item || c.descricao || JSON.stringify(c)),
+      ]),
+      theme: "grid", styles: { fontSize: 9, cellPadding: 2.5 },
+      headStyles: { fillColor: [80, 80, 80], textColor: [255, 255, 255] },
+      margin: { left: 14, right: 14 },
+    });
+  });
+
+  footer(doc);
+  return doc;
+}
+
+// ====================== Helpers de download ======================
+const ts = () => new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
+export const downloadPdfPmocPlanos = (planos: PmocPlano[], atividades: PmocAtividade[], filtroCliente?: string) =>
+  gerarPdfPmocPlanos(planos, atividades, filtroCliente).save(`PMOC_Planos_${ts()}.pdf`);
+export const downloadPdfPmocOS = (os: PmocOrdemServico[], detalhado = true) =>
+  gerarPdfPmocOS(os, detalhado).save(`PMOC_OS_${ts()}.pdf`);
+export const downloadPdfPmocQualidadeAr = (pontos: PmocQualidadeArPonto[], medicoes: PmocQualidadeArMedicao[]) =>
+  gerarPdfPmocQualidadeAr(pontos, medicoes).save(`PMOC_QualidadeAr_${ts()}.pdf`);
+export const downloadPdfPmocInconformidades = (inc: PmocInconformidade[]) =>
+  gerarPdfPmocInconformidades(inc).save(`PMOC_Inconformidades_${ts()}.pdf`);
+export const downloadPdfPmocBiblioteca = (bib: PmocBibliotecaRotina[]) =>
+  gerarPdfPmocBiblioteca(bib).save(`PMOC_Biblioteca_${ts()}.pdf`);
