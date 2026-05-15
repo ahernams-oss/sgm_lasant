@@ -27,6 +27,9 @@ import { useProcessosTrabalhistas, ProcessoTrabalhista, Andamento } from "@/cont
 import { useClientes } from "@/contexts/ClientesContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { verificarSenhaUsuario } from "@/lib/verifySenha";
+import { Dialog as DlgPwd, DialogContent as DlgPwdContent, DialogHeader as DlgPwdHeader, DialogTitle as DlgPwdTitle, DialogFooter as DlgPwdFooter } from "@/components/ui/dialog";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 const STATUS_OPTIONS = ["Ativo", "Recurso", "Acordo", "Encerrado", "Arquivado"];
