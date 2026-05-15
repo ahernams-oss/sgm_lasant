@@ -1,6 +1,9 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import type { PmocPlano, PmocAtividade, PmocOrdemServico, PmocInconformidade } from "@/contexts/PmocContext";
+import type {
+  PmocPlano, PmocAtividade, PmocOrdemServico, PmocInconformidade,
+  PmocQualidadeArPonto, PmocQualidadeArMedicao, PmocBibliotecaRotina,
+} from "@/contexts/PmocContext";
 
 interface PmocReportData {
   planos: PmocPlano[];
