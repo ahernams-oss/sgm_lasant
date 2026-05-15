@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, Users, Phone, Send, Upload, X, Download, FileSpreadsheet, Printer } from "lucide-react";
+import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, Users, Phone, Send, Upload, X, Download, FileSpreadsheet, Printer, Banknote, CheckCircle2, CalendarCheck, CreditCard } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   gerarPdfProcessos, gerarExcelProcessos,
@@ -83,6 +83,75 @@ const emptyContato: Omit<ContatoNotificacao, "id"> = {
   nome: "", tipo: "Advogado", telefone_whatsapp: "", email: "", oab: "", crc: "", ativo: true, observacoes: "",
 };
 
+const TIPO_DECISAO = ["Acordo", "Decisão", "Sentença", "Homologação"];
+const STATUS_DECISAO = ["Em andamento", "Quitado", "Inadimplente", "Cancelado"];
+const STATUS_PARCELA = ["Pendente", "Pago", "Atrasado", "Cancelado"];
+const TIPO_CONTA = ["Corrente", "Poupança"];
+const TIPO_PIX = ["CPF", "CNPJ", "E-mail", "Telefone", "Aleatória"];
+
+interface Decisao {
+  id: string;
+  processo_id: string;
+  processo_numero: string;
+  tipo: string;
+  data_decisao: string | null;
+  juiz: string;
+  descricao: string;
+  valor_total: number;
+  valor_principal: number;
+  valor_honorarios: number;
+  valor_custas: number;
+  qtd_parcelas: number;
+  primeiro_vencimento: string | null;
+  status: string;
+  patrono_nome: string;
+  patrono_oab: string;
+  patrono_telefone: string;
+  patrono_email: string;
+  patrono_escritorio: string;
+  banco: string;
+  agencia: string;
+  conta: string;
+  tipo_conta: string;
+  pix_chave: string;
+  pix_tipo: string;
+  titular_nome: string;
+  titular_documento: string;
+  observacoes: string;
+}
+
+interface Parcela {
+  id: string;
+  decisao_id: string;
+  numero: number;
+  data_vencimento: string | null;
+  valor: number;
+  status: string;
+  data_pagamento: string | null;
+  valor_pago: number | null;
+  forma_pagamento: string;
+  comprovante_url: string;
+  observacoes: string;
+}
+
+const emptyDecisao: Omit<Decisao, "id"> = {
+  processo_id: "", processo_numero: "", tipo: "Acordo", data_decisao: null, juiz: "", descricao: "",
+  valor_total: 0, valor_principal: 0, valor_honorarios: 0, valor_custas: 0,
+  qtd_parcelas: 1, primeiro_vencimento: null, status: "Em andamento",
+  patrono_nome: "", patrono_oab: "", patrono_telefone: "", patrono_email: "", patrono_escritorio: "",
+  banco: "", agencia: "", conta: "", tipo_conta: "Corrente", pix_chave: "", pix_tipo: "CPF",
+  titular_nome: "", titular_documento: "", observacoes: "",
+};
+
+function addMonthsISO(iso: string, months: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, (m - 1) + months, d);
+  const yy = dt.getFullYear();
+  const mm = String(dt.getMonth() + 1).padStart(2, "0");
+  const dd = String(dt.getDate()).padStart(2, "0");
+  return `${yy}-${mm}-${dd}`;
+}
+
 export default function JuridicoPage() {
   const { processos, andamentos, loading, addProcesso, updateProcesso, deleteProcesso, addAndamento, deleteAndamento, loadAndamentos } = useProcessosTrabalhistas();
   const { tem } = usePermissao();
@@ -124,6 +193,18 @@ export default function JuridicoPage() {
   const [contatoForm, setContatoForm] = useState(emptyContato);
   const [contatoDeleteId, setContatoDeleteId] = useState<string | null>(null);
 
+  // Decisões e Pagamentos
+  const [decisoes, setDecisoes] = useState<Decisao[]>([]);
+  const [parcelas, setParcelas] = useState<Parcela[]>([]);
+  const [showDecisaoForm, setShowDecisaoForm] = useState(false);
+  const [decisaoEditId, setDecisaoEditId] = useState<string | null>(null);
+  const [decisaoForm, setDecisaoForm] = useState(emptyDecisao);
+  const [decisaoDeleteId, setDecisaoDeleteId] = useState<string | null>(null);
+  const [viewDecisao, setViewDecisao] = useState<Decisao | null>(null);
+  const [parcelaPagar, setParcelaPagar] = useState<Parcela | null>(null);
+  const [pagamentoForm, setPagamentoForm] = useState({ data_pagamento: "", valor_pago: 0, forma_pagamento: "PIX", comprovante_url: "", observacoes: "" });
+  const [filterDecisaoStatus, setFilterDecisaoStatus] = useState("Todos");
+
   const loadAudiencias = useCallback(async () => {
     const { data, error } = await (supabase as any).from("juridico_audiencias").select("*").order("data_audiencia", { ascending: true });
     if (error) { console.error(error); return; }
@@ -147,7 +228,147 @@ export default function JuridicoPage() {
     })));
   }, []);
 
-  useEffect(() => { loadAudiencias(); loadContatos(); }, [loadAudiencias, loadContatos]);
+  const loadDecisoes = useCallback(async () => {
+    const { data, error } = await (supabase as any).from("juridico_decisoes_pagamentos").select("*").order("data_decisao", { ascending: false });
+    if (error) { console.error(error); return; }
+    setDecisoes((data || []).map((r: any) => ({
+      id: r.id, processo_id: r.processo_id ?? "", processo_numero: r.processo_numero ?? "",
+      tipo: r.tipo ?? "Acordo", data_decisao: r.data_decisao ?? null, juiz: r.juiz ?? "",
+      descricao: r.descricao ?? "", valor_total: Number(r.valor_total) || 0,
+      valor_principal: Number(r.valor_principal) || 0, valor_honorarios: Number(r.valor_honorarios) || 0,
+      valor_custas: Number(r.valor_custas) || 0, qtd_parcelas: Number(r.qtd_parcelas) || 1,
+      primeiro_vencimento: r.primeiro_vencimento ?? null, status: r.status ?? "Em andamento",
+      patrono_nome: r.patrono_nome ?? "", patrono_oab: r.patrono_oab ?? "",
+      patrono_telefone: r.patrono_telefone ?? "", patrono_email: r.patrono_email ?? "",
+      patrono_escritorio: r.patrono_escritorio ?? "",
+      banco: r.banco ?? "", agencia: r.agencia ?? "", conta: r.conta ?? "",
+      tipo_conta: r.tipo_conta ?? "Corrente", pix_chave: r.pix_chave ?? "", pix_tipo: r.pix_tipo ?? "CPF",
+      titular_nome: r.titular_nome ?? "", titular_documento: r.titular_documento ?? "",
+      observacoes: r.observacoes ?? "",
+    })));
+  }, []);
+
+  const loadParcelas = useCallback(async () => {
+    const { data, error } = await (supabase as any).from("juridico_parcelas").select("*").order("data_vencimento", { ascending: true });
+    if (error) { console.error(error); return; }
+    setParcelas((data || []).map((r: any) => ({
+      id: r.id, decisao_id: r.decisao_id, numero: Number(r.numero) || 1,
+      data_vencimento: r.data_vencimento ?? null, valor: Number(r.valor) || 0,
+      status: r.status ?? "Pendente", data_pagamento: r.data_pagamento ?? null,
+      valor_pago: r.valor_pago != null ? Number(r.valor_pago) : null,
+      forma_pagamento: r.forma_pagamento ?? "", comprovante_url: r.comprovante_url ?? "",
+      observacoes: r.observacoes ?? "",
+    })));
+  }, []);
+
+  useEffect(() => { loadAudiencias(); loadContatos(); loadDecisoes(); loadParcelas(); }, [loadAudiencias, loadContatos, loadDecisoes, loadParcelas]);
+
+  // Decisões CRUD
+  const handleSaveDecisao = async () => {
+    if (!decisaoForm.processo_id) { toast.error("Selecione o processo"); return; }
+    if (!decisaoForm.valor_total || decisaoForm.valor_total <= 0) { toast.error("Informe o valor total"); return; }
+    const proc = processos.find(p => p.id === decisaoForm.processo_id);
+    const payload = { ...decisaoForm, processo_numero: proc?.numero_processo || "" };
+    let decisaoId = decisaoEditId;
+    if (decisaoEditId) {
+      const { error } = await (supabase as any).from("juridico_decisoes_pagamentos").update(payload).eq("id", decisaoEditId);
+      if (error) { toast.error("Erro ao salvar"); console.error(error); return; }
+      toast.success("Decisão atualizada");
+    } else {
+      const { data, error } = await (supabase as any).from("juridico_decisoes_pagamentos").insert(payload).select().single();
+      if (error) { toast.error("Erro ao salvar"); console.error(error); return; }
+      decisaoId = data.id;
+      toast.success("Decisão registrada");
+    }
+    // Regenerar parcelas se for nova OU se foi solicitada regeneração
+    if (!decisaoEditId && decisaoId && decisaoForm.qtd_parcelas > 0 && decisaoForm.primeiro_vencimento) {
+      const valorParcela = +(decisaoForm.valor_total / decisaoForm.qtd_parcelas).toFixed(2);
+      const rows = Array.from({ length: decisaoForm.qtd_parcelas }, (_, i) => {
+        const isLast = i === decisaoForm.qtd_parcelas - 1;
+        const valor = isLast
+          ? +(decisaoForm.valor_total - valorParcela * (decisaoForm.qtd_parcelas - 1)).toFixed(2)
+          : valorParcela;
+        return {
+          decisao_id: decisaoId, numero: i + 1,
+          data_vencimento: addMonthsISO(decisaoForm.primeiro_vencimento!, i),
+          valor, status: "Pendente",
+        };
+      });
+      await (supabase as any).from("juridico_parcelas").insert(rows);
+    }
+    setShowDecisaoForm(false);
+    setDecisaoEditId(null);
+    setDecisaoForm(emptyDecisao);
+    await loadDecisoes();
+    await loadParcelas();
+  };
+
+  const handleDeleteDecisao = async () => {
+    if (!decisaoDeleteId) return;
+    await (supabase as any).from("juridico_decisoes_pagamentos").delete().eq("id", decisaoDeleteId);
+    toast.success("Decisão removida");
+    setDecisaoDeleteId(null);
+    await loadDecisoes();
+    await loadParcelas();
+  };
+
+  const openPagarParcela = (p: Parcela) => {
+    setParcelaPagar(p);
+    setPagamentoForm({
+      data_pagamento: p.data_pagamento || new Date().toISOString().slice(0, 10),
+      valor_pago: p.valor_pago ?? p.valor,
+      forma_pagamento: p.forma_pagamento || "PIX",
+      comprovante_url: p.comprovante_url || "",
+      observacoes: p.observacoes || "",
+    });
+  };
+
+  const handleConfirmarPagamento = async () => {
+    if (!parcelaPagar) return;
+    const { error } = await (supabase as any).from("juridico_parcelas").update({
+      ...pagamentoForm, status: "Pago",
+    }).eq("id", parcelaPagar.id);
+    if (error) { toast.error("Erro ao registrar pagamento"); return; }
+    toast.success("Pagamento registrado");
+    // Atualiza status da decisão se todas pagas
+    const restantes = parcelas.filter(x => x.decisao_id === parcelaPagar.decisao_id && x.id !== parcelaPagar.id && x.status !== "Pago" && x.status !== "Cancelado");
+    if (restantes.length === 0) {
+      await (supabase as any).from("juridico_decisoes_pagamentos").update({ status: "Quitado" }).eq("id", parcelaPagar.decisao_id);
+    }
+    setParcelaPagar(null);
+    await loadDecisoes();
+    await loadParcelas();
+  };
+
+  const handleCancelarParcela = async (p: Parcela) => {
+    await (supabase as any).from("juridico_parcelas").update({ status: "Cancelado" }).eq("id", p.id);
+    toast.success("Parcela cancelada");
+    await loadParcelas();
+  };
+
+  // Atualiza status visual de parcelas atrasadas (em memória)
+  const parcelasComStatus = useMemo(() => {
+    const hoje = new Date().toISOString().slice(0, 10);
+    return parcelas.map(p => {
+      if (p.status === "Pendente" && p.data_vencimento && p.data_vencimento < hoje) {
+        return { ...p, status: "Atrasado" };
+      }
+      return p;
+    });
+  }, [parcelas]);
+
+  const decisoesFiltradas = useMemo(() => {
+    return decisoes.filter(d => filterDecisaoStatus === "Todos" || d.status === filterDecisaoStatus);
+  }, [decisoes, filterDecisaoStatus]);
+
+  const decisaoStats = useMemo(() => {
+    const totalAcordado = decisoes.reduce((s, d) => s + d.valor_total, 0);
+    const totalPago = parcelas.filter(p => p.status === "Pago").reduce((s, p) => s + (p.valor_pago ?? p.valor), 0);
+    const totalPendente = parcelasComStatus.filter(p => p.status === "Pendente").reduce((s, p) => s + p.valor, 0);
+    const totalAtrasado = parcelasComStatus.filter(p => p.status === "Atrasado").reduce((s, p) => s + p.valor, 0);
+    return { totalAcordado, totalPago, totalPendente, totalAtrasado };
+  }, [decisoes, parcelas, parcelasComStatus]);
+
 
   // Dashboard stats
   const stats = useMemo(() => {
@@ -326,6 +547,7 @@ export default function JuridicoPage() {
             <TabsTrigger value="processos"><FileText className="h-4 w-4 mr-1" /> Processos</TabsTrigger>
             <TabsTrigger value="audiencias"><Calendar className="h-4 w-4 mr-1" /> Audiências</TabsTrigger>
             <TabsTrigger value="contatos"><Users className="h-4 w-4 mr-1" /> Contatos</TabsTrigger>
+            <TabsTrigger value="decisoes"><Banknote className="h-4 w-4 mr-1" /> Decisões e Pagamentos</TabsTrigger>
           </TabsList>
 
           {/* ============ DASHBOARD ============ */}
@@ -594,7 +816,364 @@ export default function JuridicoPage() {
               </Table>
             </div>
           </TabsContent>
+
+          {/* ============ DECISÕES E PAGAMENTOS ============ */}
+          <TabsContent value="decisoes">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Total Acordado/Decidido</CardTitle></CardHeader><CardContent><p className="text-lg font-bold">{fmt(decisaoStats.totalAcordado)}</p></CardContent></Card>
+              <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-green-600" /> Pago</CardTitle></CardHeader><CardContent><p className="text-lg font-bold text-green-600">{fmt(decisaoStats.totalPago)}</p></CardContent></Card>
+              <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Pendente</CardTitle></CardHeader><CardContent><p className="text-lg font-bold text-yellow-600">{fmt(decisaoStats.totalPendente)}</p></CardContent></Card>
+              <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><AlertTriangle className="h-3 w-3 text-destructive" /> Atrasado</CardTitle></CardHeader><CardContent><p className="text-lg font-bold text-destructive">{fmt(decisaoStats.totalAtrasado)}</p></CardContent></Card>
+            </div>
+
+            <div className="flex flex-wrap gap-3 items-end mb-4">
+              <div>
+                <Label className="text-xs">Status</Label>
+                <Select value={filterDecisaoStatus} onValueChange={setFilterDecisaoStatus}>
+                  <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Todos">Todos</SelectItem>
+                    {STATUS_DECISAO.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1" />
+              {podeCriar && <Button onClick={() => { setDecisaoForm(emptyDecisao); setDecisaoEditId(null); setShowDecisaoForm(true); }} className="gap-2"><Plus className="h-4 w-4" /> Nova Decisão / Acordo</Button>}
+            </div>
+
+            <div className="rounded-md border overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Processo</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Patrono Autor</TableHead>
+                    <TableHead className="text-right">Valor Total</TableHead>
+                    <TableHead className="text-center">Parcelas</TableHead>
+                    <TableHead className="text-right">Pago</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {decisoesFiltradas.length === 0 && (
+                    <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma decisão registrada</TableCell></TableRow>
+                  )}
+                  {decisoesFiltradas.map(d => {
+                    const ps = parcelasComStatus.filter(x => x.decisao_id === d.id);
+                    const pagas = ps.filter(p => p.status === "Pago");
+                    const totalPago = pagas.reduce((s, p) => s + (p.valor_pago ?? p.valor), 0);
+                    const corStatus = d.status === "Quitado" ? "bg-green-600 text-white" : d.status === "Inadimplente" ? "bg-destructive text-destructive-foreground" : d.status === "Cancelado" ? "bg-muted text-muted-foreground" : "bg-primary";
+                    return (
+                      <TableRow key={d.id}>
+                        <TableCell className="font-medium">{d.processo_numero}</TableCell>
+                        <TableCell><Badge variant="outline">{d.tipo}</Badge></TableCell>
+                        <TableCell>{d.data_decisao ? new Date(d.data_decisao + "T12:00:00").toLocaleDateString("pt-BR") : "-"}</TableCell>
+                        <TableCell className="text-xs">{d.patrono_nome || "-"}{d.patrono_oab ? ` (${d.patrono_oab})` : ""}</TableCell>
+                        <TableCell className="text-right">{fmt(d.valor_total)}</TableCell>
+                        <TableCell className="text-center">{pagas.length}/{ps.length || d.qtd_parcelas}</TableCell>
+                        <TableCell className="text-right text-green-600">{fmt(totalPago)}</TableCell>
+                        <TableCell><Badge className={corStatus}>{d.status}</Badge></TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex gap-1 justify-end">
+                            <Button variant="ghost" size="icon" onClick={() => setViewDecisao(d)}><Eye className="h-4 w-4" /></Button>
+                            {podeEditar && <Button variant="ghost" size="icon" onClick={() => { setDecisaoForm({ ...d }); setDecisaoEditId(d.id); setShowDecisaoForm(true); }}><Edit className="h-4 w-4" /></Button>}
+                            {podeExcluir && <Button variant="ghost" size="icon" onClick={() => setDecisaoDeleteId(d.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Programação geral de parcelas */}
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold mb-2 flex items-center gap-1"><CalendarCheck className="h-4 w-4" /> Programação de Parcelas</h3>
+              <div className="rounded-md border overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Processo</TableHead>
+                      <TableHead className="text-center">Parc.</TableHead>
+                      <TableHead>Vencimento</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Pagamento</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {parcelasComStatus.length === 0 && (
+                      <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhuma parcela programada</TableCell></TableRow>
+                    )}
+                    {parcelasComStatus.map(p => {
+                      const dec = decisoes.find(d => d.id === p.decisao_id);
+                      const cor = p.status === "Pago" ? "bg-green-600 text-white" : p.status === "Atrasado" ? "bg-destructive text-destructive-foreground" : p.status === "Cancelado" ? "bg-muted text-muted-foreground" : "bg-yellow-500 text-white";
+                      return (
+                        <TableRow key={p.id}>
+                          <TableCell className="text-xs font-medium">{dec?.processo_numero || "-"}</TableCell>
+                          <TableCell className="text-center">{p.numero}</TableCell>
+                          <TableCell>{p.data_vencimento ? new Date(p.data_vencimento + "T12:00:00").toLocaleDateString("pt-BR") : "-"}</TableCell>
+                          <TableCell className="text-right">{fmt(p.valor)}</TableCell>
+                          <TableCell><Badge className={cor}>{p.status}</Badge></TableCell>
+                          <TableCell className="text-xs">
+                            {p.data_pagamento ? `${new Date(p.data_pagamento + "T12:00:00").toLocaleDateString("pt-BR")} - ${fmt(p.valor_pago ?? p.valor)}` : "-"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex gap-1 justify-end">
+                              {p.status !== "Pago" && p.status !== "Cancelado" && podeEditar && (
+                                <Button variant="ghost" size="icon" title="Registrar pagamento" onClick={() => openPagarParcela(p)}>
+                                  <CreditCard className="h-4 w-4 text-green-600" />
+                                </Button>
+                              )}
+                              {p.status !== "Cancelado" && podeEditar && (
+                                <Button variant="ghost" size="icon" title="Cancelar parcela" onClick={() => handleCancelarParcela(p)}>
+                                  <X className="h-4 w-4 text-destructive" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
+
+        {/* ============ FORM DECISÃO ============ */}
+        <Dialog open={showDecisaoForm} onOpenChange={v => { if (!v) { setShowDecisaoForm(false); setDecisaoEditId(null); } }}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader><DialogTitle>{decisaoEditId ? "Editar Decisão / Acordo" : "Nova Decisão / Acordo"}</DialogTitle></DialogHeader>
+            <div className="space-y-4">
+              {/* Dados da decisão */}
+              <div>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Dados da Decisão</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="md:col-span-2">
+                    <Label>Processo *</Label>
+                    <Select value={decisaoForm.processo_id} onValueChange={v => {
+                      const proc = processos.find(p => p.id === v);
+                      setDecisaoForm({ ...decisaoForm, processo_id: v, processo_numero: proc?.numero_processo || "", patrono_nome: decisaoForm.patrono_nome || proc?.advogado_autor || "" });
+                    }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o processo" /></SelectTrigger>
+                      <SelectContent>
+                        {processos.map(p => <SelectItem key={p.id} value={p.id}>{p.numero_processo} - {p.autor_nome}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Tipo</Label>
+                    <Select value={decisaoForm.tipo} onValueChange={v => setDecisaoForm({ ...decisaoForm, tipo: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{TIPO_DECISAO.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div><Label>Data</Label><Input type="date" value={decisaoForm.data_decisao || ""} onChange={e => setDecisaoForm({ ...decisaoForm, data_decisao: e.target.value || null })} /></div>
+                  <div><Label>Juiz</Label><Input value={decisaoForm.juiz} onChange={e => setDecisaoForm({ ...decisaoForm, juiz: e.target.value })} /></div>
+                  <div>
+                    <Label>Status</Label>
+                    <Select value={decisaoForm.status} onValueChange={v => setDecisaoForm({ ...decisaoForm, status: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{STATUS_DECISAO.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="md:col-span-3"><Label>Descrição / Termos</Label><Textarea value={decisaoForm.descricao} onChange={e => setDecisaoForm({ ...decisaoForm, descricao: e.target.value })} rows={2} /></div>
+                </div>
+              </div>
+
+              {/* Valores e parcelamento */}
+              <div>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Valores e Parcelamento</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div><Label>Valor Total *</Label><Input type="number" step="0.01" value={decisaoForm.valor_total} onChange={e => setDecisaoForm({ ...decisaoForm, valor_total: Number(e.target.value) })} /></div>
+                  <div><Label>Principal</Label><Input type="number" step="0.01" value={decisaoForm.valor_principal} onChange={e => setDecisaoForm({ ...decisaoForm, valor_principal: Number(e.target.value) })} /></div>
+                  <div><Label>Honorários</Label><Input type="number" step="0.01" value={decisaoForm.valor_honorarios} onChange={e => setDecisaoForm({ ...decisaoForm, valor_honorarios: Number(e.target.value) })} /></div>
+                  <div><Label>Custas</Label><Input type="number" step="0.01" value={decisaoForm.valor_custas} onChange={e => setDecisaoForm({ ...decisaoForm, valor_custas: Number(e.target.value) })} /></div>
+                  <div><Label>Qtd Parcelas</Label><Input type="number" min={1} value={decisaoForm.qtd_parcelas} disabled={!!decisaoEditId} onChange={e => setDecisaoForm({ ...decisaoForm, qtd_parcelas: Math.max(1, Number(e.target.value)) })} /></div>
+                  <div><Label>Primeiro Vencimento</Label><Input type="date" value={decisaoForm.primeiro_vencimento || ""} disabled={!!decisaoEditId} onChange={e => setDecisaoForm({ ...decisaoForm, primeiro_vencimento: e.target.value || null })} /></div>
+                </div>
+                {decisaoEditId && <p className="text-xs text-muted-foreground mt-1">Para alterar parcelas existentes, use a tabela de programação.</p>}
+              </div>
+
+              {/* Patrono */}
+              <div>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Patrono da Causa do Autor</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="md:col-span-2"><Label>Nome</Label><Input value={decisaoForm.patrono_nome} onChange={e => setDecisaoForm({ ...decisaoForm, patrono_nome: e.target.value })} /></div>
+                  <div><Label>OAB</Label><Input value={decisaoForm.patrono_oab} onChange={e => setDecisaoForm({ ...decisaoForm, patrono_oab: e.target.value })} placeholder="UF 000000" /></div>
+                  <div><Label>Telefone / WhatsApp</Label><Input value={decisaoForm.patrono_telefone} onChange={e => setDecisaoForm({ ...decisaoForm, patrono_telefone: e.target.value })} /></div>
+                  <div><Label>E-mail</Label><Input type="email" value={decisaoForm.patrono_email} onChange={e => setDecisaoForm({ ...decisaoForm, patrono_email: e.target.value })} /></div>
+                  <div><Label>Escritório</Label><Input value={decisaoForm.patrono_escritorio} onChange={e => setDecisaoForm({ ...decisaoForm, patrono_escritorio: e.target.value })} /></div>
+                </div>
+              </div>
+
+              {/* Bancários */}
+              <div>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Dados Bancários para Pagamento</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="md:col-span-2"><Label>Banco</Label><Input value={decisaoForm.banco} onChange={e => setDecisaoForm({ ...decisaoForm, banco: e.target.value })} /></div>
+                  <div><Label>Agência</Label><Input value={decisaoForm.agencia} onChange={e => setDecisaoForm({ ...decisaoForm, agencia: e.target.value })} /></div>
+                  <div><Label>Conta</Label><Input value={decisaoForm.conta} onChange={e => setDecisaoForm({ ...decisaoForm, conta: e.target.value })} /></div>
+                  <div>
+                    <Label>Tipo de Conta</Label>
+                    <Select value={decisaoForm.tipo_conta} onValueChange={v => setDecisaoForm({ ...decisaoForm, tipo_conta: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{TIPO_CONTA.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Tipo PIX</Label>
+                    <Select value={decisaoForm.pix_tipo} onValueChange={v => setDecisaoForm({ ...decisaoForm, pix_tipo: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{TIPO_PIX.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="md:col-span-2"><Label>Chave PIX</Label><Input value={decisaoForm.pix_chave} onChange={e => setDecisaoForm({ ...decisaoForm, pix_chave: e.target.value })} /></div>
+                  <div className="md:col-span-2"><Label>Titular</Label><Input value={decisaoForm.titular_nome} onChange={e => setDecisaoForm({ ...decisaoForm, titular_nome: e.target.value })} /></div>
+                  <div className="md:col-span-2"><Label>CPF / CNPJ do Titular</Label><Input value={decisaoForm.titular_documento} onChange={e => setDecisaoForm({ ...decisaoForm, titular_documento: e.target.value })} /></div>
+                </div>
+              </div>
+
+              <div><Label>Observações</Label><Textarea value={decisaoForm.observacoes} onChange={e => setDecisaoForm({ ...decisaoForm, observacoes: e.target.value })} rows={2} /></div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => { setShowDecisaoForm(false); setDecisaoEditId(null); }}>Cancelar</Button>
+              <Button onClick={handleSaveDecisao}>{decisaoEditId ? "Salvar" : "Cadastrar e Gerar Parcelas"}</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* ============ VIEW DECISÃO ============ */}
+        <Dialog open={!!viewDecisao} onOpenChange={() => setViewDecisao(null)}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            {viewDecisao && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Banknote className="h-5 w-5" /> {viewDecisao.tipo} - Processo {viewDecisao.processo_numero}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                  <Card className="p-3"><p className="text-xs text-muted-foreground">Valor Total</p><p className="font-bold">{fmt(viewDecisao.valor_total)}</p></Card>
+                  <Card className="p-3"><p className="text-xs text-muted-foreground">Principal</p><p className="font-bold">{fmt(viewDecisao.valor_principal)}</p></Card>
+                  <Card className="p-3"><p className="text-xs text-muted-foreground">Honorários</p><p className="font-bold">{fmt(viewDecisao.valor_honorarios)}</p></Card>
+                  <Card className="p-3"><p className="text-xs text-muted-foreground">Custas</p><p className="font-bold">{fmt(viewDecisao.valor_custas)}</p></Card>
+                </div>
+                {viewDecisao.descricao && (
+                  <div className="mt-3"><p className="text-xs text-muted-foreground mb-1">Descrição</p><p className="text-sm bg-muted p-2 rounded">{viewDecisao.descricao}</p></div>
+                )}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm mt-3">
+                  <div><span className="text-muted-foreground">Juiz:</span> {viewDecisao.juiz || "-"}</div>
+                  <div><span className="text-muted-foreground">Data:</span> {viewDecisao.data_decisao || "-"}</div>
+                  <div><span className="text-muted-foreground">Status:</span> {viewDecisao.status}</div>
+                </div>
+
+                <div className="mt-4">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Patrono do Autor</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                    <div><span className="text-muted-foreground">Nome:</span> {viewDecisao.patrono_nome || "-"}</div>
+                    <div><span className="text-muted-foreground">OAB:</span> {viewDecisao.patrono_oab || "-"}</div>
+                    <div><span className="text-muted-foreground">Escritório:</span> {viewDecisao.patrono_escritorio || "-"}</div>
+                    <div><span className="text-muted-foreground">Telefone:</span> {viewDecisao.patrono_telefone || "-"}</div>
+                    <div><span className="text-muted-foreground">E-mail:</span> {viewDecisao.patrono_email || "-"}</div>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Dados Bancários</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                    <div><span className="text-muted-foreground">Banco:</span> {viewDecisao.banco || "-"}</div>
+                    <div><span className="text-muted-foreground">Agência:</span> {viewDecisao.agencia || "-"}</div>
+                    <div><span className="text-muted-foreground">Conta:</span> {viewDecisao.conta || "-"} ({viewDecisao.tipo_conta})</div>
+                    <div><span className="text-muted-foreground">PIX:</span> {viewDecisao.pix_chave ? `${viewDecisao.pix_tipo} - ${viewDecisao.pix_chave}` : "-"}</div>
+                    <div><span className="text-muted-foreground">Titular:</span> {viewDecisao.titular_nome || "-"}</div>
+                    <div><span className="text-muted-foreground">CPF/CNPJ:</span> {viewDecisao.titular_documento || "-"}</div>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Parcelas</h4>
+                  <div className="rounded-md border overflow-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-center">#</TableHead>
+                          <TableHead>Vencimento</TableHead>
+                          <TableHead className="text-right">Valor</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Pagamento</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {parcelasComStatus.filter(p => p.decisao_id === viewDecisao.id).map(p => (
+                          <TableRow key={p.id}>
+                            <TableCell className="text-center">{p.numero}</TableCell>
+                            <TableCell>{p.data_vencimento ? new Date(p.data_vencimento + "T12:00:00").toLocaleDateString("pt-BR") : "-"}</TableCell>
+                            <TableCell className="text-right">{fmt(p.valor)}</TableCell>
+                            <TableCell><Badge variant="outline">{p.status}</Badge></TableCell>
+                            <TableCell className="text-xs">{p.data_pagamento ? `${new Date(p.data_pagamento + "T12:00:00").toLocaleDateString("pt-BR")} ${p.forma_pagamento ? `(${p.forma_pagamento})` : ""}` : "-"}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* ============ REGISTRAR PAGAMENTO ============ */}
+        <Dialog open={!!parcelaPagar} onOpenChange={() => setParcelaPagar(null)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader><DialogTitle>Registrar Pagamento - Parcela {parcelaPagar?.numero}</DialogTitle></DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div><Label>Data do Pagamento *</Label><Input type="date" value={pagamentoForm.data_pagamento} onChange={e => setPagamentoForm({ ...pagamentoForm, data_pagamento: e.target.value })} /></div>
+              <div><Label>Valor Pago *</Label><Input type="number" step="0.01" value={pagamentoForm.valor_pago} onChange={e => setPagamentoForm({ ...pagamentoForm, valor_pago: Number(e.target.value) })} /></div>
+              <div className="md:col-span-2">
+                <Label>Forma</Label>
+                <Select value={pagamentoForm.forma_pagamento} onValueChange={v => setPagamentoForm({ ...pagamentoForm, forma_pagamento: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PIX">PIX</SelectItem>
+                    <SelectItem value="TED">TED</SelectItem>
+                    <SelectItem value="DOC">DOC</SelectItem>
+                    <SelectItem value="Boleto">Boleto</SelectItem>
+                    <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="Outros">Outros</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-2"><Label>URL do Comprovante</Label><Input value={pagamentoForm.comprovante_url} onChange={e => setPagamentoForm({ ...pagamentoForm, comprovante_url: e.target.value })} placeholder="Link/URL do recibo" /></div>
+              <div className="md:col-span-2"><Label>Observações</Label><Textarea value={pagamentoForm.observacoes} onChange={e => setPagamentoForm({ ...pagamentoForm, observacoes: e.target.value })} rows={2} /></div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => setParcelaPagar(null)}>Cancelar</Button>
+              <Button onClick={handleConfirmarPagamento} className="gap-2"><CheckCircle2 className="h-4 w-4" /> Confirmar Pagamento</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete decisão */}
+        <AlertDialog open={!!decisaoDeleteId} onOpenChange={() => setDecisaoDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir decisão / acordo?</AlertDialogTitle>
+              <AlertDialogDescription>Todas as parcelas vinculadas serão removidas. Esta ação não pode ser desfeita.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button variant="outline" onClick={() => setDecisaoDeleteId(null)}>Cancelar</Button>
+              <Button variant="destructive" onClick={handleDeleteDecisao}>Excluir</Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
 
         {/* ============ FORM PROCESSO ============ */}
         <Dialog open={showForm} onOpenChange={setShowForm}>
