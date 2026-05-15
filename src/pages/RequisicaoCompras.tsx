@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from "react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras, GrauUrgencia, ItemRequisicaoCompras, AnexoRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
+import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
 import { useFabricantes } from "@/contexts/FabricantesContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
