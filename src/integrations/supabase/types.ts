@@ -2007,6 +2007,7 @@ export type Database = {
           fornecedor_id: string | null
           fornecedor_nome: string | null
           id: string
+          juridico_parcela_id: string | null
           observacao: string | null
           origem: string | null
           parcela_num: number
@@ -2032,6 +2033,7 @@ export type Database = {
           fornecedor_id?: string | null
           fornecedor_nome?: string | null
           id?: string
+          juridico_parcela_id?: string | null
           observacao?: string | null
           origem?: string | null
           parcela_num?: number
@@ -2057,6 +2059,7 @@ export type Database = {
           fornecedor_id?: string | null
           fornecedor_nome?: string | null
           id?: string
+          juridico_parcela_id?: string | null
           observacao?: string | null
           origem?: string | null
           parcela_num?: number
