@@ -254,7 +254,7 @@ export default function JuridicoPage() {
       banco: r.banco ?? "", agencia: r.agencia ?? "", conta: r.conta ?? "",
       tipo_conta: r.tipo_conta ?? "Corrente", pix_chave: r.pix_chave ?? "", pix_tipo: r.pix_tipo ?? "CPF",
       titular_nome: r.titular_nome ?? "", titular_documento: r.titular_documento ?? "",
-      observacoes: r.observacoes ?? "",
+      observacoes: r.observacoes ?? "", anexos: Array.isArray(r.anexos) ? r.anexos : [],
     })));
   }, []);
 
