@@ -1151,6 +1151,53 @@ export default function JuridicoPage() {
               </div>
 
               <div><Label>Observações</Label><Textarea value={decisaoForm.observacoes} onChange={e => setDecisaoForm({ ...decisaoForm, observacoes: e.target.value })} rows={2} /></div>
+
+              {/* Anexos (até 3, máx. 10MB cada) */}
+              <div>
+                <Label>Anexos <span className="text-xs text-muted-foreground font-normal">(até 3 arquivos de no máximo 10MB cada)</span></Label>
+                <div className="mt-1 space-y-2">
+                  {decisaoForm.anexos.length > 0 && (
+                    <div className="space-y-1">
+                      {decisaoForm.anexos.map((a, idx) => (
+                        <div key={idx} className="flex items-center gap-2 p-2 rounded border bg-muted/50 text-sm">
+                          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <span className="flex-1 truncate">{a.nome}</span>
+                          <span className="text-xs text-muted-foreground">{(a.tamanho / 1024 / 1024).toFixed(2)} MB</span>
+                          <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => {
+                            const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/processos-trabalhistas-anexos/${a.path}`;
+                            window.open(url, "_blank");
+                          }}><Download className="h-3 w-3" /></Button>
+                          <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => {
+                            setDecisaoForm({ ...decisaoForm, anexos: decisaoForm.anexos.filter((_, i) => i !== idx) });
+                          }}><X className="h-3 w-3 text-destructive" /></Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {decisaoForm.anexos.length < 3 ? (
+                    <label className="flex items-center gap-2 cursor-pointer text-sm text-primary hover:underline">
+                      <Upload className="h-4 w-4" />
+                      <span>Adicionar arquivo ({decisaoForm.anexos.length}/3)</span>
+                      <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 10 * 1024 * 1024) { toast.error("Arquivo muito grande (máx. 10MB)"); e.target.value = ""; return; }
+                        if (decisaoForm.anexos.length >= 3) { toast.error("Limite de 3 anexos atingido"); e.target.value = ""; return; }
+                        const ts = Date.now();
+                        const path = `decisoes/${decisaoEditId || "novo"}/${ts}_${file.name}`;
+                        toast.info("Enviando arquivo...");
+                        const { error } = await supabase.storage.from("processos-trabalhistas-anexos").upload(path, file);
+                        if (error) { toast.error("Erro ao enviar arquivo"); console.error(error); return; }
+                        setDecisaoForm(prev => ({ ...prev, anexos: [...prev.anexos, { nome: file.name, path, tamanho: file.size }] }));
+                        toast.success("Arquivo anexado");
+                        e.target.value = "";
+                      }} />
+                    </label>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Limite de 3 anexos atingido. Remova um para adicionar outro.</p>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="flex justify-end gap-2 mt-4">
               <Button variant="outline" onClick={() => { setShowDecisaoForm(false); setDecisaoEditId(null); }}>Cancelar</Button>
