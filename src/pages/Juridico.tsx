@@ -8,6 +8,8 @@ import {
   gerarPdfContatos, gerarExcelContatos,
   gerarPdfProvisao, gerarExcelProvisao,
   gerarPdfSintese, gerarExcelSintese,
+  gerarPdfDecisoes, gerarExcelDecisoes,
+  gerarPdfParcelas, gerarExcelParcelas,
 } from "@/lib/gerarRelatoriosJuridico";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
