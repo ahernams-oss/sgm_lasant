@@ -423,7 +423,17 @@ export default function RequisicaoComprasPage() {
 
             <TabsContent value="itens" className="space-y-4 mt-4">
               <Card>
-                <CardHeader><CardTitle className="text-base">Adicionar Item</CardTitle></CardHeader>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center justify-between gap-2">
+                    <span>Adicionar Item</span>
+                    {grupoTravado && (
+                      <Badge variant="secondary" className="font-normal">Categoria travada: {grupoTravado}</Badge>
+                    )}
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Uma requisição só pode conter itens da mesma categoria (primeiro nível do código, ex.: 01, 02). Para outra categoria, crie uma nova requisição.
+                  </p>
+                </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
