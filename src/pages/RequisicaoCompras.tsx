@@ -178,9 +178,23 @@ export default function RequisicaoComprasPage() {
     reader.readAsDataURL(file);
   };
 
+  const grupoTravado = useMemo(() => {
+    for (const it of itens) {
+      const g = getGrupoCodigo(it.materialId);
+      if (g) return g;
+    }
+    return "";
+  }, [itens, materiais]);
+
   const addItem = () => {
     if (!itemDescricao.trim()) { toast({ title: "Descrição do item é obrigatória", variant: "destructive" }); return; }
     if (!itemQtd || Number(itemQtd) <= 0) { toast({ title: "Quantidade deve ser maior que zero", variant: "destructive" }); return; }
+    if (!itemMaterialId) { toast({ title: "Selecione um material/serviço cadastrado", description: "É necessário selecionar um item do catálogo para validar a categoria.", variant: "destructive" }); return; }
+    const grupoItem = getGrupoCodigo(itemMaterialId);
+    if (grupoTravado && grupoItem && grupoItem !== grupoTravado) {
+      toast({ title: "Categoria divergente", description: `Esta requisição só aceita itens da categoria ${grupoTravado}. Crie uma nova requisição para itens da categoria ${grupoItem}.`, variant: "destructive" });
+      return;
+    }
     setItens(prev => [...prev, {
       id: crypto.randomUUID(), materialId: itemMaterialId, descricao: itemDescricao,
       especificacaoTecnica: itemEspec, observacao: itemObs, quantidade: Number(itemQtd), unidadeMedida: itemUnidade,
