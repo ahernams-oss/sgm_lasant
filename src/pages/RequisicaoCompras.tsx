@@ -52,6 +52,12 @@ export default function RequisicaoComprasPage() {
     const cat = m?.categoriaId ? getCodigoCompleto(m.categoriaId) : "";
     return cat ? `${cat}.${m.codigo}` : m.codigo;
   };
+  const getGrupoCodigo = (materialId: string): string => {
+    const m = materiais.find(x => x.id === materialId);
+    if (!m?.categoriaId) return "";
+    const full = getCodigoCompleto(m.categoriaId);
+    return full.split(".")[0] || "";
+  };
   const { fabricantes } = useFabricantes();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
@@ -172,9 +178,23 @@ export default function RequisicaoComprasPage() {
     reader.readAsDataURL(file);
   };
 
+  const grupoTravado = useMemo(() => {
+    for (const it of itens) {
+      const g = getGrupoCodigo(it.materialId);
+      if (g) return g;
+    }
+    return "";
+  }, [itens, materiais]);
+
   const addItem = () => {
     if (!itemDescricao.trim()) { toast({ title: "Descrição do item é obrigatória", variant: "destructive" }); return; }
     if (!itemQtd || Number(itemQtd) <= 0) { toast({ title: "Quantidade deve ser maior que zero", variant: "destructive" }); return; }
+    if (!itemMaterialId) { toast({ title: "Selecione um material/serviço cadastrado", description: "É necessário selecionar um item do catálogo para validar a categoria.", variant: "destructive" }); return; }
+    const grupoItem = getGrupoCodigo(itemMaterialId);
+    if (grupoTravado && grupoItem && grupoItem !== grupoTravado) {
+      toast({ title: "Categoria divergente", description: `Esta requisição só aceita itens da categoria ${grupoTravado}. Crie uma nova requisição para itens da categoria ${grupoItem}.`, variant: "destructive" });
+      return;
+    }
     setItens(prev => [...prev, {
       id: crypto.randomUUID(), materialId: itemMaterialId, descricao: itemDescricao,
       especificacaoTecnica: itemEspec, observacao: itemObs, quantidade: Number(itemQtd), unidadeMedida: itemUnidade,
@@ -403,7 +423,17 @@ export default function RequisicaoComprasPage() {
 
             <TabsContent value="itens" className="space-y-4 mt-4">
               <Card>
-                <CardHeader><CardTitle className="text-base">Adicionar Item</CardTitle></CardHeader>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center justify-between gap-2">
+                    <span>Adicionar Item</span>
+                    {grupoTravado && (
+                      <Badge variant="secondary" className="font-normal">Categoria travada: {grupoTravado}</Badge>
+                    )}
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Uma requisição só pode conter itens da mesma categoria (primeiro nível do código, ex.: 01, 02). Para outra categoria, crie uma nova requisição.
+                  </p>
+                </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -423,7 +453,9 @@ export default function RequisicaoComprasPage() {
                             <CommandList>
                               <CommandEmpty>Nenhum material encontrado.</CommandEmpty>
                               <CommandGroup>
-                                {materiais.map(m => (
+                                {materiais
+                                  .filter(m => !grupoTravado || (m.categoriaId && getCodigoCompleto(m.categoriaId).split(".")[0] === grupoTravado))
+                                  .map(m => (
                                   <CommandItem
                                     key={m.id}
                                     value={`${codigoComposto(m)} ${m.descricao}`}
