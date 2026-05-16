@@ -443,7 +443,9 @@ export default function RequisicaoComprasPage() {
                             <CommandList>
                               <CommandEmpty>Nenhum material encontrado.</CommandEmpty>
                               <CommandGroup>
-                                {materiais.map(m => (
+                                {materiais
+                                  .filter(m => !grupoTravado || (m.categoriaId && getCodigoCompleto(m.categoriaId).split(".")[0] === grupoTravado))
+                                  .map(m => (
                                   <CommandItem
                                     key={m.id}
                                     value={`${codigoComposto(m)} ${m.descricao}`}
