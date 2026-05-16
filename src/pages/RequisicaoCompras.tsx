@@ -52,6 +52,12 @@ export default function RequisicaoComprasPage() {
     const cat = m?.categoriaId ? getCodigoCompleto(m.categoriaId) : "";
     return cat ? `${cat}.${m.codigo}` : m.codigo;
   };
+  const getGrupoCodigo = (materialId: string): string => {
+    const m = materiais.find(x => x.id === materialId);
+    if (!m?.categoriaId) return "";
+    const full = getCodigoCompleto(m.categoriaId);
+    return full.split(".")[0] || "";
+  };
   const { fabricantes } = useFabricantes();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
