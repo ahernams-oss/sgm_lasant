@@ -22,6 +22,7 @@ export interface RdoAnexo {
   nome: string;
   url: string;
   tipo: string;
+  descricao?: string;
 }
 
 export interface Rdo {
