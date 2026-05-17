@@ -200,7 +200,7 @@ export default function RdoPage() {
   // RDOs filtrados da obra selecionada (dentro do dialog)
   const rdosDaObra = useMemo(() => {
     if (!selectedObra) return [];
-    return rdos
+    return (rdos || [])
       .filter((r) => r.obra_id === selectedObra.id ||
         (!r.obra_id && r.cliente_id === selectedObra.cliente_id && (r.obra || "").toLowerCase().trim() === (selectedObra.nome || "").toLowerCase().trim()))
       .filter((r) => !obraRdoSearch ||
