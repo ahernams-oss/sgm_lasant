@@ -421,8 +421,41 @@ export default function RdoPage() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Obra *</Label>
-                  <Input value={form.obra || ""} onChange={(e) => setForm({ ...form, obra: e.target.value })} />
+                  <div className="flex items-center justify-between">
+                    <Label>Obra *</Label>
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0 text-xs"
+                      onClick={() => {
+                        setEditingObra(null);
+                        setObraForm({
+                          cliente_id: form.cliente_id || "",
+                          cliente_nome: form.cliente_nome || "",
+                          nome: "",
+                          status: "Em Andamento",
+                        });
+                        setObrasDialogOpen(true);
+                      }}
+                    >
+                      <Settings className="h-3 w-3 mr-1" /> Gerenciar Obras
+                    </Button>
+                  </div>
+                  <Select
+                    value={form.obra || ""}
+                    onValueChange={(v) => setForm({ ...form, obra: v })}
+                    disabled={!form.cliente_id}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={!form.cliente_id ? "Selecione o cliente primeiro" : obrasDoCliente.length === 0 ? "Nenhuma obra cadastrada — clique em Gerenciar Obras" : "Selecione a obra"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {obrasDoCliente.map((o) => (
+                        <SelectItem key={o.id} value={o.nome}>{o.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label>Responsável Técnico</Label>
