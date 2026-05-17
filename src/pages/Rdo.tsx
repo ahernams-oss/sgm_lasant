@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Edit, Trash2, FileDown, Upload, X, Eraser, FileText, Image as ImageIcon } from "lucide-react";
+import { Search, Plus, Edit, Trash2, FileDown, Upload, X, Eraser, FileText, Image as ImageIcon, Building2, Settings } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
