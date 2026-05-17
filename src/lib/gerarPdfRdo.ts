@@ -262,7 +262,8 @@ export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], inc
       const gap = 4;
       const imgW = (cw - gap) / cols;
       const imgH = 60;
-      const cellH = imgH + 8;
+      const descH = 5; // espaço para descrição no topo
+      const cellH = descH + imgH + 8;
       let col = 0;
 
       for (const anx of imagens) {
@@ -275,16 +276,24 @@ export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], inc
         }
         const x = ml + col * (imgW + gap);
         try {
+          // Descrição no topo da foto
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(8);
+          doc.setTextColor(40, 40, 40);
+          const descRaw = (anx.descricao || "").trim() || "(sem descrição)";
+          const descLine = descRaw.length > 80 ? descRaw.slice(0, 77) + "..." : descRaw;
+          doc.text(descLine, x + imgW / 2, yi + 3.5, { align: "center", maxWidth: imgW - 2 });
+
           const fmt = /png/i.test(anx.tipo || anx.nome) ? "PNG" : "JPEG";
-          doc.addImage(data, fmt, x, yi, imgW, imgH);
+          doc.addImage(data, fmt, x, yi + descH, imgW, imgH);
           doc.setDrawColor(...BORDER);
           doc.setLineWidth(0.2);
-          doc.rect(x, yi, imgW, imgH);
+          doc.rect(x, yi + descH, imgW, imgH);
           doc.setFont("helvetica", "normal");
           doc.setFontSize(7);
           doc.setTextColor(80, 80, 80);
           const nome = (anx.nome || "").length > 60 ? anx.nome.slice(0, 57) + "..." : (anx.nome || "");
-          doc.text(nome, x + imgW / 2, yi + imgH + 4, { align: "center" });
+          doc.text(nome, x + imgW / 2, yi + descH + imgH + 4, { align: "center" });
         } catch {}
         col++;
         if (col >= cols) {
