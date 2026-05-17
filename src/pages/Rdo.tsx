@@ -554,20 +554,37 @@ export default function RdoPage() {
             </TabsContent>
 
             <TabsContent value="anexos" className="space-y-3 mt-4">
-              <div>
-                <Label>Adicionar Fotos / Documentos</Label>
-                <Input type="file" multiple accept="image/*,application/pdf" disabled={uploading} onChange={(e) => handleUpload(e.target.files)} />
-                {uploading && <p className="text-xs text-muted-foreground mt-1">Enviando...</p>}
+              <div className="flex items-end justify-between gap-3 flex-wrap">
+                <div className="flex-1 min-w-[260px]">
+                  <Label>Adicionar Fotos / Documentos</Label>
+                  <Input
+                    type="file"
+                    multiple
+                    accept="image/*,application/pdf"
+                    disabled={uploading || (form.anexos || []).length >= 30}
+                    onChange={(e) => { handleUpload(e.target.files); e.target.value = ""; }}
+                  />
+                  {uploading && <p className="text-xs text-muted-foreground mt-1">Enviando...</p>}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {(form.anexos || []).length}/30 anexos · máx. 5MB por imagem
+                </p>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {(form.anexos || []).map((a, i) => (
-                  <div key={i} className="border rounded-md p-2 relative">
+                  <div key={i} className="border rounded-md p-2 relative space-y-2">
                     {a.tipo?.startsWith("image/") ? (
-                      <img src={a.url} alt={a.nome} className="w-full h-24 object-cover rounded" />
+                      <img src={a.url} alt={a.nome} className="w-full h-32 object-cover rounded" />
                     ) : (
-                      <div className="h-24 flex items-center justify-center bg-muted rounded text-xs text-center px-2">{a.nome}</div>
+                      <div className="h-32 flex items-center justify-center bg-muted rounded text-xs text-center px-2">{a.nome}</div>
                     )}
-                    <p className="text-xs truncate mt-1">{a.nome}</p>
+                    <p className="text-xs truncate">{a.nome}</p>
+                    <Input
+                      placeholder="Descrição da imagem"
+                      value={a.descricao || ""}
+                      onChange={(e) => updateAnexoDescricao(i, e.target.value)}
+                      className="h-8 text-xs"
+                    />
                     <Button size="icon" variant="ghost" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeAnexo(i)}>
                       <X className="h-3 w-3" />
                     </Button>
