@@ -297,10 +297,15 @@ export default function RdoPage() {
     setSaving(true);
     try {
       const payload = { ...form };
+      let ok = false;
       if (editing) {
-        await updateRdo(editing.id, payload);
+        ok = await updateRdo(editing.id, payload);
       } else {
-        await addRdo(payload);
+        ok = !!(await addRdo(payload));
+      }
+      if (!ok) {
+        toast.error("Erro ao salvar RDO. Tente novamente.");
+        return;
       }
       setDialogOpen(false);
       setForm(emptyForm());
