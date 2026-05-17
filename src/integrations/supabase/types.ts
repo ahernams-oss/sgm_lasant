@@ -3611,6 +3611,57 @@ export type Database = {
         }
         Relationships: []
       }
+      obras: {
+        Row: {
+          cliente_id: string
+          cliente_nome: string
+          created_at: string
+          data_inicio: string | null
+          data_prevista_termino: string | null
+          descricao: string | null
+          endereco: string | null
+          id: string
+          nome: string
+          numero: number
+          observacoes: string | null
+          responsavel: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          cliente_id?: string
+          cliente_nome?: string
+          created_at?: string
+          data_inicio?: string | null
+          data_prevista_termino?: string | null
+          descricao?: string | null
+          endereco?: string | null
+          id?: string
+          nome?: string
+          numero?: number
+          observacoes?: string | null
+          responsavel?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          cliente_nome?: string
+          created_at?: string
+          data_inicio?: string | null
+          data_prevista_termino?: string | null
+          descricao?: string | null
+          endereco?: string | null
+          id?: string
+          nome?: string
+          numero?: number
+          observacoes?: string | null
+          responsavel?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orcamentos: {
         Row: {
           anexos: Json
