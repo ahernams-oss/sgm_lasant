@@ -154,6 +154,9 @@ export default function RdoPage() {
   const { obras, add: addObra, update: updateObra, remove: removeObra } = useObras();
   const { tem } = usePermissao();
   const podeExcluir = tem("rdo.excluir");
+  const rdosList = rdos || [];
+  const clientesList = clientes || [];
+  const obrasList = obras || [];
 
   // Gerenciar Obras
   const [obrasDialogOpen, setObrasDialogOpen] = useState(false);
@@ -178,11 +181,11 @@ export default function RdoPage() {
   const [obraRdosOpen, setObraRdosOpen] = useState(false);
   const [obraRdoSearch, setObraRdoSearch] = useState("");
 
-  const clientesAtivos = useMemo(() => clientes.filter((c) => c.tipo === "Cliente"), [clientes]);
+  const clientesAtivos = useMemo(() => clientesList.filter((c) => c.tipo === "Cliente"), [clientesList]);
 
   // Filtros das OBRAS (tela principal)
   const obrasFiltradas = useMemo(() => {
-    return (obras || []).filter((o) => {
+    return obrasList.filter((o) => {
       const matchSearch = !search ||
         o.nome?.toLowerCase().includes(search.toLowerCase()) ||
         o.cliente_nome?.toLowerCase().includes(search.toLowerCase()) ||
@@ -191,7 +194,7 @@ export default function RdoPage() {
       const matchStatus = filterStatus === "Todos" || (o.status || "") === filterStatus;
       return matchSearch && matchCliente && matchStatus;
     });
-  }, [obras, search, filterCliente, filterStatus]);
+  }, [obrasList, search, filterCliente, filterStatus]);
 
   useEffect(() => { setPage(1); }, [search, filterCliente, filterStatus, pageSize]);
 
@@ -200,7 +203,7 @@ export default function RdoPage() {
   // RDOs filtrados da obra selecionada (dentro do dialog)
   const rdosDaObra = useMemo(() => {
     if (!selectedObra) return [];
-    return (rdos || [])
+    return rdosList
       .filter((r) => r.obra_id === selectedObra.id ||
         (!r.obra_id && r.cliente_id === selectedObra.cliente_id && (r.obra || "").toLowerCase().trim() === (selectedObra.nome || "").toLowerCase().trim()))
       .filter((r) => !obraRdoSearch ||
@@ -208,7 +211,7 @@ export default function RdoPage() {
         r.responsavel?.toLowerCase().includes(obraRdoSearch.toLowerCase()) ||
         (r.data_rdo || "").includes(obraRdoSearch))
       .sort((a, b) => (b.data_rdo || "").localeCompare(a.data_rdo || ""));
-  }, [rdos, selectedObra, obraRdoSearch]);
+  }, [rdosList, selectedObra, obraRdoSearch]);
 
   const openObraRdos = (o: ObraType) => {
     setSelectedObra(o);
@@ -236,11 +239,11 @@ export default function RdoPage() {
   };
 
   const onClienteChange = (id: string) => {
-    const c = clientes.find((x) => x.id === id);
+    const c = clientesList.find((x) => x.id === id);
     setForm((f) => ({ ...f, cliente_id: id, cliente_nome: c?.nome || "", obra: "" }));
   };
 
-  const obrasDoCliente = useMemo(() => (obras || []).filter((o) => o.cliente_id === (form.cliente_id || "")), [obras, form.cliente_id]);
+  const obrasDoCliente = useMemo(() => obrasList.filter((o) => o.cliente_id === (form.cliente_id || "")), [obrasList, form.cliente_id]);
 
   // Listas dinâmicas
   const addEfetivo = () => setForm((f) => ({ ...f, efetivo: [...(f.efetivo || []), { funcao: "", quantidade: 0, horas: 0 }] }));
@@ -302,7 +305,7 @@ export default function RdoPage() {
   };
 
   const onExportPdf = async (r: Rdo, incluirImagens = false) => {
-    const cliente = clientes.find((c) => c.id === r.cliente_id);
+    const cliente = clientesList.find((c) => c.id === r.cliente_id);
     const assinaturas = porRdo(r.id);
     await gerarPdfRdo({ rdo: r, empresa, cliente, assinaturas, incluirImagens });
   };
