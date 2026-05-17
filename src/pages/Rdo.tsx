@@ -208,7 +208,7 @@ export default function RdoPage() {
     setForm((f) => ({ ...f, cliente_id: id, cliente_nome: c?.nome || "", obra: "" }));
   };
 
-  const obrasDoCliente = useMemo(() => obrasPorCliente(form.cliente_id || ""), [obras, form.cliente_id, obrasPorCliente]);
+  const obrasDoCliente = useMemo(() => (obras || []).filter((o) => o.cliente_id === (form.cliente_id || "")), [obras, form.cliente_id]);
 
   // Listas dinâmicas
   const addEfetivo = () => setForm((f) => ({ ...f, efetivo: [...(f.efetivo || []), { funcao: "", quantidade: 0, horas: 0 }] }));
