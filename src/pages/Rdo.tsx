@@ -672,6 +672,142 @@ export default function RdoPage() {
           if (deleteId) { await deleteRdo(deleteId); setDeleteId(null); }
         }}
       />
+
+      {/* Gerenciar Obras */}
+      <Dialog open={obrasDialogOpen} onOpenChange={setObrasDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" /> Cadastro de Obras
+            </DialogTitle>
+          </DialogHeader>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">{editingObra ? "Editar Obra" : "Nova Obra"}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Cliente *</Label>
+                  <Select
+                    value={obraForm.cliente_id || ""}
+                    onValueChange={(id) => {
+                      const c = clientes.find((x) => x.id === id);
+                      setObraForm({ ...obraForm, cliente_id: id, cliente_nome: c?.nome || "" });
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
+                    <SelectContent>
+                      {clientesAtivos.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Nome da Obra *</Label>
+                  <Input value={obraForm.nome || ""} onChange={(e) => setObraForm({ ...obraForm, nome: e.target.value })} placeholder="Ex.: Edifício Central - Torre A" />
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <Select value={obraForm.status || "Em Andamento"} onValueChange={(v) => setObraForm({ ...obraForm, status: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+                      <SelectItem value="Paralisada">Paralisada</SelectItem>
+                      <SelectItem value="Concluída">Concluída</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Responsável</Label>
+                  <Input value={obraForm.responsavel || ""} onChange={(e) => setObraForm({ ...obraForm, responsavel: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Data de Início</Label>
+                  <Input type="date" value={obraForm.data_inicio || ""} onChange={(e) => setObraForm({ ...obraForm, data_inicio: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Previsão de Término</Label>
+                  <Input type="date" value={obraForm.data_prevista_termino || ""} onChange={(e) => setObraForm({ ...obraForm, data_prevista_termino: e.target.value })} />
+                </div>
+                <div className="col-span-2">
+                  <Label>Endereço</Label>
+                  <Input value={obraForm.endereco || ""} onChange={(e) => setObraForm({ ...obraForm, endereco: e.target.value })} />
+                </div>
+                <div className="col-span-2">
+                  <Label>Descrição</Label>
+                  <Textarea rows={2} value={obraForm.descricao || ""} onChange={(e) => setObraForm({ ...obraForm, descricao: e.target.value })} />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                {editingObra && (
+                  <Button variant="outline" onClick={() => { setEditingObra(null); setObraForm({ cliente_id: form.cliente_id || "", cliente_nome: form.cliente_nome || "", nome: "", status: "Em Andamento" }); }}>
+                    Cancelar Edição
+                  </Button>
+                )}
+                <Button
+                  onClick={async () => {
+                    if (!obraForm.cliente_id) { toast.error("Selecione o cliente."); return; }
+                    if (!obraForm.nome?.trim()) { toast.error("Informe o nome da obra."); return; }
+                    if (editingObra) {
+                      await updateObra(editingObra.id, obraForm);
+                    } else {
+                      await addObra(obraForm);
+                    }
+                    setEditingObra(null);
+                    setObraForm({ cliente_id: form.cliente_id || "", cliente_nome: form.cliente_nome || "", nome: "", status: "Em Andamento" });
+                  }}
+                >
+                  {editingObra ? "Atualizar Obra" : "Cadastrar Obra"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-3">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Obras Cadastradas</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nº</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Obra</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {obras.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-6 text-muted-foreground">Nenhuma obra cadastrada</TableCell></TableRow>
+                  ) : obras.map((o) => (
+                    <TableRow key={o.id}>
+                      <TableCell className="font-medium">{o.numero}</TableCell>
+                      <TableCell>{o.cliente_nome}</TableCell>
+                      <TableCell>{o.nome}</TableCell>
+                      <TableCell><Badge variant="outline">{o.status}</Badge></TableCell>
+                      <TableCell className="text-right space-x-1">
+                        <Button size="icon" variant="ghost" onClick={() => { setEditingObra(o); setObraForm(o); }} title="Editar">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" variant="ghost" onClick={async () => { if (confirm(`Excluir obra "${o.nome}"?`)) await removeObra(o.id); }} title="Excluir">
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end pt-2">
+            <Button variant="outline" onClick={() => setObrasDialogOpen(false)}>Fechar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
