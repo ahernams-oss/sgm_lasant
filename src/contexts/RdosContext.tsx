@@ -31,6 +31,7 @@ export interface Rdo {
   data_rdo: string;
   cliente_id: string;
   cliente_nome: string;
+  obra_id?: string | null;
   obra: string;
   responsavel: string;
   clima_manha: string;
