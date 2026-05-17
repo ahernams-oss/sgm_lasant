@@ -3392,6 +3392,42 @@ export type Database = {
         }
         Relationships: []
       }
+      login_auditoria: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          ip: string | null
+          motivo: string | null
+          nome: string | null
+          sucesso: boolean
+          user_agent: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          ip?: string | null
+          motivo?: string | null
+          nome?: string | null
+          sucesso: boolean
+          user_agent?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          ip?: string | null
+          motivo?: string | null
+          nome?: string | null
+          sucesso?: boolean
+          user_agent?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: []
+      }
       materiais_servicos: {
         Row: {
           categoria_id: string | null
