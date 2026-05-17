@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
-import { Shield, Trash2, Pencil, Eye, EyeOff, Search, KeyRound, AlertTriangle } from "lucide-react";
+import { Shield, Trash2, Pencil, Eye, EyeOff, Search, KeyRound, AlertTriangle, History, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
