@@ -5,6 +5,7 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRdoAssinaturas } from "@/contexts/RdoAssinaturasContext";
 import { useResponsaveisTecnicos } from "@/contexts/ResponsaveisTecnicosContext";
+import { useObras, Obra as ObraType } from "@/contexts/ObrasContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { AssinaturaEletronicaOficial } from "@/components/AssinaturaEletronicaOficial";
 import { Button } from "@/components/ui/button";
