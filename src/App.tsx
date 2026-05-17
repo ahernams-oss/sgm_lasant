@@ -98,6 +98,7 @@ import ChatDudaPage from "./pages/ChatDuda";
 import RdoPage from "./pages/Rdo.tsx";
 import { RdosProvider } from "@/contexts/RdosContext";
 import { RdoAssinaturasProvider } from "@/contexts/RdoAssinaturasContext";
+import { ObrasProvider } from "@/contexts/ObrasContext";
 import { OsAssinaturasProvider } from "@/contexts/OsAssinaturasContext";
 import { PcAssinaturasProvider } from "@/contexts/PcAssinaturasContext";
 import AssinarLoteOsPage from "./pages/AssinarLoteOs.tsx";
@@ -373,6 +374,7 @@ const App = () => (
     <ResponsaveisTecnicosProvider>
     <PlanosManutencaoProvider>
     <KnowledgeBaseProvider>
+    <ObrasProvider>
     <RdosProvider>
     <RdoAssinaturasProvider>
     <CronogramasProvider>
@@ -418,6 +420,7 @@ const App = () => (
     </CronogramasProvider>
     </RdoAssinaturasProvider>
     </RdosProvider>
+    </ObrasProvider>
     </KnowledgeBaseProvider>
     </PlanosManutencaoProvider>
     </ResponsaveisTecnicosProvider>
