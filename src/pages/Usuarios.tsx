@@ -59,6 +59,14 @@ const Usuarios = () => {
   const [searchClientes, setSearchClientes] = useState("");
   const [searchFornecedores, setSearchFornecedores] = useState("");
   const [auditoriaOpen, setAuditoriaOpen] = useState(false);
+  const [loginAuditOpen, setLoginAuditOpen] = useState(false);
+  const [loginAudit, setLoginAudit] = useState<any[]>([]);
+  const [loginAuditLoading, setLoginAuditLoading] = useState(false);
+  const [laSearch, setLaSearch] = useState("");
+  const [laFilter, setLaFilter] = useState<"todos" | "sucesso" | "falha">("todos");
+  const [laDias, setLaDias] = useState<string>("30");
+  const [laPage, setLaPage] = useState(1);
+  const [laPageSize, setLaPageSize] = useState(20);
   const [submitting, setSubmitting] = useState(false);
 
   const update = (field: string, value: string | number) =>
