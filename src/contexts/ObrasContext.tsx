@@ -29,7 +29,15 @@ interface Ctx {
   refresh: () => Promise<void>;
 }
 
-const ObrasContext = createContext<Ctx>({} as Ctx);
+const ObrasContext = createContext<Ctx>({
+  obras: [],
+  loading: false,
+  add: async () => null,
+  update: async () => false,
+  remove: async () => false,
+  porCliente: () => [],
+  refresh: async () => {},
+});
 export const useObras = () => useContext(ObrasContext);
 
 export function ObrasProvider({ children }: { children: ReactNode }) {
