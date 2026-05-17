@@ -774,7 +774,10 @@ export default function RdoPage() {
 
           <div className="flex justify-end gap-2 pt-4 border-t">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={onSave}>{editing ? "Atualizar" : "Salvar"} RDO</Button>
+            <Button onClick={onSave} disabled={saving}>
+              {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {editing ? "Atualizar" : "Salvar"} RDO
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
