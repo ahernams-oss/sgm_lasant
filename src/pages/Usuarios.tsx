@@ -240,6 +240,11 @@ const Usuarios = () => {
             </div>
             <div className="flex items-center gap-2">
               {podeAuditoria && (
+                <Button variant="outline" onClick={() => setLoginAuditOpen(true)}>
+                  <History className="h-4 w-4 mr-2" /> Auditoria de Login
+                </Button>
+              )}
+              {podeAuditoria && (
                 <Button variant="outline" onClick={() => setAuditoriaOpen(true)}>
                   <Shield className="h-4 w-4 mr-2" /> Auditoria de Acessos
                 </Button>
