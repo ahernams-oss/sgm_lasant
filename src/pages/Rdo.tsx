@@ -151,7 +151,7 @@ export default function RdoPage() {
   const { usuarioLogado } = useAuth();
   const { porRdo } = useRdoAssinaturas();
   const { responsaveis = [] } = useResponsaveisTecnicos();
-  const { obras, add: addObra, update: updateObra, remove: removeObra, porCliente: obrasPorCliente } = useObras();
+  const { obras, add: addObra, update: updateObra, remove: removeObra } = useObras();
   const { tem } = usePermissao();
   const podeExcluir = tem("rdo.excluir");
 
