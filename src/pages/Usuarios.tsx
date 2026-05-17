@@ -764,7 +764,7 @@ const Usuarios = () => {
                   <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">Carregando...</TableCell></TableRow>
                 ) : loginAuditFiltrado.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">Nenhum registro encontrado.</TableCell></TableRow>
-                ) : paginate(loginAuditFiltrado, laPage, laPageSize).map((r: any) => (
+                ) : paginate(loginAuditFiltrado, laPage, laPageSize).paginated.map((r: any) => (
                   <TableRow key={r.id}>
                     <TableCell className="text-xs whitespace-nowrap">{formatDateTime(r.created_at)}</TableCell>
                     <TableCell>
