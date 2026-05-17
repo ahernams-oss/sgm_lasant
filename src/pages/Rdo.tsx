@@ -173,28 +173,60 @@ export default function RdoPage() {
   const [uploading, setUploading] = useState(false);
   const assinaturasDoRdo = useMemo(() => editing ? porRdo(editing.id) : [], [editing, porRdo]);
 
+  // Lançamentos da Obra (padrão Medição: cada obra abre lista de RDOs)
+  const [selectedObra, setSelectedObra] = useState<ObraType | null>(null);
+  const [obraRdosOpen, setObraRdosOpen] = useState(false);
+  const [obraRdoSearch, setObraRdoSearch] = useState("");
+
   const clientesAtivos = useMemo(() => clientes.filter((c) => c.tipo === "Cliente"), [clientes]);
 
-  const filtered = useMemo(() => {
-    return rdos.filter((r) => {
+  // Filtros das OBRAS (tela principal)
+  const obrasFiltradas = useMemo(() => {
+    return (obras || []).filter((o) => {
       const matchSearch = !search ||
-        r.cliente_nome?.toLowerCase().includes(search.toLowerCase()) ||
-        r.obra?.toLowerCase().includes(search.toLowerCase()) ||
-        r.responsavel?.toLowerCase().includes(search.toLowerCase()) ||
-        String(r.numero).includes(search);
-      const matchCliente = filterCliente === "Todos" || r.cliente_id === filterCliente;
-      const matchStatus = filterStatus === "Todos" || r.status === filterStatus;
+        o.nome?.toLowerCase().includes(search.toLowerCase()) ||
+        o.cliente_nome?.toLowerCase().includes(search.toLowerCase()) ||
+        String(o.numero || "").includes(search);
+      const matchCliente = filterCliente === "Todos" || o.cliente_id === filterCliente;
+      const matchStatus = filterStatus === "Todos" || (o.status || "") === filterStatus;
       return matchSearch && matchCliente && matchStatus;
     });
-  }, [rdos, search, filterCliente, filterStatus]);
+  }, [obras, search, filterCliente, filterStatus]);
 
   useEffect(() => { setPage(1); }, [search, filterCliente, filterStatus, pageSize]);
 
-  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const pagedObras = obrasFiltradas.slice((page - 1) * pageSize, page * pageSize);
 
-  const openNew = () => {
+  // RDOs filtrados da obra selecionada (dentro do dialog)
+  const rdosDaObra = useMemo(() => {
+    if (!selectedObra) return [];
+    return rdos
+      .filter((r) => r.obra_id === selectedObra.id ||
+        (!r.obra_id && r.cliente_id === selectedObra.cliente_id && (r.obra || "").toLowerCase().trim() === (selectedObra.nome || "").toLowerCase().trim()))
+      .filter((r) => !obraRdoSearch ||
+        String(r.numero).includes(obraRdoSearch) ||
+        r.responsavel?.toLowerCase().includes(obraRdoSearch.toLowerCase()) ||
+        (r.data_rdo || "").includes(obraRdoSearch))
+      .sort((a, b) => (b.data_rdo || "").localeCompare(a.data_rdo || ""));
+  }, [rdos, selectedObra, obraRdoSearch]);
+
+  const openObraRdos = (o: ObraType) => {
+    setSelectedObra(o);
+    setObraRdoSearch("");
+    setObraRdosOpen(true);
+  };
+
+  const openNew = (obra?: ObraType) => {
+    const ctx = obra || selectedObra;
     setEditing(null);
-    setForm({ ...emptyForm(), responsavel: usuarioLogado?.nome || "" });
+    setForm({
+      ...emptyForm(),
+      responsavel: usuarioLogado?.nome || "",
+      cliente_id: ctx?.cliente_id || "",
+      cliente_nome: ctx?.cliente_nome || "",
+      obra_id: ctx?.id || null,
+      obra: ctx?.nome || "",
+    });
     setDialogOpen(true);
   };
   const openEdit = (r: Rdo) => {
