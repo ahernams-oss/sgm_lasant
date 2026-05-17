@@ -681,6 +681,122 @@ const Usuarios = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo de Auditoria de Login */}
+      <Dialog open={loginAuditOpen} onOpenChange={setLoginAuditOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5 text-primary" /> Auditoria de Login
+            </DialogTitle>
+            <DialogDescription>
+              Registro completo de todas as tentativas de login (sucesso e falha), com IP, dispositivo e motivo.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="rounded-lg border border-border bg-muted/40 p-3">
+              <p className="text-xs text-muted-foreground font-semibold uppercase">Total</p>
+              <p className="text-2xl font-bold">{loginAuditStats.total}</p>
+            </div>
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+              <p className="text-xs text-emerald-700 font-semibold uppercase">Sucessos</p>
+              <p className="text-2xl font-bold text-emerald-700">{loginAuditStats.sucesso}</p>
+            </div>
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+              <p className="text-xs text-destructive font-semibold uppercase">Falhas</p>
+              <p className="text-2xl font-bold text-destructive">{loginAuditStats.falha}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-end gap-2 mb-3">
+            <div className="flex-1 min-w-[220px]">
+              <Label className="text-xs">Buscar</Label>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input value={laSearch} onChange={(e) => { setLaSearch(e.target.value); setLaPage(1); }} placeholder="E-mail, nome, IP, motivo..." className="pl-8" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs">Resultado</Label>
+              <Select value={laFilter} onValueChange={(v: any) => { setLaFilter(v); setLaPage(1); }}>
+                <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="sucesso">Sucesso</SelectItem>
+                  <SelectItem value="falha">Falha</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Período</Label>
+              <Select value={laDias} onValueChange={(v) => { setLaDias(v); setLaPage(1); }}>
+                <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Últimas 24h</SelectItem>
+                  <SelectItem value="7">Últimos 7 dias</SelectItem>
+                  <SelectItem value="30">Últimos 30 dias</SelectItem>
+                  <SelectItem value="90">Últimos 90 dias</SelectItem>
+                  <SelectItem value="365">Último ano</SelectItem>
+                  <SelectItem value="0">Tudo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button variant="outline" size="icon" onClick={loadLoginAudit} disabled={loginAuditLoading} title="Atualizar">
+              <RefreshCw className={`h-4 w-4 ${loginAuditLoading ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
+
+          <div className="rounded-lg border border-border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[140px]">Data/Hora</TableHead>
+                  <TableHead className="w-[90px]">Resultado</TableHead>
+                  <TableHead>Usuário</TableHead>
+                  <TableHead>E-mail</TableHead>
+                  <TableHead className="w-[130px]">IP</TableHead>
+                  <TableHead>Motivo</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loginAuditLoading ? (
+                  <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">Carregando...</TableCell></TableRow>
+                ) : loginAuditFiltrado.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">Nenhum registro encontrado.</TableCell></TableRow>
+                ) : paginate(loginAuditFiltrado, laPage, laPageSize).map((r: any) => (
+                  <TableRow key={r.id}>
+                    <TableCell className="text-xs whitespace-nowrap">{formatDateTime(r.created_at)}</TableCell>
+                    <TableCell>
+                      {r.sucesso ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Sucesso
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive">
+                          <XCircle className="h-3.5 w-3.5" /> Falha
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm">{r.nome || <span className="text-muted-foreground">—</span>}</TableCell>
+                    <TableCell className="text-xs">{r.email}</TableCell>
+                    <TableCell className="text-xs font-mono">{r.ip || "—"}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground" title={r.user_agent || ""}>{r.motivo || "—"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <PaginationControls
+            currentPage={laPage}
+            totalItems={loginAuditFiltrado.length}
+            onPageChange={setLaPage}
+            pageSize={laPageSize}
+            onPageSizeChange={(s) => { setLaPageSize(s); setLaPage(1); }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
