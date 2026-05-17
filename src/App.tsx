@@ -420,6 +420,7 @@ const App = () => (
     </CronogramasProvider>
     </RdoAssinaturasProvider>
     </RdosProvider>
+    </ObrasProvider>
     </KnowledgeBaseProvider>
     </PlanosManutencaoProvider>
     </ResponsaveisTecnicosProvider>
