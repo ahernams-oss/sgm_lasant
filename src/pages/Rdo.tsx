@@ -294,15 +294,23 @@ export default function RdoPage() {
     if (!form.cliente_id) { toast.error("Selecione um cliente."); return; }
     if (!form.obra) { toast.error("Informe a obra."); return; }
     if (!form.data_rdo) { toast.error("Informe a data do RDO."); return; }
-    const payload = { ...form };
-    if (editing) {
-      await updateRdo(editing.id, payload);
-    } else {
-      await addRdo(payload);
+    setSaving(true);
+    try {
+      const payload = { ...form };
+      if (editing) {
+        await updateRdo(editing.id, payload);
+      } else {
+        await addRdo(payload);
+      }
+      setDialogOpen(false);
+      setForm(emptyForm());
+      setEditing(null);
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao salvar RDO. Tente novamente.");
+    } finally {
+      setSaving(false);
     }
-    setDialogOpen(false);
-    setForm(emptyForm());
-    setEditing(null);
   };
 
   const onExportPdf = async (r: Rdo, incluirImagens = false) => {
