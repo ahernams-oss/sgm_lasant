@@ -219,17 +219,31 @@ export default function RdoPage() {
 
   const handleUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    const current = form.anexos || [];
+    const arr = Array.from(files);
+    if (current.length + arr.length > 30) {
+      toast.error("Limite de 30 imagens por RDO.");
+      return;
+    }
+    for (const f of arr) {
+      if (f.type.startsWith("image/") && f.size > 5 * 1024 * 1024) {
+        toast.error(`A imagem "${f.name}" excede 5MB.`);
+        return;
+      }
+    }
     setUploading(true);
     const tempId = editing?.id || "novo";
-    const newAnexos = [...(form.anexos || [])];
-    for (const file of Array.from(files)) {
+    const newAnexos = [...current];
+    for (const file of arr) {
       const url = await uploadAnexo(file, tempId);
-      if (url) newAnexos.push({ nome: file.name, url, tipo: file.type });
+      if (url) newAnexos.push({ nome: file.name, url, tipo: file.type, descricao: "" });
     }
     setForm((f) => ({ ...f, anexos: newAnexos }));
     setUploading(false);
   };
   const removeAnexo = (i: number) => setForm((f) => ({ ...f, anexos: (f.anexos || []).filter((_, idx) => idx !== i) }));
+  const updateAnexoDescricao = (i: number, descricao: string) =>
+    setForm((f) => ({ ...f, anexos: (f.anexos || []).map((a, idx) => idx === i ? { ...a, descricao } : a) }));
 
   const onSave = async () => {
     if (!form.cliente_id) { toast.error("Selecione um cliente."); return; }
