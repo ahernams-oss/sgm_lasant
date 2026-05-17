@@ -223,6 +223,60 @@ const Usuarios = () => {
     return { semSenha, legado, seguros };
   }, [usuarios]);
 
+  // Carrega auditoria de login
+  const loadLoginAudit = useCallback(async () => {
+    setLoginAuditLoading(true);
+    const dias = parseInt(laDias, 10);
+    let query = (supabase as any).from("login_auditoria").select("*").order("created_at", { ascending: false }).limit(2000);
+    if (!Number.isNaN(dias) && dias > 0) {
+      const since = new Date(Date.now() - dias * 24 * 60 * 60 * 1000).toISOString();
+      query = query.gte("created_at", since);
+    }
+    const { data, error } = await query;
+    if (error) {
+      toast.error("Erro ao carregar auditoria de login.");
+      console.error(error);
+    } else {
+      setLoginAudit(data || []);
+    }
+    setLoginAuditLoading(false);
+  }, [laDias]);
+
+  useEffect(() => {
+    if (loginAuditOpen) loadLoginAudit();
+  }, [loginAuditOpen, loadLoginAudit]);
+
+  const loginAuditFiltrado = useMemo(() => {
+    const term = laSearch.trim().toLowerCase();
+    return loginAudit.filter((r) => {
+      if (laFilter === "sucesso" && !r.sucesso) return false;
+      if (laFilter === "falha" && r.sucesso) return false;
+      if (!term) return true;
+      return (
+        (r.email || "").toLowerCase().includes(term) ||
+        (r.nome || "").toLowerCase().includes(term) ||
+        (r.ip || "").toLowerCase().includes(term) ||
+        (r.motivo || "").toLowerCase().includes(term)
+      );
+    });
+  }, [loginAudit, laSearch, laFilter]);
+
+  const loginAuditStats = useMemo(() => ({
+    total: loginAudit.length,
+    sucesso: loginAudit.filter((r) => r.sucesso).length,
+    falha: loginAudit.filter((r) => !r.sucesso).length,
+  }), [loginAudit]);
+
+  const formatDateTime = (iso: string) => {
+    const d = new Date(iso);
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mi = String(d.getMinutes()).padStart(2, "0");
+    return `${dd}/${mm}/${yyyy}, ${hh}:${mi}`;
+  };
+
   return (
     <div className="bg-background">
       <div className="container max-w-full mx-auto px-4 py-8">
