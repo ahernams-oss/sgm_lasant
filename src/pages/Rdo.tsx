@@ -312,10 +312,16 @@ export default function RdoPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-serif font-semibold">RDO - Registro Diário de Obras</h1>
-          <p className="text-sm text-muted-foreground">Controle diário das atividades, efetivo e ocorrências de obra.</p>
+          <p className="text-sm text-muted-foreground">Cadastre a obra e lance os RDOs por data dentro de cada obra.</p>
         </div>
-        <Button onClick={openNew}>
-          <Plus className="h-4 w-4 mr-2" /> Novo RDO
+        <Button
+          onClick={() => {
+            setEditingObra(null);
+            setObraForm({ cliente_id: "", cliente_nome: "", nome: "", status: "Em Andamento" });
+            setObrasDialogOpen(true);
+          }}
+        >
+          <Plus className="h-4 w-4 mr-2" /> Nova Obra
         </Button>
       </div>
 
@@ -327,7 +333,7 @@ export default function RdoPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input className="pl-8" placeholder="Buscar..." value={search} onChange={(e) => setSearch(e.target.value)} />
+              <Input className="pl-8" placeholder="Buscar obra..." value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <Select value={filterCliente} onValueChange={setFilterCliente}>
               <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
@@ -340,7 +346,9 @@ export default function RdoPage() {
               <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Todos">Todos os status</SelectItem>
-                {STATUS_LIST.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+                <SelectItem value="Paralisada">Paralisada</SelectItem>
+                <SelectItem value="Concluída">Concluída</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -353,65 +361,145 @@ export default function RdoPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nº</TableHead>
-                <TableHead>Data</TableHead>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Obra</TableHead>
                 <TableHead>Responsável</TableHead>
-                <TableHead className="text-center">Avanço</TableHead>
+                <TableHead className="text-center">RDOs</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-6">Carregando...</TableCell></TableRow>
-              ) : paged.length === 0 ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-6 text-muted-foreground">Nenhum RDO encontrado</TableCell></TableRow>
-              ) : paged.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.numero}</TableCell>
-                  <TableCell>{r.data_rdo ? new Date(r.data_rdo + "T00:00:00").toLocaleDateString("pt-BR") : "-"}</TableCell>
-                  <TableCell>{r.cliente_nome}</TableCell>
-                  <TableCell>{r.obra}</TableCell>
-                  <TableCell>{r.responsavel}</TableCell>
-                  <TableCell className="text-center">{(Number(r.avanco_fisico_geral) || 0).toFixed(1)}%</TableCell>
-                  <TableCell><Badge variant="outline" className={statusColor(r.status)}>{r.status}</Badge></TableCell>
-                  <TableCell className="text-right space-x-1">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant="ghost" title="Exportar PDF">
-                          <FileDown className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onExportPdf(r, false)}>
-                          <FileText className="h-4 w-4 mr-2" /> PDF sem imagens
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onExportPdf(r, true)}>
-                          <ImageIcon className="h-4 w-4 mr-2" /> PDF com imagens
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Button size="icon" variant="ghost" onClick={() => openEdit(r)} title="Editar">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost" onClick={() => setDeleteId(r.id)} title="Excluir">
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {pagedObras.length === 0 ? (
+                <TableRow><TableCell colSpan={7} className="text-center py-6 text-muted-foreground">Nenhuma obra encontrada. Clique em "Nova Obra" para cadastrar.</TableCell></TableRow>
+              ) : pagedObras.map((o) => {
+                const totalRdos = rdos.filter((r) => r.obra_id === o.id ||
+                  (!r.obra_id && r.cliente_id === o.cliente_id && (r.obra || "").toLowerCase().trim() === (o.nome || "").toLowerCase().trim())).length;
+                return (
+                  <TableRow key={o.id}>
+                    <TableCell className="font-medium">{o.numero}</TableCell>
+                    <TableCell>{o.cliente_nome}</TableCell>
+                    <TableCell>{o.nome}</TableCell>
+                    <TableCell>{o.responsavel || "-"}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="secondary">{totalRdos}</Badge>
+                    </TableCell>
+                    <TableCell><Badge variant="outline">{o.status}</Badge></TableCell>
+                    <TableCell className="text-right space-x-1">
+                      <Button size="sm" variant="default" onClick={() => openObraRdos(o)} title="Lançar / Ver RDOs">
+                        <FileText className="h-4 w-4 mr-1" /> RDOs
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => { setEditingObra(o); setObraForm(o); setObrasDialogOpen(true); }} title="Editar Obra">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={async () => {
+                          if (totalRdos > 0) { toast.error("Esta obra possui RDOs lançados. Exclua-os antes."); return; }
+                          if (confirm(`Excluir a obra "${o.nome}"?`)) await removeObra(o.id);
+                        }}
+                        title="Excluir Obra"
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
           <PaginationControls
             currentPage={page}
             pageSize={pageSize}
-            totalItems={filtered.length}
+            totalItems={obrasFiltradas.length}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
           />
         </CardContent>
       </Card>
+
+      {/* Dialog: RDOs da Obra (padrão Medição) */}
+      <Dialog open={obraRdosOpen} onOpenChange={setObraRdosOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              RDOs da Obra: {selectedObra?.nome}
+              <span className="text-sm font-normal text-muted-foreground">— {selectedObra?.cliente_nome}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input className="pl-8" placeholder="Buscar por nº, data ou responsável..." value={obraRdoSearch} onChange={(e) => setObraRdoSearch(e.target.value)} />
+            </div>
+            <Button onClick={() => openNew()}>
+              <Plus className="h-4 w-4 mr-2" /> Novo RDO
+            </Button>
+          </div>
+
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nº</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Responsável</TableHead>
+                    <TableHead className="text-center">Avanço</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow><TableCell colSpan={6} className="text-center py-6">Carregando...</TableCell></TableRow>
+                  ) : rdosDaObra.length === 0 ? (
+                    <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">Nenhum RDO lançado nesta obra. Clique em "Novo RDO".</TableCell></TableRow>
+                  ) : rdosDaObra.map((r) => (
+                    <TableRow key={r.id}>
+                      <TableCell className="font-medium">{r.numero}</TableCell>
+                      <TableCell>{r.data_rdo ? new Date(r.data_rdo + "T00:00:00").toLocaleDateString("pt-BR") : "-"}</TableCell>
+                      <TableCell>{r.responsavel}</TableCell>
+                      <TableCell className="text-center">{(Number(r.avanco_fisico_geral) || 0).toFixed(1)}%</TableCell>
+                      <TableCell><Badge variant="outline" className={statusColor(r.status)}>{r.status}</Badge></TableCell>
+                      <TableCell className="text-right space-x-1">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost" title="Exportar PDF">
+                              <FileDown className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => onExportPdf(r, false)}>
+                              <FileText className="h-4 w-4 mr-2" /> PDF sem imagens
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onExportPdf(r, true)}>
+                              <ImageIcon className="h-4 w-4 mr-2" /> PDF com imagens
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Button size="icon" variant="ghost" onClick={() => openEdit(r)} title="Editar">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" variant="ghost" onClick={() => setDeleteId(r.id)} title="Excluir">
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end pt-2">
+            <Button variant="outline" onClick={() => setObraRdosOpen(false)}>Fechar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog Form */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
