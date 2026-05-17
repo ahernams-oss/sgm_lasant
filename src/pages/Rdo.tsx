@@ -376,7 +376,7 @@ export default function RdoPage() {
               {pagedObras.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="text-center py-6 text-muted-foreground">Nenhuma obra encontrada. Clique em "Nova Obra" para cadastrar.</TableCell></TableRow>
               ) : pagedObras.map((o) => {
-                const totalRdos = rdos.filter((r) => r.obra_id === o.id ||
+                const totalRdos = rdosList.filter((r) => r.obra_id === o.id ||
                   (!r.obra_id && r.cliente_id === o.cliente_id && (r.obra || "").toLowerCase().trim() === (o.nome || "").toLowerCase().trim())).length;
                 return (
                   <TableRow key={o.id}>
@@ -803,7 +803,7 @@ export default function RdoPage() {
                   <Select
                     value={obraForm.cliente_id || ""}
                     onValueChange={(id) => {
-                      const c = clientes.find((x) => x.id === id);
+                      const c = clientesList.find((x) => x.id === id);
                       setObraForm({ ...obraForm, cliente_id: id, cliente_nome: c?.nome || "" });
                     }}
                   >
@@ -890,9 +890,9 @@ export default function RdoPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {obras.length === 0 ? (
+                  {obrasList.length === 0 ? (
                     <TableRow><TableCell colSpan={5} className="text-center py-6 text-muted-foreground">Nenhuma obra cadastrada</TableCell></TableRow>
-                  ) : obras.map((o) => (
+                  ) : obrasList.map((o) => (
                     <TableRow key={o.id}>
                       <TableCell className="font-medium">{o.numero}</TableCell>
                       <TableCell>{o.cliente_nome}</TableCell>
