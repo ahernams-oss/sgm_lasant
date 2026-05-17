@@ -5130,6 +5130,7 @@ export type Database = {
           id: string
           numero: number
           obra: string
+          obra_id: string | null
           observacoes: string | null
           ocorrencias: string | null
           responsavel: string
@@ -5160,6 +5161,7 @@ export type Database = {
           id?: string
           numero?: number
           obra?: string
+          obra_id?: string | null
           observacoes?: string | null
           ocorrencias?: string | null
           responsavel?: string
@@ -5190,6 +5192,7 @@ export type Database = {
           id?: string
           numero?: number
           obra?: string
+          obra_id?: string | null
           observacoes?: string | null
           ocorrencias?: string | null
           responsavel?: string
@@ -5198,6 +5201,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "rdos_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rdos_responsavel_tecnico_id_fkey"
             columns: ["responsavel_tecnico_id"]
