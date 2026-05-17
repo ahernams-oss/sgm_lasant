@@ -533,7 +533,7 @@ export default function RdoPage() {
                 </div>
                 <div>
                   <Label>Cliente *</Label>
-                  <Select value={form.cliente_id} onValueChange={onClienteChange}>
+                  <Select value={form.cliente_id} onValueChange={onClienteChange} disabled={!!form.obra_id}>
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
                       {clientesAtivos.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
@@ -541,41 +541,28 @@ export default function RdoPage() {
                   </Select>
                 </div>
                 <div>
-                  <div className="flex items-center justify-between">
-                    <Label>Obra *</Label>
-                    <Button
-                      type="button"
-                      variant="link"
-                      size="sm"
-                      className="h-auto p-0 text-xs"
-                      onClick={() => {
-                        setEditingObra(null);
-                        setObraForm({
-                          cliente_id: form.cliente_id || "",
-                          cliente_nome: form.cliente_nome || "",
-                          nome: "",
-                          status: "Em Andamento",
-                        });
-                        setObrasDialogOpen(true);
+                  <Label>Obra *</Label>
+                  {form.obra_id ? (
+                    <Input value={form.obra || ""} disabled />
+                  ) : (
+                    <Select
+                      value={form.obra || ""}
+                      onValueChange={(v) => {
+                        const sel = obrasDoCliente.find(o => o.nome === v);
+                        setForm({ ...form, obra: v, obra_id: sel?.id || null });
                       }}
+                      disabled={!form.cliente_id}
                     >
-                      <Settings className="h-3 w-3 mr-1" /> Gerenciar Obras
-                    </Button>
-                  </div>
-                  <Select
-                    value={form.obra || ""}
-                    onValueChange={(v) => setForm({ ...form, obra: v })}
-                    disabled={!form.cliente_id}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={!form.cliente_id ? "Selecione o cliente primeiro" : obrasDoCliente.length === 0 ? "Nenhuma obra cadastrada — clique em Gerenciar Obras" : "Selecione a obra"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {obrasDoCliente.map((o) => (
-                        <SelectItem key={o.id} value={o.nome}>{o.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder={!form.cliente_id ? "Selecione o cliente primeiro" : obrasDoCliente.length === 0 ? "Nenhuma obra cadastrada para este cliente" : "Selecione a obra"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {obrasDoCliente.map((o) => (
+                          <SelectItem key={o.id} value={o.nome}>{o.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 <div>
                   <Label>Responsável Técnico</Label>
