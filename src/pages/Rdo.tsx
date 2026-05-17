@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Edit, Trash2, FileDown, Upload, X, Eraser, FileText, Image as ImageIcon, Building2, Settings } from "lucide-react";
+import { Search, Plus, Edit, Trash2, FileDown, Upload, X, Eraser, FileText, Image as ImageIcon, Building2, Settings, Loader2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
@@ -174,6 +174,7 @@ export default function RdoPage() {
   const [form, setForm] = useState<Partial<Rdo>>(emptyForm());
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const assinaturasDoRdo = useMemo(() => editing ? porRdo(editing.id) : [], [editing, porRdo]);
 
   // Lançamentos da Obra (padrão Medição: cada obra abre lista de RDOs)
@@ -293,15 +294,28 @@ export default function RdoPage() {
     if (!form.cliente_id) { toast.error("Selecione um cliente."); return; }
     if (!form.obra) { toast.error("Informe a obra."); return; }
     if (!form.data_rdo) { toast.error("Informe a data do RDO."); return; }
-    const payload = { ...form };
-    if (editing) {
-      await updateRdo(editing.id, payload);
-    } else {
-      await addRdo(payload);
+    setSaving(true);
+    try {
+      const payload = { ...form };
+      let ok = false;
+      if (editing) {
+        ok = await updateRdo(editing.id, payload);
+      } else {
+        ok = !!(await addRdo(payload));
+      }
+      if (!ok) {
+        toast.error("Erro ao salvar RDO. Tente novamente.");
+        return;
+      }
+      setDialogOpen(false);
+      setForm(emptyForm());
+      setEditing(null);
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao salvar RDO. Tente novamente.");
+    } finally {
+      setSaving(false);
     }
-    setDialogOpen(false);
-    setForm(emptyForm());
-    setEditing(null);
   };
 
   const onExportPdf = async (r: Rdo, incluirImagens = false) => {
@@ -765,7 +779,10 @@ export default function RdoPage() {
 
           <div className="flex justify-end gap-2 pt-4 border-t">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={onSave}>{editing ? "Atualizar" : "Salvar"} RDO</Button>
+            <Button onClick={onSave} disabled={saving}>
+              {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {editing ? "Atualizar" : "Salvar"} RDO
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
