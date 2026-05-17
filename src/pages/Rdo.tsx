@@ -151,8 +151,14 @@ export default function RdoPage() {
   const { usuarioLogado } = useAuth();
   const { porRdo } = useRdoAssinaturas();
   const { responsaveis = [] } = useResponsaveisTecnicos();
+  const { obras, add: addObra, update: updateObra, remove: removeObra, porCliente: obrasPorCliente } = useObras();
   const { tem } = usePermissao();
   const podeExcluir = tem("rdo.excluir");
+
+  // Gerenciar Obras
+  const [obrasDialogOpen, setObrasDialogOpen] = useState(false);
+  const [editingObra, setEditingObra] = useState<ObraType | null>(null);
+  const [obraForm, setObraForm] = useState<Partial<ObraType>>({ cliente_id: "", cliente_nome: "", nome: "", status: "Em Andamento" });
 
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("Todos");
