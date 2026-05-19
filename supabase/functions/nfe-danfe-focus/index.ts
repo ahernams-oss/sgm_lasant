@@ -21,11 +21,23 @@ Deno.serve(async (req) => {
     if (!token) return json({ ok: false, error: `Token ${tokenName} não configurado` }, 400);
     const auth = "Basic " + btoa(`${token}:`);
 
-    const url = `${baseUrl}/v2/nfes_recebidas/${chave}.pdf`;
-    const r = await fetch(url, { headers: { Authorization: auth } });
-    if (!r.ok) {
-      const t = await r.text();
-      return json({ ok: false, httpStatus: r.status, error: t.slice(0, 500) }, 502);
+    // Focus só disponibiliza DANFE de NFes recebidas após manifestação (ou pode não estar disponível)
+    const candidatos = [
+      `${baseUrl}/v2/nfes_recebidas/${chave}.pdf`,
+      `${baseUrl}/v2/nfes_recebidas/${chave}/danfe`,
+      `${baseUrl}/v2/nfes/${chave}.pdf`,
+    ];
+    let r: Response | null = null;
+    let lastText = "";
+    for (const url of candidatos) {
+      r = await fetch(url, { headers: { Authorization: auth } });
+      if (r.ok) break;
+      lastText = await r.text();
+    }
+    if (!r || !r.ok) {
+      let msg = "DANFE não disponível para esta NFe. A Focus NFe só fornece o PDF após a manifestação do destinatário ou quando o emitente o disponibiliza.";
+      try { const j = JSON.parse(lastText); if (j?.mensagem) msg = j.mensagem; } catch {}
+      return json({ ok: false, httpStatus: r?.status ?? 404, error: msg }, 200);
     }
     const buf = new Uint8Array(await r.arrayBuffer());
     let bin = "";
