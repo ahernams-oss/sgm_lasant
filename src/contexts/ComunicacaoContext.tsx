@@ -37,6 +37,8 @@ export interface Aviso {
   ativo: boolean;
   createdAt: string;
   leituras: AvisoLeitura[];
+  destinatariosEmails: string[];
+  gruposIds: string[];
 }
 
 export interface AvisoLeitura {
@@ -45,6 +47,15 @@ export interface AvisoLeitura {
   usuarioNome: string;
   usuarioEmail: string;
   lidoEm: string;
+}
+
+export interface Grupo {
+  id: string;
+  nome: string;
+  descricao: string;
+  membrosEmails: string[];
+  criadoPor: string;
+  createdAt: string;
 }
 
 export interface Notificacao {
