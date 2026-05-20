@@ -421,6 +421,7 @@ const App = () => (
     </OsAssinaturasProvider>
     </OrcamentosScoProvider>
     </BimProvider>
+    </EventogramasProvider>
     </CronogramasProvider>
     </RdoAssinaturasProvider>
     </RdosProvider>
