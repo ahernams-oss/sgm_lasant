@@ -381,6 +381,7 @@ const App = () => (
     <RdosProvider>
     <RdoAssinaturasProvider>
     <CronogramasProvider>
+    <EventogramasProvider>
     <BimProvider>
     <OrcamentosScoProvider>
     <OsAssinaturasProvider>
