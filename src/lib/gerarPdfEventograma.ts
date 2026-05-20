@@ -23,7 +23,7 @@ export async function gerarPdfEventograma(ev: Eventograma, empresa: Empresa | nu
   doc.text("EVENTOGRAMA", 10, 12);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text(empresa?.razao_social || "", pageW - 10, 12, { align: "right" });
+  doc.text((empresa as any)?.razaoSocial || (empresa as any)?.razao_social || "", pageW - 10, 12, { align: "right" });
 
   doc.setTextColor(0, 0, 0);
   let y = 24;
