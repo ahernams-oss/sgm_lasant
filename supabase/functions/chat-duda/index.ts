@@ -28,7 +28,7 @@ Se a ferramenta retornar **vazio** ou **erro**, você DEVE dizer literalmente: *
 4. Sempre informe o tamanho do conjunto consultado ("encontrei X registros").
 
 ### Ferramentas disponíveis
-- **consultar_rcs** — RC / RCS / Requisição de Compras / RP de Pessoal
+- **consultar_rcs** — RC / RCS / Requisição de Compras / RP de Pessoal. Para listar **materiais/itens/produtos/quantidades** de uma RC, chame com \`incluir_itens: true\` (e \`numero\` quando o usuário citar uma RC específica).
 - **consultar_os** — Ordens de Serviço de engenharia/manutenção
 - **consultar_ss** — Solicitações de Serviço (antes da OS)
 - **consultar_funcionarios** — Quadro de pessoal (cargo e cliente resolvidos)

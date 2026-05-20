@@ -42,6 +42,7 @@ export const toolDefinitions = [
           numero: { type: "number", description: "Buscar por número específico" },
           dias_recentes: { type: "number", description: "Limitar aos últimos N dias (0 = sem limite)", default: 90 },
           limite: { type: "number", default: 50 },
+          incluir_itens: { type: "boolean", description: "Se true, retorna a lista detalhada de itens (descrição, quantidade, unidade, especificação) de cada RC. Use SEMPRE que o usuário pedir materiais/itens/produtos das RCs.", default: false },
         },
       },
     },
@@ -260,18 +261,32 @@ export async function executeTool(name: string, args: ToolArgs): Promise<unknown
         if (dl) q = q.gte("created_at", dl);
         const { data, error } = await q;
         if (error) return { erro: error.message };
+        const incluirItens = args.incluir_itens === true || args.numero != null;
         return {
           total: data?.length ?? 0,
-          registros: (data ?? []).map((r: any) => ({
-            numero: r.numero,
-            data: r.data_criacao || r.created_at,
-            solicitante: r.solicitante,
-            centro_custo: r.centro_custo_nome || r.centro_custo,
-            urgencia: r.urgencia,
-            status: r.status,
-            qtd_itens: Array.isArray(r.itens) ? r.itens.length : 0,
-            justificativa: String(r.justificativa || "").slice(0, 160),
-          })),
+          registros: (data ?? []).map((r: any) => {
+            const itens = Array.isArray(r.itens) ? r.itens : [];
+            const base: any = {
+              numero: r.numero,
+              data: r.data_criacao || r.created_at,
+              solicitante: r.solicitante,
+              centro_custo: r.centro_custo_nome || r.centro_custo,
+              urgencia: r.urgencia,
+              status: r.status,
+              qtd_itens: itens.length,
+              justificativa: String(r.justificativa || "").slice(0, 160),
+            };
+            if (incluirItens) {
+              base.itens = itens.map((i: any) => ({
+                descricao: i.descricao || i.material_descricao || i.cargo_nome || "—",
+                quantidade: Number(i.quantidade) || 0,
+                unidade: i.unidadeMedida || i.unidade_medida || i.unidade || "",
+                especificacao: String(i.especificacaoTecnica || i.especificacao_tecnica || "").slice(0, 200),
+                observacao: String(i.observacao || "").slice(0, 160),
+              }));
+            }
+            return base;
+          }),
         };
       }
 
