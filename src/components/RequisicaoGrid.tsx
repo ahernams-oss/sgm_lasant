@@ -660,6 +660,30 @@ const RequisicaoGrid = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!suspendendoReq} onOpenChange={(open) => { if (!open) { setSuspendendoReq(null); setJustificativaSuspensao(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Suspender Requisição #{suspendendoReq?.numero}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <label className="field-label">Justificativa da suspensão <span className="text-red-600">*</span></label>
+            <Textarea
+              value={justificativaSuspensao}
+              onChange={(e) => setJustificativaSuspensao(e.target.value)}
+              placeholder="Descreva o motivo da suspensão..."
+              rows={5}
+              autoFocus
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => { setSuspendendoReq(null); setJustificativaSuspensao(""); }}>Cancelar</Button>
+            <Button onClick={confirmarSuspensao} className="bg-orange-600 hover:bg-orange-700 text-white">
+              <Clock className="mr-2 h-4 w-4" /> Confirmar Suspensão
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
