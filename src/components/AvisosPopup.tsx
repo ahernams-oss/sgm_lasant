@@ -15,19 +15,31 @@ import { useToast } from "@/hooks/use-toast";
  * próximo aviso pendente. Só fecha após o usuário marcar como lido.
  */
 export default function AvisosPopup() {
-  const { avisos, confirmarLeitura } = useComunicacao();
+  const { avisos, confirmarLeitura, grupos } = useComunicacao();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
 
   const pendentes = useMemo(() => {
     if (!usuarioLogado) return [];
+    const meuEmail = usuarioLogado.email;
+    const meusGrupoIds = new Set(
+      grupos.filter(g => (g.membrosEmails || []).includes(meuEmail)).map(g => g.id)
+    );
     return avisos
       .filter(a => a.ativo !== false)
-      .filter(a => !(a.leituras || []).some(l => l.usuarioEmail === usuarioLogado.email))
+      // targeting: se ambos vazios = broadcast; senão precisa estar em destinatarios ou em algum grupo do qual sou membro
+      .filter(a => {
+        const dest = a.destinatariosEmails || [];
+        const grps = a.gruposIds || [];
+        if (dest.length === 0 && grps.length === 0) return true;
+        if (dest.includes(meuEmail)) return true;
+        return grps.some(gid => meusGrupoIds.has(gid));
+      })
+      .filter(a => !(a.leituras || []).some(l => l.usuarioEmail === meuEmail))
       // mais antigos primeiro, para o usuário ir confirmando em ordem
       .sort((a, b) => (a.createdAt || "").localeCompare(b.createdAt || ""));
-  }, [avisos, usuarioLogado]);
+  }, [avisos, usuarioLogado, grupos]);
 
   const atual = pendentes[0];
   if (!atual || !usuarioLogado) return null;
