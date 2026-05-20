@@ -88,7 +88,6 @@ const menuItems = [
     items: [
       { title: "Dashboard SS / OS", url: "/engenharia/dashboard", icon: BarChart3, perm: "dashboard_engenharia" },
       { title: "Dashboard Medições", url: "/engenharia/dashboard-medicoes", icon: BarChart3, perm: "dashboard_engenharia" },
-      { title: "Medição de Serviços", url: "/engenharia/medicoes", icon: Ruler, perm: "medicoes" },
       { title: "Plano de Manutenção", url: "/engenharia/plano-manutencao", icon: Wrench, perm: "plano_manutencao" },
       { title: "Base de Conhecimento", url: "/engenharia/base-conhecimento", icon: BookOpen, perm: "base_conhecimento" },
     ],
@@ -116,6 +115,7 @@ const menuItems = [
       { title: "RDO - Diário de Obras", url: "/engenharia/rdo", icon: FileSpreadsheet, perm: "rdo" },
       { title: "Cronograma Físico-Financeiro", url: "/engenharia/cronograma", icon: CalendarClock, perm: "cronograma" },
       { title: "Eventograma", url: "/engenharia/eventograma", icon: GanttChartSquare, perm: "eventograma" },
+      { title: "Medição de Serviços", url: "/engenharia/medicoes", icon: Ruler, perm: "medicoes" },
       { title: "BIM - Modelagem 3D", url: "/obras/bim", icon: Box, perm: "bim" },
     ],
   },
