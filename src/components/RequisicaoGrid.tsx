@@ -198,6 +198,19 @@ const RequisicaoGrid = () => {
     toast.success("Requisição reprovada.");
   };
 
+  const confirmarSuspensao = () => {
+    if (!suspendendoReq) return;
+    const just = justificativaSuspensao.trim();
+    if (!just) {
+      toast.error("Informe a justificativa da suspensão.");
+      return;
+    }
+    handleStatusChange(suspendendoReq, "Suspensa", just);
+    setSuspendendoReq(null);
+    setJustificativaSuspensao("");
+    toast.success("Requisição suspensa.");
+  };
+
   const parseDataBR = (d: string): Date | null => {
     const parts = d.split("/");
     if (parts.length !== 3) return null;
