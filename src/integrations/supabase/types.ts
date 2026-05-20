@@ -1570,6 +1570,60 @@ export type Database = {
         }
         Relationships: []
       }
+      eventogramas: {
+        Row: {
+          cliente_id: string | null
+          cliente_nome: string | null
+          contrato_numero: string | null
+          created_at: string
+          data_assinatura: string | null
+          descricao: string | null
+          eventos: Json
+          id: string
+          numero: number
+          obra: string
+          observacoes: string | null
+          responsavel: string | null
+          status: string
+          updated_at: string
+          valor_total: number
+        }
+        Insert: {
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          contrato_numero?: string | null
+          created_at?: string
+          data_assinatura?: string | null
+          descricao?: string | null
+          eventos?: Json
+          id?: string
+          numero?: number
+          obra: string
+          observacoes?: string | null
+          responsavel?: string | null
+          status?: string
+          updated_at?: string
+          valor_total?: number
+        }
+        Update: {
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          contrato_numero?: string | null
+          created_at?: string
+          data_assinatura?: string | null
+          descricao?: string | null
+          eventos?: Json
+          id?: string
+          numero?: number
+          obra?: string
+          observacoes?: string | null
+          responsavel?: string | null
+          status?: string
+          updated_at?: string
+          valor_total?: number
+        }
+        Relationships: []
+      }
       evidencias: {
         Row: {
           anexos: Json | null
