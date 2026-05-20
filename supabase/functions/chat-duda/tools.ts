@@ -444,26 +444,49 @@ export async function executeTool(name: string, args: ToolArgs): Promise<unknown
 
       case "consultar_pedidos_compra": {
         const limite = cap(args.limite);
+        const incluirItens = args.incluir_itens === true || args.numero != null;
+        const cols = incluirItens
+          ? "numero,fornecedor_nome,status,valor_total,data_criacao,requisicao_numero,created_at,itens,condicao_pagamento,prazo_entrega,local_entrega,observacoes,comprador,historico_status"
+          : "numero,fornecedor_nome,status,valor_total,data_criacao,requisicao_numero,created_at";
         let q = supa.from("pedidos_compra")
-          .select("numero,fornecedor_nome,status,valor_total,data_criacao,requisicao_numero,created_at")
+          .select(cols)
           .order("created_at", { ascending: false }).limit(limite);
         if (args.status) q = q.ilike("status", `%${args.status}%`);
         if (args.fornecedor_nome) q = q.ilike("fornecedor_nome", `%${args.fornecedor_nome}%`);
         if (args.numero) q = q.eq("numero", Number(args.numero));
+        if (args.requisicao_numero) q = q.eq("requisicao_numero", Number(args.requisicao_numero));
         const dl = dataLimite(Number(args.dias_recentes ?? 180));
         if (dl) q = q.gte("created_at", dl);
         const { data, error } = await q;
         if (error) return { erro: error.message };
         return {
           total: data?.length ?? 0,
-          registros: (data ?? []).map((r: any) => ({
-            numero: r.numero,
-            fornecedor: r.fornecedor_nome,
-            status: r.status,
-            valor_total: r.valor_total,
-            rc_origem: r.requisicao_numero,
-            data: r.data_criacao || r.created_at,
-          })),
+          registros: (data ?? []).map((r: any) => {
+            const base: any = {
+              numero: r.numero,
+              fornecedor: r.fornecedor_nome,
+              status: r.status,
+              valor_total: r.valor_total,
+              rc_origem: r.requisicao_numero,
+              data: r.data_criacao || r.created_at,
+            };
+            if (incluirItens) {
+              base.comprador = r.comprador;
+              base.condicao_pagamento = r.condicao_pagamento;
+              base.prazo_entrega = r.prazo_entrega;
+              base.local_entrega = r.local_entrega;
+              base.observacoes = r.observacoes;
+              base.itens = Array.isArray(r.itens) ? r.itens.map((it: any) => ({
+                descricao: it.descricao,
+                quantidade: it.quantidade,
+                unidade: it.unidadeMedida || it.unidade,
+                preco_unitario: it.precoUnitario ?? it.preco_unitario,
+                valor_total: it.valorTotal ?? it.valor_total,
+              })) : [];
+              base.historico_status = Array.isArray(r.historico_status) ? r.historico_status : [];
+            }
+            return base;
+          }),
         };
       }
 
