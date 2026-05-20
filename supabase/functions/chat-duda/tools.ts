@@ -134,14 +134,16 @@ export const toolDefinitions = [
     type: "function",
     function: {
       name: "consultar_pedidos_compra",
-      description: "Consulta Pedidos de Compra (POs) reais.",
+      description: "Consulta Pedidos de Compra / Ordens de Compra (PO/OC) reais. Use incluir_itens:true (ou informe numero) para retornar a lista de materiais com descrição, quantidade, unidade, preço unitário e valor total.",
       parameters: {
         type: "object",
         properties: {
-          status: { type: "string" },
+          status: { type: "string", description: "Ex.: Emitido, Comprado, Em Entrega, Entregue Parcial, Entregue, Cancelado" },
           fornecedor_nome: { type: "string" },
-          numero: { type: "number" },
-          dias_recentes: { type: "number", default: 180 },
+          numero: { type: "number", description: "Número da PO/OC específica" },
+          requisicao_numero: { type: "number", description: "Filtra POs originadas de uma RC específica" },
+          incluir_itens: { type: "boolean", default: false, description: "Retorna itens detalhados (descrição, qtd, unidade, preço, total) e observações/condições" },
+          dias_recentes: { type: "number", default: 180, description: "0 = todo o histórico" },
           limite: { type: "number", default: 50 },
         },
       },
