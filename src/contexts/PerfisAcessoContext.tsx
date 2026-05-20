@@ -418,6 +418,17 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
         ],
       },
       {
+        key: "eventograma",
+        label: "Eventograma",
+        acoes: [
+          { key: "eventograma.criar", label: "Criar eventograma" },
+          { key: "eventograma.editar", label: "Editar eventograma" },
+          { key: "eventograma.excluir", label: "Excluir eventograma" },
+          { key: "eventograma.exportar_pdf", label: "Exportar PDF" },
+          { key: "eventograma.exportar_excel", label: "Exportar Excel" },
+        ],
+      },
+      {
         key: "rdo",
         label: "RDO - Diário de Obras",
         acoes: [
