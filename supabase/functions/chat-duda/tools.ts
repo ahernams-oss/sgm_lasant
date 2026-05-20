@@ -42,6 +42,7 @@ export const toolDefinitions = [
           numero: { type: "number", description: "Buscar por número específico" },
           dias_recentes: { type: "number", description: "Limitar aos últimos N dias (0 = sem limite)", default: 90 },
           limite: { type: "number", default: 50 },
+          incluir_itens: { type: "boolean", description: "Se true, retorna a lista detalhada de itens (descrição, quantidade, unidade, especificação) de cada RC. Use SEMPRE que o usuário pedir materiais/itens/produtos das RCs.", default: false },
         },
       },
     },
