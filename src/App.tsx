@@ -290,10 +290,10 @@ function ProtectedAppRoutes() {
         <Route path="/obras/bim" element={<RotaProtegida perm="bim"><BimPage /></RotaProtegida>} />
         <Route path="/engenharia/responsaveis-tecnicos" element={<RotaProtegida perm="responsaveis_tecnicos"><ResponsaveisTecnicosPage /></RotaProtegida>} />
         <Route path="/cadastros/responsaveis-tecnicos" element={<RotaProtegida perm="responsaveis_tecnicos"><ResponsaveisTecnicosPage /></RotaProtegida>} />
-        <Route path="/comunicacao/mensagens" element={<RotaProtegida perm="comunicacao"><ComunicacaoMensagensPage /></RotaProtegida>} />
-        <Route path="/comunicacao/avisos" element={<RotaProtegida perm="comunicacao"><ComunicacaoAvisosPage /></RotaProtegida>} />
-        <Route path="/comunicacao/notificacoes" element={<RotaProtegida perm="comunicacao"><ComunicacaoNotificacoesPage /></RotaProtegida>} />
-        <Route path="/comunicacao/whatsapp" element={<RotaProtegida perm="whatsapp"><ComunicacaoWhatsappPage /></RotaProtegida>} />
+        <Route path="/comunicacao/mensagens" element={<RotaProtegida perm="comunicacao_mensagens"><ComunicacaoMensagensPage /></RotaProtegida>} />
+        <Route path="/comunicacao/avisos" element={<RotaProtegida perm="comunicacao_avisos"><ComunicacaoAvisosPage /></RotaProtegida>} />
+        <Route path="/comunicacao/notificacoes" element={<RotaProtegida perm="comunicacao_notificacoes"><ComunicacaoNotificacoesPage /></RotaProtegida>} />
+        <Route path="/comunicacao/whatsapp" element={<RotaProtegida perm="comunicacao_whatsapp"><ComunicacaoWhatsappPage /></RotaProtegida>} />
         <Route path="/juridico" element={<RotaProtegida perm="juridico"><JuridicoPage /></RotaProtegida>} />
         <Route path="/chat-duda" element={<RotaProtegida perm="chat_duda"><ChatDudaPage /></RotaProtegida>} />
         <Route path="/orcamentos" element={<RotaProtegida perm="orcamentos_sco"><OrcamentosSco /></RotaProtegida>} />
