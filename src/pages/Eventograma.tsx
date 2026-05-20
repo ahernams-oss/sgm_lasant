@@ -384,10 +384,8 @@ export default function EventogramaPage() {
 
       <DoubleConfirmDelete
         open={!!deleteId}
-        onCancel={cancelDelete}
+        onOpenChange={(o) => { if (!o) cancelDelete(); }}
         onConfirm={confirmarExcluir}
-        title="Excluir eventograma"
-        description="Esta ação não pode ser desfeita."
       />
     </div>
   );
