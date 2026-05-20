@@ -1,5 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import AvisosPopup from "@/components/AvisosPopup";
 import { ReactNode } from "react";
 
 interface AppLayoutProps {
@@ -18,6 +19,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           <main className="flex-1">{children}</main>
         </div>
       </div>
+      <AvisosPopup />
     </SidebarProvider>
   );
 };
