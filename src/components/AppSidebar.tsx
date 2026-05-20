@@ -41,6 +41,7 @@ import {
   Sparkles,
   CreditCard,
   FileText,
+  GanttChartSquare,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissao } from "@/hooks/usePermissao";
