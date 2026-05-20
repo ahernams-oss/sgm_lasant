@@ -114,6 +114,7 @@ const menuItems = [
     items: [
       { title: "RDO - Diário de Obras", url: "/engenharia/rdo", icon: FileSpreadsheet, perm: "rdo" },
       { title: "Cronograma Físico-Financeiro", url: "/engenharia/cronograma", icon: CalendarClock, perm: "cronograma" },
+      { title: "Eventograma", url: "/engenharia/eventograma", icon: GanttChartSquare, perm: "eventograma" },
       { title: "BIM - Modelagem 3D", url: "/obras/bim", icon: Box, perm: "bim" },
     ],
   },
