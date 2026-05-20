@@ -44,6 +44,7 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "requisicao_colaboradores.status.aprovada", label: "Pode Aprovar Requisição" },
           { key: "requisicao_colaboradores.status.reprovada", label: "Pode Reprovar Requisição" },
           { key: "requisicao_colaboradores.status.concluida", label: "Pode Concluir Requisição" },
+          { key: "requisicao_colaboradores.status.suspensa", label: "Pode Suspender Requisição Aprovada" },
         ],
       },
       {
