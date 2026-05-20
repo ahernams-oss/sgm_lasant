@@ -795,6 +795,8 @@ export default function DashboardCompras() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <RelatoriosComprasDialog open={relatoriosOpen} onOpenChange={setRelatoriosOpen} />
     </div>
   );
 }
