@@ -75,6 +75,7 @@ interface ComunicacaoContextType {
   mensagens: Mensagem[];
   avisos: Aviso[];
   notificacoes: Notificacao[];
+  grupos: Grupo[];
   loadMensagens: (conversaId: string) => Promise<void>;
   addConversa: (data: any) => Promise<any>;
   addParticipante: (data: any) => Promise<void>;
@@ -90,6 +91,10 @@ interface ComunicacaoContextType {
   loadConversas: () => Promise<void>;
   loadAvisos: () => Promise<void>;
   loadNotificacoes: () => Promise<void>;
+  loadGrupos: () => Promise<void>;
+  addGrupo: (data: { nome: string; descricao?: string; membros_emails: string[]; criado_por: string }) => Promise<void>;
+  updateGrupo: (id: string, data: { nome?: string; descricao?: string; membros_emails?: string[] }) => Promise<void>;
+  deleteGrupo: (id: string) => Promise<void>;
 }
 
 const ComunicacaoContext = createContext<ComunicacaoContextType | undefined>(undefined);
