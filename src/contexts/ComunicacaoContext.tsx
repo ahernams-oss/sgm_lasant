@@ -104,6 +104,34 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [avisos, setAvisos] = useState<Aviso[]>([]);
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
+  const [grupos, setGrupos] = useState<Grupo[]>([]);
+
+  const loadGrupos = useCallback(async () => {
+    const data = await fetchAll("comunicacao_grupos", "created_at");
+    setGrupos(data.reverse().map((g: any) => ({
+      id: g.id,
+      nome: g.nome ?? "",
+      descricao: g.descricao ?? "",
+      membrosEmails: Array.isArray(g.membros_emails) ? g.membros_emails : [],
+      criadoPor: g.criado_por ?? "",
+      createdAt: g.created_at ?? "",
+    })));
+  }, []);
+
+  const addGrupo = async (data: any) => {
+    await insertRow("comunicacao_grupos", data);
+    await loadGrupos();
+  };
+
+  const updateGrupo = async (id: string, data: any) => {
+    await updateRow("comunicacao_grupos", id, data);
+    await loadGrupos();
+  };
+
+  const deleteGrupo = async (id: string) => {
+    await deleteRow("comunicacao_grupos", id);
+    await loadGrupos();
+  };
 
   const loadConversas = useCallback(async () => {
     const convData = await fetchAll("comunicacao_conversas", "created_at");
