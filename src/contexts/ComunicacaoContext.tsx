@@ -37,6 +37,8 @@ export interface Aviso {
   ativo: boolean;
   createdAt: string;
   leituras: AvisoLeitura[];
+  destinatariosEmails: string[];
+  gruposIds: string[];
 }
 
 export interface AvisoLeitura {
@@ -45,6 +47,15 @@ export interface AvisoLeitura {
   usuarioNome: string;
   usuarioEmail: string;
   lidoEm: string;
+}
+
+export interface Grupo {
+  id: string;
+  nome: string;
+  descricao: string;
+  membrosEmails: string[];
+  criadoPor: string;
+  createdAt: string;
 }
 
 export interface Notificacao {
@@ -64,6 +75,7 @@ interface ComunicacaoContextType {
   mensagens: Mensagem[];
   avisos: Aviso[];
   notificacoes: Notificacao[];
+  grupos: Grupo[];
   loadMensagens: (conversaId: string) => Promise<void>;
   addConversa: (data: any) => Promise<any>;
   addParticipante: (data: any) => Promise<void>;
@@ -79,6 +91,10 @@ interface ComunicacaoContextType {
   loadConversas: () => Promise<void>;
   loadAvisos: () => Promise<void>;
   loadNotificacoes: () => Promise<void>;
+  loadGrupos: () => Promise<void>;
+  addGrupo: (data: { nome: string; descricao?: string; membros_emails: string[]; criado_por: string }) => Promise<void>;
+  updateGrupo: (id: string, data: { nome?: string; descricao?: string; membros_emails?: string[] }) => Promise<void>;
+  deleteGrupo: (id: string) => Promise<void>;
 }
 
 const ComunicacaoContext = createContext<ComunicacaoContextType | undefined>(undefined);
@@ -88,6 +104,34 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [avisos, setAvisos] = useState<Aviso[]>([]);
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
+  const [grupos, setGrupos] = useState<Grupo[]>([]);
+
+  const loadGrupos = useCallback(async () => {
+    const data = await fetchAll("comunicacao_grupos", "created_at");
+    setGrupos(data.reverse().map((g: any) => ({
+      id: g.id,
+      nome: g.nome ?? "",
+      descricao: g.descricao ?? "",
+      membrosEmails: Array.isArray(g.membros_emails) ? g.membros_emails : [],
+      criadoPor: g.criado_por ?? "",
+      createdAt: g.created_at ?? "",
+    })));
+  }, []);
+
+  const addGrupo = async (data: any) => {
+    await insertRow("comunicacao_grupos", data);
+    await loadGrupos();
+  };
+
+  const updateGrupo = async (id: string, data: any) => {
+    await updateRow("comunicacao_grupos", id, data);
+    await loadGrupos();
+  };
+
+  const deleteGrupo = async (id: string) => {
+    await deleteRow("comunicacao_grupos", id);
+    await loadGrupos();
+  };
 
   const loadConversas = useCallback(async () => {
     const convData = await fetchAll("comunicacao_conversas", "created_at");
@@ -150,6 +194,8 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
           usuarioEmail: l.usuario_email ?? "",
           lidoEm: l.lido_em ?? "",
         })),
+      destinatariosEmails: Array.isArray(a.destinatarios_emails) ? a.destinatarios_emails : [],
+      gruposIds: Array.isArray(a.grupos_ids) ? a.grupos_ids : [],
     })));
   }, []);
 
@@ -172,7 +218,8 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
     loadConversas();
     loadAvisos();
     loadNotificacoes();
-  }, [loadConversas, loadAvisos, loadNotificacoes]);
+    loadGrupos();
+  }, [loadConversas, loadAvisos, loadNotificacoes, loadGrupos]);
 
   // Realtime for messages
   useEffect(() => {
@@ -255,11 +302,12 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
 
   return (
     <ComunicacaoContext.Provider value={{
-      conversas, mensagens, avisos, notificacoes,
+      conversas, mensagens, avisos, notificacoes, grupos,
       loadMensagens, addConversa, addParticipante, addMensagem,
       addAviso, updateAviso, deleteAviso, confirmarLeitura,
       addNotificacao, marcarNotificacaoLida, deleteNotificacao,
       deleteConversa, loadConversas, loadAvisos, loadNotificacoes,
+      loadGrupos, addGrupo, updateGrupo, deleteGrupo,
     }}>
       {children}
     </ComunicacaoContext.Provider>
