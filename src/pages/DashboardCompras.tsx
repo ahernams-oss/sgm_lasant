@@ -440,6 +440,9 @@ export default function DashboardCompras() {
               <SelectItem value="Serviço">Apenas Serviços</SelectItem>
             </SelectContent>
           </Select>
+          <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={() => setRelatoriosOpen(true)}>
+            <FileText className="h-3.5 w-3.5" />Relatórios
+          </Button>
           <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={exportPdf}>
             <FileText className="h-3.5 w-3.5" />Relatório PDF
           </Button>
