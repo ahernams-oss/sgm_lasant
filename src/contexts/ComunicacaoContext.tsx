@@ -161,6 +161,8 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
           usuarioEmail: l.usuario_email ?? "",
           lidoEm: l.lido_em ?? "",
         })),
+      destinatariosEmails: Array.isArray(a.destinatarios_emails) ? a.destinatarios_emails : [],
+      gruposIds: Array.isArray(a.grupos_ids) ? a.grupos_ids : [],
     })));
   }, []);
 
