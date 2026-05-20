@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import { FileText, ShoppingCart, Clock, AlertTriangle, CheckCircle, XCircle, Package, TrendingUp, LayoutDashboard, DollarSign } from "lucide-react";
 import DashboardFilters, { type DashboardFiltersState, loadDashboardFilters } from "@/components/DashboardFilters";
+import RelatoriosComprasDialog from "@/components/compras/RelatoriosComprasDialog";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -90,6 +91,7 @@ export default function DashboardCompras() {
   const { empresa } = useEmpresa();
   const [filters, setFilters] = useState<DashboardFiltersState>(() => loadDashboardFilters("dashboard-compras:filters"));
   const [tipoFiltro, setTipoFiltro] = useState<"todos" | "Material" | "Serviço">("todos");
+  const [relatoriosOpen, setRelatoriosOpen] = useState(false);
 
   // Helper: tipo de um item (Material/Serviço) baseado no cadastro
   const tipoDoItem = useCallback((itemId: string): "Material" | "Serviço" => {
@@ -438,6 +440,9 @@ export default function DashboardCompras() {
               <SelectItem value="Serviço">Apenas Serviços</SelectItem>
             </SelectContent>
           </Select>
+          <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={() => setRelatoriosOpen(true)}>
+            <FileText className="h-3.5 w-3.5" />Relatórios
+          </Button>
           <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={exportPdf}>
             <FileText className="h-3.5 w-3.5" />Relatório PDF
           </Button>
@@ -790,6 +795,8 @@ export default function DashboardCompras() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <RelatoriosComprasDialog open={relatoriosOpen} onOpenChange={setRelatoriosOpen} />
     </div>
   );
 }
