@@ -218,7 +218,8 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
     loadConversas();
     loadAvisos();
     loadNotificacoes();
-  }, [loadConversas, loadAvisos, loadNotificacoes]);
+    loadGrupos();
+  }, [loadConversas, loadAvisos, loadNotificacoes, loadGrupos]);
 
   // Realtime for messages
   useEffect(() => {
