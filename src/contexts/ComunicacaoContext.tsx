@@ -302,11 +302,12 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
 
   return (
     <ComunicacaoContext.Provider value={{
-      conversas, mensagens, avisos, notificacoes,
+      conversas, mensagens, avisos, notificacoes, grupos,
       loadMensagens, addConversa, addParticipante, addMensagem,
       addAviso, updateAviso, deleteAviso, confirmarLeitura,
       addNotificacao, marcarNotificacaoLida, deleteNotificacao,
       deleteConversa, loadConversas, loadAvisos, loadNotificacoes,
+      loadGrupos, addGrupo, updateGrupo, deleteGrupo,
     }}>
       {children}
     </ComunicacaoContext.Provider>
