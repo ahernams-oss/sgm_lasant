@@ -15,7 +15,7 @@ export interface Requisicao {
   formacao: string[]; formacaoDetalhe: string; experiencia: string;
   conhecimentoInformatica: string; atividadesCargo: string; salarioVaga: string;
   solicitante?: string;
-  status: "Pendente" | "Em Análise" | "Aprovada" | "Reprovada" | "Concluída";
+  status: "Pendente" | "Em Análise" | "Aprovada" | "Reprovada" | "Suspensa" | "Concluída";
   aprovadoPor?: string; historicoStatus: StatusHistorico[];
 }
 

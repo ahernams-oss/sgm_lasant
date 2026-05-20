@@ -44,10 +44,11 @@ const statusColors: Record<Requisicao["status"], string> = {
   "Em Análise": "bg-blue-100 text-blue-800 border-blue-200",
   Aprovada: "bg-emerald-100 text-emerald-800 border-emerald-200",
   Reprovada: "bg-red-100 text-red-800 border-red-200",
+  Suspensa: "bg-orange-100 text-orange-800 border-orange-200",
   "Concluída": "bg-purple-100 text-purple-800 border-purple-200",
 };
 
-const statusOptions: Requisicao["status"][] = ["Pendente", "Em Análise", "Aprovada", "Reprovada"];
+const statusOptions: Requisicao["status"][] = ["Pendente", "Em Análise", "Aprovada", "Reprovada", "Suspensa", "Concluída"];
 
 const RequisicaoGrid = () => {
   const { requisicoes, updateStatus, updateRequisicao } = useRequisicoes();
@@ -64,6 +65,7 @@ const RequisicaoGrid = () => {
       "Em Análise": "requisicao_colaboradores.status.em_analise",
       "Aprovada": "requisicao_colaboradores.status.aprovada",
       "Reprovada": "requisicao_colaboradores.status.reprovada",
+      "Suspensa": "requisicao_colaboradores.status.suspensa",
       "Concluída": "requisicao_colaboradores.status.concluida",
     };
     return tem(map[s] || "");
@@ -77,6 +79,8 @@ const RequisicaoGrid = () => {
   const [historicoReq, setHistoricoReq] = useState<Requisicao | null>(null);
   const [reprovandoReq, setReprovandoReq] = useState<Requisicao | null>(null);
   const [justificativaReprovacao, setJustificativaReprovacao] = useState("");
+  const [suspendendoReq, setSuspendendoReq] = useState<Requisicao | null>(null);
+  const [justificativaSuspensao, setJustificativaSuspensao] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(7);
   const [editForm, setEditForm] = useState({
@@ -192,6 +196,19 @@ const RequisicaoGrid = () => {
     setReprovandoReq(null);
     setJustificativaReprovacao("");
     toast.success("Requisição reprovada.");
+  };
+
+  const confirmarSuspensao = () => {
+    if (!suspendendoReq) return;
+    const just = justificativaSuspensao.trim();
+    if (!just) {
+      toast.error("Informe a justificativa da suspensão.");
+      return;
+    }
+    handleStatusChange(suspendendoReq, "Suspensa", just);
+    setSuspendendoReq(null);
+    setJustificativaSuspensao("");
+    toast.success("Requisição suspensa.");
   };
 
   const parseDataBR = (d: string): Date | null => {
@@ -342,20 +359,40 @@ const RequisicaoGrid = () => {
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuLabel className="text-xs text-muted-foreground">Aprovação</DropdownMenuLabel>
-                            {req.status !== "Em Análise" && podeStatusRP("Em Análise") && (
-                              <DropdownMenuItem onClick={() => handleStatusChange(req, "Em Análise")}>
-                                <Clock className="mr-2 h-4 w-4 text-blue-600" /> Marcar Em Análise
-                              </DropdownMenuItem>
-                            )}
-                            {req.status !== "Aprovada" && podeStatusRP("Aprovada") && (
-                              <DropdownMenuItem onClick={() => handleStatusChange(req, "Aprovada")}>
-                                <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Aprovar
-                              </DropdownMenuItem>
-                            )}
-                            {req.status !== "Reprovada" && podeStatusRP("Reprovada") && (
-                              <DropdownMenuItem onClick={() => { setReprovandoReq(req); setJustificativaReprovacao(""); }}>
-                                <XCircle className="mr-2 h-4 w-4 text-red-600" /> Reprovar
-                              </DropdownMenuItem>
+                            {req.status === "Aprovada" ? (
+                              <>
+                                {podeStatusRP("Suspensa") && (
+                                  <DropdownMenuItem onClick={() => { setSuspendendoReq(req); setJustificativaSuspensao(""); }}>
+                                    <Clock className="mr-2 h-4 w-4 text-orange-600" /> Suspender
+                                  </DropdownMenuItem>
+                                )}
+                              </>
+                            ) : req.status === "Suspensa" ? (
+                              <>
+                                {podeStatusRP("Aprovada") && (
+                                  <DropdownMenuItem onClick={() => handleStatusChange(req, "Aprovada")}>
+                                    <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Reativar (Aprovar)
+                                  </DropdownMenuItem>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                {req.status !== "Em Análise" && podeStatusRP("Em Análise") && (
+                                  <DropdownMenuItem onClick={() => handleStatusChange(req, "Em Análise")}>
+                                    <Clock className="mr-2 h-4 w-4 text-blue-600" /> Marcar Em Análise
+                                  </DropdownMenuItem>
+                                )}
+                                {podeStatusRP("Aprovada") && (
+                                  <DropdownMenuItem onClick={() => handleStatusChange(req, "Aprovada")}>
+                                    <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Aprovar
+                                  </DropdownMenuItem>
+                                )}
+                                {req.status !== "Reprovada" && podeStatusRP("Reprovada") && (
+                                  <DropdownMenuItem onClick={() => { setReprovandoReq(req); setJustificativaReprovacao(""); }}>
+                                    <XCircle className="mr-2 h-4 w-4 text-red-600" /> Reprovar
+                                  </DropdownMenuItem>
+                                )}
+                              </>
                             )}
                           </>
                         )}
@@ -619,6 +656,30 @@ const RequisicaoGrid = () => {
             <Button variant="outline" onClick={() => { setReprovandoReq(null); setJustificativaReprovacao(""); }}>Cancelar</Button>
             <Button variant="destructive" onClick={confirmarReprovacao}>
               <XCircle className="mr-2 h-4 w-4" /> Confirmar Reprovação
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!suspendendoReq} onOpenChange={(open) => { if (!open) { setSuspendendoReq(null); setJustificativaSuspensao(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Suspender Requisição #{suspendendoReq?.numero}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <label className="field-label">Justificativa da suspensão <span className="text-red-600">*</span></label>
+            <Textarea
+              value={justificativaSuspensao}
+              onChange={(e) => setJustificativaSuspensao(e.target.value)}
+              placeholder="Descreva o motivo da suspensão..."
+              rows={5}
+              autoFocus
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => { setSuspendendoReq(null); setJustificativaSuspensao(""); }}>Cancelar</Button>
+            <Button onClick={confirmarSuspensao} className="bg-orange-600 hover:bg-orange-700 text-white">
+              <Clock className="mr-2 h-4 w-4" /> Confirmar Suspensão
             </Button>
           </div>
         </DialogContent>
