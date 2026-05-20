@@ -22,16 +22,24 @@ const ProcessosSeletivos = () => {
     requisicao: requisicoes.find((r) => r.id === p.requisicaoId),
   }));
 
+  const parseData = (s: string) => {
+    const [d, m, y] = (s || "").split("/");
+    return new Date(Number(y), Number(m) - 1, Number(d)).getTime() || 0;
+  };
+
   const filtered = useMemo(() => {
-    if (!search.trim()) return processosComReq;
-    const term = search.toLowerCase();
-    return processosComReq.filter(
-      (p) =>
-        (p.requisicao?.cargoNome || "").toLowerCase().includes(term) ||
-        (p.requisicao?.unidade || "").toLowerCase().includes(term) ||
-        p.dataCriacao.toLowerCase().includes(term) ||
-        p.candidatos.some((c) => c.nome.toLowerCase().includes(term))
-    );
+    const base = !search.trim()
+      ? processosComReq
+      : processosComReq.filter((p) => {
+          const term = search.toLowerCase();
+          return (
+            (p.requisicao?.cargoNome || "").toLowerCase().includes(term) ||
+            (p.requisicao?.unidade || "").toLowerCase().includes(term) ||
+            p.dataCriacao.toLowerCase().includes(term) ||
+            p.candidatos.some((c) => c.nome.toLowerCase().includes(term))
+          );
+        });
+    return [...base].sort((a, b) => parseData(b.dataCriacao) - parseData(a.dataCriacao));
   }, [processosComReq, search]);
 
   return (
