@@ -611,6 +611,8 @@ export type Database = {
           conteudo: string
           created_at: string | null
           criado_por: string | null
+          destinatarios_emails: Json
+          grupos_ids: Json
           id: string
           prioridade: string | null
           titulo: string
@@ -620,6 +622,8 @@ export type Database = {
           conteudo?: string
           created_at?: string | null
           criado_por?: string | null
+          destinatarios_emails?: Json
+          grupos_ids?: Json
           id?: string
           prioridade?: string | null
           titulo?: string
@@ -629,6 +633,8 @@ export type Database = {
           conteudo?: string
           created_at?: string | null
           criado_por?: string | null
+          destinatarios_emails?: Json
+          grupos_ids?: Json
           id?: string
           prioridade?: string | null
           titulo?: string
@@ -688,6 +694,36 @@ export type Database = {
           id?: string
           tipo?: string
           titulo?: string | null
+        }
+        Relationships: []
+      }
+      comunicacao_grupos: {
+        Row: {
+          created_at: string
+          criado_por: string
+          descricao: string
+          id: string
+          membros_emails: Json
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criado_por?: string
+          descricao?: string
+          id?: string
+          membros_emails?: Json
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string
+          descricao?: string
+          id?: string
+          membros_emails?: Json
+          nome?: string
+          updated_at?: string
         }
         Relationships: []
       }
