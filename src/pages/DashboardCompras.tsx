@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import { FileText, ShoppingCart, Clock, AlertTriangle, CheckCircle, XCircle, Package, TrendingUp, LayoutDashboard, DollarSign } from "lucide-react";
 import DashboardFilters, { type DashboardFiltersState, loadDashboardFilters } from "@/components/DashboardFilters";
+import RelatoriosComprasDialog from "@/components/compras/RelatoriosComprasDialog";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
