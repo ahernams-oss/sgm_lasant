@@ -117,6 +117,8 @@ import CronogramaPage from "./pages/Cronograma.tsx";
 import BimPage from "./pages/Bim.tsx";
 import { BimProvider } from "@/contexts/BimContext";
 import { CronogramasProvider } from "@/contexts/CronogramasContext";
+import EventogramaPage from "./pages/Eventograma.tsx";
+import { EventogramasProvider } from "@/contexts/EventogramasContext";
 import { OrcamentosScoProvider } from "@/contexts/OrcamentosScoContext";
 import OrcamentosSco from "./pages/OrcamentosSco.tsx";
 import OrcamentoScoForm from "./pages/OrcamentoScoForm.tsx";
