@@ -65,6 +65,7 @@ const RequisicaoGrid = () => {
       "Em Análise": "requisicao_colaboradores.status.em_analise",
       "Aprovada": "requisicao_colaboradores.status.aprovada",
       "Reprovada": "requisicao_colaboradores.status.reprovada",
+      "Suspensa": "requisicao_colaboradores.status.suspensa",
       "Concluída": "requisicao_colaboradores.status.concluida",
     };
     return tem(map[s] || "");
