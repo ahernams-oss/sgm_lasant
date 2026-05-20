@@ -91,6 +91,7 @@ export default function DashboardCompras() {
   const { empresa } = useEmpresa();
   const [filters, setFilters] = useState<DashboardFiltersState>(() => loadDashboardFilters("dashboard-compras:filters"));
   const [tipoFiltro, setTipoFiltro] = useState<"todos" | "Material" | "Serviço">("todos");
+  const [relatoriosOpen, setRelatoriosOpen] = useState(false);
 
   // Helper: tipo de um item (Material/Serviço) baseado no cadastro
   const tipoDoItem = useCallback((itemId: string): "Material" | "Serviço" => {
