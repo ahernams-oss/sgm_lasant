@@ -47,7 +47,8 @@ const statusColors: Record<StatusRequisicaoCompras, string> = {
 const URGENCIAS: GrauUrgencia[] = ["Baixa", "Normal", "Alta", "Urgente"];
 
 export default function RequisicaoComprasPage() {
-  const { requisicoes, addRequisicao, cancelarRequisicao } = useRequisicaoCompras();
+  const { requisicoes, addRequisicao, cancelarRequisicao, updateStatus } = useRequisicaoCompras();
+  const { addCotacao, cotacoes } = (require("@/contexts/CotacaoComprasContext") as typeof import("@/contexts/CotacaoComprasContext")).useCotacaoCompras();
   const { materiais } = useMateriaisServicos();
   const { getCodigoCompleto } = useCategoriasCompras();
   const codigoComposto = (m: any) => {
