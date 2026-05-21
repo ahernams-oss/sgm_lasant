@@ -335,7 +335,7 @@ export default function RequisicaoComprasPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={colOrder.length + 1} className="text-center text-muted-foreground py-8">Nenhuma requisição encontrada</TableCell></TableRow>
-            ) : filtered.map(r => {
+            ) : paginate(filtered, pageReq, 7).paginated.map(r => {
               const cellMap: Record<string, ReactNode> = {
                 numero: <span className="font-mono font-bold">RCS-{String(r.numero).padStart(4, "0")}</span>,
                 data: format(new Date(r.dataCriacao), "dd/MM/yyyy HH:mm"),
@@ -360,6 +360,9 @@ export default function RequisicaoComprasPage() {
           </TableBody>
         </Table>
         </SortableHeaderRow>
+        <div className="p-2">
+          <PaginationControls currentPage={pageReq} totalItems={filtered.length} onPageChange={setPageReq} pageSize={7} />
+        </div>
       </div>
 
       {/* Dialog Nova Requisição */}
