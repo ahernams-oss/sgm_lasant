@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, FileText, ShoppingCart, AlertCircle, Building2, FileDown, FileSpreadsheet, KeyRound, LayoutDashboard, Clock, CheckCircle2, Truck, XCircle, PackageCheck, ChevronDown, ChevronRight } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LogOut, FileText, ShoppingCart, AlertCircle, Building2, FileDown, FileSpreadsheet, KeyRound, LayoutDashboard, Clock, CheckCircle2, Truck, XCircle, PackageCheck, ChevronDown, ChevronRight, FilterX } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
@@ -385,8 +386,55 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const [pagePedidos, setPagePedidos] = useState(1);
   const [expandedPedidos, setExpandedPedidos] = useState<Set<string>>(new Set());
   const PAGE_SIZE = 10;
+
+  // Filtros globais (datas) + por aba (status)
+  const [dataDe, setDataDe] = useState<string>("");
+  const [dataAte, setDataAte] = useState<string>("");
+  const [statusCot, setStatusCot] = useState<string>("todos");
+  const [statusPed, setStatusPed] = useState<string>("todos");
+
+  const inRange = (iso: string) => {
+    if (!iso) return true;
+    const d = new Date(iso);
+    if (dataDe) {
+      const de = new Date(dataDe + "T00:00:00");
+      if (d < de) return false;
+    }
+    if (dataAte) {
+      const ate = new Date(dataAte + "T23:59:59");
+      if (d > ate) return false;
+    }
+    return true;
+  };
+
+  const convitesFiltrados = useMemo(() => {
+    return convites.filter((c) => {
+      if (!inRange(c.created_at)) return false;
+      if (statusCot === "todos") return true;
+      const expirado = new Date(c.expires_at) < new Date();
+      const effectiveStatus = c.status === "pendente" && expirado ? "expirado" : c.status;
+      return effectiveStatus === statusCot;
+    });
+  }, [convites, dataDe, dataAte, statusCot]);
+
+  const pedidosFiltrados = useMemo(() => {
+    return pedidos.filter((p) => {
+      if (!inRange(p.data_criacao)) return false;
+      if (statusPed === "todos") return true;
+      return p.status === statusPed;
+    });
+  }, [pedidos, dataDe, dataAte, statusPed]);
+
+  const limparFiltros = () => {
+    setDataDe(""); setDataAte(""); setStatusCot("todos"); setStatusPed("todos");
+    setPageCotacoes(1); setPagePedidos(1);
+  };
+
+  useEffect(() => { setPageCotacoes(1); }, [dataDe, dataAte, statusCot]);
+  useEffect(() => { setPagePedidos(1); }, [dataDe, dataAte, statusPed]);
+
   const togglePedido = (id: string) => setExpandedPedidos((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const allPedidoIds = pedidos.map((p) => p.id);
+  const allPedidoIds = pedidosFiltrados.map((p) => p.id);
   const allExpanded = allPedidoIds.length > 0 && allPedidoIds.every((id) => expandedPedidos.has(id));
 
   const handleRecusarConfirm = async () => {
@@ -469,7 +517,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     autoTable(doc, {
       startY: 30,
       head: [["Cotação", "Comprador", "Recebida em", "Validade", "Status"]],
-      body: convites.map((c) => [
+      body: convitesFiltrados.map((c) => [
         `COT-${String(c.cotacao_numero).padStart(4, "0")}`,
         c.comprador, fmtDate(c.created_at), fmtDate(c.expires_at), statusCotacao(c),
       ]),
@@ -479,7 +527,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     });
 
     // Detalhamento dos itens por cotação
-    convites.forEach((c) => {
+    convitesFiltrados.forEach((c) => {
       const itens = parseItens(c.itens);
       if (itens.length === 0) return;
       doc.addPage();
@@ -512,7 +560,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
 
   const exportCotacoesExcel = () => {
     const wb = XLSX.utils.book_new();
-    const wsResumo = XLSX.utils.json_to_sheet(convites.map((c) => ({
+    const wsResumo = XLSX.utils.json_to_sheet(convitesFiltrados.map((c) => ({
       "Cotação": `COT-${String(c.cotacao_numero).padStart(4, "0")}`,
       "Comprador": c.comprador,
       "Recebida em": fmtDate(c.created_at),
@@ -524,7 +572,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     XLSX.utils.book_append_sheet(wb, wsResumo, "Cotações");
 
     const linhas: any[] = [];
-    convites.forEach((c) => {
+    convitesFiltrados.forEach((c) => {
       parseItens(c.itens).forEach((it: any, i: number) => {
         linhas.push({
           "Cotação": `COT-${String(c.cotacao_numero).padStart(4, "0")}`,
@@ -560,7 +608,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     autoTable(doc, {
       startY: 30,
       head: [["Pedido", "Data", "Comprador", "Status", "Pagamento", "Prazo", "Local", "Valor Total"]],
-      body: pedidos.map((p) => [
+      body: pedidosFiltrados.map((p) => [
         `PC-${String(p.numero).padStart(4, "0")}`,
         fmtDate(p.data_criacao), p.comprador, p.status,
         p.condicao_pagamento || "-", p.prazo_entrega || "-", p.local_entrega || "-",
@@ -576,7 +624,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
 
   const exportPedidosExcel = () => {
     const wb = XLSX.utils.book_new();
-    const wsResumo = XLSX.utils.json_to_sheet(pedidos.map((p) => ({
+    const wsResumo = XLSX.utils.json_to_sheet(pedidosFiltrados.map((p) => ({
       "Pedido": `PC-${String(p.numero).padStart(4, "0")}`,
       "Data": fmtDate(p.data_criacao),
       "Comprador": p.comprador,
@@ -590,7 +638,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     XLSX.utils.book_append_sheet(wb, wsResumo, "Pedidos");
 
     const itens: any[] = [];
-    pedidos.forEach((p) => {
+    pedidosFiltrados.forEach((p) => {
       if (Array.isArray(p.itens)) {
         p.itens.forEach((it: any) => {
           itens.push({
@@ -669,9 +717,60 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
             </TabsTrigger>
           </TabsList>
 
+          {/* Filtros (aplicados a todas as abas) */}
+          <Card className="mt-3">
+            <CardContent className="py-3">
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-muted-foreground">Data de</Label>
+                  <Input type="date" value={dataDe} onChange={(e) => setDataDe(e.target.value)} className="h-9 w-40" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-muted-foreground">Data até</Label>
+                  <Input type="date" value={dataAte} onChange={(e) => setDataAte(e.target.value)} className="h-9 w-40" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-muted-foreground">Status Cotação</Label>
+                  <Select value={statusCot} onValueChange={setStatusCot}>
+                    <SelectTrigger className="h-9 w-44"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="pendente">Pendente</SelectItem>
+                      <SelectItem value="respondido">Respondida</SelectItem>
+                      <SelectItem value="recusado">Recusada</SelectItem>
+                      <SelectItem value="expirado">Expirada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-muted-foreground">Status Pedido</Label>
+                  <Select value={statusPed} onValueChange={setStatusPed}>
+                    <SelectTrigger className="h-9 w-44"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="Emitido">Emitido</SelectItem>
+                      <SelectItem value="Comprado">Comprado</SelectItem>
+                      <SelectItem value="Em Entrega">Em Entrega</SelectItem>
+                      <SelectItem value="Entregue Parcial">Entregue Parcial</SelectItem>
+                      <SelectItem value="Entregue">Entregue</SelectItem>
+                      <SelectItem value="Cancelado">Cancelado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button variant="outline" size="sm" onClick={limparFiltros} className="h-9">
+                  <FilterX className="h-4 w-4 mr-1" /> Limpar
+                </Button>
+                <div className="ml-auto text-xs text-muted-foreground">
+                  {convitesFiltrados.length} cotação(ões) · {pedidosFiltrados.length} pedido(s)
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <TabsContent value="dashboard">
-            <DashboardFornecedor pedidos={pedidos} convites={convites} loading={loading} />
+            <DashboardFornecedor pedidos={pedidosFiltrados} convites={convitesFiltrados} loading={loading} />
           </TabsContent>
+
 
           <TabsContent value="cotacoes">
             <Card>
@@ -681,10 +780,10 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                   <CardDescription>Clique em "Responder" para enviar sua proposta.</CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={exportCotacoesExcel} disabled={convites.length === 0}>
+                  <Button size="sm" variant="outline" onClick={exportCotacoesExcel} disabled={convitesFiltrados.length === 0}>
                     <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
                   </Button>
-                  <Button size="sm" variant="outline" onClick={exportCotacoesPdf} disabled={convites.length === 0}>
+                  <Button size="sm" variant="outline" onClick={exportCotacoesPdf} disabled={convitesFiltrados.length === 0}>
                     <FileDown className="h-4 w-4 mr-1" /> PDF
                   </Button>
                 </div>
@@ -692,7 +791,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               <CardContent>
                 {loading ? (
                   <p className="text-muted-foreground text-sm">Carregando...</p>
-                ) : convites.length === 0 ? (
+                ) : convitesFiltrados.length === 0 ? (
                   <p className="text-muted-foreground text-sm">Nenhuma cotação encontrada.</p>
                 ) : (
                   <div className="border rounded-lg overflow-x-auto">
@@ -708,7 +807,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {paginate(convites, pageCotacoes, PAGE_SIZE).paginated.map((c) => {
+                        {paginate(convitesFiltrados, pageCotacoes, PAGE_SIZE).paginated.map((c) => {
                           const expirado = new Date(c.expires_at) < new Date();
                           const podeResponder = c.status === "pendente" && !expirado;
                           return (
@@ -755,10 +854,10 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                     </Table>
                   </div>
                 )}
-                {convites.length > 0 && (
+                {convitesFiltrados.length > 0 && (
                   <PaginationControls
                     currentPage={pageCotacoes}
-                    totalItems={convites.length}
+                    totalItems={convitesFiltrados.length}
                     onPageChange={setPageCotacoes}
                     pageSize={PAGE_SIZE}
                   />
@@ -772,7 +871,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               <CardHeader className="flex flex-row items-start justify-between gap-4">
                 <CardTitle className="text-base">Pedidos de Compra emitidos</CardTitle>
                 <div className="flex gap-2">
-                  {pedidos.length > 0 && (
+                  {pedidosFiltrados.length > 0 && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -781,10 +880,10 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                       {allExpanded ? "Recolher todos" : "Expandir todos"}
                     </Button>
                   )}
-                  <Button size="sm" variant="outline" onClick={exportPedidosExcel} disabled={pedidos.length === 0}>
+                  <Button size="sm" variant="outline" onClick={exportPedidosExcel} disabled={pedidosFiltrados.length === 0}>
                     <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
                   </Button>
-                  <Button size="sm" variant="outline" onClick={exportPedidosPdf} disabled={pedidos.length === 0}>
+                  <Button size="sm" variant="outline" onClick={exportPedidosPdf} disabled={pedidosFiltrados.length === 0}>
                     <FileDown className="h-4 w-4 mr-1" /> PDF
                   </Button>
                 </div>
@@ -792,11 +891,11 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               <CardContent>
                 {loading ? (
                   <p className="text-muted-foreground text-sm">Carregando...</p>
-                ) : pedidos.length === 0 ? (
+                ) : pedidosFiltrados.length === 0 ? (
                   <p className="text-muted-foreground text-sm">Nenhum pedido encontrado.</p>
                 ) : (
                   <div className="space-y-4">
-                    {paginate(pedidos, pagePedidos, PAGE_SIZE).paginated.map((p) => {
+                    {paginate(pedidosFiltrados, pagePedidos, PAGE_SIZE).paginated.map((p) => {
                       const isOpen = expandedPedidos.has(p.id);
                       return (
                       <div key={p.id} className="border rounded-lg p-4">
@@ -862,10 +961,10 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                     })}
                   </div>
                 )}
-                {pedidos.length > 0 && (
+                {pedidosFiltrados.length > 0 && (
                   <PaginationControls
                     currentPage={pagePedidos}
-                    totalItems={pedidos.length}
+                    totalItems={pedidosFiltrados.length}
                     onPageChange={setPagePedidos}
                     pageSize={PAGE_SIZE}
                   />
