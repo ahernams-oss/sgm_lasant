@@ -11,6 +11,7 @@ interface CotacaoConfirmationProps {
   cotacaoNumero?: number
   comprador?: string
   link?: string
+  pdfUrl?: string
   nomeEmpresa?: string
 }
 
@@ -19,6 +20,7 @@ const CotacaoConfirmationEmail = ({
   cotacaoNumero,
   comprador,
   link,
+  pdfUrl,
   nomeEmpresa,
 }: CotacaoConfirmationProps) => (
   <Html lang="pt-BR" dir="ltr">
