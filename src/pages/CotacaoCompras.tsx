@@ -582,6 +582,79 @@ export default function CotacaoComprasPage() {
   const montarMensagemWhatsapp = (fornNome: string, cotNum: number, link: string, comprador: string, nomeEmpresa: string) =>
     `Olá *${fornNome}*,\n\n${nomeEmpresa} convida sua empresa a participar da cotação *#${cotNum}*.\n\nPara enviar sua proposta de preços, acesse o link abaixo:\n${link}\n\nAtenciosamente,\n${comprador}\n${nomeEmpresa}`;
 
+  const openPdfDialog = (cotId: string) => {
+    setPdfCotacaoId(cotId);
+    setPdfFornecedorId("");
+    setPdfEmail("");
+    setPdfDialogOpen(true);
+  };
+
+  const handleSelectFornecedorPdf = (fornId: string) => {
+    setPdfFornecedorId(fornId);
+    const forn = fornecedores.find(f => f.id === fornId);
+    setPdfEmail((forn as any)?.emailCompras || forn?.email || "");
+  };
+
+  const handleEnviarPdfFornecedor = async () => {
+    if (!pdfFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
+    if (!pdfEmail) { toast({ title: "Informe o e-mail do fornecedor", variant: "destructive" }); return; }
+    setPdfLoading(true);
+    try {
+      const cot = cotacoes.find(c => c.id === pdfCotacaoId);
+      const req = requisicoes.find(r => r.id === cot?.requisicaoId) || null;
+      const forn = fornecedores.find(f => f.id === pdfFornecedorId);
+      if (!cot || !forn) throw new Error("Dados não encontrados");
+
+      const { blob, fileName } = await gerarBlobPedidoCotacao({
+        cotacao: cot,
+        requisicao: req,
+        empresa,
+        fornecedor: {
+          id: forn.id,
+          nome: forn.nome,
+          cnpj: forn.cnpj || "",
+          email: pdfEmail,
+          telefone: getTelefoneFornecedor(forn) || "",
+        },
+      });
+
+      const path = `cotacoes/${cot.id}/${forn.id}-${Date.now()}.pdf`;
+      const { error: upErr } = await supabase.storage
+        .from("documentos")
+        .upload(path, blob, { contentType: "application/pdf", upsert: true });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("documentos").getPublicUrl(path);
+      const pdfUrl = pub.publicUrl;
+
+      const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
+      const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
+
+      const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "cotacao-confirmation",
+          recipientEmail: pdfEmail,
+          idempotencyKey: `cotacao-pdf-${cot.id}-${forn.id}-${Date.now()}`,
+          templateData: {
+            fornecedorNome: forn.nome,
+            cotacaoNumero: cot.numero,
+            comprador,
+            pdfUrl,
+            nomeEmpresa,
+          },
+        },
+      });
+      if (emailErr) throw emailErr;
+
+      toast({ title: `PDF enviado para ${forn.nome}`, description: fileName });
+      setPdfDialogOpen(false);
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Erro ao enviar PDF", description: e.message, variant: "destructive" });
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   const handleGerarEEnviarIndividual = async () => {
     if (!enviarFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
     if (!canalEmail && !canalWhatsapp) { toast({ title: "Selecione ao menos um canal de envio", variant: "destructive" }); return; }
