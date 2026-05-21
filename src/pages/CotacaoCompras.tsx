@@ -170,6 +170,13 @@ export default function CotacaoComprasPage() {
   const [enviarEmailLoading, setEnviarEmailLoading] = useState(false);
   const [enviarEmailTodosLoading, setEnviarEmailTodosLoading] = useState(false);
 
+  // Enviar PDF por e-mail (cotação direta)
+  const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
+  const [pdfCotacaoId, setPdfCotacaoId] = useState("");
+  const [pdfFornecedorId, setPdfFornecedorId] = useState("");
+  const [pdfEmail, setPdfEmail] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
+
   const compradores = useMemo(() => {
     const set = new Set(cotacoes.map(c => c.comprador));
     return Array.from(set).sort();
