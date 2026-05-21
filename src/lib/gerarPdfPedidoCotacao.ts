@@ -235,6 +235,13 @@ export async function downloadPdfPedidoCotacaoIndividual(data: PedidoCotacaoData
   doc.save(`Pedido_Cotacao_COT-${cotNum}_${nomeArq}.pdf`);
 }
 
+export async function gerarBlobPedidoCotacao(data: PedidoCotacaoData): Promise<{ blob: Blob; fileName: string }> {
+  const doc = await gerarPdfPedidoCotacao(data);
+  const cotNum = String(data.cotacao.numero).padStart(4, "0");
+  const nomeArq = data.fornecedor.nome.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 30);
+  return { blob: doc.output("blob"), fileName: `Pedido_Cotacao_COT-${cotNum}_${nomeArq}.pdf` };
+}
+
 export async function downloadPdfPedidoCotacaoTodos(
   cotacao: CotacaoCompras,
   requisicao: RequisicaoCompras | null,

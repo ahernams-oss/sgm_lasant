@@ -11,6 +11,7 @@ interface CotacaoConfirmationProps {
   cotacaoNumero?: number
   comprador?: string
   link?: string
+  pdfUrl?: string
   nomeEmpresa?: string
 }
 
@@ -19,6 +20,7 @@ const CotacaoConfirmationEmail = ({
   cotacaoNumero,
   comprador,
   link,
+  pdfUrl,
   nomeEmpresa,
 }: CotacaoConfirmationProps) => (
   <Html lang="pt-BR" dir="ltr">
@@ -57,10 +59,24 @@ const CotacaoConfirmationEmail = ({
           </Section>
         )}
 
+        {pdfUrl && (
+          <>
+            <Text style={text}>
+              Em anexo, segue o <strong>PDF da cotação</strong> com todos os itens e condições solicitadas:
+            </Text>
+            <Section style={buttonSection}>
+              <Button style={button} href={pdfUrl}>
+                Baixar PDF da Cotação
+              </Button>
+            </Section>
+          </>
+        )}
+
         <Text style={textSmall}>
           Caso não consiga clicar no botão, copie e cole o link no seu navegador:
         </Text>
         {link && <Text style={linkText}>{link}</Text>}
+        {pdfUrl && <Text style={linkText}>{pdfUrl}</Text>}
 
         <Hr style={divider} />
 

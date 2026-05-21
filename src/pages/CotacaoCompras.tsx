@@ -31,7 +31,7 @@ import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, 
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Checkbox } from "@/components/ui/checkbox";
 import { downloadPdfCotacao } from "@/lib/gerarPdfCotacao";
-import { downloadPdfPedidoCotacaoTodos } from "@/lib/gerarPdfPedidoCotacao";
+import { downloadPdfPedidoCotacaoTodos, gerarBlobPedidoCotacao } from "@/lib/gerarPdfPedidoCotacao";
 import { Switch } from "@/components/ui/switch";
 import { format, subDays, isAfter } from "date-fns";
 
@@ -169,6 +169,13 @@ export default function CotacaoComprasPage() {
   const [enviarTodosLoading, setEnviarTodosLoading] = useState(false);
   const [enviarEmailLoading, setEnviarEmailLoading] = useState(false);
   const [enviarEmailTodosLoading, setEnviarEmailTodosLoading] = useState(false);
+
+  // Enviar PDF por e-mail (cotação direta)
+  const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
+  const [pdfCotacaoId, setPdfCotacaoId] = useState("");
+  const [pdfFornecedorId, setPdfFornecedorId] = useState("");
+  const [pdfEmail, setPdfEmail] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const compradores = useMemo(() => {
     const set = new Set(cotacoes.map(c => c.comprador));
@@ -574,6 +581,79 @@ export default function CotacaoComprasPage() {
   // Gerar + enviar individual em um clique
   const montarMensagemWhatsapp = (fornNome: string, cotNum: number, link: string, comprador: string, nomeEmpresa: string) =>
     `Olá *${fornNome}*,\n\n${nomeEmpresa} convida sua empresa a participar da cotação *#${cotNum}*.\n\nPara enviar sua proposta de preços, acesse o link abaixo:\n${link}\n\nAtenciosamente,\n${comprador}\n${nomeEmpresa}`;
+
+  const openPdfDialog = (cotId: string) => {
+    setPdfCotacaoId(cotId);
+    setPdfFornecedorId("");
+    setPdfEmail("");
+    setPdfDialogOpen(true);
+  };
+
+  const handleSelectFornecedorPdf = (fornId: string) => {
+    setPdfFornecedorId(fornId);
+    const forn = fornecedores.find(f => f.id === fornId);
+    setPdfEmail((forn as any)?.emailCompras || forn?.email || "");
+  };
+
+  const handleEnviarPdfFornecedor = async () => {
+    if (!pdfFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
+    if (!pdfEmail) { toast({ title: "Informe o e-mail do fornecedor", variant: "destructive" }); return; }
+    setPdfLoading(true);
+    try {
+      const cot = cotacoes.find(c => c.id === pdfCotacaoId);
+      const req = requisicoes.find(r => r.id === cot?.requisicaoId) || null;
+      const forn = fornecedores.find(f => f.id === pdfFornecedorId);
+      if (!cot || !forn) throw new Error("Dados não encontrados");
+
+      const { blob, fileName } = await gerarBlobPedidoCotacao({
+        cotacao: cot,
+        requisicao: req,
+        empresa,
+        fornecedor: {
+          id: forn.id,
+          nome: forn.nome,
+          cnpj: forn.cnpj || "",
+          email: pdfEmail,
+          telefone: getTelefoneFornecedor(forn) || "",
+        },
+      });
+
+      const path = `cotacoes/${cot.id}/${forn.id}-${Date.now()}.pdf`;
+      const { error: upErr } = await supabase.storage
+        .from("documentos")
+        .upload(path, blob, { contentType: "application/pdf", upsert: true });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("documentos").getPublicUrl(path);
+      const pdfUrl = pub.publicUrl;
+
+      const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
+      const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
+
+      const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "cotacao-confirmation",
+          recipientEmail: pdfEmail,
+          idempotencyKey: `cotacao-pdf-${cot.id}-${forn.id}-${Date.now()}`,
+          templateData: {
+            fornecedorNome: forn.nome,
+            cotacaoNumero: cot.numero,
+            comprador,
+            pdfUrl,
+            nomeEmpresa,
+          },
+        },
+      });
+      if (emailErr) throw emailErr;
+
+      toast({ title: `PDF enviado para ${forn.nome}`, description: fileName });
+      setPdfDialogOpen(false);
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Erro ao enviar PDF", description: e.message, variant: "destructive" });
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   const handleGerarEEnviarIndividual = async () => {
     if (!enviarFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
@@ -1060,6 +1140,9 @@ export default function CotacaoComprasPage() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => openEnviarDialog(c.id)}>
                             <Send className="mr-2 h-4 w-4" />Enviar para Fornecedor
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openPdfDialog(c.id)}>
+                            <Mail className="mr-2 h-4 w-4" />Enviar PDF da Cotação por E-mail
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openPropostaDialog(c.id)}>
                             <Plus className="mr-2 h-4 w-4" />Adicionar Proposta Manual
@@ -1837,6 +1920,48 @@ export default function CotacaoComprasPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setEnviarDialogOpen(false); setLinkGerado(""); setLinksGeradosTodos([]); }}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Enviar PDF da Cotação por E-mail */}
+      <Dialog open={pdfDialogOpen} onOpenChange={setPdfDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enviar PDF da Cotação por E-mail</DialogTitle>
+            <DialogDescription>
+              Gera o PDF do Pedido de Cotação e envia diretamente ao e-mail do fornecedor escolhido.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Fornecedor *</Label>
+              <Select value={pdfFornecedorId} onValueChange={handleSelectFornecedorPdf}>
+                <SelectTrigger><SelectValue placeholder="Selecione um fornecedor..." /></SelectTrigger>
+                <SelectContent>
+                  {fornecedores.map(f => (
+                    <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>E-mail do Fornecedor *</Label>
+              <Input
+                type="email"
+                value={pdfEmail}
+                onChange={e => setPdfEmail(e.target.value)}
+                placeholder="email@fornecedor.com"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Preenchido do cadastro. Ajuste se necessário.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPdfDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleEnviarPdfFornecedor} disabled={pdfLoading || !pdfFornecedorId || !pdfEmail}>
+              <Mail className="mr-2 h-4 w-4" />
+              {pdfLoading ? "Enviando..." : "Enviar PDF"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
