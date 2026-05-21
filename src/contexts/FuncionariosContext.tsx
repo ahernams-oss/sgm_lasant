@@ -9,7 +9,7 @@ export interface PassagemDiaria { id: string; tipoTransporte: TipoTransporte; it
 export interface AnexoDependente { id: string; nome: string; base64: string; tipo: string; }
 export interface Dependente { id: string; nome: string; cpf: string; dataNascimento: string; grauParentesco: string; anexos: AnexoDependente[]; }
 export interface NrFuncionario { id: string; numero: string; descricao: string; dataEntrega: string; anexoBase64?: string; anexoNome?: string; anexoTipo?: string; }
-export interface EpiItem { id: string; quantidade: number; descricao: string; ca: string; dataEntrega: string; }
+export interface EpiItem { id: string; quantidade: number; descricao: string; ca: string; dataEntrega: string; dataVencimento?: string; }
 export interface AnexoDocumento { id: string; nome: string; path: string; tamanho: number; data: string; descricao: string; }
 
 export const grausParentesco = ["Cônjuge", "Filho(a)", "Pai", "Mãe", "Irmão(ã)", "Avô(ó)", "Neto(a)", "Enteado(a)", "Tutelado(a)", "Outro"];
