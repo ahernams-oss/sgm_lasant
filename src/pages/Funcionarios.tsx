@@ -244,19 +244,19 @@ const DependentesTab = ({ dependentes, onChange }: { dependentes: Dependente[]; 
 };
 
 const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) => void }) => {
-  const [novo, setNovo] = useState({ quantidade: 1, descricao: "", ca: "", dataEntrega: "" });
+  const [novo, setNovo] = useState({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "" });
 
   const addEpi = () => {
     if (!novo.descricao.trim()) { toast.error("Informe a descrição do EPI."); return; }
     onChange([...epis, { id: crypto.randomUUID(), ...novo }]);
-    setNovo({ quantidade: 1, descricao: "", ca: "", dataEntrega: "" });
+    setNovo({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "" });
   };
 
   const removeEpi = (id: string) => onChange(epis.filter((e) => e.id !== id));
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
         <Field label="Quantidade">
           <Input type="number" min={1} value={novo.quantidade} onChange={(e) => setNovo({ ...novo, quantidade: parseInt(e.target.value) || 1 })} />
         </Field>
@@ -268,6 +268,9 @@ const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) 
         </Field>
         <Field label="Data de Entrega">
           <Input type="date" value={novo.dataEntrega} onChange={(e) => setNovo({ ...novo, dataEntrega: e.target.value })} />
+        </Field>
+        <Field label="Data de Vencimento">
+          <Input type="date" value={novo.dataVencimento} onChange={(e) => setNovo({ ...novo, dataVencimento: e.target.value })} />
         </Field>
         <Button type="button" onClick={addEpi} size="sm" className="h-10">
           <Plus className="h-4 w-4 mr-1" /> Adicionar
@@ -283,6 +286,7 @@ const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) 
                 <TableHead>E.P.I</TableHead>
                 <TableHead className="w-24">CA</TableHead>
                 <TableHead className="w-32">Data Entrega</TableHead>
+                <TableHead className="w-32">Vencimento</TableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
@@ -293,6 +297,7 @@ const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) 
                   <TableCell>{epi.descricao}</TableCell>
                   <TableCell className="text-center">{epi.ca || "—"}</TableCell>
                   <TableCell className="text-center">{epi.dataEntrega ? epi.dataEntrega.split("-").reverse().join("/") : "—"}</TableCell>
+                  <TableCell className="text-center">{epi.dataVencimento ? epi.dataVencimento.split("-").reverse().join("/") : "—"}</TableCell>
                   <TableCell>
                     <Button size="icon" variant="ghost" type="button" onClick={() => removeEpi(epi.id)} className="h-7 w-7 text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />
