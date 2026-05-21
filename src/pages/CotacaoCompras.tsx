@@ -31,7 +31,7 @@ import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, 
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Checkbox } from "@/components/ui/checkbox";
 import { downloadPdfCotacao } from "@/lib/gerarPdfCotacao";
-import { downloadPdfPedidoCotacaoTodos } from "@/lib/gerarPdfPedidoCotacao";
+import { downloadPdfPedidoCotacaoTodos, gerarBlobPedidoCotacao } from "@/lib/gerarPdfPedidoCotacao";
 import { Switch } from "@/components/ui/switch";
 import { format, subDays, isAfter } from "date-fns";
 
