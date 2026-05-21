@@ -1,4 +1,6 @@
 import { useState, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { FileSpreadsheet } from "lucide-react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras, GrauUrgencia, ItemRequisicaoCompras, AnexoRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
