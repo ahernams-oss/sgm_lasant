@@ -349,7 +349,7 @@ export default function RequisicaoComprasPage() {
                 data: format(new Date(r.dataCriacao), "dd/MM/yyyy HH:mm"),
                 solicitante: r.solicitante,
                 centroCusto: r.centroCustoNome,
-                urgencia: <Badge variant={r.urgencia === "Urgente" ? "destructive" : r.urgencia === "Alta" ? "default" : "secondary"}>{r.urgencia}</Badge>,
+                urgencia: <Badge className={r.urgencia === "Urgente" ? "bg-red-500 text-white hover:bg-red-500" : r.urgencia === "Alta" ? "bg-orange-500 text-white hover:bg-orange-500" : r.urgencia === "Normal" ? "bg-green-600 text-white hover:bg-green-600" : "bg-muted text-muted-foreground"}>{r.urgencia}</Badge>,
                 itens: r.itens.length,
                 status: <Badge className={statusColors[r.status]}>{r.status}</Badge>,
               };
