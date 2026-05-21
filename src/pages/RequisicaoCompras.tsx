@@ -259,12 +259,7 @@ export default function RequisicaoComprasPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground mx-[7px]">Requisições de Compras e Serviços</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate("/compras/cotacoes")}>
-            <FileSpreadsheet className="mr-2 h-4 w-4" />Iniciar Cotação
-          </Button>
-          {podeCriar && <Button onClick={() => { resetForm(); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" />Nova Requisição</Button>}
-        </div>
+        {podeCriar && <Button onClick={() => { resetForm(); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" />Nova Requisição</Button>}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 items-end">
@@ -337,7 +332,7 @@ export default function RequisicaoComprasPage() {
                 const cd = colDefs[key];
                 return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
               })}
-              <TableHead className="w-28">Ações</TableHead>
+              <TableHead className="w-36">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -353,6 +348,7 @@ export default function RequisicaoComprasPage() {
                 itens: r.itens.length,
                 status: <Badge className={statusColors[r.status]}>{r.status}</Badge>,
               };
+              const podeIniciarCotacao = ["Enviada", "Aguardando Aprovação"].includes(r.status);
               return (
               <TableRow key={r.id}>
                 {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
@@ -360,6 +356,11 @@ export default function RequisicaoComprasPage() {
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" title="Detalhes" onClick={() => setViewReq(r)}><Eye className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" title="Histórico" onClick={() => setHistoricoReq(r)}><Clock className="h-4 w-4" /></Button>
+                    {podeIniciarCotacao && (
+                      <Button variant="ghost" size="icon" title="Iniciar Cotação" onClick={() => navigate(`/compras/cotacoes?rcsId=${r.id}`)}>
+                        <FileSpreadsheet className="h-4 w-4 text-primary" />
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
