@@ -65,6 +65,7 @@ export default function RequisicaoComprasPage() {
   const { usuarioLogado } = useAuth();
   const { tem } = usePermissao();
   const podeCriar = tem("requisicoes_compras.criar");
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   const [dialogOpen, setDialogOpen] = useState(false);
