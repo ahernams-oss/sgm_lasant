@@ -359,7 +359,17 @@ export default function RequisicaoComprasPage() {
                     <Button variant="ghost" size="icon" title="Detalhes" onClick={() => setViewReq(r)}><Eye className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" title="Histórico" onClick={() => setHistoricoReq(r)}><Clock className="h-4 w-4" /></Button>
                     {podeIniciarCotacao && (
-                      <Button variant="ghost" size="icon" title="Iniciar Cotação" onClick={() => navigate(`/compras/cotacoes?rcsId=${r.id}`)}>
+                      <Button variant="ghost" size="icon" title="Iniciar Cotação" onClick={() => {
+                        const existente = cotacoes.find(c => c.requisicaoId === r.id);
+                        if (existente) {
+                          toast({ title: "Cotação já existente", description: `Cotação Nº ${String(existente.numero).padStart(4, "0")} vinculada a esta RCS.` });
+                        } else {
+                          addCotacao({ requisicaoId: r.id, requisicaoNumero: r.numero, comprador: usuarioLogado?.nome || "Comprador" });
+                          updateStatus(r.id, "Em Cotação", usuarioLogado?.nome || "Comprador", "Cotação iniciada");
+                          toast({ title: "Cotação criada com sucesso!" });
+                        }
+                        navigate(`/compras/cotacoes?rcsId=${r.id}`);
+                      }}>
                         <FileSpreadsheet className="h-4 w-4 text-primary" />
                       </Button>
                     )}
