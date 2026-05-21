@@ -717,9 +717,60 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
             </TabsTrigger>
           </TabsList>
 
+          {/* Filtros (aplicados a todas as abas) */}
+          <Card className="mt-3">
+            <CardContent className="py-3">
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-muted-foreground">Data de</Label>
+                  <Input type="date" value={dataDe} onChange={(e) => setDataDe(e.target.value)} className="h-9 w-40" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-muted-foreground">Data até</Label>
+                  <Input type="date" value={dataAte} onChange={(e) => setDataAte(e.target.value)} className="h-9 w-40" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-muted-foreground">Status Cotação</Label>
+                  <Select value={statusCot} onValueChange={setStatusCot}>
+                    <SelectTrigger className="h-9 w-44"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="pendente">Pendente</SelectItem>
+                      <SelectItem value="respondido">Respondida</SelectItem>
+                      <SelectItem value="recusado">Recusada</SelectItem>
+                      <SelectItem value="expirado">Expirada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-muted-foreground">Status Pedido</Label>
+                  <Select value={statusPed} onValueChange={setStatusPed}>
+                    <SelectTrigger className="h-9 w-44"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="Emitido">Emitido</SelectItem>
+                      <SelectItem value="Comprado">Comprado</SelectItem>
+                      <SelectItem value="Em Entrega">Em Entrega</SelectItem>
+                      <SelectItem value="Entregue Parcial">Entregue Parcial</SelectItem>
+                      <SelectItem value="Entregue">Entregue</SelectItem>
+                      <SelectItem value="Cancelado">Cancelado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button variant="outline" size="sm" onClick={limparFiltros} className="h-9">
+                  <FilterX className="h-4 w-4 mr-1" /> Limpar
+                </Button>
+                <div className="ml-auto text-xs text-muted-foreground">
+                  {convitesFiltrados.length} cotação(ões) · {pedidosFiltrados.length} pedido(s)
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <TabsContent value="dashboard">
-            <DashboardFornecedor pedidos={pedidos} convites={convites} loading={loading} />
+            <DashboardFornecedor pedidos={pedidosFiltrados} convites={convitesFiltrados} loading={loading} />
           </TabsContent>
+
 
           <TabsContent value="cotacoes">
             <Card>
