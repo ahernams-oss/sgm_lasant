@@ -517,7 +517,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     autoTable(doc, {
       startY: 30,
       head: [["Cotação", "Comprador", "Recebida em", "Validade", "Status"]],
-      body: convites.map((c) => [
+      body: convitesFiltrados.map((c) => [
         `COT-${String(c.cotacao_numero).padStart(4, "0")}`,
         c.comprador, fmtDate(c.created_at), fmtDate(c.expires_at), statusCotacao(c),
       ]),
@@ -527,7 +527,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     });
 
     // Detalhamento dos itens por cotação
-    convites.forEach((c) => {
+    convitesFiltrados.forEach((c) => {
       const itens = parseItens(c.itens);
       if (itens.length === 0) return;
       doc.addPage();
@@ -560,7 +560,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
 
   const exportCotacoesExcel = () => {
     const wb = XLSX.utils.book_new();
-    const wsResumo = XLSX.utils.json_to_sheet(convites.map((c) => ({
+    const wsResumo = XLSX.utils.json_to_sheet(convitesFiltrados.map((c) => ({
       "Cotação": `COT-${String(c.cotacao_numero).padStart(4, "0")}`,
       "Comprador": c.comprador,
       "Recebida em": fmtDate(c.created_at),
@@ -572,7 +572,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     XLSX.utils.book_append_sheet(wb, wsResumo, "Cotações");
 
     const linhas: any[] = [];
-    convites.forEach((c) => {
+    convitesFiltrados.forEach((c) => {
       parseItens(c.itens).forEach((it: any, i: number) => {
         linhas.push({
           "Cotação": `COT-${String(c.cotacao_numero).padStart(4, "0")}`,
@@ -608,7 +608,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     autoTable(doc, {
       startY: 30,
       head: [["Pedido", "Data", "Comprador", "Status", "Pagamento", "Prazo", "Local", "Valor Total"]],
-      body: pedidos.map((p) => [
+      body: pedidosFiltrados.map((p) => [
         `PC-${String(p.numero).padStart(4, "0")}`,
         fmtDate(p.data_criacao), p.comprador, p.status,
         p.condicao_pagamento || "-", p.prazo_entrega || "-", p.local_entrega || "-",
@@ -624,7 +624,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
 
   const exportPedidosExcel = () => {
     const wb = XLSX.utils.book_new();
-    const wsResumo = XLSX.utils.json_to_sheet(pedidos.map((p) => ({
+    const wsResumo = XLSX.utils.json_to_sheet(pedidosFiltrados.map((p) => ({
       "Pedido": `PC-${String(p.numero).padStart(4, "0")}`,
       "Data": fmtDate(p.data_criacao),
       "Comprador": p.comprador,
@@ -638,7 +638,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     XLSX.utils.book_append_sheet(wb, wsResumo, "Pedidos");
 
     const itens: any[] = [];
-    pedidos.forEach((p) => {
+    pedidosFiltrados.forEach((p) => {
       if (Array.isArray(p.itens)) {
         p.itens.forEach((it: any) => {
           itens.push({
