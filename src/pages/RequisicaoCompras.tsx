@@ -1,4 +1,6 @@
 import { useState, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { FileSpreadsheet } from "lucide-react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras, GrauUrgencia, ItemRequisicaoCompras, AnexoRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
@@ -63,6 +65,7 @@ export default function RequisicaoComprasPage() {
   const { usuarioLogado } = useAuth();
   const { tem } = usePermissao();
   const podeCriar = tem("requisicoes_compras.criar");
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -256,7 +259,12 @@ export default function RequisicaoComprasPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground mx-[7px]">Requisições de Compras e Serviços</h1>
-        {podeCriar && <Button onClick={() => { resetForm(); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" />Nova Requisição</Button>}
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate("/compras/cotacoes")}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />Iniciar Cotação
+          </Button>
+          {podeCriar && <Button onClick={() => { resetForm(); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" />Nova Requisição</Button>}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 items-end">
@@ -341,7 +349,7 @@ export default function RequisicaoComprasPage() {
                 data: format(new Date(r.dataCriacao), "dd/MM/yyyy HH:mm"),
                 solicitante: r.solicitante,
                 centroCusto: r.centroCustoNome,
-                urgencia: <Badge variant={r.urgencia === "Urgente" ? "destructive" : r.urgencia === "Alta" ? "default" : "secondary"}>{r.urgencia}</Badge>,
+                urgencia: <Badge className={r.urgencia === "Urgente" ? "bg-red-500 text-white hover:bg-red-500" : r.urgencia === "Alta" ? "bg-orange-500 text-white hover:bg-orange-500" : r.urgencia === "Normal" ? "bg-green-600 text-white hover:bg-green-600" : "bg-muted text-muted-foreground"}>{r.urgencia}</Badge>,
                 itens: r.itens.length,
                 status: <Badge className={statusColors[r.status]}>{r.status}</Badge>,
               };
