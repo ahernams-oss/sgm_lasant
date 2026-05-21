@@ -22,6 +22,12 @@ import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, Dependente, Anex
 import { AnexosDocumentosTab } from "@/components/AnexosDocumentosTab";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
+import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { gerarPdfFuncionario } from "@/lib/gerarPdfFuncionario";
 import { gerarPdfEpi } from "@/lib/gerarPdfEpi";
@@ -29,6 +35,7 @@ import { ExamesPeriodicosTab } from "@/components/ExamesPeriodicosTab";
 import { PromocoesTab } from "@/components/PromocoesTab";
 import { NRsFuncionarioTab } from "@/components/NRsFuncionarioTab";
 import { usePermissao } from "@/hooks/usePermissao";
+
 
 const UF_OPTIONS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const STATUS_OPTIONS = ["Ativo", "Inativo", "Afastado", "Férias"] as const;
@@ -245,6 +252,17 @@ const DependentesTab = ({ dependentes, onChange }: { dependentes: Dependente[]; 
 
 const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) => void }) => {
   const [novo, setNovo] = useState({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "" });
+  const [epiPopoverOpen, setEpiPopoverOpen] = useState(false);
+  const { materiais } = useMateriaisServicos();
+  const { grupos, subGrupos, classes } = useCategoriasCompras();
+
+  const materiaisGrupo04 = useMemo(() => {
+    const grupo = grupos.find((g) => g.codigo === "04");
+    if (!grupo) return [] as typeof materiais;
+    const subIds = new Set(subGrupos.filter((s) => s.grupoId === grupo.id).map((s) => s.id));
+    const classeIds = new Set(classes.filter((c) => subIds.has(c.subGrupoId)).map((c) => c.id));
+    return materiais.filter((m) => classeIds.has(m.categoriaId));
+  }, [materiais, grupos, subGrupos, classes]);
 
   const addEpi = () => {
     if (!novo.descricao.trim()) { toast.error("Informe a descrição do EPI."); return; }
@@ -256,12 +274,42 @@ const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) 
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
+      <div className="grid grid-cols-1 lg:grid-cols-[80px_1fr_120px_150px_150px_auto] gap-3 items-end">
         <Field label="Quantidade">
           <Input type="number" min={1} value={novo.quantidade} onChange={(e) => setNovo({ ...novo, quantidade: parseInt(e.target.value) || 1 })} />
         </Field>
         <Field label="E.P.I" required>
-          <Input value={novo.descricao} onChange={(e) => setNovo({ ...novo, descricao: e.target.value })} placeholder="Descrição do EPI" />
+          <Popover open={epiPopoverOpen} onOpenChange={setEpiPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" role="combobox" aria-expanded={epiPopoverOpen} className="w-full justify-between font-normal h-10">
+                <span className="truncate">{novo.descricao || "Selecionar EPI..."}</span>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[480px] p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Buscar EPI..." />
+                <CommandList>
+                  <CommandEmpty>Nenhum EPI encontrado no grupo 04.</CommandEmpty>
+                  <CommandGroup>
+                    {materiaisGrupo04.map((m) => (
+                      <CommandItem
+                        key={m.id}
+                        value={`${m.codigo} ${m.descricao}`}
+                        onSelect={() => {
+                          setNovo({ ...novo, descricao: m.descricao });
+                          setEpiPopoverOpen(false);
+                        }}
+                      >
+                        <Check className={cn("mr-2 h-4 w-4", novo.descricao === m.descricao ? "opacity-100" : "opacity-0")} />
+                        {m.codigo} - {m.descricao}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </Field>
         <Field label="CA">
           <Input value={novo.ca} onChange={(e) => setNovo({ ...novo, ca: e.target.value })} placeholder="Nº do CA" />
@@ -276,6 +324,7 @@ const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) 
           <Plus className="h-4 w-4 mr-1" /> Adicionar
         </Button>
       </div>
+
 
       {epis.length > 0 && (
         <div className="rounded-lg border border-border overflow-hidden">
