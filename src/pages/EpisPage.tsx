@@ -136,6 +136,7 @@ const EpisPage = () => {
                 <TableHead>E.P.I</TableHead>
                 <TableHead className="w-24 text-center">CA</TableHead>
                 <TableHead className="w-32 text-center">Data Entrega</TableHead>
+                <TableHead className="w-32 text-center">Vencimento</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -149,6 +150,9 @@ const EpisPage = () => {
                   <TableCell className="text-center">{epi.ca || "—"}</TableCell>
                   <TableCell className="text-center">
                     {epi.dataEntrega ? epi.dataEntrega.split("-").reverse().join("/") : "—"}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {epi.dataVencimento ? epi.dataVencimento.split("-").reverse().join("/") : "—"}
                   </TableCell>
                 </TableRow>
               ))}
