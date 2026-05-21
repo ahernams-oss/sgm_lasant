@@ -1923,6 +1923,48 @@ export default function CotacaoComprasPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Enviar PDF da Cotação por E-mail */}
+      <Dialog open={pdfDialogOpen} onOpenChange={setPdfDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enviar PDF da Cotação por E-mail</DialogTitle>
+            <DialogDescription>
+              Gera o PDF do Pedido de Cotação e envia diretamente ao e-mail do fornecedor escolhido.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Fornecedor *</Label>
+              <Select value={pdfFornecedorId} onValueChange={handleSelectFornecedorPdf}>
+                <SelectTrigger><SelectValue placeholder="Selecione um fornecedor..." /></SelectTrigger>
+                <SelectContent>
+                  {fornecedores.map(f => (
+                    <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>E-mail do Fornecedor *</Label>
+              <Input
+                type="email"
+                value={pdfEmail}
+                onChange={e => setPdfEmail(e.target.value)}
+                placeholder="email@fornecedor.com"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Preenchido do cadastro. Ajuste se necessário.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPdfDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleEnviarPdfFornecedor} disabled={pdfLoading || !pdfFornecedorId || !pdfEmail}>
+              <Mail className="mr-2 h-4 w-4" />
+              {pdfLoading ? "Enviando..." : "Enviar PDF"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
