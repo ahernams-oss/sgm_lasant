@@ -385,8 +385,55 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const [pagePedidos, setPagePedidos] = useState(1);
   const [expandedPedidos, setExpandedPedidos] = useState<Set<string>>(new Set());
   const PAGE_SIZE = 10;
+
+  // Filtros globais (datas) + por aba (status)
+  const [dataDe, setDataDe] = useState<string>("");
+  const [dataAte, setDataAte] = useState<string>("");
+  const [statusCot, setStatusCot] = useState<string>("todos");
+  const [statusPed, setStatusPed] = useState<string>("todos");
+
+  const inRange = (iso: string) => {
+    if (!iso) return true;
+    const d = new Date(iso);
+    if (dataDe) {
+      const de = new Date(dataDe + "T00:00:00");
+      if (d < de) return false;
+    }
+    if (dataAte) {
+      const ate = new Date(dataAte + "T23:59:59");
+      if (d > ate) return false;
+    }
+    return true;
+  };
+
+  const convitesFiltrados = useMemo(() => {
+    return convites.filter((c) => {
+      if (!inRange(c.created_at)) return false;
+      if (statusCot === "todos") return true;
+      const expirado = new Date(c.expires_at) < new Date();
+      const effectiveStatus = c.status === "pendente" && expirado ? "expirado" : c.status;
+      return effectiveStatus === statusCot;
+    });
+  }, [convites, dataDe, dataAte, statusCot]);
+
+  const pedidosFiltrados = useMemo(() => {
+    return pedidos.filter((p) => {
+      if (!inRange(p.data_criacao)) return false;
+      if (statusPed === "todos") return true;
+      return p.status === statusPed;
+    });
+  }, [pedidos, dataDe, dataAte, statusPed]);
+
+  const limparFiltros = () => {
+    setDataDe(""); setDataAte(""); setStatusCot("todos"); setStatusPed("todos");
+    setPageCotacoes(1); setPagePedidos(1);
+  };
+
+  useEffect(() => { setPageCotacoes(1); }, [dataDe, dataAte, statusCot]);
+  useEffect(() => { setPagePedidos(1); }, [dataDe, dataAte, statusPed]);
+
   const togglePedido = (id: string) => setExpandedPedidos((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const allPedidoIds = pedidos.map((p) => p.id);
+  const allPedidoIds = pedidosFiltrados.map((p) => p.id);
   const allExpanded = allPedidoIds.length > 0 && allPedidoIds.every((id) => expandedPedidos.has(id));
 
   const handleRecusarConfirm = async () => {
