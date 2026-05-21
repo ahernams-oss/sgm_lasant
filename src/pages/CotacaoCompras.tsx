@@ -1141,6 +1141,9 @@ export default function CotacaoComprasPage() {
                           <DropdownMenuItem onClick={() => openEnviarDialog(c.id)}>
                             <Send className="mr-2 h-4 w-4" />Enviar para Fornecedor
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openPdfDialog(c.id)}>
+                            <Mail className="mr-2 h-4 w-4" />Enviar PDF da Cotação por E-mail
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openPropostaDialog(c.id)}>
                             <Plus className="mr-2 h-4 w-4" />Adicionar Proposta Manual
                           </DropdownMenuItem>
