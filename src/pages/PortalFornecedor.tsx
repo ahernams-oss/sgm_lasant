@@ -780,10 +780,10 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                   <CardDescription>Clique em "Responder" para enviar sua proposta.</CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={exportCotacoesExcel} disabled={convites.length === 0}>
+                  <Button size="sm" variant="outline" onClick={exportCotacoesExcel} disabled={convitesFiltrados.length === 0}>
                     <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
                   </Button>
-                  <Button size="sm" variant="outline" onClick={exportCotacoesPdf} disabled={convites.length === 0}>
+                  <Button size="sm" variant="outline" onClick={exportCotacoesPdf} disabled={convitesFiltrados.length === 0}>
                     <FileDown className="h-4 w-4 mr-1" /> PDF
                   </Button>
                 </div>
@@ -791,7 +791,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               <CardContent>
                 {loading ? (
                   <p className="text-muted-foreground text-sm">Carregando...</p>
-                ) : convites.length === 0 ? (
+                ) : convitesFiltrados.length === 0 ? (
                   <p className="text-muted-foreground text-sm">Nenhuma cotação encontrada.</p>
                 ) : (
                   <div className="border rounded-lg overflow-x-auto">
@@ -807,7 +807,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {paginate(convites, pageCotacoes, PAGE_SIZE).paginated.map((c) => {
+                        {paginate(convitesFiltrados, pageCotacoes, PAGE_SIZE).paginated.map((c) => {
                           const expirado = new Date(c.expires_at) < new Date();
                           const podeResponder = c.status === "pendente" && !expirado;
                           return (
@@ -854,10 +854,10 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                     </Table>
                   </div>
                 )}
-                {convites.length > 0 && (
+                {convitesFiltrados.length > 0 && (
                   <PaginationControls
                     currentPage={pageCotacoes}
-                    totalItems={convites.length}
+                    totalItems={convitesFiltrados.length}
                     onPageChange={setPageCotacoes}
                     pageSize={PAGE_SIZE}
                   />
@@ -871,7 +871,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               <CardHeader className="flex flex-row items-start justify-between gap-4">
                 <CardTitle className="text-base">Pedidos de Compra emitidos</CardTitle>
                 <div className="flex gap-2">
-                  {pedidos.length > 0 && (
+                  {pedidosFiltrados.length > 0 && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -880,10 +880,10 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                       {allExpanded ? "Recolher todos" : "Expandir todos"}
                     </Button>
                   )}
-                  <Button size="sm" variant="outline" onClick={exportPedidosExcel} disabled={pedidos.length === 0}>
+                  <Button size="sm" variant="outline" onClick={exportPedidosExcel} disabled={pedidosFiltrados.length === 0}>
                     <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
                   </Button>
-                  <Button size="sm" variant="outline" onClick={exportPedidosPdf} disabled={pedidos.length === 0}>
+                  <Button size="sm" variant="outline" onClick={exportPedidosPdf} disabled={pedidosFiltrados.length === 0}>
                     <FileDown className="h-4 w-4 mr-1" /> PDF
                   </Button>
                 </div>
@@ -891,11 +891,11 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               <CardContent>
                 {loading ? (
                   <p className="text-muted-foreground text-sm">Carregando...</p>
-                ) : pedidos.length === 0 ? (
+                ) : pedidosFiltrados.length === 0 ? (
                   <p className="text-muted-foreground text-sm">Nenhum pedido encontrado.</p>
                 ) : (
                   <div className="space-y-4">
-                    {paginate(pedidos, pagePedidos, PAGE_SIZE).paginated.map((p) => {
+                    {paginate(pedidosFiltrados, pagePedidos, PAGE_SIZE).paginated.map((p) => {
                       const isOpen = expandedPedidos.has(p.id);
                       return (
                       <div key={p.id} className="border rounded-lg p-4">
@@ -961,10 +961,10 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                     })}
                   </div>
                 )}
-                {pedidos.length > 0 && (
+                {pedidosFiltrados.length > 0 && (
                   <PaginationControls
                     currentPage={pagePedidos}
-                    totalItems={pedidos.length}
+                    totalItems={pedidosFiltrados.length}
                     onPageChange={setPagePedidos}
                     pageSize={PAGE_SIZE}
                   />
