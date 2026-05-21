@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FileSpreadsheet } from "lucide-react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras, GrauUrgencia, ItemRequisicaoCompras, AnexoRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
+import { useCotacaoCompras } from "@/contexts/CotacaoComprasContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
 import { useFabricantes } from "@/contexts/FabricantesContext";
@@ -48,7 +49,7 @@ const URGENCIAS: GrauUrgencia[] = ["Baixa", "Normal", "Alta", "Urgente"];
 
 export default function RequisicaoComprasPage() {
   const { requisicoes, addRequisicao, cancelarRequisicao, updateStatus } = useRequisicaoCompras();
-  const { addCotacao, cotacoes } = (require("@/contexts/CotacaoComprasContext") as typeof import("@/contexts/CotacaoComprasContext")).useCotacaoCompras();
+  const { addCotacao, cotacoes } = useCotacaoCompras();
   const { materiais } = useMateriaisServicos();
   const { getCodigoCompleto } = useCategoriasCompras();
   const codigoComposto = (m: any) => {
