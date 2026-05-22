@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import { ShieldAlert } from "lucide-react";
 import { usePermissao } from "@/hooks/usePermissao";
+import { ACCESS_ROUTES } from "@/lib/accessRoutes";
 
 interface RotaProtegidaProps {
   /** Chave do módulo em MODULOS_SISTEMA (ex.: "ordem_servico"). Se vazia, libera acesso. */
@@ -11,13 +13,30 @@ interface RotaProtegidaProps {
 /**
  * Protege uma rota verificando a permissão do módulo no perfil de acesso do usuário.
  * Cargos com acesso total (Diretor, Gerente Executivo, Coordenador) sempre passam.
+ * Quando o acesso é negado, redireciona para a primeira página permitida do usuário.
  */
 export function RotaProtegida({ perm, children }: RotaProtegidaProps) {
-  const { temModulo, acessoTotal, usuarioLogado } = usePermissao();
+  const { temModulo, acessoTotal, usuarioLogado, perfil } = usePermissao();
+  const location = useLocation();
 
   if (!usuarioLogado) return <>{children}</>;
   if (!perm) return <>{children}</>;
   if (acessoTotal || temModulo(perm)) return <>{children}</>;
+
+  // Aguarda perfis carregarem para evitar redirects prematuros
+  if (!perfil) {
+    return (
+      <div className="min-h-[40vh] flex items-center justify-center">
+        <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  // Busca a primeira rota acessível e redireciona
+  const firstAccessible = ACCESS_ROUTES.find((r) => temModulo(r.perm));
+  if (firstAccessible && firstAccessible.url !== location.pathname) {
+    return <Navigate to={firstAccessible.url} replace />;
+  }
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-8">
