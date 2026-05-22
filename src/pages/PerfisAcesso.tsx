@@ -155,6 +155,10 @@ const PerfisAcesso = () => {
 
   const handleDuplicate = (p: typeof perfis[0]) => {
     if (!podeDuplicar && !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
+    const ok = window.confirm(
+      `Deseja criar uma CÓPIA do perfil "${p.nome}"?\n\nIsso irá criar um NOVO perfil. Se você quer apenas editar o perfil existente, clique em Cancelar e use o botão de Editar (ícone de lápis).`
+    );
+    if (!ok) return;
     setForm({ nome: `${p.nome} (cópia)`, descricao: p.descricao, permissoes: { ...p.permissoes } });
     setEditingId(null);
     setShowForm(true);
