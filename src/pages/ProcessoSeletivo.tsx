@@ -803,6 +803,7 @@ const ProcessoSeletivoPage = () => {
                                   }}
                                 />
                                 <span className={`flex-1 ${doc.entregue ? "line-through text-muted-foreground" : ""}`}>{doc.nome}</span>
+                                {doc.naoPossui && <Badge variant="secondary" className="text-[10px]">Não possui</Badge>}
                                 <div className="flex items-center gap-1 shrink-0">
                                   {doc.anexo ? (
                                     <>
