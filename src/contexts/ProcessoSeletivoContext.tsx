@@ -31,7 +31,7 @@ export type StatusCandidato = "pendente" | "aprovado" | "neutro" | "reprovado";
 export interface AnexoCandidato { nome: string; tipo: string; base64: string; }
 export interface DocumentoContratacao { nome: string; entregue: boolean; anexo?: AnexoCandidato; naoPossui?: boolean; }
 export interface ExameAdmissional { dataExame: string; resultado: "pendente" | "apto" | "inapto"; observacoes: string; anexo?: AnexoCandidato; }
-export interface DadosBancarios { banco: string; agencia: string; conta: string; tipoConta: string; pisPasep: string; }
+export interface DadosBancarios { banco: string; agencia: string; conta: string; tipoConta: string; pisPasep: string; pix?: string; }
 
 export const DOCUMENTOS_OBRIGATORIOS = [
   "RG", "CPF", "CTPS (Carteira de Trabalho)", "Comprovante de Residência",
@@ -146,7 +146,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
       liberadoPor: "", statusLiberacao: "pendente",
       documentos: DOCUMENTOS_OBRIGATORIOS.map(nome => ({ nome, entregue: false })),
       exameAdmissional: { dataExame: "", resultado: "pendente", observacoes: "" },
-      dadosBancarios: { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" },
+      dadosBancarios: { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "", pix: "" },
     };
     await saveAndReload(processoId, { ...p, candidatos: [...p.candidatos, novoCandidato] });
   };
