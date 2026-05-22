@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
 
     const { data: rows, error } = await supabase
       .from("clientes")
-      .select("*")
+      .select("id, nome, nome_fantasia, email, cnpj")
       .eq("tipo", "Fornecedor")
       .ilike("email", email)
       .limit(1);
@@ -45,13 +45,25 @@ Deno.serve(async (req) => {
     }
 
     const user = rows?.[0];
-    if (!user || !user.senha_portal) {
+    if (!user) {
       return new Response(JSON.stringify({ error: "Credenciais inválidas." }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const ok = isBcryptHash(user.senha_portal) && bcrypt.compareSync(senha, user.senha_portal);
+    const { data: cred } = await supabase
+      .from("clientes_credenciais")
+      .select("senha_portal, senha_portal_trocada")
+      .eq("cliente_id", user.id)
+      .maybeSingle();
+
+    if (!cred?.senha_portal) {
+      return new Response(JSON.stringify({ error: "Credenciais inválidas." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const ok = isBcryptHash(cred.senha_portal) && bcrypt.compareSync(senha, cred.senha_portal);
     if (!ok) {
       return new Response(JSON.stringify({ error: "Credenciais inválidas." }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -64,7 +76,7 @@ Deno.serve(async (req) => {
       nomeFantasia: user.nome_fantasia,
       email: user.email,
       cnpj: user.cnpj,
-      mustChangePassword: user.senha_portal_trocada === false,
+      mustChangePassword: cred.senha_portal_trocada === false,
     };
 
     return new Response(JSON.stringify({ fornecedor: safe }), {
