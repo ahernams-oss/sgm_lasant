@@ -50,10 +50,17 @@ Deno.serve(async (req) => {
     if (!empresaId) return json({ ok: false, error: "empresaId obrigatório" }, 400);
     const { data: emp, error: empErr } = await admin
       .from("empresa")
-      .select("cnpj, certificado_a1_url, certificado_a1_senha, nfe_ambiente, nfe_uf_autor")
+      .select("cnpj, certificado_a1_url, nfe_ambiente, nfe_uf_autor")
       .eq("id", empresaId)
       .maybeSingle();
     if (empErr || !emp) return json({ ok: false, error: "Empresa não encontrada" }, 404);
+
+    const { data: cred } = await admin
+      .from("empresa_credenciais")
+      .select("certificado_a1_senha")
+      .eq("empresa_id", empresaId)
+      .maybeSingle();
+    const certSenha = cred?.certificado_a1_senha as string | null;
 
     const cnpj = digitsOnly(emp.cnpj || "");
     if (cnpj.length !== 14) return json({ ok: false, error: "CNPJ da empresa inválido (precisa ter 14 dígitos)." }, 400);
@@ -66,7 +73,7 @@ Deno.serve(async (req) => {
     const url = ambiente === "producao" ? URL_PROD : URL_HOM;
 
     if (!emp.certificado_a1_url) return json({ ok: false, error: "Certificado A1 não enviado." }, 400);
-    if (!emp.certificado_a1_senha) return json({ ok: false, error: "Senha do certificado não configurada." }, 400);
+    if (!certSenha) return json({ ok: false, error: "Senha do certificado não configurada." }, 400);
 
     // 2. Baixa e decodifica o .pfx
     const { data: file, error: dlErr } = await admin.storage
@@ -80,7 +87,7 @@ Deno.serve(async (req) => {
 
     let p12: forge.pkcs12.Pkcs12Pfx;
     try {
-      p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, emp.certificado_a1_senha);
+      p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, certSenha);
     } catch {
       return json({ ok: false, error: "Senha do certificado incorreta." }, 400);
     }

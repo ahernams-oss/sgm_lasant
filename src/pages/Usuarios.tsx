@@ -215,29 +215,26 @@ const Usuarios = () => {
     return result;
   }, [usuarios, search, filterCargo, cargos]);
 
-  // Auditoria de senhas
+  // Auditoria de senhas (baseada em senha_status, calculado pelo servidor)
   const auditoria = useMemo(() => {
-    const semSenha = usuarios.filter((u) => !u.senha || u.senha.trim() === "");
-    const legado = usuarios.filter((u) => u.senha && !isBcryptHash(u.senha));
-    const seguros = usuarios.filter((u) => isBcryptHash(u.senha));
+    const semSenha = usuarios.filter((u) => (u.senhaStatus ?? "sem_senha") === "sem_senha");
+    const legado = usuarios.filter((u) => u.senhaStatus === "legado");
+    const seguros = usuarios.filter((u) => u.senhaStatus === "seguro");
     return { semSenha, legado, seguros };
   }, [usuarios]);
 
-  // Carrega auditoria de login
+  // Carrega auditoria de login (via edge function — tabela é privada)
   const loadLoginAudit = useCallback(async () => {
     setLoginAuditLoading(true);
     const dias = parseInt(laDias, 10);
-    let query = (supabase as any).from("login_auditoria").select("*").order("created_at", { ascending: false }).limit(2000);
-    if (!Number.isNaN(dias) && dias > 0) {
-      const since = new Date(Date.now() - dias * 24 * 60 * 60 * 1000).toISOString();
-      query = query.gte("created_at", since);
-    }
-    const { data, error } = await query;
-    if (error) {
+    const { data, error } = await supabase.functions.invoke("admin-login-audit", {
+      body: { dias: Number.isNaN(dias) ? null : dias },
+    });
+    if (error || !data?.ok) {
       toast.error("Erro ao carregar auditoria de login.");
-      console.error(error);
+      console.error(error || data?.error);
     } else {
-      setLoginAudit(data || []);
+      setLoginAudit(data.data || []);
     }
     setLoginAuditLoading(false);
   }, [laDias]);

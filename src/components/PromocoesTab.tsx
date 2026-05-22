@@ -173,9 +173,11 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
     if (!senha) { toast.error("Informe sua senha."); return; }
     if (!usuarioLogado) { toast.error("Sessão inválida."); return; }
 
-    // Validate password against logged user
+    // Valida senha via edge function (a senha não fica mais no client)
+    const { verificarSenhaUsuario } = await import("@/lib/verifySenha");
+    const senhaOk = await verificarSenhaUsuario(usuarioLogado.email, senha);
     const u = usuarios.find((x) => x.id === usuarioLogado.id);
-    if (!u || u.senha !== senha) {
+    if (!u || !senhaOk) {
       toast.error("Senha incorreta.");
       return;
     }

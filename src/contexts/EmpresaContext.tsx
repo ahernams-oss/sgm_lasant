@@ -201,18 +201,22 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
   };
 
   const uploadCertificadoA1 = async (file: File): Promise<{ url: string; nome: string }> => {
-    const fileName = `certificado_${Date.now()}.pfx`;
-    const { error } = await supabase.storage
-      .from("certificados-digitais")
-      .upload(fileName, file, { upsert: true, contentType: "application/x-pkcs12" });
+    const empresaId = empresa.id;
+    if (!empresaId) throw new Error("Salve os dados da empresa antes de enviar o certificado.");
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("empresaId", empresaId);
+    const { data, error } = await supabase.functions.invoke("empresa-certificado-a1?action=upload", { body: fd });
     if (error) throw error;
-    return { url: fileName, nome: file.name };
+    if (!data?.ok) throw new Error(data?.error || "Falha no upload do certificado");
+    return { url: data.url, nome: data.nome };
   };
 
   const removerCertificadoA1 = async () => {
-    if (empresa.certificadoA1Url) {
-      await supabase.storage.from("certificados-digitais").remove([empresa.certificadoA1Url]);
-    }
+    if (!empresa.id) return;
+    await supabase.functions.invoke("empresa-certificado-a1?action=remove", {
+      body: { empresaId: empresa.id, path: empresa.certificadoA1Url || "" },
+    });
   };
 
   return (

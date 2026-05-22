@@ -44,13 +44,13 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { data: row } = await supabase
-      .from("clientes")
+    const { data: cred } = await supabase
+      .from("clientes_credenciais")
       .select("senha_portal")
-      .eq("id", fornecedorId)
+      .eq("cliente_id", fornecedorId)
       .maybeSingle();
 
-    if (!row?.senha_portal || !isBcryptHash(row.senha_portal) || !bcrypt.compareSync(senhaAtual, row.senha_portal)) {
+    if (!cred?.senha_portal || !isBcryptHash(cred.senha_portal) || !bcrypt.compareSync(senhaAtual, cred.senha_portal)) {
       return new Response(JSON.stringify({ error: "Senha atual incorreta." }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -58,9 +58,8 @@ Deno.serve(async (req) => {
 
     const hash = bcrypt.hashSync(novaSenha, bcrypt.genSaltSync(10));
     const { error } = await supabase
-      .from("clientes")
-      .update({ senha_portal: hash, senha_portal_trocada: true })
-      .eq("id", fornecedorId);
+      .from("clientes_credenciais")
+      .upsert({ cliente_id: fornecedorId, senha_portal: hash, senha_portal_trocada: true }, { onConflict: "cliente_id" });
 
     if (error) {
       return new Response(JSON.stringify({ error: "Erro ao salvar senha." }), {
