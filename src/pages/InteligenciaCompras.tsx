@@ -74,6 +74,12 @@ export default function InteligenciaComprasPage() {
   const [activeGroupKey, setActiveGroupKey] = useState<string | null>(null);
   const [confirmRCOpen, setConfirmRCOpen] = useState(false);
 
+  // ===== Pagination =====
+  const [pageItens, setPageItens] = useState(1);
+  const [pageSizeItens, setPageSizeItens] = useState(7);
+  const [pageRCs, setPageRCs] = useState(1);
+  const [pageSizeRCs, setPageSizeRCs] = useState(7);
+
   // Mapa materialId -> grupoId (via classe -> subgrupo -> grupo)
   const materialToGrupo = useMemo(() => {
     const map = new Map<string, { id: string; nome: string }>();
