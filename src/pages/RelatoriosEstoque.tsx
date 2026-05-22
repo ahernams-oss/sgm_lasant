@@ -854,7 +854,7 @@ export default function RelatoriosEstoquePage() {
                   </TableRow></TableHeader>
                   <TableBody>
                     {historicoItem.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem movimentações</TableCell></TableRow>
-                      : historicoItem.map(m => (
+                      : paginate(historicoItem, getPage("historico"), pageSize).paginated.map(m => (
                         <TableRow key={m.id}>
                           <TableCell className="text-xs">{formatDate(m.dataMovimentacao)}</TableCell>
                           <TableCell><Badge variant={m.tipo === "entrada" ? "default" : m.tipo === "saida" ? "destructive" : "secondary"} className="text-xs">{tipoLabel(m.tipo)}</Badge></TableCell>
@@ -868,6 +868,7 @@ export default function RelatoriosEstoquePage() {
                   </TableBody>
                 </Table>
               </div>
+              <PaginationControls currentPage={getPage("historico")} totalItems={historicoItem.length} onPageChange={setPage("historico")} pageSize={pageSize} onPageSizeChange={changePageSize} />
             </>
           )}
         </TabsContent>
