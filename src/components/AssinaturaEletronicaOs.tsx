@@ -61,13 +61,16 @@ export function AssinaturaEletronicaOs({
 
   // Regras de autorização para assinar
   // - Fiscal: requer permissão dedicada "os.assinar_fiscal"
-  // - Solicitante: qualquer usuário com acesso ao cliente da OS
+  // - Solicitante: requer permissão "os.assinar_solicitante" + acesso ao cliente da OS
   const temAcessoAoCliente =
     temAcessoTotal ||
     !os.clienteId ||
     clientesPermitidosIds.includes(os.clienteId);
 
-  const podeAssinar = papel === "fiscal" ? tem("os.assinar_fiscal") : temAcessoAoCliente;
+  const podeAssinar =
+    papel === "fiscal"
+      ? tem("os.assinar_fiscal")
+      : tem("os.assinar_solicitante") && temAcessoAoCliente;
 
   // ========== JÁ ASSINADO ==========
   if (assinaturaExistente) {
