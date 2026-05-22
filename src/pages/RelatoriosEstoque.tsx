@@ -663,7 +663,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {itensVencimento.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum item vencido ou a vencer</TableCell></TableRow>
-                  : itensVencimento.map(m => (
+                  : paginate(itensVencimento, getPage("vencimento"), pageSize).paginated.map(m => (
                     <TableRow key={m.id}>
                       <TableCell className="font-mono text-xs">{m.materialCodigo}</TableCell>
                       <TableCell className="text-xs">{m.materialDescricao}</TableCell>
@@ -677,6 +677,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("vencimento")} totalItems={itensVencimento.length} onPageChange={setPage("vencimento")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 8. Itens sem giro */}
