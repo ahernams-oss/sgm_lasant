@@ -511,6 +511,9 @@ export default function InteligenciaComprasPage() {
                   </TableBody>
                 </Table>
               )}
+              {filteredRCGroups.length > 0 && (
+                <PaginationControls currentPage={pageRCs} totalItems={filteredRCGroups.length} onPageChange={setPageRCs} pageSize={pageSizeRCs} onPageSizeChange={(s) => { setPageSizeRCs(s); setPageRCs(1); }} />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
