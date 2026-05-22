@@ -449,7 +449,7 @@ export default function InteligenciaComprasPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredRCGroups.map((g) => (
+                    {paginate(filteredRCGroups, pageRCs, pageSizeRCs).paginated.map((g) => (
                       <Collapsible key={g.key} open={!!expandedRC[g.key]} onOpenChange={(v) => setExpandedRC(p => ({ ...p, [g.key]: v }))} asChild>
                         <>
                           <TableRow>
