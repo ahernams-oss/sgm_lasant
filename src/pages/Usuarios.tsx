@@ -215,11 +215,11 @@ const Usuarios = () => {
     return result;
   }, [usuarios, search, filterCargo, cargos]);
 
-  // Auditoria de senhas
+  // Auditoria de senhas (baseada em senha_status, calculado pelo servidor)
   const auditoria = useMemo(() => {
-    const semSenha = usuarios.filter((u) => !u.senha || u.senha.trim() === "");
-    const legado = usuarios.filter((u) => u.senha && !isBcryptHash(u.senha));
-    const seguros = usuarios.filter((u) => isBcryptHash(u.senha));
+    const semSenha = usuarios.filter((u) => (u.senhaStatus ?? "sem_senha") === "sem_senha");
+    const legado = usuarios.filter((u) => u.senhaStatus === "legado");
+    const seguros = usuarios.filter((u) => u.senhaStatus === "seguro");
     return { semSenha, legado, seguros };
   }, [usuarios]);
 
