@@ -774,7 +774,7 @@ const ProcessoSeletivoPage = () => {
                         <div>
                           <h3 className="text-sm font-semibold text-foreground mb-3">📋 Checklist de Documentos</h3>
                           <div className="grid grid-cols-1 gap-2">
-                            {(c.documentos && c.documentos.length > 0 ? c.documentos : DOCUMENTOS_OBRIGATORIOS.map((n): DocumentoContratacao => ({ nome: n, entregue: false }))).map((doc, idx) => (
+                            {(filtrarDocs(c.documentos)).map((doc, idx) => (
                               <div
                                 key={idx}
                                 className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/50 transition-colors"
@@ -782,7 +782,7 @@ const ProcessoSeletivoPage = () => {
                                 <Checkbox
                                   checked={doc.entregue}
                                   onCheckedChange={(checked) => {
-                                    const docs = [...(c.documentos && c.documentos.length > 0 ? c.documentos : DOCUMENTOS_OBRIGATORIOS.map((n): DocumentoContratacao => ({ nome: n, entregue: false })))];
+                                    const docs = [...(filtrarDocs(c.documentos))];
                                     docs[idx] = { ...docs[idx], entregue: !!checked };
                                     updateCandidato(processo!.id, c.id, { documentos: docs });
                                   }}
@@ -806,7 +806,7 @@ const ProcessoSeletivoPage = () => {
                                       </button>
                                       <button
                                         onClick={() => {
-                                          const docs = [...(c.documentos && c.documentos.length > 0 ? c.documentos : DOCUMENTOS_OBRIGATORIOS.map((n): DocumentoContratacao => ({ nome: n, entregue: false })))];
+                                          const docs = [...(filtrarDocs(c.documentos))];
                                           const { anexo, ...rest } = docs[idx];
                                           docs[idx] = rest as typeof docs[number];
                                           updateCandidato(processo!.id, c.id, { documentos: docs });
@@ -833,7 +833,7 @@ const ProcessoSeletivoPage = () => {
                                           }
                                           const reader = new FileReader();
                                           reader.onload = () => {
-                                            const docs = [...(c.documentos && c.documentos.length > 0 ? c.documentos : DOCUMENTOS_OBRIGATORIOS.map((n): DocumentoContratacao => ({ nome: n, entregue: false })))];
+                                            const docs = [...(filtrarDocs(c.documentos))];
                                             docs[idx] = { ...docs[idx], anexo: { nome: file.name, tipo: file.type, base64: reader.result as string } };
                                             updateCandidato(processo!.id, c.id, { documentos: docs });
                                           };
@@ -856,7 +856,7 @@ const ProcessoSeletivoPage = () => {
                             ))}
                           </div>
                           <p className="text-xs text-muted-foreground mt-2">
-                            {(c.documentos || []).filter((d) => d.entregue).length} de {(c.documentos && c.documentos.length > 0 ? c.documentos : DOCUMENTOS_OBRIGATORIOS).length} documentos entregues
+                            {(c.documentos || []).filter((d) => d.entregue).length} de {(filtrarDocs(c.documentos)).length} documentos entregues
                           </p>
                         </div>
 
@@ -1082,7 +1082,7 @@ const ProcessoSeletivoPage = () => {
                               onClick={() => {
                                 // Validações
                                 const docsEntregues = (c.documentos || []).filter((d) => d.entregue).length;
-                                const totalDocs = (c.documentos && c.documentos.length > 0 ? c.documentos : DOCUMENTOS_OBRIGATORIOS).length;
+                                const totalDocs = (filtrarDocs(c.documentos)).length;
                                 if (docsEntregues < totalDocs) {
                                   toast.error("Todos os documentos devem estar marcados como entregues.");
                                   return;
