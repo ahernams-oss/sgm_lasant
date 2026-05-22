@@ -629,7 +629,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {itensAbaixoMinimo.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Todos acima do mínimo</TableCell></TableRow>
-                  : itensAbaixoMinimo.map(m => (
+                  : paginate(itensAbaixoMinimo, getPage("minimo"), pageSize).paginated.map(m => (
                     <TableRow key={m.id}>
                       <TableCell className="font-mono text-xs">{m.codigo}</TableCell>
                       <TableCell className="text-xs">{m.descricao}</TableCell>
@@ -642,6 +642,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("minimo")} totalItems={itensAbaixoMinimo.length} onPageChange={setPage("minimo")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 7. Itens vencidos ou a vencer */}
