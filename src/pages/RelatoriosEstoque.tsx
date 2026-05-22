@@ -561,7 +561,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {saidasSetor.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">Sem dados</TableCell></TableRow>
-                  : saidasSetor.map((s, i) => (
+                  : paginate(saidasSetor, getPage("saidas"), pageSize).paginated.map((s, i) => (
                     <TableRow key={i}>
                       <TableCell className="text-xs">{s.setor}</TableCell>
                       <TableCell className="text-right font-semibold text-xs">{formatQty(s.qtd)}</TableCell>
@@ -571,6 +571,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("saidas")} totalItems={saidasSetor.length} onPageChange={setPage("saidas")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 5. Inventário e Divergências */}
