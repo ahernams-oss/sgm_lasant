@@ -5569,6 +5569,24 @@ export type Database = {
         }
         Relationships: []
       }
+      requisicoes_compras_justificativas: {
+        Row: {
+          created_at: string
+          id: string
+          motivo: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          motivo: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          motivo?: string
+        }
+        Relationships: []
+      }
       responsaveis_tecnicos: {
         Row: {
           carteira_crea_nome: string | null
