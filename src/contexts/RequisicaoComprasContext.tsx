@@ -3,7 +3,7 @@ import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 
 export type StatusRequisicaoCompras =
   | "Rascunho" | "Enviada" | "Em Cotação" | "Aguardando Aprovação"
-  | "Aprovada" | "Reprovada" | "Pedido Emitido" | "Em Entrega"
+  | "Aprovada" | "Reprovada" | "Recusada" | "Pedido Emitido" | "Em Entrega"
   | "Recebida Parcial" | "Recebida" | "Concluída" | "Cancelada";
 
 export type GrauUrgencia = "Baixa" | "Normal" | "Alta" | "Urgente";
