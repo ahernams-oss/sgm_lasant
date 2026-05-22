@@ -183,11 +183,11 @@ function ProtectedAppRoutes() {
         <Route path="/compras/dashboard" element={<RotaProtegida perm="dashboard_compras"><DashboardCompras /></RotaProtegida>} />
         <Route path="/compras/fabricantes" element={<RotaProtegida perm="fabricantes"><FabricantesPage /></RotaProtegida>} />
         <Route path="/licitacoes" element={<RotaProtegida perm="licitacoes"><LicitacoesPage /></RotaProtegida>} />
-        <Route path="/engenharia/dashboard-medicoes" element={<RotaProtegida perm="dashboard_engenharia"><DashboardMedicoesPage /></RotaProtegida>} />
+        <Route path="/engenharia/dashboard-medicoes" element={<RotaProtegida perm="dashboard_medicoes"><DashboardMedicoesPage /></RotaProtegida>} />
         <Route
           path="/engenharia/dashboard"
           element={
-            <RotaProtegida perm="dashboard_engenharia">
+            <RotaProtegida perm="dashboard_ssos">
               <SolicitacoesServicosProvider>
                 <OrdensServicoProvider>
                   <OrcamentosProvider>
