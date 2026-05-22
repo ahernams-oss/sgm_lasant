@@ -38,7 +38,6 @@ export const DOCUMENTOS_OBRIGATORIOS = [
   "Certidão de Nascimento/Casamento", "Título de Eleitor", "Certificado de Reservista",
   "PIS/PASEP", "Foto 3x4", "Comprovante de Escolaridade",
   "Certidão de Nascimento dos Filhos", "Cartão de Vacina dos Filhos",
-  "Atestado de Antecedentes Criminais",
 ];
 
 export interface Candidato {
