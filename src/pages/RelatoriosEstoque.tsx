@@ -413,7 +413,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {saldos.length === 0 ? <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum saldo</TableCell></TableRow>
-                  : saldos.map((s, i) => (
+                  : paginate(saldos, getPage("posicao"), pageSize).paginated.map((s, i) => (
                     <TableRow key={i}>
                       <TableCell className="font-mono text-xs">{s.materialCodigo}</TableCell>
                       <TableCell className="text-xs">{s.materialDescricao}</TableCell>
@@ -424,6 +424,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("posicao")} totalItems={saldos.length} onPageChange={setPage("posicao")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 2. Movimentação por período */}
