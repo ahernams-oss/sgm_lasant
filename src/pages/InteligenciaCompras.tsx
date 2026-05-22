@@ -359,7 +359,7 @@ export default function InteligenciaComprasPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map((g) => (
+                    {paginate(filtered, pageItens, pageSizeItens).paginated.map((g) => (
                       <Collapsible key={g.materialId} open={!!expanded[g.materialId]} onOpenChange={(v) => setExpanded(p => ({ ...p, [g.materialId]: v }))} asChild>
                         <>
                           <TableRow>
