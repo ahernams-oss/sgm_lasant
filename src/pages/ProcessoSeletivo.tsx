@@ -296,6 +296,21 @@ const ProcessoSeletivoPage = () => {
       }
     }
 
+    // Liberação aprovada: enviar link do portal do candidato via WhatsApp
+    if (statusField === "statusLiberacao" && status === "aprovado" && candidato.telefone) {
+      const link = `${window.location.origin}/portal-candidato/${processo!.id}/${candidato.id}`;
+      const msg =
+        `Olá ${candidato.nome}! Você foi aprovado(a) na etapa de Liberação do processo seletivo` +
+        (requisicao?.cargoNome ? ` para a vaga de ${requisicao.cargoNome}` : "") +
+        `.\n\nPara prosseguir com a contratação, acesse o link abaixo, leia e aceite os termos da LGPD e anexe seus documentos:\n\n${link}\n\nCaso não possua algum documento, marque a opção "Não possuo".`;
+      enviarWhatsApp(candidato.telefone, msg).then((r) => {
+        if (r.success) toast.success(`Link enviado para o WhatsApp de ${candidato.nome}.`);
+        else toast.error(`Falha ao enviar link ao candidato: ${r.error}`);
+      });
+      updates.portalEnviadoEm = new Date().toISOString();
+      await updateCandidato(processo!.id, candidato.id, { portalEnviadoEm: updates.portalEnviadoEm });
+    }
+
     if (status === "aprovado") {
       toast.success(`Candidato ${candidato.nome} aprovado nesta etapa.`);
     } else if (status === "neutro") {
