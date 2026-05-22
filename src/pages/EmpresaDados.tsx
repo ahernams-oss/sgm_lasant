@@ -159,6 +159,10 @@ export default function EmpresaDados() {
       if (error) throw error;
       setValidacaoCert(data);
       if (data?.ok) {
+        // Persiste a senha no cofre (empresa_credenciais) somente após validação bem-sucedida
+        await supabase.functions.invoke("empresa-certificado-a1?action=set-senha", {
+          body: { empresaId: form.id || empresa.id, senha: form.certificadoA1Senha },
+        });
         toast({ title: "Certificado válido", description: data.avisos?.length ? "Atenção aos avisos exibidos." : "Pronto para consultar a SEFAZ." });
         if (data.validTo) {
           setForm(prev => ({ ...prev, certificadoA1Validade: String(data.validTo).slice(0, 10) }));
