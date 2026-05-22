@@ -37,7 +37,7 @@ export default function AssinarLotePc() {
   const [search, setSearch] = useState("");
   const [filterFornecedor, setFilterFornecedor] = useState("all");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(7);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openConfirm, setOpenConfirm] = useState(false);
   const [senha, setSenha] = useState("");
