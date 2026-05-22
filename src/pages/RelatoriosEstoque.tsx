@@ -698,7 +698,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {itensSemGiro.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Todos os itens tiveram movimentação recente</TableCell></TableRow>
-                  : itensSemGiro.map((s, i) => (
+                  : paginate(itensSemGiro, getPage("semgiro"), pageSize).paginated.map((s, i) => (
                     <TableRow key={i}>
                       <TableCell className="font-mono text-xs">{s.materialCodigo}</TableCell>
                       <TableCell className="text-xs">{s.materialDescricao}</TableCell>
@@ -711,6 +711,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("semgiro")} totalItems={itensSemGiro.length} onPageChange={setPage("semgiro")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 9. Consumo por Centro de Custo */}
