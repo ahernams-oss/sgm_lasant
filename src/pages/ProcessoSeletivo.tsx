@@ -1077,7 +1077,7 @@ const ProcessoSeletivoPage = () => {
                                 <option value="salario">Salário</option>
                               </select>
                             </div>
-                            <div className="sm:col-span-2">
+                            <div>
                               <label className="text-xs font-medium text-muted-foreground">PIS/PASEP</label>
                               <Input
                                 value={c.dadosBancarios?.pisPasep || ""}
@@ -1087,6 +1087,19 @@ const ProcessoSeletivoPage = () => {
                                   })
                                 }
                                 placeholder="Número do PIS/PASEP"
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground">PIX</label>
+                              <Input
+                                value={c.dadosBancarios?.pix || ""}
+                                onChange={(e) =>
+                                  updateCandidato(processo!.id, c.id, {
+                                    dadosBancarios: { ...(c.dadosBancarios || { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" }), pix: e.target.value },
+                                  })
+                                }
+                                placeholder="Chave PIX"
                                 className="mt-1"
                               />
                             </div>

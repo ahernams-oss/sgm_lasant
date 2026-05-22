@@ -245,9 +245,13 @@ export default function PortalCandidato() {
                 <option value="salario">Salário</option>
               </select>
             </div>
-            <div className="sm:col-span-2">
+            <div>
               <label className="text-xs font-medium text-muted-foreground">PIS/PASEP</label>
               <Input value={candidato.dadosBancarios?.pisPasep || ""} onChange={(e) => updateBanco("pisPasep", e.target.value)} placeholder="Número do PIS/PASEP" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">PIX</label>
+              <Input value={candidato.dadosBancarios?.pix || ""} onChange={(e) => updateBanco("pix", e.target.value)} placeholder="Chave PIX (CPF, e-mail, telefone ou aleatória)" />
             </div>
           </CardContent>
         </Card>
