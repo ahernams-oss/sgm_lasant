@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Search, ChevronDown, ChevronRight, Layers, TrendingUp, Combine, Building2 } from "lucide-react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { usePermissao } from "@/hooks/usePermissao";
 
 interface OrigemItem {
