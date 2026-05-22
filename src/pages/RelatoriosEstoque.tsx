@@ -514,7 +514,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {entradasFornecedor.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">Sem dados</TableCell></TableRow>
-                  : entradasFornecedor.map((e, i) => (
+                  : paginate(entradasFornecedor, getPage("entradas"), pageSize).paginated.map((e, i) => (
                     <TableRow key={i}>
                       <TableCell className="text-xs">{e.fornecedor}</TableCell>
                       <TableCell className="text-right font-semibold text-xs">{formatQty(e.qtd)}</TableCell>
@@ -524,6 +524,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("entradas")} totalItems={entradasFornecedor.length} onPageChange={setPage("entradas")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 4. Saídas por Setor */}
