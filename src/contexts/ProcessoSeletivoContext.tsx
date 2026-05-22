@@ -89,9 +89,17 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
   useEffect(() => { load(); }, [load]);
 
   const saveAndReload = async (id: string, updated: ProcessoSeletivo) => {
-    await updateRow("processos_seletivos", id, processoToRow(updated));
-    await load();
+    // Atualização otimista: aplica no estado local imediatamente e persiste em background.
+    // Evita refazer fetchAll (que traz todos os processos com anexos base64) a cada keystroke.
+    setProcessos(prev => prev.map(p => p.id === id ? updated : p));
+    try {
+      await updateRow("processos_seletivos", id, processoToRow(updated));
+    } catch (e) {
+      console.error("Falha ao salvar processo seletivo, recarregando...", e);
+      await load();
+    }
   };
+
 
   const criarProcesso = (requisicaoId: string): ProcessoSeletivo => {
     const existing = processos.find(p => p.requisicaoId === requisicaoId);
