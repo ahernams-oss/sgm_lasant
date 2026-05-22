@@ -161,7 +161,6 @@ const empresaToRow = (e: Empresa) => ({
   certificado_a1_url: e.certificadoA1Url,
   certificado_a1_nome: e.certificadoA1Nome,
   certificado_a1_validade: e.certificadoA1Validade || null,
-  certificado_a1_senha: e.certificadoA1Senha,
   nfe_ambiente: e.nfeAmbiente || "homologacao",
   nfe_uf_autor: e.nfeUfAutor,
 });
