@@ -1096,10 +1096,11 @@ const ProcessoSeletivoPage = () => {
                               className="w-full bg-[hsl(120,30%,35%)] hover:bg-[hsl(120,30%,28%)] text-white"
                               onClick={() => {
                                 // Validações
-                                const docsEntregues = (c.documentos || []).filter((d) => d.entregue).length;
-                                const totalDocs = (filtrarDocs(c.documentos)).length;
-                                if (docsEntregues < totalDocs) {
-                                  toast.error("Todos os documentos devem estar marcados como entregues.");
+                                const docsList = filtrarDocs(c.documentos);
+                                const docsOk = docsList.filter((d) => d.entregue || d.naoPossui).length;
+                                const totalDocs = docsList.length;
+                                if (docsOk < totalDocs) {
+                                  toast.error("Todos os documentos devem estar entregues ou marcados como 'não possui'.");
                                   return;
                                 }
                                 if (c.exameAdmissional?.resultado !== "apto") {
