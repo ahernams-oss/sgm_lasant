@@ -49,6 +49,13 @@ export default function RelatoriosEstoquePage() {
   const [dataInicio, setDataInicio] = useState<Date | undefined>();
   const [dataFim, setDataFim] = useState<Date | undefined>();
 
+  // Pagination (shared per tab)
+  const [pages, setPages] = useState<Record<string, number>>({});
+  const [pageSize, setPageSize] = useState(10);
+  const getPage = (k: string) => pages[k] || 1;
+  const setPage = (k: string) => (p: number) => setPages(prev => ({ ...prev, [k]: p }));
+  const changePageSize = (s: number) => { setPageSize(s); setPages({}); };
+
   // Derived data
   const locais = useMemo(() => {
     const s = new Set<string>();
