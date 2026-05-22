@@ -417,7 +417,12 @@ export default function RequisicaoComprasPage() {
               <TableRow><TableCell colSpan={colOrder.length + 1} className="text-center text-muted-foreground py-8">Nenhuma requisição encontrada</TableCell></TableRow>
             ) : paginate(filtered, pageReq, 7).paginated.map(r => {
               const cellMap: Record<string, ReactNode> = {
-                numero: <span className="font-mono font-bold">RCS-{String(r.numero).padStart(4, "0")}</span>,
+                numero: (
+                  <span className="font-mono font-bold inline-flex items-center gap-1">
+                    {r.status === "Recusada" && <span title="Requisição recusada" aria-label="recusada">🤦🏻‍♂️</span>}
+                    RCS-{String(r.numero).padStart(4, "0")}
+                  </span>
+                ),
                 data: format(new Date(r.dataCriacao), "dd/MM/yyyy HH:mm"),
                 solicitante: r.solicitante,
                 centroCusto: r.centroCustoNome,
@@ -426,6 +431,8 @@ export default function RequisicaoComprasPage() {
                 status: <Badge className={statusColors[r.status]}>{r.status}</Badge>,
               };
               const podeIniciarCotacao = ["Enviada", "Aguardando Aprovação"].includes(r.status);
+              const podeRecusarReq = podeRecusar && ["Enviada", "Em Cotação", "Aguardando Aprovação"].includes(r.status);
+              const podeEditarReq = r.status === "Recusada" && r.solicitante === (usuarioLogado?.nome || "");
               return (
               <TableRow key={r.id}>
                 {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
@@ -433,6 +440,16 @@ export default function RequisicaoComprasPage() {
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" title="Detalhes" onClick={() => setViewReq(r)}><Eye className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" title="Histórico" onClick={() => setHistoricoReq(r)}><Clock className="h-4 w-4" /></Button>
+                    {podeEditarReq && (
+                      <Button variant="ghost" size="icon" title="Editar e reenviar" onClick={() => abrirEdicao(r)}>
+                        <Pencil className="h-4 w-4 text-amber-600" />
+                      </Button>
+                    )}
+                    {podeRecusarReq && (
+                      <Button variant="ghost" size="icon" title="Recusar requisição" onClick={() => { setRecusaReq(r); setRecusaMotivo(""); setNovoMotivoMode(false); }}>
+                        <XCircle className="h-4 w-4 text-rose-600" />
+                      </Button>
+                    )}
                     {podeIniciarCotacao && (
                       <Button variant="ghost" size="icon" title="Iniciar Cotação" onClick={() => {
                         const existente = cotacoes.find(c => c.requisicaoId === r.id);
