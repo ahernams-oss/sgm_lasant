@@ -51,6 +51,7 @@ export interface Candidato {
   liberadoPor: string; statusLiberacao: StatusCandidato;
   documentos: DocumentoContratacao[]; exameAdmissional: ExameAdmissional;
   dadosBancarios: DadosBancarios; contratacaoFinalizada?: boolean;
+  lgpdAceite?: boolean; lgpdAceiteData?: string; portalEnviadoEm?: string;
 }
 
 export interface ProcessoSeletivo {
