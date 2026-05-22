@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, LineChart, Line, ResponsiveContainer } from "recharts";
 import { usePermissao } from "@/hooks/usePermissao";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--destructive))", "hsl(210,60%,50%)", "hsl(40,80%,50%)", "hsl(150,60%,40%)", "hsl(280,60%,50%)", "hsl(20,80%,50%)", "hsl(170,60%,40%)"];
 
@@ -47,6 +48,13 @@ export default function RelatoriosEstoquePage() {
   const [filtroCC, setFiltroCC] = useState("__all__");
   const [dataInicio, setDataInicio] = useState<Date | undefined>();
   const [dataFim, setDataFim] = useState<Date | undefined>();
+
+  // Pagination (shared per tab)
+  const [pages, setPages] = useState<Record<string, number>>({});
+  const [pageSize, setPageSize] = useState(10);
+  const getPage = (k: string) => pages[k] || 1;
+  const setPage = (k: string) => (p: number) => setPages(prev => ({ ...prev, [k]: p }));
+  const changePageSize = (s: number) => { setPageSize(s); setPages({}); };
 
   // Derived data
   const locais = useMemo(() => {
@@ -405,7 +413,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {saldos.length === 0 ? <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum saldo</TableCell></TableRow>
-                  : saldos.map((s, i) => (
+                  : paginate(saldos, getPage("posicao"), pageSize).paginated.map((s, i) => (
                     <TableRow key={i}>
                       <TableCell className="font-mono text-xs">{s.materialCodigo}</TableCell>
                       <TableCell className="text-xs">{s.materialDescricao}</TableCell>
@@ -416,6 +424,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("posicao")} totalItems={saldos.length} onPageChange={setPage("posicao")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 2. Movimentação por período */}
@@ -453,7 +462,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {movPeriodo.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Sem movimentações</TableCell></TableRow>
-                  : movPeriodo.slice(0, 200).map(m => (
+                  : paginate(movPeriodo, getPage("movperiodo"), pageSize).paginated.map(m => (
                     <TableRow key={m.id}>
                       <TableCell className="text-xs">{formatDate(m.dataMovimentacao)}</TableCell>
                       <TableCell><Badge variant={m.tipo === "entrada" ? "default" : m.tipo === "saida" ? "destructive" : "secondary"} className="text-xs">{tipoLabel(m.tipo)}</Badge></TableCell>
@@ -468,6 +477,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("movperiodo")} totalItems={movPeriodo.length} onPageChange={setPage("movperiodo")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 3. Entradas por Fornecedor */}
@@ -504,7 +514,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {entradasFornecedor.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">Sem dados</TableCell></TableRow>
-                  : entradasFornecedor.map((e, i) => (
+                  : paginate(entradasFornecedor, getPage("entradas"), pageSize).paginated.map((e, i) => (
                     <TableRow key={i}>
                       <TableCell className="text-xs">{e.fornecedor}</TableCell>
                       <TableCell className="text-right font-semibold text-xs">{formatQty(e.qtd)}</TableCell>
@@ -514,6 +524,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("entradas")} totalItems={entradasFornecedor.length} onPageChange={setPage("entradas")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 4. Saídas por Setor */}
@@ -550,7 +561,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {saidasSetor.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">Sem dados</TableCell></TableRow>
-                  : saidasSetor.map((s, i) => (
+                  : paginate(saidasSetor, getPage("saidas"), pageSize).paginated.map((s, i) => (
                     <TableRow key={i}>
                       <TableCell className="text-xs">{s.setor}</TableCell>
                       <TableCell className="text-right font-semibold text-xs">{formatQty(s.qtd)}</TableCell>
@@ -560,6 +571,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("saidas")} totalItems={saidasSetor.length} onPageChange={setPage("saidas")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 5. Inventário e Divergências */}
@@ -581,7 +593,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {inventarioDivergencias.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Sem divergências</TableCell></TableRow>
-                  : inventarioDivergencias.map((d, i) => (
+                  : paginate(inventarioDivergencias, getPage("inventario"), pageSize).paginated.map((d, i) => (
                     <TableRow key={i}>
                       <TableCell className="text-xs">{formatDate(d.data)}</TableCell>
                       <TableCell className="text-xs">{d.local}</TableCell>
@@ -596,6 +608,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("inventario")} totalItems={inventarioDivergencias.length} onPageChange={setPage("inventario")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 6. Itens abaixo do mínimo */}
@@ -616,7 +629,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {itensAbaixoMinimo.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Todos acima do mínimo</TableCell></TableRow>
-                  : itensAbaixoMinimo.map(m => (
+                  : paginate(itensAbaixoMinimo, getPage("minimo"), pageSize).paginated.map(m => (
                     <TableRow key={m.id}>
                       <TableCell className="font-mono text-xs">{m.codigo}</TableCell>
                       <TableCell className="text-xs">{m.descricao}</TableCell>
@@ -629,6 +642,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("minimo")} totalItems={itensAbaixoMinimo.length} onPageChange={setPage("minimo")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 7. Itens vencidos ou a vencer */}
@@ -649,7 +663,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {itensVencimento.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum item vencido ou a vencer</TableCell></TableRow>
-                  : itensVencimento.map(m => (
+                  : paginate(itensVencimento, getPage("vencimento"), pageSize).paginated.map(m => (
                     <TableRow key={m.id}>
                       <TableCell className="font-mono text-xs">{m.materialCodigo}</TableCell>
                       <TableCell className="text-xs">{m.materialDescricao}</TableCell>
@@ -663,6 +677,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("vencimento")} totalItems={itensVencimento.length} onPageChange={setPage("vencimento")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 8. Itens sem giro */}
@@ -683,7 +698,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {itensSemGiro.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Todos os itens tiveram movimentação recente</TableCell></TableRow>
-                  : itensSemGiro.map((s, i) => (
+                  : paginate(itensSemGiro, getPage("semgiro"), pageSize).paginated.map((s, i) => (
                     <TableRow key={i}>
                       <TableCell className="font-mono text-xs">{s.materialCodigo}</TableCell>
                       <TableCell className="text-xs">{s.materialDescricao}</TableCell>
@@ -696,6 +711,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("semgiro")} totalItems={itensSemGiro.length} onPageChange={setPage("semgiro")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 9. Consumo por Centro de Custo */}
@@ -732,7 +748,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {consumoCentroCusto.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">Sem dados</TableCell></TableRow>
-                  : consumoCentroCusto.map((c, i) => (
+                  : paginate(consumoCentroCusto, getPage("consumocc"), pageSize).paginated.map((c, i) => (
                     <TableRow key={i}>
                       <TableCell className="text-xs">{c.centroCusto}</TableCell>
                       <TableCell className="text-right font-semibold text-xs">{formatQty(c.qtd)}</TableCell>
@@ -742,6 +758,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("consumocc")} totalItems={consumoCentroCusto.length} onPageChange={setPage("consumocc")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 10. Rastreabilidade por Lote */}
@@ -762,7 +779,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {rastreioLote.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum registro com lote</TableCell></TableRow>
-                  : rastreioLote.map(m => (
+                  : paginate(rastreioLote, getPage("lote"), pageSize).paginated.map(m => (
                     <TableRow key={m.id}>
                       <TableCell className="text-xs">{formatDate(m.dataMovimentacao)}</TableCell>
                       <TableCell><Badge variant={m.tipo === "entrada" ? "default" : "destructive"} className="text-xs">{tipoLabel(m.tipo)}</Badge></TableCell>
@@ -777,6 +794,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("lote")} totalItems={rastreioLote.length} onPageChange={setPage("lote")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 11. Histórico por Item */}
@@ -836,7 +854,7 @@ export default function RelatoriosEstoquePage() {
                   </TableRow></TableHeader>
                   <TableBody>
                     {historicoItem.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem movimentações</TableCell></TableRow>
-                      : historicoItem.map(m => (
+                      : paginate(historicoItem, getPage("historico"), pageSize).paginated.map(m => (
                         <TableRow key={m.id}>
                           <TableCell className="text-xs">{formatDate(m.dataMovimentacao)}</TableCell>
                           <TableCell><Badge variant={m.tipo === "entrada" ? "default" : m.tipo === "saida" ? "destructive" : "secondary"} className="text-xs">{tipoLabel(m.tipo)}</Badge></TableCell>
@@ -850,6 +868,7 @@ export default function RelatoriosEstoquePage() {
                   </TableBody>
                 </Table>
               </div>
+              <PaginationControls currentPage={getPage("historico")} totalItems={historicoItem.length} onPageChange={setPage("historico")} pageSize={pageSize} onPageSizeChange={changePageSize} />
             </>
           )}
         </TabsContent>
@@ -872,7 +891,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {transferencias.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhuma transferência registrada</TableCell></TableRow>
-                  : transferencias.map(m => (
+                  : paginate(transferencias, getPage("transferencias"), pageSize).paginated.map(m => (
                     <TableRow key={m.id}>
                       <TableCell className="text-xs">{formatDate(m.dataMovimentacao)}</TableCell>
                       <TableCell className="font-mono text-xs">{m.materialCodigo}</TableCell>
@@ -886,6 +905,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("transferencias")} totalItems={transferencias.length} onPageChange={setPage("transferencias")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 13. Ajustes realizados */}
@@ -906,7 +926,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {ajustes.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum ajuste registrado</TableCell></TableRow>
-                  : ajustes.map(m => (
+                  : paginate(ajustes, getPage("ajustes"), pageSize).paginated.map(m => (
                     <TableRow key={m.id}>
                       <TableCell className="text-xs">{formatDate(m.dataMovimentacao)}</TableCell>
                       <TableCell className="font-mono text-xs">{m.materialCodigo}</TableCell>
@@ -921,6 +941,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("ajustes")} totalItems={ajustes.length} onPageChange={setPage("ajustes")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
       </Tabs>
     </div>
