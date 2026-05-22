@@ -75,7 +75,7 @@ export function RequisicaoComprasProvider({ children }: { children: ReactNode })
 
   const updateRequisicao = async (id: string, data: Partial<Omit<RequisicaoCompras, "id" | "numero" | "dataCriacao">>) => {
     const current = requisicoes.find(r => r.id === id);
-    if (!current || !["Rascunho", "Enviada"].includes(current.status)) return;
+    if (!current || !["Rascunho", "Enviada", "Recusada"].includes(current.status)) return;
     const merged = { ...current, ...data };
     await updateRow("requisicoes_compras", id, reqToRow(merged));
     await load();
