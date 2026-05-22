@@ -63,6 +63,7 @@ import FabricantesPage from "./pages/Fabricantes.tsx";
 import EpisPage from "./pages/EpisPage.tsx";
 import ExamesPage from "./pages/ExamesPage.tsx";
 import UnsubscribePage from "./pages/Unsubscribe.tsx";
+import PortalCandidato from "./pages/PortalCandidato.tsx";
 import Instalar from "./pages/Instalar.tsx";
 import LicitacoesPage from "./pages/Licitacoes.tsx";
 import MedicoesServicosPage from "./pages/MedicoesServicos.tsx";
@@ -396,6 +397,7 @@ const App = () => (
           <Route path="/cotacao/proposta/:token" element={<PropostaFornecedorPage />} />
           <Route path="/portal-fornecedor" element={<PortalFornecedorPage />} />
           <Route path="/unsubscribe" element={<UnsubscribePage />} />
+          <Route path="/portal-candidato/:processoId/:candidatoId" element={<PortalCandidato />} />
           <Route path="/instalar" element={<Instalar />} />
           <Route path="/verificar-assinatura" element={<VerificarAssinaturaPage />} />
           <Route path="/verificar-assinatura/:codigo" element={<VerificarAssinaturaPage />} />

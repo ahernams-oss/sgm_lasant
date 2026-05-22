@@ -29,7 +29,7 @@ export type EtapaCandidato = "entrevista_psicologica" | "entrevista_tecnica" | "
 export type StatusCandidato = "pendente" | "aprovado" | "neutro" | "reprovado";
 
 export interface AnexoCandidato { nome: string; tipo: string; base64: string; }
-export interface DocumentoContratacao { nome: string; entregue: boolean; anexo?: AnexoCandidato; }
+export interface DocumentoContratacao { nome: string; entregue: boolean; anexo?: AnexoCandidato; naoPossui?: boolean; }
 export interface ExameAdmissional { dataExame: string; resultado: "pendente" | "apto" | "inapto"; observacoes: string; anexo?: AnexoCandidato; }
 export interface DadosBancarios { banco: string; agencia: string; conta: string; tipoConta: string; pisPasep: string; }
 
@@ -51,6 +51,7 @@ export interface Candidato {
   liberadoPor: string; statusLiberacao: StatusCandidato;
   documentos: DocumentoContratacao[]; exameAdmissional: ExameAdmissional;
   dadosBancarios: DadosBancarios; contratacaoFinalizada?: boolean;
+  lgpdAceite?: boolean; lgpdAceiteData?: string; portalEnviadoEm?: string;
 }
 
 export interface ProcessoSeletivo {

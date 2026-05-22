@@ -296,6 +296,21 @@ const ProcessoSeletivoPage = () => {
       }
     }
 
+    // Liberação aprovada: enviar link do portal do candidato via WhatsApp
+    if (statusField === "statusLiberacao" && status === "aprovado" && candidato.telefone) {
+      const link = `${window.location.origin}/portal-candidato/${processo!.id}/${candidato.id}`;
+      const msg =
+        `Olá ${candidato.nome}! Você foi aprovado(a) na etapa de Liberação do processo seletivo` +
+        (requisicao?.cargoNome ? ` para a vaga de ${requisicao.cargoNome}` : "") +
+        `.\n\nPara prosseguir com a contratação, acesse o link abaixo, leia e aceite os termos da LGPD e anexe seus documentos:\n\n${link}\n\nCaso não possua algum documento, marque a opção "Não possuo".`;
+      enviarWhatsApp(candidato.telefone, msg).then((r) => {
+        if (r.success) toast.success(`Link enviado para o WhatsApp de ${candidato.nome}.`);
+        else toast.error(`Falha ao enviar link ao candidato: ${r.error}`);
+      });
+      updates.portalEnviadoEm = new Date().toISOString();
+      await updateCandidato(processo!.id, candidato.id, { portalEnviadoEm: updates.portalEnviadoEm });
+    }
+
     if (status === "aprovado") {
       toast.success(`Candidato ${candidato.nome} aprovado nesta etapa.`);
     } else if (status === "neutro") {
@@ -769,8 +784,16 @@ const ProcessoSeletivoPage = () => {
                           {c.nome}
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-6">
-                        {/* Checklist de Documentos */}
+                        <CardContent className="space-y-6">
+                          {c.portalEnviadoEm && (
+                            <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs flex items-center justify-between gap-2">
+                              <span>📲 Link de envio de documentos enviado ao candidato em {new Date(c.portalEnviadoEm).toLocaleString("pt-BR")}</span>
+                              {c.lgpdAceite
+                                ? <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">LGPD aceita</Badge>
+                                : <Badge variant="outline">Aguardando aceite LGPD</Badge>}
+                            </div>
+                          )}
+                          {/* Checklist de Documentos */}
                         <div>
                           <h3 className="text-sm font-semibold text-foreground mb-3">📋 Checklist de Documentos</h3>
                           <div className="grid grid-cols-1 gap-2">
@@ -788,6 +811,7 @@ const ProcessoSeletivoPage = () => {
                                   }}
                                 />
                                 <span className={`flex-1 ${doc.entregue ? "line-through text-muted-foreground" : ""}`}>{doc.nome}</span>
+                                {doc.naoPossui && <Badge variant="secondary" className="text-[10px]">Não possui</Badge>}
                                 <div className="flex items-center gap-1 shrink-0">
                                   {doc.anexo ? (
                                     <>
@@ -1081,10 +1105,11 @@ const ProcessoSeletivoPage = () => {
                               className="w-full bg-[hsl(120,30%,35%)] hover:bg-[hsl(120,30%,28%)] text-white"
                               onClick={() => {
                                 // Validações
-                                const docsEntregues = (c.documentos || []).filter((d) => d.entregue).length;
-                                const totalDocs = (filtrarDocs(c.documentos)).length;
-                                if (docsEntregues < totalDocs) {
-                                  toast.error("Todos os documentos devem estar marcados como entregues.");
+                                const docsList = filtrarDocs(c.documentos);
+                                const docsOk = docsList.filter((d) => d.entregue || d.naoPossui).length;
+                                const totalDocs = docsList.length;
+                                if (docsOk < totalDocs) {
+                                  toast.error("Todos os documentos devem estar entregues ou marcados como 'não possui'.");
                                   return;
                                 }
                                 if (c.exameAdmissional?.resultado !== "apto") {
