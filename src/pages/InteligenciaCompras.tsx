@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Search, ChevronDown, ChevronRight, Layers, TrendingUp, Combine, Building2 } from "lucide-react";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { usePermissao } from "@/hooks/usePermissao";
 
 interface OrigemItem {
@@ -72,6 +73,12 @@ export default function InteligenciaComprasPage() {
   const [expandedRC, setExpandedRC] = useState<Record<string, boolean>>({});
   const [activeGroupKey, setActiveGroupKey] = useState<string | null>(null);
   const [confirmRCOpen, setConfirmRCOpen] = useState(false);
+
+  // ===== Pagination =====
+  const [pageItens, setPageItens] = useState(1);
+  const [pageSizeItens, setPageSizeItens] = useState(7);
+  const [pageRCs, setPageRCs] = useState(1);
+  const [pageSizeRCs, setPageSizeRCs] = useState(7);
 
   // Mapa materialId -> grupoId (via classe -> subgrupo -> grupo)
   const materialToGrupo = useMemo(() => {
@@ -352,7 +359,7 @@ export default function InteligenciaComprasPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map((g) => (
+                    {paginate(filtered, pageItens, pageSizeItens).paginated.map((g) => (
                       <Collapsible key={g.materialId} open={!!expanded[g.materialId]} onOpenChange={(v) => setExpanded(p => ({ ...p, [g.materialId]: v }))} asChild>
                         <>
                           <TableRow>
@@ -399,6 +406,9 @@ export default function InteligenciaComprasPage() {
                   </TableBody>
                 </Table>
               )}
+              {filtered.length > 0 && (
+                <PaginationControls currentPage={pageItens} totalItems={filtered.length} onPageChange={setPageItens} pageSize={pageSizeItens} onPageSizeChange={(s) => { setPageSizeItens(s); setPageItens(1); }} />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -439,7 +449,7 @@ export default function InteligenciaComprasPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredRCGroups.map((g) => (
+                    {paginate(filteredRCGroups, pageRCs, pageSizeRCs).paginated.map((g) => (
                       <Collapsible key={g.key} open={!!expandedRC[g.key]} onOpenChange={(v) => setExpandedRC(p => ({ ...p, [g.key]: v }))} asChild>
                         <>
                           <TableRow>
@@ -500,6 +510,9 @@ export default function InteligenciaComprasPage() {
                     ))}
                   </TableBody>
                 </Table>
+              )}
+              {filteredRCGroups.length > 0 && (
+                <PaginationControls currentPage={pageRCs} totalItems={filteredRCGroups.length} onPageChange={setPageRCs} pageSize={pageSizeRCs} onPageSizeChange={(s) => { setPageSizeRCs(s); setPageRCs(1); }} />
               )}
             </CardContent>
           </Card>
