@@ -406,6 +406,9 @@ export default function InteligenciaComprasPage() {
                   </TableBody>
                 </Table>
               )}
+              {filtered.length > 0 && (
+                <PaginationControls currentPage={pageItens} totalItems={filtered.length} onPageChange={setPageItens} pageSize={pageSizeItens} onPageSizeChange={(s) => { setPageSizeItens(s); setPageItens(1); }} />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
