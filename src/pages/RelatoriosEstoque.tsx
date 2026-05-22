@@ -891,7 +891,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {transferencias.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhuma transferência registrada</TableCell></TableRow>
-                  : transferencias.map(m => (
+                  : paginate(transferencias, getPage("transferencias"), pageSize).paginated.map(m => (
                     <TableRow key={m.id}>
                       <TableCell className="text-xs">{formatDate(m.dataMovimentacao)}</TableCell>
                       <TableCell className="font-mono text-xs">{m.materialCodigo}</TableCell>
@@ -905,6 +905,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("transferencias")} totalItems={transferencias.length} onPageChange={setPage("transferencias")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 13. Ajustes realizados */}
