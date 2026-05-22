@@ -784,8 +784,16 @@ const ProcessoSeletivoPage = () => {
                           {c.nome}
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-6">
-                        {/* Checklist de Documentos */}
+                        <CardContent className="space-y-6">
+                          {c.portalEnviadoEm && (
+                            <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs flex items-center justify-between gap-2">
+                              <span>📲 Link de envio de documentos enviado ao candidato em {new Date(c.portalEnviadoEm).toLocaleString("pt-BR")}</span>
+                              {c.lgpdAceite
+                                ? <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">LGPD aceita</Badge>
+                                : <Badge variant="outline">Aguardando aceite LGPD</Badge>}
+                            </div>
+                          )}
+                          {/* Checklist de Documentos */}
                         <div>
                           <h3 className="text-sm font-semibold text-foreground mb-3">📋 Checklist de Documentos</h3>
                           <div className="grid grid-cols-1 gap-2">
