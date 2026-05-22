@@ -490,6 +490,7 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
         label: "Assinatura / Ações em Lote de OS",
         acoes: [
           { key: "os.assinar_fiscal", label: "Pode Assinar OS como Fiscal do Contrato" },
+          { key: "os.assinar_solicitante", label: "Pode Assinar OS como Solicitante (acesso ao cliente)" },
           { key: "os.assinar_lote", label: "Pode Acessar Assinatura de OS em Lote" },
           { key: "os.confirmar_lote", label: "Pode Confirmar OS em Lote" },
           { key: "os.validar_lote", label: "Pode Validar OS em Lote" },
