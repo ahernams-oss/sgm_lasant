@@ -699,8 +699,8 @@ export default function RequisicaoComprasPage() {
           </Tabs>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSubmit}>Enviar Requisição</Button>
+            <Button variant="outline" onClick={() => { setDialogOpen(false); setEditingId(null); resetForm(); }}>Cancelar</Button>
+            <Button onClick={handleSubmit}>{editingId ? "Reenviar Requisição" : "Enviar Requisição"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
