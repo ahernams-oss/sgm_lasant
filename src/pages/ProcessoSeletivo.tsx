@@ -29,6 +29,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 const ESTADO_CIVIL_OPTIONS = ["Solteiro(a)", "Casado(a)", "Divorciado(a)", "Viúvo(a)", "União Estável"];
+
+const DOCS_REMOVIDOS = ["Atestado de Antecedentes Criminais"];
+const filtrarDocs = (docs?: DocumentoContratacao[]) =>
+  (docs && docs.length > 0 ? docs : DOCUMENTOS_OBRIGATORIOS.map((n): DocumentoContratacao => ({ nome: n, entregue: false })))
+    .filter((d) => !DOCS_REMOVIDOS.includes(d.nome));
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
