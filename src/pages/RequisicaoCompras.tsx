@@ -241,27 +241,85 @@ export default function RequisicaoComprasPage() {
     e.target.value = "";
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!centroCusto) { toast({ title: "Centro de custo é obrigatório", variant: "destructive" }); return; }
     if (!justificativa.trim()) { toast({ title: "Justificativa é obrigatória", variant: "destructive" }); return; }
     if (itens.length === 0) { toast({ title: "Adicione pelo menos um item", variant: "destructive" }); return; }
 
     const cliente = clientesLista.find(c => c.id === centroCusto);
-    addRequisicao({
-      solicitante: usuarioLogado?.nome || "Usuário",
-      centroCusto,
-      centroCustoNome: cliente?.nome || "",
-      localEntrega,
-      justificativa,
-      urgencia,
-      prazoDesejado,
-      itens,
-      anexos,
-    });
-    toast({ title: "Requisição de compra criada com sucesso!" });
+    if (editingId) {
+      await updateRequisicao(editingId, {
+        centroCusto,
+        centroCustoNome: cliente?.nome || "",
+        localEntrega,
+        justificativa,
+        urgencia,
+        prazoDesejado,
+        itens,
+        anexos,
+      });
+      await updateStatus(editingId, "Enviada", usuarioLogado?.nome || "Usuário", "Requisição corrigida e reenviada");
+      toast({ title: "Requisição reenviada com sucesso!" });
+    } else {
+      addRequisicao({
+        solicitante: usuarioLogado?.nome || "Usuário",
+        centroCusto,
+        centroCustoNome: cliente?.nome || "",
+        localEntrega,
+        justificativa,
+        urgencia,
+        prazoDesejado,
+        itens,
+        anexos,
+      });
+      toast({ title: "Requisição de compra criada com sucesso!" });
+    }
     setDialogOpen(false);
+    setEditingId(null);
     resetForm();
+  };
+
+  const abrirEdicao = (r: RequisicaoCompras) => {
+    setEditingId(r.id);
+    setCentroCusto(r.centroCusto);
+    setLocalEntrega(r.localEntrega);
+    setJustificativa(r.justificativa);
+    setUrgencia(r.urgencia);
+    setPrazoDesejado(r.prazoDesejado);
+    setItens(r.itens);
+    setAnexos(r.anexos);
+    setDialogOpen(true);
+  };
+
+  const confirmarRecusa = async () => {
+    if (!recusaReq) return;
+    if (!recusaMotivo.trim()) { toast({ title: "Selecione ou informe um motivo", variant: "destructive" }); return; }
+    await updateStatus(recusaReq.id, "Recusada", usuarioLogado?.nome || "Comprador", recusaMotivo);
+    toast({ title: "Requisição recusada" });
+    setRecusaReq(null);
+    setRecusaMotivo("");
+    setNovoMotivoMode(false);
+    setNovoMotivoText("");
+  };
+
+  const cadastrarNovoMotivo = async () => {
+    const texto = novoMotivoText.trim();
+    if (!texto) return;
+    const novo = await insertRow("requisicoes_compras_justificativas", { motivo: texto });
+    if (novo) {
+      await loadJustificativas();
+      setRecusaMotivo(texto);
+      setNovoMotivoMode(false);
+      setNovoMotivoText("");
+      toast({ title: "Motivo cadastrado" });
+    }
+  };
+
+  const excluirMotivo = async (id: string) => {
+    if (await deleteRow("requisicoes_compras_justificativas", id)) {
+      await loadJustificativas();
+    }
   };
 
   const handleMaterialSelect = (materialId: string) => {
