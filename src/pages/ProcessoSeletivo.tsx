@@ -281,20 +281,7 @@ const ProcessoSeletivoPage = () => {
     const etapaLabel = etapaMap[statusField] || statusField;
     const statusLabel = status === "aprovado" ? "aprovado(a)" : status === "reprovado" ? "reprovado(a)" : "avaliado(a) como neutro";
 
-    // Enviar WhatsApp para os telefones do cliente (unidade)
-    const cliente = clientes.find((c) => c.nome === requisicao?.unidade);
-    if (cliente && cliente.telefones.length > 0) {
-      const mensagem = `Processo Seletivo - Cargo: ${requisicao?.cargoNome}. Candidato ${candidato.nome} foi ${statusLabel} na etapa "${etapaLabel}".`;
-      for (const tel of cliente.telefones) {
-        enviarWhatsApp(tel, mensagem).then((result) => {
-          if (result.success) {
-            toast.success(`WhatsApp enviado para ${tel}.`);
-          } else {
-            toast.error(`Falha ao enviar WhatsApp para ${tel}: ${result.error}`);
-          }
-        });
-      }
-    }
+    // Notificações para cliente/unidade desativadas — apenas o candidato é notificado, e somente após a liberação.
 
     // Liberação aprovada: enviar link do portal do candidato via WhatsApp
     if (statusField === "statusLiberacao" && status === "aprovado" && candidato.telefone) {
