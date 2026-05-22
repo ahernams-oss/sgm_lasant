@@ -1173,6 +1173,7 @@ export default function CotacaoComprasPage() {
           </TableBody>
         </Table>
         </SortableHeaderRow>
+        <PaginationControls currentPage={pageCot} totalItems={filtered.length} onPageChange={setPageCot} pageSize={pageSizeCot} onPageSizeChange={(s) => { setPageSizeCot(s); setPageCot(1); }} />
       </div>
 
       {/* Dialog Nova Cotação */}
