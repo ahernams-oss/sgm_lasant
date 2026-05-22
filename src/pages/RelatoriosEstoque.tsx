@@ -926,7 +926,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {ajustes.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum ajuste registrado</TableCell></TableRow>
-                  : ajustes.map(m => (
+                  : paginate(ajustes, getPage("ajustes"), pageSize).paginated.map(m => (
                     <TableRow key={m.id}>
                       <TableCell className="text-xs">{formatDate(m.dataMovimentacao)}</TableCell>
                       <TableCell className="font-mono text-xs">{m.materialCodigo}</TableCell>
@@ -941,6 +941,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("ajustes")} totalItems={ajustes.length} onPageChange={setPage("ajustes")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
       </Tabs>
     </div>
