@@ -73,8 +73,15 @@ export default function RequisicaoComprasPage() {
   const { toast } = useToast();
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [viewReq, setViewReq] = useState<RequisicaoCompras | null>(null);
   const [historicoReq, setHistoricoReq] = useState<RequisicaoCompras | null>(null);
+  const [recusaReq, setRecusaReq] = useState<RequisicaoCompras | null>(null);
+  const [recusaMotivo, setRecusaMotivo] = useState("");
+  const [novoMotivoMode, setNovoMotivoMode] = useState(false);
+  const [novoMotivoText, setNovoMotivoText] = useState("");
+  const [justificativas, setJustificativas] = useState<{ id: string; motivo: string }[]>([]);
+  const [gerenciarMotivosOpen, setGerenciarMotivosOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("Todos");
   const [filterCentroCusto, setFilterCentroCusto] = useState<string>("Todos");
@@ -84,6 +91,14 @@ export default function RequisicaoComprasPage() {
   const [filterDataFim, setFilterDataFim] = useState("");
   const [pageReq, setPageReq] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const loadJustificativas = async () => {
+    const data = await fetchAll("requisicoes_compras_justificativas", "motivo");
+    setJustificativas(data.map((d: any) => ({ id: d.id, motivo: d.motivo })));
+  };
+  useEffect(() => { loadJustificativas(); }, []);
+
+  const podeRecusar = tem("requisicoes_compras.recusar") || tem("requisicoes_compras.criar");
 
   const colDefs: Record<string, { label: string; className?: string }> = {
     numero: { label: "Nº", className: "text-center" },
