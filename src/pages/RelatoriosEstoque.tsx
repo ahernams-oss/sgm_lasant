@@ -779,7 +779,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {rastreioLote.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum registro com lote</TableCell></TableRow>
-                  : rastreioLote.map(m => (
+                  : paginate(rastreioLote, getPage("lote"), pageSize).paginated.map(m => (
                     <TableRow key={m.id}>
                       <TableCell className="text-xs">{formatDate(m.dataMovimentacao)}</TableCell>
                       <TableCell><Badge variant={m.tipo === "entrada" ? "default" : "destructive"} className="text-xs">{tipoLabel(m.tipo)}</Badge></TableCell>
@@ -794,6 +794,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("lote")} totalItems={rastreioLote.length} onPageChange={setPage("lote")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 11. Histórico por Item */}
