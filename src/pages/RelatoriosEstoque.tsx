@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, LineChart, Line, ResponsiveContainer } from "recharts";
 import { usePermissao } from "@/hooks/usePermissao";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--destructive))", "hsl(210,60%,50%)", "hsl(40,80%,50%)", "hsl(150,60%,40%)", "hsl(280,60%,50%)", "hsl(20,80%,50%)", "hsl(170,60%,40%)"];
 
