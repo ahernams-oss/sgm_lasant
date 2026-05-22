@@ -593,7 +593,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {inventarioDivergencias.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Sem divergências</TableCell></TableRow>
-                  : inventarioDivergencias.map((d, i) => (
+                  : paginate(inventarioDivergencias, getPage("inventario"), pageSize).paginated.map((d, i) => (
                     <TableRow key={i}>
                       <TableCell className="text-xs">{formatDate(d.data)}</TableCell>
                       <TableCell className="text-xs">{d.local}</TableCell>
@@ -608,6 +608,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("inventario")} totalItems={inventarioDivergencias.length} onPageChange={setPage("inventario")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 6. Itens abaixo do mínimo */}
