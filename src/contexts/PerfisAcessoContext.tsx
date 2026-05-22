@@ -346,11 +346,19 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
     grupo: "Engenharia",
     modulos: [
       {
-        key: "dashboard_engenharia",
-        label: "Dashboard Engenharia",
+        key: "dashboard_ssos",
+        label: "Dashboard SS / OS",
         acoes: [
-          { key: "dashboard_engenharia.visualizar", label: "Visualizar dashboard" },
-          { key: "dashboard_engenharia.exportar_pdf", label: "Exportar PDF" },
+          { key: "dashboard_ssos.visualizar", label: "Visualizar Dashboard SS / OS" },
+          { key: "dashboard_ssos.exportar_pdf", label: "Exportar PDF do Dashboard SS / OS" },
+        ],
+      },
+      {
+        key: "dashboard_medicoes",
+        label: "Dashboard Medições",
+        acoes: [
+          { key: "dashboard_medicoes.visualizar", label: "Visualizar Dashboard Medições" },
+          { key: "dashboard_medicoes.exportar_pdf", label: "Exportar PDF do Dashboard Medições" },
         ],
       },
       {

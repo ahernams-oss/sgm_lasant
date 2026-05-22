@@ -86,8 +86,8 @@ const menuItems = [
   {
     group: "Engenharia e Manutenção",
     items: [
-      { title: "Dashboard SS / OS", url: "/engenharia/dashboard", icon: BarChart3, perm: "dashboard_engenharia" },
-      { title: "Dashboard Medições", url: "/engenharia/dashboard-medicoes", icon: BarChart3, perm: "dashboard_engenharia" },
+      { title: "Dashboard SS / OS", url: "/engenharia/dashboard", icon: BarChart3, perm: "dashboard_ssos" },
+      { title: "Dashboard Medições", url: "/engenharia/dashboard-medicoes", icon: BarChart3, perm: "dashboard_medicoes" },
       { title: "Plano de Manutenção", url: "/engenharia/plano-manutencao", icon: Wrench, perm: "plano_manutencao" },
       { title: "Base de Conhecimento", url: "/engenharia/base-conhecimento", icon: BookOpen, perm: "base_conhecimento" },
     ],
