@@ -462,7 +462,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {movPeriodo.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Sem movimentações</TableCell></TableRow>
-                  : movPeriodo.slice(0, 200).map(m => (
+                  : paginate(movPeriodo, getPage("movperiodo"), pageSize).paginated.map(m => (
                     <TableRow key={m.id}>
                       <TableCell className="text-xs">{formatDate(m.dataMovimentacao)}</TableCell>
                       <TableCell><Badge variant={m.tipo === "entrada" ? "default" : m.tipo === "saida" ? "destructive" : "secondary"} className="text-xs">{tipoLabel(m.tipo)}</Badge></TableCell>
@@ -477,6 +477,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("movperiodo")} totalItems={movPeriodo.length} onPageChange={setPage("movperiodo")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 3. Entradas por Fornecedor */}
