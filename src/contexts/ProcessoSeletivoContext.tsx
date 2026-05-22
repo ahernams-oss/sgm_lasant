@@ -34,9 +34,10 @@ export interface ExameAdmissional { dataExame: string; resultado: "pendente" | "
 export interface DadosBancarios { banco: string; agencia: string; conta: string; tipoConta: string; pisPasep: string; pix?: string; }
 
 export const DOCUMENTOS_OBRIGATORIOS = [
-  "RG", "CPF", "CTPS (Carteira de Trabalho)", "Comprovante de Residência",
+  "CNH", "RG", "CPF", "CTPS (Carteira de Trabalho)", "Comprovante de Residência",
   "Certidão de Nascimento/Casamento", "Título de Eleitor", "Certificado de Reservista",
   "PIS/PASEP", "Foto 3x4", "Comprovante de Escolaridade",
+  "Diploma ou Certificado de Formação",
   "Certidão de Nascimento dos Filhos", "Cartão de Vacina dos Filhos",
 ];
 
