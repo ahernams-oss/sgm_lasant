@@ -748,7 +748,7 @@ export default function RelatoriosEstoquePage() {
               </TableRow></TableHeader>
               <TableBody>
                 {consumoCentroCusto.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">Sem dados</TableCell></TableRow>
-                  : consumoCentroCusto.map((c, i) => (
+                  : paginate(consumoCentroCusto, getPage("consumocc"), pageSize).paginated.map((c, i) => (
                     <TableRow key={i}>
                       <TableCell className="text-xs">{c.centroCusto}</TableCell>
                       <TableCell className="text-right font-semibold text-xs">{formatQty(c.qtd)}</TableCell>
@@ -758,6 +758,7 @@ export default function RelatoriosEstoquePage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls currentPage={getPage("consumocc")} totalItems={consumoCentroCusto.length} onPageChange={setPage("consumocc")} pageSize={pageSize} onPageSizeChange={changePageSize} />
         </TabsContent>
 
         {/* 10. Rastreabilidade por Lote */}
