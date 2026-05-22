@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileSpreadsheet } from "lucide-react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Search, Eye, FileText, Clock, Paperclip, X, ChevronsUpDown, Check } from "lucide-react";
+import { Plus, Trash2, Search, Eye, FileText, Clock, Paperclip, X, ChevronsUpDown, Check, XCircle, Pencil } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
 import { usePermissao } from "@/hooks/usePermissao";
+import { fetchAll, insertRow, deleteRow } from "@/lib/supabaseHelper";
 
 const statusColors: Record<StatusRequisicaoCompras, string> = {
   Rascunho: "bg-muted text-muted-foreground",
@@ -37,6 +38,7 @@ const statusColors: Record<StatusRequisicaoCompras, string> = {
   "Aguardando Aprovação": "bg-orange-100 text-orange-800",
   Aprovada: "bg-green-100 text-green-800",
   Reprovada: "bg-red-100 text-red-800",
+  Recusada: "bg-rose-100 text-rose-800",
   "Pedido Emitido": "bg-indigo-100 text-indigo-800",
   "Em Entrega": "bg-purple-100 text-purple-800",
   "Recebida Parcial": "bg-amber-100 text-amber-800",
@@ -48,7 +50,7 @@ const statusColors: Record<StatusRequisicaoCompras, string> = {
 const URGENCIAS: GrauUrgencia[] = ["Baixa", "Normal", "Alta", "Urgente"];
 
 export default function RequisicaoComprasPage() {
-  const { requisicoes, addRequisicao, cancelarRequisicao, updateStatus } = useRequisicaoCompras();
+  const { requisicoes, addRequisicao, cancelarRequisicao, updateStatus, updateRequisicao } = useRequisicaoCompras();
   const { addCotacao, cotacoes } = useCotacaoCompras();
   const { materiais } = useMateriaisServicos();
   const { getCodigoCompleto } = useCategoriasCompras();
@@ -71,8 +73,15 @@ export default function RequisicaoComprasPage() {
   const { toast } = useToast();
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [viewReq, setViewReq] = useState<RequisicaoCompras | null>(null);
   const [historicoReq, setHistoricoReq] = useState<RequisicaoCompras | null>(null);
+  const [recusaReq, setRecusaReq] = useState<RequisicaoCompras | null>(null);
+  const [recusaMotivo, setRecusaMotivo] = useState("");
+  const [novoMotivoMode, setNovoMotivoMode] = useState(false);
+  const [novoMotivoText, setNovoMotivoText] = useState("");
+  const [justificativas, setJustificativas] = useState<{ id: string; motivo: string }[]>([]);
+  const [gerenciarMotivosOpen, setGerenciarMotivosOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("Todos");
   const [filterCentroCusto, setFilterCentroCusto] = useState<string>("Todos");
@@ -82,6 +91,14 @@ export default function RequisicaoComprasPage() {
   const [filterDataFim, setFilterDataFim] = useState("");
   const [pageReq, setPageReq] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const loadJustificativas = async () => {
+    const data = await fetchAll("requisicoes_compras_justificativas", "motivo");
+    setJustificativas(data.map((d: any) => ({ id: d.id, motivo: d.motivo })));
+  };
+  useEffect(() => { loadJustificativas(); }, []);
+
+  const podeRecusar = tem("requisicoes_compras.recusar") || tem("requisicoes_compras.criar");
 
   const colDefs: Record<string, { label: string; className?: string }> = {
     numero: { label: "Nº", className: "text-center" },
@@ -224,27 +241,85 @@ export default function RequisicaoComprasPage() {
     e.target.value = "";
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!centroCusto) { toast({ title: "Centro de custo é obrigatório", variant: "destructive" }); return; }
     if (!justificativa.trim()) { toast({ title: "Justificativa é obrigatória", variant: "destructive" }); return; }
     if (itens.length === 0) { toast({ title: "Adicione pelo menos um item", variant: "destructive" }); return; }
 
     const cliente = clientesLista.find(c => c.id === centroCusto);
-    addRequisicao({
-      solicitante: usuarioLogado?.nome || "Usuário",
-      centroCusto,
-      centroCustoNome: cliente?.nome || "",
-      localEntrega,
-      justificativa,
-      urgencia,
-      prazoDesejado,
-      itens,
-      anexos,
-    });
-    toast({ title: "Requisição de compra criada com sucesso!" });
+    if (editingId) {
+      await updateRequisicao(editingId, {
+        centroCusto,
+        centroCustoNome: cliente?.nome || "",
+        localEntrega,
+        justificativa,
+        urgencia,
+        prazoDesejado,
+        itens,
+        anexos,
+      });
+      await updateStatus(editingId, "Enviada", usuarioLogado?.nome || "Usuário", "Requisição corrigida e reenviada");
+      toast({ title: "Requisição reenviada com sucesso!" });
+    } else {
+      addRequisicao({
+        solicitante: usuarioLogado?.nome || "Usuário",
+        centroCusto,
+        centroCustoNome: cliente?.nome || "",
+        localEntrega,
+        justificativa,
+        urgencia,
+        prazoDesejado,
+        itens,
+        anexos,
+      });
+      toast({ title: "Requisição de compra criada com sucesso!" });
+    }
     setDialogOpen(false);
+    setEditingId(null);
     resetForm();
+  };
+
+  const abrirEdicao = (r: RequisicaoCompras) => {
+    setEditingId(r.id);
+    setCentroCusto(r.centroCusto);
+    setLocalEntrega(r.localEntrega);
+    setJustificativa(r.justificativa);
+    setUrgencia(r.urgencia);
+    setPrazoDesejado(r.prazoDesejado);
+    setItens(r.itens);
+    setAnexos(r.anexos);
+    setDialogOpen(true);
+  };
+
+  const confirmarRecusa = async () => {
+    if (!recusaReq) return;
+    if (!recusaMotivo.trim()) { toast({ title: "Selecione ou informe um motivo", variant: "destructive" }); return; }
+    await updateStatus(recusaReq.id, "Recusada", usuarioLogado?.nome || "Comprador", recusaMotivo);
+    toast({ title: "Requisição recusada" });
+    setRecusaReq(null);
+    setRecusaMotivo("");
+    setNovoMotivoMode(false);
+    setNovoMotivoText("");
+  };
+
+  const cadastrarNovoMotivo = async () => {
+    const texto = novoMotivoText.trim();
+    if (!texto) return;
+    const novo = await insertRow("requisicoes_compras_justificativas", { motivo: texto });
+    if (novo) {
+      await loadJustificativas();
+      setRecusaMotivo(texto);
+      setNovoMotivoMode(false);
+      setNovoMotivoText("");
+      toast({ title: "Motivo cadastrado" });
+    }
+  };
+
+  const excluirMotivo = async (id: string) => {
+    if (await deleteRow("requisicoes_compras_justificativas", id)) {
+      await loadJustificativas();
+    }
   };
 
   const handleMaterialSelect = (materialId: string) => {
@@ -342,7 +417,12 @@ export default function RequisicaoComprasPage() {
               <TableRow><TableCell colSpan={colOrder.length + 1} className="text-center text-muted-foreground py-8">Nenhuma requisição encontrada</TableCell></TableRow>
             ) : paginate(filtered, pageReq, 7).paginated.map(r => {
               const cellMap: Record<string, ReactNode> = {
-                numero: <span className="font-mono font-bold">RCS-{String(r.numero).padStart(4, "0")}</span>,
+                numero: (
+                  <span className="font-mono font-bold inline-flex items-center gap-1">
+                    {r.status === "Recusada" && <span title="Requisição recusada" aria-label="recusada">🤦🏻‍♂️</span>}
+                    RCS-{String(r.numero).padStart(4, "0")}
+                  </span>
+                ),
                 data: format(new Date(r.dataCriacao), "dd/MM/yyyy HH:mm"),
                 solicitante: r.solicitante,
                 centroCusto: r.centroCustoNome,
@@ -351,6 +431,8 @@ export default function RequisicaoComprasPage() {
                 status: <Badge className={statusColors[r.status]}>{r.status}</Badge>,
               };
               const podeIniciarCotacao = ["Enviada", "Aguardando Aprovação"].includes(r.status);
+              const podeRecusarReq = podeRecusar && ["Enviada", "Em Cotação", "Aguardando Aprovação"].includes(r.status);
+              const podeEditarReq = r.status === "Recusada" && r.solicitante === (usuarioLogado?.nome || "");
               return (
               <TableRow key={r.id}>
                 {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
@@ -358,6 +440,16 @@ export default function RequisicaoComprasPage() {
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" title="Detalhes" onClick={() => setViewReq(r)}><Eye className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" title="Histórico" onClick={() => setHistoricoReq(r)}><Clock className="h-4 w-4" /></Button>
+                    {podeEditarReq && (
+                      <Button variant="ghost" size="icon" title="Editar e reenviar" onClick={() => abrirEdicao(r)}>
+                        <Pencil className="h-4 w-4 text-amber-600" />
+                      </Button>
+                    )}
+                    {podeRecusarReq && (
+                      <Button variant="ghost" size="icon" title="Recusar requisição" onClick={() => { setRecusaReq(r); setRecusaMotivo(""); setNovoMotivoMode(false); }}>
+                        <XCircle className="h-4 w-4 text-rose-600" />
+                      </Button>
+                    )}
                     {podeIniciarCotacao && (
                       <Button variant="ghost" size="icon" title="Iniciar Cotação" onClick={() => {
                         const existente = cotacoes.find(c => c.requisicaoId === r.id);
@@ -386,12 +478,12 @@ export default function RequisicaoComprasPage() {
         </div>
       </div>
 
-      {/* Dialog Nova Requisição */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* Dialog Nova Requisição / Editar */}
+      <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setEditingId(null); resetForm(); } }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nova Requisição de Compras</DialogTitle>
-            <DialogDescription>Preencha os campos obrigatórios para criar uma nova solicitação.</DialogDescription>
+            <DialogTitle>{editingId ? "Editar e Reenviar Requisição" : "Nova Requisição de Compras"}</DialogTitle>
+            <DialogDescription>{editingId ? "Ajuste os itens recusados pelo comprador e reenvie a requisição." : "Preencha os campos obrigatórios para criar uma nova solicitação."}</DialogDescription>
           </DialogHeader>
 
           <Tabs defaultValue="dados" className="w-full">
@@ -607,8 +699,8 @@ export default function RequisicaoComprasPage() {
           </Tabs>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSubmit}>Enviar Requisição</Button>
+            <Button variant="outline" onClick={() => { setDialogOpen(false); setEditingId(null); resetForm(); }}>Cancelar</Button>
+            <Button onClick={handleSubmit}>{editingId ? "Reenviar Requisição" : "Enviar Requisição"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -695,6 +787,79 @@ export default function RequisicaoComprasPage() {
               ))}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Recusar Requisição */}
+      <Dialog open={!!recusaReq} onOpenChange={(o) => { if (!o) { setRecusaReq(null); setRecusaMotivo(""); setNovoMotivoMode(false); setNovoMotivoText(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Recusar Requisição {recusaReq && `RCS-${String(recusaReq.numero).padStart(4, "0")}`}</DialogTitle>
+            <DialogDescription>Selecione uma justificativa pré-cadastrada para recusar a requisição. O solicitante poderá ajustar e reenviar.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <Label>Justificativa *</Label>
+                <Select value={recusaMotivo} onValueChange={setRecusaMotivo}>
+                  <SelectTrigger><SelectValue placeholder="Selecione um motivo..." /></SelectTrigger>
+                  <SelectContent>
+                    {justificativas.map(j => <SelectItem key={j.id} value={j.motivo}>{j.motivo}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="button" variant="outline" onClick={() => setGerenciarMotivosOpen(true)} title="Gerenciar motivos">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {novoMotivoMode ? (
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <Label>Novo motivo</Label>
+                  <Input value={novoMotivoText} onChange={e => setNovoMotivoText(e.target.value)} placeholder="Descreva o novo motivo..." />
+                </div>
+                <Button onClick={cadastrarNovoMotivo}>Salvar</Button>
+                <Button variant="ghost" onClick={() => { setNovoMotivoMode(false); setNovoMotivoText(""); }}>Cancelar</Button>
+              </div>
+            ) : (
+              <Button type="button" variant="ghost" size="sm" onClick={() => setNovoMotivoMode(true)}>
+                <Plus className="mr-1 h-3 w-3" /> Cadastrar novo motivo
+              </Button>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRecusaReq(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={confirmarRecusa}>Confirmar Recusa</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Gerenciar Motivos */}
+      <Dialog open={gerenciarMotivosOpen} onOpenChange={setGerenciarMotivosOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Gerenciar Motivos de Recusa</DialogTitle>
+            <DialogDescription>Motivos pré-cadastrados disponíveis no dropdown de recusa.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {justificativas.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhum motivo cadastrado.</p>
+            ) : justificativas.map(j => (
+              <div key={j.id} className="flex items-center justify-between border rounded px-3 py-2">
+                <span className="text-sm">{j.motivo}</span>
+                <Button variant="ghost" size="icon" onClick={() => excluirMotivo(j.id)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-end gap-2 pt-2 border-t">
+            <div className="flex-1">
+              <Label>Novo motivo</Label>
+              <Input value={novoMotivoText} onChange={e => setNovoMotivoText(e.target.value)} placeholder="Descreva o motivo..." />
+            </div>
+            <Button onClick={cadastrarNovoMotivo}>Adicionar</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
