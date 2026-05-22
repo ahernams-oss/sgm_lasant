@@ -41,9 +41,8 @@ Deno.serve(async (req) => {
     const hash = bcrypt.hashSync(senha, bcrypt.genSaltSync(10));
 
     const { error } = await supabase
-      .from("clientes")
-      .update({ senha_portal: hash, senha_portal_trocada: false })
-      .eq("id", fornecedorId);
+      .from("clientes_credenciais")
+      .upsert({ cliente_id: fornecedorId, senha_portal: hash, senha_portal_trocada: false }, { onConflict: "cliente_id" });
 
     if (error) {
       console.error("[fornecedor-set-senha] DB error:", error);

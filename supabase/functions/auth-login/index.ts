@@ -81,8 +81,24 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!user || !user.senha) {
-      await logAudit({ usuario_id: user?.id ?? null, email, nome: user?.nome ?? null, sucesso: false, motivo: !user ? "Usuário não encontrado" : "Usuário sem senha cadastrada" });
+    if (!user) {
+      await logAudit({ usuario_id: null, email, nome: null, sucesso: false, motivo: "Usuário não encontrado" });
+      return new Response(JSON.stringify({ error: "Credenciais inválidas." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Senha agora reside em tabela separada (não publicamente legível)
+    const { data: cred } = await supabase
+      .from("usuarios_credenciais")
+      .select("senha")
+      .eq("usuario_id", user.id)
+      .maybeSingle();
+
+    const senhaArmazenada: string | null = cred?.senha ?? null;
+    if (!senhaArmazenada) {
+      await logAudit({ usuario_id: user.id, email, nome: user.nome, sucesso: false, motivo: "Usuário sem senha cadastrada" });
       return new Response(JSON.stringify({ error: "Credenciais inválidas." }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -92,13 +108,13 @@ Deno.serve(async (req) => {
     let ok = false;
     let migrated = false;
 
-    if (isBcryptHash(user.senha)) {
-      ok = bcrypt.compareSync(senha, user.senha);
+    if (isBcryptHash(senhaArmazenada)) {
+      ok = bcrypt.compareSync(senha, senhaArmazenada);
     } else {
-      ok = senha.trim() === String(user.senha).trim();
+      ok = senha.trim() === String(senhaArmazenada).trim();
       if (ok) {
         const hash = bcrypt.hashSync(senha, bcrypt.genSaltSync(10));
-        await supabase.from("usuarios").update({ senha: hash }).eq("id", user.id);
+        await supabase.from("usuarios_credenciais").update({ senha: hash }).eq("usuario_id", user.id);
         migrated = true;
       }
     }
@@ -113,8 +129,7 @@ Deno.serve(async (req) => {
 
     await logAudit({ usuario_id: user.id, email, nome: user.nome, sucesso: true, motivo: migrated ? "Login OK (senha migrada para hash)" : "Login OK" });
 
-    const { senha: _omit, ...safe } = user;
-    return new Response(JSON.stringify({ usuario: safe, migrated }), {
+    return new Response(JSON.stringify({ usuario: user, migrated }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

@@ -114,7 +114,7 @@ const rowToEmpresa = (r: any): Empresa => ({
   certificadoA1Url: r.certificado_a1_url ?? "",
   certificadoA1Nome: r.certificado_a1_nome ?? "",
   certificadoA1Validade: r.certificado_a1_validade ?? "",
-  certificadoA1Senha: r.certificado_a1_senha ?? "",
+  certificadoA1Senha: "",
   nfeAmbiente: (r.nfe_ambiente ?? "homologacao") as Empresa["nfeAmbiente"],
   nfeUfAutor: r.nfe_uf_autor ?? "",
   certificadoA1Cnpj: r.certificado_a1_cnpj ?? "",
@@ -161,7 +161,6 @@ const empresaToRow = (e: Empresa) => ({
   certificado_a1_url: e.certificadoA1Url,
   certificado_a1_nome: e.certificadoA1Nome,
   certificado_a1_validade: e.certificadoA1Validade || null,
-  certificado_a1_senha: e.certificadoA1Senha,
   nfe_ambiente: e.nfeAmbiente || "homologacao",
   nfe_uf_autor: e.nfeUfAutor,
 });

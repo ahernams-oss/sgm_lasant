@@ -6,6 +6,7 @@ export interface Usuario {
   email: string; senha: string; clientesPermitidos: string[];
   perfilAcessoId: string; matricula: string; ramal: string;
   limiteAprovacaoCompras: number; limiteAprovacaoOS: number;
+  senhaStatus?: "sem_senha" | "legado" | "seguro";
 }
 
 interface UsuariosContextType {
@@ -18,17 +19,18 @@ const UsuariosContext = createContext<UsuariosContextType | undefined>(undefined
 
 const rowToUsuario = (r: any): Usuario => ({
   id: r.id, nome: r.nome ?? "", cargoId: r.cargo_id ?? "",
-  telefone: r.telefone ?? "", email: r.email ?? "", senha: r.senha ?? "",
+  telefone: r.telefone ?? "", email: r.email ?? "", senha: "",
   clientesPermitidos: r.clientes_permitidos ?? [],
   perfilAcessoId: r.perfil_acesso_id ?? "",
   matricula: r.matricula ?? "", ramal: r.ramal ?? "",
   limiteAprovacaoCompras: Number(r.limite_aprovacao_compras ?? 0),
   limiteAprovacaoOS: Number(r.limite_aprovacao_os ?? 0),
+  senhaStatus: (r.senha_status ?? "sem_senha") as Usuario["senhaStatus"],
 });
 
 const usuarioToRow = (u: Omit<Usuario, "id">) => ({
   nome: u.nome, cargo_id: u.cargoId, telefone: u.telefone,
-  email: u.email, senha: u.senha, clientes_permitidos: u.clientesPermitidos as any,
+  email: u.email, clientes_permitidos: u.clientesPermitidos as any,
   perfil_acesso_id: u.perfilAcessoId, matricula: u.matricula, ramal: u.ramal,
   limite_aprovacao_compras: u.limiteAprovacaoCompras ?? 0,
   limite_aprovacao_os: u.limiteAprovacaoOS ?? 0,

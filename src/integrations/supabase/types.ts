@@ -503,8 +503,6 @@ export type Database = {
           rel_linha2: string | null
           rel_linha3: string | null
           rel_linha4: string | null
-          senha_portal: string | null
-          senha_portal_trocada: boolean
           telefone_celular: string | null
           telefones: Json | null
           telefones_whatsapp: string | null
@@ -549,8 +547,6 @@ export type Database = {
           rel_linha2?: string | null
           rel_linha3?: string | null
           rel_linha4?: string | null
-          senha_portal?: string | null
-          senha_portal_trocada?: boolean
           telefone_celular?: string | null
           telefones?: Json | null
           telefones_whatsapp?: string | null
@@ -595,8 +591,6 @@ export type Database = {
           rel_linha2?: string | null
           rel_linha3?: string | null
           rel_linha4?: string | null
-          senha_portal?: string | null
-          senha_portal_trocada?: boolean
           telefone_celular?: string | null
           telefones?: Json | null
           telefones_whatsapp?: string | null
@@ -604,6 +598,38 @@ export type Database = {
           uf?: string | null
         }
         Relationships: []
+      }
+      clientes_credenciais: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          senha_portal: string | null
+          senha_portal_trocada: boolean
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          senha_portal?: string | null
+          senha_portal_trocada?: boolean
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          senha_portal?: string | null
+          senha_portal_trocada?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_credenciais_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: true
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       comunicacao_avisos: {
         Row: {
@@ -1121,7 +1147,6 @@ export type Database = {
           certificado_a1_cnpj: string | null
           certificado_a1_emissor: string | null
           certificado_a1_nome: string | null
-          certificado_a1_senha: string | null
           certificado_a1_status: string | null
           certificado_a1_titular: string | null
           certificado_a1_url: string | null
@@ -1169,7 +1194,6 @@ export type Database = {
           certificado_a1_cnpj?: string | null
           certificado_a1_emissor?: string | null
           certificado_a1_nome?: string | null
-          certificado_a1_senha?: string | null
           certificado_a1_status?: string | null
           certificado_a1_titular?: string | null
           certificado_a1_url?: string | null
@@ -1217,7 +1241,6 @@ export type Database = {
           certificado_a1_cnpj?: string | null
           certificado_a1_emissor?: string | null
           certificado_a1_nome?: string | null
-          certificado_a1_senha?: string | null
           certificado_a1_status?: string | null
           certificado_a1_titular?: string | null
           certificado_a1_url?: string | null
@@ -1257,6 +1280,35 @@ export type Database = {
           whatsapp_rh?: string | null
         }
         Relationships: []
+      }
+      empresa_credenciais: {
+        Row: {
+          certificado_a1_senha: string | null
+          created_at: string
+          empresa_id: string
+          updated_at: string
+        }
+        Insert: {
+          certificado_a1_senha?: string | null
+          created_at?: string
+          empresa_id: string
+          updated_at?: string
+        }
+        Update: {
+          certificado_a1_senha?: string | null
+          created_at?: string
+          empresa_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empresa_credenciais_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: true
+            referencedRelation: "empresa"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       equipamentos: {
         Row: {
@@ -5877,7 +5929,7 @@ export type Database = {
           nome: string
           perfil_acesso_id: string | null
           ramal: string | null
-          senha: string
+          senha_status: string
           telefone: string | null
         }
         Insert: {
@@ -5892,7 +5944,7 @@ export type Database = {
           nome?: string
           perfil_acesso_id?: string | null
           ramal?: string | null
-          senha?: string
+          senha_status?: string
           telefone?: string | null
         }
         Update: {
@@ -5907,10 +5959,39 @@ export type Database = {
           nome?: string
           perfil_acesso_id?: string | null
           ramal?: string | null
-          senha?: string
+          senha_status?: string
           telefone?: string | null
         }
         Relationships: []
+      }
+      usuarios_credenciais: {
+        Row: {
+          created_at: string
+          senha: string | null
+          updated_at: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          senha?: string | null
+          updated_at?: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          senha?: string | null
+          updated_at?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuarios_credenciais_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: true
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       whatsapp_campanhas: {
         Row: {
@@ -6054,6 +6135,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      refresh_usuario_senha_status: {
+        Args: { _usuario_id: string }
+        Returns: undefined
       }
     }
     Enums: {

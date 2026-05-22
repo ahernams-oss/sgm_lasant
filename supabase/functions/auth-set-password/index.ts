@@ -52,9 +52,8 @@ Deno.serve(async (req) => {
     const hash = bcrypt.hashSync(novaSenha, salt);
 
     const { error } = await supabase
-      .from("usuarios")
-      .update({ senha: hash })
-      .eq("id", userId);
+      .from("usuarios_credenciais")
+      .upsert({ usuario_id: userId, senha: hash }, { onConflict: "usuario_id" });
 
     if (error) {
       console.error("[auth-set-password] DB error:", error);
