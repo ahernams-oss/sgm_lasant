@@ -92,6 +92,7 @@ export default function CotacaoComprasPage() {
   const [filterDataIni, setFilterDataIni] = useState("");
   const [filterDataFim, setFilterDataFim] = useState("");
   const [pageCot, setPageCot] = useState(1);
+  const [pageSizeCot, setPageSizeCot] = useState(7);
 
   const colDefs: Record<string, { label: string; className?: string }> = {
     numero: { label: "Nº Cotação", className: "text-center" },
@@ -1077,7 +1078,7 @@ export default function CotacaoComprasPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={colOrder.length + 2} className="text-center text-muted-foreground py-8">Nenhuma cotação encontrada</TableCell></TableRow>
-            ) : paginate(filtered, pageCot).paginated.map(c => {
+            ) : paginate(filtered, pageCot, pageSizeCot).paginated.map(c => {
               const rcVinculada = requisicoes.find(r => r.id === c.requisicaoId);
               const cellMap: Record<string, ReactNode> = {
                 numero: <span className="font-mono font-bold">COT-{String(c.numero).padStart(4, "0")}</span>,
@@ -1172,6 +1173,7 @@ export default function CotacaoComprasPage() {
           </TableBody>
         </Table>
         </SortableHeaderRow>
+        <PaginationControls currentPage={pageCot} totalItems={filtered.length} onPageChange={setPageCot} pageSize={pageSizeCot} onPageSizeChange={(s) => { setPageSizeCot(s); setPageCot(1); }} />
       </div>
 
       {/* Dialog Nova Cotação */}
