@@ -88,16 +88,31 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
 
   useEffect(() => { load(); }, [load]);
 
-  const saveAndReload = async (id: string, updated: ProcessoSeletivo) => {
-    // Atualização otimista: aplica no estado local imediatamente e persiste em background.
-    // Evita refazer fetchAll (que traz todos os processos com anexos base64) a cada keystroke.
-    setProcessos(prev => prev.map(p => p.id === id ? updated : p));
-    try {
-      await updateRow("processos_seletivos", id, processoToRow(updated));
-    } catch (e) {
-      console.error("Falha ao salvar processo seletivo, recarregando...", e);
-      await load();
+  // Aplica um patch sobre o processo mais recente em memória (evita closures velhas em chamadas
+  // sequenciais) e persiste em background.
+  const applyPatch = async (
+    id: string,
+    patch: (p: ProcessoSeletivo) => ProcessoSeletivo,
+  ): Promise<ProcessoSeletivo | null> => {
+    let updated: ProcessoSeletivo | null = null;
+    setProcessos(prev => prev.map(p => {
+      if (p.id !== id) return p;
+      updated = patch(p);
+      return updated;
+    }));
+    if (updated) {
+      try {
+        await updateRow("processos_seletivos", id, processoToRow(updated));
+      } catch (e) {
+        console.error("Falha ao salvar processo seletivo, recarregando...", e);
+        await load();
+      }
     }
+    return updated;
+  };
+
+  const saveAndReload = async (id: string, updated: ProcessoSeletivo) => {
+    await applyPatch(id, () => updated);
   };
 
 
@@ -137,14 +152,21 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
   };
 
   const updateCandidato = async (processoId: string, candidatoId: string, data: Partial<Candidato>) => {
-    const p = processos.find(p => p.id === processoId);
-    if (!p) return;
-    const before = p.candidatos.find(c => c.id === candidatoId);
-    await saveAndReload(processoId, {
-      ...p, candidatos: p.candidatos.map(c => c.id === candidatoId ? { ...c, ...data } : c),
+    let before: Candidato | undefined;
+    let after: Candidato | undefined;
+    let requisicaoIdRef: string | undefined;
+    await applyPatch(processoId, (p) => {
+      requisicaoIdRef = p.requisicaoId;
+      before = p.candidatos.find(c => c.id === candidatoId);
+      const novosCandidatos = p.candidatos.map(c => {
+        if (c.id !== candidatoId) return c;
+        const merged = { ...c, ...data };
+        after = merged;
+        return merged;
+      });
+      return { ...p, candidatos: novosCandidatos };
     });
-    if (!before) return;
-    const after = { ...before, ...data };
+    if (!before || !after || !requisicaoIdRef) return;
     const eventos: { evento: string; detalhes?: string }[] = [];
     if (data.statusPsicologico && data.statusPsicologico !== before.statusPsicologico) {
       eventos.push({ evento: "Avaliação Psicológica", detalhes: `Status: ${data.statusPsicologico}` });
@@ -159,7 +181,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
       eventos.push({ evento: "Contratação Finalizada" });
     }
     for (const ev of eventos) {
-      await notificarEtapaCandidato(p.requisicaoId, after.nome, ev.evento, ev.detalhes);
+      await notificarEtapaCandidato(requisicaoIdRef, after.nome, ev.evento, ev.detalhes);
     }
   };
 
