@@ -437,36 +437,45 @@ export default function RequisicaoComprasPage() {
               return (
               <TableRow key={r.id}>
                 {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
-                <TableCell>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" title="Detalhes" onClick={() => setViewReq(r)}><Eye className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" title="Histórico" onClick={() => setHistoricoReq(r)}><Clock className="h-4 w-4" /></Button>
-                    {podeEditarReq && (
-                      <Button variant="ghost" size="icon" title="Editar e reenviar" onClick={() => abrirEdicao(r)}>
-                        <Pencil className="h-4 w-4 text-amber-600" />
-                      </Button>
-                    )}
-                    {podeRecusarReq && (
-                      <Button variant="ghost" size="icon" title="Recusar requisição" onClick={() => { setRecusaReq(r); setRecusaMotivo(""); setNovoMotivoMode(false); }}>
-                        <XCircle className="h-4 w-4 text-rose-600" />
-                      </Button>
-                    )}
-                    {podeIniciarCotacao && (
-                      <Button variant="ghost" size="icon" title="Iniciar Cotação" onClick={() => {
-                        const existente = cotacoes.find(c => c.requisicaoId === r.id);
-                        if (existente) {
-                          toast({ title: "Cotação já existente", description: `Cotação Nº ${String(existente.numero).padStart(4, "0")} vinculada a esta RCS.` });
-                        } else {
-                          addCotacao({ requisicaoId: r.id, requisicaoNumero: r.numero, comprador: usuarioLogado?.nome || "Comprador" });
-                          updateStatus(r.id, "Em Cotação", usuarioLogado?.nome || "Comprador", "Cotação iniciada");
-                          toast({ title: "Cotação criada com sucesso!" });
-                        }
-                        navigate(`/compras/cotacoes?rcsId=${r.id}`);
-                      }}>
-                        <FileSpreadsheet className="h-4 w-4 text-primary" />
-                      </Button>
-                    )}
-                  </div>
+                <TableCell className="text-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setViewReq(r)}>
+                        <Eye className="mr-2 h-4 w-4" />Detalhes
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setHistoricoReq(r)}>
+                        <Clock className="mr-2 h-4 w-4" />Histórico
+                      </DropdownMenuItem>
+                      {podeEditarReq && (
+                        <DropdownMenuItem onClick={() => abrirEdicao(r)}>
+                          <Pencil className="mr-2 h-4 w-4 text-amber-600" />Editar e reenviar
+                        </DropdownMenuItem>
+                      )}
+                      {podeRecusarReq && (
+                        <DropdownMenuItem onClick={() => { setRecusaReq(r); setRecusaMotivo(""); setNovoMotivoMode(false); }}>
+                          <XCircle className="mr-2 h-4 w-4 text-rose-600" />Recusar requisição
+                        </DropdownMenuItem>
+                      )}
+                      {podeIniciarCotacao && (
+                        <DropdownMenuItem onClick={() => {
+                          const existente = cotacoes.find(c => c.requisicaoId === r.id);
+                          if (existente) {
+                            toast({ title: "Cotação já existente", description: `Cotação Nº ${String(existente.numero).padStart(4, "0")} vinculada a esta RCS.` });
+                          } else {
+                            addCotacao({ requisicaoId: r.id, requisicaoNumero: r.numero, comprador: usuarioLogado?.nome || "Comprador" });
+                            updateStatus(r.id, "Em Cotação", usuarioLogado?.nome || "Comprador", "Cotação iniciada");
+                            toast({ title: "Cotação criada com sucesso!" });
+                          }
+                          navigate(`/compras/cotacoes?rcsId=${r.id}`);
+                        }}>
+                          <FileSpreadsheet className="mr-2 h-4 w-4 text-primary" />Iniciar Cotação
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
               );
