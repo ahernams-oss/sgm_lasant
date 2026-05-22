@@ -252,9 +252,23 @@ export default function PortalCandidato() {
           </CardContent>
         </Card>
 
-        <div className="text-center text-xs text-muted-foreground pb-6">
+        <div className="text-center text-xs text-muted-foreground">
           {saving ? "Salvando..." : "Suas informações são salvas automaticamente."}
         </div>
+
+        <Button
+          className="w-full"
+          size="lg"
+          disabled={saving || progresso.ok < progresso.total}
+          onClick={async () => {
+            await persist({ portalConcluidoEm: new Date().toISOString() } as any);
+            toast.success("Envio concluído! O RH foi notificado.");
+          }}
+        >
+          <CheckCircle2 className="h-4 w-4 mr-2" />
+          Concluir envio ({progresso.ok}/{progresso.total})
+        </Button>
+        <div className="pb-6" />
       </div>
     </div>
   );
