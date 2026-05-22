@@ -92,6 +92,7 @@ export default function CotacaoComprasPage() {
   const [filterDataIni, setFilterDataIni] = useState("");
   const [filterDataFim, setFilterDataFim] = useState("");
   const [pageCot, setPageCot] = useState(1);
+  const [pageSizeCot, setPageSizeCot] = useState(7);
 
   const colDefs: Record<string, { label: string; className?: string }> = {
     numero: { label: "Nº Cotação", className: "text-center" },
