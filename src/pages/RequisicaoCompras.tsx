@@ -478,12 +478,12 @@ export default function RequisicaoComprasPage() {
         </div>
       </div>
 
-      {/* Dialog Nova Requisição */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* Dialog Nova Requisição / Editar */}
+      <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setEditingId(null); resetForm(); } }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nova Requisição de Compras</DialogTitle>
-            <DialogDescription>Preencha os campos obrigatórios para criar uma nova solicitação.</DialogDescription>
+            <DialogTitle>{editingId ? "Editar e Reenviar Requisição" : "Nova Requisição de Compras"}</DialogTitle>
+            <DialogDescription>{editingId ? "Ajuste os itens recusados pelo comprador e reenvie a requisição." : "Preencha os campos obrigatórios para criar uma nova solicitação."}</DialogDescription>
           </DialogHeader>
 
           <Tabs defaultValue="dados" className="w-full">
