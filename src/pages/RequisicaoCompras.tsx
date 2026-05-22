@@ -789,6 +789,79 @@ export default function RequisicaoComprasPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Recusar Requisição */}
+      <Dialog open={!!recusaReq} onOpenChange={(o) => { if (!o) { setRecusaReq(null); setRecusaMotivo(""); setNovoMotivoMode(false); setNovoMotivoText(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Recusar Requisição {recusaReq && `RCS-${String(recusaReq.numero).padStart(4, "0")}`}</DialogTitle>
+            <DialogDescription>Selecione uma justificativa pré-cadastrada para recusar a requisição. O solicitante poderá ajustar e reenviar.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <Label>Justificativa *</Label>
+                <Select value={recusaMotivo} onValueChange={setRecusaMotivo}>
+                  <SelectTrigger><SelectValue placeholder="Selecione um motivo..." /></SelectTrigger>
+                  <SelectContent>
+                    {justificativas.map(j => <SelectItem key={j.id} value={j.motivo}>{j.motivo}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="button" variant="outline" onClick={() => setGerenciarMotivosOpen(true)} title="Gerenciar motivos">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {novoMotivoMode ? (
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <Label>Novo motivo</Label>
+                  <Input value={novoMotivoText} onChange={e => setNovoMotivoText(e.target.value)} placeholder="Descreva o novo motivo..." />
+                </div>
+                <Button onClick={cadastrarNovoMotivo}>Salvar</Button>
+                <Button variant="ghost" onClick={() => { setNovoMotivoMode(false); setNovoMotivoText(""); }}>Cancelar</Button>
+              </div>
+            ) : (
+              <Button type="button" variant="ghost" size="sm" onClick={() => setNovoMotivoMode(true)}>
+                <Plus className="mr-1 h-3 w-3" /> Cadastrar novo motivo
+              </Button>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRecusaReq(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={confirmarRecusa}>Confirmar Recusa</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Gerenciar Motivos */}
+      <Dialog open={gerenciarMotivosOpen} onOpenChange={setGerenciarMotivosOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Gerenciar Motivos de Recusa</DialogTitle>
+            <DialogDescription>Motivos pré-cadastrados disponíveis no dropdown de recusa.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {justificativas.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhum motivo cadastrado.</p>
+            ) : justificativas.map(j => (
+              <div key={j.id} className="flex items-center justify-between border rounded px-3 py-2">
+                <span className="text-sm">{j.motivo}</span>
+                <Button variant="ghost" size="icon" onClick={() => excluirMotivo(j.id)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-end gap-2 pt-2 border-t">
+            <div className="flex-1">
+              <Label>Novo motivo</Label>
+              <Input value={novoMotivoText} onChange={e => setNovoMotivoText(e.target.value)} placeholder="Descreva o motivo..." />
+            </div>
+            <Button onClick={cadastrarNovoMotivo}>Adicionar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
