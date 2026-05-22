@@ -37,6 +37,7 @@ const statusColors: Record<StatusRequisicaoCompras, string> = {
   "Aguardando Aprovação": "bg-orange-100 text-orange-800",
   Aprovada: "bg-green-100 text-green-800",
   Reprovada: "bg-red-100 text-red-800",
+  Recusada: "bg-rose-100 text-rose-800",
   "Pedido Emitido": "bg-indigo-100 text-indigo-800",
   "Em Entrega": "bg-purple-100 text-purple-800",
   "Recebida Parcial": "bg-amber-100 text-amber-800",
