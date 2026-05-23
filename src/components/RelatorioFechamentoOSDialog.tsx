@@ -118,7 +118,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const ref = o.createdAt ? new Date(o.createdAt).getTime() : 0;
       if (isNaN(ref) || ref < iniMs || ref > fimMs) return false;
       if (clienteSel !== "todos" && o.clienteId !== clienteSel) return false;
-      if (tipo === "fechamento_validadas") {
+      if (tipo === "fechamento_validadas" || tipo === "fechamento_categoria") {
         if (o.situacao !== "Validada") return false;
       } else if (situacaoSel !== "todas" && o.situacao !== situacaoSel) return false;
       return true;
@@ -395,6 +395,10 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       await exportarFechamentoValidadas(formato);
       return;
     }
+    if (tipo === "fechamento_categoria") {
+      await exportarFechamentoCategoria(formato);
+      return;
+    }
     const { titulo, columns, rows, orientation } = buildData();
     const fileBase = titulo.replace(/[^\w]+/g, "_").toLowerCase();
 
@@ -493,12 +497,12 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
             </div>
             <div>
               <Label className="text-sm">Situação</Label>
-              <Select value={tipo === "fechamento_validadas" ? "Validada" : situacaoSel} onValueChange={setSituacaoSel} disabled={tipo === "fechamento_validadas"}>
+              <Select value={(tipo === "fechamento_validadas" || tipo === "fechamento_categoria") ? "Validada" : situacaoSel} onValueChange={setSituacaoSel} disabled={tipo === "fechamento_validadas" || tipo === "fechamento_categoria"}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todas">Todas</SelectItem>
                   {situacoesUnicas.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  {tipo === "fechamento_validadas" && !situacoesUnicas.includes("Validada") && <SelectItem value="Validada">Validada</SelectItem>}
+                  {(tipo === "fechamento_validadas" || tipo === "fechamento_categoria") && !situacoesUnicas.includes("Validada") && <SelectItem value="Validada">Validada</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
