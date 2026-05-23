@@ -96,6 +96,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
   const [situacaoSel, setSituacaoSel] = useState<string>("todas");
   const [dataInicio, setDataInicio] = useState<string>("");
   const [dataFim, setDataFim] = useState<string>("");
+  const [orientacao, setOrientacao] = useState<"p" | "l">("p");
 
   const intervalo = useMemo(() => {
     const fim = new Date();
