@@ -314,7 +314,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       return;
     }
 
-    const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+    const doc = new jsPDF({ orientation: orientacao, unit: "mm", format: "a4" });
     const pw = doc.internal.pageSize.getWidth();
 
     // Capa
@@ -504,7 +504,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       return;
     }
 
-    const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+    const doc = new jsPDF({ orientation: orientacao, unit: "mm", format: "a4" });
     const pw = doc.internal.pageSize.getWidth();
 
     // ===== Capa =====
@@ -648,7 +648,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     const fileBase = titulo.replace(/[^\w]+/g, "_").toLowerCase();
 
     if (formato === "pdf") {
-      const doc = new jsPDF({ orientation, unit: "mm", format: "a4" });
+      const doc = new jsPDF({ orientation: orientacao, unit: "mm", format: "a4" });
       addHeader(doc, titulo, `Total: ${ordensFiltradas.length} OS(s)`, filtrosLabel);
       autoTable(doc, {
         startY: 32,
