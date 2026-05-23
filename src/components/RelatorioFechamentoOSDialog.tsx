@@ -96,6 +96,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
   const [situacaoSel, setSituacaoSel] = useState<string>("todas");
   const [dataInicio, setDataInicio] = useState<string>("");
   const [dataFim, setDataFim] = useState<string>("");
+  const [orientacao, setOrientacao] = useState<"p" | "l">("p");
 
   const intervalo = useMemo(() => {
     const fim = new Date();
@@ -313,7 +314,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       return;
     }
 
-    const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+    const doc = new jsPDF({ orientation: orientacao, unit: "mm", format: "a4" });
     const pw = doc.internal.pageSize.getWidth();
 
     // Capa
@@ -503,7 +504,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       return;
     }
 
-    const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+    const doc = new jsPDF({ orientation: orientacao, unit: "mm", format: "a4" });
     const pw = doc.internal.pageSize.getWidth();
 
     // ===== Capa =====
@@ -647,7 +648,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     const fileBase = titulo.replace(/[^\w]+/g, "_").toLowerCase();
 
     if (formato === "pdf") {
-      const doc = new jsPDF({ orientation, unit: "mm", format: "a4" });
+      const doc = new jsPDF({ orientation: orientacao, unit: "mm", format: "a4" });
       addHeader(doc, titulo, `Total: ${ordensFiltradas.length} OS(s)`, filtrosLabel);
       autoTable(doc, {
         startY: 32,
@@ -750,6 +751,20 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Orientação da Impressão (PDF)</Label>
+            <RadioGroup value={orientacao} onValueChange={(v) => setOrientacao(v as "p" | "l")} className="grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-2 border rounded-md p-2">
+                <RadioGroupItem value="p" id="ori-p" />
+                <Label htmlFor="ori-p" className="font-normal cursor-pointer flex-1 text-sm">Retrato</Label>
+              </div>
+              <div className="flex items-center gap-2 border rounded-md p-2">
+                <RadioGroupItem value="l" id="ori-l" />
+                <Label htmlFor="ori-l" className="font-normal cursor-pointer flex-1 text-sm">Paisagem</Label>
+              </div>
+            </RadioGroup>
           </div>
 
           <div className="text-xs text-muted-foreground bg-muted/40 rounded-md p-2">
