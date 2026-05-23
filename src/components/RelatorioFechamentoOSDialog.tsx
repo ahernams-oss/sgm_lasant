@@ -472,7 +472,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     // Tipos de OS (subtipo)
     const tipoMap = new Map<string, number>();
     ordensFiltradas.forEach(o => {
-      const t = (o.tipoOs?.descricao || o.tipoOs?.codigo || "—").toUpperCase();
+      const t = (o.tipoOs?.descricao || o.tipoOs?.sigla || "—").toUpperCase();
       tipoMap.set(t, (tipoMap.get(t) || 0) + 1);
     });
 
@@ -484,7 +484,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
           const { sco, est, total } = totalOS(o);
           linhas.push({
             "Nº OS": formatNumeroAno(o.numero, o.createdAt),
-            "Tipo": o.tipoOs?.codigo || o.tipoOs?.descricao || "",
+            "Tipo": o.tipoOs?.sigla || o.tipoOs?.descricao || "",
             "Setor": o.setorDescricao || o.localDescricao || "-",
             "Valor": Number((sco + est).toFixed(2)),
             "Valor com BDI": Number(total.toFixed(2)),
@@ -542,7 +542,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         const { sco, est, total } = totalOS(o);
         body.push([
           formatNumeroAno(o.numero, o.createdAt),
-          o.tipoOs?.codigo || (o.tipoOs?.descricao || "").charAt(0) || "-",
+          o.tipoOs?.sigla || (o.tipoOs?.descricao || "").charAt(0) || "-",
           o.setorDescricao || o.localDescricao || "-",
           { content: fmtBRL(sco + est), styles: { halign: "right" as const } },
           { content: fmtBRL(total), styles: { halign: "right" as const } },
