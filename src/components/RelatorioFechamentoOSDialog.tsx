@@ -753,6 +753,20 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
             </div>
           </div>
 
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Orientação da Impressão (PDF)</Label>
+            <RadioGroup value={orientacao} onValueChange={(v) => setOrientacao(v as "p" | "l")} className="grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-2 border rounded-md p-2">
+                <RadioGroupItem value="p" id="ori-p" />
+                <Label htmlFor="ori-p" className="font-normal cursor-pointer flex-1 text-sm">Retrato</Label>
+              </div>
+              <div className="flex items-center gap-2 border rounded-md p-2">
+                <RadioGroupItem value="l" id="ori-l" />
+                <Label htmlFor="ori-l" className="font-normal cursor-pointer flex-1 text-sm">Paisagem</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
           <div className="text-xs text-muted-foreground bg-muted/40 rounded-md p-2">
             <strong>{ordensFiltradas.length}</strong> OS(s) no período — {filtrosLabel}
           </div>
