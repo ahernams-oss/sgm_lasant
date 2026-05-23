@@ -386,6 +386,250 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     onOpenChange(false);
   };
 
+  const drawPieChartLabeled = (
+    items: { nome: string; valor: number; pct: number }[],
+    titulo: string,
+    formatValor: (v: number) => string,
+  ): string => {
+    const W = 1100, H = 700;
+    const canvas = document.createElement("canvas");
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
+    // Título
+    ctx.fillStyle = "#111"; ctx.font = "bold 36px Helvetica"; ctx.textAlign = "center";
+    ctx.fillText(titulo, W / 2, 50);
+    // Pizza
+    const cx = 320, cy = 400, r = 200;
+    const total = items.reduce((s, c) => s + c.valor, 0) || 1;
+    let acc = -Math.PI / 2;
+    items.forEach((c, i) => {
+      const ang = (c.valor / total) * Math.PI * 2;
+      ctx.beginPath(); ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, acc, acc + ang); ctx.closePath();
+      ctx.fillStyle = PIE_COLORS[i % PIE_COLORS.length]; ctx.fill();
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
+      // Linha-rótulo
+      const mid = acc + ang / 2;
+      const x1 = cx + Math.cos(mid) * r;
+      const y1 = cy + Math.sin(mid) * r;
+      const x2 = cx + Math.cos(mid) * (r + 30);
+      const y2 = cy + Math.sin(mid) * (r + 30);
+      ctx.strokeStyle = "#333"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.fillStyle = "#111"; ctx.font = "bold 14px Helvetica";
+      ctx.textAlign = x2 >= cx ? "left" : "right"; ctx.textBaseline = "middle";
+      ctx.fillText(c.nome, x2 + (x2 >= cx ? 4 : -4), y2);
+      acc += ang;
+    });
+    // Legenda
+    const lx = 700, ly = 280;
+    ctx.strokeStyle = "#999"; ctx.lineWidth = 1;
+    ctx.strokeRect(lx - 10, ly - 30, 360, items.length * 28 + 50);
+    items.forEach((c, i) => {
+      const y = ly + i * 28;
+      ctx.fillStyle = PIE_COLORS[i % PIE_COLORS.length];
+      ctx.fillRect(lx, y - 12, 18, 18);
+      ctx.fillStyle = "#111"; ctx.font = "14px Helvetica";
+      ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      ctx.fillText(c.nome, lx + 26, y - 3);
+      ctx.textAlign = "right";
+      ctx.fillText(`${formatValor(c.valor)}   ${c.pct.toFixed(1)}%`, lx + 350, y - 3);
+    });
+    const yT = ly + items.length * 28;
+    ctx.fillStyle = "#111"; ctx.font = "bold 14px Helvetica";
+    ctx.textAlign = "left"; ctx.fillText("Total:", lx + 26, yT + 5);
+    ctx.textAlign = "right"; ctx.fillText(`${formatValor(total)}   100.0%`, lx + 350, yT + 5);
+    return canvas.toDataURL("image/png");
+  };
+
+  const exportarFechamentoCategoria = async (formato: "pdf" | "excel") => {
+    const clienteNome = clienteSel !== "todos"
+      ? (clientes.find(c => c.id === clienteSel)?.nome || "TODOS OS CLIENTES")
+      : "TODOS OS CLIENTES";
+    const dataIni = fmtData(intervalo.ini.toISOString());
+    const dataFimStr = fmtData(intervalo.fim.toISOString());
+
+    // Agrupar por categoria
+    const catMap = new Map<string, OrdemServico[]>();
+    ordensFiltradas.forEach(o => {
+      const cat = (o.categoria || "SEM CATEGORIA").toUpperCase();
+      const arr = catMap.get(cat) || [];
+      arr.push(o);
+      catMap.set(cat, arr);
+    });
+    const categorias = Array.from(catMap.entries())
+      .map(([nome, list]) => {
+        const valor = list.reduce((s, o) => s + totalOS(o).sco + totalOS(o).est, 0);
+        const valorBdi = list.reduce((s, o) => s + totalOS(o).total, 0);
+        return { nome, list, valor, valorBdi };
+      })
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+
+    const totalGeral = categorias.reduce((s, c) => s + c.valor, 0);
+    const totalGeralBdi = categorias.reduce((s, c) => s + c.valorBdi, 0);
+
+    // Tipos de OS (subtipo)
+    const tipoMap = new Map<string, number>();
+    ordensFiltradas.forEach(o => {
+      const t = (o.tipoOs?.descricao || o.tipoOs?.codigo || "—").toUpperCase();
+      tipoMap.set(t, (tipoMap.get(t) || 0) + 1);
+    });
+
+    if (formato === "excel") {
+      const linhas: any[] = [];
+      categorias.forEach(c => {
+        linhas.push({ "Nº OS": c.nome, "Tipo": "", "Setor": "", "Valor": "", "Valor com BDI": "" });
+        c.list.forEach(o => {
+          const { sco, est, total } = totalOS(o);
+          linhas.push({
+            "Nº OS": formatNumeroAno(o.numero, o.createdAt),
+            "Tipo": o.tipoOs?.codigo || o.tipoOs?.descricao || "",
+            "Setor": o.setorDescricao || o.localDescricao || "-",
+            "Valor": Number((sco + est).toFixed(2)),
+            "Valor com BDI": Number(total.toFixed(2)),
+          });
+        });
+        linhas.push({ "Nº OS": "", "Tipo": "", "Setor": "TOTAL CATEGORIA", "Valor": Number(c.valor.toFixed(2)), "Valor com BDI": Number(c.valorBdi.toFixed(2)) });
+      });
+      linhas.push({ "Nº OS": "", "Tipo": "", "Setor": `TOTAL DE OS: ${ordensFiltradas.length}`, "Valor": Number(totalGeral.toFixed(2)), "Valor com BDI": Number(totalGeralBdi.toFixed(2)) });
+      const ws = XLSX.utils.json_to_sheet(linhas);
+      ws["!cols"] = [{ wch: 14 }, { wch: 10 }, { wch: 40 }, { wch: 14 }, { wch: 16 }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Por Categoria");
+      XLSX.writeFile(wb, `relatorio_fechamento_categoria.xlsx`);
+      toast.success("Excel gerado!");
+      onOpenChange(false);
+      return;
+    }
+
+    const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+    const pw = doc.internal.pageSize.getWidth();
+
+    // ===== Capa =====
+    if (empresa?.logoUrl) {
+      const logo = await loadImg(empresa.logoUrl);
+      if (logo) { try { doc.addImage(logo, "PNG", 14, 12, 50, 25); } catch {} }
+    }
+    doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(30, 30, 30);
+    doc.text(clienteNome.toUpperCase(), pw / 2, 55, { align: "center" });
+    doc.setFontSize(13); doc.setTextColor(80, 80, 80);
+    doc.text("RELATÓRIO DE FECHAMENTO POR CATEGORIA", pw / 2, 64, { align: "center" });
+    autoTable(doc, {
+      startY: 76,
+      head: [["Data inicial", "Data final"]],
+      body: [[dataIni, dataFimStr]],
+      theme: "grid",
+      styles: { halign: "center", fontSize: 11, cellPadding: 3 },
+      headStyles: { fillColor: [30, 58, 107], textColor: 255 },
+      tableWidth: 120,
+      margin: { left: (pw - 120) / 2 },
+    });
+
+    // ===== Tabela agrupada =====
+    doc.addPage();
+    addHeader(doc, "Fechamento por Categoria", `${clienteNome} — ${ordensFiltradas.length} OS Validadas`, `Período: ${dataIni} a ${dataFimStr}`);
+
+    const body: any[] = [];
+    categorias.forEach(c => {
+      // Linha-cabeçalho da categoria (laranja)
+      body.push([{
+        content: c.nome,
+        colSpan: 5,
+        styles: { fillColor: [248, 180, 130], textColor: 30, fontStyle: "bold", fontSize: 10 },
+      }]);
+      c.list.forEach(o => {
+        const { sco, est, total } = totalOS(o);
+        body.push([
+          formatNumeroAno(o.numero, o.createdAt),
+          o.tipoOs?.codigo || (o.tipoOs?.descricao || "").charAt(0) || "-",
+          o.setorDescricao || o.localDescricao || "-",
+          { content: fmtBRL(sco + est), styles: { halign: "right" as const } },
+          { content: fmtBRL(total), styles: { halign: "right" as const } },
+        ]);
+      });
+      // Linha total da categoria (verde)
+      body.push([
+        { content: "TOTAL CATEGORIA --->>>", colSpan: 3, styles: { fillColor: [144, 238, 144], textColor: 30, fontStyle: "bold" as const, halign: "right" as const } },
+        { content: fmtBRL(c.valor), styles: { fillColor: [144, 238, 144], textColor: 30, fontStyle: "bold" as const, halign: "right" as const } },
+        { content: fmtBRL(c.valorBdi), styles: { fillColor: [144, 238, 144], textColor: 30, fontStyle: "bold" as const, halign: "right" as const } },
+      ]);
+    });
+
+    autoTable(doc, {
+      startY: 32,
+      head: [["Nº OS", "Tipo", "Setor", "Valor", "Valor com BDI"]],
+      body,
+      styles: { fontSize: 8, cellPadding: 1.5 },
+      headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      columnStyles: {
+        0: { cellWidth: 22 },
+        1: { cellWidth: 12, halign: "center" },
+        3: { cellWidth: 30, halign: "right" },
+        4: { cellWidth: 32, halign: "right" },
+      },
+      didDrawPage: () => {
+        addHeader(doc, "Fechamento por Categoria", `${clienteNome} — ${ordensFiltradas.length} OS Validadas`, `Período: ${dataIni} a ${dataFimStr}`);
+      },
+      margin: { top: 32 },
+    });
+
+    // ===== Página de totais gerais =====
+    doc.addPage();
+    addHeader(doc, "Fechamento por Categoria", "Totais Gerais", `Período: ${dataIni} a ${dataFimStr}`);
+    autoTable(doc, {
+      startY: 50,
+      body: [[
+        { content: "TOTAL DE O.S. EXECUTADAS NO PERIODO --->>>", styles: { fontStyle: "bold" as const, halign: "right" as const } },
+        { content: String(ordensFiltradas.length), styles: { fontStyle: "bold" as const, halign: "center" as const } },
+      ]],
+      theme: "grid",
+      styles: { fontSize: 11, cellPadding: 3 },
+      columnStyles: { 0: { cellWidth: 120 }, 1: { cellWidth: 30 } },
+      margin: { left: (pw - 150) / 2 },
+    });
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 4,
+      body: [[
+        { content: "Valor Total", styles: { fillColor: [120, 230, 120], fontStyle: "bold" as const } },
+        { content: fmtBRL(totalGeral), styles: { fillColor: [120, 230, 120], fontStyle: "bold" as const, halign: "right" as const } },
+        { content: "Valor Total com BDI", styles: { fillColor: [120, 230, 120], fontStyle: "bold" as const } },
+        { content: fmtBRL(totalGeralBdi), styles: { fillColor: [120, 230, 120], fontStyle: "bold" as const, halign: "right" as const } },
+      ]],
+      theme: "grid",
+      styles: { fontSize: 11, cellPadding: 3 },
+      columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 40 }, 2: { cellWidth: 45 }, 3: { cellWidth: 40 } },
+      margin: { left: (pw - 165) / 2 },
+    });
+
+    // ===== Gráfico por categoria =====
+    if (categorias.length > 0) {
+      doc.addPage();
+      addHeader(doc, "Fechamento por Categoria", "Demanda de serviços por categoria", `Período: ${dataIni} a ${dataFimStr}`);
+      const pieCats = categorias.map(c => ({ nome: c.nome, valor: c.valor, pct: totalGeral > 0 ? (c.valor / totalGeral) * 100 : 0 }));
+      const img = drawPieChartLabeled(pieCats, "Demanda de serviços por categoria", fmtBRL);
+      doc.addImage(img, "PNG", 14, 36, pw - 28, 160);
+    }
+
+    // ===== Gráfico de tipos de OS =====
+    if (tipoMap.size > 0) {
+      doc.addPage();
+      addHeader(doc, "Fechamento por Categoria", "Tipos de OS", `Período: ${dataIni} a ${dataFimStr}`);
+      const totalTipos = Array.from(tipoMap.values()).reduce((s, v) => s + v, 0) || 1;
+      const tipoItems = Array.from(tipoMap.entries())
+        .map(([nome, q]) => ({ nome, valor: q, pct: (q / totalTipos) * 100 }))
+        .sort((a, b) => b.valor - a.valor);
+      const img = drawPieChartLabeled(tipoItems, "Tipos de OS", (v) => String(v));
+      doc.addImage(img, "PNG", 14, 36, pw - 28, 160);
+    }
+
+    addFooter(doc);
+    doc.save(`relatorio_fechamento_categoria.pdf`);
+    toast.success("PDF gerado!");
+    onOpenChange(false);
+  };
+
   const exportar = async (formato: "pdf" | "excel") => {
     if (ordensFiltradas.length === 0) {
       toast.error("Nenhuma OS encontrada no período/filtros selecionados.");
