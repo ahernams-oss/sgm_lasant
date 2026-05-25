@@ -1139,9 +1139,7 @@ export type Database = {
       }
       empresa: {
         Row: {
-          agencia: string | null
           bairro: string | null
-          banco: string | null
           celular: string | null
           cep: string | null
           certificado_a1_cnpj: string | null
@@ -1152,11 +1150,9 @@ export type Database = {
           certificado_a1_url: string | null
           certificado_a1_validade: string | null
           certificado_a1_validado_em: string | null
-          chave_pix: string | null
           cidade: string | null
           cnpj: string | null
           complemento: string | null
-          conta: string | null
           contato: string | null
           created_at: string | null
           email: string | null
@@ -1177,7 +1173,6 @@ export type Database = {
           razao_social: string
           site: string | null
           telefone: string | null
-          tipo_conta: string | null
           uf: string | null
           whatsapp_comercial: string | null
           whatsapp_compras: string | null
@@ -1186,9 +1181,7 @@ export type Database = {
           whatsapp_rh: string | null
         }
         Insert: {
-          agencia?: string | null
           bairro?: string | null
-          banco?: string | null
           celular?: string | null
           cep?: string | null
           certificado_a1_cnpj?: string | null
@@ -1199,11 +1192,9 @@ export type Database = {
           certificado_a1_url?: string | null
           certificado_a1_validade?: string | null
           certificado_a1_validado_em?: string | null
-          chave_pix?: string | null
           cidade?: string | null
           cnpj?: string | null
           complemento?: string | null
-          conta?: string | null
           contato?: string | null
           created_at?: string | null
           email?: string | null
@@ -1224,7 +1215,6 @@ export type Database = {
           razao_social?: string
           site?: string | null
           telefone?: string | null
-          tipo_conta?: string | null
           uf?: string | null
           whatsapp_comercial?: string | null
           whatsapp_compras?: string | null
@@ -1233,9 +1223,7 @@ export type Database = {
           whatsapp_rh?: string | null
         }
         Update: {
-          agencia?: string | null
           bairro?: string | null
-          banco?: string | null
           celular?: string | null
           cep?: string | null
           certificado_a1_cnpj?: string | null
@@ -1246,11 +1234,9 @@ export type Database = {
           certificado_a1_url?: string | null
           certificado_a1_validade?: string | null
           certificado_a1_validado_em?: string | null
-          chave_pix?: string | null
           cidade?: string | null
           cnpj?: string | null
           complemento?: string | null
-          conta?: string | null
           contato?: string | null
           created_at?: string | null
           email?: string | null
@@ -1271,7 +1257,6 @@ export type Database = {
           razao_social?: string
           site?: string | null
           telefone?: string | null
-          tipo_conta?: string | null
           uf?: string | null
           whatsapp_comercial?: string | null
           whatsapp_compras?: string | null
@@ -1303,6 +1288,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "empresa_credenciais_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: true
+            referencedRelation: "empresa"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      empresa_dados_bancarios: {
+        Row: {
+          agencia: string | null
+          banco: string | null
+          chave_pix: string | null
+          conta: string | null
+          empresa_id: string
+          tipo_conta: string | null
+          updated_at: string
+        }
+        Insert: {
+          agencia?: string | null
+          banco?: string | null
+          chave_pix?: string | null
+          conta?: string | null
+          empresa_id: string
+          tipo_conta?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agencia?: string | null
+          banco?: string | null
+          chave_pix?: string | null
+          conta?: string | null
+          empresa_id?: string
+          tipo_conta?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empresa_dados_bancarios_empresa_id_fkey"
             columns: ["empresa_id"]
             isOneToOne: true
             referencedRelation: "empresa"

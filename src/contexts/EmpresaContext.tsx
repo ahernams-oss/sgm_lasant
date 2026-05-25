@@ -101,11 +101,12 @@ const rowToEmpresa = (r: any): Empresa => ({
   contato: r.contato ?? "",
   site: r.site ?? "",
   logoUrl: r.logo_url ?? "",
-  banco: r.banco ?? "",
-  agencia: r.agencia ?? "",
-  conta: r.conta ?? "",
-  tipoConta: r.tipo_conta ?? "",
-  chavePix: r.chave_pix ?? "",
+  banco: "",
+  agencia: "",
+  conta: "",
+  tipoConta: "",
+  chavePix: "",
+
   whatsappCompras: r.whatsapp_compras ?? "",
   whatsappRh: r.whatsapp_rh ?? "",
   whatsappEngenharia: r.whatsapp_engenharia ?? "",
@@ -148,11 +149,8 @@ const empresaToRow = (e: Empresa) => ({
   contato: e.contato,
   site: e.site,
   logo_url: e.logoUrl,
-  banco: e.banco,
-  agencia: e.agencia,
-  conta: e.conta,
-  tipo_conta: e.tipoConta,
-  chave_pix: e.chavePix,
+  // banco/agencia/conta/tipo_conta/chave_pix são gravados em empresa_dados_bancarios via edge function
+
   whatsapp_compras: e.whatsappCompras,
   whatsapp_rh: e.whatsappRh,
   whatsapp_engenharia: e.whatsappEngenharia,
@@ -173,7 +171,23 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     const data = await fetchAll("empresa", "created_at");
     if (data.length > 0) {
-      setEmpresa(rowToEmpresa(data[0]));
+      const base = rowToEmpresa(data[0]);
+      try {
+        const { data: bank } = await supabase.functions.invoke(
+          `empresa-dados-bancarios?action=get&empresaId=${base.id}`,
+          { method: "GET" as any },
+        );
+        if (bank?.ok && bank.dados) {
+          base.banco = bank.dados.banco ?? "";
+          base.agencia = bank.dados.agencia ?? "";
+          base.conta = bank.dados.conta ?? "";
+          base.tipoConta = bank.dados.tipo_conta ?? "";
+          base.chavePix = bank.dados.chave_pix ?? "";
+        }
+      } catch (e) {
+        console.warn("[Empresa] Falha ao carregar dados bancários:", e);
+      }
+      setEmpresa(base);
     }
     setLoading(false);
   }, []);
@@ -181,13 +195,32 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
   useEffect(() => { load(); }, [load]);
 
   const saveEmpresa = async (data: Empresa) => {
-    if (data.id) {
-      await updateRow("empresa", data.id, empresaToRow(data));
+    let empresaId = data.id;
+    if (empresaId) {
+      await updateRow("empresa", empresaId, empresaToRow(data));
     } else {
-      await insertRow("empresa", empresaToRow(data));
+      const inserted = await insertRow("empresa", empresaToRow(data));
+      empresaId = (inserted as any)?.id ?? empresaId;
+    }
+    if (empresaId) {
+      try {
+        await supabase.functions.invoke("empresa-dados-bancarios?action=save", {
+          body: {
+            empresaId,
+            banco: data.banco,
+            agencia: data.agencia,
+            conta: data.conta,
+            tipo_conta: data.tipoConta,
+            chave_pix: data.chavePix,
+          },
+        });
+      } catch (e) {
+        console.error("[Empresa] Falha ao salvar dados bancários:", e);
+      }
     }
     await load();
   };
+
 
   const uploadLogo = async (file: File): Promise<string> => {
     const ext = file.name.split(".").pop() || "png";
