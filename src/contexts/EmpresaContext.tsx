@@ -149,11 +149,8 @@ const empresaToRow = (e: Empresa) => ({
   contato: e.contato,
   site: e.site,
   logo_url: e.logoUrl,
-  banco: e.banco,
-  agencia: e.agencia,
-  conta: e.conta,
-  tipo_conta: e.tipoConta,
-  chave_pix: e.chavePix,
+  // banco/agencia/conta/tipo_conta/chave_pix são gravados em empresa_dados_bancarios via edge function
+
   whatsapp_compras: e.whatsappCompras,
   whatsapp_rh: e.whatsappRh,
   whatsapp_engenharia: e.whatsappEngenharia,
