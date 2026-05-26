@@ -11,8 +11,8 @@ export interface FinReport {
   totais?: { label: string; valor: string }[];
 }
 
-export function gerarPdfFinanceiro(r: FinReport) {
-  const orient = r.colunas.length > 6 ? "landscape" : "portrait";
+export function gerarPdfFinanceiro(r: FinReport, orientacao?: "portrait" | "landscape") {
+  const orient = orientacao || (r.colunas.length > 6 ? "landscape" : "portrait");
   const doc = new jsPDF({ orientation: orient });
   const pw = doc.internal.pageSize.getWidth();
 
