@@ -352,18 +352,24 @@ const Dashboard = () => {
   return (
     <div className="bg-background">
       <div className="container max-w-full mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-6 animate-fade-up">
-          <div className="flex items-center gap-2 text-primary mb-1">
-            <LayoutDashboard className="h-4 w-4" />
-            <span className="text-xs font-medium uppercase tracking-wider">Gestão de Pessoas</span>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        {/* Hero */}
+        <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary via-primary/90 to-indigo-700 p-6 md:p-8 text-primary-foreground shadow-lg mb-6 animate-fade-up">
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
+          <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-xl font-bold text-foreground mb-1">Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Visão consolidada de todos os módulos de gestão de pessoas.</p>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm mb-3">
+                <LayoutDashboard className="h-3.5 w-3.5" />
+                <span className="text-[11px] font-semibold uppercase tracking-wider">Gestão de Pessoas · Operacional</span>
+              </div>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                Dashboard de Gestão de Pessoas
+              </h1>
+              <p className="text-sm md:text-base text-primary-foreground/85 mt-1.5 max-w-2xl">
+                Visão consolidada de todos os módulos de gestão de pessoas.
+              </p>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap shrink-0">
               <DashboardFilters
                 storageKey="dashboard:filters"
                 value={filters}
@@ -371,16 +377,16 @@ const Dashboard = () => {
                 clienteOptions={clientes.filter(c => c.tipo === "Cliente").map(c => ({ value: c.id, label: c.nomeFantasia || c.nome }))}
                 statusOptions={["Pendente", "Em Análise", "Aprovada", "Reprovada", "Concluída"].map(s => ({ value: s, label: s }))}
               />
-              <div className="border-l border-border h-6 mx-1 hidden sm:block" />
-              <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={handleDownloadPdf}>
-                <FileDown className="h-3.5 w-3.5" /> PDF
+              <Button variant="secondary" size="sm" onClick={handleDownloadPdf} className="bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm gap-1.5">
+                <FileDown className="h-3.5 w-3.5" /> Exportar PDF
               </Button>
-              <Button variant="default" size="sm" className="h-9 text-xs gap-1.5" onClick={handleOpenSendDialog} disabled={allPhones.length === 0}>
+              <Button variant="secondary" size="sm" onClick={handleOpenSendDialog} disabled={allPhones.length === 0} className="bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm gap-1.5">
                 <Send className="h-3.5 w-3.5" /> Enviar WhatsApp
               </Button>
             </div>
           </div>
         </div>
+
 
         {/* ===== TABS ===== */}
         <Tabs defaultValue="requisicoes" className="animate-fade-up" style={{ animationDelay: "40ms" }}>
