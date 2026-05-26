@@ -274,6 +274,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       revisoes: [...historicoAtual, novaEntrada],
     });
     toast({ title: "Revisão solicitada" });
+    setRevisaoMotivo("");
     onRevisaoSolicitada?.();
     onOpenChange(false);
   };
