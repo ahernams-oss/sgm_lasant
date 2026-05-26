@@ -74,6 +74,7 @@ const rowToOrcamento = (r: any): Orcamento => ({
   status: r.status ?? "Pendente",
   observacoes: r.observacoes ?? "",
   revisaoMotivo: r.revisao_motivo ?? "",
+  revisoes: Array.isArray(r.revisoes) ? r.revisoes : [],
   aprovadoPor: r.aprovado_por ?? "",
   dataAprovacao: r.data_aprovacao ?? "",
   criadoPor: r.criado_por ?? "",
