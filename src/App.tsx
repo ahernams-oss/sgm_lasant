@@ -358,6 +358,14 @@ function ProtectedAppRoutes() {
             </RotaProtegida>
           }
         />
+        <Route
+          path="/gerencial/mapa-clientes"
+          element={
+            <RotaProtegida perm="gerencial_mapa_clientes">
+              <MapaClientes />
+            </RotaProtegida>
+          }
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
