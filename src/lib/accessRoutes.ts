@@ -41,6 +41,7 @@ export const ACCESS_ROUTES: { perm: string; url: string }[] = [
   { perm: "financeiro.contas_receber", url: "/financeiro/contas-receber" },
   { perm: "monitor_tv", url: "/monitor-tv" },
   { perm: "gerencial_dashboard", url: "/gerencial/dashboard" },
+  { perm: "gerencial_mapa_clientes", url: "/gerencial/mapa-clientes" },
   { perm: "gerencial_relatorios", url: "/gerencial/relatorios" },
   { perm: "gerencial_multidim", url: "/gerencial/multidimensional" },
   { perm: "empresa", url: "/empresa" },
