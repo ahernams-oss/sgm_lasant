@@ -421,6 +421,16 @@ export default function SolicitacaoServicosPage() {
     toast({ title: "Orçamento enviado", description: `SS nº ${formatNumeroAno(orcamentoTarget.numero, full?.createdAt)} — Orçamento Disponível` });
   };
 
+  const handleOrcamentoRevisao = async () => {
+    if (!orcamentoTarget) return;
+    const full = solicitacoes.find(x => x.id === orcamentoTarget.id);
+    await updateSolicitacao(orcamentoTarget.id, {
+      situacao: "Orçamento Solicitado",
+      historico: buildHistoricoEntry("Revisão de Orçamento Solicitada", full?.historico || []),
+    });
+    toast({ title: "Revisão solicitada", description: `SS nº ${formatNumeroAno(orcamentoTarget.numero, full?.createdAt)} — aguardando novo orçamento` });
+  };
+
   const existingOrcamentoForTarget = useMemo(() => {
     if (!orcamentoTarget) return null;
     return orcamentos.find(o => o.solicitacaoId === orcamentoTarget.id) || null;
@@ -1036,6 +1046,7 @@ export default function SolicitacaoServicosPage() {
         existingOrcamento={existingOrcamentoForTarget}
         onApproved={handleOrcamentoApproved}
         onSent={handleOrcamentoSent}
+        onRevisaoSolicitada={handleOrcamentoRevisao}
       />
 
       {/* Approval Dialog */}

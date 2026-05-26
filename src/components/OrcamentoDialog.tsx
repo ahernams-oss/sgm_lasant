@@ -26,6 +26,7 @@ interface OrcamentoDialogProps {
   existingOrcamento?: Orcamento | null;
   onApproved?: (orcamento: Orcamento) => void;
   onSent?: () => void;
+  onRevisaoSolicitada?: () => void;
 }
 
 interface ItemSco {
@@ -38,7 +39,7 @@ interface ItemMaterial {
   quantidade: number; valorUnitario: number; valorTotal: number;
 }
 
-export default function OrcamentoDialog({ open, onOpenChange, solicitacao, existingOrcamento, onApproved, onSent }: OrcamentoDialogProps) {
+export default function OrcamentoDialog({ open, onOpenChange, solicitacao, existingOrcamento, onApproved, onSent, onRevisaoSolicitada }: OrcamentoDialogProps) {
   const { scos } = useSco();
   const { items: i0Items } = useI0();
   const { materiais } = useMateriaisServicos();
@@ -263,6 +264,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     }
     await updateOrcamento(existingOrcamento.id, { status: "Revisão", revisao_motivo: revisaoMotivo });
     toast({ title: "Revisão solicitada" });
+    onRevisaoSolicitada?.();
     onOpenChange(false);
   };
 
