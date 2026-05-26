@@ -303,6 +303,26 @@ export default function NfesRecebidas() {
           ) : null}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={previewOpen} onOpenChange={fecharPreview}>
+        <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
+          <DialogHeader className="flex-row items-center justify-between space-y-0">
+            <DialogTitle>Pré-visualização DANFE</DialogTitle>
+            <Button size="sm" onClick={baixarDoPreview} disabled={!previewBlob} className="mr-6">
+              <FileDown className="h-4 w-4 mr-2" /> Baixar PDF
+            </Button>
+          </DialogHeader>
+          <div className="flex-1 min-h-0 bg-muted rounded overflow-hidden">
+            {previewLoading ? (
+              <div className="h-full flex items-center justify-center text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin mr-2" /> Gerando DANFE…
+              </div>
+            ) : previewUrl ? (
+              <iframe src={previewUrl} className="w-full h-full" title="DANFE PDF" />
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
