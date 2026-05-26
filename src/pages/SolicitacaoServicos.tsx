@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -1009,6 +1009,18 @@ export default function SolicitacaoServicosPage() {
               </TableRow>
             ))}
           </TableBody>
+          {filterSituacao === "Orçamento Disponível" && filtered.length > 0 && (
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={12} className="text-right font-semibold">
+                  Total Orçamento Disponível ({filtered.length}):{" "}
+                  {filtered
+                    .reduce((acc, s) => acc + Number(orcamentos.find(o => o.solicitacaoId === s.id)?.valorTotal ?? 0), 0)
+                    .toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
       </div>
 
