@@ -16,6 +16,7 @@ import { gerarPdfSolicitacao, gerarPdfSolicitacaoLote } from "@/lib/gerarPdfSoli
 import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
 import { supabase } from "@/integrations/supabase/client";
 import { formatNumeroAno } from "@/lib/formatNumero";
+import iconRevisao from "@/assets/icon-revisao.png";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
