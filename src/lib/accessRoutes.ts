@@ -40,6 +40,8 @@ export const ACCESS_ROUTES: { perm: string; url: string }[] = [
   { perm: "financeiro.contas_pagar", url: "/financeiro/contas-pagar" },
   { perm: "financeiro.contas_receber", url: "/financeiro/contas-receber" },
   { perm: "monitor_tv", url: "/monitor-tv" },
+  { perm: "gerencial_relatorios", url: "/gerencial/relatorios" },
+  { perm: "gerencial_multidim", url: "/gerencial/multidimensional" },
   { perm: "empresa", url: "/empresa" },
   { perm: "clientes", url: "/clientes" },
   { perm: "fornecedores", url: "/fornecedores" },

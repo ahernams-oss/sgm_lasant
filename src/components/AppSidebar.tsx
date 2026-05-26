@@ -193,7 +193,11 @@ const menuItems = [
   },
   {
     group: "Gerencial",
-    items: [{ title: "Painel TV (Tempo Real)", url: "/monitor-tv", icon: Monitor, perm: "monitor_tv" }],
+    items: [
+      { title: "Painel TV (Tempo Real)", url: "/monitor-tv", icon: Monitor, perm: "monitor_tv" },
+      { title: "Relatórios Gerenciais", url: "/gerencial/relatorios", icon: FileBarChart, perm: "gerencial_relatorios" },
+      { title: "Relatórios Multidimensional", url: "/gerencial/multidimensional", icon: BarChart3, perm: "gerencial_multidim" },
+    ],
   },
   {
     group: "Cadastros",

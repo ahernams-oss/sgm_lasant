@@ -709,6 +709,24 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "monitor_tv.visualizar", label: "Acessar Monitor TV" },
         ],
       },
+      {
+        key: "gerencial_relatorios",
+        label: "Relatórios Gerenciais",
+        acoes: [
+          { key: "gerencial_relatorios.visualizar", label: "Pode Visualizar Relatórios Gerenciais" },
+          { key: "gerencial_relatorios.exportar_pdf", label: "Pode Exportar PDF dos Relatórios Gerenciais" },
+          { key: "gerencial_relatorios.exportar_excel", label: "Pode Exportar Excel dos Relatórios Gerenciais" },
+        ],
+      },
+      {
+        key: "gerencial_multidim",
+        label: "Relatórios Multidimensional (Cubo)",
+        acoes: [
+          { key: "gerencial_multidim.visualizar", label: "Pode Acessar Análise Multidimensional (Cubo)" },
+          { key: "gerencial_multidim.exportar_pdf", label: "Pode Exportar PDF do Cubo" },
+          { key: "gerencial_multidim.exportar_excel", label: "Pode Exportar Excel do Cubo" },
+        ],
+      },
     ],
   },
   {
