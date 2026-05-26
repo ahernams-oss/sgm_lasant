@@ -262,7 +262,17 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       toast({ title: "Informe o motivo da revisão", variant: "destructive" });
       return;
     }
-    await updateOrcamento(existingOrcamento.id, { status: "Revisão", revisao_motivo: revisaoMotivo });
+    const novaEntrada = {
+      motivo: revisaoMotivo.trim(),
+      data: new Date().toISOString(),
+      usuario: usuarioLogado?.nome || "Sistema",
+    };
+    const historicoAtual = Array.isArray(existingOrcamento.revisoes) ? existingOrcamento.revisoes : [];
+    await updateOrcamento(existingOrcamento.id, {
+      status: "Revisão",
+      revisao_motivo: novaEntrada.motivo,
+      revisoes: [...historicoAtual, novaEntrada],
+    });
     toast({ title: "Revisão solicitada" });
     onRevisaoSolicitada?.();
     onOpenChange(false);
