@@ -181,8 +181,8 @@ export default function ChatDuda() {
       <ScrollArea className="flex-1 p-4">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center gap-4 py-20">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Bot className="h-8 w-8 text-primary" />
+            <div className="h-16 w-16 rounded-full overflow-hidden ring-2 ring-primary/20">
+              <DudaAvatar className="h-16 w-16" />
             </div>
             <div>
               <h2 className="text-xl font-semibold text-foreground">Olá! Eu sou a Duda 💡</h2>
