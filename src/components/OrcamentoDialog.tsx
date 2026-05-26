@@ -264,6 +264,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     }
     await updateOrcamento(existingOrcamento.id, { status: "Revisão", revisao_motivo: revisaoMotivo });
     toast({ title: "Revisão solicitada" });
+    onRevisaoSolicitada?.();
     onOpenChange(false);
   };
 
