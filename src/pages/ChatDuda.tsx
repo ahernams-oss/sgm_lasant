@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Bot, User, Trash2, FileText, FileSpreadsheet, FileDown } from "lucide-react";
+import { Send, User, Trash2, FileText, FileSpreadsheet, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -7,6 +7,11 @@ import ReactMarkdown from "react-markdown";
 import { gerarPdfDuda, gerarExcelDuda, gerarWordDuda, type ReportData } from "@/lib/gerarRelatorioDuda";
 import { toast } from "sonner";
 import { usePermissao } from "@/hooks/usePermissao";
+import dudaAvatar from "@/assets/duda-avatar.png";
+
+const DudaAvatar = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <img src={dudaAvatar} alt="Duda" className={`${className} rounded-full object-cover`} />
+);
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -158,8 +163,8 @@ export default function ChatDuda() {
     <div className="flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto">
       <div className="flex items-center justify-between border-b p-4">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Bot className="h-5 w-5 text-primary" />
+          <div className="h-10 w-10 rounded-full overflow-hidden ring-2 ring-primary/20">
+            <DudaAvatar className="h-10 w-10" />
           </div>
           <div>
             <h1 className="text-lg font-bold text-foreground">Duda</h1>
@@ -176,8 +181,8 @@ export default function ChatDuda() {
       <ScrollArea className="flex-1 p-4">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center gap-4 py-20">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Bot className="h-8 w-8 text-primary" />
+            <div className="h-16 w-16 rounded-full overflow-hidden ring-2 ring-primary/20">
+              <DudaAvatar className="h-16 w-16" />
             </div>
             <div>
               <h2 className="text-xl font-semibold text-foreground">Olá! Eu sou a Duda 💡</h2>
@@ -204,8 +209,8 @@ export default function ChatDuda() {
         {messages.map((m, i) => (
           <div key={i} className={`flex gap-3 mb-4 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             {m.role === "assistant" && (
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
-                <Bot className="h-4 w-4 text-primary" />
+              <div className="h-8 w-8 rounded-full overflow-hidden shrink-0 mt-1 ring-1 ring-primary/20">
+                <DudaAvatar className="h-8 w-8" />
               </div>
             )}
             <div className={`max-w-[75%] rounded-lg px-4 py-3 text-sm ${
@@ -223,8 +228,8 @@ export default function ChatDuda() {
 
         {loading && messages[messages.length - 1]?.role !== "assistant" && (
           <div className="flex gap-3 mb-4">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <Bot className="h-4 w-4 text-primary animate-pulse" />
+            <div className="h-8 w-8 rounded-full overflow-hidden shrink-0 ring-1 ring-primary/20 animate-pulse">
+              <DudaAvatar className="h-8 w-8" />
             </div>
             <div className="bg-muted rounded-lg px-4 py-3">
               <span className="text-sm text-muted-foreground animate-pulse">Pensando...</span>
