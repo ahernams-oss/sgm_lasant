@@ -26,6 +26,7 @@ interface OrcamentoDialogProps {
   existingOrcamento?: Orcamento | null;
   onApproved?: (orcamento: Orcamento) => void;
   onSent?: () => void;
+  onRevisaoSolicitada?: () => void;
 }
 
 interface ItemSco {
