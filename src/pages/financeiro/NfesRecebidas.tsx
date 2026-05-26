@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, RefreshCw, FileText, Loader2, FileDown, Stethoscope } from "lucide-react";
+import { Download, RefreshCw, FileText, Loader2, FileDown, Stethoscope, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/contexts/EmpresaContext";
@@ -53,6 +53,11 @@ export default function NfesRecebidas() {
   const [diagOpen, setDiagOpen] = useState(false);
   const [diagLoading, setDiagLoading] = useState(false);
   const [diagData, setDiagData] = useState<any>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewChave, setPreviewChave] = useState<string>("");
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
 
   const diagnosticar = async () => {
     if (!empresa.id) return toast.error("Empresa não cadastrada");
@@ -117,19 +122,43 @@ export default function NfesRecebidas() {
     }
   };
 
-  const baixarDanfe = async (n: Nfe) => {
-    if (!empresa.id) return toast.error("Empresa não cadastrada");
+  const gerarDanfeBlob = async (n: Nfe): Promise<Blob | null> => {
+    if (!empresa.id) { toast.error("Empresa não cadastrada"); return null; }
+    const { data, error } = await supabase.functions.invoke("nfe-danfe-focus", {
+      body: { empresaId: empresa.id, chave: n.chave },
+    });
+    if (error) throw error;
+    const r: any = data;
+    if (!r?.ok) throw new Error(r?.error || "Falha");
+    const bin = atob(r.pdfBase64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type: "application/pdf" });
+  };
+
+  const visualizarDanfe = async (n: Nfe) => {
+    setPreviewOpen(true);
+    setPreviewLoading(true);
+    setPreviewUrl(null);
+    setPreviewBlob(null);
+    setPreviewChave(n.chave);
     try {
-      const { data, error } = await supabase.functions.invoke("nfe-danfe-focus", {
-        body: { empresaId: empresa.id, chave: n.chave },
-      });
-      if (error) throw error;
-      const r: any = data;
-      if (!r?.ok) throw new Error(r?.error || "Falha");
-      const bin = atob(r.pdfBase64);
-      const bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      const blob = new Blob([bytes], { type: "application/pdf" });
+      const blob = await gerarDanfeBlob(n);
+      if (!blob) return;
+      setPreviewBlob(blob);
+      setPreviewUrl(URL.createObjectURL(blob));
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao gerar DANFE");
+      setPreviewOpen(false);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const baixarDanfe = async (n: Nfe) => {
+    try {
+      const blob = await gerarDanfeBlob(n);
+      if (!blob) return;
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `DANFE-${n.chave}.pdf`;
@@ -138,6 +167,24 @@ export default function NfesRecebidas() {
     } catch (e: any) {
       toast.error(e.message || "Erro ao baixar DANFE");
     }
+  };
+
+  const baixarDoPreview = () => {
+    if (!previewBlob) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(previewBlob);
+    a.download = `DANFE-${previewChave}.pdf`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const fecharPreview = (open: boolean) => {
+    if (!open) {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+      setPreviewBlob(null);
+    }
+    setPreviewOpen(open);
   };
 
   const filtrados = useMemo(() => rows.filter(r => {
@@ -219,6 +266,9 @@ export default function NfesRecebidas() {
                     <Button size="sm" variant="ghost" disabled={!n.xml_url} onClick={() => baixarXml(n)} title="Baixar XML">
                       <Download className="h-4 w-4" />
                     </Button>
+                    <Button size="sm" variant="ghost" onClick={() => visualizarDanfe(n)} title="Visualizar DANFE (PDF)">
+                      <Eye className="h-4 w-4" />
+                    </Button>
                     <Button size="sm" variant="ghost" onClick={() => baixarDanfe(n)} title="Baixar DANFE (PDF)">
                       <FileDown className="h-4 w-4" />
                     </Button>
@@ -251,6 +301,26 @@ export default function NfesRecebidas() {
               <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-80">{JSON.stringify(diagData.preview ?? diagData, null, 2)}</pre>
             </div>
           ) : null}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={previewOpen} onOpenChange={fecharPreview}>
+        <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
+          <DialogHeader className="flex-row items-center justify-between space-y-0">
+            <DialogTitle>Pré-visualização DANFE</DialogTitle>
+            <Button size="sm" onClick={baixarDoPreview} disabled={!previewBlob} className="mr-6">
+              <FileDown className="h-4 w-4 mr-2" /> Baixar PDF
+            </Button>
+          </DialogHeader>
+          <div className="flex-1 min-h-0 bg-muted rounded overflow-hidden">
+            {previewLoading ? (
+              <div className="h-full flex items-center justify-center text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin mr-2" /> Gerando DANFE…
+              </div>
+            ) : previewUrl ? (
+              <iframe src={previewUrl} className="w-full h-full" title="DANFE PDF" />
+            ) : null}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
