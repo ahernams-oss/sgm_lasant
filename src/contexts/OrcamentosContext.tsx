@@ -22,6 +22,12 @@ export interface ItemMaterialOrcamento {
   valorTotal: number;
 }
 
+export interface RevisaoEntry {
+  motivo: string;
+  data: string;
+  usuario: string;
+}
+
 export interface Orcamento {
   id: string;
   numero: number;
@@ -36,6 +42,7 @@ export interface Orcamento {
   status: string;
   observacoes: string;
   revisaoMotivo: string;
+  revisoes: RevisaoEntry[];
   aprovadoPor: string;
   dataAprovacao: string;
   criadoPor: string;
