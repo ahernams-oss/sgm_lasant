@@ -228,8 +228,8 @@ export default function ChatDuda() {
 
         {loading && messages[messages.length - 1]?.role !== "assistant" && (
           <div className="flex gap-3 mb-4">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <Bot className="h-4 w-4 text-primary animate-pulse" />
+            <div className="h-8 w-8 rounded-full overflow-hidden shrink-0 ring-1 ring-primary/20 animate-pulse">
+              <DudaAvatar className="h-8 w-8" />
             </div>
             <div className="bg-muted rounded-lg px-4 py-3">
               <span className="text-sm text-muted-foreground animate-pulse">Pensando...</span>
