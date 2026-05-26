@@ -20,6 +20,24 @@ import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext"
 
 const COLORS = ["#673ab7", "#9575cd", "#5e35b1", "#b39ddb", "#7e57c2", "#4527a0", "#311b92", "#d1c4e9"];
 
+const SITUACAO_COLORS: Record<string, string> = {
+  "Validada": "#2e7d32",
+  "Aberta": "#1976d2",
+  "Serviço Confirmado": "#673ab7",
+  "Executada": "#0288d1",
+  "Serviço Não Aprovado pela Fiscalização": "#c62828",
+  "Em Execução": "#f57c00",
+  "Concluída": "#388e3c",
+  "Cancelada": "#757575",
+  "Aprovada": "#2e7d32",
+  "Pendente": "#f9a825",
+  "Rejeitada": "#c62828",
+  "Em Análise": "#0288d1",
+  "Aguardando": "#fbc02d",
+  "Finalizada": "#388e3c",
+};
+const corSituacao = (nome: string, i: number) => SITUACAO_COLORS[nome] || COLORS[i % COLORS.length];
+
 type ModKey = "os" | "ss" | "pc" | "rc" | "func" | "cp" | "cr";
 
 interface ModDef {
