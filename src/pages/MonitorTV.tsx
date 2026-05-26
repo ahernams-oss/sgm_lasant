@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ import {
   Settings,
   Maximize2,
   Minimize2,
+  LogOut,
   ClipboardList,
   ShoppingCart,
   Users,
@@ -495,6 +496,17 @@ const MonitorTV = () => {
             className="border-white/15 bg-white/5 text-white hover:bg-white/15"
           >
             {isFs ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+              navigate("/");
+            }}
+            className="border-white/15 bg-white/5 text-white hover:bg-white/15"
+          >
+            <LogOut className="mr-1 h-4 w-4" /> Sair
           </Button>
         </div>
       </div>
