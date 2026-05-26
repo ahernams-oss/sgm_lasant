@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
+import PdfPreview from "@/components/PdfPreview";
 
 interface Nfe {
   id: string;
@@ -317,8 +318,8 @@ export default function NfesRecebidas() {
               <div className="h-full flex items-center justify-center text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin mr-2" /> Gerando DANFE…
               </div>
-            ) : previewUrl ? (
-              <iframe src={previewUrl} className="w-full h-full" title="DANFE PDF" />
+            ) : previewBlob ? (
+              <PdfPreview file={previewBlob} />
             ) : null}
           </div>
         </DialogContent>
