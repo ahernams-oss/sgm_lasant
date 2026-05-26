@@ -53,6 +53,11 @@ export default function NfesRecebidas() {
   const [diagOpen, setDiagOpen] = useState(false);
   const [diagLoading, setDiagLoading] = useState(false);
   const [diagData, setDiagData] = useState<any>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewChave, setPreviewChave] = useState<string>("");
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
 
   const diagnosticar = async () => {
     if (!empresa.id) return toast.error("Empresa não cadastrada");
