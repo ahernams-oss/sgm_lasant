@@ -6,7 +6,7 @@ import { Loader2, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-reac
 import { Button } from "@/components/ui/button";
 
 // Worker via CDN (mesma versão do pacote)
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface PdfPreviewProps {
   file: Blob | string | null;
