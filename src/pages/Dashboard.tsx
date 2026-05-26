@@ -370,13 +370,6 @@ const Dashboard = () => {
               </p>
             </div>
             <div className="flex items-center gap-2 flex-wrap shrink-0">
-              <DashboardFilters
-                storageKey="dashboard:filters"
-                value={filters}
-                onChange={setFilters}
-                clienteOptions={clientes.filter(c => c.tipo === "Cliente").map(c => ({ value: c.id, label: c.nomeFantasia || c.nome }))}
-                statusOptions={["Pendente", "Em Análise", "Aprovada", "Reprovada", "Concluída"].map(s => ({ value: s, label: s }))}
-              />
               <Button variant="secondary" size="sm" onClick={handleDownloadPdf} className="bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm gap-1.5">
                 <FileDown className="h-3.5 w-3.5" /> Exportar PDF
               </Button>
@@ -386,6 +379,19 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Filtros fora do cabeçalho */}
+        <div className="mb-6 flex flex-wrap items-center gap-2">
+          <DashboardFilters
+            storageKey="dashboard:filters"
+            value={filters}
+            onChange={setFilters}
+            clienteOptions={clientes.filter(c => c.tipo === "Cliente").map(c => ({ value: c.id, label: c.nomeFantasia || c.nome }))}
+            statusOptions={["Pendente", "Em Análise", "Aprovada", "Reprovada", "Concluída"].map(s => ({ value: s, label: s }))}
+          />
+        </div>
+
+
 
 
         {/* ===== TABS ===== */}
