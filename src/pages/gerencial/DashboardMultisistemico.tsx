@@ -209,8 +209,8 @@ export default function DashboardMultisistemico() {
               <ResponsiveContainer>
                 <PieChart>
                   <Pie data={groupCount(fOrdens, (r: any) => r.situacao)} dataKey="value" nameKey="name" outerRadius={90} label>
-                    {groupCount(fOrdens, (r: any) => r.situacao).map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    {groupCount(fOrdens, (r: any) => r.situacao).map((d: any, i) => (
+                      <Cell key={i} fill={corSituacao(d.name, i)} />
                     ))}
                   </Pie>
                   <Tooltip /><Legend />
