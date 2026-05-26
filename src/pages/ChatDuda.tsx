@@ -209,8 +209,8 @@ export default function ChatDuda() {
         {messages.map((m, i) => (
           <div key={i} className={`flex gap-3 mb-4 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             {m.role === "assistant" && (
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
-                <Bot className="h-4 w-4 text-primary" />
+              <div className="h-8 w-8 rounded-full overflow-hidden shrink-0 mt-1 ring-1 ring-primary/20">
+                <DudaAvatar className="h-8 w-8" />
               </div>
             )}
             <div className={`max-w-[75%] rounded-lg px-4 py-3 text-sm ${
