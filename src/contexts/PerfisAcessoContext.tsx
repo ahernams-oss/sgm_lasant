@@ -717,6 +717,13 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
         ],
       },
       {
+        key: "gerencial_mapa_clientes",
+        label: "Mapa de Clientes - RJ",
+        acoes: [
+          { key: "gerencial_mapa_clientes.visualizar", label: "Pode Acessar Mapa de Clientes" },
+        ],
+      },
+      {
         key: "gerencial_relatorios",
         label: "Relatórios Gerenciais",
         acoes: [
