@@ -34,7 +34,7 @@ export default function RelatoriosGerenciais() {
   const { cargos } = useCargos();
   const { pedidos } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
-  const { ordensServico } = useOrdensServico();
+  const { ordens } = useOrdensServico();
   const { solicitacoes } = useSolicitacoesServicos();
 
   const hoje = new Date().toISOString().slice(0, 10);
@@ -67,7 +67,7 @@ export default function RelatoriosGerenciais() {
         titulo: "OS por Situação",
         descricao: "Total de Ordens de Serviço agrupadas por situação no período.",
         build: () => {
-          const lista = ordensServico.filter((o) => inRange(o.createdAt));
+          const lista = ordens.filter((o) => inRange(o.createdAt));
           const g = groupBy(lista, (o) => o.situacao || "—");
           const linhas = Object.entries(g)
             .map(([k, v]) => [k, v.length, `${((v.length / Math.max(1, lista.length)) * 100).toFixed(1)}%`])
@@ -86,7 +86,7 @@ export default function RelatoriosGerenciais() {
         titulo: "OS por Cliente",
         descricao: "Quantidade de Ordens de Serviço por cliente no período.",
         build: () => {
-          const lista = ordensServico.filter((o) => inRange(o.createdAt));
+          const lista = ordens.filter((o) => inRange(o.createdAt));
           const g = groupBy(lista, (o) => o.clienteNome);
           const linhas = Object.entries(g)
             .map(([k, v]) => [k, v.length])
@@ -218,7 +218,7 @@ export default function RelatoriosGerenciais() {
         },
       },
     ],
-    [ordensServico, solicitacoes, pedidos, requisicoes, funcionarios, fin, dataIni, dataFim, cargos, clientes],
+    [ordens, solicitacoes, pedidos, requisicoes, funcionarios, fin, dataIni, dataFim, cargos, clientes],
   );
 
   const exportar = (r: RelDef, fmt: "pdf" | "xlsx") => {

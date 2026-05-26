@@ -56,7 +56,7 @@ export default function RelatoriosMultidimensional() {
   const { cargos } = useCargos();
   const { pedidos } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
-  const { ordensServico } = useOrdensServico();
+  const { ordens } = useOrdensServico();
   const { solicitacoes } = useSolicitacoesServicos();
 
   const cargoNome = (id: string) => cargos.find((c) => c.id === id)?.nome || "—";
@@ -67,7 +67,7 @@ export default function RelatoriosMultidimensional() {
       {
         key: "os",
         label: "Ordens de Serviço",
-        rows: ordensServico,
+        rows: ordens,
         dateField: (r) => r.createdAt,
         dimensions: [
           { key: "cliente", label: "Cliente", get: (r) => r.clienteNome || "—" },
@@ -186,7 +186,7 @@ export default function RelatoriosMultidimensional() {
         ],
       },
     ],
-    [ordensServico, solicitacoes, pedidos, requisicoes, funcionarios, fin, clientes, cargos],
+    [ordens, solicitacoes, pedidos, requisicoes, funcionarios, fin, clientes, cargos],
   );
 
   const [dsKey, setDsKey] = useState<string>("os");
