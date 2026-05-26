@@ -1046,6 +1046,7 @@ export default function SolicitacaoServicosPage() {
         existingOrcamento={existingOrcamentoForTarget}
         onApproved={handleOrcamentoApproved}
         onSent={handleOrcamentoSent}
+        onRevisaoSolicitada={handleOrcamentoRevisao}
       />
 
       {/* Approval Dialog */}
