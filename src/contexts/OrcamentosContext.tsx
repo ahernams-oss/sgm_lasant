@@ -22,6 +22,12 @@ export interface ItemMaterialOrcamento {
   valorTotal: number;
 }
 
+export interface RevisaoEntry {
+  motivo: string;
+  data: string;
+  usuario: string;
+}
+
 export interface Orcamento {
   id: string;
   numero: number;
@@ -36,6 +42,7 @@ export interface Orcamento {
   status: string;
   observacoes: string;
   revisaoMotivo: string;
+  revisoes: RevisaoEntry[];
   aprovadoPor: string;
   dataAprovacao: string;
   criadoPor: string;
@@ -67,6 +74,7 @@ const rowToOrcamento = (r: any): Orcamento => ({
   status: r.status ?? "Pendente",
   observacoes: r.observacoes ?? "",
   revisaoMotivo: r.revisao_motivo ?? "",
+  revisoes: Array.isArray(r.revisoes) ? r.revisoes : [],
   aprovadoPor: r.aprovado_por ?? "",
   dataAprovacao: r.data_aprovacao ?? "",
   criadoPor: r.criado_por ?? "",

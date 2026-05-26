@@ -262,7 +262,17 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       toast({ title: "Informe o motivo da revisão", variant: "destructive" });
       return;
     }
-    await updateOrcamento(existingOrcamento.id, { status: "Revisão", revisao_motivo: revisaoMotivo });
+    const novaEntrada = {
+      motivo: revisaoMotivo.trim(),
+      data: new Date().toISOString(),
+      usuario: usuarioLogado?.nome || "Sistema",
+    };
+    const historicoAtual = Array.isArray(existingOrcamento.revisoes) ? existingOrcamento.revisoes : [];
+    await updateOrcamento(existingOrcamento.id, {
+      status: "Revisão",
+      revisao_motivo: novaEntrada.motivo,
+      revisoes: [...historicoAtual, novaEntrada],
+    });
     toast({ title: "Revisão solicitada" });
     onRevisaoSolicitada?.();
     onOpenChange(false);
@@ -298,9 +308,20 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
           </DialogTitle>
         </DialogHeader>
 
-        {isRevisao && existingOrcamento?.revisaoMotivo && (
-          <div className="bg-destructive/10 border border-destructive/30 rounded-md p-3 text-sm">
-            <strong>Motivo da revisão:</strong> {existingOrcamento.revisaoMotivo}
+        {existingOrcamento && Array.isArray(existingOrcamento.revisoes) && existingOrcamento.revisoes.length > 0 && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-md p-3 text-sm space-y-2">
+            <strong>Histórico de pedidos de revisão ({existingOrcamento.revisoes.length}):</strong>
+            <ol className="list-decimal pl-5 space-y-1">
+              {existingOrcamento.revisoes.map((r, idx) => {
+                const d = r.data ? new Date(r.data) : null;
+                const dataFmt = d ? `${d.toLocaleDateString("pt-BR")}, ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}` : "";
+                return (
+                  <li key={idx}>
+                    <span className="text-muted-foreground">{dataFmt} — {r.usuario}:</span> {r.motivo}
+                  </li>
+                );
+              })}
+            </ol>
           </div>
         )}
 

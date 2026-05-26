@@ -3843,6 +3843,7 @@ export type Database = {
           numero: number
           observacoes: string | null
           revisao_motivo: string | null
+          revisoes: Json
           solicitacao_id: string
           solicitacao_numero: number
           status: string
@@ -3863,6 +3864,7 @@ export type Database = {
           numero?: number
           observacoes?: string | null
           revisao_motivo?: string | null
+          revisoes?: Json
           solicitacao_id?: string
           solicitacao_numero?: number
           status?: string
@@ -3883,6 +3885,7 @@ export type Database = {
           numero?: number
           observacoes?: string | null
           revisao_motivo?: string | null
+          revisoes?: Json
           solicitacao_id?: string
           solicitacao_numero?: number
           status?: string
