@@ -510,7 +510,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
         </div>
 
         {/* Revisão motivo — show when reviewing */}
-        {existingOrcamento && (isPendente || isRevisao) && (
+        {existingOrcamento && (isPendente || isRevisao || existingOrcamento.status === "Enviado") && (
           <div>
             <Label className="font-bold">Motivo da Revisão (caso solicite)</Label>
             <Textarea value={revisaoMotivo} onChange={e => setRevisaoMotivo(e.target.value)} rows={2} placeholder="Informe o motivo caso solicite revisão..." />
