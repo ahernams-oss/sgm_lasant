@@ -198,6 +198,7 @@ const menuItems = [
       { title: "Dashboard Multisistêmico", url: "/gerencial/dashboard", icon: LayoutDashboard, perm: "gerencial_dashboard" },
       { title: "Relatórios Gerenciais", url: "/gerencial/relatorios", icon: FileBarChart, perm: "gerencial_relatorios" },
       { title: "Relatórios Multidimensional", url: "/gerencial/multidimensional", icon: BarChart3, perm: "gerencial_multidim" },
+      { title: "Mapa de Clientes - RJ", url: "/gerencial/mapa-clientes", icon: MapPin, perm: "gerencial_mapa_clientes" },
     ],
   },
   {
