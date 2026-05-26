@@ -915,19 +915,34 @@ export default function SolicitacaoServicosPage() {
                 <TableCell>{s.tipo === "Equipamentos" ? (s.equipamentoNome || "-") : "-"}</TableCell>
                 <TableCell className="max-w-[200px] truncate">{s.descricaoServicos || "-"}</TableCell>
                 <TableCell>
-                  <Badge
-                    variant={
-                      s.situacao === "Concluída" ? "default" :
-                      s.situacao === "Cancelada" ? "destructive" :
-                      s.situacao === "Em execução" ? "secondary" : "outline"
-                    }
-                    className={
-                      s.situacao === "Aprovada" ? "bg-green-600 text-white border-green-600 hover:bg-green-700" :
-                      s.situacao === "Aguardando aprovação" ? "bg-yellow-500 border-yellow-500 hover:bg-yellow-600 text-primary" :
-                      s.situacao === "Orçamento Solicitado" ? "bg-blue-500 border-blue-500 hover:bg-blue-600 text-white" :
-                      s.situacao === "Orçamento Disponível" ? "bg-indigo-500 border-indigo-500 hover:bg-indigo-600 text-white" : ""
-                    }
-                  >{s.situacao}</Badge>
+                  <div className="flex items-center gap-1.5">
+                    <Badge
+                      variant={
+                        s.situacao === "Concluída" ? "default" :
+                        s.situacao === "Cancelada" ? "destructive" :
+                        s.situacao === "Em execução" ? "secondary" : "outline"
+                      }
+                      className={
+                        s.situacao === "Aprovada" ? "bg-green-600 text-white border-green-600 hover:bg-green-700" :
+                        s.situacao === "Aguardando aprovação" ? "bg-yellow-500 border-yellow-500 hover:bg-yellow-600 text-primary" :
+                        s.situacao === "Orçamento Solicitado" ? "bg-blue-500 border-blue-500 hover:bg-blue-600 text-white" :
+                        s.situacao === "Orçamento Disponível" ? "bg-indigo-500 border-indigo-500 hover:bg-indigo-600 text-white" : ""
+                      }
+                    >{s.situacao}</Badge>
+                    {(() => {
+                      const orcSS = orcamentos.find(o => o.solicitacaoId === s.id);
+                      const qtdRev = orcSS?.revisoes?.length ?? 0;
+                      if (qtdRev === 0) return null;
+                      return (
+                        <img
+                          src={iconRevisao}
+                          alt={`${qtdRev} pedido(s) de revisão`}
+                          title={`${qtdRev} pedido(s) de revisão`}
+                          className="h-5 w-5"
+                        />
+                      );
+                    })()}
+                  </div>
                 </TableCell>
                 <TableCell className="text-center">
                   <Checkbox
