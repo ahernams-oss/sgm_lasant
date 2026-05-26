@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Bot, User, Trash2, FileText, FileSpreadsheet, FileDown } from "lucide-react";
+import { Send, User, Trash2, FileText, FileSpreadsheet, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -7,6 +7,11 @@ import ReactMarkdown from "react-markdown";
 import { gerarPdfDuda, gerarExcelDuda, gerarWordDuda, type ReportData } from "@/lib/gerarRelatorioDuda";
 import { toast } from "sonner";
 import { usePermissao } from "@/hooks/usePermissao";
+import dudaAvatar from "@/assets/duda-avatar.png";
+
+const DudaAvatar = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <img src={dudaAvatar} alt="Duda" className={`${className} rounded-full object-cover`} />
+);
 
 type Msg = { role: "user" | "assistant"; content: string };
 
