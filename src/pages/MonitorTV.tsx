@@ -175,6 +175,7 @@ const Quadrant = ({ title, icon, children, badge, accent }: QuadrantProps) => {
 
 const MonitorTV = () => {
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   const { clientes } = useClientes();
