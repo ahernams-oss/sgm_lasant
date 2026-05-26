@@ -710,6 +710,13 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
         ],
       },
       {
+        key: "gerencial_dashboard",
+        label: "Dashboard Multisistêmico",
+        acoes: [
+          { key: "gerencial_dashboard.visualizar", label: "Pode Acessar Dashboard Multisistêmico" },
+        ],
+      },
+      {
         key: "gerencial_relatorios",
         label: "Relatórios Gerenciais",
         acoes: [

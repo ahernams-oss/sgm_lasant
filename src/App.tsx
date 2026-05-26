@@ -142,6 +142,7 @@ import CondicoesPagamento from "./pages/financeiro/CondicoesPagamento.tsx";
 import NfesRecebidas from "./pages/financeiro/NfesRecebidas.tsx";
 import RelatoriosGerenciais from "./pages/gerencial/RelatoriosGerenciais.tsx";
 import RelatoriosMultidimensional from "./pages/gerencial/RelatoriosMultidimensional.tsx";
+import DashboardMultisistemico from "./pages/gerencial/DashboardMultisistemico.tsx";
 import { RotaProtegida } from "@/components/RotaProtegida";
 const queryClient = new QueryClient();
 
@@ -327,6 +328,18 @@ function ProtectedAppRoutes() {
               <SolicitacoesServicosProvider>
                 <OrdensServicoProvider>
                   <RelatoriosGerenciais />
+                </OrdensServicoProvider>
+              </SolicitacoesServicosProvider>
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/gerencial/dashboard"
+          element={
+            <RotaProtegida perm="gerencial_dashboard">
+              <SolicitacoesServicosProvider>
+                <OrdensServicoProvider>
+                  <DashboardMultisistemico />
                 </OrdensServicoProvider>
               </SolicitacoesServicosProvider>
             </RotaProtegida>
