@@ -122,19 +122,43 @@ export default function NfesRecebidas() {
     }
   };
 
-  const baixarDanfe = async (n: Nfe) => {
-    if (!empresa.id) return toast.error("Empresa não cadastrada");
+  const gerarDanfeBlob = async (n: Nfe): Promise<Blob | null> => {
+    if (!empresa.id) { toast.error("Empresa não cadastrada"); return null; }
+    const { data, error } = await supabase.functions.invoke("nfe-danfe-focus", {
+      body: { empresaId: empresa.id, chave: n.chave },
+    });
+    if (error) throw error;
+    const r: any = data;
+    if (!r?.ok) throw new Error(r?.error || "Falha");
+    const bin = atob(r.pdfBase64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type: "application/pdf" });
+  };
+
+  const visualizarDanfe = async (n: Nfe) => {
+    setPreviewOpen(true);
+    setPreviewLoading(true);
+    setPreviewUrl(null);
+    setPreviewBlob(null);
+    setPreviewChave(n.chave);
     try {
-      const { data, error } = await supabase.functions.invoke("nfe-danfe-focus", {
-        body: { empresaId: empresa.id, chave: n.chave },
-      });
-      if (error) throw error;
-      const r: any = data;
-      if (!r?.ok) throw new Error(r?.error || "Falha");
-      const bin = atob(r.pdfBase64);
-      const bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      const blob = new Blob([bytes], { type: "application/pdf" });
+      const blob = await gerarDanfeBlob(n);
+      if (!blob) return;
+      setPreviewBlob(blob);
+      setPreviewUrl(URL.createObjectURL(blob));
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao gerar DANFE");
+      setPreviewOpen(false);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const baixarDanfe = async (n: Nfe) => {
+    try {
+      const blob = await gerarDanfeBlob(n);
+      if (!blob) return;
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `DANFE-${n.chave}.pdf`;
@@ -143,6 +167,24 @@ export default function NfesRecebidas() {
     } catch (e: any) {
       toast.error(e.message || "Erro ao baixar DANFE");
     }
+  };
+
+  const baixarDoPreview = () => {
+    if (!previewBlob) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(previewBlob);
+    a.download = `DANFE-${previewChave}.pdf`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const fecharPreview = (open: boolean) => {
+    if (!open) {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+      setPreviewBlob(null);
+    }
+    setPreviewOpen(open);
   };
 
   const filtrados = useMemo(() => rows.filter(r => {
