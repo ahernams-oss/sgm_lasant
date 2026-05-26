@@ -164,8 +164,19 @@ export default function RelatoriosMultidimensional() {
           { key: "ano", label: "Ano", get: (r) => yearOf(r.createdAt) },
         ],
         values: [
-          { key: "valor", label: "Valor da OS", get: (r) => Number(r.valorTotal || 0), format: formatBRL },
-          { key: "bdi", label: "BDI", get: (r) => Number(r.bdi || 0) },
+          {
+            key: "valor",
+            label: "Valor da OS",
+            get: (r) => {
+              const itens = (r.materiais || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0)
+                + (r.materiaisEstoque || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0);
+              const bdi = itens * (Number(r.bdi || 0) / 100);
+              return itens + bdi;
+            },
+            format: formatBRL,
+          },
+          { key: "bdi_pct", label: "BDI (%)", get: (r) => Number(r.bdi || 0) },
+          { key: "qtd", label: "Quantidade (contagem)", get: () => 1 },
         ],
       },
       {
