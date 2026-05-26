@@ -163,7 +163,10 @@ export default function RelatoriosMultidimensional() {
           { key: "mes", label: "Mês", get: (r) => monthOf(r.createdAt) },
           { key: "ano", label: "Ano", get: (r) => yearOf(r.createdAt) },
         ],
-        values: [{ key: "bdi", label: "BDI", get: (r) => Number(r.bdi || 0) }],
+        values: [
+          { key: "valor", label: "Valor da OS", get: (r) => Number(r.valorTotal || 0), format: formatBRL },
+          { key: "bdi", label: "BDI", get: (r) => Number(r.bdi || 0) },
+        ],
       },
       {
         key: "ss",
