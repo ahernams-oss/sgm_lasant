@@ -53,7 +53,10 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     (existingOrcamento?.anexos || []).map((url: string) => ({ url, nome: url.split("/").pop() || "arquivo" }))
   );
   const [observacoes, setObservacoes] = useState(existingOrcamento?.observacoes || "");
-  const [revisaoMotivo, setRevisaoMotivo] = useState("");
+  const [revisaoMotivo, setRevisaoMotivo] = useState(() => {
+    const revs = existingOrcamento?.revisoes;
+    return Array.isArray(revs) && revs.length > 0 ? revs[revs.length - 1].motivo : "";
+  });
   const [uploading, setUploading] = useState(false);
   const [scoSearch, setScoSearch] = useState("");
   const [scoPopoverOpen, setScoPopoverOpen] = useState(false);
