@@ -140,6 +140,8 @@ import Lancamentos from "./pages/financeiro/Lancamentos.tsx";
 import RelatoriosFinanceiros from "./pages/financeiro/RelatoriosFinanceiros.tsx";
 import CondicoesPagamento from "./pages/financeiro/CondicoesPagamento.tsx";
 import NfesRecebidas from "./pages/financeiro/NfesRecebidas.tsx";
+import RelatoriosGerenciais from "./pages/gerencial/RelatoriosGerenciais.tsx";
+import RelatoriosMultidimensional from "./pages/gerencial/RelatoriosMultidimensional.tsx";
 import { RotaProtegida } from "@/components/RotaProtegida";
 const queryClient = new QueryClient();
 
@@ -318,6 +320,30 @@ function ProtectedAppRoutes() {
         <Route path="/financeiro/relatorios" element={<RotaProtegida perm="financeiro.relatorios"><RelatoriosFinanceiros /></RotaProtegida>} />
         <Route path="/financeiro/condicoes-pagamento" element={<RotaProtegida perm="financeiro.condicoes_pagamento"><CondicoesPagamento /></RotaProtegida>} />
         <Route path="/financeiro/nfes-recebidas" element={<RotaProtegida perm="financeiro.nfes_recebidas"><NfesRecebidas /></RotaProtegida>} />
+        <Route
+          path="/gerencial/relatorios"
+          element={
+            <RotaProtegida perm="gerencial_relatorios">
+              <SolicitacoesServicosProvider>
+                <OrdensServicoProvider>
+                  <RelatoriosGerenciais />
+                </OrdensServicoProvider>
+              </SolicitacoesServicosProvider>
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/gerencial/multidimensional"
+          element={
+            <RotaProtegida perm="gerencial_multidim">
+              <SolicitacoesServicosProvider>
+                <OrdensServicoProvider>
+                  <RelatoriosMultidimensional />
+                </OrdensServicoProvider>
+              </SolicitacoesServicosProvider>
+            </RotaProtegida>
+          }
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
