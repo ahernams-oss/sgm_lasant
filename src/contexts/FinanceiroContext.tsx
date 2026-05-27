@@ -96,6 +96,7 @@ export interface Lancamento {
   plano_conta_id?: string | null;
   centro_custo_id?: string | null;
   conciliado: boolean;
+  anexos?: { url: string; nome: string }[];
 }
 
 export interface MovimentoOfx {
