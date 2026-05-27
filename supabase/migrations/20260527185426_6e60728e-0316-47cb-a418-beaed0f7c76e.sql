@@ -1,0 +1,1 @@
+ALTER TABLE public.fin_lancamentos ADD COLUMN IF NOT EXISTS anexos jsonb NOT NULL DEFAULT '[]'::jsonb;

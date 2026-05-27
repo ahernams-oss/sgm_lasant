@@ -2363,6 +2363,7 @@ export type Database = {
       }
       fin_lancamentos: {
         Row: {
+          anexos: Json
           centro_custo_id: string | null
           conciliado: boolean
           conta_bancaria_id: string
@@ -2379,6 +2380,7 @@ export type Database = {
           valor: number
         }
         Insert: {
+          anexos?: Json
           centro_custo_id?: string | null
           conciliado?: boolean
           conta_bancaria_id: string
@@ -2395,6 +2397,7 @@ export type Database = {
           valor: number
         }
         Update: {
+          anexos?: Json
           centro_custo_id?: string | null
           conciliado?: boolean
           conta_bancaria_id?: string
