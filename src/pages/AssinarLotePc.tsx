@@ -1,4 +1,5 @@
 import { verificarSenhaUsuario } from "@/lib/verifySenha";
+import { matchNumero } from "@/lib/matchNumero";
 import { useState, useMemo } from "react";
 import { usePedidoCompra, PedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useAuth } from "@/contexts/AuthContext";
