@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react"; // OS page
+import { useState, useMemo, useCallback, useRef } from "react"; // OS page
 import { updateRow, fetchAll } from "@/lib/supabaseHelper";
 import { SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
 import { useOrcamentos } from "@/contexts/OrcamentosContext";
@@ -47,7 +47,8 @@ import RelatorioFechamentoOSDialog from "@/components/RelatorioFechamentoOSDialo
 import { AssinaturaEletronicaOs } from "@/components/AssinaturaEletronicaOs";
 import { AvaliacaoOs } from "@/components/AvaliacaoOs";
 import { useOsAssinaturas } from "@/contexts/OsAssinaturasContext";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Camera, ImagePlus } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const OS_WORKFLOW_STEPS = [
   { label: "Aberta" },
@@ -95,6 +96,80 @@ const prioridadeBadge = (p: string) => {
 };
 
 const DEFAULT_PAGE_SIZE = 7;
+
+function FotosUploader({ disabled, onUploaded, currentCount }: { disabled: boolean; onUploaded: (url: string) => void; currentCount: number }) {
+  const isMobile = useIsMobile();
+  const galleryRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Apenas imagens são permitidas.");
+      e.target.value = "";
+      return;
+    }
+    if (currentCount >= 5) {
+      toast.error("Máximo de 5 fotos permitidas.");
+      e.target.value = "";
+      return;
+    }
+    setBusy(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `os-fotos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
+      if (error) {
+        console.error(error);
+        toast.error("Erro ao enviar imagem.");
+        return;
+      }
+      const { data: urlData } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
+      onUploaded(urlData.publicUrl);
+      toast.success("Foto anexada com sucesso!");
+    } finally {
+      setBusy(false);
+      e.target.value = "";
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label>Imagem (JPG, PNG, WEBP - máx. 5)</Label>
+      <div className="flex flex-wrap gap-2">
+        {isMobile && (
+          <Button type="button" variant="outline" disabled={disabled || busy} onClick={() => cameraRef.current?.click()}>
+            <Camera className="h-4 w-4 mr-2" />
+            Câmera
+          </Button>
+        )}
+        <Button type="button" variant="outline" disabled={disabled || busy} onClick={() => galleryRef.current?.click()}>
+          <ImagePlus className="h-4 w-4 mr-2" />
+          {isMobile ? "Galeria" : "Escolher arquivo"}
+        </Button>
+        {busy && <span className="text-sm text-muted-foreground self-center">Enviando...</span>}
+      </div>
+      <input
+        ref={galleryRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+        className="hidden"
+        onChange={handleFile}
+      />
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleFile}
+      />
+    </div>
+  );
+}
+
 
 export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
@@ -1555,42 +1630,11 @@ export default function OrdensServicoPage() {
                 {/* 5. Fotos */}
                 <TabsContent value="fotos" className="space-y-3 p-3">
                   {fotos.length < 5 && (
-                    <div className="flex gap-2 items-end">
-                      <div className="flex-1">
-                        <Label>Imagem (JPG, PNG, WEBP - máx. 5)</Label>
-                        <Input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            if (!file.type.startsWith("image/")) {
-                              toast.error("Apenas imagens são permitidas.");
-                              e.target.value = "";
-                              return;
-                            }
-                            if (fotos.length >= 5) {
-                              toast.error("Máximo de 5 fotos permitidas.");
-                              e.target.value = "";
-                              return;
-                            }
-                            const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-                            const path = `os-fotos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-                            const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
-                            if (error) {
-                              console.error(error);
-                              toast.error("Erro ao enviar imagem.");
-                              e.target.value = "";
-                              return;
-                            }
-                            const { data: urlData } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
-                            setFotos([...fotos, { id: crypto.randomUUID(), url: urlData.publicUrl }]);
-                            e.target.value = "";
-                            toast.success("Foto anexada com sucesso!");
-                          }}
-                        />
-                      </div>
-                    </div>
+                    <FotosUploader
+                      disabled={fotos.length >= 5}
+                      onUploaded={(url) => setFotos(prev => [...prev, { id: crypto.randomUUID(), url }])}
+                      currentCount={fotos.length}
+                    />
                   )}
                   {fotos.length > 0 && (
                     <div className="grid grid-cols-3 gap-2">
