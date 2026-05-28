@@ -47,7 +47,8 @@ import RelatorioFechamentoOSDialog from "@/components/RelatorioFechamentoOSDialo
 import { AssinaturaEletronicaOs } from "@/components/AssinaturaEletronicaOs";
 import { AvaliacaoOs } from "@/components/AvaliacaoOs";
 import { useOsAssinaturas } from "@/contexts/OsAssinaturasContext";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Camera, ImagePlus } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const OS_WORKFLOW_STEPS = [
   { label: "Aberta" },
