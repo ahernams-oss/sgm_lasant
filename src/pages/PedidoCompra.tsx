@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send, FilterX, Wallet } from "lucide-react";
 import { gerarContasPagarDePC } from "@/lib/financeiroFromPC";
+import { matchNumero } from "@/lib/matchNumero";
 import { format } from "date-fns";
 import { downloadPdfOrdemCompra, uploadPdfOrdemCompra } from "@/lib/gerarPdfOrdemCompra";
 import { enviarWhatsApp, enviarWhatsAppComDocumento } from "@/lib/whatsapp";
