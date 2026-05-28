@@ -215,8 +215,9 @@ export default function CotacaoComprasPage() {
     if (filterDataFim) list = list.filter(c => c.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
       const s = search.toLowerCase();
-      list = list.filter(c => String(c.numero).includes(s) || c.comprador.toLowerCase().includes(s) || String(c.requisicaoNumero).includes(s));
+      list = list.filter(c => matchNumero(c.numero, s) || c.comprador.toLowerCase().includes(s) || matchNumero(c.requisicaoNumero, s));
     }
+
     return list.sort((a, b) => b.numero - a.numero);
   }, [cotacoes, requisicoes, search, filterStatus, filterPeriodo, filterComprador, filterCentroCusto, filterDataIni, filterDataFim]);
 
