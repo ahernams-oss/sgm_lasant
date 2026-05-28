@@ -117,6 +117,8 @@ export default function SolicitacaoServicosPage() {
   const [imagens, setImagens] = useState<{ file?: File; url: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: abortCancel } = useDoubleConfirmDelete();
   const { orcamentos } = useOrcamentos();
