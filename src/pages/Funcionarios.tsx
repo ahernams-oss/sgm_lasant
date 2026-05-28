@@ -34,6 +34,7 @@ import { gerarPdfEpi } from "@/lib/gerarPdfEpi";
 import { ExamesPeriodicosTab } from "@/components/ExamesPeriodicosTab";
 import { PromocoesTab } from "@/components/PromocoesTab";
 import { NRsFuncionarioTab } from "@/components/NRsFuncionarioTab";
+import { FeriasTab } from "@/components/FeriasTab";
 import { usePermissao } from "@/hooks/usePermissao";
 
 
@@ -535,6 +536,7 @@ const Funcionarios = () => {
                 <TabsTrigger value="epis">EPIs</TabsTrigger>
                 <TabsTrigger value="nrs">NRs</TabsTrigger>
                 <TabsTrigger value="exames">Exames Periódicos</TabsTrigger>
+                <TabsTrigger value="ferias">Férias</TabsTrigger>
                 <TabsTrigger value="promocoes">Promoções</TabsTrigger>
                 <TabsTrigger value="anexos_docs">Anexos</TabsTrigger>
                 <TabsTrigger value="observacoes">Observações</TabsTrigger>
@@ -925,6 +927,16 @@ const Funcionarios = () => {
                   funcionarioEmail={form.email}
                 />
               </TabsContent>
+
+              {/* FÉRIAS */}
+              <TabsContent value="ferias">
+                <FeriasTab
+                  funcionarioId={editingId || ""}
+                  funcionarioNome={form.nome}
+                  dataAdmissao={form.dataAdmissao}
+                />
+              </TabsContent>
+
 
               {/* PROMOÇÕES */}
               <TabsContent value="promocoes">

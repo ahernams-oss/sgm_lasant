@@ -14,6 +14,7 @@ import Cargos from "./pages/Cargos.tsx";
 import Funcionarios from "./pages/Funcionarios.tsx";
 import MapaFuncionarios from "./pages/MapaFuncionarios.tsx";
 import MapaPlantoes from "./pages/MapaPlantoes.tsx";
+import MapaFerias from "./pages/MapaFerias.tsx";
 import Usuarios from "./pages/Usuarios.tsx";
 import Login from "./pages/Login.tsx";
 import EsqueciSenha from "./pages/EsqueciSenha.tsx";
@@ -166,6 +167,7 @@ function ProtectedAppRoutes() {
         <Route path="/exames" element={<RotaProtegida perm="funcionarios"><ExamesPage /></RotaProtegida>} />
         <Route path="/mapa-funcionarios" element={<RotaProtegida perm="mapa_funcionarios"><MapaFuncionarios /></RotaProtegida>} />
         <Route path="/mapa-plantoes" element={<RotaProtegida perm="mapa_funcionarios"><MapaPlantoes /></RotaProtegida>} />
+        <Route path="/mapa-ferias" element={<RotaProtegida perm="mapa_funcionarios"><MapaFerias /></RotaProtegida>} />
         <Route path="/avaliacoes-desempenho" element={<RotaProtegida perm="avaliacoes_desempenho"><AvaliacoesDesempenhoPage /></RotaProtegida>} />
         <Route path="/usuarios" element={<RotaProtegida perm="usuarios"><Usuarios /></RotaProtegida>} />
         <Route path="/perfis-acesso" element={<RotaProtegida perm="perfis_acesso"><PerfisAcessoPage /></RotaProtegida>} />

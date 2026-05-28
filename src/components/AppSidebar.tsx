@@ -77,6 +77,7 @@ const menuItems = [
       { title: "Exames Periódicos", url: "/exames", icon: Stethoscope, perm: "funcionarios" },
       { title: "Mapa de Funcionários", url: "/mapa-funcionarios", icon: CalendarClock, perm: "mapa_funcionarios" },
       { title: "Mapa de Plantões", url: "/mapa-plantoes", icon: CalendarClock, perm: "mapa_funcionarios" },
+      { title: "Mapa de Férias", url: "/mapa-ferias", icon: CalendarClock, perm: "mapa_funcionarios" },
       { title: "Avaliações de Desempenho", url: "/avaliacoes-desempenho", icon: ClipboardCheck, perm: "avaliacoes_desempenho" },
     ],
   },

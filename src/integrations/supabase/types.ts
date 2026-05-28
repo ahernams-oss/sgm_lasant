@@ -1837,6 +1837,75 @@ export type Database = {
         }
         Relationships: []
       }
+      ferias: {
+        Row: {
+          anexo_nome: string | null
+          anexo_url: string | null
+          created_at: string
+          data_fim_gozo: string | null
+          data_inicio_gozo: string | null
+          data_limite_concessao: string
+          dias_abonados: number | null
+          dias_direito: number
+          dias_gozados: number | null
+          funcionario_id: string
+          funcionario_nome: string | null
+          id: string
+          notificado_30d: boolean | null
+          notificado_60d: boolean | null
+          notificado_vencida: boolean | null
+          observacoes: string | null
+          periodo_aquisitivo_fim: string
+          periodo_aquisitivo_inicio: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          anexo_nome?: string | null
+          anexo_url?: string | null
+          created_at?: string
+          data_fim_gozo?: string | null
+          data_inicio_gozo?: string | null
+          data_limite_concessao: string
+          dias_abonados?: number | null
+          dias_direito?: number
+          dias_gozados?: number | null
+          funcionario_id: string
+          funcionario_nome?: string | null
+          id?: string
+          notificado_30d?: boolean | null
+          notificado_60d?: boolean | null
+          notificado_vencida?: boolean | null
+          observacoes?: string | null
+          periodo_aquisitivo_fim: string
+          periodo_aquisitivo_inicio: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          anexo_nome?: string | null
+          anexo_url?: string | null
+          created_at?: string
+          data_fim_gozo?: string | null
+          data_inicio_gozo?: string | null
+          data_limite_concessao?: string
+          dias_abonados?: number | null
+          dias_direito?: number
+          dias_gozados?: number | null
+          funcionario_id?: string
+          funcionario_nome?: string | null
+          id?: string
+          notificado_30d?: boolean | null
+          notificado_60d?: boolean | null
+          notificado_vencida?: boolean | null
+          observacoes?: string | null
+          periodo_aquisitivo_fim?: string
+          periodo_aquisitivo_inicio?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ferramentas: {
         Row: {
           centro_custo_atual_id: string | null
