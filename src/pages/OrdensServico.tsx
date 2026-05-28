@@ -1556,42 +1556,11 @@ export default function OrdensServicoPage() {
                 {/* 5. Fotos */}
                 <TabsContent value="fotos" className="space-y-3 p-3">
                   {fotos.length < 5 && (
-                    <div className="flex gap-2 items-end">
-                      <div className="flex-1">
-                        <Label>Imagem (JPG, PNG, WEBP - máx. 5)</Label>
-                        <Input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            if (!file.type.startsWith("image/")) {
-                              toast.error("Apenas imagens são permitidas.");
-                              e.target.value = "";
-                              return;
-                            }
-                            if (fotos.length >= 5) {
-                              toast.error("Máximo de 5 fotos permitidas.");
-                              e.target.value = "";
-                              return;
-                            }
-                            const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-                            const path = `os-fotos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-                            const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
-                            if (error) {
-                              console.error(error);
-                              toast.error("Erro ao enviar imagem.");
-                              e.target.value = "";
-                              return;
-                            }
-                            const { data: urlData } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
-                            setFotos([...fotos, { id: crypto.randomUUID(), url: urlData.publicUrl }]);
-                            e.target.value = "";
-                            toast.success("Foto anexada com sucesso!");
-                          }}
-                        />
-                      </div>
-                    </div>
+                    <FotosUploader
+                      disabled={fotos.length >= 5}
+                      onUploaded={(url) => setFotos(prev => [...prev, { id: crypto.randomUUID(), url }])}
+                      currentCount={fotos.length}
+                    />
                   )}
                   {fotos.length > 0 && (
                     <div className="grid grid-cols-3 gap-2">
