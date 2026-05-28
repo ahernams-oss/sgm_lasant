@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react"; // OS page
+import { useState, useMemo, useCallback, useRef } from "react"; // OS page
 import { updateRow, fetchAll } from "@/lib/supabaseHelper";
 import { SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
 import { useOrcamentos } from "@/contexts/OrcamentosContext";
