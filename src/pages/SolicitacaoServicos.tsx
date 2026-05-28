@@ -31,7 +31,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList, Download, Eye, History, Clock, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList, Download, Eye, History, Clock, ArrowUpDown, ArrowUp, ArrowDown, Camera } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import WorkflowTimeline from "@/components/WorkflowTimeline";
 import WorkflowHistorico from "@/components/WorkflowHistorico";
 
@@ -116,6 +117,8 @@ export default function SolicitacaoServicosPage() {
   const [imagens, setImagens] = useState<{ file?: File; url: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: abortCancel } = useDoubleConfirmDelete();
   const { orcamentos } = useOrcamentos();
@@ -169,6 +172,7 @@ export default function SolicitacaoServicosPage() {
     }));
     setImagens(prev => [...prev, ...newImgs]);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
   };
 
   const handleRemoveImagem = (idx: number) => {
@@ -765,14 +769,26 @@ export default function SolicitacaoServicosPage() {
                       </div>
                     ))}
                     {imagens.length < 3 && (
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-28 h-28 rounded-md border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                      >
-                        <ImagePlus className="h-6 w-6" />
-                        <span className="text-xs">Adicionar</span>
-                      </button>
+                      <>
+                        {isMobile && (
+                          <button
+                            type="button"
+                            onClick={() => cameraInputRef.current?.click()}
+                            className="w-28 h-28 rounded-md border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                          >
+                            <Camera className="h-6 w-6" />
+                            <span className="text-xs">Câmera</span>
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-28 h-28 rounded-md border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                        >
+                          <ImagePlus className="h-6 w-6" />
+                          <span className="text-xs">{isMobile ? "Galeria" : "Adicionar"}</span>
+                        </button>
+                      </>
                     )}
                   </div>
                   <input
@@ -780,6 +796,14 @@ export default function SolicitacaoServicosPage() {
                     type="file"
                     accept="image/*"
                     multiple
+                    className="hidden"
+                    onChange={handleAddImagem}
+                  />
+                  <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
                     className="hidden"
                     onChange={handleAddImagem}
                   />
