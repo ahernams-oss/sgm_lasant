@@ -63,12 +63,13 @@ export default function AssinarLotePc() {
       const q = search.toLowerCase();
       result = result.filter(
         (p) =>
-          String(p.numero).includes(q) ||
+          matchNumero(p.numero, q) ||
           p.fornecedorNome?.toLowerCase().includes(q) ||
           p.comprador?.toLowerCase().includes(q) ||
-          String(p.requisicaoNumero).includes(q)
+          matchNumero(p.requisicaoNumero, q)
       );
     }
+
     return result;
   }, [disponiveis, search, filterFornecedor]);
 
