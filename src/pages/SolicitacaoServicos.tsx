@@ -172,6 +172,7 @@ export default function SolicitacaoServicosPage() {
     }));
     setImagens(prev => [...prev, ...newImgs]);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
   };
 
   const handleRemoveImagem = (idx: number) => {
