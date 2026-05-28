@@ -131,8 +131,9 @@ export default function PedidoCompraPage() {
     if (filterDataFim) list = list.filter(p => p.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
       const s = search.toLowerCase();
-      list = list.filter(p => String(p.numero).includes(s) || p.fornecedorNome.toLowerCase().includes(s) || p.comprador.toLowerCase().includes(s) || String(p.requisicaoNumero).includes(s));
+      list = list.filter(p => matchNumero(p.numero, s) || p.fornecedorNome.toLowerCase().includes(s) || p.comprador.toLowerCase().includes(s) || matchNumero(p.requisicaoNumero, s));
     }
+
     return list.sort((a, b) => b.numero - a.numero);
   }, [pedidos, requisicoes, search, filterStatus, filterFornecedor, filterComprador, filterCentroCusto, filterDataIni, filterDataFim]);
 
