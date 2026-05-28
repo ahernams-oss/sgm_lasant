@@ -769,14 +769,26 @@ export default function SolicitacaoServicosPage() {
                       </div>
                     ))}
                     {imagens.length < 3 && (
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-28 h-28 rounded-md border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                      >
-                        <ImagePlus className="h-6 w-6" />
-                        <span className="text-xs">Adicionar</span>
-                      </button>
+                      <>
+                        {isMobile && (
+                          <button
+                            type="button"
+                            onClick={() => cameraInputRef.current?.click()}
+                            className="w-28 h-28 rounded-md border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                          >
+                            <Camera className="h-6 w-6" />
+                            <span className="text-xs">Câmera</span>
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-28 h-28 rounded-md border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                        >
+                          <ImagePlus className="h-6 w-6" />
+                          <span className="text-xs">{isMobile ? "Galeria" : "Adicionar"}</span>
+                        </button>
+                      </>
                     )}
                   </div>
                   <input
@@ -784,6 +796,14 @@ export default function SolicitacaoServicosPage() {
                     type="file"
                     accept="image/*"
                     multiple
+                    className="hidden"
+                    onChange={handleAddImagem}
+                  />
+                  <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
                     className="hidden"
                     onChange={handleAddImagem}
                   />
