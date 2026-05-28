@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCargos } from "@/contexts/CargosContext";
 import { usePcAssinaturas } from "@/contexts/PcAssinaturasContext";
 import { gerarHashPc } from "@/lib/assinaturaHashPc";
+import { matchNumero } from "@/lib/matchNumero";
 import { obterIpOrigem } from "@/lib/assinaturaHashOs";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
