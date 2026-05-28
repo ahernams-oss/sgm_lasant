@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+import { matchNumero } from "@/lib/matchNumero";
 import { usePedidoCompra, PedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useRecebimento, Recebimento, ItemRecebimento, AnexoNF } from "@/contexts/RecebimentoContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -96,12 +97,13 @@ export default function RecebimentoComprasPage() {
     if (search) {
       const s = search.toLowerCase();
       list = list.filter(p =>
-        String(p.numero).includes(s) ||
+        matchNumero(p.numero, s) ||
         p.fornecedorNome.toLowerCase().includes(s) ||
-        String(p.requisicaoNumero).includes(s) ||
+        matchNumero(p.requisicaoNumero, s) ||
         p.localEntrega?.toLowerCase().includes(s)
       );
     }
+
     return list.sort((a, b) => b.numero - a.numero);
   }, [pedidos, search, filterStatus]);
 

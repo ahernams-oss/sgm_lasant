@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send, FilterX, Wallet } from "lucide-react";
 import { gerarContasPagarDePC } from "@/lib/financeiroFromPC";
+import { matchNumero } from "@/lib/matchNumero";
 import { format } from "date-fns";
 import { downloadPdfOrdemCompra, uploadPdfOrdemCompra } from "@/lib/gerarPdfOrdemCompra";
 import { enviarWhatsApp, enviarWhatsAppComDocumento } from "@/lib/whatsapp";
@@ -131,8 +132,9 @@ export default function PedidoCompraPage() {
     if (filterDataFim) list = list.filter(p => p.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
       const s = search.toLowerCase();
-      list = list.filter(p => String(p.numero).includes(s) || p.fornecedorNome.toLowerCase().includes(s) || p.comprador.toLowerCase().includes(s) || String(p.requisicaoNumero).includes(s));
+      list = list.filter(p => matchNumero(p.numero, s) || p.fornecedorNome.toLowerCase().includes(s) || p.comprador.toLowerCase().includes(s) || matchNumero(p.requisicaoNumero, s));
     }
+
     return list.sort((a, b) => b.numero - a.numero);
   }, [pedidos, requisicoes, search, filterStatus, filterFornecedor, filterComprador, filterCentroCusto, filterDataIni, filterDataFim]);
 
