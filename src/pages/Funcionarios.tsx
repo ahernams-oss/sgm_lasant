@@ -34,6 +34,7 @@ import { gerarPdfEpi } from "@/lib/gerarPdfEpi";
 import { ExamesPeriodicosTab } from "@/components/ExamesPeriodicosTab";
 import { PromocoesTab } from "@/components/PromocoesTab";
 import { NRsFuncionarioTab } from "@/components/NRsFuncionarioTab";
+import { FeriasTab } from "@/components/FeriasTab";
 import { usePermissao } from "@/hooks/usePermissao";
 
 
