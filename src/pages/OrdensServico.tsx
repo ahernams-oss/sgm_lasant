@@ -97,6 +97,80 @@ const prioridadeBadge = (p: string) => {
 
 const DEFAULT_PAGE_SIZE = 7;
 
+function FotosUploader({ disabled, onUploaded, currentCount }: { disabled: boolean; onUploaded: (url: string) => void; currentCount: number }) {
+  const isMobile = useIsMobile();
+  const galleryRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Apenas imagens são permitidas.");
+      e.target.value = "";
+      return;
+    }
+    if (currentCount >= 5) {
+      toast.error("Máximo de 5 fotos permitidas.");
+      e.target.value = "";
+      return;
+    }
+    setBusy(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `os-fotos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
+      if (error) {
+        console.error(error);
+        toast.error("Erro ao enviar imagem.");
+        return;
+      }
+      const { data: urlData } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
+      onUploaded(urlData.publicUrl);
+      toast.success("Foto anexada com sucesso!");
+    } finally {
+      setBusy(false);
+      e.target.value = "";
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label>Imagem (JPG, PNG, WEBP - máx. 5)</Label>
+      <div className="flex flex-wrap gap-2">
+        {isMobile && (
+          <Button type="button" variant="outline" disabled={disabled || busy} onClick={() => cameraRef.current?.click()}>
+            <Camera className="h-4 w-4 mr-2" />
+            Câmera
+          </Button>
+        )}
+        <Button type="button" variant="outline" disabled={disabled || busy} onClick={() => galleryRef.current?.click()}>
+          <ImagePlus className="h-4 w-4 mr-2" />
+          {isMobile ? "Galeria" : "Escolher arquivo"}
+        </Button>
+        {busy && <span className="text-sm text-muted-foreground self-center">Enviando...</span>}
+      </div>
+      <input
+        ref={galleryRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+        className="hidden"
+        onChange={handleFile}
+      />
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleFile}
+      />
+    </div>
+  );
+}
+
+
 export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
   const { assinaturas: assinaturasOs } = useOsAssinaturas();
