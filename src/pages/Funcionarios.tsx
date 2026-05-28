@@ -928,6 +928,16 @@ const Funcionarios = () => {
                 />
               </TabsContent>
 
+              {/* FÉRIAS */}
+              <TabsContent value="ferias">
+                <FeriasTab
+                  funcionarioId={editingId || ""}
+                  funcionarioNome={form.nome}
+                  dataAdmissao={form.dataAdmissao}
+                />
+              </TabsContent>
+
+
               {/* PROMOÇÕES */}
               <TabsContent value="promocoes">
                 <PromocoesTab
