@@ -153,14 +153,19 @@ export default function RequisicaoComprasPage() {
     if (filterDataIni) list = list.filter(r => r.dataCriacao >= filterDataIni);
     if (filterDataFim) list = list.filter(r => r.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
-      const s = search.toLowerCase();
+      const s = search.toLowerCase().trim();
+      const sNum = s.replace(/^rcs-?/, "").replace(/^0+/, "");
+      const numeroPad = (n: number) => String(n).padStart(4, "0");
       list = list.filter(r =>
-        String(r.numero).includes(s) ||
+        String(r.numero).includes(sNum) ||
+        numeroPad(r.numero).includes(s.replace(/^rcs-?/, "")) ||
+        `rcs-${numeroPad(r.numero)}`.includes(s) ||
         r.centroCustoNome.toLowerCase().includes(s) ||
         r.solicitante.toLowerCase().includes(s) ||
         r.itens.some(i => i.descricao.toLowerCase().includes(s))
       );
     }
+
     return list.sort((a, b) => b.numero - a.numero);
   }, [requisicoes, search, filterStatus, filterCentroCusto, filterUrgencia, filterSolicitante, filterDataIni, filterDataFim]);
 
