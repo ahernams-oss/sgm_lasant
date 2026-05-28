@@ -97,12 +97,13 @@ export default function RecebimentoComprasPage() {
     if (search) {
       const s = search.toLowerCase();
       list = list.filter(p =>
-        String(p.numero).includes(s) ||
+        matchNumero(p.numero, s) ||
         p.fornecedorNome.toLowerCase().includes(s) ||
-        String(p.requisicaoNumero).includes(s) ||
+        matchNumero(p.requisicaoNumero, s) ||
         p.localEntrega?.toLowerCase().includes(s)
       );
     }
+
     return list.sort((a, b) => b.numero - a.numero);
   }, [pedidos, search, filterStatus]);
 
