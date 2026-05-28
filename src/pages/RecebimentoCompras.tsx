@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+import { matchNumero } from "@/lib/matchNumero";
 import { usePedidoCompra, PedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useRecebimento, Recebimento, ItemRecebimento, AnexoNF } from "@/contexts/RecebimentoContext";
 import { useAuth } from "@/contexts/AuthContext";
