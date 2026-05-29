@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import type { OrdemServico } from "@/contexts/OrdensServicoContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
-import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
+import { fetchAll } from "@/lib/supabaseHelper";
 import { formatNumeroAno } from "@/lib/formatNumero";
 
 type Periodo = "semanal" | "quinzenal" | "mensal" | "personalizado";
