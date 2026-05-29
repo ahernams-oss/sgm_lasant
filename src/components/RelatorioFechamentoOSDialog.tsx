@@ -93,6 +93,7 @@ const totalOS = (o: OrdemServico) => {
 
 export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens, clientes }: Props) {
   const { empresa } = useEmpresa();
+  const { solicitacoes } = useSolicitacoesServicos();
   const [periodo, setPeriodo] = useState<Periodo>("semanal");
   const [tipo, setTipo] = useState<TipoRelatorio>("fechamento_validadas");
   const [clienteSel, setClienteSel] = useState<string>("todos");
