@@ -422,7 +422,23 @@ export default function RequisicaoComprasPage() {
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={colOrder.length + 1} className="text-center text-muted-foreground py-8">Nenhuma requisição encontrada</TableCell></TableRow>
             ) : paginate(filtered, pageReq, 7).paginated.map((r, idx) => {
-...
+              const cellMap: Record<string, ReactNode> = {
+                numero: (
+                  <span className="font-mono font-bold inline-flex items-center gap-1">
+                    {r.status === "Recusada" && <span title="Requisição recusada" aria-label="recusada">🤦🏻‍♂️</span>}
+                    RCS-{String(r.numero).padStart(4, "0")}
+                  </span>
+                ),
+                data: format(new Date(r.dataCriacao), "dd/MM/yyyy HH:mm"),
+                solicitante: r.solicitante,
+                centroCusto: r.centroCustoNome,
+                urgencia: <Badge className={r.urgencia === "Urgente" ? "bg-red-500 text-white hover:bg-red-500" : r.urgencia === "Alta" ? "bg-orange-500 text-white hover:bg-orange-500" : r.urgencia === "Normal" ? "bg-green-600 text-white hover:bg-green-600" : "bg-muted text-muted-foreground"}>{r.urgencia}</Badge>,
+                itens: r.itens.length,
+                status: <Badge className={statusColors[r.status]}>{r.status}</Badge>,
+              };
+              const podeIniciarCotacao = ["Enviada", "Aguardando Aprovação"].includes(r.status);
+              const podeRecusarReq = podeRecusar && ["Enviada", "Em Cotação", "Aguardando Aprovação"].includes(r.status);
+              const podeEditarReq = r.status === "Recusada" && r.solicitante === (usuarioLogado?.nome || "");
               return (
               <TableRow key={r.id} className={idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}>
                 {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
