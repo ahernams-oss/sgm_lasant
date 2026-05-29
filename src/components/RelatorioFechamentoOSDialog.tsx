@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FileText, FileSpreadsheet, BarChart3 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
