@@ -1024,7 +1024,7 @@ const Funcionarios = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginate(filteredFuncionarios, page, pageSize).paginated.map((f) => {
+                  {paginate(filteredFuncionarios, page, pageSize).paginated.map((f, idx) => {
                     const expBadge = (() => {
                       if (!f.experienciaFim) return null;
                       const hoje = new Date();
