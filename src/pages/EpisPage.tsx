@@ -143,38 +143,40 @@ const EpisPage = () => {
         </div>
       ) : (
         <div className="rounded-lg border border-border overflow-hidden">
+          <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Funcionário</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Cargo</TableHead>
-                <TableHead className="w-16 text-center">Qtd</TableHead>
-                <TableHead>E.P.I</TableHead>
-                <TableHead className="w-24 text-center">CA</TableHead>
-                <TableHead className="w-32 text-center">Data Entrega</TableHead>
-                <TableHead className="w-32 text-center">Vencimento</TableHead>
+                {colOrder.map(key => {
+                  const cd = colDefs[key];
+                  return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                })}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginated.map((epi, idx) => (
-                <TableRow key={`${epi.funcionarioId}-${epi.id}-${idx}`}>
-                  <TableCell className="font-medium">{epi.funcionarioNome}</TableCell>
-                  <TableCell>{epi.clienteNome}</TableCell>
-                  <TableCell>{epi.cargoNome}</TableCell>
-                  <TableCell className="text-center">{String(epi.quantidade).padStart(2, "0")}</TableCell>
-                  <TableCell>{epi.descricao}</TableCell>
-                  <TableCell className="text-center">{epi.ca || "—"}</TableCell>
-                  <TableCell className="text-center">
-                    {epi.dataEntrega ? epi.dataEntrega.split("-").reverse().join("/") : "—"}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {epi.dataVencimento ? epi.dataVencimento.split("-").reverse().join("/") : "—"}
-                  </TableCell>
+              {paginated.map((epi, idx) => {
+                const cellMap: Record<string, { node: ReactNode; className?: string }> = {
+                  funcionario: { node: epi.funcionarioNome, className: "font-medium" },
+                  cliente: { node: epi.clienteNome },
+                  cargo: { node: epi.cargoNome },
+                  qtd: { node: String(epi.quantidade).padStart(2, "0"), className: "text-center" },
+                  epi: { node: epi.descricao },
+                  ca: { node: epi.ca || "—", className: "text-center" },
+                  dataEntrega: { node: epi.dataEntrega ? epi.dataEntrega.split("-").reverse().join("/") : "—", className: "text-center" },
+                  vencimento: { node: epi.dataVencimento ? epi.dataVencimento.split("-").reverse().join("/") : "—", className: "text-center" },
+                };
+                return (
+                <TableRow key={`${epi.funcionarioId}-${epi.id}-${idx}`} className={idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}>
+                  {colOrder.map(key => {
+                    const c = cellMap[key];
+                    return <TableCell key={key} className={c?.className}>{c?.node}</TableCell>;
+                  })}
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
+          </SortableHeaderRow>
         </div>
       )}
 
