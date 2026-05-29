@@ -384,6 +384,20 @@ const Funcionarios = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  const colDefs: Record<string, { label: string; className?: string }> = {
+    nome: { label: "Nome" },
+    cpf: { label: "CPF" },
+    cargo: { label: "Cargo" },
+    cliente: { label: "Cliente" },
+    telefone: { label: "Telefone" },
+    status: { label: "Status" },
+    experiencia: { label: "Experiência" },
+  };
+  const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
+    "funcionarios.lista",
+    ["nome", "cpf", "cargo", "cliente", "telefone", "status", "experiencia"]
+  );
+
   const [promocoesPendentes, setPromocoesPendentes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
