@@ -38,6 +38,7 @@ import {
   Bell,
   BotMessageSquare,
   Box,
+  History,
   Sparkles,
   CreditCard,
   FileText,
