@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      auditoria: {
+        Row: {
+          acao: string
+          created_at: string
+          dados_antes: Json | null
+          dados_depois: Json | null
+          entidade_descricao: string | null
+          entidade_id: string | null
+          id: string
+          ip: string | null
+          modulo: string
+          user_agent: string | null
+          usuario_email: string | null
+          usuario_id: string | null
+          usuario_nome: string | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          dados_antes?: Json | null
+          dados_depois?: Json | null
+          entidade_descricao?: string | null
+          entidade_id?: string | null
+          id?: string
+          ip?: string | null
+          modulo: string
+          user_agent?: string | null
+          usuario_email?: string | null
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          dados_antes?: Json | null
+          dados_depois?: Json | null
+          entidade_descricao?: string | null
+          entidade_id?: string | null
+          id?: string
+          ip?: string | null
+          modulo?: string
+          user_agent?: string | null
+          usuario_email?: string | null
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Relationships: []
+      }
       avaliacoes_desempenho: {
         Row: {
           avaliador_id: string | null
