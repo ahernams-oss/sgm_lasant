@@ -222,8 +222,8 @@ export default function ValidarLoteOs() {
                 </TableCell>
               </TableRow>
             ) : (
-              paginated.map((s: OrdemServico) => (
-                <TableRow key={s.id} className={selectedIds.has(s.id) ? "bg-accent/50" : ""}>
+              paginated.map((s: OrdemServico, idx: number) => (
+                <TableRow key={s.id} className={selectedIds.has(s.id) ? "bg-accent/50" : (idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60")}>
                   <TableCell className="text-center">
                     <Checkbox
                       checked={selectedIds.has(s.id)}
