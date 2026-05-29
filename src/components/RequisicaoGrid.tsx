@@ -1,4 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, ReactNode } from "react";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { useRequisicoes, Requisicao, StatusHistorico } from "@/contexts/RequisicaoContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -83,6 +85,24 @@ const RequisicaoGrid = () => {
   const [justificativaSuspensao, setJustificativaSuspensao] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(7);
+
+  const colDefs: Record<string, { label: string; className?: string }> = {
+    numero: { label: "Nº", className: "pl-5" },
+    data: { label: "Data" },
+    unidade: { label: "Unidade" },
+    cargo: { label: "Cargo" },
+    jornada: { label: "Jornada" },
+    origem: { label: "Origem" },
+    substituido: { label: "Substituído" },
+    solicitante: { label: "Solicitante" },
+    aprovador: { label: "Aprovador" },
+    status: { label: "Status", className: "pr-5" },
+  };
+  const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
+    "requisicao.pessoal.grid",
+    ["numero", "data", "unidade", "cargo", "jornada", "origem", "substituido", "solicitante", "aprovador", "status"]
+  );
+
   const [editForm, setEditForm] = useState({
     unidade: "", cargoId: "", jornada: "", cargaHoraria: "",
     tipoContratacao: [] as string[], internoExterno: "", origemVaga: "", motivoOutros: "",
@@ -300,37 +320,37 @@ const RequisicaoGrid = () => {
         <p className="text-center text-sm text-muted-foreground py-10">Nenhum resultado encontrado.</p>
       ) : (
         <div className="overflow-x-auto -mx-5">
+          <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-5">Nº</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead>Unidade</TableHead>
-                <TableHead>Cargo</TableHead>
-                <TableHead>Jornada</TableHead>
-                <TableHead>Origem</TableHead>
-                <TableHead>Substituído</TableHead>
-                <TableHead>Solicitante</TableHead>
-                <TableHead>Aprovador</TableHead>
-                <TableHead className="pr-5">Status</TableHead>
+                {colOrder.map(key => {
+                  const cd = colDefs[key];
+                  return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                })}
                 <TableHead className="pr-5 text-center">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginate(filteredRequisicoes, page, pageSize).paginated.map((req, idx) => (
+              {paginate(filteredRequisicoes, page, pageSize).paginated.map((req, idx) => {
+                const cellMap: Record<string, { node: ReactNode; className?: string }> = {
+                  numero: { node: req.numero, className: "pl-5 text-xs font-medium tabular-nums" },
+                  data: { node: req.dataCriacao, className: "text-xs tabular-nums whitespace-nowrap" },
+                  unidade: { node: req.unidade, className: "text-sm" },
+                  cargo: { node: req.cargoNome, className: "text-sm font-medium" },
+                  jornada: { node: req.jornada || "—", className: "text-sm" },
+                  origem: { node: req.origemVaga || "—", className: "text-sm" },
+                  substituido: { node: req.nomeSubstituido || "—", className: "text-sm" },
+                  solicitante: { node: req.solicitante || "—", className: "text-sm" },
+                  aprovador: { node: req.aprovadoPor || "—", className: "text-sm" },
+                  status: { node: <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge> },
+                };
+                return (
                 <TableRow key={req.id} className={idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}>
-                  <TableCell className="pl-5 text-xs font-medium tabular-nums">{req.numero}</TableCell>
-                  <TableCell className="text-xs tabular-nums whitespace-nowrap">{req.dataCriacao}</TableCell>
-                  <TableCell className="text-sm">{req.unidade}</TableCell>
-                  <TableCell className="text-sm font-medium">{req.cargoNome}</TableCell>
-                  <TableCell className="text-sm">{req.jornada || "—"}</TableCell>
-                  <TableCell className="text-sm">{req.origemVaga || "—"}</TableCell>
-                  <TableCell className="text-sm">{req.nomeSubstituido || "—"}</TableCell>
-                  <TableCell className="text-sm">{req.solicitante || "—"}</TableCell>
-                  <TableCell className="text-sm">{req.aprovadoPor || "—"}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={`${statusColors[req.status]} text-xs font-medium`}>{req.status}</Badge>
-                  </TableCell>
+                  {colOrder.map(key => {
+                    const c = cellMap[key];
+                    return <TableCell key={key} className={c?.className}>{c?.node}</TableCell>;
+                  })}
                   <TableCell className="pr-5 text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -400,9 +420,11 @@ const RequisicaoGrid = () => {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
+          </SortableHeaderRow>
         </div>
       )}
       {filteredRequisicoes.length > 0 && (
