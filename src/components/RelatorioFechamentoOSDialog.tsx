@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FileText, FileSpreadsheet, BarChart3 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import type { OrdemServico } from "@/contexts/OrdensServicoContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
-import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
+import { fetchAll } from "@/lib/supabaseHelper";
 import { formatNumeroAno } from "@/lib/formatNumero";
 
 type Periodo = "semanal" | "quinzenal" | "mensal" | "personalizado";
@@ -93,7 +93,22 @@ const totalOS = (o: OrdemServico) => {
 
 export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens, clientes }: Props) {
   const { empresa } = useEmpresa();
-  const { solicitacoes } = useSolicitacoesServicos();
+  const [solicitacoes, setSolicitacoes] = useState<any[]>([]);
+  useEffect(() => {
+    if (!open) return;
+    fetchAll("solicitacoes_servicos", "numero")
+      .then(rows => setSolicitacoes((rows || []).map((r: any) => ({
+        id: r.id,
+        numero: r.numero ?? 0,
+        clienteId: r.cliente_id ?? "",
+        clienteNome: r.cliente_nome ?? "",
+        situacao: r.situacao ?? "",
+        createdAt: r.created_at ?? "",
+        dataHoraSolicitacao: r.data_hora_solicitacao ?? "",
+        historico: Array.isArray(r.historico) ? r.historico : [],
+      }))))
+      .catch(() => setSolicitacoes([]));
+  }, [open]);
   const [periodo, setPeriodo] = useState<Periodo>("semanal");
   const [tipo, setTipo] = useState<TipoRelatorio>("fechamento_validadas");
   const [clienteSel, setClienteSel] = useState<string>("todos");
