@@ -72,13 +72,13 @@ const ProcessosSeletivos = () => {
           </Card>
         ) : (
           <div className="grid gap-3">
-            {paginate(filtered, page, pageSize).paginated.map((p) => {
+            {paginate(filtered, page, pageSize).paginated.map((p, idx) => {
               const total = p.candidatos.length;
               const contratados = p.candidatos.filter((c) => c.etapaAtual === "contratacao").length;
               return (
                 <Card
                   key={p.id}
-                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  className={`cursor-pointer hover:shadow-md transition-shadow ${idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}`}
                   onClick={() => navigate(`/processo-seletivo/${p.requisicaoId}`)}
                 >
                   <CardContent className="py-4 flex items-center justify-between">
