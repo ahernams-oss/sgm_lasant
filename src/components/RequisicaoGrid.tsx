@@ -420,9 +420,11 @@ const RequisicaoGrid = () => {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
+          </SortableHeaderRow>
         </div>
       )}
       {filteredRequisicoes.length > 0 && (
