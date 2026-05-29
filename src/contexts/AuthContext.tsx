@@ -187,8 +187,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Fallback inerte usado apenas em situações transitórias (HMR, recuperação
+// de erro concorrente do React). Evita tela branca lançando exceção fora do
+// provider; o AuthProvider real é montado em App.tsx.
+const AUTH_FALLBACK: AuthContextType = {
+  usuarioLogado: null,
+  login: async () => false,
+  logout: () => {},
+  isAuthenticated: false,
+  temAcessoTotal: false,
+  clientesPermitidosIds: [],
+  resetSenha: async () => ({ ok: false, message: "Auth indisponível." }),
+};
+
 export function useAuth(): AuthContextType {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  if (!ctx) {
+    if (typeof console !== "undefined") {
+      console.warn("[useAuth] Contexto indisponível — usando fallback.");
+    }
+    return AUTH_FALLBACK;
+  }
   return ctx;
 }
