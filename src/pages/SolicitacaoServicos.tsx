@@ -932,7 +932,71 @@ export default function SolicitacaoServicosPage() {
                   Nenhuma solicitação cadastrada
                 </TableCell>
               </TableRow>
-            ) : paginated.map((s, idx) => (
+            ) : paginated.map((s, idx) => {
+              const orcSS = orcamentos.find(o => o.solicitacaoId === s.id);
+              const qtdRev = orcSS?.revisoes?.length ?? 0;
+              const cellMap: Record<string, { node: ReactNode; className?: string }> = {
+                numero: {
+                  node: (
+                    <div className="flex items-center gap-2">
+                      {s.prioridade && (
+                        <span className={`inline-block w-3 h-3 rounded-full ${getPrioridadeColor(s.prioridade)}`} title={s.prioridade} />
+                      )}
+                      {formatNumeroAno(s.numero, s.createdAt)}
+                    </div>
+                  ),
+                  className: "font-medium",
+                },
+                dataHora: {
+                  node: s.dataHoraSolicitacao ? new Date(s.dataHoraSolicitacao).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "-",
+                  className: "text-xs whitespace-nowrap",
+                },
+                solicitante: { node: s.solicitanteNome || "-", className: "text-xs" },
+                tipo: { node: <Badge variant="outline">{s.tipo}</Badge> },
+                cliente: { node: s.clienteNome || "-" },
+                local: { node: s.localDescricao || "-" },
+                equipamento: { node: s.tipo === "Equipamentos" ? (s.equipamentoNome || "-") : "-" },
+                descricao: { node: s.descricaoServicos || "-", className: "max-w-[200px] truncate" },
+                situacao: {
+                  node: (
+                    <div className="flex items-center gap-1.5">
+                      <Badge
+                        variant={
+                          s.situacao === "Concluída" ? "default" :
+                          s.situacao === "Cancelada" ? "destructive" :
+                          s.situacao === "Em execução" ? "secondary" : "outline"
+                        }
+                        className={
+                          s.situacao === "Aprovada" ? "bg-green-600 text-white border-green-600 hover:bg-green-700" :
+                          s.situacao === "Aguardando aprovação" ? "bg-yellow-500 border-yellow-500 hover:bg-yellow-600 text-primary" :
+                          s.situacao === "Orçamento Solicitado" ? "bg-blue-500 border-blue-500 hover:bg-blue-600 text-white" :
+                          s.situacao === "Orçamento Disponível" ? "bg-indigo-500 border-indigo-500 hover:bg-indigo-600 text-white" : ""
+                        }
+                      >{s.situacao}</Badge>
+                      {qtdRev > 0 && (
+                        <img
+                          src={iconRevisao}
+                          alt={`${qtdRev} pedido(s) de revisão`}
+                          title={`${qtdRev} pedido(s) de revisão`}
+                          className="h-5 w-5"
+                        />
+                      )}
+                    </div>
+                  ),
+                },
+                visitado: {
+                  node: (
+                    <Checkbox
+                      checked={s.visitado}
+                      onCheckedChange={async (checked) => {
+                        await updateSolicitacao(s.id, { visitado: !!checked });
+                      }}
+                    />
+                  ),
+                  className: "text-center",
+                },
+              };
+              return (
               <TableRow key={s.id} className={selectedIds.has(s.id) ? "bg-accent/50" : (idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60")}>
                 <TableCell className="text-center">
                   <Checkbox
@@ -941,63 +1005,10 @@ export default function SolicitacaoServicosPage() {
                     aria-label={`Selecionar SS ${s.numero}`}
                   />
                 </TableCell>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    {s.prioridade && (
-                      <span className={`inline-block w-3 h-3 rounded-full ${getPrioridadeColor(s.prioridade)}`} title={s.prioridade} />
-                    )}
-                    {formatNumeroAno(s.numero, s.createdAt)}
-                  </div>
-                </TableCell>
-                <TableCell className="text-xs whitespace-nowrap">
-                  {s.dataHoraSolicitacao ? new Date(s.dataHoraSolicitacao).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "-"}
-                </TableCell>
-                <TableCell className="text-xs">{s.solicitanteNome || "-"}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{s.tipo}</Badge>
-                </TableCell>
-                <TableCell>{s.clienteNome || "-"}</TableCell>
-                <TableCell>{s.localDescricao || "-"}</TableCell>
-                <TableCell>{s.tipo === "Equipamentos" ? (s.equipamentoNome || "-") : "-"}</TableCell>
-                <TableCell className="max-w-[200px] truncate">{s.descricaoServicos || "-"}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1.5">
-                    <Badge
-                      variant={
-                        s.situacao === "Concluída" ? "default" :
-                        s.situacao === "Cancelada" ? "destructive" :
-                        s.situacao === "Em execução" ? "secondary" : "outline"
-                      }
-                      className={
-                        s.situacao === "Aprovada" ? "bg-green-600 text-white border-green-600 hover:bg-green-700" :
-                        s.situacao === "Aguardando aprovação" ? "bg-yellow-500 border-yellow-500 hover:bg-yellow-600 text-primary" :
-                        s.situacao === "Orçamento Solicitado" ? "bg-blue-500 border-blue-500 hover:bg-blue-600 text-white" :
-                        s.situacao === "Orçamento Disponível" ? "bg-indigo-500 border-indigo-500 hover:bg-indigo-600 text-white" : ""
-                      }
-                    >{s.situacao}</Badge>
-                    {(() => {
-                      const orcSS = orcamentos.find(o => o.solicitacaoId === s.id);
-                      const qtdRev = orcSS?.revisoes?.length ?? 0;
-                      if (qtdRev === 0) return null;
-                      return (
-                        <img
-                          src={iconRevisao}
-                          alt={`${qtdRev} pedido(s) de revisão`}
-                          title={`${qtdRev} pedido(s) de revisão`}
-                          className="h-5 w-5"
-                        />
-                      );
-                    })()}
-                  </div>
-                </TableCell>
-                <TableCell className="text-center">
-                  <Checkbox
-                    checked={s.visitado}
-                    onCheckedChange={async (checked) => {
-                      await updateSolicitacao(s.id, { visitado: !!checked });
-                    }}
-                  />
-                </TableCell>
+                {colOrder.map((key) => {
+                  const c = cellMap[key];
+                  return <TableCell key={key} className={c?.className}>{c?.node}</TableCell>;
+                })}
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -1079,7 +1090,8 @@ export default function SolicitacaoServicosPage() {
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
           {filterSituacao === "Orçamento Disponível" && filtered.length > 0 && (
             <TableFooter>
