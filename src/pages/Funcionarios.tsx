@@ -1026,16 +1026,14 @@ const Funcionarios = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
+              <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>CPF</TableHead>
-                    <TableHead>Cargo</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Telefone</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Experiência</TableHead>
+                    {colOrder.map(key => {
+                      const cd = colDefs[key];
+                      return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                    })}
                     <TableHead className="w-24 text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1060,11 +1058,10 @@ const Funcionarios = () => {
                       }
                       return null;
                     })();
-                    return (
-                    <TableRow key={f.id} className={idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}>
-                      <TableCell className="font-medium">
+                    const cellMap: Record<string, ReactNode> = {
+                      nome: (
                         <div className="flex items-center gap-2">
-                          <span>{f.nome}</span>
+                          <span className="font-medium">{f.nome}</span>
                           {promocoesPendentes.has(f.id) && (
                             <img
                               src={promocaoPendenteIcon}
@@ -1074,13 +1071,17 @@ const Funcionarios = () => {
                             />
                           )}
                         </div>
-                      </TableCell>
-                      <TableCell>{f.cpf || "—"}</TableCell>
-                      <TableCell>{getCargoNome(f.cargoId)}</TableCell>
-                      <TableCell>{f.clienteId ? getClienteNome(f.clienteId) : "—"}</TableCell>
-                      <TableCell>{f.telefone}</TableCell>
-                      <TableCell>{statusBadge(f.status || "Ativo")}</TableCell>
-                      <TableCell>{expBadge || "—"}</TableCell>
+                      ),
+                      cpf: f.cpf || "—",
+                      cargo: getCargoNome(f.cargoId),
+                      cliente: f.clienteId ? getClienteNome(f.clienteId) : "—",
+                      telefone: f.telefone,
+                      status: statusBadge(f.status || "Ativo"),
+                      experiencia: expBadge || "—",
+                    };
+                    return (
+                    <TableRow key={f.id} className={idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}>
+                      {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
