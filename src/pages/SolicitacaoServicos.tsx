@@ -609,6 +609,23 @@ export default function SolicitacaoServicosPage() {
 
   const { paginated, totalPages } = paginate(filtered, page, pageSize);
 
+  const colDefs: Record<string, { label: ReactNode; className?: string; sortable?: boolean }> = {
+    numero: { label: <>Nº <SortIcon field="numero" /></>, className: "cursor-pointer select-none", sortable: true },
+    dataHora: { label: <>Data/Hora <SortIcon field="dataHora" /></>, className: "cursor-pointer select-none", sortable: true },
+    solicitante: { label: "Solicitante" },
+    tipo: { label: "Tipo" },
+    cliente: { label: "Cliente" },
+    local: { label: "Local" },
+    equipamento: { label: "Equipamento" },
+    descricao: { label: "Descrição" },
+    situacao: { label: "Situação" },
+    visitado: { label: "Visitado", className: "w-20 text-center" },
+  };
+  const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
+    "solicitacao_servicos.lista",
+    ["numero", "dataHora", "solicitante", "tipo", "cliente", "local", "equipamento", "descricao", "situacao", "visitado"]
+  );
+
   const allPageIds = paginated.map(s => s.id);
   const allPageSelected = allPageIds.length > 0 && allPageIds.every(id => selectedIds.has(id));
   const somePageSelected = allPageIds.some(id => selectedIds.has(id));
