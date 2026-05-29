@@ -1,4 +1,6 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, ReactNode } from "react";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle, Printer } from "lucide-react";
@@ -75,6 +77,33 @@ const MapaFuncionarios = () => {
   const [search, setSearch] = useState("");
   const [pageLanc, setPageLanc] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  const colDefsByTab: Record<string, Record<string, { label: string; className?: string }>> = {
+    faltas: {
+      data: { label: "Data" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
+      tipo: { label: "Tipo" }, dias: { label: "Dias" }, anexos: { label: "Anexos" }, observacao: { label: "Observação" },
+    },
+    horas_extras: {
+      data: { label: "Data" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
+      horas: { label: "Horas" }, percentual: { label: "Percentual" }, observacao: { label: "Observação" },
+    },
+    advertencias: {
+      data: { label: "Data" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
+      tipo: { label: "Tipo" }, motivo: { label: "Motivo" }, anexos: { label: "Anexos" }, observacao: { label: "Observação" },
+    },
+  };
+  const defaultsByTab: Record<string, string[]> = {
+    faltas: ["data", "funcionario", "cargo", "cliente", "tipo", "dias", "anexos", "observacao"],
+    horas_extras: ["data", "funcionario", "cargo", "cliente", "horas", "percentual", "observacao"],
+    advertencias: ["data", "funcionario", "cargo", "cliente", "tipo", "motivo", "anexos", "observacao"],
+  };
+  const colFaltas = useColumnOrder("mapa_funcionarios.faltas", defaultsByTab.faltas);
+  const colHoras = useColumnOrder("mapa_funcionarios.horas_extras", defaultsByTab.horas_extras);
+  const colAdvert = useColumnOrder("mapa_funcionarios.advertencias", defaultsByTab.advertencias);
+  const colHook = activeTab === "faltas" ? colFaltas : activeTab === "horas_extras" ? colHoras : colAdvert;
+  const colOrder = colHook.order;
+  const setColOrder = colHook.setOrder;
+  const colDefs = colDefsByTab[activeTab];
   const [filterFuncionario, setFilterFuncionario] = useState("todos");
   const [filterCliente, setFilterCliente] = useState("todos");
   const [filterMes, setFilterMes] = useState(() => {
@@ -595,97 +624,70 @@ const MapaFuncionarios = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
+              <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Funcionário</TableHead>
-                    <TableHead>Cargo</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    {activeTab === "faltas" ? (
-                      <>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Dias</TableHead>
-                        <TableHead>Anexos</TableHead>
-                      </>
-                    ) : activeTab === "horas_extras" ? (
-                      <>
-                        <TableHead>Horas</TableHead>
-                        <TableHead>Percentual</TableHead>
-                      </>
-                    ) : (
-                      <>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Motivo</TableHead>
-                        <TableHead>Anexos</TableHead>
-                      </>
-                    )}
-                    <TableHead>Observação</TableHead>
+                    {colOrder.map(key => {
+                      const cd = colDefs[key];
+                      return cd ? <SortableTableHead key={key} id={key} className={cd.className}>{cd.label}</SortableTableHead> : null;
+                    })}
                     <TableHead className="w-24 text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginate(filteredLancamentos, pageLanc, pageSize).paginated.map((l) => (
-                    <TableRow key={l.id}>
-                      <TableCell className="font-medium">{formatData(l.data)}</TableCell>
-                      <TableCell>{getFuncionarioNome(l.funcionarioId)}</TableCell>
-                      <TableCell>{getCargoNome(l.funcionarioId)}</TableCell>
-                      <TableCell>{getClienteNome(l.funcionarioId)}</TableCell>
-                      {l.tipo === "falta" ? (
-                        <>
-                          <TableCell>
-                            <Badge variant={l.tipoFalta === "injustificada" ? "destructive" : "secondary"} className="text-xs">
-                              {TIPO_FALTA_LABELS[l.tipoFalta || "injustificada"]}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{l.diasFalta || 1}</TableCell>
-                          <TableCell>
-                            {l.anexos && l.anexos.length > 0 ? (
-                              <div className="flex items-center gap-1">
-                                {l.anexos.map((a, i) => (
-                                  <button key={i} onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline text-xs flex items-center gap-0.5" title={a.nome}>
-                                    <Paperclip className="h-3 w-3" />
-                                  </button>
-                                ))}
-                                <span className="text-xs text-muted-foreground">({l.anexos.length})</span>
-                              </div>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
-                        </>
-                      ) : l.tipo === "hora_extra" ? (
-                        <>
-                          <TableCell className="font-medium">{l.horasExtras}h</TableCell>
-                          <TableCell>
-                            <Badge className="bg-primary/10 text-primary text-xs">{l.percentual}%</Badge>
-                          </TableCell>
-                        </>
-                      ) : (
-                        <>
-                          <TableCell>
-                            <Badge variant={l.tipoAdvertencia === "escrita" ? "destructive" : "secondary"} className="text-xs">
-                              {TIPO_ADVERTENCIA_LABELS[l.tipoAdvertencia || "verbal"]}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="max-w-[200px] truncate text-xs">{l.motivo || "—"}</TableCell>
-                          <TableCell>
-                            {l.anexos && l.anexos.length > 0 ? (
-                              <div className="flex items-center gap-1">
-                                {l.anexos.map((a, i) => (
-                                  <button key={i} onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline text-xs flex items-center gap-0.5" title={a.nome}>
-                                    <Paperclip className="h-3 w-3" />
-                                  </button>
-                                ))}
-                                <span className="text-xs text-muted-foreground">({l.anexos.length})</span>
-                              </div>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
-                        </>
-                      )}
-                      <TableCell className="max-w-[200px] truncate text-muted-foreground text-xs">{l.observacao || "—"}</TableCell>
+                  {paginate(filteredLancamentos, pageLanc, pageSize).paginated.map((l, idx) => {
+                    const cellMap: Record<string, { node: ReactNode; className?: string }> = {
+                      data: { node: formatData(l.data), className: "font-medium" },
+                      funcionario: { node: getFuncionarioNome(l.funcionarioId) },
+                      cargo: { node: getCargoNome(l.funcionarioId) },
+                      cliente: { node: getClienteNome(l.funcionarioId) },
+                      observacao: { node: l.observacao || "—", className: "max-w-[200px] truncate text-muted-foreground text-xs" },
+                    };
+                    if (l.tipo === "falta") {
+                      cellMap.tipo = { node: (
+                        <Badge variant={l.tipoFalta === "injustificada" ? "destructive" : "secondary"} className="text-xs">
+                          {TIPO_FALTA_LABELS[l.tipoFalta || "injustificada"]}
+                        </Badge>
+                      ) };
+                      cellMap.dias = { node: l.diasFalta || 1 };
+                      cellMap.anexos = { node: l.anexos && l.anexos.length > 0 ? (
+                        <div className="flex items-center gap-1">
+                          {l.anexos.map((a, i) => (
+                            <button key={i} onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline text-xs flex items-center gap-0.5" title={a.nome}>
+                              <Paperclip className="h-3 w-3" />
+                            </button>
+                          ))}
+                          <span className="text-xs text-muted-foreground">({l.anexos.length})</span>
+                        </div>
+                      ) : <span className="text-xs text-muted-foreground">—</span> };
+                    } else if (l.tipo === "hora_extra") {
+                      cellMap.horas = { node: `${l.horasExtras}h`, className: "font-medium" };
+                      cellMap.percentual = { node: <Badge className="bg-primary/10 text-primary text-xs">{l.percentual}%</Badge> };
+                    } else {
+                      cellMap.tipo = { node: (
+                        <Badge variant={l.tipoAdvertencia === "escrita" ? "destructive" : "secondary"} className="text-xs">
+                          {TIPO_ADVERTENCIA_LABELS[l.tipoAdvertencia || "verbal"]}
+                        </Badge>
+                      ) };
+                      cellMap.motivo = { node: l.motivo || "—", className: "max-w-[200px] truncate text-xs" };
+                      cellMap.anexos = { node: l.anexos && l.anexos.length > 0 ? (
+                        <div className="flex items-center gap-1">
+                          {l.anexos.map((a, i) => (
+                            <button key={i} onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline text-xs flex items-center gap-0.5" title={a.nome}>
+                              <Paperclip className="h-3 w-3" />
+                            </button>
+                          ))}
+                          <span className="text-xs text-muted-foreground">({l.anexos.length})</span>
+                        </div>
+                      ) : <span className="text-xs text-muted-foreground">—</span> };
+                    }
+                    return (
+                    <TableRow key={l.id} className={idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}>
+                      {colOrder.map(key => {
+                        const c = cellMap[key];
+                        return <TableCell key={key} className={c?.className}>{c?.node}</TableCell>;
+                      })}
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           {l.tipo === "advertencia" && podePdf && (
@@ -702,9 +704,11 @@ const MapaFuncionarios = () => {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
+              </SortableHeaderRow>
             </div>
           )}
         </div>
