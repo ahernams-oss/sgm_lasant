@@ -734,7 +734,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     addHeader(doc, "Ciclo de Vida — Solicitações de Serviço", `${ssFiltradas.length} SS(s) no período`, `Período: ${dataIni} a ${dataFimStr}`);
     autoTable(doc, {
       startY: 32,
-      head: [["Nº SS", "Cliente", "Situação", "Solicitação", "Aprovação", "Conclusão", "Sol→Apr", "Apr→Con", "Total"]],
+      head: [["Nº SS", "Cliente", "Situação", "Solicitação", "Aprovação", "Conclusão", "Sol-Apr", "Apr-Con", "Total"]],
       body: linhas.map(({ s, dSol, dAprov, dConcl, tSA, tAC, tTot }) => [
         formatNumeroAno(s.numero, s.createdAt),
         s.clienteNome || "-",
