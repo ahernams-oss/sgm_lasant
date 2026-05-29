@@ -962,8 +962,8 @@ export default function OrdensServicoPage() {
                     Nenhuma Ordem de Serviço encontrada.
                   </TableCell>
                 </TableRow>
-              ) : ordensPage.map(os => (
-                <TableRow key={os.id} className={selectedIds.has(os.id) ? "bg-accent" : ""}>
+              ) : ordensPage.map((os, idx) => (
+                <TableRow key={os.id} className={selectedIds.has(os.id) ? "bg-accent" : (idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60")}>
                   <TableCell>
                     {os.situacao === "Aberta" ? (
                       <Checkbox
