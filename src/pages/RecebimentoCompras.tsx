@@ -273,7 +273,7 @@ export default function RecebimentoComprasPage() {
                 ),
               };
               return (
-                <TableRow key={p.id}>
+                <TableRow key={p.id} className={idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}>
                   {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
                   <TableCell className="text-center">
                     <DropdownMenu>
