@@ -11,6 +11,7 @@ export function usePermissao() {
 
   const cargo = cargos.find(c => c.id === usuarioLogado?.cargoId);
   const acessoTotal = cargo ? CARGOS_ACESSO_TOTAL.includes(cargo.nome) : false;
+  const isDiretor = cargo?.nome === "Diretor";
 
   const perfil = perfis.find(p => p.id === usuarioLogado?.perfilAcessoId);
 
@@ -37,5 +38,5 @@ export function usePermissao() {
     return false;
   };
 
-  return { tem, temModulo, acessoTotal, perfil, usuarioLogado };
+  return { tem, temModulo, acessoTotal, isDiretor, perfil, usuarioLogado };
 }
