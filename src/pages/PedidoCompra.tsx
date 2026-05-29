@@ -528,7 +528,7 @@ export default function PedidoCompraPage() {
                 status: <Badge className={statusColors[p.status]}>{p.status}</Badge>,
               };
               return (
-                <TableRow key={p.id} className={selectedIds.includes(p.id) ? "bg-primary/5" : ""}>
+                <TableRow key={p.id} className={selectedIds.includes(p.id) ? "bg-primary/5" : (idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60")}>
                   <TableCell>
                     <Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggleSelect(p.id)} />
                   </TableCell>
