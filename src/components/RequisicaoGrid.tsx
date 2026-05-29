@@ -85,6 +85,24 @@ const RequisicaoGrid = () => {
   const [justificativaSuspensao, setJustificativaSuspensao] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(7);
+
+  const colDefs: Record<string, { label: string; className?: string }> = {
+    numero: { label: "Nº", className: "pl-5" },
+    data: { label: "Data" },
+    unidade: { label: "Unidade" },
+    cargo: { label: "Cargo" },
+    jornada: { label: "Jornada" },
+    origem: { label: "Origem" },
+    substituido: { label: "Substituído" },
+    solicitante: { label: "Solicitante" },
+    aprovador: { label: "Aprovador" },
+    status: { label: "Status", className: "pr-5" },
+  };
+  const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
+    "requisicao.pessoal.grid",
+    ["numero", "data", "unidade", "cargo", "jornada", "origem", "substituido", "solicitante", "aprovador", "status"]
+  );
+
   const [editForm, setEditForm] = useState({
     unidade: "", cargoId: "", jornada: "", cargaHoraria: "",
     tipoContratacao: [] as string[], internoExterno: "", origemVaga: "", motivoOutros: "",
