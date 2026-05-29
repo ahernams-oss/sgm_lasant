@@ -1111,6 +1111,7 @@ const Funcionarios = () => {
                   })}
                 </TableBody>
               </Table>
+              </SortableHeaderRow>
             </div>
           )}
           <PaginationControls currentPage={page} totalItems={filteredFuncionarios.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
