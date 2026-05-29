@@ -244,51 +244,60 @@ function PageInner() {
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Funcionário</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead>Período</TableHead>
-                <TableHead>Avaliador</TableHead>
-                <TableHead className="text-right">Pontuação Total</TableHead>
-                <TableHead className="text-right">Média Ponderada</TableHead>
+              <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
+                {colOrder.map((key) => {
+                  const c = colDefs[key];
+                  if (!c) return null;
+                  return (
+                    <SortableTableHead key={key} id={key} className={c.className}>
+                      {c.label}
+                    </SortableTableHead>
+                  );
+                })}
                 <TableHead className="text-right w-[180px]">Ações</TableHead>
-              </TableRow>
+              </SortableHeaderRow>
             </TableHeader>
             <TableBody>
               {paginated.length === 0 ? (
-                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-10">Nenhuma avaliação registrada.</TableCell></TableRow>
-              ) : paginated.map((a) => (
-                <TableRow key={a.id}>
-                  <TableCell className="font-medium">{funcMap[a.funcionarioId] || "—"}</TableCell>
-                  <TableCell>{a.dataAvaliacao ? new Date(a.dataAvaliacao + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</TableCell>
-                  <TableCell>{a.periodoReferencia || "—"}</TableCell>
-                  <TableCell>{a.avaliadorNome || "—"}</TableCell>
-                  <TableCell className="text-right font-mono">{a.pontuacaoTotal.toFixed(1)} / {PONTUACAO_MAXIMA}</TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant="outline" className={badgeMedia(a.mediaPonderada)}>{a.mediaPonderada.toFixed(2)}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button size="icon" variant="ghost" onClick={() => { setViewing(a); setViewOpen(true); }} title="Visualizar">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="ghost" onClick={() => gerarPdfAvaliacaoDesempenho(a, { funcionarioNome: funcMap[a.funcionarioId] || "" })} title="Baixar PDF">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      {podeEditar && (
-                        <Button size="icon" variant="ghost" onClick={() => openEdit(a)} title="Editar">
-                          <Pencil className="h-4 w-4" />
+                <TableRow><TableCell colSpan={colOrder.length + 1} className="text-center text-muted-foreground py-10">Nenhuma avaliação registrada.</TableCell></TableRow>
+              ) : paginated.map((a, idx) => {
+                const cellMap: Record<string, { node: ReactNode; className?: string }> = {
+                  funcionario: { node: <span className="font-medium">{funcMap[a.funcionarioId] || "—"}</span> },
+                  data: { node: a.dataAvaliacao ? new Date(a.dataAvaliacao + "T00:00:00").toLocaleDateString("pt-BR") : "—" },
+                  periodo: { node: a.periodoReferencia || "—" },
+                  avaliador: { node: a.avaliadorNome || "—" },
+                  pontuacao: { node: <span className="font-mono">{a.pontuacaoTotal.toFixed(1)} / {PONTUACAO_MAXIMA}</span>, className: "text-right" },
+                  media: { node: <Badge variant="outline" className={badgeMedia(a.mediaPonderada)}>{a.mediaPonderada.toFixed(2)}</Badge>, className: "text-right" },
+                };
+                return (
+                  <TableRow key={a.id} className={idx % 2 === 0 ? "bg-gray-200/60" : "bg-white"}>
+                    {colOrder.map((key) => {
+                      const c = cellMap[key];
+                      return <TableCell key={key} className={c?.className}>{c?.node}</TableCell>;
+                    })}
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button size="icon" variant="ghost" onClick={() => { setViewing(a); setViewOpen(true); }} title="Visualizar">
+                          <Eye className="h-4 w-4" />
                         </Button>
-                      )}
-                      {podeExcluir && (
-                        <Button size="icon" variant="ghost" className="text-destructive" title="Excluir" onClick={() => requestDelete(a.id)}>
-                          <Trash2 className="h-4 w-4" />
+                        <Button size="icon" variant="ghost" onClick={() => gerarPdfAvaliacaoDesempenho(a, { funcionarioNome: funcMap[a.funcionarioId] || "" })} title="Baixar PDF">
+                          <Download className="h-4 w-4" />
                         </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                        {podeEditar && (
+                          <Button size="icon" variant="ghost" onClick={() => openEdit(a)} title="Editar">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {podeExcluir && (
+                          <Button size="icon" variant="ghost" className="text-destructive" title="Excluir" onClick={() => requestDelete(a.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
           <div className="px-4 pb-4">
