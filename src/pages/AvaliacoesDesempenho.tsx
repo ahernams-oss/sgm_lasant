@@ -116,6 +116,19 @@ function PageInner() {
 
   const { paginated, totalPages, safePage } = paginate(filtered, page, pageSize);
 
+  const colDefs: Record<string, { label: string; className?: string }> = {
+    funcionario: { label: "Funcionário" },
+    data: { label: "Data" },
+    periodo: { label: "Período" },
+    avaliador: { label: "Avaliador" },
+    pontuacao: { label: "Pontuação Total", className: "text-right" },
+    media: { label: "Média Ponderada", className: "text-right" },
+  };
+  const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
+    "avaliacoes_desempenho.lista",
+    ["funcionario", "data", "periodo", "avaliador", "pontuacao", "media"]
+  );
+
   const resetForm = () => {
     setForm(emptyForm);
     setEditId(null);
