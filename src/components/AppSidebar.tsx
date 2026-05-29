@@ -229,7 +229,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { usuarioLogado, logout } = useAuth();
-  const { temModulo, acessoTotal } = usePermissao();
+  const { temModulo, acessoTotal, isDiretor } = usePermissao();
 
   const visibleGroups = menuItems
     .map((g) => ({
