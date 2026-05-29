@@ -12,10 +12,11 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import type { OrdemServico } from "@/contexts/OrdensServicoContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
+import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
 import { formatNumeroAno } from "@/lib/formatNumero";
 
 type Periodo = "semanal" | "quinzenal" | "mensal" | "personalizado";
-type TipoRelatorio = "fechamento_validadas" | "fechamento_categoria" | "analitico" | "sintetico" | "financeiro" | "produtividade" | "situacao";
+type TipoRelatorio = "fechamento_validadas" | "fechamento_categoria" | "analitico" | "sintetico" | "financeiro" | "produtividade" | "situacao" | "ciclo_ss" | "ciclo_os";
 
 interface Props {
   open: boolean;
@@ -39,6 +40,8 @@ const TIPOS: { value: TipoRelatorio; label: string; desc: string }[] = [
   { value: "financeiro", label: "Financeiro", desc: "Totais de materiais SCO, estoque, BDI e total geral por OS." },
   { value: "produtividade", label: "Produtividade", desc: "OSs por operador/profissional com tempo médio de execução." },
   { value: "situacao", label: "Por Situação", desc: "Quantidade e percentual de OSs em cada situação no período." },
+  { value: "ciclo_ss", label: "Ciclo de Vida — Solicitações (SS)", desc: "Tempo entre solicitação, aprovação e conclusão (baseado no workflow), com médias." },
+  { value: "ciclo_os", label: "Ciclo de Vida — Ordens de Serviço (OS)", desc: "Tempo entre as situações do workflow até a confirmação/validação, com tempos médios." },
 ];
 
 const fmtBRL = (n: number) => `R$ ${(Number(n) || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -90,6 +93,7 @@ const totalOS = (o: OrdemServico) => {
 
 export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens, clientes }: Props) {
   const { empresa } = useEmpresa();
+  const { solicitacoes } = useSolicitacoesServicos();
   const [periodo, setPeriodo] = useState<Periodo>("semanal");
   const [tipo, setTipo] = useState<TipoRelatorio>("fechamento_validadas");
   const [clienteSel, setClienteSel] = useState<string>("todos");
@@ -631,7 +635,214 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     onOpenChange(false);
   };
 
+  // ============ Ciclo de Vida — Solicitações de Serviço ============
+  const findHistDate = (hist: { situacao: string; data: string }[] | undefined, pattern: RegExp): string | null => {
+    if (!Array.isArray(hist)) return null;
+    const found = hist.find(h => pattern.test((h.situacao || "").toLowerCase()));
+    return found?.data || null;
+  };
+  const diffDays = (a?: string | null, b?: string | null): number | null => {
+    if (!a || !b) return null;
+    const ta = new Date(a).getTime();
+    const tb = new Date(b).getTime();
+    if (isNaN(ta) || isNaN(tb)) return null;
+    return (tb - ta) / (1000 * 60 * 60 * 24);
+  };
+  const fmtDias = (d: number | null) => d == null ? "—" : `${d.toFixed(1)} d`;
+  const avg = (arr: (number | null)[]) => {
+    const v = arr.filter((x): x is number => x != null);
+    return v.length === 0 ? null : v.reduce((s, x) => s + x, 0) / v.length;
+  };
+
+  const ssFiltradas = useMemo(() => {
+    const { ini, fim } = intervalo;
+    const iniMs = new Date(ini).setHours(0, 0, 0, 0);
+    const fimMs = new Date(fim).setHours(23, 59, 59, 999);
+    return solicitacoes.filter(s => {
+      const ref = s.createdAt ? new Date(s.createdAt).getTime() : 0;
+      if (isNaN(ref) || ref < iniMs || ref > fimMs) return false;
+      if (clienteSel !== "todos" && s.clienteId !== clienteSel) return false;
+      return true;
+    });
+  }, [solicitacoes, intervalo, clienteSel]);
+
+  const exportarCicloSS = async (formato: "pdf" | "excel") => {
+    if (ssFiltradas.length === 0) {
+      toast.error("Nenhuma SS encontrada no período/filtros selecionados.");
+      return;
+    }
+    const dataIni = fmtData(intervalo.ini.toISOString());
+    const dataFimStr = fmtData(intervalo.fim.toISOString());
+
+    const linhas = ssFiltradas.map(s => {
+      const dSol = s.dataHoraSolicitacao || s.createdAt;
+      const dAprov = findHistDate(s.historico, /aprov/);
+      const dConcl = findHistDate(s.historico, /conclu|final|valid|encerr/);
+      const tSA = diffDays(dSol, dAprov);
+      const tAC = diffDays(dAprov, dConcl);
+      const tTot = diffDays(dSol, dConcl);
+      return { s, dSol, dAprov, dConcl, tSA, tAC, tTot };
+    });
+    const mSA = avg(linhas.map(l => l.tSA));
+    const mAC = avg(linhas.map(l => l.tAC));
+    const mTot = avg(linhas.map(l => l.tTot));
+
+    if (formato === "excel") {
+      const data = linhas.map(({ s, dSol, dAprov, dConcl, tSA, tAC, tTot }) => ({
+        "Nº SS": formatNumeroAno(s.numero, s.createdAt),
+        "Cliente": s.clienteNome || "-",
+        "Situação atual": s.situacao || "-",
+        "Solicitação": fmtDataHora(dSol),
+        "Aprovação": fmtDataHora(dAprov),
+        "Conclusão": fmtDataHora(dConcl),
+        "Solic → Aprov (dias)": tSA == null ? "" : Number(tSA.toFixed(2)),
+        "Aprov → Concl (dias)": tAC == null ? "" : Number(tAC.toFixed(2)),
+        "Total (dias)": tTot == null ? "" : Number(tTot.toFixed(2)),
+      }));
+      data.push({
+        "Nº SS": "" as any, "Cliente": "" as any, "Situação atual": "MÉDIA" as any,
+        "Solicitação": "" as any, "Aprovação": "" as any, "Conclusão": "" as any,
+        "Solic → Aprov (dias)": (mSA == null ? "" : Number(mSA.toFixed(2))) as any,
+        "Aprov → Concl (dias)": (mAC == null ? "" : Number(mAC.toFixed(2))) as any,
+        "Total (dias)": (mTot == null ? "" : Number(mTot.toFixed(2))) as any,
+      });
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Ciclo SS");
+      XLSX.writeFile(wb, "ciclo_vida_solicitacoes.xlsx");
+      toast.success("Excel gerado!");
+      onOpenChange(false);
+      return;
+    }
+
+    const doc = new jsPDF({ orientation: "l", unit: "mm", format: "a4" });
+    addHeader(doc, "Ciclo de Vida — Solicitações de Serviço", `${ssFiltradas.length} SS(s) no período`, `Período: ${dataIni} a ${dataFimStr}`);
+    autoTable(doc, {
+      startY: 32,
+      head: [["Nº SS", "Cliente", "Situação", "Solicitação", "Aprovação", "Conclusão", "Sol→Apr", "Apr→Con", "Total"]],
+      body: linhas.map(({ s, dSol, dAprov, dConcl, tSA, tAC, tTot }) => [
+        formatNumeroAno(s.numero, s.createdAt),
+        s.clienteNome || "-",
+        s.situacao || "-",
+        fmtDataHora(dSol),
+        fmtDataHora(dAprov),
+        fmtDataHora(dConcl),
+        fmtDias(tSA), fmtDias(tAC), fmtDias(tTot),
+      ]),
+      foot: [[
+        { content: "MÉDIA", colSpan: 6, styles: { halign: "right" as const, fontStyle: "bold" as const } },
+        fmtDias(mSA), fmtDias(mAC), fmtDias(mTot),
+      ]],
+      styles: { fontSize: 8, cellPadding: 1.5 },
+      headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
+      footStyles: { fillColor: [230, 235, 245], textColor: 30, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+    });
+    addFooter(doc);
+    doc.save("ciclo_vida_solicitacoes.pdf");
+    toast.success("PDF gerado!");
+    onOpenChange(false);
+  };
+
+  // ============ Ciclo de Vida — Ordens de Serviço ============
+  const exportarCicloOS = async (formato: "pdf" | "excel") => {
+    // usa todas as OSs do período (sem restrição de situação)
+    const { ini, fim } = intervalo;
+    const iniMs = new Date(ini).setHours(0, 0, 0, 0);
+    const fimMs = new Date(fim).setHours(23, 59, 59, 999);
+    const osList = ordens.filter(o => {
+      const ref = o.createdAt ? new Date(o.createdAt).getTime() : 0;
+      if (isNaN(ref) || ref < iniMs || ref > fimMs) return false;
+      if (clienteSel !== "todos" && o.clienteId !== clienteSel) return false;
+      return true;
+    });
+    if (osList.length === 0) {
+      toast.error("Nenhuma OS encontrada no período/filtros selecionados.");
+      return;
+    }
+    const dataIni = fmtData(intervalo.ini.toISOString());
+    const dataFimStr = fmtData(intervalo.fim.toISOString());
+
+    const linhas = osList.map(o => {
+      const dAbert = o.createdAt;
+      const dExec = findHistDate(o.historico, /execu|andamento/);
+      const dConcl = findHistDate(o.historico, /conclu|final/);
+      const dConf = findHistDate(o.historico, /valid|confirm|encerr/);
+      const tAE = diffDays(dAbert, dExec);
+      const tEC = diffDays(dExec, dConcl);
+      const tCV = diffDays(dConcl, dConf);
+      const tTot = diffDays(dAbert, dConf || dConcl);
+      return { o, dAbert, dExec, dConcl, dConf, tAE, tEC, tCV, tTot };
+    });
+    const mAE = avg(linhas.map(l => l.tAE));
+    const mEC = avg(linhas.map(l => l.tEC));
+    const mCV = avg(linhas.map(l => l.tCV));
+    const mTot = avg(linhas.map(l => l.tTot));
+
+    if (formato === "excel") {
+      const data = linhas.map(({ o, dAbert, dExec, dConcl, dConf, tAE, tEC, tCV, tTot }) => ({
+        "Nº OS": formatNumeroAno(o.numero, o.createdAt),
+        "Cliente": o.clienteNome || "-",
+        "Situação atual": o.situacao || "-",
+        "Abertura": fmtDataHora(dAbert),
+        "Em Execução": fmtDataHora(dExec),
+        "Concluída": fmtDataHora(dConcl),
+        "Confirmada/Validada": fmtDataHora(dConf),
+        "Aber → Exec (dias)": tAE == null ? "" : Number(tAE.toFixed(2)),
+        "Exec → Concl (dias)": tEC == null ? "" : Number(tEC.toFixed(2)),
+        "Concl → Conf (dias)": tCV == null ? "" : Number(tCV.toFixed(2)),
+        "Total até Confirmação (dias)": tTot == null ? "" : Number(tTot.toFixed(2)),
+      }));
+      data.push({
+        "Nº OS": "" as any, "Cliente": "" as any, "Situação atual": "MÉDIA" as any,
+        "Abertura": "" as any, "Em Execução": "" as any, "Concluída": "" as any, "Confirmada/Validada": "" as any,
+        "Aber → Exec (dias)": (mAE == null ? "" : Number(mAE.toFixed(2))) as any,
+        "Exec → Concl (dias)": (mEC == null ? "" : Number(mEC.toFixed(2))) as any,
+        "Concl → Conf (dias)": (mCV == null ? "" : Number(mCV.toFixed(2))) as any,
+        "Total até Confirmação (dias)": (mTot == null ? "" : Number(mTot.toFixed(2))) as any,
+      });
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Ciclo OS");
+      XLSX.writeFile(wb, "ciclo_vida_ordens_servico.xlsx");
+      toast.success("Excel gerado!");
+      onOpenChange(false);
+      return;
+    }
+
+    const doc = new jsPDF({ orientation: "l", unit: "mm", format: "a4" });
+    addHeader(doc, "Ciclo de Vida — Ordens de Serviço", `${osList.length} OS(s) no período`, `Período: ${dataIni} a ${dataFimStr}`);
+    autoTable(doc, {
+      startY: 32,
+      head: [["Nº OS", "Cliente", "Situação", "Abertura", "Execução", "Conclusão", "Confirmação", "Ab→Ex", "Ex→Co", "Co→Cf", "Total"]],
+      body: linhas.map(({ o, dAbert, dExec, dConcl, dConf, tAE, tEC, tCV, tTot }) => [
+        formatNumeroAno(o.numero, o.createdAt),
+        o.clienteNome || "-",
+        o.situacao || "-",
+        fmtDataHora(dAbert),
+        fmtDataHora(dExec),
+        fmtDataHora(dConcl),
+        fmtDataHora(dConf),
+        fmtDias(tAE), fmtDias(tEC), fmtDias(tCV), fmtDias(tTot),
+      ]),
+      foot: [[
+        { content: "MÉDIA", colSpan: 7, styles: { halign: "right" as const, fontStyle: "bold" as const } },
+        fmtDias(mAE), fmtDias(mEC), fmtDias(mCV), fmtDias(mTot),
+      ]],
+      styles: { fontSize: 7.5, cellPadding: 1.3 },
+      headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
+      footStyles: { fillColor: [230, 235, 245], textColor: 30, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+    });
+    addFooter(doc);
+    doc.save("ciclo_vida_ordens_servico.pdf");
+    toast.success("PDF gerado!");
+    onOpenChange(false);
+  };
+
   const exportar = async (formato: "pdf" | "excel") => {
+    if (tipo === "ciclo_ss") { await exportarCicloSS(formato); return; }
+    if (tipo === "ciclo_os") { await exportarCicloOS(formato); return; }
     if (ordensFiltradas.length === 0) {
       toast.error("Nenhuma OS encontrada no período/filtros selecionados.");
       return;
@@ -768,7 +979,8 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
           </div>
 
           <div className="text-xs text-muted-foreground bg-muted/40 rounded-md p-2">
-            <strong>{ordensFiltradas.length}</strong> OS(s) no período — {filtrosLabel}
+            <strong>{tipo === "ciclo_ss" ? ssFiltradas.length : ordensFiltradas.length}</strong>{" "}
+            {tipo === "ciclo_ss" ? "SS(s)" : "OS(s)"} no período — {filtrosLabel}
           </div>
         </div>
 
