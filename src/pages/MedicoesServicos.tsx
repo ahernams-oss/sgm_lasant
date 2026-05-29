@@ -174,6 +174,7 @@ const MedicoesServicos = () => {
       valor_lasant: valorLasant,
       valor_empreiteiro: valorEmpreiteiro,
       observacoes,
+      anexos,
     };
     if (nextNum !== undefined) payload.numero = nextNum;
 
