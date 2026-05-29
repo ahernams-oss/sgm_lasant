@@ -44,6 +44,7 @@ export interface MedicaoServico {
   itens: ItemServico[];
   medicoes: LancamentoMedicao[];
   observacoes: string;
+  anexos?: { nome: string; path: string; tamanho: number }[];
 }
 
 interface MedicoesContextType {
