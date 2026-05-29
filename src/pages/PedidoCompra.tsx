@@ -514,7 +514,7 @@ export default function PedidoCompraPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={colOrder.length + 2} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
-            ) : paginate(filtered, pagePed, pageSize).paginated.map(p => {
+            ) : paginate(filtered, pagePed, pageSize).paginated.map((p, idx) => {
               const rcVinculada = requisicoes.find(r => r.id === p.requisicaoId);
               const canUpdate = getNextStatuses(p.status).length > 0;
               const cellMap: Record<string, ReactNode> = {
