@@ -57,6 +57,7 @@ export const ACCESS_ROUTES: { perm: string; url: string }[] = [
   { perm: "fabricantes", url: "/compras/fabricantes" },
   { perm: "usuarios", url: "/usuarios" },
   { perm: "perfis_acesso", url: "/perfis-acesso" },
+  { perm: "auditoria", url: "/auditoria" },
 ];
 
 export const lastRouteKey = (userId: string) => `lastRoute:${userId}`;
