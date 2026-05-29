@@ -359,7 +359,7 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
-          {(acessoTotal || temModulo("auditoria")) && (
+          {(isDiretor || temModulo("auditoria")) && (
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <NavLink
