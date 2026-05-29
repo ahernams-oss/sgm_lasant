@@ -3848,6 +3848,87 @@ export type Database = {
         }
         Relationships: []
       }
+      nfses_tomadas: {
+        Row: {
+          ambiente: string | null
+          base_calculo: number | null
+          chave: string
+          codigo_verificacao: string | null
+          created_at: string
+          data_emissao: string | null
+          data_recebimento: string | null
+          discriminacao: string | null
+          empresa_id: string | null
+          id: string
+          municipio_prestacao: string | null
+          numero: string | null
+          origem: string | null
+          payload: Json | null
+          prestador_cnpj: string | null
+          prestador_nome: string | null
+          serie: string | null
+          status: string | null
+          tomador_cnpj: string | null
+          updated_at: string
+          valor_iss: number | null
+          valor_servicos: number | null
+          valor_total: number | null
+          xml_url: string | null
+        }
+        Insert: {
+          ambiente?: string | null
+          base_calculo?: number | null
+          chave: string
+          codigo_verificacao?: string | null
+          created_at?: string
+          data_emissao?: string | null
+          data_recebimento?: string | null
+          discriminacao?: string | null
+          empresa_id?: string | null
+          id?: string
+          municipio_prestacao?: string | null
+          numero?: string | null
+          origem?: string | null
+          payload?: Json | null
+          prestador_cnpj?: string | null
+          prestador_nome?: string | null
+          serie?: string | null
+          status?: string | null
+          tomador_cnpj?: string | null
+          updated_at?: string
+          valor_iss?: number | null
+          valor_servicos?: number | null
+          valor_total?: number | null
+          xml_url?: string | null
+        }
+        Update: {
+          ambiente?: string | null
+          base_calculo?: number | null
+          chave?: string
+          codigo_verificacao?: string | null
+          created_at?: string
+          data_emissao?: string | null
+          data_recebimento?: string | null
+          discriminacao?: string | null
+          empresa_id?: string | null
+          id?: string
+          municipio_prestacao?: string | null
+          numero?: string | null
+          origem?: string | null
+          payload?: Json | null
+          prestador_cnpj?: string | null
+          prestador_nome?: string | null
+          serie?: string | null
+          status?: string | null
+          tomador_cnpj?: string | null
+          updated_at?: string
+          valor_iss?: number | null
+          valor_servicos?: number | null
+          valor_total?: number | null
+          xml_url?: string | null
+        }
+        Relationships: []
+      }
       obras: {
         Row: {
           cliente_id: string
