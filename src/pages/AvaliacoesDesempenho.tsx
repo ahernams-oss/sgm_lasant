@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
