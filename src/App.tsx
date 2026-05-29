@@ -172,6 +172,7 @@ function ProtectedAppRoutes() {
         <Route path="/avaliacoes-desempenho" element={<RotaProtegida perm="avaliacoes_desempenho"><AvaliacoesDesempenhoPage /></RotaProtegida>} />
         <Route path="/usuarios" element={<RotaProtegida perm="usuarios"><Usuarios /></RotaProtegida>} />
         <Route path="/perfis-acesso" element={<RotaProtegida perm="perfis_acesso"><PerfisAcessoPage /></RotaProtegida>} />
+        <Route path="/auditoria" element={<RotaProtegida perm="auditoria"><AuditoriaPage /></RotaProtegida>} />
         <Route path="/empresa" element={<RotaProtegida perm="empresa"><EmpresaDadosPage /></RotaProtegida>} />
         <Route path="/processo-seletivo/:requisicaoId" element={<RotaProtegida perm="processos_seletivos"><ProcessoSeletivo /></RotaProtegida>} />
         <Route path="/processos-seletivos" element={<RotaProtegida perm="processos_seletivos"><ProcessosSeletivos /></RotaProtegida>} />
