@@ -1,4 +1,6 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, ReactNode } from "react";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle, Printer } from "lucide-react";
