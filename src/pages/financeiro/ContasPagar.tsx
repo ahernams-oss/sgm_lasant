@@ -12,6 +12,7 @@ import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/Double
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import BaixaDialog from "@/components/financeiro/BaixaDialog";
 import EstornoCancelamentoDialog from "@/components/financeiro/EstornoCancelamentoDialog";
+import SupervisorPasswordDialog from "@/components/financeiro/SupervisorPasswordDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { usePermissao } from "@/hooks/usePermissao";
