@@ -421,7 +421,7 @@ export default function RequisicaoComprasPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={colOrder.length + 1} className="text-center text-muted-foreground py-8">Nenhuma requisição encontrada</TableCell></TableRow>
-            ) : paginate(filtered, pageReq, 7).paginated.map(r => {
+            ) : paginate(filtered, pageReq, 7).paginated.map((r, idx) => {
               const cellMap: Record<string, ReactNode> = {
                 numero: (
                   <span className="font-mono font-bold inline-flex items-center gap-1">
@@ -440,7 +440,7 @@ export default function RequisicaoComprasPage() {
               const podeRecusarReq = podeRecusar && ["Enviada", "Em Cotação", "Aguardando Aprovação"].includes(r.status);
               const podeEditarReq = r.status === "Recusada" && r.solicitante === (usuarioLogado?.nome || "");
               return (
-              <TableRow key={r.id}>
+              <TableRow key={r.id} className={idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}>
                 {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
                 <TableCell className="text-center">
                   <DropdownMenu>

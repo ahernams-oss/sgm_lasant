@@ -268,8 +268,8 @@ export default function AssinarLotePc() {
                 </TableCell>
               </TableRow>
             ) : (
-              paginated.map((p: PedidoCompra) => (
-                <TableRow key={p.id} className={selectedIds.has(p.id) ? "bg-accent/50" : ""}>
+              paginated.map((p: PedidoCompra, idx: number) => (
+                <TableRow key={p.id} className={selectedIds.has(p.id) ? "bg-accent/50" : (idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60")}>
                   <TableCell className="text-center">
                     <Checkbox
                       checked={selectedIds.has(p.id)}

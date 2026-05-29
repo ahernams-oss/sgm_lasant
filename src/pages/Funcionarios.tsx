@@ -1024,7 +1024,7 @@ const Funcionarios = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginate(filteredFuncionarios, page, pageSize).paginated.map((f) => {
+                  {paginate(filteredFuncionarios, page, pageSize).paginated.map((f, idx) => {
                     const expBadge = (() => {
                       if (!f.experienciaFim) return null;
                       const hoje = new Date();
@@ -1045,7 +1045,7 @@ const Funcionarios = () => {
                       return null;
                     })();
                     return (
-                    <TableRow key={f.id}>
+                    <TableRow key={f.id} className={idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <span>{f.nome}</span>

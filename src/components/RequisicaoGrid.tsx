@@ -317,8 +317,8 @@ const RequisicaoGrid = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginate(filteredRequisicoes, page, pageSize).paginated.map((req) => (
-                <TableRow key={req.id}>
+              {paginate(filteredRequisicoes, page, pageSize).paginated.map((req, idx) => (
+                <TableRow key={req.id} className={idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}>
                   <TableCell className="pl-5 text-xs font-medium tabular-nums">{req.numero}</TableCell>
                   <TableCell className="text-xs tabular-nums whitespace-nowrap">{req.dataCriacao}</TableCell>
                   <TableCell className="text-sm">{req.unidade}</TableCell>

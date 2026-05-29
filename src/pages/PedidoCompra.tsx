@@ -514,7 +514,7 @@ export default function PedidoCompraPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={colOrder.length + 2} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
-            ) : paginate(filtered, pagePed, pageSize).paginated.map(p => {
+            ) : paginate(filtered, pagePed, pageSize).paginated.map((p, idx) => {
               const rcVinculada = requisicoes.find(r => r.id === p.requisicaoId);
               const canUpdate = getNextStatuses(p.status).length > 0;
               const cellMap: Record<string, ReactNode> = {
@@ -528,7 +528,7 @@ export default function PedidoCompraPage() {
                 status: <Badge className={statusColors[p.status]}>{p.status}</Badge>,
               };
               return (
-                <TableRow key={p.id} className={selectedIds.includes(p.id) ? "bg-primary/5" : ""}>
+                <TableRow key={p.id} className={selectedIds.includes(p.id) ? "bg-primary/5" : (idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60")}>
                   <TableCell>
                     <Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggleSelect(p.id)} />
                   </TableCell>
