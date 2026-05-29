@@ -93,7 +93,22 @@ const totalOS = (o: OrdemServico) => {
 
 export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens, clientes }: Props) {
   const { empresa } = useEmpresa();
-  const { solicitacoes } = useSolicitacoesServicos();
+  const [solicitacoes, setSolicitacoes] = useState<any[]>([]);
+  useEffect(() => {
+    if (!open) return;
+    fetchAll("solicitacoes_servicos", "numero")
+      .then(rows => setSolicitacoes((rows || []).map((r: any) => ({
+        id: r.id,
+        numero: r.numero ?? 0,
+        clienteId: r.cliente_id ?? "",
+        clienteNome: r.cliente_nome ?? "",
+        situacao: r.situacao ?? "",
+        createdAt: r.created_at ?? "",
+        dataHoraSolicitacao: r.data_hora_solicitacao ?? "",
+        historico: Array.isArray(r.historico) ? r.historico : [],
+      }))))
+      .catch(() => setSolicitacoes([]));
+  }, [open]);
   const [periodo, setPeriodo] = useState<Periodo>("semanal");
   const [tipo, setTipo] = useState<TipoRelatorio>("fechamento_validadas");
   const [clienteSel, setClienteSel] = useState<string>("todos");
