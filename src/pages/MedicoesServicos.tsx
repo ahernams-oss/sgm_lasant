@@ -116,6 +116,7 @@ const MedicoesServicos = () => {
     setDescricao("");
     setItens([emptyItem()]);
     setObservacoes("");
+    setAnexos([]);
     setValorLasant(0);
     setValorEmpreiteiro(0);
     setEditId(null);
