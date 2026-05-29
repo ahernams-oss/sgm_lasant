@@ -212,6 +212,13 @@ export default function ContasReceber() {
       </Card>
 
       <BaixaDialog open={!!baixaConta} onOpenChange={(o) => !o && setBaixaConta(null)} conta={baixaConta} modo="receber" />
+      <EstornoCancelamentoDialog
+        open={!!estornoConta}
+        onOpenChange={(o) => !o && setEstornoConta(null)}
+        conta={estornoConta?.conta || null}
+        modo="receber"
+        acao={estornoConta?.acao || "estornar"}
+      />
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { await deleteContaReceber(deleteId); cancelDelete(); } }} />
     </div>
   );
