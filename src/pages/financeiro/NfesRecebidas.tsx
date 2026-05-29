@@ -1,10 +1,11 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, RefreshCw, FileText, Loader2, FileDown, Stethoscope, Eye } from "lucide-react";
+import { Download, RefreshCw, FileText, Loader2, FileDown, Stethoscope, Eye, Upload } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/contexts/EmpresaContext";
@@ -27,6 +28,23 @@ interface Nfe {
   xml_url: string | null;
 }
 
+interface Nfse {
+  id: string;
+  chave: string;
+  numero: string | null;
+  codigo_verificacao: string | null;
+  prestador_cnpj: string | null;
+  prestador_nome: string | null;
+  valor_total: number | null;
+  valor_servicos: number | null;
+  data_emissao: string | null;
+  ambiente: string | null;
+  status: string | null;
+  origem: string | null;
+  xml_url: string | null;
+  discriminacao: string | null;
+}
+
 const formatDateTime = (s: string | null) => {
   if (!s) return "—";
   const d = new Date(s);
@@ -43,22 +61,37 @@ const formatCnpj = (c: string | null) => {
 
 export default function NfesRecebidas() {
   const { empresa } = useEmpresa();
+  const [tab, setTab] = useState<"nfe" | "nfse">("nfe");
+
+  // NFe
   const [rows, setRows] = useState<Nfe[]>([]);
   const [loading, setLoading] = useState(false);
   const [importando, setImportando] = useState(false);
+
+  // NFS-e
+  const [nfses, setNfses] = useState<Nfse[]>([]);
+  const [loadingNfse, setLoadingNfse] = useState(false);
+  const [importandoNfse, setImportandoNfse] = useState(false);
+
+  // Filtros compartilhados
   const [busca, setBusca] = useState("");
   const [dataIni, setDataIni] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+
   const [diagOpen, setDiagOpen] = useState(false);
   const [diagLoading, setDiagLoading] = useState(false);
   const [diagData, setDiagData] = useState<any>(null);
+
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewChave, setPreviewChave] = useState<string>("");
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
   const diagnosticar = async () => {
     if (!empresa.id) return toast.error("Empresa não cadastrada");
@@ -74,30 +107,21 @@ export default function NfesRecebidas() {
     }
   };
 
-  const testarNfeio = async () => {
-    setDiagOpen(true); setDiagLoading(true); setDiagData(null);
-    try {
-      const { data, error } = await supabase.functions.invoke("testar-nfeio", { body: {} });
-      if (error) throw error;
-      setDiagData(data);
-    } catch (e: any) {
-      setDiagData({ ok: false, error: e.message });
-    } finally {
-      setDiagLoading(false);
-    }
-  };
-
-
   const load = async () => {
     setLoading(true);
-    const q = (supabase as any).from("nfes_recebidas").select("*").order("data_emissao", { ascending: false });
-    const { data, error } = await q;
-    if (error) toast.error("Erro ao carregar NFes");
-    else setRows((data as Nfe[]) || []);
+    const { data, error } = await (supabase as any).from("nfes_recebidas").select("*").order("data_emissao", { ascending: false });
+    if (error) toast.error("Erro ao carregar NFes"); else setRows((data as Nfe[]) || []);
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  const loadNfse = async () => {
+    setLoadingNfse(true);
+    const { data, error } = await (supabase as any).from("nfses_tomadas").select("*").order("data_emissao", { ascending: false });
+    if (error) toast.error("Erro ao carregar NFS-e"); else setNfses((data as Nfse[]) || []);
+    setLoadingNfse(false);
+  };
+
+  useEffect(() => { load(); loadNfse(); }, []);
 
   const importar = async () => {
     if (!empresa.id) return toast.error("Empresa não cadastrada");
@@ -118,7 +142,55 @@ export default function NfesRecebidas() {
     }
   };
 
-  const baixarXml = async (n: Nfe) => {
+  const importarNfse = async () => {
+    if (!empresa.id) return toast.error("Empresa não cadastrada");
+    setImportandoNfse(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("importar-nfses-focus", {
+        body: { empresaId: empresa.id, baixarXml: true, dataInicial: dataIni || undefined, dataFinal: dataFim || undefined },
+      });
+      if (error) throw error;
+      const r: any = data;
+      if (!r?.ok) throw new Error(r?.error || "Falha na importação de NFS-e");
+      toast.success(`Importação concluída: ${r.total} NFS-e — ${r.inseridas} novas, ${r.atualizadas} atualizadas`);
+      await loadNfse();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao importar NFS-e");
+    } finally {
+      setImportandoNfse(false);
+    }
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!empresa.id) return toast.error("Empresa não cadastrada");
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploading(true);
+    let ok = 0, fail = 0;
+    for (const f of files) {
+      try {
+        const buf = await f.arrayBuffer();
+        const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+        const { data, error } = await supabase.functions.invoke("importar-xml-manual", {
+          body: { empresaId: empresa.id, xmlBase64: b64 },
+        });
+        if (error) throw error;
+        const r: any = data;
+        if (!r?.ok) throw new Error(r?.error || "Falha");
+        ok++;
+      } catch (err: any) {
+        fail++;
+        toast.error(`${f.name}: ${err.message}`);
+      }
+    }
+    if (ok) toast.success(`${ok} XML(s) importado(s) com sucesso`);
+    if (fail) toast.error(`${fail} XML(s) falharam`);
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    await load(); await loadNfse();
+  };
+
+  const baixarXml = async (n: Nfe | Nfse) => {
     if (!n.xml_url) return toast.error("XML não disponível");
     try {
       const { data, error } = await supabase.functions.invoke("nfe-xml-url", { body: { path: n.xml_url } });
@@ -152,11 +224,8 @@ export default function NfesRecebidas() {
   };
 
   const visualizarDanfe = async (n: Nfe) => {
-    setPreviewOpen(true);
-    setPreviewLoading(true);
-    setPreviewUrl(null);
-    setPreviewBlob(null);
-    setPreviewChave(n.chave);
+    setPreviewOpen(true); setPreviewLoading(true);
+    setPreviewUrl(null); setPreviewBlob(null); setPreviewChave(n.chave);
     try {
       const blob = await gerarDanfeBlob(n);
       if (!blob) return;
@@ -196,8 +265,7 @@ export default function NfesRecebidas() {
   const fecharPreview = (open: boolean) => {
     if (!open) {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-      setPreviewBlob(null);
+      setPreviewUrl(null); setPreviewBlob(null);
     }
     setPreviewOpen(open);
   };
@@ -213,94 +281,188 @@ export default function NfesRecebidas() {
     return true;
   }), [rows, busca, dataIni, dataFim]);
 
-  useEffect(() => { setPage(1); }, [busca, dataIni, dataFim, pageSize]);
+  const filtradosNfse = useMemo(() => nfses.filter(r => {
+    if (busca) {
+      const q = busca.toLowerCase();
+      const hay = `${r.chave} ${r.numero ?? ""} ${r.prestador_nome ?? ""} ${r.prestador_cnpj ?? ""} ${r.discriminacao ?? ""}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (dataIni && r.data_emissao && r.data_emissao.slice(0, 10) < dataIni) return false;
+    if (dataFim && r.data_emissao && r.data_emissao.slice(0, 10) > dataFim) return false;
+    return true;
+  }), [nfses, busca, dataIni, dataFim]);
+
+  useEffect(() => { setPage(1); }, [busca, dataIni, dataFim, pageSize, tab]);
 
   const { paginated } = paginate(filtrados, page, pageSize);
+  const { paginated: paginatedNfse } = paginate(filtradosNfse, page, pageSize);
   const totalValor = useMemo(() => filtrados.reduce((s, r) => s + (Number(r.valor_total) || 0), 0), [filtrados]);
+  const totalValorNfse = useMemo(() => filtradosNfse.reduce((s, r) => s + (Number(r.valor_total) || 0), 0), [filtradosNfse]);
 
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-2xl font-serif font-semibold">NFes Recebidas</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={diagnosticar} disabled={!empresa.id}>
-            <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Focus
+        <h1 className="text-2xl font-serif font-semibold">Notas Fiscais Recebidas</h1>
+        <div className="flex gap-2 flex-wrap">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xml,application/xml,text/xml"
+            multiple
+            className="hidden"
+            onChange={handleUpload}
+          />
+          <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading || !empresa.id}>
+            {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+            Importar XML manual
           </Button>
-          <Button variant="outline" onClick={testarNfeio}>
-            <Stethoscope className="h-4 w-4 mr-2" /> Testar NFe.io
-          </Button>
-          <Button onClick={importar} disabled={importando || !empresa.id}>
-            {importando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-            Importar da SEFAZ
-          </Button>
+          {tab === "nfe" ? (
+            <>
+              <Button variant="outline" onClick={diagnosticar} disabled={!empresa.id}>
+                <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Focus
+              </Button>
+              <Button onClick={importar} disabled={importando || !empresa.id}>
+                {importando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                Importar NFes (SEFAZ)
+              </Button>
+            </>
+          ) : (
+            <Button onClick={importarNfse} disabled={importandoNfse || !empresa.id}>
+              {importandoNfse ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+              Importar NFS-e (Padrão Nacional)
+            </Button>
+          )}
         </div>
       </div>
 
-      <Card>
-        <CardHeader className="flex-row items-center justify-between flex-wrap gap-2">
-          <CardTitle className="text-base">
-            {filtrados.length} nota(s) — Total: {formatBRL(totalValor)}
-            {empresa.nfeAmbiente && (
-              <Badge variant="outline" className="ml-2">{empresa.nfeAmbiente}</Badge>
-            )}
-          </CardTitle>
-          <div className="flex gap-2 flex-wrap">
-            <Input placeholder="Buscar (chave, nº, emitente)" value={busca} onChange={e => setBusca(e.target.value)} className="w-72" />
-            <Input type="date" value={dataIni} onChange={e => setDataIni(e.target.value)} className="w-40" />
-            <Input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} className="w-40" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Emissão</TableHead>
-                <TableHead>Nº/Série</TableHead>
-                <TableHead>Emitente</TableHead>
-                <TableHead>CNPJ</TableHead>
-                <TableHead>Chave</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Carregando…</TableCell></TableRow>
-              ) : paginated.length === 0 ? (
-                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                  Nenhuma NFe encontrada. Clique em <b>Importar da SEFAZ</b> para buscar via Focus NFe.
-                </TableCell></TableRow>
-              ) : paginated.map(n => (
-                <TableRow key={n.id}>
-                  <TableCell>{formatDateTime(n.data_emissao)}</TableCell>
-                  <TableCell>{n.numero || "—"}{n.serie ? `/${n.serie}` : ""}</TableCell>
-                  <TableCell className="max-w-xs truncate" title={n.emitente_nome || ""}>{n.emitente_nome || "—"}</TableCell>
-                  <TableCell>{formatCnpj(n.emitente_cnpj)}</TableCell>
-                  <TableCell className="font-mono text-xs">{n.chave}</TableCell>
-                  <TableCell className="text-right">{formatBRL(n.valor_total)}</TableCell>
-                  <TableCell>{n.status ? <Badge variant="secondary">{n.status}</Badge> : "—"}</TableCell>
-                  <TableCell className="text-right">
-                    <Button size="sm" variant="ghost" disabled={!n.xml_url} onClick={() => baixarXml(n)} title="Baixar XML">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => visualizarDanfe(n)} title="Visualizar DANFE (PDF)">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => baixarDanfe(n)} title="Baixar DANFE (PDF)">
-                      <FileDown className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" disabled title="Vincular ao Pedido de Compra (em breve)">
-                      <FileText className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <PaginationControls currentPage={page} pageSize={pageSize} totalItems={filtrados.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
-        </CardContent>
-      </Card>
+      <Tabs value={tab} onValueChange={(v) => setTab(v as "nfe" | "nfse")}>
+        <TabsList>
+          <TabsTrigger value="nfe">NFe — Produtos ({filtrados.length})</TabsTrigger>
+          <TabsTrigger value="nfse">NFS-e — Serviços ({filtradosNfse.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="nfe" className="mt-4">
+          <Card>
+            <CardHeader className="flex-row items-center justify-between flex-wrap gap-2">
+              <CardTitle className="text-base">
+                {filtrados.length} nota(s) — Total: {formatBRL(totalValor)}
+                {empresa.nfeAmbiente && (<Badge variant="outline" className="ml-2">{empresa.nfeAmbiente}</Badge>)}
+              </CardTitle>
+              <div className="flex gap-2 flex-wrap">
+                <Input placeholder="Buscar (chave, nº, emitente)" value={busca} onChange={e => setBusca(e.target.value)} className="w-72" />
+                <Input type="date" value={dataIni} onChange={e => setDataIni(e.target.value)} className="w-40" />
+                <Input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} className="w-40" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Emissão</TableHead>
+                    <TableHead>Nº/Série</TableHead>
+                    <TableHead>Emitente</TableHead>
+                    <TableHead>CNPJ</TableHead>
+                    <TableHead>Chave</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Carregando…</TableCell></TableRow>
+                  ) : paginated.length === 0 ? (
+                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                      Nenhuma NFe encontrada. Clique em <b>Importar NFes</b> ou faça upload de XML.
+                    </TableCell></TableRow>
+                  ) : paginated.map(n => (
+                    <TableRow key={n.id}>
+                      <TableCell>{formatDateTime(n.data_emissao)}</TableCell>
+                      <TableCell>{n.numero || "—"}{n.serie ? `/${n.serie}` : ""}</TableCell>
+                      <TableCell className="max-w-xs truncate" title={n.emitente_nome || ""}>{n.emitente_nome || "—"}</TableCell>
+                      <TableCell>{formatCnpj(n.emitente_cnpj)}</TableCell>
+                      <TableCell className="font-mono text-xs">{n.chave}</TableCell>
+                      <TableCell className="text-right">{formatBRL(n.valor_total)}</TableCell>
+                      <TableCell>{n.status ? <Badge variant="secondary">{n.status}</Badge> : "—"}</TableCell>
+                      <TableCell className="text-right">
+                        <Button size="sm" variant="ghost" disabled={!n.xml_url} onClick={() => baixarXml(n)} title="Baixar XML">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => visualizarDanfe(n)} title="Visualizar DANFE (PDF)">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => baixarDanfe(n)} title="Baixar DANFE (PDF)">
+                          <FileDown className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" disabled title="Vincular ao Pedido de Compra (em breve)">
+                          <FileText className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <PaginationControls currentPage={page} pageSize={pageSize} totalItems={filtrados.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="nfse" className="mt-4">
+          <Card>
+            <CardHeader className="flex-row items-center justify-between flex-wrap gap-2">
+              <CardTitle className="text-base">
+                {filtradosNfse.length} NFS-e — Total: {formatBRL(totalValorNfse)}
+              </CardTitle>
+              <div className="flex gap-2 flex-wrap">
+                <Input placeholder="Buscar (nº, prestador, serviço)" value={busca} onChange={e => setBusca(e.target.value)} className="w-72" />
+                <Input type="date" value={dataIni} onChange={e => setDataIni(e.target.value)} className="w-40" />
+                <Input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} className="w-40" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Emissão</TableHead>
+                    <TableHead>Nº</TableHead>
+                    <TableHead>Prestador</TableHead>
+                    <TableHead>CNPJ</TableHead>
+                    <TableHead>Discriminação</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead>Origem</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loadingNfse ? (
+                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Carregando…</TableCell></TableRow>
+                  ) : paginatedNfse.length === 0 ? (
+                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                      Nenhuma NFS-e encontrada. Clique em <b>Importar NFS-e</b> (padrão nacional) ou faça upload do XML da prefeitura.
+                    </TableCell></TableRow>
+                  ) : paginatedNfse.map(n => (
+                    <TableRow key={n.id}>
+                      <TableCell>{formatDateTime(n.data_emissao)}</TableCell>
+                      <TableCell>{n.numero || "—"}</TableCell>
+                      <TableCell className="max-w-xs truncate" title={n.prestador_nome || ""}>{n.prestador_nome || "—"}</TableCell>
+                      <TableCell>{formatCnpj(n.prestador_cnpj)}</TableCell>
+                      <TableCell className="max-w-xs truncate" title={n.discriminacao || ""}>{n.discriminacao || "—"}</TableCell>
+                      <TableCell className="text-right">{formatBRL(n.valor_total)}</TableCell>
+                      <TableCell><Badge variant="outline">{n.origem || "—"}</Badge></TableCell>
+                      <TableCell className="text-right">
+                        <Button size="sm" variant="ghost" disabled={!n.xml_url} onClick={() => baixarXml(n)} title="Baixar XML">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <PaginationControls currentPage={page} pageSize={pageSize} totalItems={filtradosNfse.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={diagOpen} onOpenChange={setDiagOpen}>
         <DialogContent className="max-w-3xl">
