@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, CheckCircle2, AlertCircle, Paperclip, X, Filter } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, AlertCircle, Paperclip, X, Filter, Undo2, Ban } from "lucide-react";
 import { useFinanceiro, formatBRL, formatDate, isVencida, ContaPagar } from "@/contexts/FinanceiroContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import BaixaDialog from "@/components/financeiro/BaixaDialog";
+import EstornoCancelamentoDialog from "@/components/financeiro/EstornoCancelamentoDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { usePermissao } from "@/hooks/usePermissao";
@@ -49,6 +50,7 @@ export default function ContasPagar() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [baixaConta, setBaixaConta] = useState<ContaPagar | null>(null);
+  const [estornoConta, setEstornoConta] = useState<{ conta: ContaPagar; acao: "estornar" | "cancelar" } | null>(null);
   const [uploading, setUploading] = useState(false);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
@@ -370,6 +372,12 @@ export default function ContasPagar() {
                     {podeBaixar && c.status !== "paga" && c.status !== "cancelada" && (
                       <Button size="sm" variant="ghost" onClick={() => setBaixaConta(c)} title="Baixar"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /></Button>
                     )}
+                    {podeBaixar && (c.status === "paga" || c.status === "parcial") && (
+                      <Button size="sm" variant="ghost" onClick={() => setEstornoConta({ conta: c, acao: "estornar" })} title="Estornar pagamento"><Undo2 className="h-3.5 w-3.5 text-amber-600" /></Button>
+                    )}
+                    {podeEditar && c.status !== "paga" && c.status !== "cancelada" && (
+                      <Button size="sm" variant="ghost" onClick={() => setEstornoConta({ conta: c, acao: "cancelar" })} title="Cancelar com motivo"><Ban className="h-3.5 w-3.5 text-orange-600" /></Button>
+                    )}
                     {podeEditar && <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm({ ...c, valor_total: c.valor_total, data_emissao: c.data_emissao || "", data_vencimento: c.data_vencimento }); }}><Pencil className="h-3.5 w-3.5" /></Button>}
                     {podeExcluir && <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
                   </TableCell>
@@ -383,6 +391,13 @@ export default function ContasPagar() {
       </Card>
 
       <BaixaDialog open={!!baixaConta} onOpenChange={(o) => !o && setBaixaConta(null)} conta={baixaConta} modo="pagar" />
+      <EstornoCancelamentoDialog
+        open={!!estornoConta}
+        onOpenChange={(o) => !o && setEstornoConta(null)}
+        conta={estornoConta?.conta || null}
+        modo="pagar"
+        acao={estornoConta?.acao || "estornar"}
+      />
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { await deleteContaPagar(deleteId); cancelDelete(); } }} />
     </div>
   );
