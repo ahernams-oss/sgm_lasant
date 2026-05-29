@@ -74,6 +74,20 @@ export default function NfesRecebidas() {
     }
   };
 
+  const testarNfeio = async () => {
+    setDiagOpen(true); setDiagLoading(true); setDiagData(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("testar-nfeio", { body: {} });
+      if (error) throw error;
+      setDiagData(data);
+    } catch (e: any) {
+      setDiagData({ ok: false, error: e.message });
+    } finally {
+      setDiagLoading(false);
+    }
+  };
+
+
   const load = async () => {
     setLoading(true);
     const q = (supabase as any).from("nfes_recebidas").select("*").order("data_emissao", { ascending: false });
@@ -211,6 +225,9 @@ export default function NfesRecebidas() {
         <div className="flex gap-2">
           <Button variant="outline" onClick={diagnosticar} disabled={!empresa.id}>
             <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Focus
+          </Button>
+          <Button variant="outline" onClick={testarNfeio}>
+            <Stethoscope className="h-4 w-4 mr-2" /> Testar NFe.io
           </Button>
           <Button onClick={importar} disabled={importando || !empresa.id}>
             {importando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
