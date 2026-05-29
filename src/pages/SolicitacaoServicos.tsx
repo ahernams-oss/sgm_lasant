@@ -901,7 +901,7 @@ export default function SolicitacaoServicosPage() {
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
-            <TableRow>
+            <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
               <TableHead className="w-10 text-center">
                 <Checkbox
                   checked={allPageSelected}
@@ -909,18 +909,21 @@ export default function SolicitacaoServicosPage() {
                   aria-label="Selecionar todos"
                 />
               </TableHead>
-              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("numero")}>Nº <SortIcon field="numero" /></TableHead>
-              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("dataHora")}>Data/Hora <SortIcon field="dataHora" /></TableHead>
-              <TableHead>Solicitante</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Local</TableHead>
-              <TableHead>Equipamento</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead>Situação</TableHead>
-              <TableHead className="w-20 text-center">Visitado</TableHead>
+              {colOrder.map((key) => {
+                const c = colDefs[key];
+                if (!c) return null;
+                return (
+                  <SortableTableHead key={key} id={key} className={c.className}>
+                    {c.sortable ? (
+                      <span onClick={() => handleSort(key as any)} className="cursor-pointer">
+                        {c.label}
+                      </span>
+                    ) : c.label}
+                  </SortableTableHead>
+                );
+              })}
               <TableHead className="w-16">Ações</TableHead>
-            </TableRow>
+            </SortableHeaderRow>
           </TableHeader>
           <TableBody>
             {paginated.length === 0 ? (
