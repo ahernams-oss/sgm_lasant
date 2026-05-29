@@ -77,6 +77,33 @@ const MapaFuncionarios = () => {
   const [search, setSearch] = useState("");
   const [pageLanc, setPageLanc] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  const colDefsByTab: Record<string, Record<string, { label: string; className?: string }>> = {
+    faltas: {
+      data: { label: "Data" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
+      tipo: { label: "Tipo" }, dias: { label: "Dias" }, anexos: { label: "Anexos" }, observacao: { label: "Observação" },
+    },
+    horas_extras: {
+      data: { label: "Data" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
+      horas: { label: "Horas" }, percentual: { label: "Percentual" }, observacao: { label: "Observação" },
+    },
+    advertencias: {
+      data: { label: "Data" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
+      tipo: { label: "Tipo" }, motivo: { label: "Motivo" }, anexos: { label: "Anexos" }, observacao: { label: "Observação" },
+    },
+  };
+  const defaultsByTab: Record<string, string[]> = {
+    faltas: ["data", "funcionario", "cargo", "cliente", "tipo", "dias", "anexos", "observacao"],
+    horas_extras: ["data", "funcionario", "cargo", "cliente", "horas", "percentual", "observacao"],
+    advertencias: ["data", "funcionario", "cargo", "cliente", "tipo", "motivo", "anexos", "observacao"],
+  };
+  const colFaltas = useColumnOrder("mapa_funcionarios.faltas", defaultsByTab.faltas);
+  const colHoras = useColumnOrder("mapa_funcionarios.horas_extras", defaultsByTab.horas_extras);
+  const colAdvert = useColumnOrder("mapa_funcionarios.advertencias", defaultsByTab.advertencias);
+  const colHook = activeTab === "faltas" ? colFaltas : activeTab === "horas_extras" ? colHoras : colAdvert;
+  const colOrder = colHook.order;
+  const setColOrder = colHook.setOrder;
+  const colDefs = colDefsByTab[activeTab];
   const [filterFuncionario, setFilterFuncionario] = useState("todos");
   const [filterCliente, setFilterCliente] = useState("todos");
   const [filterMes, setFilterMes] = useState(() => {
