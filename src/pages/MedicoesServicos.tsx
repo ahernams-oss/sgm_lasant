@@ -136,6 +136,7 @@ const MedicoesServicos = () => {
       setDescricao(m.descricao);
       setItens(m.itens.length > 0 ? m.itens : [emptyItem()]);
       setObservacoes(m.observacoes);
+      setAnexos(((m as any).anexos as any[]) || []);
       setValorLasant((m as any).valor_lasant || 0);
       setValorEmpreiteiro((m as any).valor_empreiteiro || 0);
     } else {
