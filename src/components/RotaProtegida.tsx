@@ -12,16 +12,23 @@ interface RotaProtegidaProps {
 
 /**
  * Protege uma rota verificando a permissão do módulo no perfil de acesso do usuário.
- * Cargos com acesso total (Diretor, Gerente Executivo, Coordenador) sempre passam.
+ * Cargos com acesso total (Diretor, Gerente Executivo, Coordenador) sempre passam,
+ * exceto o módulo de Auditoria que é restrito apenas a Diretores.
  * Quando o acesso é negado, redireciona para a primeira página permitida do usuário.
  */
 export function RotaProtegida({ perm, children }: RotaProtegidaProps) {
-  const { temModulo, acessoTotal, usuarioLogado, perfil } = usePermissao();
+  const { temModulo, acessoTotal, isDiretor, usuarioLogado, perfil } = usePermissao();
   const location = useLocation();
 
   if (!usuarioLogado) return <>{children}</>;
   if (!perm) return <>{children}</>;
-  if (acessoTotal || temModulo(perm)) return <>{children}</>;
+
+  // Auditoria: acesso restrito exclusivamente a Diretores
+  if (perm === "auditoria") {
+    if (isDiretor || temModulo(perm)) return <>{children}</>;
+  } else if (acessoTotal || temModulo(perm)) {
+    return <>{children}</>;
+  }
 
   // Aguarda perfis carregarem para evitar redirects prematuros
   if (!perfil) {

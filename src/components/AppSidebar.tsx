@@ -229,7 +229,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { usuarioLogado, logout } = useAuth();
-  const { temModulo, acessoTotal } = usePermissao();
+  const { temModulo, acessoTotal, isDiretor } = usePermissao();
 
   const visibleGroups = menuItems
     .map((g) => ({
@@ -359,7 +359,7 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
-          {(acessoTotal || temModulo("auditoria")) && (
+          {(isDiretor || temModulo("auditoria")) && (
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <NavLink
