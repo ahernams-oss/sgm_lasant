@@ -1092,7 +1092,7 @@ export default function CotacaoComprasPage() {
                 status: <Badge className={statusColors[c.status] || ""}>{c.status}</Badge>,
               };
               return (
-              <TableRow key={c.id} className={selectedIds.includes(c.id) ? "bg-primary/5" : ""}>
+              <TableRow key={c.id} className={selectedIds.includes(c.id) ? "bg-primary/5" : (idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60")}>
                 <TableCell>
                   <Checkbox checked={selectedIds.includes(c.id)} onCheckedChange={() => toggleSelect(c.id)} />
                 </TableCell>
