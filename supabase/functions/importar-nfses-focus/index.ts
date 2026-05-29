@@ -29,11 +29,9 @@ Deno.serve(async (req) => {
     if (!token) return json({ ok: false, error: `Token ${tokenName} não configurado` }, 400);
     const auth = "Basic " + btoa(`${token}:`);
 
-    const params = new URLSearchParams({ cnpj });
-    if (dataInicial) params.set("data_inicial", String(dataInicial));
-    if (dataFinal) params.set("data_final", String(dataFinal));
-    // Focus NFe — NFSe Padrão Nacional (Receita / ADN)
-    const listUrl = `${baseUrl}/v2/nfses_nacional?${params.toString()}`;
+    const params = new URLSearchParams({ cnpj, completa: "1" });
+    // Focus NFe — NFSe Nacional Recebidas (ADN)
+    const listUrl = `${baseUrl}/v2/nfsens_recebidas?${params.toString()}`;
     const lst = await fetch(listUrl, { headers: { Authorization: auth, Accept: "application/json" } });
     const lstText = await lst.text();
     let arr: any[] = [];
@@ -49,7 +47,7 @@ Deno.serve(async (req) => {
       let xmlPath: string | null = null;
       if (baixarXml) {
         try {
-          const xmlPathApi = n.caminho_xml_nfse || n.caminho_xml || `/v2/nfses_nacional/${chave}.xml`;
+          const xmlPathApi = n.caminho_xml_nfse || n.caminho_xml || `/v2/nfsens_recebidas/${chave}.xml`;
           const xmlUrl = xmlPathApi.startsWith("http") ? xmlPathApi : `${baseUrl}${xmlPathApi}`;
           const xr = await fetch(xmlUrl, { headers: { Authorization: auth } });
           if (xr.ok) {
