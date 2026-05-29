@@ -380,7 +380,7 @@ export default function ContasPagar() {
                     {podeEditar && c.status !== "paga" && c.status !== "cancelada" && (
                       <Button size="sm" variant="ghost" onClick={() => setEstornoConta({ conta: c, acao: "cancelar" })} title="Cancelar com motivo"><Ban className="h-3.5 w-3.5 text-orange-600" /></Button>
                     )}
-                    {podeEditar && <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setForm({ ...c, valor_total: c.valor_total, data_emissao: c.data_emissao || "", data_vencimento: c.data_vencimento }); }}><Pencil className="h-3.5 w-3.5" /></Button>}
+                    {podeEditar && <Button size="sm" variant="ghost" onClick={() => setSupervPending(c)} title="Editar (requer supervisão)"><Pencil className="h-3.5 w-3.5" /></Button>}
                     {podeExcluir && <Button size="sm" variant="ghost" onClick={() => requestDelete(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
                   </TableCell>
                 </TableRow>
