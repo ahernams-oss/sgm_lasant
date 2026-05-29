@@ -703,6 +703,13 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
         ],
       },
       {
+        key: "auditoria",
+        label: "Auditoria",
+        acoes: [
+          { key: "auditoria.visualizar", label: "Visualizar painel de auditoria" },
+        ],
+      },
+      {
         key: "monitor_tv",
         label: "Monitor TV",
         acoes: [
