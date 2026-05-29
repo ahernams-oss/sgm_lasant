@@ -1,4 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, ReactNode } from "react";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { useRequisicoes, Requisicao, StatusHistorico } from "@/contexts/RequisicaoContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { useClientes } from "@/contexts/ClientesContext";
