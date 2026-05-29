@@ -39,6 +39,7 @@ export default function ContasReceber() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [baixaConta, setBaixaConta] = useState<ContaReceber | null>(null);
+  const [estornoConta, setEstornoConta] = useState<{ conta: ContaReceber; acao: "estornar" | "cancelar" } | null>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const handleSave = async () => {
