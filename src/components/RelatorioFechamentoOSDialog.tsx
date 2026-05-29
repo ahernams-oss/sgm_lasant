@@ -40,6 +40,8 @@ const TIPOS: { value: TipoRelatorio; label: string; desc: string }[] = [
   { value: "financeiro", label: "Financeiro", desc: "Totais de materiais SCO, estoque, BDI e total geral por OS." },
   { value: "produtividade", label: "Produtividade", desc: "OSs por operador/profissional com tempo médio de execução." },
   { value: "situacao", label: "Por Situação", desc: "Quantidade e percentual de OSs em cada situação no período." },
+  { value: "ciclo_ss", label: "Ciclo de Vida — Solicitações (SS)", desc: "Tempo entre solicitação, aprovação e conclusão (baseado no workflow), com médias." },
+  { value: "ciclo_os", label: "Ciclo de Vida — Ordens de Serviço (OS)", desc: "Tempo entre as situações do workflow até a confirmação/validação, com tempos médios." },
 ];
 
 const fmtBRL = (n: number) => `R$ ${(Number(n) || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
