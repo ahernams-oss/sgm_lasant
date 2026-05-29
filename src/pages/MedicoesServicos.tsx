@@ -88,6 +88,8 @@ const MedicoesServicos = () => {
   const [descricao, setDescricao] = useState("");
   const [itens, setItens] = useState<ItemServico[]>([emptyItem()]);
   const [observacoes, setObservacoes] = useState("");
+  const [anexos, setAnexos] = useState<{ nome: string; path: string; tamanho: number }[]>([]);
+  const [uploadingAnexo, setUploadingAnexo] = useState(false);
   const [fornecedorId, setFornecedorId] = useState("");
   const [fornecedorNome, setFornecedorNome] = useState("");
   const [dataPagamento, setDataPagamento] = useState<Date | undefined>(undefined);
