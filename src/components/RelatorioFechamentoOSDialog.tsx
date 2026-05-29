@@ -12,10 +12,11 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import type { OrdemServico } from "@/contexts/OrdensServicoContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
+import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
 import { formatNumeroAno } from "@/lib/formatNumero";
 
 type Periodo = "semanal" | "quinzenal" | "mensal" | "personalizado";
-type TipoRelatorio = "fechamento_validadas" | "fechamento_categoria" | "analitico" | "sintetico" | "financeiro" | "produtividade" | "situacao";
+type TipoRelatorio = "fechamento_validadas" | "fechamento_categoria" | "analitico" | "sintetico" | "financeiro" | "produtividade" | "situacao" | "ciclo_ss" | "ciclo_os";
 
 interface Props {
   open: boolean;
