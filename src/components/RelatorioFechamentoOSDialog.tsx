@@ -829,7 +829,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     addHeader(doc, "Ciclo de Vida — Ordens de Serviço", `${osList.length} OS(s) no período`, `Período: ${dataIni} a ${dataFimStr}`);
     autoTable(doc, {
       startY: 32,
-      head: [["Nº OS", "Cliente", "Situação", "Abertura", "Execução", "Conclusão", "Confirmação", "Ab→Ex", "Ex→Co", "Co→Cf", "Total"]],
+      head: [["Nº OS", "Cliente", "Situação", "Abertura", "Execução", "Conclusão", "Confirmação", "Ab-Ex", "Ex-Co", "Co-Cf", "Total"]],
       body: linhas.map(({ o, dAbert, dExec, dConcl, dConf, tAE, tEC, tCV, tTot }) => [
         formatNumeroAno(o.numero, o.createdAt),
         o.clienteNome || "-",
