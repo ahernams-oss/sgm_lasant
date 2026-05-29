@@ -911,7 +911,7 @@ export default function SolicitacaoServicosPage() {
                 </TableCell>
               </TableRow>
             ) : paginated.map((s, idx) => (
-              <TableRow key={s.id} className={selectedIds.has(s.id) ? "bg-accent/50" : (idx % 2 === 1 ? "bg-muted/40" : "bg-background")}>
+              <TableRow key={s.id} className={selectedIds.has(s.id) ? "bg-accent/50" : (idx % 2 === 1 ? "bg-muted/15" : "bg-background")}>
                 <TableCell className="text-center">
                   <Checkbox
                     checked={selectedIds.has(s.id)}
