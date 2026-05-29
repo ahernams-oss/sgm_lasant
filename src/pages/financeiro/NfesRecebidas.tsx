@@ -74,6 +74,20 @@ export default function NfesRecebidas() {
     }
   };
 
+  const testarNfeio = async () => {
+    setDiagOpen(true); setDiagLoading(true); setDiagData(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("testar-nfeio", { body: {} });
+      if (error) throw error;
+      setDiagData(data);
+    } catch (e: any) {
+      setDiagData({ ok: false, error: e.message });
+    } finally {
+      setDiagLoading(false);
+    }
+  };
+
+
   const load = async () => {
     setLoading(true);
     const q = (supabase as any).from("nfes_recebidas").select("*").order("data_emissao", { ascending: false });
