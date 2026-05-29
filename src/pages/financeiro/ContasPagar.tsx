@@ -52,6 +52,7 @@ export default function ContasPagar() {
   const [pageSize, setPageSize] = useState(10);
   const [baixaConta, setBaixaConta] = useState<ContaPagar | null>(null);
   const [estornoConta, setEstornoConta] = useState<{ conta: ContaPagar; acao: "estornar" | "cancelar" } | null>(null);
+  const [supervPending, setSupervPending] = useState<ContaPagar | null>(null);
   const [uploading, setUploading] = useState(false);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
