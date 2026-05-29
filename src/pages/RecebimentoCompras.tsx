@@ -249,7 +249,7 @@ export default function RecebimentoComprasPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={colOrder.length + 1} className="text-center text-muted-foreground py-8">Nenhum pedido encontrado</TableCell></TableRow>
-            ) : paginate(filtered, pageRec, pageSize).paginated.map(p => {
+            ) : paginate(filtered, pageRec, pageSize).paginated.map((p, idx) => {
               const recsPedido = getRecebimentosByPedido(p.id);
               const totalItens = p.itens.length;
               const itensCompletos = p.itens.filter(i => {
