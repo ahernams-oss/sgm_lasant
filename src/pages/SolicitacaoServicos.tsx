@@ -1,4 +1,6 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, type ReactNode } from "react";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { useSolicitacoesServicos, SolicitacaoServico, HistoricoEntry } from "@/contexts/SolicitacoesServicosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
@@ -607,6 +609,23 @@ export default function SolicitacaoServicosPage() {
 
   const { paginated, totalPages } = paginate(filtered, page, pageSize);
 
+  const colDefs: Record<string, { label: ReactNode; className?: string; sortable?: boolean }> = {
+    numero: { label: <>Nº <SortIcon field="numero" /></>, className: "cursor-pointer select-none", sortable: true },
+    dataHora: { label: <>Data/Hora <SortIcon field="dataHora" /></>, className: "cursor-pointer select-none", sortable: true },
+    solicitante: { label: "Solicitante" },
+    tipo: { label: "Tipo" },
+    cliente: { label: "Cliente" },
+    local: { label: "Local" },
+    equipamento: { label: "Equipamento" },
+    descricao: { label: "Descrição" },
+    situacao: { label: "Situação" },
+    visitado: { label: "Visitado", className: "w-20 text-center" },
+  };
+  const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
+    "solicitacao_servicos.lista",
+    ["numero", "dataHora", "solicitante", "tipo", "cliente", "local", "equipamento", "descricao", "situacao", "visitado"]
+  );
+
   const allPageIds = paginated.map(s => s.id);
   const allPageSelected = allPageIds.length > 0 && allPageIds.every(id => selectedIds.has(id));
   const somePageSelected = allPageIds.some(id => selectedIds.has(id));
@@ -882,7 +901,7 @@ export default function SolicitacaoServicosPage() {
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
-            <TableRow>
+            <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
               <TableHead className="w-10 text-center">
                 <Checkbox
                   checked={allPageSelected}
@@ -890,18 +909,21 @@ export default function SolicitacaoServicosPage() {
                   aria-label="Selecionar todos"
                 />
               </TableHead>
-              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("numero")}>Nº <SortIcon field="numero" /></TableHead>
-              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("dataHora")}>Data/Hora <SortIcon field="dataHora" /></TableHead>
-              <TableHead>Solicitante</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Local</TableHead>
-              <TableHead>Equipamento</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead>Situação</TableHead>
-              <TableHead className="w-20 text-center">Visitado</TableHead>
+              {colOrder.map((key) => {
+                const c = colDefs[key];
+                if (!c) return null;
+                return (
+                  <SortableTableHead key={key} id={key} className={c.className}>
+                    {c.sortable ? (
+                      <span onClick={() => handleSort(key as any)} className="cursor-pointer">
+                        {c.label}
+                      </span>
+                    ) : c.label}
+                  </SortableTableHead>
+                );
+              })}
               <TableHead className="w-16">Ações</TableHead>
-            </TableRow>
+            </SortableHeaderRow>
           </TableHeader>
           <TableBody>
             {paginated.length === 0 ? (
@@ -910,7 +932,71 @@ export default function SolicitacaoServicosPage() {
                   Nenhuma solicitação cadastrada
                 </TableCell>
               </TableRow>
-            ) : paginated.map((s, idx) => (
+            ) : paginated.map((s, idx) => {
+              const orcSS = orcamentos.find(o => o.solicitacaoId === s.id);
+              const qtdRev = orcSS?.revisoes?.length ?? 0;
+              const cellMap: Record<string, { node: ReactNode; className?: string }> = {
+                numero: {
+                  node: (
+                    <div className="flex items-center gap-2">
+                      {s.prioridade && (
+                        <span className={`inline-block w-3 h-3 rounded-full ${getPrioridadeColor(s.prioridade)}`} title={s.prioridade} />
+                      )}
+                      {formatNumeroAno(s.numero, s.createdAt)}
+                    </div>
+                  ),
+                  className: "font-medium",
+                },
+                dataHora: {
+                  node: s.dataHoraSolicitacao ? new Date(s.dataHoraSolicitacao).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "-",
+                  className: "text-xs whitespace-nowrap",
+                },
+                solicitante: { node: s.solicitanteNome || "-", className: "text-xs" },
+                tipo: { node: <Badge variant="outline">{s.tipo}</Badge> },
+                cliente: { node: s.clienteNome || "-" },
+                local: { node: s.localDescricao || "-" },
+                equipamento: { node: s.tipo === "Equipamentos" ? (s.equipamentoNome || "-") : "-" },
+                descricao: { node: s.descricaoServicos || "-", className: "max-w-[200px] truncate" },
+                situacao: {
+                  node: (
+                    <div className="flex items-center gap-1.5">
+                      <Badge
+                        variant={
+                          s.situacao === "Concluída" ? "default" :
+                          s.situacao === "Cancelada" ? "destructive" :
+                          s.situacao === "Em execução" ? "secondary" : "outline"
+                        }
+                        className={
+                          s.situacao === "Aprovada" ? "bg-green-600 text-white border-green-600 hover:bg-green-700" :
+                          s.situacao === "Aguardando aprovação" ? "bg-yellow-500 border-yellow-500 hover:bg-yellow-600 text-primary" :
+                          s.situacao === "Orçamento Solicitado" ? "bg-blue-500 border-blue-500 hover:bg-blue-600 text-white" :
+                          s.situacao === "Orçamento Disponível" ? "bg-indigo-500 border-indigo-500 hover:bg-indigo-600 text-white" : ""
+                        }
+                      >{s.situacao}</Badge>
+                      {qtdRev > 0 && (
+                        <img
+                          src={iconRevisao}
+                          alt={`${qtdRev} pedido(s) de revisão`}
+                          title={`${qtdRev} pedido(s) de revisão`}
+                          className="h-5 w-5"
+                        />
+                      )}
+                    </div>
+                  ),
+                },
+                visitado: {
+                  node: (
+                    <Checkbox
+                      checked={s.visitado}
+                      onCheckedChange={async (checked) => {
+                        await updateSolicitacao(s.id, { visitado: !!checked });
+                      }}
+                    />
+                  ),
+                  className: "text-center",
+                },
+              };
+              return (
               <TableRow key={s.id} className={selectedIds.has(s.id) ? "bg-accent/50" : (idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60")}>
                 <TableCell className="text-center">
                   <Checkbox
@@ -919,63 +1005,10 @@ export default function SolicitacaoServicosPage() {
                     aria-label={`Selecionar SS ${s.numero}`}
                   />
                 </TableCell>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    {s.prioridade && (
-                      <span className={`inline-block w-3 h-3 rounded-full ${getPrioridadeColor(s.prioridade)}`} title={s.prioridade} />
-                    )}
-                    {formatNumeroAno(s.numero, s.createdAt)}
-                  </div>
-                </TableCell>
-                <TableCell className="text-xs whitespace-nowrap">
-                  {s.dataHoraSolicitacao ? new Date(s.dataHoraSolicitacao).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "-"}
-                </TableCell>
-                <TableCell className="text-xs">{s.solicitanteNome || "-"}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{s.tipo}</Badge>
-                </TableCell>
-                <TableCell>{s.clienteNome || "-"}</TableCell>
-                <TableCell>{s.localDescricao || "-"}</TableCell>
-                <TableCell>{s.tipo === "Equipamentos" ? (s.equipamentoNome || "-") : "-"}</TableCell>
-                <TableCell className="max-w-[200px] truncate">{s.descricaoServicos || "-"}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1.5">
-                    <Badge
-                      variant={
-                        s.situacao === "Concluída" ? "default" :
-                        s.situacao === "Cancelada" ? "destructive" :
-                        s.situacao === "Em execução" ? "secondary" : "outline"
-                      }
-                      className={
-                        s.situacao === "Aprovada" ? "bg-green-600 text-white border-green-600 hover:bg-green-700" :
-                        s.situacao === "Aguardando aprovação" ? "bg-yellow-500 border-yellow-500 hover:bg-yellow-600 text-primary" :
-                        s.situacao === "Orçamento Solicitado" ? "bg-blue-500 border-blue-500 hover:bg-blue-600 text-white" :
-                        s.situacao === "Orçamento Disponível" ? "bg-indigo-500 border-indigo-500 hover:bg-indigo-600 text-white" : ""
-                      }
-                    >{s.situacao}</Badge>
-                    {(() => {
-                      const orcSS = orcamentos.find(o => o.solicitacaoId === s.id);
-                      const qtdRev = orcSS?.revisoes?.length ?? 0;
-                      if (qtdRev === 0) return null;
-                      return (
-                        <img
-                          src={iconRevisao}
-                          alt={`${qtdRev} pedido(s) de revisão`}
-                          title={`${qtdRev} pedido(s) de revisão`}
-                          className="h-5 w-5"
-                        />
-                      );
-                    })()}
-                  </div>
-                </TableCell>
-                <TableCell className="text-center">
-                  <Checkbox
-                    checked={s.visitado}
-                    onCheckedChange={async (checked) => {
-                      await updateSolicitacao(s.id, { visitado: !!checked });
-                    }}
-                  />
-                </TableCell>
+                {colOrder.map((key) => {
+                  const c = cellMap[key];
+                  return <TableCell key={key} className={c?.className}>{c?.node}</TableCell>;
+                })}
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -1057,7 +1090,8 @@ export default function SolicitacaoServicosPage() {
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
           {filterSituacao === "Orçamento Disponível" && filtered.length > 0 && (
             <TableFooter>
