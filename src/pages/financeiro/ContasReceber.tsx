@@ -221,6 +221,25 @@ export default function ContasReceber() {
         modo="receber"
         acao={estornoConta?.acao || "estornar"}
       />
+      <SupervisorPasswordDialog
+        open={!!supervPending}
+        onOpenChange={(o) => !o && setSupervPending(null)}
+        descricao="A edição de lançamentos financeiros exige aprovação de um supervisor. A justificativa será registrada na observação da conta."
+        onAuthorized={async ({ email, justificativa }) => {
+          const c = supervPending!;
+          const carimbo = `[AJUSTE AUTORIZADO ${new Date().toLocaleString("pt-BR")} por ${email}] ${justificativa}`;
+          const novaObs = c.observacao ? `${c.observacao}\n${carimbo}` : carimbo;
+          setEditingId(c.id);
+          setForm({
+            ...c,
+            observacao: novaObs,
+            valor_total: c.valor_total,
+            data_emissao: c.data_emissao || "",
+            data_vencimento: c.data_vencimento,
+          });
+          toast.success("Edição autorizada.");
+        }}
+      />
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(o) => !o && cancelDelete()} onConfirm={async () => { if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); cancelDelete(); return; } if (deleteId) { await deleteContaReceber(deleteId); cancelDelete(); } }} />
     </div>
   );
