@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, CheckCircle2 } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, Undo2, Ban } from "lucide-react";
 import { useFinanceiro, formatBRL, formatDate, isVencida, ContaReceber } from "@/contexts/FinanceiroContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import BaixaDialog from "@/components/financeiro/BaixaDialog";
+import EstornoCancelamentoDialog from "@/components/financeiro/EstornoCancelamentoDialog";
 import { toast } from "sonner";
 import { usePermissao } from "@/hooks/usePermissao";
 
