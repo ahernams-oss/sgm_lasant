@@ -38,6 +38,7 @@ import {
   Bell,
   BotMessageSquare,
   Box,
+  History,
   Sparkles,
   CreditCard,
   FileText,
@@ -354,6 +355,21 @@ export function AppSidebar() {
                 >
                   <KeyRound className="mr-2 h-4 w-4" />
                   {!collapsed && <span>Perfis de Acesso</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {(acessoTotal || temModulo("auditoria")) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <NavLink
+                  to="/auditoria"
+                  end
+                  className="hover:bg-sidebar-accent/50"
+                  activeClassName="bg-sidebar-accent text-primary font-medium"
+                >
+                  <History className="mr-2 h-4 w-4" />
+                  {!collapsed && <span>Auditoria</span>}
                 </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
