@@ -979,7 +979,8 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
           </div>
 
           <div className="text-xs text-muted-foreground bg-muted/40 rounded-md p-2">
-            <strong>{ordensFiltradas.length}</strong> OS(s) no período — {filtrosLabel}
+            <strong>{tipo === "ciclo_ss" ? ssFiltradas.length : ordensFiltradas.length}</strong>{" "}
+            {tipo === "ciclo_ss" ? "SS(s)" : "OS(s)"} no período — {filtrosLabel}
           </div>
         </div>
 
