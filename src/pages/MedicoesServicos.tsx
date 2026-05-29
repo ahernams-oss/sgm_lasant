@@ -521,6 +521,77 @@ const MedicoesServicos = () => {
                 <Textarea value={observacoes} onChange={e => setObservacoes(e.target.value)} rows={2} />
               </div>
 
+              <div className="space-y-2">
+                <Label>Anexos</Label>
+                <div className="border rounded-md p-3 space-y-2">
+                  {anexos.length === 0 && (
+                    <p className="text-xs text-muted-foreground">Nenhum anexo. Tamanho máximo: 10MB por arquivo.</p>
+                  )}
+                  {anexos.map((a, i) => (
+                    <div key={i} className="flex items-center justify-between gap-2 text-sm bg-muted/30 rounded px-2 py-1">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const { data } = await supabase.storage.from("medicoes-anexos").createSignedUrl(a.path, 60);
+                          if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+                        }}
+                        className="text-primary hover:underline flex items-center gap-2 truncate"
+                        title={a.nome}
+                      >
+                        <Paperclip className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{a.nome}</span>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          ({(a.tamanho / 1024).toFixed(0)} KB)
+                        </span>
+                      </button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={async () => {
+                          await supabase.storage.from("medicoes-anexos").remove([a.path]);
+                          setAnexos((prev) => prev.filter((_, idx) => idx !== i));
+                          toast({ title: "Anexo removido" });
+                        }}
+                      >
+                        <X className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                  <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-primary hover:underline">
+                    <Upload className="h-4 w-4" />
+                    <span>{uploadingAnexo ? "Enviando..." : "Anexar arquivo"}</span>
+                    <input
+                      type="file"
+                      className="hidden"
+                      disabled={uploadingAnexo}
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 10 * 1024 * 1024) {
+                          toast({ title: "Arquivo muito grande (máx. 10MB)", variant: "destructive" });
+                          e.target.value = "";
+                          return;
+                        }
+                        setUploadingAnexo(true);
+                        try {
+                          const path = `medicao/${editId || "novo"}/${Date.now()}_${file.name}`;
+                          const { error } = await supabase.storage.from("medicoes-anexos").upload(path, file);
+                          if (error) { toast({ title: "Erro ao enviar arquivo", variant: "destructive" }); return; }
+                          setAnexos((prev) => [...prev, { nome: file.name, path, tamanho: file.size }]);
+                          toast({ title: "Anexo enviado" });
+                        } finally {
+                          setUploadingAnexo(false);
+                          e.target.value = "";
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+
+
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => { setShowForm(false); resetForm(); }}>Cancelar</Button>
                 <Button onClick={handleSave}>{editId ? "Salvar Alterações" : "Criar Medição"}</Button>
