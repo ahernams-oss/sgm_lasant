@@ -769,6 +769,21 @@ export default function OrdensServicoPage() {
 
   const { paginated: ordensPage, totalPages, safePage } = paginate(ordensFiltradas, page, pageSize);
 
+  const colDefs: Record<string, { label: string; className?: string }> = {
+    numero: { label: "Nº OS", className: "w-[80px]" },
+    cliente: { label: "Cliente" },
+    descricao: { label: "Descrição" },
+    prioridade: { label: "Prioridade" },
+    situacao: { label: "Situação" },
+    dataAbertura: { label: "Data Abertura" },
+    dataInicio: { label: "Data Início" },
+    valor: { label: "Valor (c/ BDI)", className: "text-right" },
+  };
+  const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
+    "ordens_servico.lista",
+    ["numero", "cliente", "descricao", "prioridade", "situacao", "dataAbertura", "dataInicio", "valor"]
+  );
+
   const abertasNaPagina = ordensPage.filter(o => o.situacao === "Aberta");
   const allAbertasSelected = abertasNaPagina.length > 0 && abertasNaPagina.every(o => selectedIds.has(o.id));
 
