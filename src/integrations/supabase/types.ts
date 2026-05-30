@@ -3533,6 +3533,8 @@ export type Database = {
       }
       licitacoes_analises: {
         Row: {
+          analise_ia_gerada_em: string | null
+          analise_ia_markdown: string | null
           analista: string | null
           created_at: string | null
           data_analise: string | null
@@ -3554,6 +3556,8 @@ export type Database = {
           riscos_juridicos: string | null
         }
         Insert: {
+          analise_ia_gerada_em?: string | null
+          analise_ia_markdown?: string | null
           analista?: string | null
           created_at?: string | null
           data_analise?: string | null
@@ -3575,6 +3579,8 @@ export type Database = {
           riscos_juridicos?: string | null
         }
         Update: {
+          analise_ia_gerada_em?: string | null
+          analise_ia_markdown?: string | null
           analista?: string | null
           created_at?: string | null
           data_analise?: string | null
