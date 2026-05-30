@@ -17,9 +17,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Search, Eye, Pencil, Trash2, Upload, FileText, ChevronDown, ExternalLink, AlertTriangle, CheckCircle2, Clock, XCircle, Filter, Send, Phone, Settings, X } from "lucide-react";
+import { Plus, Search, Eye, Pencil, Trash2, Upload, FileText, ChevronDown, ExternalLink, AlertTriangle, CheckCircle2, Clock, XCircle, Filter, Send, Phone, Settings, X, Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import ReactMarkdown from "react-markdown";
 
 // ============ CONSTANTS ============
 
@@ -110,7 +111,7 @@ const EMPTY_ANALISE: Omit<AnaliseLicitacao, "id"> = {
   exigenciaGarantiaProposta: "", necessidadeCatCreaCau: "", necessidadeCertidoes: "",
   riscosJuridicos: "", pontosRestritivos: "", oportunidadesImpugnacao: "",
   decisaoParticipar: "Pendente de decisão da diretoria", analista: "", dataAnalise: "",
-  observacoes: "",
+  observacoes: "", analiseIaMarkdown: "", analiseIaGeradaEm: "",
 };
 
 // ============ COMPONENT ============
@@ -352,6 +353,55 @@ export default function LicitacoesPage() {
   const [editAnaliseId, setEditAnaliseId] = useState<string | null>(null);
   const [viewAnaliseId, setViewAnaliseId] = useState<string | null>(null);
 
+  // ===== Análise por IA =====
+  const [iaDialogOpen, setIaDialogOpen] = useState(false);
+  const [iaLicitacaoId, setIaLicitacaoId] = useState<string>("");
+  const [iaFiles, setIaFiles] = useState<File[]>([]);
+  const [iaLoading, setIaLoading] = useState(false);
+
+  const handleAnalisarIA = async () => {
+    if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
+    if (!iaLicitacaoId) { toast({ title: "Selecione a licitação", variant: "destructive" }); return; }
+    if (iaFiles.length === 0) { toast({ title: "Anexe ao menos um PDF (edital, TR ou anexos)", variant: "destructive" }); return; }
+    const naoPdf = iaFiles.find(f => f.type && f.type !== "application/pdf" && !f.name.toLowerCase().endsWith(".pdf"));
+    if (naoPdf) { toast({ title: "Apenas arquivos PDF são aceitos", description: naoPdf.name, variant: "destructive" }); return; }
+    const tamanhoTotalMb = iaFiles.reduce((s, f) => s + f.size, 0) / (1024 * 1024);
+    if (tamanhoTotalMb > 40) { toast({ title: "Tamanho total acima de 40 MB", description: "Reduza ou divida os arquivos.", variant: "destructive" }); return; }
+
+    setIaLoading(true);
+    try {
+      const fd = new FormData();
+      iaFiles.forEach((f, i) => fd.append(`file${i}`, f, f.name));
+      const { data, error } = await supabase.functions.invoke('analisar-edital-licitacao', { body: fd });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const markdown: string = (data as any)?.markdown || "";
+      if (!markdown) throw new Error("A IA não retornou conteúdo.");
+
+      const lic = licitacoes.find(l => l.id === iaLicitacaoId);
+      const novaAnalise: Omit<AnaliseLicitacao, "id"> = {
+        ...EMPTY_ANALISE,
+        licitacaoId: iaLicitacaoId,
+        analista: `IA (Gemini 2.5 Pro) - ${usuarioLogado?.nome || ""}`.trim(),
+        dataAnalise: format(new Date(), "yyyy-MM-dd"),
+        resumoObjeto: lic?.objetoResumido || "",
+        observacoes: `Arquivos analisados: ${((data as any)?.arquivosAnalisados || iaFiles.map(f => f.name)).join(", ")}`,
+        analiseIaMarkdown: markdown,
+        analiseIaGeradaEm: new Date().toISOString(),
+      };
+      const created = await addAnalise(novaAnalise);
+      toast({ title: "Análise gerada pela IA!", description: "Revise o conteúdo na aba Análise de Edital." });
+      setIaDialogOpen(false);
+      setIaFiles([]);
+      setIaLicitacaoId("");
+      if (created?.id) setViewAnaliseId(created.id);
+    } catch (e: any) {
+      toast({ title: "Erro na análise por IA", description: e?.message || String(e), variant: "destructive" });
+    } finally {
+      setIaLoading(false);
+    }
+  };
+
   const handleSaveAnalise = async () => {
     if (editAnaliseId ? !podeEditar : !podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     if (!analiseForm.licitacaoId) {
@@ -575,6 +625,15 @@ export default function LicitacoesPage() {
                 <Plus className="h-4 w-4 mr-1" /> Nova Análise
               </Button>
             )}
+            {podeCriar && (
+              <Button
+                variant="outline"
+                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                onClick={() => { setIaFiles([]); setIaLicitacaoId(""); setIaDialogOpen(true); }}
+              >
+                <Sparkles className="h-4 w-4 mr-1" /> Analisar com IA
+              </Button>
+            )}
           </div>
 
           <p className="text-sm text-muted-foreground">{analises.length} análise(s) registrada(s)</p>
@@ -592,6 +651,7 @@ export default function LicitacoesPage() {
                         {lic ? `${lic.numeroProcesso} - ${lic.orgaoLicitante}` : "Licitação não encontrada"}
                       </CardTitle>
                       <div className="flex items-center gap-2">
+                        {a.analiseIaMarkdown && <Badge variant="outline" className="border-purple-300 text-purple-700"><Sparkles className="h-3 w-3 mr-1" />IA</Badge>}
                         <Badge className={decisaoColors[a.decisaoParticipar] || "bg-gray-100"}>{a.decisaoParticipar}</Badge>
                         <Button variant="ghost" size="icon" onClick={() => setViewAnaliseId(a.id)}><Eye className="h-4 w-4" /></Button>
                         {podeEditar && <Button variant="ghost" size="icon" onClick={() => handleEditAnalise(a)}><Pencil className="h-4 w-4" /></Button>}
@@ -938,25 +998,35 @@ export default function LicitacoesPage() {
           </DialogHeader>
           {viewAnalise && (
             <div className="space-y-3 text-sm">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge className={decisaoColors[viewAnalise.decisaoParticipar] || ""}>{viewAnalise.decisaoParticipar}</Badge>
+                {viewAnalise.analiseIaMarkdown && <Badge variant="outline" className="border-purple-300 text-purple-700"><Sparkles className="h-3 w-3 mr-1" />Gerada por IA</Badge>}
                 <span className="text-muted-foreground">Analista: {viewAnalise.analista || "-"} | Data: {viewAnalise.dataAnalise || "-"}</span>
               </div>
-              <div><span className="font-medium">Resumo do Objeto:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.resumoObjeto || "-"}</p></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div><span className="font-medium">Exigências Técnicas:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciasTecnicas || "-"}</p></div>
-                <div><span className="font-medium">Exigências Econômicas:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciasEconomicas || "-"}</p></div>
-                <div><span className="font-medium">Documentos Obrigatórios:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.documentosObrigatorios || "-"}</p></div>
-                <div><span className="font-medium">Equipe Mínima:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciasEquipe || "-"}</p></div>
-                <div><span className="font-medium">Vistoria:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciaVistoria || "-"}</p></div>
-                <div><span className="font-medium">Garantia de Proposta:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciaGarantiaProposta || "-"}</p></div>
-                <div><span className="font-medium">CAT/CREA/CAU:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.necessidadeCatCreaCau || "-"}</p></div>
-                <div><span className="font-medium">Certidões:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.necessidadeCertidoes || "-"}</p></div>
-              </div>
-              <div><span className="font-medium">Riscos Jurídicos:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.riscosJuridicos || "-"}</p></div>
-              <div><span className="font-medium">Pontos Restritivos:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.pontosRestritivos || "-"}</p></div>
-              <div><span className="font-medium">Oportunidades de Impugnação:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.oportunidadesImpugnacao || "-"}</p></div>
-              <div><span className="font-medium">Observações:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.observacoes || "-"}</p></div>
+
+              {viewAnalise.analiseIaMarkdown ? (
+                <div className="border rounded-lg p-4 bg-muted/30 prose prose-sm max-w-none dark:prose-invert prose-table:text-xs prose-th:bg-muted prose-th:p-2 prose-td:p-2 prose-th:border prose-td:border">
+                  <ReactMarkdown>{viewAnalise.analiseIaMarkdown}</ReactMarkdown>
+                </div>
+              ) : (
+                <>
+                  <div><span className="font-medium">Resumo do Objeto:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.resumoObjeto || "-"}</p></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div><span className="font-medium">Exigências Técnicas:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciasTecnicas || "-"}</p></div>
+                    <div><span className="font-medium">Exigências Econômicas:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciasEconomicas || "-"}</p></div>
+                    <div><span className="font-medium">Documentos Obrigatórios:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.documentosObrigatorios || "-"}</p></div>
+                    <div><span className="font-medium">Equipe Mínima:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciasEquipe || "-"}</p></div>
+                    <div><span className="font-medium">Vistoria:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciaVistoria || "-"}</p></div>
+                    <div><span className="font-medium">Garantia de Proposta:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciaGarantiaProposta || "-"}</p></div>
+                    <div><span className="font-medium">CAT/CREA/CAU:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.necessidadeCatCreaCau || "-"}</p></div>
+                    <div><span className="font-medium">Certidões:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.necessidadeCertidoes || "-"}</p></div>
+                  </div>
+                  <div><span className="font-medium">Riscos Jurídicos:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.riscosJuridicos || "-"}</p></div>
+                  <div><span className="font-medium">Pontos Restritivos:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.pontosRestritivos || "-"}</p></div>
+                  <div><span className="font-medium">Oportunidades de Impugnação:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.oportunidadesImpugnacao || "-"}</p></div>
+                  <div><span className="font-medium">Observações:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.observacoes || "-"}</p></div>
+                </>
+              )}
             </div>
           )}
         </DialogContent>
@@ -1014,6 +1084,69 @@ export default function LicitacoesPage() {
       <DoubleConfirmDelete open={!!deleteDocId} onOpenChange={(open) => !open && cancelDeleteDoc()} onConfirm={() => { if (deleteDocId) handleDeleteDocumento(deleteDocId); }} />
       <DoubleConfirmDelete open={!!deleteAnaId} onOpenChange={(open) => !open && cancelDeleteAna()} onConfirm={() => { if (deleteAnaId) handleDeleteAnalise(deleteAnaId); }} />
       <DoubleConfirmDelete open={!!deletePhoneId} onOpenChange={(open) => !open && cancelDeletePhone()} onConfirm={() => { if (deletePhoneId) { handleRemovePhone(deletePhoneId); cancelDeletePhone(); } }} />
+
+      {/* =============== DIALOG: ANÁLISE POR IA =============== */}
+      <Dialog open={iaDialogOpen} onOpenChange={(o) => { if (!iaLoading) setIaDialogOpen(o); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-purple-600" /> Análise de Edital por IA</DialogTitle>
+            <DialogDescription>
+              Anexe os PDFs do edital, termo de referência, minuta contratual e demais anexos. A IA (Gemini 2.5 Pro) irá gerar o checklist estratégico no formato interno da LASANT.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Licitação *</Label>
+              <Select value={iaLicitacaoId} onValueChange={setIaLicitacaoId} disabled={iaLoading}>
+                <SelectTrigger><SelectValue placeholder="Selecione a licitação" /></SelectTrigger>
+                <SelectContent>
+                  {licitacoes.map(l => <SelectItem key={l.id} value={l.id}>{l.numeroProcesso} - {l.orgaoLicitante}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Arquivos PDF * (edital, TR, minuta, anexos)</Label>
+              <Input
+                type="file"
+                accept="application/pdf,.pdf"
+                multiple
+                disabled={iaLoading}
+                onChange={(e) => setIaFiles(Array.from(e.target.files || []))}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Aceita múltiplos PDFs. Limite total recomendado: 40 MB.</p>
+              {iaFiles.length > 0 && (
+                <div className="mt-2 border rounded p-2 max-h-40 overflow-y-auto text-sm space-y-1">
+                  {iaFiles.map((f, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <span className="truncate flex items-center gap-1"><FileText className="h-3 w-3" /> {f.name}</span>
+                      <span className="text-xs text-muted-foreground ml-2">{(f.size / 1024).toFixed(0)} KB</span>
+                    </div>
+                  ))}
+                  <div className="text-xs text-muted-foreground pt-1 border-t">
+                    Total: {iaFiles.length} arquivo(s) — {(iaFiles.reduce((s, f) => s + f.size, 0) / (1024 * 1024)).toFixed(2)} MB
+                  </div>
+                </div>
+              )}
+            </div>
+            {iaLoading && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-purple-50 border border-purple-200 rounded p-3">
+                <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
+                Lendo PDFs e gerando o checklist estratégico... isso pode levar de 30s a 2 min.
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIaDialogOpen(false)} disabled={iaLoading}>Cancelar</Button>
+            <Button
+              onClick={handleAnalisarIA}
+              disabled={iaLoading || !iaLicitacaoId || iaFiles.length === 0}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              {iaLoading ? <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Analisando...</> : <><Sparkles className="h-4 w-4 mr-1" /> Gerar Análise</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

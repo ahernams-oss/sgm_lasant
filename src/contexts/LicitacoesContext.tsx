@@ -70,6 +70,8 @@ export interface AnaliseLicitacao {
   analista: string;
   dataAnalise: string;
   observacoes: string;
+  analiseIaMarkdown: string;
+  analiseIaGeradaEm: string;
 }
 
 // ============ MAPPERS ============
@@ -185,6 +187,8 @@ const rowToAnalise = (r: any): AnaliseLicitacao => ({
   analista: r.analista ?? "",
   dataAnalise: r.data_analise ?? "",
   observacoes: r.observacoes ?? "",
+  analiseIaMarkdown: r.analise_ia_markdown ?? "",
+  analiseIaGeradaEm: r.analise_ia_gerada_em ?? "",
 });
 
 const analiseToRow = (a: Omit<AnaliseLicitacao, "id">) => ({
@@ -205,6 +209,8 @@ const analiseToRow = (a: Omit<AnaliseLicitacao, "id">) => ({
   analista: a.analista,
   data_analise: a.dataAnalise || null,
   observacoes: a.observacoes,
+  analise_ia_markdown: a.analiseIaMarkdown || null,
+  analise_ia_gerada_em: a.analiseIaGeradaEm || null,
 });
 
 // ============ CONTEXT ============

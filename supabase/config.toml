@@ -22,3 +22,6 @@ verify_jwt = false
 verify_jwt = false
 [functions.check-parcelas-vencimento]
 verify_jwt = false
+
+[functions.analisar-edital-licitacao]
+verify_jwt = false
