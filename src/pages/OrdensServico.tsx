@@ -1078,7 +1078,8 @@ export default function OrdensServicoPage() {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
           {totalPages > 1 && (
