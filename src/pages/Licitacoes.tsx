@@ -998,25 +998,35 @@ export default function LicitacoesPage() {
           </DialogHeader>
           {viewAnalise && (
             <div className="space-y-3 text-sm">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge className={decisaoColors[viewAnalise.decisaoParticipar] || ""}>{viewAnalise.decisaoParticipar}</Badge>
+                {viewAnalise.analiseIaMarkdown && <Badge variant="outline" className="border-purple-300 text-purple-700"><Sparkles className="h-3 w-3 mr-1" />Gerada por IA</Badge>}
                 <span className="text-muted-foreground">Analista: {viewAnalise.analista || "-"} | Data: {viewAnalise.dataAnalise || "-"}</span>
               </div>
-              <div><span className="font-medium">Resumo do Objeto:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.resumoObjeto || "-"}</p></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div><span className="font-medium">Exigências Técnicas:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciasTecnicas || "-"}</p></div>
-                <div><span className="font-medium">Exigências Econômicas:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciasEconomicas || "-"}</p></div>
-                <div><span className="font-medium">Documentos Obrigatórios:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.documentosObrigatorios || "-"}</p></div>
-                <div><span className="font-medium">Equipe Mínima:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciasEquipe || "-"}</p></div>
-                <div><span className="font-medium">Vistoria:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciaVistoria || "-"}</p></div>
-                <div><span className="font-medium">Garantia de Proposta:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciaGarantiaProposta || "-"}</p></div>
-                <div><span className="font-medium">CAT/CREA/CAU:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.necessidadeCatCreaCau || "-"}</p></div>
-                <div><span className="font-medium">Certidões:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.necessidadeCertidoes || "-"}</p></div>
-              </div>
-              <div><span className="font-medium">Riscos Jurídicos:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.riscosJuridicos || "-"}</p></div>
-              <div><span className="font-medium">Pontos Restritivos:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.pontosRestritivos || "-"}</p></div>
-              <div><span className="font-medium">Oportunidades de Impugnação:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.oportunidadesImpugnacao || "-"}</p></div>
-              <div><span className="font-medium">Observações:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.observacoes || "-"}</p></div>
+
+              {viewAnalise.analiseIaMarkdown ? (
+                <div className="border rounded-lg p-4 bg-muted/30 prose prose-sm max-w-none dark:prose-invert prose-table:text-xs prose-th:bg-muted prose-th:p-2 prose-td:p-2 prose-th:border prose-td:border">
+                  <ReactMarkdown>{viewAnalise.analiseIaMarkdown}</ReactMarkdown>
+                </div>
+              ) : (
+                <>
+                  <div><span className="font-medium">Resumo do Objeto:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.resumoObjeto || "-"}</p></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div><span className="font-medium">Exigências Técnicas:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciasTecnicas || "-"}</p></div>
+                    <div><span className="font-medium">Exigências Econômicas:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciasEconomicas || "-"}</p></div>
+                    <div><span className="font-medium">Documentos Obrigatórios:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.documentosObrigatorios || "-"}</p></div>
+                    <div><span className="font-medium">Equipe Mínima:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciasEquipe || "-"}</p></div>
+                    <div><span className="font-medium">Vistoria:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciaVistoria || "-"}</p></div>
+                    <div><span className="font-medium">Garantia de Proposta:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.exigenciaGarantiaProposta || "-"}</p></div>
+                    <div><span className="font-medium">CAT/CREA/CAU:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.necessidadeCatCreaCau || "-"}</p></div>
+                    <div><span className="font-medium">Certidões:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.necessidadeCertidoes || "-"}</p></div>
+                  </div>
+                  <div><span className="font-medium">Riscos Jurídicos:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.riscosJuridicos || "-"}</p></div>
+                  <div><span className="font-medium">Pontos Restritivos:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.pontosRestritivos || "-"}</p></div>
+                  <div><span className="font-medium">Oportunidades de Impugnação:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.oportunidadesImpugnacao || "-"}</p></div>
+                  <div><span className="font-medium">Observações:</span><p className="mt-1 whitespace-pre-wrap">{viewAnalise.observacoes || "-"}</p></div>
+                </>
+              )}
             </div>
           )}
         </DialogContent>
