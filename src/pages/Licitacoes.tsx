@@ -17,9 +17,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Search, Eye, Pencil, Trash2, Upload, FileText, ChevronDown, ExternalLink, AlertTriangle, CheckCircle2, Clock, XCircle, Filter, Send, Phone, Settings, X } from "lucide-react";
+import { Plus, Search, Eye, Pencil, Trash2, Upload, FileText, ChevronDown, ExternalLink, AlertTriangle, CheckCircle2, Clock, XCircle, Filter, Send, Phone, Settings, X, Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import ReactMarkdown from "react-markdown";
 
 // ============ CONSTANTS ============
 
@@ -351,6 +352,55 @@ export default function LicitacoesPage() {
   const [analiseForm, setAnaliseForm] = useState<Omit<AnaliseLicitacao, "id">>(EMPTY_ANALISE);
   const [editAnaliseId, setEditAnaliseId] = useState<string | null>(null);
   const [viewAnaliseId, setViewAnaliseId] = useState<string | null>(null);
+
+  // ===== Análise por IA =====
+  const [iaDialogOpen, setIaDialogOpen] = useState(false);
+  const [iaLicitacaoId, setIaLicitacaoId] = useState<string>("");
+  const [iaFiles, setIaFiles] = useState<File[]>([]);
+  const [iaLoading, setIaLoading] = useState(false);
+
+  const handleAnalisarIA = async () => {
+    if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
+    if (!iaLicitacaoId) { toast({ title: "Selecione a licitação", variant: "destructive" }); return; }
+    if (iaFiles.length === 0) { toast({ title: "Anexe ao menos um PDF (edital, TR ou anexos)", variant: "destructive" }); return; }
+    const naoPdf = iaFiles.find(f => f.type && f.type !== "application/pdf" && !f.name.toLowerCase().endsWith(".pdf"));
+    if (naoPdf) { toast({ title: "Apenas arquivos PDF são aceitos", description: naoPdf.name, variant: "destructive" }); return; }
+    const tamanhoTotalMb = iaFiles.reduce((s, f) => s + f.size, 0) / (1024 * 1024);
+    if (tamanhoTotalMb > 40) { toast({ title: "Tamanho total acima de 40 MB", description: "Reduza ou divida os arquivos.", variant: "destructive" }); return; }
+
+    setIaLoading(true);
+    try {
+      const fd = new FormData();
+      iaFiles.forEach((f, i) => fd.append(`file${i}`, f, f.name));
+      const { data, error } = await supabase.functions.invoke('analisar-edital-licitacao', { body: fd });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const markdown: string = (data as any)?.markdown || "";
+      if (!markdown) throw new Error("A IA não retornou conteúdo.");
+
+      const lic = licitacoes.find(l => l.id === iaLicitacaoId);
+      const novaAnalise: Omit<AnaliseLicitacao, "id"> = {
+        ...EMPTY_ANALISE,
+        licitacaoId: iaLicitacaoId,
+        analista: `IA (Gemini 2.5 Pro) - ${usuarioLogado?.nome || ""}`.trim(),
+        dataAnalise: format(new Date(), "yyyy-MM-dd"),
+        resumoObjeto: lic?.objetoResumido || "",
+        observacoes: `Arquivos analisados: ${((data as any)?.arquivosAnalisados || iaFiles.map(f => f.name)).join(", ")}`,
+        analiseIaMarkdown: markdown,
+        analiseIaGeradaEm: new Date().toISOString(),
+      };
+      const created = await addAnalise(novaAnalise);
+      toast({ title: "Análise gerada pela IA!", description: "Revise o conteúdo na aba Análise de Edital." });
+      setIaDialogOpen(false);
+      setIaFiles([]);
+      setIaLicitacaoId("");
+      if (created?.id) setViewAnaliseId(created.id);
+    } catch (e: any) {
+      toast({ title: "Erro na análise por IA", description: e?.message || String(e), variant: "destructive" });
+    } finally {
+      setIaLoading(false);
+    }
+  };
 
   const handleSaveAnalise = async () => {
     if (editAnaliseId ? !podeEditar : !podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
