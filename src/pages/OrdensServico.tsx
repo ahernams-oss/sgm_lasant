@@ -953,7 +953,7 @@ export default function OrdensServicoPage() {
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow>
+              <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
                 <TableHead className="w-[40px]">
                   <Checkbox
                     checked={allAbertasSelected}
@@ -961,16 +961,17 @@ export default function OrdensServicoPage() {
                     aria-label="Selecionar todas abertas"
                   />
                 </TableHead>
-                <TableHead className="w-[80px]">Nº OS</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Prioridade</TableHead>
-                <TableHead>Situação</TableHead>
-                <TableHead>Data Abertura</TableHead>
-                <TableHead>Data Início</TableHead>
-                <TableHead className="text-right">Valor (c/ BDI)</TableHead>
+                {colOrder.map((key) => {
+                  const c = colDefs[key];
+                  if (!c) return null;
+                  return (
+                    <SortableTableHead key={key} id={key} className={c.className}>
+                      {c.label}
+                    </SortableTableHead>
+                  );
+                })}
                 <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
+              </SortableHeaderRow>
             </TableHeader>
             <TableBody>
               {ordensPage.length === 0 ? (
