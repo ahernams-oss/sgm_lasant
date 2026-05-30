@@ -651,6 +651,7 @@ export default function LicitacoesPage() {
                         {lic ? `${lic.numeroProcesso} - ${lic.orgaoLicitante}` : "Licitação não encontrada"}
                       </CardTitle>
                       <div className="flex items-center gap-2">
+                        {a.analiseIaMarkdown && <Badge variant="outline" className="border-purple-300 text-purple-700"><Sparkles className="h-3 w-3 mr-1" />IA</Badge>}
                         <Badge className={decisaoColors[a.decisaoParticipar] || "bg-gray-100"}>{a.decisaoParticipar}</Badge>
                         <Button variant="ghost" size="icon" onClick={() => setViewAnaliseId(a.id)}><Eye className="h-4 w-4" /></Button>
                         {podeEditar && <Button variant="ghost" size="icon" onClick={() => handleEditAnalise(a)}><Pencil className="h-4 w-4" /></Button>}
