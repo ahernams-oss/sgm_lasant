@@ -625,6 +625,15 @@ export default function LicitacoesPage() {
                 <Plus className="h-4 w-4 mr-1" /> Nova Análise
               </Button>
             )}
+            {podeCriar && (
+              <Button
+                variant="outline"
+                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                onClick={() => { setIaFiles([]); setIaLicitacaoId(""); setIaDialogOpen(true); }}
+              >
+                <Sparkles className="h-4 w-4 mr-1" /> Analisar com IA
+              </Button>
+            )}
           </div>
 
           <p className="text-sm text-muted-foreground">{analises.length} análise(s) registrada(s)</p>
