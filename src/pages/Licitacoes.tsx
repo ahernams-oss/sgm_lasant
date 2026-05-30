@@ -1084,6 +1084,69 @@ export default function LicitacoesPage() {
       <DoubleConfirmDelete open={!!deleteDocId} onOpenChange={(open) => !open && cancelDeleteDoc()} onConfirm={() => { if (deleteDocId) handleDeleteDocumento(deleteDocId); }} />
       <DoubleConfirmDelete open={!!deleteAnaId} onOpenChange={(open) => !open && cancelDeleteAna()} onConfirm={() => { if (deleteAnaId) handleDeleteAnalise(deleteAnaId); }} />
       <DoubleConfirmDelete open={!!deletePhoneId} onOpenChange={(open) => !open && cancelDeletePhone()} onConfirm={() => { if (deletePhoneId) { handleRemovePhone(deletePhoneId); cancelDeletePhone(); } }} />
+
+      {/* =============== DIALOG: ANÁLISE POR IA =============== */}
+      <Dialog open={iaDialogOpen} onOpenChange={(o) => { if (!iaLoading) setIaDialogOpen(o); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-purple-600" /> Análise de Edital por IA</DialogTitle>
+            <DialogDescription>
+              Anexe os PDFs do edital, termo de referência, minuta contratual e demais anexos. A IA (Gemini 2.5 Pro) irá gerar o checklist estratégico no formato interno da LASANT.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Licitação *</Label>
+              <Select value={iaLicitacaoId} onValueChange={setIaLicitacaoId} disabled={iaLoading}>
+                <SelectTrigger><SelectValue placeholder="Selecione a licitação" /></SelectTrigger>
+                <SelectContent>
+                  {licitacoes.map(l => <SelectItem key={l.id} value={l.id}>{l.numeroProcesso} - {l.orgaoLicitante}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Arquivos PDF * (edital, TR, minuta, anexos)</Label>
+              <Input
+                type="file"
+                accept="application/pdf,.pdf"
+                multiple
+                disabled={iaLoading}
+                onChange={(e) => setIaFiles(Array.from(e.target.files || []))}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Aceita múltiplos PDFs. Limite total recomendado: 40 MB.</p>
+              {iaFiles.length > 0 && (
+                <div className="mt-2 border rounded p-2 max-h-40 overflow-y-auto text-sm space-y-1">
+                  {iaFiles.map((f, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <span className="truncate flex items-center gap-1"><FileText className="h-3 w-3" /> {f.name}</span>
+                      <span className="text-xs text-muted-foreground ml-2">{(f.size / 1024).toFixed(0)} KB</span>
+                    </div>
+                  ))}
+                  <div className="text-xs text-muted-foreground pt-1 border-t">
+                    Total: {iaFiles.length} arquivo(s) — {(iaFiles.reduce((s, f) => s + f.size, 0) / (1024 * 1024)).toFixed(2)} MB
+                  </div>
+                </div>
+              )}
+            </div>
+            {iaLoading && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-purple-50 border border-purple-200 rounded p-3">
+                <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
+                Lendo PDFs e gerando o checklist estratégico... isso pode levar de 30s a 2 min.
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIaDialogOpen(false)} disabled={iaLoading}>Cancelar</Button>
+            <Button
+              onClick={handleAnalisarIA}
+              disabled={iaLoading || !iaLicitacaoId || iaFiles.length === 0}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              {iaLoading ? <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Analisando...</> : <><Sparkles className="h-4 w-4 mr-1" /> Gerar Análise</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
