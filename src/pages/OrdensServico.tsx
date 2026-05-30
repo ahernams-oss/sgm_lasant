@@ -980,7 +980,41 @@ export default function OrdensServicoPage() {
                     Nenhuma Ordem de Serviço encontrada.
                   </TableCell>
                 </TableRow>
-              ) : ordensPage.map((os, idx) => (
+              ) : ordensPage.map((os, idx) => {
+                const ass = assinaturasOs.filter(a => a.os_id === os.id);
+                const tooltip = ass.map(a => `${a.papel === "fiscal" ? "Fiscal" : "Solicitante"}: ${a.signatario_nome}`).join(" | ");
+                const totalBDI = calcTotalComBDI(os.materiais || [], os.materiaisEstoque || [], os.bdi || 0);
+                const cellMap: Record<string, { node: ReactNode; className?: string }> = {
+                  numero: {
+                    node: (
+                      <div className="flex items-center gap-1.5">
+                        <span>{formatNumeroAno(os.numero, os.createdAt)}</span>
+                        {ass.length > 0 && (
+                          <span className="flex items-center gap-0.5 text-primary" title={`Assinada eletronicamente — ${tooltip}`}>
+                            {ass.map((a) => (
+                              <FileSignature key={a.id} className="h-3.5 w-3.5" />
+                            ))}
+                          </span>
+                        )}
+                      </div>
+                    ),
+                    className: "font-bold",
+                  },
+                  cliente: { node: os.clienteNome },
+                  descricao: { node: os.descricaoServicos, className: "max-w-[250px] truncate" },
+                  prioridade: { node: prioridadeBadge(os.prioridade) },
+                  situacao: { node: situacaoBadge(os.situacao) },
+                  dataAbertura: {
+                    node: os.createdAt ? new Date(os.createdAt).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-",
+                    className: "text-sm",
+                  },
+                  dataInicio: { node: os.dataInicio ? os.dataInicio.split("-").reverse().join("/") : "-" },
+                  valor: {
+                    node: totalBDI > 0 ? totalBDI.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-",
+                    className: "text-right font-medium",
+                  },
+                };
+                return (
                 <TableRow key={os.id} className={selectedIds.has(os.id) ? "bg-accent" : (idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60")}>
                   <TableCell>
                     {os.situacao === "Aberta" ? (
@@ -991,35 +1025,10 @@ export default function OrdensServicoPage() {
                       />
                     ) : null}
                   </TableCell>
-                  <TableCell className="font-bold">
-                    <div className="flex items-center gap-1.5">
-                      <span>{formatNumeroAno(os.numero, os.createdAt)}</span>
-                      {(() => {
-                        const ass = assinaturasOs.filter(a => a.os_id === os.id);
-                        if (ass.length === 0) return null;
-                        const tooltip = ass.map(a => `${a.papel === "fiscal" ? "Fiscal" : "Solicitante"}: ${a.signatario_nome}`).join(" | ");
-                        return (
-                          <span className="flex items-center gap-0.5 text-primary" title={`Assinada eletronicamente — ${tooltip}`}>
-                            {ass.map((a) => (
-                              <FileSignature key={a.id} className="h-3.5 w-3.5" />
-                            ))}
-                          </span>
-                        );
-                      })()}
-                    </div>
-                  </TableCell>
-                  <TableCell>{os.clienteNome}</TableCell>
-                  <TableCell className="max-w-[250px] truncate">{os.descricaoServicos}</TableCell>
-                  <TableCell>{prioridadeBadge(os.prioridade)}</TableCell>
-                  <TableCell>{situacaoBadge(os.situacao)}</TableCell>
-                  <TableCell className="text-sm">{os.createdAt ? new Date(os.createdAt).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-"}</TableCell>
-                  <TableCell>{os.dataInicio ? os.dataInicio.split("-").reverse().join("/") : "-"}</TableCell>
-                  <TableCell className="text-right font-medium">
-                    {(() => {
-                      const total = calcTotalComBDI(os.materiais || [], os.materiaisEstoque || [], os.bdi || 0);
-                      return total > 0 ? total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-";
-                    })()}
-                  </TableCell>
+                  {colOrder.map((key) => {
+                    const c = cellMap[key];
+                    return <TableCell key={key} className={c?.className}>{c?.node}</TableCell>;
+                  })}
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
