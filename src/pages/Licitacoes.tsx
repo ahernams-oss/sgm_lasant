@@ -110,7 +110,7 @@ const EMPTY_ANALISE: Omit<AnaliseLicitacao, "id"> = {
   exigenciaGarantiaProposta: "", necessidadeCatCreaCau: "", necessidadeCertidoes: "",
   riscosJuridicos: "", pontosRestritivos: "", oportunidadesImpugnacao: "",
   decisaoParticipar: "Pendente de decisão da diretoria", analista: "", dataAnalise: "",
-  observacoes: "",
+  observacoes: "", analiseIaMarkdown: "", analiseIaGeradaEm: "",
 };
 
 // ============ COMPONENT ============
