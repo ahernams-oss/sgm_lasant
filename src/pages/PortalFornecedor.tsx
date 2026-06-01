@@ -1182,6 +1182,89 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Dialog Termo de Participação */}
+      <Dialog open={!!termoPregao} onOpenChange={(v) => { if (!v) { setTermoPregao(null); setTermoAceito(false); } }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Termo de Participação — Pregão {termoPregao ? `${String(termoPregao.numero).padStart(2, "0")}-${new Date(termoPregao.created_at).getFullYear()}` : ""}</DialogTitle>
+            <DialogDescription>
+              Leia atentamente o termo abaixo. Ao aceitar, você concorda em participar deste pregão eletrônico.
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="flex-1 border rounded-lg p-4 my-2">
+            <div className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {termoPregao?.termo_participacao || "Termo de participação não informado."}
+            </div>
+          </ScrollArea>
+          <div className="flex items-center gap-2 py-2">
+            <Checkbox id="aceite" checked={termoAceito} onCheckedChange={(v) => setTermoAceito(v === true)} />
+            <Label htmlFor="aceite" className="text-sm cursor-pointer">
+              Li e aceito o termo de participação
+            </Label>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setTermoPregao(null); setTermoAceito(false); }}>
+              Cancelar
+            </Button>
+            <Button
+              disabled={!termoAceito || credenciando}
+              onClick={async () => {
+                if (!termoPregao || !session) return;
+                setCredenciando(true);
+                const ip = ""; // IP não disponível no client, pode ser preenchido pelo backend
+                const hash = termoPregao.termo_hash || "";
+                const { data: existing } = await supabase
+                  .from("pregao_participantes")
+                  .select("id")
+                  .eq("pregao_id", termoPregao.id)
+                  .eq("fornecedor_id", session.id)
+                  .maybeSingle();
+                if (existing) {
+                  toast.error("Você já está credenciado neste pregão.");
+                  setCredenciando(false);
+                  setTermoPregao(null);
+                  return;
+                }
+                const { data: seqData } = await supabase
+                  .from("pregao_participantes")
+                  .select("id")
+                  .eq("pregao_id", termoPregao.id);
+                const seq = (seqData?.length || 0) + 1;
+                const apelido = `Licitante ${String(seq).padStart(2, "0")}`;
+                const { error } = await supabase.from("pregao_participantes").insert({
+                  pregao_id: termoPregao.id,
+                  fornecedor_id: session.id,
+                  fornecedor_nome: session.nome,
+                  fornecedor_cnpj: session.cnpj || "",
+                  apelido,
+                  apelido_seq: seq,
+                  termo_aceito_em: new Date().toISOString(),
+                  termo_aceito_ip: ip,
+                  termo_hash: hash,
+                  status: "Credenciado",
+                });
+                setCredenciando(false);
+                if (error) {
+                  toast.error("Erro ao se credenciar.");
+                  return;
+                }
+                toast.success("Credenciamento realizado! Agora você pode acessar a sala de disputa.");
+                setTermoPregao(null);
+                setTermoAceito(false);
+                // Recarrega participações
+                const { data: part } = await supabase
+                  .from("pregao_participantes")
+                  .select("id,pregao_id,fornecedor_id,apelido,status,termo_aceito_em,motivo_status")
+                  .eq("fornecedor_id", session.id);
+                setMinhasParticipacoes((part as any) || []);
+              }}
+            >
+              {credenciando ? "Credenciando..." : "Confirmar credenciamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={trocaOpen} onOpenChange={setTrocaOpen}>
         <DialogContent>
           <DialogHeader>
