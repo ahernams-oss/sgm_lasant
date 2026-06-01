@@ -417,6 +417,7 @@ export default function PregaoSalaFornecedorPage() {
               })}
             </CardContent>
           </Card>
+          <EditalDownloads pregaoId={pregao.id} />
         </div>
 
         {/* Centro: Disputa */}
