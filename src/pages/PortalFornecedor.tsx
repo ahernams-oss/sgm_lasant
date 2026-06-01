@@ -410,6 +410,8 @@ function LoginScreen({ onLogin }: { onLogin: (s: FornecedorSession) => void }) {
 function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout: () => void }) {
   const [convites, setConvites] = useState<ConviteRow[]>([]);
   const [pedidos, setPedidos] = useState<PedidoRow[]>([]);
+  const [pregoes, setPregoes] = useState<PregaoRow[]>([]);
+  const [minhasParticipacoes, setMinhasParticipacoes] = useState<PregaoParticipacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [trocaOpen, setTrocaOpen] = useState(false);
   const [recusarConvite, setRecusarConvite] = useState<ConviteRow | null>(null);
@@ -417,8 +419,14 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const [recusando, setRecusando] = useState(false);
   const [pageCotacoes, setPageCotacoes] = useState(1);
   const [pagePedidos, setPagePedidos] = useState(1);
+  const [pagePregoes, setPagePregoes] = useState(1);
   const [expandedPedidos, setExpandedPedidos] = useState<Set<string>>(new Set());
   const PAGE_SIZE = 10;
+
+  // Pregão dialogs
+  const [termoPregao, setTermoPregao] = useState<PregaoRow | null>(null);
+  const [termoAceito, setTermoAceito] = useState(false);
+  const [credenciando, setCredenciando] = useState(false);
 
   // Filtros globais (datas) + por aba (status)
   const [dataDe, setDataDe] = useState<string>("");
