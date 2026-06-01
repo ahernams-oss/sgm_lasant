@@ -413,6 +413,11 @@ export default function PregaoForm() {
           </Card>
         </TabsContent>
 
+        {/* ===== ANEXOS DO EDITAL ===== */}
+        <TabsContent value="edital">
+          {pregaoId && <EditalAnexosTab pregaoId={pregaoId} podeEditar={podeEditar} />}
+        </TabsContent>
+
         {/* ===== TERMO ===== */}
         <TabsContent value="termo">
           <Card className="rounded-xl">
