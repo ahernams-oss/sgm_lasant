@@ -1,0 +1,2 @@
+-- Adding the pregão term dialog and credenciamento handler to PortalFornecedor.tsx
+-- This is a frontend-only change, no DB migration needed
