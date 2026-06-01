@@ -468,6 +468,14 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     });
   }, [pedidos, dataDe, dataAte, statusPed]);
 
+  const pregoesFiltrados = useMemo(() => {
+    return pregoes.filter((pr) => {
+      if (!inRange(pr.created_at)) return false;
+      if (statusPregao === "todos") return true;
+      return pr.status === statusPregao;
+    });
+  }, [pregoes, dataDe, dataAte, statusPregao]);
+
   const limparFiltros = () => {
     setDataDe(""); setDataAte(""); setStatusCot("todos"); setStatusPed("todos"); setStatusPregao("todos");
     setPageCotacoes(1); setPagePedidos(1); setPagePregoes(1);
