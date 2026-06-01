@@ -608,16 +608,81 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
     return !!row;
   };
 
+  // ============ Fase 3 ============
+  const loadHabilitacao = useCallback(async (pregaoId: string) => {
+    const { data } = await (supabase as any).from("pregao_habilitacao").select("*").eq("pregao_id", pregaoId).order("created_at", { ascending: true });
+    setHabilitacoes((data ?? []).map(rowToHab));
+  }, []);
+
+  const addHabilitacao = async (data: { pregaoId: string; participanteId: string; documentoExigidoId?: string | null; documentoNome: string; arquivoUrl?: string; arquivoNome?: string }) => {
+    const row = await insertRow("pregao_habilitacao", {
+      pregao_id: data.pregaoId,
+      participante_id: data.participanteId,
+      documento_exigido_id: data.documentoExigidoId ?? null,
+      documento_nome: data.documentoNome,
+      arquivo_url: data.arquivoUrl ?? "",
+      arquivo_nome: data.arquivoNome ?? "",
+      status: "Pendente",
+    });
+    if (!row) return null;
+    await loadHabilitacao(data.pregaoId);
+    return rowToHab(row);
+  };
+
+  const uploadDocumentoHabilitacao = async (pregaoId: string, participanteId: string, file: File) => {
+    const path = `${pregaoId}/${participanteId}/${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from("pregao-documentos").upload(path, file, { upsert: true });
+    if (error) return null;
+    const { data } = supabase.storage.from("pregao-documentos").getPublicUrl(path);
+    return { url: data.publicUrl, nome: file.name };
+  };
+
+  const avaliarHabilitacao = async (habId: string, status: "Aprovado" | "Reprovado", observacao: string, analisadoPor: string) => {
+    const hab = habilitacoes.find(h => h.id === habId);
+    const ok = await updateRow("pregao_habilitacao", habId, {
+      status, observacao,
+      analisado_em: new Date().toISOString(),
+      analisado_por: analisadoPor,
+    });
+    if (ok && hab) await loadHabilitacao(hab.pregaoId);
+    return ok;
+  };
+
+  const deleteHabilitacao = async (habId: string) => {
+    const hab = habilitacoes.find(h => h.id === habId);
+    const ok = await deleteRow("pregao_habilitacao", habId);
+    if (ok && hab) await loadHabilitacao(hab.pregaoId);
+    return ok;
+  };
+
+  const setParticipanteStatus = async (participanteId: string, status: PregaoParticipante["status"], motivo?: string) => {
+    const ok = await updateRow("pregao_participantes", participanteId, { status, motivo_status: motivo ?? "" });
+    if (ok) await load();
+    return ok;
+  };
+
+  const adjudicarPregao = async (id: string) => {
+    const ok = await updateRow("pregoes", id, { status: "Adjudicado" });
+    if (ok) await load();
+    return ok;
+  };
+
+  const homologarPregao = async (id: string) => {
+    const ok = await updateRow("pregoes", id, { status: "Homologado", resultado_publico: true });
+    if (ok) await load();
+    return ok;
+  };
+
   return (
     <PregaoContext.Provider value={{
-      pregoes, itens, documentos, participantes, lances, mensagens, propostasIniciais,
-      loading, reload: load, loadDisputa,
+      pregoes, itens, documentos, participantes, lances, mensagens, propostasIniciais, habilitacoes,
+      loading, reload: load, loadDisputa, loadHabilitacao,
       addPregao, updatePregao, deletePregao, publicarPregao, cancelarPregao,
-      abrirDisputa, encerrarDisputa, publicarResultado,
+      abrirDisputa, encerrarDisputa, publicarResultado, adjudicarPregao, homologarPregao,
       addItem, updateItem, deleteItem,
       iniciarItem, encerrarItem, prorrogarItem,
       addDocumento, updateDocumento, deleteDocumento,
-      credenciarFornecedor, hashTermo: sha256,
+      credenciarFornecedor, setParticipanteStatus, hashTermo: sha256,
       enviarLance, cancelarLance, enviarMensagem,
     }}>
       {children}
