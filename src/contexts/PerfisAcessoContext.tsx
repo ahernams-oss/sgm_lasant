@@ -841,6 +841,22 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
       ],
     });
   }
+  const compras3 = MODULOS_SISTEMA.find(g => g.grupo === "Compras e Suprimentos");
+  if (compras3 && !compras3.modulos.some(m => m.key === "pregao")) {
+    compras3.modulos.push({
+      key: "pregao",
+      label: "Pregão Eletrônico",
+      acoes: [
+        { key: "pregao.visualizar", label: "Pode Visualizar Pregões" },
+        { key: "pregao.criar", label: "Pode Criar Pregão" },
+        { key: "pregao.editar", label: "Pode Editar Pregão" },
+        { key: "pregao.excluir", label: "Pode Excluir Pregão (Rascunho)" },
+        { key: "pregao.pregoeiro", label: "Pode Atuar como Pregoeiro (Conduzir Disputa)" },
+        { key: "pregao.habilitar", label: "Pode Habilitar Fornecedor Vencedor" },
+        { key: "pregao.homologar", label: "Pode Homologar Pregão" },
+      ],
+    });
+  }
 })();
 
 // Collect all permission keys
