@@ -119,6 +119,20 @@ export interface PregaoPropostaInicial {
   enviadaEm: string;
 }
 
+export interface PregaoHabilitacao {
+  id: string;
+  pregaoId: string;
+  participanteId: string;
+  documentoExigidoId: string | null;
+  documentoNome: string;
+  arquivoUrl: string;
+  arquivoNome: string;
+  status: "Pendente" | "Aprovado" | "Reprovado";
+  observacao: string;
+  analisadoEm: string;
+  analisadoPor: string;
+}
+
 // ============ MAPPERS ============
 
 const rowToPregao = (r: any): Pregao => ({
@@ -269,6 +283,18 @@ const rowToPropIni = (r: any): PregaoPropostaInicial => ({
   observacoes: r.observacoes ?? "", enviadaEm: r.enviada_em ?? "",
 });
 
+const rowToHab = (r: any): PregaoHabilitacao => ({
+  id: r.id, pregaoId: r.pregao_id, participanteId: r.participante_id,
+  documentoExigidoId: r.documento_exigido_id ?? null,
+  documentoNome: r.documento_nome ?? "",
+  arquivoUrl: r.arquivo_url ?? "",
+  arquivoNome: r.arquivo_nome ?? "",
+  status: r.status ?? "Pendente",
+  observacao: r.observacao ?? "",
+  analisadoEm: r.analisado_em ?? "",
+  analisadoPor: r.analisado_por ?? "",
+});
+
 // ============ CONTEXT ============
 
 interface PregaoContextType {
@@ -279,9 +305,11 @@ interface PregaoContextType {
   lances: PregaoLance[];
   mensagens: PregaoMensagem[];
   propostasIniciais: PregaoPropostaInicial[];
+  habilitacoes: PregaoHabilitacao[];
   loading: boolean;
   reload: () => Promise<void>;
   loadDisputa: (pregaoId: string) => Promise<void>;
+  loadHabilitacao: (pregaoId: string) => Promise<void>;
   // Pregão
   addPregao: (data: Omit<Pregao, "id" | "numero" | "createdAt">) => Promise<Pregao | null>;
   updatePregao: (id: string, data: Omit<Pregao, "id" | "numero" | "createdAt">) => Promise<boolean>;
@@ -291,6 +319,8 @@ interface PregaoContextType {
   abrirDisputa: (id: string) => Promise<boolean>;
   encerrarDisputa: (id: string) => Promise<boolean>;
   publicarResultado: (id: string) => Promise<boolean>;
+  adjudicarPregao: (id: string) => Promise<boolean>;
+  homologarPregao: (id: string) => Promise<boolean>;
   // Itens
   addItem: (data: Omit<PregaoItem, "id">) => Promise<PregaoItem | null>;
   updateItem: (id: string, data: Omit<PregaoItem, "id">) => Promise<boolean>;
@@ -304,11 +334,17 @@ interface PregaoContextType {
   deleteDocumento: (id: string) => Promise<boolean>;
   // Credenciamento
   credenciarFornecedor: (pregaoId: string, fornecedor: { id: string; nome: string; cnpj: string }, ip?: string) => Promise<PregaoParticipante | null>;
+  setParticipanteStatus: (participanteId: string, status: PregaoParticipante["status"], motivo?: string) => Promise<boolean>;
   hashTermo: (texto: string) => Promise<string>;
   // Disputa
   enviarLance: (pregaoId: string, itemId: string, participanteId: string, valor: number) => Promise<boolean>;
   enviarMensagem: (pregaoId: string, autorTipo: "pregoeiro" | "participante" | "sistema", autorNome: string, mensagem: string, itemId?: string) => Promise<boolean>;
   cancelarLance: (lanceId: string, motivo: string) => Promise<boolean>;
+  // Habilitação
+  addHabilitacao: (data: { pregaoId: string; participanteId: string; documentoExigidoId?: string | null; documentoNome: string; arquivoUrl?: string; arquivoNome?: string }) => Promise<PregaoHabilitacao | null>;
+  uploadDocumentoHabilitacao: (pregaoId: string, participanteId: string, file: File) => Promise<{ url: string; nome: string } | null>;
+  avaliarHabilitacao: (habId: string, status: "Aprovado" | "Reprovado", observacao: string, analisadoPor: string) => Promise<boolean>;
+  deleteHabilitacao: (habId: string) => Promise<boolean>;
 }
 
 const PregaoContext = createContext<PregaoContextType | undefined>(undefined);
@@ -321,6 +357,7 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
   const [lances, setLances] = useState<PregaoLance[]>([]);
   const [mensagens, setMensagens] = useState<PregaoMensagem[]>([]);
   const [propostasIniciais, setPropostasIniciais] = useState<PregaoPropostaInicial[]>([]);
+  const [habilitacoes, setHabilitacoes] = useState<PregaoHabilitacao[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -571,17 +608,83 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
     return !!row;
   };
 
+  // ============ Fase 3 ============
+  const loadHabilitacao = useCallback(async (pregaoId: string) => {
+    const { data } = await (supabase as any).from("pregao_habilitacao").select("*").eq("pregao_id", pregaoId).order("created_at", { ascending: true });
+    setHabilitacoes((data ?? []).map(rowToHab));
+  }, []);
+
+  const addHabilitacao = async (data: { pregaoId: string; participanteId: string; documentoExigidoId?: string | null; documentoNome: string; arquivoUrl?: string; arquivoNome?: string }) => {
+    const row = await insertRow("pregao_habilitacao", {
+      pregao_id: data.pregaoId,
+      participante_id: data.participanteId,
+      documento_exigido_id: data.documentoExigidoId ?? null,
+      documento_nome: data.documentoNome,
+      arquivo_url: data.arquivoUrl ?? "",
+      arquivo_nome: data.arquivoNome ?? "",
+      status: "Pendente",
+    });
+    if (!row) return null;
+    await loadHabilitacao(data.pregaoId);
+    return rowToHab(row);
+  };
+
+  const uploadDocumentoHabilitacao = async (pregaoId: string, participanteId: string, file: File) => {
+    const path = `${pregaoId}/${participanteId}/${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from("pregao-documentos").upload(path, file, { upsert: true });
+    if (error) return null;
+    const { data } = supabase.storage.from("pregao-documentos").getPublicUrl(path);
+    return { url: data.publicUrl, nome: file.name };
+  };
+
+  const avaliarHabilitacao = async (habId: string, status: "Aprovado" | "Reprovado", observacao: string, analisadoPor: string) => {
+    const hab = habilitacoes.find(h => h.id === habId);
+    const ok = await updateRow("pregao_habilitacao", habId, {
+      status, observacao,
+      analisado_em: new Date().toISOString(),
+      analisado_por: analisadoPor,
+    });
+    if (ok && hab) await loadHabilitacao(hab.pregaoId);
+    return ok;
+  };
+
+  const deleteHabilitacao = async (habId: string) => {
+    const hab = habilitacoes.find(h => h.id === habId);
+    const ok = await deleteRow("pregao_habilitacao", habId);
+    if (ok && hab) await loadHabilitacao(hab.pregaoId);
+    return ok;
+  };
+
+  const setParticipanteStatus = async (participanteId: string, status: PregaoParticipante["status"], motivo?: string) => {
+    const ok = await updateRow("pregao_participantes", participanteId, { status, motivo_status: motivo ?? "" });
+    if (ok) await load();
+    return ok;
+  };
+
+  const adjudicarPregao = async (id: string) => {
+    const ok = await updateRow("pregoes", id, { status: "Adjudicado" });
+    if (ok) await load();
+    return ok;
+  };
+
+  const homologarPregao = async (id: string) => {
+    const ok = await updateRow("pregoes", id, { status: "Homologado", resultado_publico: true });
+    if (ok) await load();
+    return ok;
+  };
+
   return (
     <PregaoContext.Provider value={{
-      pregoes, itens, documentos, participantes, lances, mensagens, propostasIniciais,
-      loading, reload: load, loadDisputa,
+      pregoes, itens, documentos, participantes, lances, mensagens, propostasIniciais, habilitacoes,
+      loading, reload: load, loadDisputa, loadHabilitacao,
       addPregao, updatePregao, deletePregao, publicarPregao, cancelarPregao,
-      abrirDisputa, encerrarDisputa, publicarResultado,
+      abrirDisputa, encerrarDisputa, publicarResultado, adjudicarPregao, homologarPregao,
       addItem, updateItem, deleteItem,
       iniciarItem, encerrarItem, prorrogarItem,
       addDocumento, updateDocumento, deleteDocumento,
-      credenciarFornecedor, hashTermo: sha256,
+      credenciarFornecedor, setParticipanteStatus, hashTermo: sha256,
       enviarLance, cancelarLance, enviarMensagem,
+      addHabilitacao, uploadDocumentoHabilitacao, avaliarHabilitacao, deleteHabilitacao,
     }}>
       {children}
     </PregaoContext.Provider>

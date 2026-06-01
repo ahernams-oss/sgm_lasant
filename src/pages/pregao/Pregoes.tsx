@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Gavel, Plus, MoreHorizontal, Eye, Edit, Trash2, PlayCircle, XCircle, Search } from "lucide-react";
+import { Gavel, Plus, MoreHorizontal, Eye, Edit, Trash2, PlayCircle, XCircle, Search, FileCheck2, Trophy } from "lucide-react";
 import { usePregao, type PregaoStatus } from "@/contexts/PregaoContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { formatNumeroAno } from "@/lib/formatNumero";
@@ -162,6 +162,15 @@ export default function Pregoes() {
                               <Eye className="h-4 w-4 mr-2" /> Sala de Disputa
                             </DropdownMenuItem>
                           )}
+                          {podePregoeiro && (p.status === "Encerrado" || p.status === "Habilitacao" || p.status === "Adjudicado" || p.status === "Homologado") && (
+                            <DropdownMenuItem onClick={() => nav(`/compras/pregao/${p.id}/habilitacao`)}>
+                              <FileCheck2 className="h-4 w-4 mr-2" /> Habilitação / Adjudicação
+                            </DropdownMenuItem>
+                          )}
+                          {(p.resultadoPublico || p.status === "Homologado") && (
+                            <DropdownMenuItem onClick={() => nav(`/compras/pregao/${p.id}/resultado`)}>
+                              <Trophy className="h-4 w-4 mr-2" /> Resultado Público
+                            </DropdownMenuItem>)}
                           {podeCriar && p.status === "Rascunho" && (
                             <DropdownMenuItem onClick={() => handlePublicar(p.id)}>
                               <PlayCircle className="h-4 w-4 mr-2" /> Publicar
