@@ -26,6 +26,7 @@ export const ACCESS_ROUTES: { perm: string; url: string }[] = [
   { perm: "pedidos_compra", url: "/compras/pedidos" },
   { perm: "recebimento", url: "/compras/recebimento" },
   { perm: "estoque", url: "/compras/estoque" },
+  { perm: "pregao", url: "/compras/pregao" },
   { perm: "licitacoes", url: "/licitacoes" },
   { perm: "juridico", url: "/juridico" },
   { perm: "comunicacao_mensagens", url: "/comunicacao/mensagens" },
