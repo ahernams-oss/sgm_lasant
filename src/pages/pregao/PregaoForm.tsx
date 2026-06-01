@@ -117,6 +117,24 @@ export default function PregaoForm() {
       setNovoItem({ ...novoItem, descricao: "", quantidade: 1, precoReferencia: 0, loteCodigo: "" });
     }
   };
+  // Edição inline de itens
+  const [editItemId, setEditItemId] = useState<string | null>(null);
+  const [editItem, setEditItem] = useState<Partial<PregaoItem>>({});
+
+  const startEdit = (it: PregaoItem) => {
+    setEditItemId(it.id);
+    setEditItem({
+      agrupamento: it.agrupamento, loteCodigo: it.loteCodigo, descricao: it.descricao,
+      unidade: it.unidade, quantidade: it.quantidade, precoReferencia: it.precoReferencia,
+    });
+  };
+  const cancelEdit = () => { setEditItemId(null); setEditItem({}); };
+  const saveEdit = async () => {
+    if (!editItemId) return;
+    if (!editItem.descricao) { toast.error("Descrição obrigatória."); return; }
+    const ok = await updateItem(editItemId, editItem);
+    if (ok) { toast.success("Item atualizado."); cancelEdit(); }
+  };
 
   // ============ DOCUMENTOS ============
   const [novoDoc, setNovoDoc] = useState({ nome: "", descricao: "", obrigatorio: true });
