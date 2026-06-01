@@ -119,6 +119,20 @@ export interface PregaoPropostaInicial {
   enviadaEm: string;
 }
 
+export interface PregaoHabilitacao {
+  id: string;
+  pregaoId: string;
+  participanteId: string;
+  documentoExigidoId: string | null;
+  documentoNome: string;
+  arquivoUrl: string;
+  arquivoNome: string;
+  status: "Pendente" | "Aprovado" | "Reprovado";
+  observacao: string;
+  analisadoEm: string;
+  analisadoPor: string;
+}
+
 // ============ MAPPERS ============
 
 const rowToPregao = (r: any): Pregao => ({
