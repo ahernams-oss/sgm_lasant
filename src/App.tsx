@@ -65,6 +65,8 @@ import { PregaoProvider } from "@/contexts/PregaoContext";
 import PregoesPage from "./pages/pregao/Pregoes.tsx";
 import PregaoFormPage from "./pages/pregao/PregaoForm.tsx";
 import PregaoSalaPage from "./pages/pregao/PregaoSala.tsx";
+import PregaoHabilitacaoPage from "./pages/pregao/PregaoHabilitacao.tsx";
+import PregaoResultadoPage from "./pages/pregao/PregaoResultado.tsx";
 import FabricantesPage from "./pages/Fabricantes.tsx";
 import EpisPage from "./pages/EpisPage.tsx";
 import ExamesPage from "./pages/ExamesPage.tsx";
@@ -198,6 +200,8 @@ function ProtectedAppRoutes() {
         <Route path="/compras/pregao/novo" element={<RotaProtegida perm="pregao"><PregaoFormPage /></RotaProtegida>} />
         <Route path="/compras/pregao/:id" element={<RotaProtegida perm="pregao"><PregaoFormPage /></RotaProtegida>} />
         <Route path="/compras/pregao/:id/sala" element={<RotaProtegida perm="pregao"><PregaoSalaPage /></RotaProtegida>} />
+        <Route path="/compras/pregao/:id/habilitacao" element={<RotaProtegida perm="pregao"><PregaoHabilitacaoPage /></RotaProtegida>} />
+        <Route path="/compras/pregao/:id/resultado" element={<RotaProtegida perm="pregao"><PregaoResultadoPage /></RotaProtegida>} />
         <Route path="/licitacoes" element={<RotaProtegida perm="licitacoes"><LicitacoesPage /></RotaProtegida>} />
         <Route path="/engenharia/dashboard-medicoes" element={<RotaProtegida perm="dashboard_medicoes"><DashboardMedicoesPage /></RotaProtegida>} />
         <Route
