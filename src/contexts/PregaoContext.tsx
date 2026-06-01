@@ -325,7 +325,7 @@ interface PregaoContextType {
   homologarPregao: (id: string) => Promise<boolean>;
   // Itens
   addItem: (data: Omit<PregaoItem, "id">) => Promise<PregaoItem | null>;
-  updateItem: (id: string, data: Omit<PregaoItem, "id">) => Promise<boolean>;
+  updateItem: (id: string, data: Partial<Omit<PregaoItem, "id">>) => Promise<boolean>;
   deleteItem: (id: string) => Promise<boolean>;
   iniciarItem: (itemId: string, duracaoMin?: number) => Promise<boolean>;
   encerrarItem: (itemId: string) => Promise<boolean>;
@@ -456,8 +456,21 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
     if (row) { await load(); return rowToItem(row); }
     return null;
   };
-  const updateItem = async (id: string, data: Omit<PregaoItem, "id">) => {
-    const ok = await updateRow("pregao_itens", id, itemToRow(data));
+  const updateItem = async (id: string, data: Partial<Omit<PregaoItem, "id">>) => {
+    const row: any = {};
+    if (data.pregaoId !== undefined) row.pregao_id = data.pregaoId;
+    if (data.ordem !== undefined) row.ordem = data.ordem;
+    if (data.agrupamento !== undefined) row.agrupamento = data.agrupamento;
+    if (data.loteCodigo !== undefined) row.lote_codigo = data.loteCodigo || null;
+    if (data.materialId !== undefined) row.material_id = data.materialId || null;
+    if (data.descricao !== undefined) row.descricao = data.descricao;
+    if (data.unidade !== undefined) row.unidade = data.unidade;
+    if (data.quantidade !== undefined) row.quantidade = data.quantidade;
+    if (data.precoReferencia !== undefined) row.preco_referencia = data.precoReferencia;
+    if (data.precoReferenciaSigiloso !== undefined) row.preco_referencia_sigiloso = data.precoReferenciaSigiloso;
+    if (data.status !== undefined) row.status = data.status;
+    if (data.observacoes !== undefined) row.observacoes = data.observacoes;
+    const ok = await updateRow("pregao_itens", id, row);
     if (ok) await load();
     return ok;
   };
