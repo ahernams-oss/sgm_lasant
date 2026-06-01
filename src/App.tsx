@@ -32,6 +32,7 @@ import InteligenciaComprasPage from "./pages/InteligenciaCompras.tsx";
 import AssinarLotePcPage from "./pages/AssinarLotePc.tsx";
 import PropostaFornecedorPage from "./pages/PropostaFornecedor.tsx";
 import PortalFornecedorPage from "./pages/PortalFornecedor.tsx";
+import PregaoSalaFornecedorPage from "./pages/portal-fornecedor/PregaoSalaFornecedor.tsx";
 import RecebimentoComprasPage from "./pages/RecebimentoCompras.tsx";
 import EstoquePage from "./pages/Estoque.tsx";
 import RelatoriosEstoquePage from "./pages/RelatoriosEstoque.tsx";
