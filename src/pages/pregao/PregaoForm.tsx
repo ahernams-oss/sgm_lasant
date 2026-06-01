@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatNumeroAno } from "@/lib/formatNumero";
 import { toast } from "sonner";
 import { valorPorExtenso, formatMilharBR, parseMilharBR } from "@/lib/valorPorExtenso";
+import EditalAnexosTab from "@/components/pregao/EditalAnexosTab";
 
 const EMPTY: Omit<Pregao, "id" | "numero" | "createdAt"> = {
   objeto: "",
