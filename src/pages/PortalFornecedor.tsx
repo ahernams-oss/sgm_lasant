@@ -9,8 +9,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, FileText, ShoppingCart, AlertCircle, Building2, FileDown, FileSpreadsheet, KeyRound, LayoutDashboard, Clock, CheckCircle2, Truck, XCircle, PackageCheck, ChevronDown, ChevronRight, FilterX } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
+import { LogOut, FileText, ShoppingCart, AlertCircle, Building2, FileDown, FileSpreadsheet, KeyRound, LayoutDashboard, Clock, CheckCircle2, Truck, XCircle, PackageCheck, ChevronDown, ChevronRight, FilterX, Gavel, ExternalLink } from "lucide-react";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
@@ -18,6 +20,7 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+
 
 const STORAGE_KEY = "fornecedorPortalLogado";
 
@@ -53,6 +56,36 @@ interface PedidoRow {
   prazo_entrega: string;
   local_entrega: string;
   observacoes: string;
+}
+
+interface PregaoRow {
+  id: string;
+  numero: number;
+  objeto: string;
+  modalidade: string;
+  tipo_disputa: string;
+  status: string;
+  data_publicacao: string;
+  data_abertura_credenciamento: string;
+  data_inicio_disputa: string;
+  data_encerramento_disputa: string;
+  termo_participacao: string;
+  termo_hash: string;
+  tempo_disputa_min: number;
+  decremento_minimo: number;
+  decremento_tipo: string;
+  created_at: string;
+  pregoeiro_nome: string;
+}
+
+interface PregaoParticipacao {
+  id: string;
+  pregao_id: string;
+  fornecedor_id: string;
+  apelido: string;
+  status: string;
+  termo_aceito_em: string;
+  motivo_status: string;
 }
 
 const STATUS_PEDIDO_COLORS: Record<string, string> = {
@@ -377,6 +410,8 @@ function LoginScreen({ onLogin }: { onLogin: (s: FornecedorSession) => void }) {
 function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout: () => void }) {
   const [convites, setConvites] = useState<ConviteRow[]>([]);
   const [pedidos, setPedidos] = useState<PedidoRow[]>([]);
+  const [pregoes, setPregoes] = useState<PregaoRow[]>([]);
+  const [minhasParticipacoes, setMinhasParticipacoes] = useState<PregaoParticipacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [trocaOpen, setTrocaOpen] = useState(false);
   const [recusarConvite, setRecusarConvite] = useState<ConviteRow | null>(null);
@@ -384,14 +419,22 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const [recusando, setRecusando] = useState(false);
   const [pageCotacoes, setPageCotacoes] = useState(1);
   const [pagePedidos, setPagePedidos] = useState(1);
+  const [pagePregoes, setPagePregoes] = useState(1);
   const [expandedPedidos, setExpandedPedidos] = useState<Set<string>>(new Set());
   const PAGE_SIZE = 10;
+
+  // Pregão dialogs
+  const [termoPregao, setTermoPregao] = useState<PregaoRow | null>(null);
+  const [termoAceito, setTermoAceito] = useState(false);
+  const [credenciando, setCredenciando] = useState(false);
 
   // Filtros globais (datas) + por aba (status)
   const [dataDe, setDataDe] = useState<string>("");
   const [dataAte, setDataAte] = useState<string>("");
   const [statusCot, setStatusCot] = useState<string>("todos");
   const [statusPed, setStatusPed] = useState<string>("todos");
+  const [statusPregao, setStatusPregao] = useState<string>("todos");
+  const navigate = useNavigate();
 
   const inRange = (iso: string) => {
     if (!iso) return true;
@@ -425,13 +468,22 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     });
   }, [pedidos, dataDe, dataAte, statusPed]);
 
+  const pregoesFiltrados = useMemo(() => {
+    return pregoes.filter((pr) => {
+      if (!inRange(pr.created_at)) return false;
+      if (statusPregao === "todos") return true;
+      return pr.status === statusPregao;
+    });
+  }, [pregoes, dataDe, dataAte, statusPregao]);
+
   const limparFiltros = () => {
-    setDataDe(""); setDataAte(""); setStatusCot("todos"); setStatusPed("todos");
-    setPageCotacoes(1); setPagePedidos(1);
+    setDataDe(""); setDataAte(""); setStatusCot("todos"); setStatusPed("todos"); setStatusPregao("todos");
+    setPageCotacoes(1); setPagePedidos(1); setPagePregoes(1);
   };
 
   useEffect(() => { setPageCotacoes(1); }, [dataDe, dataAte, statusCot]);
   useEffect(() => { setPagePedidos(1); }, [dataDe, dataAte, statusPed]);
+  useEffect(() => { setPagePregoes(1); }, [dataDe, dataAte, statusPregao]);
 
   const togglePedido = (id: string) => setExpandedPedidos((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const allPedidoIds = pedidosFiltrados.map((p) => p.id);
@@ -458,7 +510,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [{ data: c }, { data: p }] = await Promise.all([
+      const [{ data: c }, { data: p }, { data: pr }, { data: part }] = await Promise.all([
         supabase
           .from("cotacao_convites")
           .select("id,token,cotacao_numero,comprador,status,expires_at,created_at,itens")
@@ -469,9 +521,20 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
           .select("id,numero,data_criacao,comprador,status,valor_total,itens,condicao_pagamento,prazo_entrega,local_entrega,observacoes")
           .eq("fornecedor_id", session.id)
           .order("created_at", { ascending: false }),
+        supabase
+          .from("pregoes")
+          .select("id,numero,objeto,modalidade,tipo_disputa,status,data_publicacao,data_abertura_credenciamento,data_inicio_disputa,data_encerramento_disputa,termo_participacao,termo_hash,tempo_disputa_min,decremento_minimo,decremento_tipo,created_at,pregoeiro_nome")
+          .in("status", ["Publicado", "Credenciamento", "Propostas", "Disputa", "Habilitacao", "Adjudicado", "Homologado"])
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("pregao_participantes")
+          .select("id,pregao_id,fornecedor_id,apelido,status,termo_aceito_em,motivo_status")
+          .eq("fornecedor_id", session.id),
       ]);
       setConvites((c as any) || []);
       setPedidos((p as any) || []);
+      setPregoes((pr as any) || []);
+      setMinhasParticipacoes((part as any) || []);
       setLoading(false);
     })();
   }, [session.id]);
@@ -683,7 +746,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
           <Card>
             <CardContent className="pt-6">
               <p className="text-xs text-muted-foreground">Cotações pendentes</p>
@@ -702,6 +765,12 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               <p className="text-3xl font-semibold">{pedidos.length}</p>
             </CardContent>
           </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-xs text-muted-foreground">Pregões disponíveis</p>
+              <p className="text-3xl font-semibold text-primary">{pregoes.length}</p>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="dashboard">
@@ -714,6 +783,9 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
             </TabsTrigger>
             <TabsTrigger value="pedidos">
               <ShoppingCart className="h-4 w-4 mr-2" /> Pedidos de Compra
+            </TabsTrigger>
+            <TabsTrigger value="pregoes">
+              <Gavel className="h-4 w-4 mr-2" /> Pregões Eletrônicos
             </TabsTrigger>
           </TabsList>
 
@@ -757,11 +829,27 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-muted-foreground">Status Pregão</Label>
+                  <Select value={statusPregao} onValueChange={setStatusPregao}>
+                    <SelectTrigger className="h-9 w-44"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="Publicado">Publicado</SelectItem>
+                      <SelectItem value="Credenciamento">Credenciamento</SelectItem>
+                      <SelectItem value="Propostas">Propostas</SelectItem>
+                      <SelectItem value="Disputa">Disputa</SelectItem>
+                      <SelectItem value="Habilitacao">Habilitação</SelectItem>
+                      <SelectItem value="Adjudicado">Adjudicado</SelectItem>
+                      <SelectItem value="Homologado">Homologado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Button variant="outline" size="sm" onClick={limparFiltros} className="h-9">
                   <FilterX className="h-4 w-4 mr-1" /> Limpar
                 </Button>
                 <div className="ml-auto text-xs text-muted-foreground">
-                  {convitesFiltrados.length} cotação(ões) · {pedidosFiltrados.length} pedido(s)
+                  {convitesFiltrados.length} cotação(ões) · {pedidosFiltrados.length} pedido(s) · {pregoesFiltrados.length} pregão(ões)
                 </div>
               </div>
             </CardContent>
@@ -972,6 +1060,95 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="pregoes">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Pregões Eletrônicos</CardTitle>
+                <CardDescription>Participe de pregões eletrônicos abertos.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <p className="text-muted-foreground text-sm">Carregando...</p>
+                ) : pregoesFiltrados.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">Nenhum pregão encontrado.</p>
+                ) : (
+                  <div className="border rounded-lg overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nº</TableHead>
+                          <TableHead>Objeto</TableHead>
+                          <TableHead>Modalidade</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Publicado em</TableHead>
+                          <TableHead>Sua situação</TableHead>
+                          <TableHead className="text-right">Ação</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginate(pregoesFiltrados, pagePregoes, PAGE_SIZE).paginated.map((pr) => {
+                          const participacao = minhasParticipacoes.find(p => p.pregao_id === pr.id);
+                          const isCredenciado = participacao?.status === "Credenciado";
+                          const isVencedor = participacao?.status === "Vencedor";
+                          const isInabilitado = participacao?.status === "Inabilitado";
+                          const isDesclassificado = participacao?.status === "Desclassificado";
+                          const fmtNumeroAno = (numero: number, createdAt: string) => {
+                            const year = createdAt ? new Date(createdAt).getFullYear() : new Date().getFullYear();
+                            return `${String(numero).padStart(2, "0")}-${year}`;
+                          };
+                          const numeroFmt = fmtNumeroAno(pr.numero, pr.created_at);
+                          return (
+                            <TableRow key={pr.id}>
+                              <TableCell className="font-medium">{numeroFmt}</TableCell>
+                              <TableCell className="max-w-xs truncate">{pr.objeto}</TableCell>
+                              <TableCell>{pr.modalidade}</TableCell>
+                              <TableCell>{pr.tipo_disputa}</TableCell>
+                              <TableCell>
+                                <Badge variant={pr.status === "Disputa" ? "default" : "secondary"}>{pr.status}</Badge>
+                              </TableCell>
+                              <TableCell>{fmtDate(pr.data_publicacao)}</TableCell>
+                              <TableCell>
+                                {participacao ? (
+                                  <Badge variant={isCredenciado ? "default" : isVencedor ? "default" : "destructive"}>
+                                    {participacao.status}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline">Não credenciado</Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {participacao && (isCredenciado || isVencedor) ? (
+                                  <Button size="sm" onClick={() => navigate(`/portal-fornecedor/pregao/${pr.id}/sala`)}>
+                                    <ExternalLink className="h-3 w-3 mr-1" /> Acessar sala
+                                  </Button>
+                                ) : !participacao && (pr.status === "Publicado" || pr.status === "Credenciamento") ? (
+                                  <Button size="sm" onClick={() => { setTermoPregao(pr); setTermoAceito(false); }}>
+                                    <Gavel className="h-3 w-3 mr-1" /> Credenciar-se
+                                  </Button>
+                                ) : (
+                                  <Button size="sm" variant="ghost" disabled>—</Button>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+                {pregoesFiltrados.length > 0 && (
+                  <PaginationControls
+                    currentPage={pagePregoes}
+                    totalItems={pregoesFiltrados.length}
+                    onPageChange={setPagePregoes}
+                    pageSize={PAGE_SIZE}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
 
@@ -1004,6 +1181,89 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog Termo de Participação */}
+      <Dialog open={!!termoPregao} onOpenChange={(v) => { if (!v) { setTermoPregao(null); setTermoAceito(false); } }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Termo de Participação — Pregão {termoPregao ? `${String(termoPregao.numero).padStart(2, "0")}-${new Date(termoPregao.created_at).getFullYear()}` : ""}</DialogTitle>
+            <DialogDescription>
+              Leia atentamente o termo abaixo. Ao aceitar, você concorda em participar deste pregão eletrônico.
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="flex-1 border rounded-lg p-4 my-2">
+            <div className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {termoPregao?.termo_participacao || "Termo de participação não informado."}
+            </div>
+          </ScrollArea>
+          <div className="flex items-center gap-2 py-2">
+            <Checkbox id="aceite" checked={termoAceito} onCheckedChange={(v) => setTermoAceito(v === true)} />
+            <Label htmlFor="aceite" className="text-sm cursor-pointer">
+              Li e aceito o termo de participação
+            </Label>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setTermoPregao(null); setTermoAceito(false); }}>
+              Cancelar
+            </Button>
+            <Button
+              disabled={!termoAceito || credenciando}
+              onClick={async () => {
+                if (!termoPregao || !session) return;
+                setCredenciando(true);
+                const ip = ""; // IP não disponível no client, pode ser preenchido pelo backend
+                const hash = termoPregao.termo_hash || "";
+                const { data: existing } = await supabase
+                  .from("pregao_participantes")
+                  .select("id")
+                  .eq("pregao_id", termoPregao.id)
+                  .eq("fornecedor_id", session.id)
+                  .maybeSingle();
+                if (existing) {
+                  toast.error("Você já está credenciado neste pregão.");
+                  setCredenciando(false);
+                  setTermoPregao(null);
+                  return;
+                }
+                const { data: seqData } = await supabase
+                  .from("pregao_participantes")
+                  .select("id")
+                  .eq("pregao_id", termoPregao.id);
+                const seq = (seqData?.length || 0) + 1;
+                const apelido = `Licitante ${String(seq).padStart(2, "0")}`;
+                const { error } = await supabase.from("pregao_participantes").insert({
+                  pregao_id: termoPregao.id,
+                  fornecedor_id: session.id,
+                  fornecedor_nome: session.nome,
+                  fornecedor_cnpj: session.cnpj || "",
+                  apelido,
+                  apelido_seq: seq,
+                  termo_aceito_em: new Date().toISOString(),
+                  termo_aceito_ip: ip,
+                  termo_hash: hash,
+                  status: "Credenciado",
+                });
+                setCredenciando(false);
+                if (error) {
+                  toast.error("Erro ao se credenciar.");
+                  return;
+                }
+                toast.success("Credenciamento realizado! Agora você pode acessar a sala de disputa.");
+                setTermoPregao(null);
+                setTermoAceito(false);
+                // Recarrega participações
+                const { data: part } = await supabase
+                  .from("pregao_participantes")
+                  .select("id,pregao_id,fornecedor_id,apelido,status,termo_aceito_em,motivo_status")
+                  .eq("fornecedor_id", session.id);
+                setMinhasParticipacoes((part as any) || []);
+              }}
+            >
+              {credenciando ? "Credenciando..." : "Confirmar credenciamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={trocaOpen} onOpenChange={setTrocaOpen}>
         <DialogContent>
