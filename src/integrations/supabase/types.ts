@@ -5206,6 +5206,600 @@ export type Database = {
         }
         Relationships: []
       }
+      pregao_documentos_exigidos: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          nome: string
+          obrigatorio: boolean
+          ordem: number
+          pregao_id: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          nome?: string
+          obrigatorio?: boolean
+          ordem?: number
+          pregao_id: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          nome?: string
+          obrigatorio?: boolean
+          ordem?: number
+          pregao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pregao_documentos_exigidos_pregao_id_fkey"
+            columns: ["pregao_id"]
+            isOneToOne: false
+            referencedRelation: "pregoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pregao_eventos: {
+        Row: {
+          ator_id: string | null
+          ator_nome: string
+          ator_tipo: string
+          evento: string
+          id: string
+          ip: string | null
+          item_id: string | null
+          payload: Json
+          pregao_id: string
+          ts: string
+        }
+        Insert: {
+          ator_id?: string | null
+          ator_nome?: string
+          ator_tipo?: string
+          evento?: string
+          id?: string
+          ip?: string | null
+          item_id?: string | null
+          payload?: Json
+          pregao_id: string
+          ts?: string
+        }
+        Update: {
+          ator_id?: string | null
+          ator_nome?: string
+          ator_tipo?: string
+          evento?: string
+          id?: string
+          ip?: string | null
+          item_id?: string | null
+          payload?: Json
+          pregao_id?: string
+          ts?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pregao_eventos_pregao_id_fkey"
+            columns: ["pregao_id"]
+            isOneToOne: false
+            referencedRelation: "pregoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pregao_habilitacao: {
+        Row: {
+          analisado_em: string | null
+          analisado_por: string | null
+          arquivo_nome: string | null
+          arquivo_url: string | null
+          created_at: string
+          documento_exigido_id: string | null
+          documento_nome: string
+          id: string
+          observacao: string
+          participante_id: string
+          pregao_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          analisado_em?: string | null
+          analisado_por?: string | null
+          arquivo_nome?: string | null
+          arquivo_url?: string | null
+          created_at?: string
+          documento_exigido_id?: string | null
+          documento_nome?: string
+          id?: string
+          observacao?: string
+          participante_id: string
+          pregao_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          analisado_em?: string | null
+          analisado_por?: string | null
+          arquivo_nome?: string | null
+          arquivo_url?: string | null
+          created_at?: string
+          documento_exigido_id?: string | null
+          documento_nome?: string
+          id?: string
+          observacao?: string
+          participante_id?: string
+          pregao_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pregao_habilitacao_documento_exigido_id_fkey"
+            columns: ["documento_exigido_id"]
+            isOneToOne: false
+            referencedRelation: "pregao_documentos_exigidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregao_habilitacao_participante_id_fkey"
+            columns: ["participante_id"]
+            isOneToOne: false
+            referencedRelation: "pregao_participantes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregao_habilitacao_pregao_id_fkey"
+            columns: ["pregao_id"]
+            isOneToOne: false
+            referencedRelation: "pregoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pregao_itens: {
+        Row: {
+          agrupamento: string
+          created_at: string
+          descricao: string
+          encerra_em: string | null
+          encerrado_em: string | null
+          id: string
+          iniciado_em: string | null
+          lote_codigo: string | null
+          material_id: string | null
+          observacoes: string
+          ordem: number
+          preco_referencia: number
+          preco_referencia_sigiloso: boolean
+          pregao_id: string
+          quantidade: number
+          status: string
+          unidade: string
+          updated_at: string
+          vencedor_participante_id: string | null
+          vencedor_valor: number | null
+          vencedor_valor_unitario: number | null
+        }
+        Insert: {
+          agrupamento?: string
+          created_at?: string
+          descricao?: string
+          encerra_em?: string | null
+          encerrado_em?: string | null
+          id?: string
+          iniciado_em?: string | null
+          lote_codigo?: string | null
+          material_id?: string | null
+          observacoes?: string
+          ordem?: number
+          preco_referencia?: number
+          preco_referencia_sigiloso?: boolean
+          pregao_id: string
+          quantidade?: number
+          status?: string
+          unidade?: string
+          updated_at?: string
+          vencedor_participante_id?: string | null
+          vencedor_valor?: number | null
+          vencedor_valor_unitario?: number | null
+        }
+        Update: {
+          agrupamento?: string
+          created_at?: string
+          descricao?: string
+          encerra_em?: string | null
+          encerrado_em?: string | null
+          id?: string
+          iniciado_em?: string | null
+          lote_codigo?: string | null
+          material_id?: string | null
+          observacoes?: string
+          ordem?: number
+          preco_referencia?: number
+          preco_referencia_sigiloso?: boolean
+          pregao_id?: string
+          quantidade?: number
+          status?: string
+          unidade?: string
+          updated_at?: string
+          vencedor_participante_id?: string | null
+          vencedor_valor?: number | null
+          vencedor_valor_unitario?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pregao_itens_pregao_id_fkey"
+            columns: ["pregao_id"]
+            isOneToOne: false
+            referencedRelation: "pregoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pregao_lances: {
+        Row: {
+          cancelado: boolean
+          id: string
+          item_id: string
+          motivo_cancelamento: string | null
+          participante_id: string
+          pregao_id: string
+          ts: string
+          valor: number
+        }
+        Insert: {
+          cancelado?: boolean
+          id?: string
+          item_id: string
+          motivo_cancelamento?: string | null
+          participante_id: string
+          pregao_id: string
+          ts?: string
+          valor: number
+        }
+        Update: {
+          cancelado?: boolean
+          id?: string
+          item_id?: string
+          motivo_cancelamento?: string | null
+          participante_id?: string
+          pregao_id?: string
+          ts?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pregao_lances_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "pregao_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregao_lances_participante_id_fkey"
+            columns: ["participante_id"]
+            isOneToOne: false
+            referencedRelation: "pregao_participantes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregao_lances_pregao_id_fkey"
+            columns: ["pregao_id"]
+            isOneToOne: false
+            referencedRelation: "pregoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pregao_mensagens: {
+        Row: {
+          autor_id: string | null
+          autor_nome_exibicao: string
+          autor_tipo: string
+          id: string
+          item_id: string | null
+          mensagem: string
+          pregao_id: string
+          ts: string
+        }
+        Insert: {
+          autor_id?: string | null
+          autor_nome_exibicao?: string
+          autor_tipo?: string
+          id?: string
+          item_id?: string | null
+          mensagem?: string
+          pregao_id: string
+          ts?: string
+        }
+        Update: {
+          autor_id?: string | null
+          autor_nome_exibicao?: string
+          autor_tipo?: string
+          id?: string
+          item_id?: string | null
+          mensagem?: string
+          pregao_id?: string
+          ts?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pregao_mensagens_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "pregao_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregao_mensagens_pregao_id_fkey"
+            columns: ["pregao_id"]
+            isOneToOne: false
+            referencedRelation: "pregoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pregao_participantes: {
+        Row: {
+          apelido: string
+          apelido_seq: number
+          created_at: string
+          fornecedor_cnpj: string
+          fornecedor_id: string
+          fornecedor_nome: string
+          id: string
+          motivo_status: string | null
+          pregao_id: string
+          status: string
+          termo_aceito_em: string | null
+          termo_aceito_ip: string | null
+          termo_hash: string | null
+          updated_at: string
+        }
+        Insert: {
+          apelido?: string
+          apelido_seq?: number
+          created_at?: string
+          fornecedor_cnpj?: string
+          fornecedor_id: string
+          fornecedor_nome?: string
+          id?: string
+          motivo_status?: string | null
+          pregao_id: string
+          status?: string
+          termo_aceito_em?: string | null
+          termo_aceito_ip?: string | null
+          termo_hash?: string | null
+          updated_at?: string
+        }
+        Update: {
+          apelido?: string
+          apelido_seq?: number
+          created_at?: string
+          fornecedor_cnpj?: string
+          fornecedor_id?: string
+          fornecedor_nome?: string
+          id?: string
+          motivo_status?: string | null
+          pregao_id?: string
+          status?: string
+          termo_aceito_em?: string | null
+          termo_aceito_ip?: string | null
+          termo_hash?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pregao_participantes_pregao_id_fkey"
+            columns: ["pregao_id"]
+            isOneToOne: false
+            referencedRelation: "pregoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pregao_propostas_fechadas: {
+        Row: {
+          enviada_em: string
+          id: string
+          item_id: string
+          participante_id: string
+          pregao_id: string
+          revelada: boolean
+          valor: number
+        }
+        Insert: {
+          enviada_em?: string
+          id?: string
+          item_id: string
+          participante_id: string
+          pregao_id: string
+          revelada?: boolean
+          valor: number
+        }
+        Update: {
+          enviada_em?: string
+          id?: string
+          item_id?: string
+          participante_id?: string
+          pregao_id?: string
+          revelada?: boolean
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pregao_propostas_fechadas_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "pregao_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregao_propostas_fechadas_participante_id_fkey"
+            columns: ["participante_id"]
+            isOneToOne: false
+            referencedRelation: "pregao_participantes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregao_propostas_fechadas_pregao_id_fkey"
+            columns: ["pregao_id"]
+            isOneToOne: false
+            referencedRelation: "pregoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pregao_propostas_iniciais: {
+        Row: {
+          enviada_em: string
+          id: string
+          item_id: string
+          marca: string | null
+          modelo: string | null
+          observacoes: string
+          participante_id: string
+          pregao_id: string
+          valor: number
+        }
+        Insert: {
+          enviada_em?: string
+          id?: string
+          item_id: string
+          marca?: string | null
+          modelo?: string | null
+          observacoes?: string
+          participante_id: string
+          pregao_id: string
+          valor?: number
+        }
+        Update: {
+          enviada_em?: string
+          id?: string
+          item_id?: string
+          marca?: string | null
+          modelo?: string | null
+          observacoes?: string
+          participante_id?: string
+          pregao_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pregao_propostas_iniciais_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "pregao_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregao_propostas_iniciais_participante_id_fkey"
+            columns: ["participante_id"]
+            isOneToOne: false
+            referencedRelation: "pregao_participantes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregao_propostas_iniciais_pregao_id_fkey"
+            columns: ["pregao_id"]
+            isOneToOne: false
+            referencedRelation: "pregoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pregoes: {
+        Row: {
+          created_at: string
+          data_abertura_credenciamento: string | null
+          data_abertura_propostas: string | null
+          data_encerramento_disputa: string | null
+          data_inicio_disputa: string | null
+          data_publicacao: string | null
+          decremento_minimo: number
+          decremento_tipo: string
+          id: string
+          modalidade: string
+          motivo_cancelamento: string | null
+          numero: number
+          objeto: string
+          observacoes: string
+          pregoeiro_id: string | null
+          pregoeiro_nome: string | null
+          resultado_publico: boolean
+          status: string
+          tempo_disputa_min: number
+          tempo_prorrogacao_min: number
+          termo_hash: string | null
+          termo_participacao: string
+          tipo_disputa: string
+          updated_at: string
+          valor_estimado: number
+          valor_estimado_sigiloso: boolean
+        }
+        Insert: {
+          created_at?: string
+          data_abertura_credenciamento?: string | null
+          data_abertura_propostas?: string | null
+          data_encerramento_disputa?: string | null
+          data_inicio_disputa?: string | null
+          data_publicacao?: string | null
+          decremento_minimo?: number
+          decremento_tipo?: string
+          id?: string
+          modalidade?: string
+          motivo_cancelamento?: string | null
+          numero?: number
+          objeto?: string
+          observacoes?: string
+          pregoeiro_id?: string | null
+          pregoeiro_nome?: string | null
+          resultado_publico?: boolean
+          status?: string
+          tempo_disputa_min?: number
+          tempo_prorrogacao_min?: number
+          termo_hash?: string | null
+          termo_participacao?: string
+          tipo_disputa?: string
+          updated_at?: string
+          valor_estimado?: number
+          valor_estimado_sigiloso?: boolean
+        }
+        Update: {
+          created_at?: string
+          data_abertura_credenciamento?: string | null
+          data_abertura_propostas?: string | null
+          data_encerramento_disputa?: string | null
+          data_inicio_disputa?: string | null
+          data_publicacao?: string | null
+          decremento_minimo?: number
+          decremento_tipo?: string
+          id?: string
+          modalidade?: string
+          motivo_cancelamento?: string | null
+          numero?: number
+          objeto?: string
+          observacoes?: string
+          pregoeiro_id?: string | null
+          pregoeiro_nome?: string | null
+          resultado_publico?: boolean
+          status?: string
+          tempo_disputa_min?: number
+          tempo_prorrogacao_min?: number
+          termo_hash?: string | null
+          termo_participacao?: string
+          tipo_disputa?: string
+          updated_at?: string
+          valor_estimado?: number
+          valor_estimado_sigiloso?: boolean
+        }
+        Relationships: []
+      }
       processos_seletivos: {
         Row: {
           candidatos: Json | null
