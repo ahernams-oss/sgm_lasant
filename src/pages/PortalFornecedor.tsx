@@ -1060,6 +1060,95 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="pregoes">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Pregões Eletrônicos</CardTitle>
+                <CardDescription>Participe de pregões eletrônicos abertos.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <p className="text-muted-foreground text-sm">Carregando...</p>
+                ) : pregoesFiltrados.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">Nenhum pregão encontrado.</p>
+                ) : (
+                  <div className="border rounded-lg overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nº</TableHead>
+                          <TableHead>Objeto</TableHead>
+                          <TableHead>Modalidade</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Publicado em</TableHead>
+                          <TableHead>Sua situação</TableHead>
+                          <TableHead className="text-right">Ação</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginate(pregoesFiltrados, pagePregoes, PAGE_SIZE).paginated.map((pr) => {
+                          const participacao = minhasParticipacoes.find(p => p.pregao_id === pr.id);
+                          const isCredenciado = participacao?.status === "Credenciado";
+                          const isVencedor = participacao?.status === "Vencedor";
+                          const isInabilitado = participacao?.status === "Inabilitado";
+                          const isDesclassificado = participacao?.status === "Desclassificado";
+                          const fmtNumeroAno = (numero: number, createdAt: string) => {
+                            const year = createdAt ? new Date(createdAt).getFullYear() : new Date().getFullYear();
+                            return `${String(numero).padStart(2, "0")}-${year}`;
+                          };
+                          const numeroFmt = fmtNumeroAno(pr.numero, pr.created_at);
+                          return (
+                            <TableRow key={pr.id}>
+                              <TableCell className="font-medium">{numeroFmt}</TableCell>
+                              <TableCell className="max-w-xs truncate">{pr.objeto}</TableCell>
+                              <TableCell>{pr.modalidade}</TableCell>
+                              <TableCell>{pr.tipo_disputa}</TableCell>
+                              <TableCell>
+                                <Badge variant={pr.status === "Disputa" ? "default" : "secondary"}>{pr.status}</Badge>
+                              </TableCell>
+                              <TableCell>{fmtDate(pr.data_publicacao)}</TableCell>
+                              <TableCell>
+                                {participacao ? (
+                                  <Badge variant={isCredenciado ? "default" : isVencedor ? "default" : "destructive"}>
+                                    {participacao.status}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline">Não credenciado</Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {participacao && (isCredenciado || isVencedor) ? (
+                                  <Button size="sm" onClick={() => navigate(`/portal-fornecedor/pregao/${pr.id}/sala`)}>
+                                    <ExternalLink className="h-3 w-3 mr-1" /> Acessar sala
+                                  </Button>
+                                ) : !participacao && (pr.status === "Publicado" || pr.status === "Credenciamento") ? (
+                                  <Button size="sm" onClick={() => { setTermoPregao(pr); setTermoAceito(false); }}>
+                                    <Gavel className="h-3 w-3 mr-1" /> Credenciar-se
+                                  </Button>
+                                ) : (
+                                  <Button size="sm" variant="ghost" disabled>—</Button>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+                {pregoesFiltrados.length > 0 && (
+                  <PaginationControls
+                    currentPage={pagePregoes}
+                    totalItems={pregoesFiltrados.length}
+                    onPageChange={setPagePregoes}
+                    pageSize={PAGE_SIZE}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
 
