@@ -58,6 +58,36 @@ interface PedidoRow {
   observacoes: string;
 }
 
+interface PregaoRow {
+  id: string;
+  numero: number;
+  objeto: string;
+  modalidade: string;
+  tipo_disputa: string;
+  status: string;
+  data_publicacao: string;
+  data_abertura_credenciamento: string;
+  data_inicio_disputa: string;
+  data_encerramento_disputa: string;
+  termo_participacao: string;
+  termo_hash: string;
+  tempo_disputa_min: number;
+  decremento_minimo: number;
+  decremento_tipo: string;
+  created_at: string;
+  pregoeiro_nome: string;
+}
+
+interface PregaoParticipacao {
+  id: string;
+  pregao_id: string;
+  fornecedor_id: string;
+  apelido: string;
+  status: string;
+  termo_aceito_em: string;
+  motivo_status: string;
+}
+
 const STATUS_PEDIDO_COLORS: Record<string, string> = {
   "Emitido": "hsl(217 91% 60%)",
   "Comprado": "hsl(262 83% 58%)",
