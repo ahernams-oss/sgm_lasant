@@ -340,26 +340,77 @@ export default function PregaoForm() {
                   {meusItens.length === 0 && (
                     <TableRow><TableCell colSpan={podeEditar ? 9 : 8} className="text-center text-muted-foreground py-6">Nenhum item adicionado.</TableCell></TableRow>
                   )}
-                  {meusItens.map((it, idx) => (
+                  {meusItens.map((it, idx) => {
+                    const isEditing = editItemId === it.id;
+                    return (
                     <TableRow key={it.id} className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}>
                       <TableCell>{it.ordem}</TableCell>
-                      <TableCell><Badge variant="outline">{it.agrupamento}</Badge></TableCell>
-                      <TableCell>{it.loteCodigo || "-"}</TableCell>
-                      <TableCell>{it.descricao}</TableCell>
-                      <TableCell>{it.unidade}</TableCell>
-                      <TableCell className="text-right">{it.quantidade.toLocaleString("pt-BR")}</TableCell>
-                      <TableCell className="text-right">{it.precoReferencia.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
+                      <TableCell>
+                        {isEditing ? (
+                          <Select value={editItem.agrupamento} onValueChange={(v: any) => setEditItem({ ...editItem, agrupamento: v })}>
+                            <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Item">Item</SelectItem>
+                              <SelectItem value="Lote">Lote</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : <Badge variant="outline">{it.agrupamento}</Badge>}
+                      </TableCell>
+                      <TableCell>
+                        {isEditing
+                          ? <Input className="h-8 w-16" value={editItem.loteCodigo || ""} onChange={e => setEditItem({ ...editItem, loteCodigo: e.target.value })} />
+                          : (it.loteCodigo || "-")}
+                      </TableCell>
+                      <TableCell>
+                        {isEditing
+                          ? <Input className="h-8" value={editItem.descricao || ""} onChange={e => setEditItem({ ...editItem, descricao: e.target.value })} />
+                          : it.descricao}
+                      </TableCell>
+                      <TableCell>
+                        {isEditing
+                          ? <Input className="h-8 w-16" value={editItem.unidade || ""} onChange={e => setEditItem({ ...editItem, unidade: e.target.value })} />
+                          : it.unidade}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {isEditing
+                          ? <Input type="number" className="h-8 w-24 text-right" value={editItem.quantidade ?? 0} onChange={e => setEditItem({ ...editItem, quantidade: Number(e.target.value) })} />
+                          : it.quantidade.toLocaleString("pt-BR")}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {isEditing
+                          ? <Input type="number" step="0.01" className="h-8 w-28 text-right" value={editItem.precoReferencia ?? 0} onChange={e => setEditItem({ ...editItem, precoReferencia: Number(e.target.value) })} />
+                          : it.precoReferencia.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      </TableCell>
                       <TableCell><Badge variant="outline">{it.status}</Badge></TableCell>
                       {podeEditar && (
                         <TableCell>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-red-600"
-                            onClick={() => { if (confirm("Excluir este item?")) deleteItem(it.id); }}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            {isEditing ? (
+                              <>
+                                <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600" onClick={saveEdit}>
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={cancelEdit}>
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => startEdit(it)}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="h-8 w-8 text-red-600"
+                                  onClick={() => { if (confirm("Excluir este item?")) deleteItem(it.id); }}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </TableCell>
                       )}
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </CardContent>
