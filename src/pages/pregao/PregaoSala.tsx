@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Gavel, Play, Square, Plus, Send, Timer, Trophy, MessageSquare, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Gavel, Play, Square, Plus, Send, Timer, Trophy, MessageSquare, Eye, EyeOff, Lock, Unlock } from "lucide-react";
 import { toast } from "sonner";
 import { usePregao } from "@/contexts/PregaoContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -49,6 +49,7 @@ export default function PregaoSala() {
     loadDisputa, iniciarItem, encerrarItem, prorrogarItem,
     enviarLance, cancelarLance, enviarMensagem,
     abrirDisputa, encerrarDisputa, publicarResultado,
+    setChatParticipante,
   } = usePregao();
 
   const pregao = pregoes.find(p => p.id === id);
