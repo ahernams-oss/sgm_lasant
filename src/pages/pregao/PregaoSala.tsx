@@ -354,7 +354,34 @@ export default function PregaoSala() {
             <CardTitle className="text-sm flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Chat Oficial</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col p-3 gap-2">
-            <div ref={chatRef} className="flex-1 overflow-y-auto space-y-2 h-[55vh] pr-1">
+            {/* Controle de chat por participante (somente pregoeiro) */}
+            {ehPregoeiro && participantesPregao.length > 0 && (
+              <div className="border rounded-lg p-2 bg-muted/30 space-y-1 max-h-[140px] overflow-y-auto">
+                <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                  Permissão de fala
+                </div>
+                {participantesPregao.map(p => (
+                  <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
+                    <span className="truncate">
+                      {revelarNomes ? `${p.apelido} · ${p.fornecedorNome}` : p.apelido}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant={p.chatAberto ? "default" : "outline"}
+                      className="h-6 px-2 text-[11px]"
+                      onClick={async () => {
+                        const ok = await setChatParticipante(p.id, !p.chatAberto);
+                        if (ok) toast.success(p.chatAberto ? "Chat fechado para o licitante." : "Chat aberto para o licitante.");
+                      }}
+                    >
+                      {p.chatAberto ? <><Unlock className="h-3 w-3 mr-1" /> Aberto</> : <><Lock className="h-3 w-3 mr-1" /> Fechado</>}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div ref={chatRef} className="flex-1 overflow-y-auto space-y-2 h-[45vh] pr-1">
               {msgsItem.map(m => (
                 <div key={m.id} className={`p-2 rounded-lg text-sm ${m.autorTipo === "pregoeiro" ? "bg-primary/10 border-l-2 border-primary" : "bg-muted"}`}>
                   <div className="flex items-center justify-between mb-1">
@@ -366,15 +393,21 @@ export default function PregaoSala() {
               ))}
               {!msgsItem.length && <div className="text-xs text-muted-foreground text-center mt-4">Sem mensagens.</div>}
             </div>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Mensagem..."
-                value={novaMsg}
-                onChange={e => setNovaMsg(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleEnviarMsg()}
-              />
-              <Button size="icon" onClick={handleEnviarMsg}><Send className="h-4 w-4" /></Button>
-            </div>
+            {ehPregoeiro ? (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Mensagem do pregoeiro..."
+                  value={novaMsg}
+                  onChange={e => setNovaMsg(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleEnviarMsg()}
+                />
+                <Button size="icon" onClick={handleEnviarMsg}><Send className="h-4 w-4" /></Button>
+              </div>
+            ) : (
+              <div className="text-[11px] text-muted-foreground text-center py-2 border rounded-lg bg-muted/30">
+                Apenas o pregoeiro envia mensagens neste chat.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
