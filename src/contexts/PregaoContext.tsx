@@ -276,18 +276,28 @@ interface PregaoContextType {
   itens: PregaoItem[];
   documentos: PregaoDocumentoExigido[];
   participantes: PregaoParticipante[];
+  lances: PregaoLance[];
+  mensagens: PregaoMensagem[];
+  propostasIniciais: PregaoPropostaInicial[];
   loading: boolean;
   reload: () => Promise<void>;
+  loadDisputa: (pregaoId: string) => Promise<void>;
   // Pregão
   addPregao: (data: Omit<Pregao, "id" | "numero" | "createdAt">) => Promise<Pregao | null>;
   updatePregao: (id: string, data: Omit<Pregao, "id" | "numero" | "createdAt">) => Promise<boolean>;
   deletePregao: (id: string) => Promise<boolean>;
   publicarPregao: (id: string) => Promise<boolean>;
   cancelarPregao: (id: string, motivo: string) => Promise<boolean>;
+  abrirDisputa: (id: string) => Promise<boolean>;
+  encerrarDisputa: (id: string) => Promise<boolean>;
+  publicarResultado: (id: string) => Promise<boolean>;
   // Itens
   addItem: (data: Omit<PregaoItem, "id">) => Promise<PregaoItem | null>;
   updateItem: (id: string, data: Omit<PregaoItem, "id">) => Promise<boolean>;
   deleteItem: (id: string) => Promise<boolean>;
+  iniciarItem: (itemId: string, duracaoMin?: number) => Promise<boolean>;
+  encerrarItem: (itemId: string) => Promise<boolean>;
+  prorrogarItem: (itemId: string, minutos: number) => Promise<boolean>;
   // Documentos exigidos
   addDocumento: (data: Omit<PregaoDocumentoExigido, "id">) => Promise<PregaoDocumentoExigido | null>;
   updateDocumento: (id: string, data: Omit<PregaoDocumentoExigido, "id">) => Promise<boolean>;
@@ -295,6 +305,10 @@ interface PregaoContextType {
   // Credenciamento
   credenciarFornecedor: (pregaoId: string, fornecedor: { id: string; nome: string; cnpj: string }, ip?: string) => Promise<PregaoParticipante | null>;
   hashTermo: (texto: string) => Promise<string>;
+  // Disputa
+  enviarLance: (pregaoId: string, itemId: string, participanteId: string, valor: number) => Promise<boolean>;
+  enviarMensagem: (pregaoId: string, autorTipo: "pregoeiro" | "participante" | "sistema", autorNome: string, mensagem: string, itemId?: string) => Promise<boolean>;
+  cancelarLance: (lanceId: string, motivo: string) => Promise<boolean>;
 }
 
 const PregaoContext = createContext<PregaoContextType | undefined>(undefined);
