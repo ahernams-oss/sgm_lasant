@@ -9,8 +9,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, FileText, ShoppingCart, AlertCircle, Building2, FileDown, FileSpreadsheet, KeyRound, LayoutDashboard, Clock, CheckCircle2, Truck, XCircle, PackageCheck, ChevronDown, ChevronRight, FilterX } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
+import { LogOut, FileText, ShoppingCart, AlertCircle, Building2, FileDown, FileSpreadsheet, KeyRound, LayoutDashboard, Clock, CheckCircle2, Truck, XCircle, PackageCheck, ChevronDown, ChevronRight, FilterX, Gavel, ExternalLink } from "lucide-react";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
@@ -18,6 +20,7 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+
 
 const STORAGE_KEY = "fornecedorPortalLogado";
 
