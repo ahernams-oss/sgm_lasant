@@ -505,6 +505,7 @@ const App = () => (
     </LicitacoesProvider>
     </EmpresaProvider>
     </PerfisAcessoProvider>
+    </PregaoProvider>
     </FabricantesProvider>
     </RecebimentoProvider>
     </EstoqueProvider>
