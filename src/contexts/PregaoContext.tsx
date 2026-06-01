@@ -469,13 +469,119 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
     return null;
   };
 
+  // ============ Disputa ============
+  const abrirDisputa = async (id: string) => {
+    const ok = await updateRow("pregoes", id, { status: "Disputa", data_inicio_disputa: new Date().toISOString() });
+    if (ok) await load();
+    return ok;
+  };
+  const encerrarDisputa = async (id: string) => {
+    const ok = await updateRow("pregoes", id, { status: "Encerrado", data_encerramento_disputa: new Date().toISOString() });
+    if (ok) await load();
+    return ok;
+  };
+  const publicarResultado = async (id: string) => {
+    const ok = await updateRow("pregoes", id, { resultado_publico: true });
+    if (ok) await load();
+    return ok;
+  };
+
+  const iniciarItem = async (itemId: string, duracaoMin?: number) => {
+    const item = itens.find(i => i.id === itemId);
+    if (!item) return false;
+    const pregao = pregoes.find(p => p.id === item.pregaoId);
+    const dur = duracaoMin ?? pregao?.tempoDisputaMin ?? 10;
+    const agora = new Date();
+    const encerra = new Date(agora.getTime() + dur * 60_000);
+    const ok = await updateRow("pregao_itens", itemId, {
+      status: "EmDisputa",
+      iniciado_em: agora.toISOString(),
+      encerra_em: encerra.toISOString(),
+    });
+    return ok;
+  };
+
+  const encerrarItem = async (itemId: string) => {
+    const item = itens.find(i => i.id === itemId);
+    if (!item) return false;
+    // calcula vencedor: menor lance não cancelado
+    const lancesItem = lances.filter(l => l.itemId === itemId && !l.cancelado);
+    let vencedorParticipanteId: string | null = null;
+    let vencedorValor = 0;
+    if (lancesItem.length) {
+      const menor = [...lancesItem].sort((a, b) => a.valor - b.valor)[0];
+      vencedorParticipanteId = menor.participanteId;
+      vencedorValor = menor.valor;
+    }
+    const novoStatus = lancesItem.length ? "Encerrado" : "Deserto";
+    const ok = await updateRow("pregao_itens", itemId, {
+      status: novoStatus,
+      encerrado_em: new Date().toISOString(),
+      vencedor_participante_id: vencedorParticipanteId,
+      vencedor_valor: vencedorValor,
+      vencedor_valor_unitario: item.quantidade > 0 ? vencedorValor / item.quantidade : 0,
+    });
+    return ok;
+  };
+
+  const prorrogarItem = async (itemId: string, minutos: number) => {
+    const item = itens.find(i => i.id === itemId);
+    if (!item) return false;
+    const base = item.encerraEm ? new Date(item.encerraEm) : new Date();
+    const nova = new Date(base.getTime() + minutos * 60_000);
+    return await updateRow("pregao_itens", itemId, { encerra_em: nova.toISOString() });
+  };
+
+  const enviarLance = async (pregaoId: string, itemId: string, participanteId: string, valor: number) => {
+    const item = itens.find(i => i.id === itemId);
+    if (!item || item.status !== "EmDisputa") return false;
+    // valida menor que melhor lance atual
+    const lancesItem = lances.filter(l => l.itemId === itemId && !l.cancelado);
+    const melhor = lancesItem.length ? Math.min(...lancesItem.map(l => l.valor)) : Infinity;
+    if (valor >= melhor && melhor !== Infinity) return false;
+    const row = await insertRow("pregao_lances", {
+      pregao_id: pregaoId, item_id: itemId,
+      participante_id: participanteId, valor,
+    });
+    if (!row) return false;
+    // prorrogação automática se faltar < tempoProrrogacaoMin
+    const pregao = pregoes.find(p => p.id === pregaoId);
+    if (pregao && item.encerraEm) {
+      const restante = new Date(item.encerraEm).getTime() - Date.now();
+      if (restante < pregao.tempoProrrogacaoMin * 60_000) {
+        const nova = new Date(Date.now() + pregao.tempoProrrogacaoMin * 60_000);
+        await updateRow("pregao_itens", itemId, { encerra_em: nova.toISOString() });
+      }
+    }
+    return true;
+  };
+
+  const cancelarLance = async (lanceId: string, motivo: string) => {
+    return await updateRow("pregao_lances", lanceId, { cancelado: true, motivo_cancelamento: motivo });
+  };
+
+  const enviarMensagem = async (pregaoId: string, autorTipo: "pregoeiro" | "participante" | "sistema", autorNome: string, mensagem: string, itemId?: string) => {
+    const row = await insertRow("pregao_mensagens", {
+      pregao_id: pregaoId,
+      item_id: itemId ?? null,
+      autor_tipo: autorTipo,
+      autor_nome_exibicao: autorNome,
+      mensagem,
+    });
+    return !!row;
+  };
+
   return (
     <PregaoContext.Provider value={{
-      pregoes, itens, documentos, participantes, loading, reload: load,
+      pregoes, itens, documentos, participantes, lances, mensagens, propostasIniciais,
+      loading, reload: load, loadDisputa,
       addPregao, updatePregao, deletePregao, publicarPregao, cancelarPregao,
+      abrirDisputa, encerrarDisputa, publicarResultado,
       addItem, updateItem, deleteItem,
+      iniciarItem, encerrarItem, prorrogarItem,
       addDocumento, updateDocumento, deleteDocumento,
       credenciarFornecedor, hashTermo: sha256,
+      enviarLance, cancelarLance, enviarMensagem,
     }}>
       {children}
     </PregaoContext.Provider>
