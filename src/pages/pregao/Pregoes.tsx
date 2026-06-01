@@ -173,11 +173,7 @@ export default function Pregoes() {
                             </DropdownMenuItem>
                           )}
                           {podeCriar && p.status === "Rascunho" && (
-                            <DoubleConfirmDelete onConfirm={() => handleDelete(p.id)} itemName={`Pregão ${formatNumeroAno(p.numero, p.createdAt)}`}>
-                              <button className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent text-red-600 w-full">
-                                <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                              </button>
-                            </DoubleConfirmDelete>
+                            <DeleteMenuItem onConfirm={() => handleDelete(p.id)} label="Excluir" />
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
