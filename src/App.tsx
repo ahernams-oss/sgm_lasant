@@ -61,6 +61,10 @@ import { EmpresaProvider } from "@/contexts/EmpresaContext";
 import { LicitacoesProvider } from "@/contexts/LicitacoesContext";
 import { MedicoesProvider } from "@/contexts/MedicoesContext";
 import { FerramentasProvider } from "@/contexts/FerramentasContext";
+import { PregaoProvider } from "@/contexts/PregaoContext";
+import PregoesPage from "./pages/pregao/Pregoes.tsx";
+import PregaoFormPage from "./pages/pregao/PregaoForm.tsx";
+import PregaoSalaPage from "./pages/pregao/PregaoSala.tsx";
 import FabricantesPage from "./pages/Fabricantes.tsx";
 import EpisPage from "./pages/EpisPage.tsx";
 import ExamesPage from "./pages/ExamesPage.tsx";
@@ -190,6 +194,10 @@ function ProtectedAppRoutes() {
         <Route path="/compras/relatorios-estoque" element={<RotaProtegida perm="estoque"><RelatoriosEstoquePage /></RotaProtegida>} />
         <Route path="/compras/dashboard" element={<RotaProtegida perm="dashboard_compras"><DashboardCompras /></RotaProtegida>} />
         <Route path="/compras/fabricantes" element={<RotaProtegida perm="fabricantes"><FabricantesPage /></RotaProtegida>} />
+        <Route path="/compras/pregao" element={<RotaProtegida perm="pregao"><PregoesPage /></RotaProtegida>} />
+        <Route path="/compras/pregao/novo" element={<RotaProtegida perm="pregao"><PregaoFormPage /></RotaProtegida>} />
+        <Route path="/compras/pregao/:id" element={<RotaProtegida perm="pregao"><PregaoFormPage /></RotaProtegida>} />
+        <Route path="/compras/pregao/:id/sala" element={<RotaProtegida perm="pregao"><PregaoSalaPage /></RotaProtegida>} />
         <Route path="/licitacoes" element={<RotaProtegida perm="licitacoes"><LicitacoesPage /></RotaProtegida>} />
         <Route path="/engenharia/dashboard-medicoes" element={<RotaProtegida perm="dashboard_medicoes"><DashboardMedicoesPage /></RotaProtegida>} />
         <Route
@@ -414,6 +422,7 @@ const App = () => (
     <EstoqueProvider>
     <RecebimentoProvider>
     <FabricantesProvider>
+    <PregaoProvider>
     <PerfisAcessoProvider>
     <EmpresaProvider>
     <LicitacoesProvider>
@@ -496,6 +505,7 @@ const App = () => (
     </LicitacoesProvider>
     </EmpresaProvider>
     </PerfisAcessoProvider>
+    </PregaoProvider>
     </FabricantesProvider>
     </RecebimentoProvider>
     </EstoqueProvider>
