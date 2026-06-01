@@ -14,6 +14,18 @@ import { formatNumeroAno } from "@/lib/formatNumero";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
 
+function DeleteMenuItem({ onConfirm, label }: { onConfirm: () => void; label: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setOpen(true); }} className="text-red-600">
+        <Trash2 className="h-4 w-4 mr-2" /> {label}
+      </DropdownMenuItem>
+      <DoubleConfirmDelete open={open} onOpenChange={setOpen} onConfirm={onConfirm} />
+    </>
+  );
+}
+
 const STATUS_COLORS: Record<PregaoStatus, string> = {
   Rascunho: "bg-gray-200 text-gray-800",
   Publicado: "bg-blue-100 text-blue-800",
