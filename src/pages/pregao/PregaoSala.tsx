@@ -12,7 +12,13 @@ import { toast } from "sonner";
 import { usePregao } from "@/contexts/PregaoContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatNumeroAno } from "@/lib/formatNumero";
-import { formatarDataHora } from "@/lib/dataUtils";
+
+function formatarDataHora(iso: string) {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  } catch { return ""; }
+}
 
 function moeda(v: number) {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
