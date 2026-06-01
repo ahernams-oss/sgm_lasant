@@ -43,7 +43,7 @@ export default function PregaoSala() {
   const { id } = useParams();
   const nav = useNavigate();
   const auth = useAuth();
-  const { temPermissao, acessoTotal } = usePermissao();
+  const { tem, acessoTotal } = usePermissao();
   const {
     pregoes, itens, participantes, lances, mensagens,
     loadDisputa, iniciarItem, encerrarItem, prorrogarItem,
