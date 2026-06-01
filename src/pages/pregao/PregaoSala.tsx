@@ -11,6 +11,7 @@ import { ArrowLeft, Gavel, Play, Square, Plus, Send, Timer, Trophy, MessageSquar
 import { toast } from "sonner";
 import { usePregao } from "@/contexts/PregaoContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissao } from "@/hooks/usePermissao";
 import { formatNumeroAno } from "@/lib/formatNumero";
 
 function formatarDataHora(iso: string) {
