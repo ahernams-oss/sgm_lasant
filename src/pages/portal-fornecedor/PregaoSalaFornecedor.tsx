@@ -12,6 +12,59 @@ import {
   ChevronLeft, Eye, EyeOff, AlertCircle
 } from "lucide-react";
 import logoLasant from "@/assets/Logo_Lasant.png";
+import { Download, FileText } from "lucide-react";
+
+function EditalDownloads({ pregaoId }: { pregaoId: string }) {
+  const [anexos, setAnexos] = useState<Array<{ id: string; nome: string; descricao: string | null; url: string; tamanho_bytes: number | null }>>([]);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("pregao_anexos_edital" as any)
+        .select("id,nome,descricao,url,tamanho_bytes")
+        .eq("pregao_id", pregaoId)
+        .order("created_at", { ascending: false });
+      setAnexos((data as any) || []);
+    })();
+  }, [pregaoId]);
+  const baixar = async (url: string, nome: string) => {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const u = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = u; a.download = nome;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(u);
+    } catch {
+      window.open(url, "_blank");
+    }
+  };
+  if (anexos.length === 0) return null;
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <FileText className="h-4 w-4" /> Anexos do Edital
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-1.5">
+        {anexos.map(a => (
+          <button
+            key={a.id}
+            onClick={() => baixar(a.url, a.nome)}
+            className="w-full text-left p-2 rounded-lg border text-xs hover:bg-accent flex items-center justify-between gap-2"
+          >
+            <div className="min-w-0 flex-1">
+              <div className="font-medium truncate">{a.nome}</div>
+              {a.descricao && <div className="text-muted-foreground truncate">{a.descricao}</div>}
+            </div>
+            <Download className="h-4 w-4 shrink-0 text-primary" />
+          </button>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
 
 interface FornecedorSession {
   id: string;
