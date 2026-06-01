@@ -85,6 +85,40 @@ export interface PregaoParticipante {
   motivoStatus: string;
 }
 
+export interface PregaoLance {
+  id: string;
+  pregaoId: string;
+  itemId: string;
+  participanteId: string;
+  valor: number;
+  ts: string;
+  cancelado: boolean;
+  motivoCancelamento: string;
+}
+
+export interface PregaoMensagem {
+  id: string;
+  pregaoId: string;
+  itemId: string | null;
+  autorTipo: "pregoeiro" | "participante" | "sistema";
+  autorId: string | null;
+  autorNomeExibicao: string;
+  mensagem: string;
+  ts: string;
+}
+
+export interface PregaoPropostaInicial {
+  id: string;
+  pregaoId: string;
+  itemId: string;
+  participanteId: string;
+  valor: number;
+  marca: string;
+  modelo: string;
+  observacoes: string;
+  enviadaEm: string;
+}
+
 // ============ MAPPERS ============
 
 const rowToPregao = (r: any): Pregao => ({
@@ -216,6 +250,25 @@ async function sha256(text: string): Promise<string> {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
+const rowToLance = (r: any): PregaoLance => ({
+  id: r.id, pregaoId: r.pregao_id, itemId: r.item_id,
+  participanteId: r.participante_id, valor: Number(r.valor ?? 0),
+  ts: r.ts ?? "", cancelado: r.cancelado ?? false,
+  motivoCancelamento: r.motivo_cancelamento ?? "",
+});
+const rowToMsg = (r: any): PregaoMensagem => ({
+  id: r.id, pregaoId: r.pregao_id, itemId: r.item_id ?? null,
+  autorTipo: r.autor_tipo ?? "sistema", autorId: r.autor_id ?? null,
+  autorNomeExibicao: r.autor_nome_exibicao ?? "",
+  mensagem: r.mensagem ?? "", ts: r.ts ?? "",
+});
+const rowToPropIni = (r: any): PregaoPropostaInicial => ({
+  id: r.id, pregaoId: r.pregao_id, itemId: r.item_id,
+  participanteId: r.participante_id, valor: Number(r.valor ?? 0),
+  marca: r.marca ?? "", modelo: r.modelo ?? "",
+  observacoes: r.observacoes ?? "", enviadaEm: r.enviada_em ?? "",
+});
+
 // ============ CONTEXT ============
 
 interface PregaoContextType {
@@ -223,18 +276,28 @@ interface PregaoContextType {
   itens: PregaoItem[];
   documentos: PregaoDocumentoExigido[];
   participantes: PregaoParticipante[];
+  lances: PregaoLance[];
+  mensagens: PregaoMensagem[];
+  propostasIniciais: PregaoPropostaInicial[];
   loading: boolean;
   reload: () => Promise<void>;
+  loadDisputa: (pregaoId: string) => Promise<void>;
   // Pregão
   addPregao: (data: Omit<Pregao, "id" | "numero" | "createdAt">) => Promise<Pregao | null>;
   updatePregao: (id: string, data: Omit<Pregao, "id" | "numero" | "createdAt">) => Promise<boolean>;
   deletePregao: (id: string) => Promise<boolean>;
   publicarPregao: (id: string) => Promise<boolean>;
   cancelarPregao: (id: string, motivo: string) => Promise<boolean>;
+  abrirDisputa: (id: string) => Promise<boolean>;
+  encerrarDisputa: (id: string) => Promise<boolean>;
+  publicarResultado: (id: string) => Promise<boolean>;
   // Itens
   addItem: (data: Omit<PregaoItem, "id">) => Promise<PregaoItem | null>;
   updateItem: (id: string, data: Omit<PregaoItem, "id">) => Promise<boolean>;
   deleteItem: (id: string) => Promise<boolean>;
+  iniciarItem: (itemId: string, duracaoMin?: number) => Promise<boolean>;
+  encerrarItem: (itemId: string) => Promise<boolean>;
+  prorrogarItem: (itemId: string, minutos: number) => Promise<boolean>;
   // Documentos exigidos
   addDocumento: (data: Omit<PregaoDocumentoExigido, "id">) => Promise<PregaoDocumentoExigido | null>;
   updateDocumento: (id: string, data: Omit<PregaoDocumentoExigido, "id">) => Promise<boolean>;
@@ -242,6 +305,10 @@ interface PregaoContextType {
   // Credenciamento
   credenciarFornecedor: (pregaoId: string, fornecedor: { id: string; nome: string; cnpj: string }, ip?: string) => Promise<PregaoParticipante | null>;
   hashTermo: (texto: string) => Promise<string>;
+  // Disputa
+  enviarLance: (pregaoId: string, itemId: string, participanteId: string, valor: number) => Promise<boolean>;
+  enviarMensagem: (pregaoId: string, autorTipo: "pregoeiro" | "participante" | "sistema", autorNome: string, mensagem: string, itemId?: string) => Promise<boolean>;
+  cancelarLance: (lanceId: string, motivo: string) => Promise<boolean>;
 }
 
 const PregaoContext = createContext<PregaoContextType | undefined>(undefined);
@@ -251,6 +318,9 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
   const [itens, setItens] = useState<PregaoItem[]>([]);
   const [documentos, setDocumentos] = useState<PregaoDocumentoExigido[]>([]);
   const [participantes, setParticipantes] = useState<PregaoParticipante[]>([]);
+  const [lances, setLances] = useState<PregaoLance[]>([]);
+  const [mensagens, setMensagens] = useState<PregaoMensagem[]>([]);
+  const [propostasIniciais, setPropostasIniciais] = useState<PregaoPropostaInicial[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -268,7 +338,41 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
+  const loadDisputa = useCallback(async (pregaoId: string) => {
+    const [{ data: ll }, { data: mm }, { data: pi }] = await Promise.all([
+      (supabase as any).from("pregao_lances").select("*").eq("pregao_id", pregaoId).order("ts", { ascending: true }),
+      (supabase as any).from("pregao_mensagens").select("*").eq("pregao_id", pregaoId).order("ts", { ascending: true }),
+      (supabase as any).from("pregao_propostas_iniciais").select("*").eq("pregao_id", pregaoId),
+    ]);
+    setLances((ll ?? []).map(rowToLance));
+    setMensagens((mm ?? []).map(rowToMsg));
+    setPropostasIniciais((pi ?? []).map(rowToPropIni));
+  }, []);
+
   useEffect(() => { load(); }, [load]);
+
+  // Realtime global para tabelas de disputa
+  useEffect(() => {
+    const ch = supabase
+      .channel("pregao-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "pregao_lances" }, (payload: any) => {
+        if (payload.eventType === "INSERT") setLances(prev => [...prev, rowToLance(payload.new)]);
+        else if (payload.eventType === "UPDATE") setLances(prev => prev.map(l => l.id === payload.new.id ? rowToLance(payload.new) : l));
+        else if (payload.eventType === "DELETE") setLances(prev => prev.filter(l => l.id !== payload.old.id));
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "pregao_mensagens" }, (payload: any) => {
+        if (payload.eventType === "INSERT") setMensagens(prev => [...prev, rowToMsg(payload.new)]);
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "pregao_itens" }, (payload: any) => {
+        setItens(prev => prev.map(i => i.id === payload.new.id ? rowToItem(payload.new) : i));
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "pregao_participantes" }, () => { load(); })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "pregoes" }, (payload: any) => {
+        setPregoes(prev => prev.map(p => p.id === payload.new.id ? rowToPregao(payload.new) : p));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [load]);
 
   const addPregao = async (data: Omit<Pregao, "id" | "numero" | "createdAt">) => {
     const hash = data.termoParticipacao ? await sha256(data.termoParticipacao) : "";
@@ -365,13 +469,119 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
     return null;
   };
 
+  // ============ Disputa ============
+  const abrirDisputa = async (id: string) => {
+    const ok = await updateRow("pregoes", id, { status: "Disputa", data_inicio_disputa: new Date().toISOString() });
+    if (ok) await load();
+    return ok;
+  };
+  const encerrarDisputa = async (id: string) => {
+    const ok = await updateRow("pregoes", id, { status: "Encerrado", data_encerramento_disputa: new Date().toISOString() });
+    if (ok) await load();
+    return ok;
+  };
+  const publicarResultado = async (id: string) => {
+    const ok = await updateRow("pregoes", id, { resultado_publico: true });
+    if (ok) await load();
+    return ok;
+  };
+
+  const iniciarItem = async (itemId: string, duracaoMin?: number) => {
+    const item = itens.find(i => i.id === itemId);
+    if (!item) return false;
+    const pregao = pregoes.find(p => p.id === item.pregaoId);
+    const dur = duracaoMin ?? pregao?.tempoDisputaMin ?? 10;
+    const agora = new Date();
+    const encerra = new Date(agora.getTime() + dur * 60_000);
+    const ok = await updateRow("pregao_itens", itemId, {
+      status: "EmDisputa",
+      iniciado_em: agora.toISOString(),
+      encerra_em: encerra.toISOString(),
+    });
+    return ok;
+  };
+
+  const encerrarItem = async (itemId: string) => {
+    const item = itens.find(i => i.id === itemId);
+    if (!item) return false;
+    // calcula vencedor: menor lance não cancelado
+    const lancesItem = lances.filter(l => l.itemId === itemId && !l.cancelado);
+    let vencedorParticipanteId: string | null = null;
+    let vencedorValor = 0;
+    if (lancesItem.length) {
+      const menor = [...lancesItem].sort((a, b) => a.valor - b.valor)[0];
+      vencedorParticipanteId = menor.participanteId;
+      vencedorValor = menor.valor;
+    }
+    const novoStatus = lancesItem.length ? "Encerrado" : "Deserto";
+    const ok = await updateRow("pregao_itens", itemId, {
+      status: novoStatus,
+      encerrado_em: new Date().toISOString(),
+      vencedor_participante_id: vencedorParticipanteId,
+      vencedor_valor: vencedorValor,
+      vencedor_valor_unitario: item.quantidade > 0 ? vencedorValor / item.quantidade : 0,
+    });
+    return ok;
+  };
+
+  const prorrogarItem = async (itemId: string, minutos: number) => {
+    const item = itens.find(i => i.id === itemId);
+    if (!item) return false;
+    const base = item.encerraEm ? new Date(item.encerraEm) : new Date();
+    const nova = new Date(base.getTime() + minutos * 60_000);
+    return await updateRow("pregao_itens", itemId, { encerra_em: nova.toISOString() });
+  };
+
+  const enviarLance = async (pregaoId: string, itemId: string, participanteId: string, valor: number) => {
+    const item = itens.find(i => i.id === itemId);
+    if (!item || item.status !== "EmDisputa") return false;
+    // valida menor que melhor lance atual
+    const lancesItem = lances.filter(l => l.itemId === itemId && !l.cancelado);
+    const melhor = lancesItem.length ? Math.min(...lancesItem.map(l => l.valor)) : Infinity;
+    if (valor >= melhor && melhor !== Infinity) return false;
+    const row = await insertRow("pregao_lances", {
+      pregao_id: pregaoId, item_id: itemId,
+      participante_id: participanteId, valor,
+    });
+    if (!row) return false;
+    // prorrogação automática se faltar < tempoProrrogacaoMin
+    const pregao = pregoes.find(p => p.id === pregaoId);
+    if (pregao && item.encerraEm) {
+      const restante = new Date(item.encerraEm).getTime() - Date.now();
+      if (restante < pregao.tempoProrrogacaoMin * 60_000) {
+        const nova = new Date(Date.now() + pregao.tempoProrrogacaoMin * 60_000);
+        await updateRow("pregao_itens", itemId, { encerra_em: nova.toISOString() });
+      }
+    }
+    return true;
+  };
+
+  const cancelarLance = async (lanceId: string, motivo: string) => {
+    return await updateRow("pregao_lances", lanceId, { cancelado: true, motivo_cancelamento: motivo });
+  };
+
+  const enviarMensagem = async (pregaoId: string, autorTipo: "pregoeiro" | "participante" | "sistema", autorNome: string, mensagem: string, itemId?: string) => {
+    const row = await insertRow("pregao_mensagens", {
+      pregao_id: pregaoId,
+      item_id: itemId ?? null,
+      autor_tipo: autorTipo,
+      autor_nome_exibicao: autorNome,
+      mensagem,
+    });
+    return !!row;
+  };
+
   return (
     <PregaoContext.Provider value={{
-      pregoes, itens, documentos, participantes, loading, reload: load,
+      pregoes, itens, documentos, participantes, lances, mensagens, propostasIniciais,
+      loading, reload: load, loadDisputa,
       addPregao, updatePregao, deletePregao, publicarPregao, cancelarPregao,
+      abrirDisputa, encerrarDisputa, publicarResultado,
       addItem, updateItem, deleteItem,
+      iniciarItem, encerrarItem, prorrogarItem,
       addDocumento, updateDocumento, deleteDocumento,
       credenciarFornecedor, hashTermo: sha256,
+      enviarLance, cancelarLance, enviarMensagem,
     }}>
       {children}
     </PregaoContext.Provider>
