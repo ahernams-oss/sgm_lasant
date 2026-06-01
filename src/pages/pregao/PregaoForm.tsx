@@ -62,7 +62,7 @@ export default function PregaoForm() {
   const { tem } = usePermissao();
 
   const editing = id && id !== "novo" ? pregoes.find(p => p.id === id) : undefined;
-  const readOnly = !!editing && editing.status !== "Rascunho";
+  const readOnly = !!editing && editing.status !== "Rascunho" && editing.status !== "Publicado";
   const podeEditar = tem("pregao.criar") && !readOnly;
 
   const [form, setForm] = useState<Omit<Pregao, "id" | "numero" | "createdAt">>(EMPTY);
@@ -146,7 +146,7 @@ export default function PregaoForm() {
             </h1>
             <p className="text-sm text-muted-foreground">
               {editing && <Badge variant="outline" className="mr-2">{editing.status}</Badge>}
-              {readOnly ? "Somente leitura — pregão já publicado" : "Preencha os dados, itens e documentos exigidos"}
+              {readOnly ? "Somente leitura — disputa já iniciada" : "Preencha os dados, itens e documentos exigidos"}
             </p>
           </div>
         </div>
