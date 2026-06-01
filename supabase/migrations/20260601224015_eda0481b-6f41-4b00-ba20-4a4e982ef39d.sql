@@ -1,0 +1,1 @@
+-- No DB changes needed - this is a frontend-only update to PortalFornecedor.tsx to add the pregão term dialog and credenciamento functionality
