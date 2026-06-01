@@ -684,6 +684,7 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
       addDocumento, updateDocumento, deleteDocumento,
       credenciarFornecedor, setParticipanteStatus, hashTermo: sha256,
       enviarLance, cancelarLance, enviarMensagem,
+      addHabilitacao, uploadDocumentoHabilitacao, avaliarHabilitacao, deleteHabilitacao,
     }}>
       {children}
     </PregaoContext.Provider>
