@@ -821,11 +821,27 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-muted-foreground">Status Pregão</Label>
+                  <Select value={statusPregao} onValueChange={setStatusPregao}>
+                    <SelectTrigger className="h-9 w-44"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="Publicado">Publicado</SelectItem>
+                      <SelectItem value="Credenciamento">Credenciamento</SelectItem>
+                      <SelectItem value="Propostas">Propostas</SelectItem>
+                      <SelectItem value="Disputa">Disputa</SelectItem>
+                      <SelectItem value="Habilitacao">Habilitação</SelectItem>
+                      <SelectItem value="Adjudicado">Adjudicado</SelectItem>
+                      <SelectItem value="Homologado">Homologado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Button variant="outline" size="sm" onClick={limparFiltros} className="h-9">
                   <FilterX className="h-4 w-4 mr-1" /> Limpar
                 </Button>
                 <div className="ml-auto text-xs text-muted-foreground">
-                  {convitesFiltrados.length} cotação(ões) · {pedidosFiltrados.length} pedido(s)
+                  {convitesFiltrados.length} cotação(ões) · {pedidosFiltrados.length} pedido(s) · {pregoesFiltrados.length} pregão(ões)
                 </div>
               </div>
             </CardContent>
