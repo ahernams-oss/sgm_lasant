@@ -738,7 +738,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
           <Card>
             <CardContent className="pt-6">
               <p className="text-xs text-muted-foreground">Cotações pendentes</p>
@@ -757,6 +757,12 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               <p className="text-3xl font-semibold">{pedidos.length}</p>
             </CardContent>
           </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-xs text-muted-foreground">Pregões disponíveis</p>
+              <p className="text-3xl font-semibold text-primary">{pregoes.length}</p>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="dashboard">
@@ -769,6 +775,9 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
             </TabsTrigger>
             <TabsTrigger value="pedidos">
               <ShoppingCart className="h-4 w-4 mr-2" /> Pedidos de Compra
+            </TabsTrigger>
+            <TabsTrigger value="pregoes">
+              <Gavel className="h-4 w-4 mr-2" /> Pregões Eletrônicos
             </TabsTrigger>
           </TabsList>
 
