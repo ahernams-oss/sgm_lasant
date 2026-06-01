@@ -85,6 +85,40 @@ export interface PregaoParticipante {
   motivoStatus: string;
 }
 
+export interface PregaoLance {
+  id: string;
+  pregaoId: string;
+  itemId: string;
+  participanteId: string;
+  valor: number;
+  ts: string;
+  cancelado: boolean;
+  motivoCancelamento: string;
+}
+
+export interface PregaoMensagem {
+  id: string;
+  pregaoId: string;
+  itemId: string | null;
+  autorTipo: "pregoeiro" | "participante" | "sistema";
+  autorId: string | null;
+  autorNomeExibicao: string;
+  mensagem: string;
+  ts: string;
+}
+
+export interface PregaoPropostaInicial {
+  id: string;
+  pregaoId: string;
+  itemId: string;
+  participanteId: string;
+  valor: number;
+  marca: string;
+  modelo: string;
+  observacoes: string;
+  enviadaEm: string;
+}
+
 // ============ MAPPERS ============
 
 const rowToPregao = (r: any): Pregao => ({
