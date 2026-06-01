@@ -469,12 +469,13 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   }, [pedidos, dataDe, dataAte, statusPed]);
 
   const limparFiltros = () => {
-    setDataDe(""); setDataAte(""); setStatusCot("todos"); setStatusPed("todos");
-    setPageCotacoes(1); setPagePedidos(1);
+    setDataDe(""); setDataAte(""); setStatusCot("todos"); setStatusPed("todos"); setStatusPregao("todos");
+    setPageCotacoes(1); setPagePedidos(1); setPagePregoes(1);
   };
 
   useEffect(() => { setPageCotacoes(1); }, [dataDe, dataAte, statusCot]);
   useEffect(() => { setPagePedidos(1); }, [dataDe, dataAte, statusPed]);
+  useEffect(() => { setPagePregoes(1); }, [dataDe, dataAte, statusPregao]);
 
   const togglePedido = (id: string) => setExpandedPedidos((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const allPedidoIds = pedidosFiltrados.map((p) => p.id);
