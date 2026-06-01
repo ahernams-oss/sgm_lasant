@@ -5206,6 +5206,53 @@ export type Database = {
         }
         Relationships: []
       }
+      pregao_anexos_edital: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          mime_type: string | null
+          nome: string
+          pregao_id: string
+          storage_path: string | null
+          tamanho_bytes: number | null
+          uploaded_by: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          mime_type?: string | null
+          nome: string
+          pregao_id: string
+          storage_path?: string | null
+          tamanho_bytes?: number | null
+          uploaded_by?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          mime_type?: string | null
+          nome?: string
+          pregao_id?: string
+          storage_path?: string | null
+          tamanho_bytes?: number | null
+          uploaded_by?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pregao_anexos_edital_pregao_id_fkey"
+            columns: ["pregao_id"]
+            isOneToOne: false
+            referencedRelation: "pregoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pregao_documentos_exigidos: {
         Row: {
           created_at: string

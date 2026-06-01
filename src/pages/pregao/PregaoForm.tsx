@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatNumeroAno } from "@/lib/formatNumero";
 import { toast } from "sonner";
 import { valorPorExtenso, formatMilharBR, parseMilharBR } from "@/lib/valorPorExtenso";
+import EditalAnexosTab from "@/components/pregao/EditalAnexosTab";
 
 const EMPTY: Omit<Pregao, "id" | "numero" | "createdAt"> = {
   objeto: "",
@@ -158,6 +159,7 @@ export default function PregaoForm() {
           <TabsTrigger value="dados">Dados Gerais</TabsTrigger>
           <TabsTrigger value="itens" disabled={!pregaoId}>Itens / Lotes ({meusItens.length})</TabsTrigger>
           <TabsTrigger value="documentos" disabled={!pregaoId}>Documentos Exigidos ({meusDocs.length})</TabsTrigger>
+          <TabsTrigger value="edital" disabled={!pregaoId}>Anexos do Edital</TabsTrigger>
           <TabsTrigger value="termo" disabled={!pregaoId}>Termo de Participação</TabsTrigger>
           <TabsTrigger value="participantes" disabled={!pregaoId}>Participantes ({meusPart.length})</TabsTrigger>
         </TabsList>
@@ -409,6 +411,11 @@ export default function PregaoForm() {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ===== ANEXOS DO EDITAL ===== */}
+        <TabsContent value="edital">
+          {pregaoId && <EditalAnexosTab pregaoId={pregaoId} podeEditar={podeEditar} />}
         </TabsContent>
 
         {/* ===== TERMO ===== */}
