@@ -325,7 +325,7 @@ interface PregaoContextType {
   homologarPregao: (id: string) => Promise<boolean>;
   // Itens
   addItem: (data: Omit<PregaoItem, "id">) => Promise<PregaoItem | null>;
-  updateItem: (id: string, data: Omit<PregaoItem, "id">) => Promise<boolean>;
+  updateItem: (id: string, data: Partial<Omit<PregaoItem, "id">>) => Promise<boolean>;
   deleteItem: (id: string) => Promise<boolean>;
   iniciarItem: (itemId: string, duracaoMin?: number) => Promise<boolean>;
   encerrarItem: (itemId: string) => Promise<boolean>;
