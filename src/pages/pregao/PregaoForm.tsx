@@ -16,6 +16,7 @@ import { usePermissao } from "@/hooks/usePermissao";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatNumeroAno } from "@/lib/formatNumero";
 import { toast } from "sonner";
+import { valorPorExtenso, formatMilharBR, parseMilharBR } from "@/lib/valorPorExtenso";
 
 const EMPTY: Omit<Pregao, "id" | "numero" | "createdAt"> = {
   objeto: "",
