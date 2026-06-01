@@ -283,6 +283,18 @@ const rowToPropIni = (r: any): PregaoPropostaInicial => ({
   observacoes: r.observacoes ?? "", enviadaEm: r.enviada_em ?? "",
 });
 
+const rowToHab = (r: any): PregaoHabilitacao => ({
+  id: r.id, pregaoId: r.pregao_id, participanteId: r.participante_id,
+  documentoExigidoId: r.documento_exigido_id ?? null,
+  documentoNome: r.documento_nome ?? "",
+  arquivoUrl: r.arquivo_url ?? "",
+  arquivoNome: r.arquivo_nome ?? "",
+  status: r.status ?? "Pendente",
+  observacao: r.observacao ?? "",
+  analisadoEm: r.analisado_em ?? "",
+  analisadoPor: r.analisado_por ?? "",
+});
+
 // ============ CONTEXT ============
 
 interface PregaoContextType {
@@ -293,9 +305,11 @@ interface PregaoContextType {
   lances: PregaoLance[];
   mensagens: PregaoMensagem[];
   propostasIniciais: PregaoPropostaInicial[];
+  habilitacoes: PregaoHabilitacao[];
   loading: boolean;
   reload: () => Promise<void>;
   loadDisputa: (pregaoId: string) => Promise<void>;
+  loadHabilitacao: (pregaoId: string) => Promise<void>;
   // Pregão
   addPregao: (data: Omit<Pregao, "id" | "numero" | "createdAt">) => Promise<Pregao | null>;
   updatePregao: (id: string, data: Omit<Pregao, "id" | "numero" | "createdAt">) => Promise<boolean>;
@@ -305,6 +319,8 @@ interface PregaoContextType {
   abrirDisputa: (id: string) => Promise<boolean>;
   encerrarDisputa: (id: string) => Promise<boolean>;
   publicarResultado: (id: string) => Promise<boolean>;
+  adjudicarPregao: (id: string) => Promise<boolean>;
+  homologarPregao: (id: string) => Promise<boolean>;
   // Itens
   addItem: (data: Omit<PregaoItem, "id">) => Promise<PregaoItem | null>;
   updateItem: (id: string, data: Omit<PregaoItem, "id">) => Promise<boolean>;
@@ -318,11 +334,17 @@ interface PregaoContextType {
   deleteDocumento: (id: string) => Promise<boolean>;
   // Credenciamento
   credenciarFornecedor: (pregaoId: string, fornecedor: { id: string; nome: string; cnpj: string }, ip?: string) => Promise<PregaoParticipante | null>;
+  setParticipanteStatus: (participanteId: string, status: PregaoParticipante["status"], motivo?: string) => Promise<boolean>;
   hashTermo: (texto: string) => Promise<string>;
   // Disputa
   enviarLance: (pregaoId: string, itemId: string, participanteId: string, valor: number) => Promise<boolean>;
   enviarMensagem: (pregaoId: string, autorTipo: "pregoeiro" | "participante" | "sistema", autorNome: string, mensagem: string, itemId?: string) => Promise<boolean>;
   cancelarLance: (lanceId: string, motivo: string) => Promise<boolean>;
+  // Habilitação
+  addHabilitacao: (data: { pregaoId: string; participanteId: string; documentoExigidoId?: string | null; documentoNome: string; arquivoUrl?: string; arquivoNome?: string }) => Promise<PregaoHabilitacao | null>;
+  uploadDocumentoHabilitacao: (pregaoId: string, participanteId: string, file: File) => Promise<{ url: string; nome: string } | null>;
+  avaliarHabilitacao: (habId: string, status: "Aprovado" | "Reprovado", observacao: string, analisadoPor: string) => Promise<boolean>;
+  deleteHabilitacao: (habId: string) => Promise<boolean>;
 }
 
 const PregaoContext = createContext<PregaoContextType | undefined>(undefined);
@@ -335,6 +357,7 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
   const [lances, setLances] = useState<PregaoLance[]>([]);
   const [mensagens, setMensagens] = useState<PregaoMensagem[]>([]);
   const [propostasIniciais, setPropostasIniciais] = useState<PregaoPropostaInicial[]>([]);
+  const [habilitacoes, setHabilitacoes] = useState<PregaoHabilitacao[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
