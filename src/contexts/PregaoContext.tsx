@@ -250,6 +250,25 @@ async function sha256(text: string): Promise<string> {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
+const rowToLance = (r: any): PregaoLance => ({
+  id: r.id, pregaoId: r.pregao_id, itemId: r.item_id,
+  participanteId: r.participante_id, valor: Number(r.valor ?? 0),
+  ts: r.ts ?? "", cancelado: r.cancelado ?? false,
+  motivoCancelamento: r.motivo_cancelamento ?? "",
+});
+const rowToMsg = (r: any): PregaoMensagem => ({
+  id: r.id, pregaoId: r.pregao_id, itemId: r.item_id ?? null,
+  autorTipo: r.autor_tipo ?? "sistema", autorId: r.autor_id ?? null,
+  autorNomeExibicao: r.autor_nome_exibicao ?? "",
+  mensagem: r.mensagem ?? "", ts: r.ts ?? "",
+});
+const rowToPropIni = (r: any): PregaoPropostaInicial => ({
+  id: r.id, pregaoId: r.pregao_id, itemId: r.item_id,
+  participanteId: r.participante_id, valor: Number(r.valor ?? 0),
+  marca: r.marca ?? "", modelo: r.modelo ?? "",
+  observacoes: r.observacoes ?? "", enviadaEm: r.enviada_em ?? "",
+});
+
 // ============ CONTEXT ============
 
 interface PregaoContextType {
