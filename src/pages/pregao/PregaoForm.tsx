@@ -159,6 +159,7 @@ export default function PregaoForm() {
           <TabsTrigger value="dados">Dados Gerais</TabsTrigger>
           <TabsTrigger value="itens" disabled={!pregaoId}>Itens / Lotes ({meusItens.length})</TabsTrigger>
           <TabsTrigger value="documentos" disabled={!pregaoId}>Documentos Exigidos ({meusDocs.length})</TabsTrigger>
+          <TabsTrigger value="edital" disabled={!pregaoId}>Anexos do Edital</TabsTrigger>
           <TabsTrigger value="termo" disabled={!pregaoId}>Termo de Participação</TabsTrigger>
           <TabsTrigger value="participantes" disabled={!pregaoId}>Participantes ({meusPart.length})</TabsTrigger>
         </TabsList>
