@@ -64,7 +64,7 @@ export default function PregaoSala() {
 
   // É pregoeiro? (usuário logado conduz)
   const ehPregoeiro = !!auth?.usuarioLogado && (
-    !pregao?.pregoeiroId || pregao.pregoeiroId === auth.usuarioLogado.id || auth.usuarioLogado.perfilAcesso === "Administrador"
+    acessoTotal || tem("pregao.pregoeiro") || (!!pregao?.pregoeiroId && pregao.pregoeiroId === auth.usuarioLogado.id)
   );
 
   useEffect(() => {
