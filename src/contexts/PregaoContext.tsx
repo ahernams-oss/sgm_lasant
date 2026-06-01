@@ -318,6 +318,9 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
   const [itens, setItens] = useState<PregaoItem[]>([]);
   const [documentos, setDocumentos] = useState<PregaoDocumentoExigido[]>([]);
   const [participantes, setParticipantes] = useState<PregaoParticipante[]>([]);
+  const [lances, setLances] = useState<PregaoLance[]>([]);
+  const [mensagens, setMensagens] = useState<PregaoMensagem[]>([]);
+  const [propostasIniciais, setPropostasIniciais] = useState<PregaoPropostaInicial[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -335,7 +338,41 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
+  const loadDisputa = useCallback(async (pregaoId: string) => {
+    const [{ data: ll }, { data: mm }, { data: pi }] = await Promise.all([
+      (supabase as any).from("pregao_lances").select("*").eq("pregao_id", pregaoId).order("ts", { ascending: true }),
+      (supabase as any).from("pregao_mensagens").select("*").eq("pregao_id", pregaoId).order("ts", { ascending: true }),
+      (supabase as any).from("pregao_propostas_iniciais").select("*").eq("pregao_id", pregaoId),
+    ]);
+    setLances((ll ?? []).map(rowToLance));
+    setMensagens((mm ?? []).map(rowToMsg));
+    setPropostasIniciais((pi ?? []).map(rowToPropIni));
+  }, []);
+
   useEffect(() => { load(); }, [load]);
+
+  // Realtime global para tabelas de disputa
+  useEffect(() => {
+    const ch = supabase
+      .channel("pregao-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "pregao_lances" }, (payload: any) => {
+        if (payload.eventType === "INSERT") setLances(prev => [...prev, rowToLance(payload.new)]);
+        else if (payload.eventType === "UPDATE") setLances(prev => prev.map(l => l.id === payload.new.id ? rowToLance(payload.new) : l));
+        else if (payload.eventType === "DELETE") setLances(prev => prev.filter(l => l.id !== payload.old.id));
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "pregao_mensagens" }, (payload: any) => {
+        if (payload.eventType === "INSERT") setMensagens(prev => [...prev, rowToMsg(payload.new)]);
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "pregao_itens" }, (payload: any) => {
+        setItens(prev => prev.map(i => i.id === payload.new.id ? rowToItem(payload.new) : i));
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "pregao_participantes" }, () => { load(); })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "pregoes" }, (payload: any) => {
+        setPregoes(prev => prev.map(p => p.id === payload.new.id ? rowToPregao(payload.new) : p));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [load]);
 
   const addPregao = async (data: Omit<Pregao, "id" | "numero" | "createdAt">) => {
     const hash = data.termoParticipacao ? await sha256(data.termoParticipacao) : "";
