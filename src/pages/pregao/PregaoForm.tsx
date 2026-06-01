@@ -195,11 +195,23 @@ export default function PregaoForm() {
               </div>
               <div>
                 <Label>Valor Estimado Total (R$)</Label>
-                <Input type="number" value={form.valorEstimado} onChange={e => setForm({ ...form, valorEstimado: Number(e.target.value) })} disabled={!podeEditar} />
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  value={form.valorEstimado ? formatMilharBR(form.valorEstimado) : ""}
+                  onChange={e => setForm({ ...form, valorEstimado: parseMilharBR(e.target.value) })}
+                  disabled={!podeEditar}
+                  placeholder="0,00"
+                />
                 <div className="flex items-center gap-2 mt-2">
                   <Switch checked={form.valorEstimadoSigiloso} onCheckedChange={v => setForm({ ...form, valorEstimadoSigiloso: v })} disabled={!podeEditar} />
                   <span className="text-xs text-muted-foreground">Sigiloso (oculto para fornecedores)</span>
                 </div>
+                {form.valorEstimado > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1 italic first-letter:uppercase">
+                    {valorPorExtenso(form.valorEstimado)}
+                  </p>
+                )}
               </div>
               <div>
                 <Label>Decremento Mínimo</Label>
