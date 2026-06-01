@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Save, Plus, Trash2, Gavel } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, Gavel, Pencil, Check, X } from "lucide-react";
 import { usePregao, type Pregao, type PregaoItem, type PregaoDocumentoExigido } from "@/contexts/PregaoContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { useAuth } from "@/contexts/AuthContext";
