@@ -502,7 +502,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [{ data: c }, { data: p }] = await Promise.all([
+      const [{ data: c }, { data: p }, { data: pr }, { data: part }] = await Promise.all([
         supabase
           .from("cotacao_convites")
           .select("id,token,cotacao_numero,comprador,status,expires_at,created_at,itens")
@@ -513,9 +513,20 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
           .select("id,numero,data_criacao,comprador,status,valor_total,itens,condicao_pagamento,prazo_entrega,local_entrega,observacoes")
           .eq("fornecedor_id", session.id)
           .order("created_at", { ascending: false }),
+        supabase
+          .from("pregoes")
+          .select("id,numero,objeto,modalidade,tipo_disputa,status,data_publicacao,data_abertura_credenciamento,data_inicio_disputa,data_encerramento_disputa,termo_participacao,termo_hash,tempo_disputa_min,decremento_minimo,decremento_tipo,created_at,pregoeiro_nome")
+          .in("status", ["Publicado", "Credenciamento", "Propostas", "Disputa", "Habilitacao", "Adjudicado", "Homologado"])
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("pregao_participantes")
+          .select("id,pregao_id,fornecedor_id,apelido,status,termo_aceito_em,motivo_status")
+          .eq("fornecedor_id", session.id),
       ]);
       setConvites((c as any) || []);
       setPedidos((p as any) || []);
+      setPregoes((pr as any) || []);
+      setMinhasParticipacoes((part as any) || []);
       setLoading(false);
     })();
   }, [session.id]);
