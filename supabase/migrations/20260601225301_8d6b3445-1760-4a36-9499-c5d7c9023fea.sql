@@ -1,0 +1,1 @@
+ALTER TABLE public.pregao_participantes ADD COLUMN IF NOT EXISTS chat_aberto boolean NOT NULL DEFAULT false;

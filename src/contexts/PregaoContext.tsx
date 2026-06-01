@@ -83,6 +83,7 @@ export interface PregaoParticipante {
   termoHash: string;
   status: "Credenciado" | "Desclassificado" | "Inabilitado" | "Habilitado" | "Vencedor" | "Desistente";
   motivoStatus: string;
+  chatAberto: boolean;
 }
 
 export interface PregaoLance {
@@ -255,6 +256,7 @@ const rowToPart = (r: any): PregaoParticipante => ({
   termoHash: r.termo_hash ?? "",
   status: r.status ?? "Credenciado",
   motivoStatus: r.motivo_status ?? "",
+  chatAberto: r.chat_aberto ?? false,
 });
 
 // ============ HASH ============
@@ -335,6 +337,7 @@ interface PregaoContextType {
   // Credenciamento
   credenciarFornecedor: (pregaoId: string, fornecedor: { id: string; nome: string; cnpj: string }, ip?: string) => Promise<PregaoParticipante | null>;
   setParticipanteStatus: (participanteId: string, status: PregaoParticipante["status"], motivo?: string) => Promise<boolean>;
+  setChatParticipante: (participanteId: string, aberto: boolean) => Promise<boolean>;
   hashTermo: (texto: string) => Promise<string>;
   // Disputa
   enviarLance: (pregaoId: string, itemId: string, participanteId: string, valor: number) => Promise<boolean>;
@@ -661,6 +664,14 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
     return ok;
   };
 
+  const setChatParticipante = async (participanteId: string, aberto: boolean) => {
+    const ok = await updateRow("pregao_participantes", participanteId, { chat_aberto: aberto });
+    if (ok) {
+      setParticipantes(prev => prev.map(p => p.id === participanteId ? { ...p, chatAberto: aberto } : p));
+    }
+    return ok;
+  };
+
   const adjudicarPregao = async (id: string) => {
     const ok = await updateRow("pregoes", id, { status: "Adjudicado" });
     if (ok) await load();
@@ -682,7 +693,7 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
       addItem, updateItem, deleteItem,
       iniciarItem, encerrarItem, prorrogarItem,
       addDocumento, updateDocumento, deleteDocumento,
-      credenciarFornecedor, setParticipanteStatus, hashTermo: sha256,
+      credenciarFornecedor, setParticipanteStatus, setChatParticipante, hashTermo: sha256,
       enviarLance, cancelarLance, enviarMensagem,
       addHabilitacao, uploadDocumentoHabilitacao, avaliarHabilitacao, deleteHabilitacao,
     }}>

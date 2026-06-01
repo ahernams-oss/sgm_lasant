@@ -5548,6 +5548,7 @@ export type Database = {
         Row: {
           apelido: string
           apelido_seq: number
+          chat_aberto: boolean
           created_at: string
           fornecedor_cnpj: string
           fornecedor_id: string
@@ -5564,6 +5565,7 @@ export type Database = {
         Insert: {
           apelido?: string
           apelido_seq?: number
+          chat_aberto?: boolean
           created_at?: string
           fornecedor_cnpj?: string
           fornecedor_id: string
@@ -5580,6 +5582,7 @@ export type Database = {
         Update: {
           apelido?: string
           apelido_seq?: number
+          chat_aberto?: boolean
           created_at?: string
           fornecedor_cnpj?: string
           fornecedor_id?: string

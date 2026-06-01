@@ -59,6 +59,7 @@ interface Participante {
   fornecedor_id: string;
   apelido: string;
   status: string;
+  chat_aberto: boolean;
 }
 
 interface Lance {
@@ -193,6 +194,9 @@ export default function PregaoSalaFornecedorPage() {
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "pregao_itens" }, (payload: any) => {
         setItens(prev => prev.map(i => i.id === payload.new.id ? { ...i, ...payload.new } : i));
       })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "pregao_participantes" }, (payload: any) => {
+        setParticipante(prev => (prev && prev.id === payload.new.id) ? { ...prev, ...payload.new } : prev);
+      })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [pregaoId]);
@@ -276,6 +280,10 @@ export default function PregaoSalaFornecedorPage() {
 
   const enviarMensagem = async () => {
     if (!pregaoId || !participante || !msgTexto.trim()) return;
+    if (!participante.chat_aberto) {
+      toast.error("O chat está fechado pelo pregoeiro. Aguarde a liberação.");
+      return;
+    }
     await supabase.from("pregao_mensagens").insert({
       pregao_id: pregaoId,
       autor_tipo: "participante",
@@ -554,17 +562,23 @@ export default function PregaoSalaFornecedorPage() {
                   </ScrollArea>
                 </CardContent>
                 <CardContent className="pt-0 pb-3">
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Mensagem..."
-                      value={msgTexto}
-                      onChange={e => setMsgTexto(e.target.value)}
-                      onKeyDown={e => e.key === "Enter" && enviarMensagem()}
-                    />
-                    <Button size="sm" onClick={enviarMensagem} disabled={!msgTexto.trim()}>
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {participante.chat_aberto ? (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Mensagem..."
+                        value={msgTexto}
+                        onChange={e => setMsgTexto(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && enviarMensagem()}
+                      />
+                      <Button size="sm" onClick={enviarMensagem} disabled={!msgTexto.trim()}>
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-center text-muted-foreground py-2 border rounded-lg bg-muted/40">
+                      🔒 Chat fechado pelo pregoeiro. Aguarde liberação para enviar mensagens.
+                    </div>
+                  )}
                 </CardContent>
               </>
             )}
