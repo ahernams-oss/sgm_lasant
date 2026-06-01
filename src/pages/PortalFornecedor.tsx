@@ -433,6 +433,8 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const [dataAte, setDataAte] = useState<string>("");
   const [statusCot, setStatusCot] = useState<string>("todos");
   const [statusPed, setStatusPed] = useState<string>("todos");
+  const [statusPregao, setStatusPregao] = useState<string>("todos");
+  const navigate = useNavigate();
 
   const inRange = (iso: string) => {
     if (!iso) return true;
