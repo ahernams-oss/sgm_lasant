@@ -169,6 +169,24 @@ export default function PregaoHabilitacao() {
     }
   }
 
+  async function handleEnviarMsg() {
+    if (!novaMsg.trim()) return;
+    const autorNome = `Pregoeiro · ${usuarioLogado?.nome ?? ""}`;
+    const ok = await enviarMensagem(pregao!.id, "pregoeiro", autorNome, novaMsg.trim());
+    if (ok) setNovaMsg("");
+  }
+
+  useEffect(() => {
+    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
+  }, [msgsPregao.length]);
+
+  function formatarDataHora(iso: string) {
+    if (!iso) return "";
+    try {
+      return new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    } catch { return ""; }
+  }
+
   return (
     <div className="p-4 space-y-4">
       {/* Header */}
