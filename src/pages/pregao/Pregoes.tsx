@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Gavel, Plus, MoreHorizontal, Eye, Edit, Trash2, PlayCircle, XCircle, Search, FileCheck2, Trophy } from "lucide-react";
+import { Gavel, Plus, MoreHorizontal, Eye, Edit, Trash2, PlayCircle, XCircle, Search, FileCheck2, Trophy, PauseCircle } from "lucide-react";
 import { usePregao, type PregaoStatus } from "@/contexts/PregaoContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { formatNumeroAno } from "@/lib/formatNumero";
