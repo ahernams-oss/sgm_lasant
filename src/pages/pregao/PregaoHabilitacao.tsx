@@ -441,14 +441,30 @@ function LinhaHabilitacao({ hab, podeAnalisar, onAprovar, onReprovar, onExcluir 
           <button
             type="button"
             onClick={async () => {
+              const win = window.open("", "_blank");
               try {
                 const res = await fetch(hab.arquivoUrl);
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
-                window.open(url, "_blank", "noopener,noreferrer");
+                if (win) {
+                  win.location.href = url;
+                } else {
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = hab.arquivoNome || "documento";
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                }
                 setTimeout(() => URL.revokeObjectURL(url), 60000);
               } catch {
-                window.open(hab.arquivoUrl, "_blank", "noopener,noreferrer");
+                if (win) win.close();
+                const a = document.createElement("a");
+                a.href = hab.arquivoUrl;
+                a.download = hab.arquivoNome || "documento";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
               }
             }}
             className="text-primary hover:underline text-xs"
@@ -457,6 +473,7 @@ function LinhaHabilitacao({ hab, podeAnalisar, onAprovar, onReprovar, onExcluir 
           </button>
         ) : <span className="text-xs text-muted-foreground">—</span>}
       </TableCell>
+
 
       <TableCell><Badge variant="outline" className={cor}>{hab.status}</Badge></TableCell>
       <TableCell>
