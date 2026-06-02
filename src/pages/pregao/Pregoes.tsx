@@ -181,11 +181,6 @@ export default function Pregoes() {
                               <FileCheck2 className="h-4 w-4 mr-2" /> Habilitação / Adjudicação
                             </DropdownMenuItem>
                           )}
-                          {podePregoeiro && p.status === "Disputa" && (
-                            <DropdownMenuItem onClick={() => nav(`/compras/pregao/${p.id}/habilitacao`)} className="text-blue-700">
-                              <FileCheck2 className="h-4 w-4 mr-2" /> Ir para Habilitação
-                            </DropdownMenuItem>
-                          )}
                           {(p.resultadoPublico || p.status === "Homologado") && (
                             <DropdownMenuItem onClick={() => nav(`/compras/pregao/${p.id}/resultado`)}>
                               <Trophy className="h-4 w-4 mr-2" /> Resultado Público
