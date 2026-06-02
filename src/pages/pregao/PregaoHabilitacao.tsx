@@ -28,10 +28,11 @@ export default function PregaoHabilitacao() {
   const { usuarioLogado } = useAuth();
   const { tem, acessoTotal } = usePermissao();
   const {
-    pregoes, itens, participantes, lances, documentos, habilitacoes,
+    pregoes, itens, participantes, lances, mensagens, documentos, habilitacoes,
     loadHabilitacao, loadDisputa,
     addHabilitacao, uploadDocumentoHabilitacao, avaliarHabilitacao, deleteHabilitacao,
     setParticipanteStatus, adjudicarPregao, homologarPregao,
+    enviarMensagem, setChatParticipante,
   } = usePregao();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
