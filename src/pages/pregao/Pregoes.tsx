@@ -42,7 +42,7 @@ const STATUS_COLORS: Record<PregaoStatus, string> = {
 
 export default function Pregoes() {
   const nav = useNavigate();
-  const { pregoes, itens, participantes, deletePregao, publicarPregao, cancelarPregao, loading } = usePregao();
+  const { pregoes, itens, participantes, deletePregao, publicarPregao, cancelarPregao, suspenderPregao, retomarPregao, loading } = usePregao();
   const { tem } = usePermissao();
   const podeCriar = tem("pregao.criar");
   const podePregoeiro = tem("pregao.pregoeiro");
