@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, FileCheck2, Upload, CheckCircle2, XCircle, Trophy, Gavel, ExternalLink, MessageSquare, Send, Lock, Unlock } from "lucide-react";
+import { ArrowLeft, FileCheck2, Upload, CheckCircle2, XCircle, Trophy, Gavel, ExternalLink, MessageSquare, Send, Lock, Unlock, Eye, Download } from "lucide-react";
 import { toast } from "sonner";
 import { usePregao } from "@/contexts/PregaoContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -430,66 +430,117 @@ function LinhaHabilitacao({ hab, podeAnalisar, onAprovar, onReprovar, onExcluir 
   onExcluir: () => Promise<void>;
 }) {
   const [obs, setObs] = useState(hab.observacao || "");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [previewLoading, setPreviewLoading] = useState(false);
   const cor = hab.status === "Aprovado" ? "bg-emerald-100 text-emerald-800"
     : hab.status === "Reprovado" ? "bg-rose-100 text-rose-800"
     : "bg-amber-100 text-amber-800";
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  async function gerarUrlLocalArquivo() {
+    const res = await fetch(hab.arquivoUrl);
+    if (!res.ok) throw new Error("Falha ao carregar arquivo");
+    return URL.createObjectURL(await res.blob());
+  }
+
+  async function handlePreview() {
+    if (!hab.arquivoUrl) return;
+    setPreviewOpen(true);
+    setPreviewLoading(true);
+    try {
+      const url = await gerarUrlLocalArquivo();
+      setPreviewUrl((old) => {
+        if (old) URL.revokeObjectURL(old);
+        return url;
+      });
+    } catch {
+      toast.error("Não foi possível pré-visualizar o arquivo.");
+      setPreviewOpen(false);
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
+  async function handleDownload() {
+    if (!hab.arquivoUrl) return;
+    try {
+      const url = await gerarUrlLocalArquivo();
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = hab.arquivoNome || "documento";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch {
+      toast.error("Não foi possível baixar o arquivo.");
+    }
+  }
+
   return (
-    <TableRow>
-      <TableCell className="font-medium">{hab.documentoNome}</TableCell>
-      <TableCell>
-        {hab.arquivoUrl ? (
-          <button
-            type="button"
-            onClick={async () => {
-              const win = window.open("", "_blank");
-              try {
-                const res = await fetch(hab.arquivoUrl);
-                const blob = await res.blob();
-                const url = URL.createObjectURL(blob);
-                if (win) {
-                  win.location.href = url;
-                } else {
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = hab.arquivoNome || "documento";
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                }
-                setTimeout(() => URL.revokeObjectURL(url), 60000);
-              } catch {
-                if (win) win.close();
-                const a = document.createElement("a");
-                a.href = hab.arquivoUrl;
-                a.download = hab.arquivoNome || "documento";
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-              }
-            }}
-            className="text-primary hover:underline text-xs"
-          >
-            {hab.arquivoNome || "abrir"}
-          </button>
-        ) : <span className="text-xs text-muted-foreground">—</span>}
-      </TableCell>
+    <>
+      <TableRow>
+        <TableCell className="font-medium">{hab.documentoNome}</TableCell>
+        <TableCell>
+          {hab.arquivoUrl ? (
+            <div className="flex items-center gap-1 flex-wrap">
+              <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={handlePreview}>
+                <Eye className="h-3 w-3 mr-1" /> Pré-visualizar
+              </Button>
+              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={handleDownload} title="Baixar arquivo">
+                <Download className="h-3 w-3" />
+              </Button>
+              <span className="text-xs text-muted-foreground truncate max-w-[180px]">{hab.arquivoNome || "arquivo"}</span>
+            </div>
+          ) : <span className="text-xs text-muted-foreground">—</span>}
+        </TableCell>
 
 
-      <TableCell><Badge variant="outline" className={cor}>{hab.status}</Badge></TableCell>
-      <TableCell>
-        <Textarea value={obs} onChange={e => setObs(e.target.value)} rows={1} className="text-xs min-h-[32px]" disabled={!podeAnalisar} />
-      </TableCell>
-      <TableCell>
-        {podeAnalisar ? (
-          <div className="flex gap-1 justify-end">
-            <Button size="sm" variant="outline" className="h-7 text-xs text-emerald-700" onClick={() => onAprovar(obs)}>Aprovar</Button>
-            <Button size="sm" variant="outline" className="h-7 text-xs text-rose-700" onClick={() => onReprovar(obs)}>Reprovar</Button>
-            <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground" onClick={onExcluir}>×</Button>
+        <TableCell><Badge variant="outline" className={cor}>{hab.status}</Badge></TableCell>
+        <TableCell>
+          <Textarea value={obs} onChange={e => setObs(e.target.value)} rows={1} className="text-xs min-h-[32px]" disabled={!podeAnalisar} />
+        </TableCell>
+        <TableCell>
+          {podeAnalisar ? (
+            <div className="flex gap-1 justify-end">
+              <Button size="sm" variant="outline" className="h-7 text-xs text-emerald-700" onClick={() => onAprovar(obs)}>Aprovar</Button>
+              <Button size="sm" variant="outline" className="h-7 text-xs text-rose-700" onClick={() => onReprovar(obs)}>Reprovar</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground" onClick={onExcluir}>×</Button>
+            </div>
+          ) : (
+            <span className="text-xs text-muted-foreground">{hab.analisadoPor}</span>
+          )}
+        </TableCell>
+      </TableRow>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-5xl h-[88vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="truncate">{hab.arquivoNome || hab.documentoNome}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 min-h-0 rounded-lg border bg-muted/20 overflow-hidden">
+            {previewLoading ? (
+              <div className="h-full flex items-center justify-center text-sm text-muted-foreground">Carregando pré-visualização...</div>
+            ) : previewUrl ? (
+              <iframe title={hab.arquivoNome || hab.documentoNome} src={previewUrl} className="w-full h-full" />
+            ) : (
+              <div className="h-full flex items-center justify-center text-sm text-muted-foreground">Arquivo indisponível para pré-visualização.</div>
+            )}
           </div>
-        ) : (
-          <span className="text-xs text-muted-foreground">{hab.analisadoPor}</span>
-        )}
-      </TableCell>
-    </TableRow>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleDownload}>
+              <Download className="h-4 w-4 mr-2" /> Baixar
+            </Button>
+            <Button onClick={() => setPreviewOpen(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
