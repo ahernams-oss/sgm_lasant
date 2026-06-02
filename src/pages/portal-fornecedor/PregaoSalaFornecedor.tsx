@@ -12,7 +12,7 @@ import {
   ChevronLeft, Eye, EyeOff, AlertCircle
 } from "lucide-react";
 import logoLasant from "@/assets/Logo_Lasant.png";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, Upload, CheckCircle2, XCircle, Clock, Trash2 } from "lucide-react";
 
 function EditalDownloads({ pregaoId }: { pregaoId: string }) {
   const [anexos, setAnexos] = useState<Array<{ id: string; nome: string; descricao: string | null; url: string; tamanho_bytes: number | null }>>([]);
