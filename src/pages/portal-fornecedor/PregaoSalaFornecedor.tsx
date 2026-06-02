@@ -587,14 +587,14 @@ export default function PregaoSalaFornecedorPage() {
     );
   }
 
-  if (!participante || participante.status !== "Credenciado") {
+  if (!participante || ["Inabilitado", "Desclassificado", "Desistente"].includes(participante.status)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
         <Card className="max-w-md w-full text-center p-6">
           <AlertCircle className="h-10 w-10 text-amber-500 mx-auto mb-3" />
           <h2 className="text-lg font-semibold mb-2">Acesso não autorizado</h2>
           <p className="text-muted-foreground text-sm mb-4">
-            Você precisa estar credenciado neste pregão para acessar a sala de disputa.
+            Seu acesso a este pregão foi revogado ou você não está mais participando.
           </p>
           <Button onClick={() => navigate("/portal-fornecedor")}>Voltar ao Portal</Button>
         </Card>
