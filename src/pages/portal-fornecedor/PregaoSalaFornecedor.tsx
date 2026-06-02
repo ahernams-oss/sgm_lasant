@@ -12,7 +12,7 @@ import {
   ChevronLeft, Eye, EyeOff, AlertCircle
 } from "lucide-react";
 import logoLasant from "@/assets/Logo_Lasant.png";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, Upload, CheckCircle2, XCircle, Clock, Trash2 } from "lucide-react";
 
 function EditalDownloads({ pregaoId }: { pregaoId: string }) {
   const [anexos, setAnexos] = useState<Array<{ id: string; nome: string; descricao: string | null; url: string; tamanho_bytes: number | null }>>([]);
@@ -66,6 +66,215 @@ function EditalDownloads({ pregaoId }: { pregaoId: string }) {
   );
 }
 
+// ============ Habilitação do Fornecedor (upload de documentos) ============
+function HabilitacaoFornecedorSection({ pregaoId, participanteId }: { pregaoId: string; participanteId: string }) {
+  const [docsExigidos, setDocsExigidos] = useState<Array<{ id: string; nome: string; descricao: string | null; obrigatorio: boolean }>>([]);
+  const [enviados, setEnviados] = useState<Array<{ id: string; documento_exigido_id: string | null; documento_nome: string; arquivo_url: string | null; arquivo_nome: string | null; status: string; observacao: string }>>([]);
+  const [uploadingId, setUploadingId] = useState<string>("");
+  const [novoDocNome, setNovoDocNome] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+  const novoFileRef = useRef<HTMLInputElement>(null);
+
+  const load = useCallback(async () => {
+    const [{ data: dd }, { data: ee }] = await Promise.all([
+      supabase.from("pregao_documentos_exigidos" as any).select("id,nome,descricao,obrigatorio").eq("pregao_id", pregaoId).order("ordem", { ascending: true }),
+      supabase.from("pregao_habilitacao" as any).select("id,documento_exigido_id,documento_nome,arquivo_url,arquivo_nome,status,observacao").eq("pregao_id", pregaoId).eq("participante_id", participanteId).order("created_at", { ascending: true }),
+    ]);
+    setDocsExigidos((dd as any) || []);
+    setEnviados((ee as any) || []);
+  }, [pregaoId, participanteId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  // Realtime para receber pareceres do pregoeiro
+  useEffect(() => {
+    const ch = supabase
+      .channel("hab-fornecedor-" + participanteId)
+      .on("postgres_changes", { event: "*", schema: "public", table: "pregao_habilitacao" }, (payload: any) => {
+        const row = payload.new ?? payload.old;
+        if (row?.participante_id === participanteId) load();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [participanteId, load]);
+
+  const uploadArquivo = async (file: File, docExigidoId: string | null, nomeDoc: string) => {
+    try {
+      const path = `${pregaoId}/${participanteId}/${Date.now()}-${file.name}`;
+      const { error: upErr } = await supabase.storage.from("pregao-documentos").upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("pregao-documentos").getPublicUrl(path);
+      // Se existir registro Pendente/Reprovado para este documento exigido, atualiza; senão insere
+      const existente = docExigidoId
+        ? enviados.find(e => e.documento_exigido_id === docExigidoId)
+        : null;
+      if (existente) {
+        const { error } = await supabase.from("pregao_habilitacao" as any).update({
+          arquivo_url: pub.publicUrl,
+          arquivo_nome: file.name,
+          status: "Pendente",
+          observacao: "",
+          analisado_em: null,
+          analisado_por: null,
+        }).eq("id", existente.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("pregao_habilitacao" as any).insert({
+          pregao_id: pregaoId,
+          participante_id: participanteId,
+          documento_exigido_id: docExigidoId,
+          documento_nome: nomeDoc,
+          arquivo_url: pub.publicUrl,
+          arquivo_nome: file.name,
+          status: "Pendente",
+        });
+        if (error) throw error;
+      }
+      toast.success("Documento enviado ao pregoeiro.");
+      await load();
+    } catch (e: any) {
+      toast.error("Erro ao enviar documento: " + (e?.message ?? ""));
+    } finally {
+      setUploadingId("");
+    }
+  };
+
+  const removerEnvio = async (id: string) => {
+    if (!confirm("Remover este documento enviado?")) return;
+    await supabase.from("pregao_habilitacao" as any).delete().eq("id", id);
+    load();
+  };
+
+  const statusBadge = (s: string) => {
+    if (s === "Aprovado") return <Badge className="bg-green-100 text-green-800 border-green-300"><CheckCircle2 className="h-3 w-3 mr-1" />Aprovado</Badge>;
+    if (s === "Reprovado") return <Badge className="bg-red-100 text-red-800 border-red-300"><XCircle className="h-3 w-3 mr-1" />Reprovado</Badge>;
+    return <Badge variant="outline"><Clock className="h-3 w-3 mr-1" />Pendente</Badge>;
+  };
+
+  return (
+    <Card className="border-amber-300 bg-amber-50/40">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Upload className="h-4 w-4 text-amber-700" /> Habilitação — Envio de Documentos
+        </CardTitle>
+        <CardDescription>
+          Você foi convocado. Envie os documentos abaixo para análise do pregoeiro.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {docsExigidos.length === 0 && enviados.length === 0 && (
+          <p className="text-sm text-muted-foreground">Nenhum documento exigido pelo edital. Você pode anexar documentos adicionais abaixo.</p>
+        )}
+
+        {/* Documentos exigidos pelo edital */}
+        {docsExigidos.map(doc => {
+          const env = enviados.find(e => e.documento_exigido_id === doc.id);
+          return (
+            <div key={doc.id} className="border rounded-lg p-3 bg-background space-y-2">
+              <div className="flex items-start justify-between gap-2 flex-wrap">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-sm">{doc.nome}</span>
+                    {doc.obrigatorio && <Badge variant="destructive" className="text-[10px]">Obrigatório</Badge>}
+                    {env && statusBadge(env.status)}
+                  </div>
+                  {doc.descricao && <p className="text-xs text-muted-foreground mt-0.5">{doc.descricao}</p>}
+                  {env?.arquivo_nome && (
+                    <a href={env.arquivo_url ?? "#"} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
+                      <FileText className="h-3 w-3" /> {env.arquivo_nome}
+                    </a>
+                  )}
+                  {env?.observacao && (
+                    <p className="text-xs mt-1 p-2 rounded bg-muted">
+                      <strong>Parecer:</strong> {env.observacao}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    id={`file-${doc.id}`}
+                    className="hidden"
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (f) { setUploadingId(doc.id); uploadArquivo(f, doc.id, doc.nome); }
+                      e.target.value = "";
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    variant={env?.status === "Aprovado" ? "outline" : "default"}
+                    disabled={uploadingId === doc.id || env?.status === "Aprovado"}
+                    onClick={() => document.getElementById(`file-${doc.id}`)?.click()}
+                  >
+                    <Upload className="h-3 w-3 mr-1" />
+                    {uploadingId === doc.id ? "Enviando..." : env ? "Reenviar" : "Enviar"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Documentos adicionais (sem documento_exigido_id) */}
+        {enviados.filter(e => !e.documento_exigido_id).map(env => (
+          <div key={env.id} className="border rounded-lg p-3 bg-background flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-medium text-sm">{env.documento_nome}</span>
+                <Badge variant="secondary" className="text-[10px]">Adicional</Badge>
+                {statusBadge(env.status)}
+              </div>
+              {env.arquivo_nome && (
+                <a href={env.arquivo_url ?? "#"} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
+                  <FileText className="h-3 w-3" /> {env.arquivo_nome}
+                </a>
+              )}
+              {env.observacao && (
+                <p className="text-xs mt-1 p-2 rounded bg-muted"><strong>Parecer:</strong> {env.observacao}</p>
+              )}
+            </div>
+            {env.status !== "Aprovado" && (
+              <Button size="sm" variant="ghost" className="text-red-600" onClick={() => removerEnvio(env.id)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        ))}
+
+        {/* Adicionar documento extra */}
+        <div className="border-2 border-dashed rounded-lg p-3 bg-background">
+          <p className="text-xs font-medium mb-2">Anexar documento adicional</p>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Nome/descrição do documento"
+              value={novoDocNome}
+              onChange={e => setNovoDocNome(e.target.value)}
+              className="h-8 text-sm"
+            />
+            <input
+              ref={novoFileRef}
+              type="file"
+              className="hidden"
+              onChange={e => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                if (!novoDocNome.trim()) { toast.error("Informe o nome do documento."); e.target.value = ""; return; }
+                setUploadingId("novo");
+                uploadArquivo(f, null, novoDocNome.trim()).then(() => setNovoDocNome(""));
+                e.target.value = "";
+              }}
+            />
+            <Button size="sm" disabled={uploadingId === "novo" || !novoDocNome.trim()} onClick={() => novoFileRef.current?.click()}>
+              <Upload className="h-3 w-3 mr-1" />{uploadingId === "novo" ? "Enviando..." : "Anexar"}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 interface FornecedorSession {
   id: string;
   nome: string;
@@ -105,6 +314,7 @@ interface PregaoItem {
   encerrado_em: string;
   preco_referencia: number;
   preco_referencia_sigiloso: boolean;
+  vencedor_participante_id?: string | null;
 }
 
 interface Participante {
@@ -475,6 +685,11 @@ export default function PregaoSalaFornecedorPage() {
 
         {/* Centro: Disputa */}
         <div className="lg:col-span-6 space-y-4">
+          {/* Painel de Habilitação — visível apenas ao(s) vencedor(es) na fase de Habilitação */}
+          {(pregao.status === "Habilitacao" || pregao.status === "Adjudicado") &&
+            itens.some(i => i.vencedor_participante_id === participante.id) && (
+            <HabilitacaoFornecedorSection pregaoId={pregao.id} participanteId={participante.id} />
+          )}
           {activeItem ? (
             <Card>
               <CardHeader className="pb-2">
