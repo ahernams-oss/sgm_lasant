@@ -20,7 +20,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, Dependente, AnexoDependente, EpiItem, NrFuncionario, tiposTransporte, grausParentesco } from "@/contexts/FuncionariosContext";
+import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, Dependente, AnexoDependente, EpiItem, UniformeItem, NrFuncionario, tiposTransporte, grausParentesco } from "@/contexts/FuncionariosContext";
 import { AnexosDocumentosTab } from "@/components/AnexosDocumentosTab";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -364,6 +364,155 @@ const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) 
     </div>
   );
 };
+
+const TAMANHOS_UNIFORME = ["PP", "P", "M", "G", "GG", "XG", "XXG", "36", "38", "40", "42", "44", "46", "48", "50"];
+
+const UniformeTab = ({
+  uniformes,
+  onChange,
+  tamanhoCamisa, tamanhoCalca, tamanhoCalcado, peso, altura,
+  onSizeChange,
+}: {
+  uniformes: UniformeItem[];
+  onChange: (u: UniformeItem[]) => void;
+  tamanhoCamisa: string; tamanhoCalca: string; tamanhoCalcado: string; peso: string; altura: string;
+  onSizeChange: (field: "tamanhoCamisa" | "tamanhoCalca" | "tamanhoCalcado" | "peso" | "altura", value: string) => void;
+}) => {
+  const [novo, setNovo] = useState({ quantidade: 1, descricao: "", tamanho: "", dataEntrega: "", dataVencimento: "" });
+  const [popOpen, setPopOpen] = useState(false);
+  const { materiais } = useMateriaisServicos();
+  const { grupos, subGrupos, classes } = useCategoriasCompras();
+
+  const materiaisUniforme = useMemo(() => {
+    const grupo = grupos.find((g) => /uniforme/i.test(g.nome) || g.codigo === "05");
+    if (!grupo) return materiais;
+    const subIds = new Set(subGrupos.filter((s) => s.grupoId === grupo.id).map((s) => s.id));
+    const classeIds = new Set(classes.filter((c) => subIds.has(c.subGrupoId)).map((c) => c.id));
+    return materiais.filter((m) => classeIds.has(m.categoriaId));
+  }, [materiais, grupos, subGrupos, classes]);
+
+  const addItem = () => {
+    if (!novo.descricao.trim()) { toast.error("Informe a descrição do uniforme."); return; }
+    onChange([...uniformes, { id: crypto.randomUUID(), ...novo }]);
+    setNovo({ quantidade: 1, descricao: "", tamanho: "", dataEntrega: "", dataVencimento: "" });
+  };
+  const removeItem = (id: string) => onChange(uniformes.filter((u) => u.id !== id));
+
+  return (
+    <div className="space-y-6">
+      {/* Medidas/tamanhos de referência do funcionário */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <Field label="Tam. Camisa">
+          <Input value={tamanhoCamisa} onChange={(e) => onSizeChange("tamanhoCamisa", e.target.value)} placeholder="P, M, G..." />
+        </Field>
+        <Field label="Tam. Calça">
+          <Input value={tamanhoCalca} onChange={(e) => onSizeChange("tamanhoCalca", e.target.value)} placeholder="38, 40, 42" />
+        </Field>
+        <Field label="Tam. Calçado">
+          <Input value={tamanhoCalcado} onChange={(e) => onSizeChange("tamanhoCalcado", e.target.value)} placeholder="39, 40, 41" />
+        </Field>
+        <Field label="Peso (kg)">
+          <Input value={peso} onChange={(e) => onSizeChange("peso", e.target.value)} placeholder="Ex: 75" />
+        </Field>
+        <Field label="Altura (cm)">
+          <Input value={altura} onChange={(e) => onSizeChange("altura", e.target.value)} placeholder="Ex: 175" />
+        </Field>
+      </div>
+
+      {/* Formulário de entrega */}
+      <div className="grid grid-cols-1 lg:grid-cols-[80px_1fr_120px_150px_150px_auto] gap-3 items-end">
+        <Field label="Quantidade">
+          <Input type="number" min={1} value={novo.quantidade} onChange={(e) => setNovo({ ...novo, quantidade: parseInt(e.target.value) || 1 })} />
+        </Field>
+        <Field label="Uniforme" required>
+          <Popover open={popOpen} onOpenChange={setPopOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" role="combobox" aria-expanded={popOpen} className="w-full justify-between font-normal h-10">
+                <span className="truncate">{novo.descricao || "Selecionar uniforme..."}</span>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[480px] p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Buscar uniforme..." />
+                <CommandList>
+                  <CommandEmpty>Nenhum uniforme encontrado.</CommandEmpty>
+                  <CommandGroup>
+                    {materiaisUniforme.map((m) => (
+                      <CommandItem
+                        key={m.id}
+                        value={`${m.codigo} ${m.descricao}`}
+                        onSelect={() => {
+                          setNovo({ ...novo, descricao: m.descricao });
+                          setPopOpen(false);
+                        }}
+                      >
+                        <Check className={cn("mr-2 h-4 w-4", novo.descricao === m.descricao ? "opacity-100" : "opacity-0")} />
+                        {m.codigo} - {m.descricao}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </Field>
+        <Field label="Tamanho">
+          <Select value={novo.tamanho || undefined} onValueChange={(v) => setNovo({ ...novo, tamanho: v })}>
+            <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+            <SelectContent>
+              {TAMANHOS_UNIFORME.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Data de Entrega">
+          <Input type="date" value={novo.dataEntrega} onChange={(e) => setNovo({ ...novo, dataEntrega: e.target.value })} />
+        </Field>
+        <Field label="Data de Vencimento">
+          <Input type="date" value={novo.dataVencimento} onChange={(e) => setNovo({ ...novo, dataVencimento: e.target.value })} />
+        </Field>
+        <Button type="button" onClick={addItem} size="sm" className="h-10">
+          <Plus className="h-4 w-4 mr-1" /> Adicionar
+        </Button>
+      </div>
+
+      {uniformes.length > 0 && (
+        <div className="rounded-lg border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-20">Quant.</TableHead>
+                <TableHead>Uniforme</TableHead>
+                <TableHead className="w-24">Tamanho</TableHead>
+                <TableHead className="w-32">Data Entrega</TableHead>
+                <TableHead className="w-32">Vencimento</TableHead>
+                <TableHead className="w-16"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {uniformes.map((u) => (
+                <TableRow key={u.id}>
+                  <TableCell className="text-center">{String(u.quantidade).padStart(2, "0")}</TableCell>
+                  <TableCell>{u.descricao}</TableCell>
+                  <TableCell className="text-center">{u.tamanho || "—"}</TableCell>
+                  <TableCell className="text-center">{u.dataEntrega ? u.dataEntrega.split("-").reverse().join("/") : "—"}</TableCell>
+                  <TableCell className="text-center">{u.dataVencimento ? u.dataVencimento.split("-").reverse().join("/") : "—"}</TableCell>
+                  <TableCell>
+                    <Button size="icon" variant="ghost" type="button" onClick={() => removeItem(u.id)} className="h-7 w-7 text-destructive hover:text-destructive">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+};
+
+
 
 const Funcionarios = () => {
   const { funcionarios, addFuncionario, updateFuncionario, deleteFuncionario } = useFuncionarios();
@@ -892,23 +1041,16 @@ const Funcionarios = () => {
 
               {/* UNIFORME */}
               <TabsContent value="uniforme">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <Field label="Tamanho da Camisa">
-                    <Input value={form.tamanhoCamisa} onChange={(e) => update("tamanhoCamisa", e.target.value)} placeholder="Ex: P, M, G, GG" />
-                  </Field>
-                  <Field label="Tamanho da Calça">
-                    <Input value={form.tamanhoCalca} onChange={(e) => update("tamanhoCalca", e.target.value)} placeholder="Ex: 38, 40, 42" />
-                  </Field>
-                  <Field label="Tamanho do Calçado">
-                    <Input value={form.tamanhoCalcado} onChange={(e) => update("tamanhoCalcado", e.target.value)} placeholder="Ex: 39, 40, 41" />
-                  </Field>
-                  <Field label="Peso (kg)">
-                    <Input value={form.peso} onChange={(e) => update("peso", e.target.value)} placeholder="Ex: 75" />
-                  </Field>
-                  <Field label="Altura (cm)">
-                    <Input value={form.altura} onChange={(e) => update("altura", e.target.value)} placeholder="Ex: 175" />
-                  </Field>
-                </div>
+                <UniformeTab
+                  uniformes={form.uniformes || []}
+                  onChange={(u) => update("uniformes", u as any)}
+                  tamanhoCamisa={form.tamanhoCamisa}
+                  tamanhoCalca={form.tamanhoCalca}
+                  tamanhoCalcado={form.tamanhoCalcado}
+                  peso={form.peso}
+                  altura={form.altura}
+                  onSizeChange={(field, value) => update(field, value)}
+                />
               </TabsContent>
 
               {/* PASSAGEM */}

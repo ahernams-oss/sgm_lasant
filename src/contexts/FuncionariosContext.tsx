@@ -10,6 +10,7 @@ export interface AnexoDependente { id: string; nome: string; base64: string; tip
 export interface Dependente { id: string; nome: string; cpf: string; dataNascimento: string; grauParentesco: string; anexos: AnexoDependente[]; }
 export interface NrFuncionario { id: string; numero: string; descricao: string; dataEntrega: string; anexoBase64?: string; anexoNome?: string; anexoTipo?: string; }
 export interface EpiItem { id: string; quantidade: number; descricao: string; ca: string; dataEntrega: string; dataVencimento?: string; }
+export interface UniformeItem { id: string; quantidade: number; descricao: string; tamanho: string; dataEntrega: string; dataVencimento?: string; }
 export interface AnexoDocumento { id: string; nome: string; path: string; tamanho: number; data: string; descricao: string; }
 
 export const grausParentesco = ["Cônjuge", "Filho(a)", "Pai", "Mãe", "Irmão(ã)", "Avô(ó)", "Neto(a)", "Enteado(a)", "Tutelado(a)", "Outro"];
@@ -27,7 +28,7 @@ export interface Funcionario {
   secaoEleitoral: string; cnh: string; categoriaCnh: string; validadeCnh: string;
   certificadoReservista: string; tamanhoCamisa: string; tamanhoCalca: string;
   tamanhoCalcado: string; peso: string; altura: string;
-  passagens: PassagemDiaria[]; dependentes: Dependente[]; epis: EpiItem[];
+  passagens: PassagemDiaria[]; dependentes: Dependente[]; epis: EpiItem[]; uniformes: UniformeItem[];
   nrs: NrFuncionario[]; anexosDocumentos: AnexoDocumento[]; observacoes: string;
   status: "Ativo" | "Inativo" | "Afastado" | "Férias";
   experienciaInicio: string; experienciaPrimeiraEtapa: string;
@@ -46,7 +47,7 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   tituloEleitor: "", zonaEleitoral: "", secaoEleitoral: "",
   cnh: "", categoriaCnh: "", validadeCnh: "", certificadoReservista: "",
   tamanhoCamisa: "", tamanhoCalca: "", tamanhoCalcado: "", peso: "", altura: "",
-  passagens: [], dependentes: [], epis: [], nrs: [], anexosDocumentos: [],
+  passagens: [], dependentes: [], epis: [], uniformes: [], nrs: [], anexosDocumentos: [],
   observacoes: "", status: "Ativo",
   experienciaInicio: "", experienciaPrimeiraEtapa: "", experienciaFim: "",
   experienciaRenovado: false, experienciaNotificado10dPrimeira: false,
@@ -79,7 +80,7 @@ function rowToFuncionario(row: any): Funcionario {
     tamanhoCamisa: row.tamanho_camisa ?? "", tamanhoCalca: row.tamanho_calca ?? "",
     tamanhoCalcado: row.tamanho_calcado ?? "", peso: row.peso ?? "", altura: row.altura ?? "",
     passagens: row.passagens ?? [], dependentes: row.dependentes ?? [],
-    epis: row.epis ?? [], nrs: row.nrs ?? [], anexosDocumentos: row.anexos_documentos ?? [],
+    epis: row.epis ?? [], uniformes: row.uniformes ?? [], nrs: row.nrs ?? [], anexosDocumentos: row.anexos_documentos ?? [],
     observacoes: row.observacoes ?? "", status: row.status ?? "Ativo",
     experienciaInicio: row.experiencia_inicio ?? "",
     experienciaPrimeiraEtapa: row.experiencia_primeira_etapa ?? "",
@@ -110,7 +111,7 @@ function funcionarioToRow(f: Omit<Funcionario, "id">) {
     tamanho_camisa: f.tamanhoCamisa, tamanho_calca: f.tamanhoCalca,
     tamanho_calcado: f.tamanhoCalcado, peso: f.peso, altura: f.altura,
     passagens: f.passagens as any, dependentes: f.dependentes as any,
-    epis: f.epis as any, nrs: f.nrs as any, anexos_documentos: f.anexosDocumentos as any,
+    epis: f.epis as any, uniformes: f.uniformes as any, nrs: f.nrs as any, anexos_documentos: f.anexosDocumentos as any,
     observacoes: f.observacoes, status: f.status,
     experiencia_inicio: f.experienciaInicio || null,
     experiencia_primeira_etapa: f.experienciaPrimeiraEtapa || null,

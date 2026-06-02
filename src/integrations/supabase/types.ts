@@ -2735,6 +2735,7 @@ export type Database = {
           tipo_pcd: string | null
           titulo_eleitor: string | null
           uf: string | null
+          uniformes: Json
           validade_cnh: string | null
           zona_eleitoral: string | null
         }
@@ -2802,6 +2803,7 @@ export type Database = {
           tipo_pcd?: string | null
           titulo_eleitor?: string | null
           uf?: string | null
+          uniformes?: Json
           validade_cnh?: string | null
           zona_eleitoral?: string | null
         }
@@ -2869,6 +2871,7 @@ export type Database = {
           tipo_pcd?: string | null
           titulo_eleitor?: string | null
           uf?: string | null
+          uniformes?: Json
           validade_cnh?: string | null
           zona_eleitoral?: string | null
         }
