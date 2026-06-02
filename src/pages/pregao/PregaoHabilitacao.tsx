@@ -224,7 +224,7 @@ export default function PregaoHabilitacao() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr_320px] gap-4">
         {/* Lista de participantes (ranking) */}
         <Card className="rounded-xl">
           <CardHeader className="pb-2"><CardTitle className="text-sm">Classificação Provisória</CardTitle></CardHeader>
