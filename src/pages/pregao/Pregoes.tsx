@@ -125,7 +125,7 @@ export default function Pregoes() {
               <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos os status</SelectItem>
-                {(["Rascunho","Publicado","Credenciamento","Propostas","Disputa","Habilitacao","Adjudicado","Homologado","Cancelado","Encerrado"] as PregaoStatus[]).map(s => (
+                {(["Rascunho","Publicado","Credenciamento","Propostas","Disputa","Habilitacao","Adjudicado","Homologado","Suspenso","Cancelado","Encerrado"] as PregaoStatus[]).map(s => (
                   <SelectItem key={s} value={s}>{s}</SelectItem>
                 ))}
               </SelectContent>
