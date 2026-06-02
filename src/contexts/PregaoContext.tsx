@@ -318,6 +318,8 @@ interface PregaoContextType {
   deletePregao: (id: string) => Promise<boolean>;
   publicarPregao: (id: string) => Promise<boolean>;
   cancelarPregao: (id: string, motivo: string) => Promise<boolean>;
+  suspenderPregao: (id: string, motivo: string) => Promise<boolean>;
+  retomarPregao: (id: string) => Promise<boolean>;
   abrirDisputa: (id: string) => Promise<boolean>;
   encerrarDisputa: (id: string) => Promise<boolean>;
   publicarResultado: (id: string) => Promise<boolean>;
