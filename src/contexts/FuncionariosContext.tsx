@@ -80,7 +80,7 @@ function rowToFuncionario(row: any): Funcionario {
     tamanhoCamisa: row.tamanho_camisa ?? "", tamanhoCalca: row.tamanho_calca ?? "",
     tamanhoCalcado: row.tamanho_calcado ?? "", peso: row.peso ?? "", altura: row.altura ?? "",
     passagens: row.passagens ?? [], dependentes: row.dependentes ?? [],
-    epis: row.epis ?? [], nrs: row.nrs ?? [], anexosDocumentos: row.anexos_documentos ?? [],
+    epis: row.epis ?? [], uniformes: row.uniformes ?? [], nrs: row.nrs ?? [], anexosDocumentos: row.anexos_documentos ?? [],
     observacoes: row.observacoes ?? "", status: row.status ?? "Ativo",
     experienciaInicio: row.experiencia_inicio ?? "",
     experienciaPrimeiraEtapa: row.experiencia_primeira_etapa ?? "",
