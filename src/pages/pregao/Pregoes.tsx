@@ -81,6 +81,19 @@ export default function Pregoes() {
     if (ok) toast.success("Pregão cancelado.");
   };
 
+  const handleSuspender = async (id: string) => {
+    const motivo = window.prompt("Informe o motivo da suspensão:");
+    if (!motivo) return;
+    const ok = await suspenderPregao(id, motivo);
+    if (ok) toast.success("Pregão suspenso.");
+  };
+
+  const handleRetomar = async (id: string) => {
+    if (!window.confirm("Deseja retomar este pregão?")) return;
+    const ok = await retomarPregao(id);
+    if (ok) toast.success("Pregão retomado.");
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
