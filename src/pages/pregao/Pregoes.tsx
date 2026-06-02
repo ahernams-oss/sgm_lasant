@@ -171,7 +171,7 @@ export default function Pregoes() {
                           <DropdownMenuItem onClick={() => nav(`/compras/pregao/${p.id}`)}>
                             <Edit className="h-4 w-4 mr-2" /> {p.status === "Rascunho" ? "Editar" : "Visualizar"}
                           </DropdownMenuItem>
-                          {podePregoeiro && (p.status === "Credenciamento" || p.status === "Propostas" || p.status === "Disputa") && (
+                          {podePregoeiro && (p.status === "Publicado" || p.status === "Credenciamento" || p.status === "Propostas" || p.status === "Disputa") && (
                             <DropdownMenuItem onClick={() => nav(`/compras/pregao/${p.id}/sala`)}>
                               <Eye className="h-4 w-4 mr-2" /> Sala de Disputa
                             </DropdownMenuItem>
