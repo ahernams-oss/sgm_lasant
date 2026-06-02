@@ -385,7 +385,7 @@ const UniformeTab = ({
 
   const materiaisUniforme = useMemo(() => {
     const grupo = grupos.find((g) => /uniforme/i.test(g.nome) || g.codigo === "05");
-    if (!grupo) return materiais;
+    if (!grupo) return [] as typeof materiais;
     const subIds = new Set(subGrupos.filter((s) => s.grupoId === grupo.id).map((s) => s.id));
     const classeIds = new Set(classes.filter((c) => subIds.has(c.subGrupoId)).map((c) => c.id));
     return materiais.filter((m) => classeIds.has(m.categoriaId));
