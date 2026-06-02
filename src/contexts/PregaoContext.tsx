@@ -699,11 +699,23 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
     return ok;
   };
 
+  const suspenderPregao = async (id: string, motivo: string) => {
+    const ok = await updateRow("pregoes", id, { status: "Suspenso", motivo_cancelamento: motivo });
+    if (ok) await load();
+    return ok;
+  };
+
+  const retomarPregao = async (id: string) => {
+    const ok = await updateRow("pregoes", id, { status: "Publicado", motivo_cancelamento: null });
+    if (ok) await load();
+    return ok;
+  };
+
   return (
     <PregaoContext.Provider value={{
       pregoes, itens, documentos, participantes, lances, mensagens, propostasIniciais, habilitacoes,
       loading, reload: load, loadDisputa, loadHabilitacao,
-      addPregao, updatePregao, deletePregao, publicarPregao, cancelarPregao,
+      addPregao, updatePregao, deletePregao, publicarPregao, cancelarPregao, suspenderPregao, retomarPregao,
       abrirDisputa, encerrarDisputa, publicarResultado, adjudicarPregao, homologarPregao,
       addItem, updateItem, deleteItem,
       iniciarItem, encerrarItem, prorrogarItem,
