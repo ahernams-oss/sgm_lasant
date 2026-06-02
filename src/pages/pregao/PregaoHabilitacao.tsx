@@ -78,6 +78,11 @@ export default function PregaoHabilitacao() {
     if (!partSelId && ranking[0]) setPartSelId(ranking[0].pid);
   }, [ranking, partSelId]);
 
+  useEffect(() => {
+    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
+  }, [msgsPregao.length]);
+
+
   if (!pregao) {
     return (
       <div className="p-6">
@@ -176,9 +181,6 @@ export default function PregaoHabilitacao() {
     if (ok) setNovaMsg("");
   }
 
-  useEffect(() => {
-    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
-  }, [msgsPregao.length]);
 
   function formatarDataHora(iso: string) {
     if (!iso) return "";
