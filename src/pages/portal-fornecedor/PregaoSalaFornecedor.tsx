@@ -685,6 +685,11 @@ export default function PregaoSalaFornecedorPage() {
 
         {/* Centro: Disputa */}
         <div className="lg:col-span-6 space-y-4">
+          {/* Painel de Habilitação — visível apenas ao(s) vencedor(es) na fase de Habilitação */}
+          {(pregao.status === "Habilitacao" || pregao.status === "Adjudicado") &&
+            itens.some(i => i.vencedor_participante_id === participante.id) && (
+            <HabilitacaoFornecedorSection pregaoId={pregao.id} participanteId={participante.id} />
+          )}
           {activeItem ? (
             <Card>
               <CardHeader className="pb-2">
