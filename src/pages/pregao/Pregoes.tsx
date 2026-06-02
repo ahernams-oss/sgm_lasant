@@ -190,6 +190,16 @@ export default function Pregoes() {
                               <PlayCircle className="h-4 w-4 mr-2" /> Publicar
                             </DropdownMenuItem>
                           )}
+                          {podePregoeiro && p.status !== "Rascunho" && p.status !== "Cancelado" && p.status !== "Encerrado" && p.status !== "Homologado" && p.status !== "Suspenso" && (
+                            <DropdownMenuItem onClick={() => handleSuspender(p.id)} className="text-yellow-700">
+                              <PauseCircle className="h-4 w-4 mr-2" /> Suspender
+                            </DropdownMenuItem>
+                          )}
+                          {podePregoeiro && p.status === "Suspenso" && (
+                            <DropdownMenuItem onClick={() => handleRetomar(p.id)}>
+                              <PlayCircle className="h-4 w-4 mr-2" /> Retomar
+                            </DropdownMenuItem>
+                          )}
                           {podePregoeiro && p.status !== "Rascunho" && p.status !== "Cancelado" && p.status !== "Encerrado" && p.status !== "Homologado" && (
                             <DropdownMenuItem onClick={() => handleCancelar(p.id)} className="text-red-600">
                               <XCircle className="h-4 w-4 mr-2" /> Cancelar
