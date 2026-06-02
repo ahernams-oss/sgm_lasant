@@ -37,6 +37,7 @@ const STATUS_COLORS: Record<PregaoStatus, string> = {
   Homologado: "bg-green-100 text-green-800",
   Cancelado: "bg-red-100 text-red-800",
   Encerrado: "bg-slate-200 text-slate-800",
+  Suspenso: "bg-yellow-100 text-yellow-900",
 };
 
 export default function Pregoes() {
