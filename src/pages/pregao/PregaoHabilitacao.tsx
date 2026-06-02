@@ -51,6 +51,10 @@ export default function PregaoHabilitacao() {
   const [novoDocNome, setNovoDocNome] = useState("");
   const [novoDocFile, setNovoDocFile] = useState<File | null>(null);
   const [novoDocExigidoId, setNovoDocExigidoId] = useState<string>("");
+  const [novaMsg, setNovaMsg] = useState("");
+  const chatRef = useRef<HTMLDivElement>(null);
+
+  const msgsPregao = useMemo(() => mensagens.filter(m => m.pregaoId === id).sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime()), [mensagens, id]);
 
   useEffect(() => {
     if (id) { loadHabilitacao(id); loadDisputa(id); }
