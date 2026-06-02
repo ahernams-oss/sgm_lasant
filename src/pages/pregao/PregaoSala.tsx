@@ -176,13 +176,20 @@ export default function PregaoSala() {
               </Button>
             ) : null}
             {pregao.status === "Disputa" && (
-              <Button size="sm" variant="destructive" onClick={async () => { (await encerrarDisputa(pregao.id)) && toast.success("Disputa encerrada."); }}>
+              <Button size="sm" variant="destructive" onClick={async () => {
+                if (!window.confirm("Encerrar a disputa e avançar para a Habilitação?")) return;
+                const ok = await encerrarDisputa(pregao.id);
+                if (ok) {
+                  toast.success("Disputa encerrada. Iniciando Habilitação.");
+                  nav(`/compras/pregao/${pregao.id}/habilitacao`);
+                }
+              }}>
                 <Square className="h-4 w-4 mr-1" /> Encerrar Disputa
               </Button>
             )}
-            {pregao.status === "Encerrado" && !pregao.resultadoPublico && (
-              <Button size="sm" variant="outline" onClick={async () => { (await publicarResultado(pregao.id)) && toast.success("Resultado publicado."); }}>
-                <Trophy className="h-4 w-4 mr-1" /> Publicar Resultado
+            {(pregao.status === "Habilitacao" || pregao.status === "Adjudicado" || pregao.status === "Homologado" || pregao.status === "Encerrado") && (
+              <Button size="sm" variant="outline" onClick={() => nav(`/compras/pregao/${pregao.id}/habilitacao`)}>
+                <Trophy className="h-4 w-4 mr-1" /> Habilitação / Adjudicação
               </Button>
             )}
             <Button size="sm" variant="outline" onClick={() => setRevelarNomes(v => !v)}>
