@@ -438,11 +438,26 @@ function LinhaHabilitacao({ hab, podeAnalisar, onAprovar, onReprovar, onExcluir 
       <TableCell className="font-medium">{hab.documentoNome}</TableCell>
       <TableCell>
         {hab.arquivoUrl ? (
-          <a href={hab.arquivoUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs">
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                const res = await fetch(hab.arquivoUrl);
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                window.open(url, "_blank", "noopener,noreferrer");
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+              } catch {
+                window.open(hab.arquivoUrl, "_blank", "noopener,noreferrer");
+              }
+            }}
+            className="text-primary hover:underline text-xs"
+          >
             {hab.arquivoNome || "abrir"}
-          </a>
+          </button>
         ) : <span className="text-xs text-muted-foreground">—</span>}
       </TableCell>
+
       <TableCell><Badge variant="outline" className={cor}>{hab.status}</Badge></TableCell>
       <TableCell>
         <Textarea value={obs} onChange={e => setObs(e.target.value)} rows={1} className="text-xs min-h-[32px]" disabled={!podeAnalisar} />
