@@ -175,7 +175,7 @@ export default function PregaoSala() {
                 <Play className="h-4 w-4 mr-1" /> Abrir Disputa
               </Button>
             ) : null}
-            {pregao.status === "Disputa" && (
+            {(pregao.status === "Disputa" || pregao.status === "Publicado" || pregao.status === "Credenciamento" || pregao.status === "Propostas") && (
               <Button size="sm" variant="destructive" onClick={async () => {
                 if (!window.confirm("Encerrar a disputa e avançar para a Habilitação?")) return;
                 const ok = await encerrarDisputa(pregao.id);
