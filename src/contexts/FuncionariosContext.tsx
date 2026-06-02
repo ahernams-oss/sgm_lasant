@@ -28,7 +28,7 @@ export interface Funcionario {
   secaoEleitoral: string; cnh: string; categoriaCnh: string; validadeCnh: string;
   certificadoReservista: string; tamanhoCamisa: string; tamanhoCalca: string;
   tamanhoCalcado: string; peso: string; altura: string;
-  passagens: PassagemDiaria[]; dependentes: Dependente[]; epis: EpiItem[];
+  passagens: PassagemDiaria[]; dependentes: Dependente[]; epis: EpiItem[]; uniformes: UniformeItem[];
   nrs: NrFuncionario[]; anexosDocumentos: AnexoDocumento[]; observacoes: string;
   status: "Ativo" | "Inativo" | "Afastado" | "Férias";
   experienciaInicio: string; experienciaPrimeiraEtapa: string;
