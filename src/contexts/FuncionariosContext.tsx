@@ -111,7 +111,7 @@ function funcionarioToRow(f: Omit<Funcionario, "id">) {
     tamanho_camisa: f.tamanhoCamisa, tamanho_calca: f.tamanhoCalca,
     tamanho_calcado: f.tamanhoCalcado, peso: f.peso, altura: f.altura,
     passagens: f.passagens as any, dependentes: f.dependentes as any,
-    epis: f.epis as any, nrs: f.nrs as any, anexos_documentos: f.anexosDocumentos as any,
+    epis: f.epis as any, uniformes: f.uniformes as any, nrs: f.nrs as any, anexos_documentos: f.anexosDocumentos as any,
     observacoes: f.observacoes, status: f.status,
     experiencia_inicio: f.experienciaInicio || null,
     experiencia_primeira_etapa: f.experienciaPrimeiraEtapa || null,
