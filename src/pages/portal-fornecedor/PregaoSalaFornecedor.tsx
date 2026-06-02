@@ -314,6 +314,7 @@ interface PregaoItem {
   encerrado_em: string;
   preco_referencia: number;
   preco_referencia_sigiloso: boolean;
+  vencedor_participante_id?: string | null;
 }
 
 interface Participante {
