@@ -44,6 +44,7 @@ import {
   FileText,
   GanttChartSquare,
   MapPin,
+  Shirt,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissao } from "@/hooks/usePermissao";
