@@ -9,7 +9,7 @@ export type PregaoTipoDisputa = "Item" | "Lote" | "Misto";
 export type PregaoStatus =
   | "Rascunho" | "Publicado" | "Credenciamento" | "Propostas"
   | "Disputa" | "Habilitacao" | "Adjudicado" | "Homologado"
-  | "Cancelado" | "Encerrado";
+  | "Cancelado" | "Encerrado" | "Suspenso";
 
 export interface Pregao {
   id: string;
