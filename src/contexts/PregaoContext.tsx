@@ -531,7 +531,16 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
     return ok;
   };
   const encerrarDisputa = async (id: string) => {
-    const ok = await updateRow("pregoes", id, { status: "Encerrado", data_encerramento_disputa: new Date().toISOString() });
+    // Encerra todos os itens ainda em disputa antes de mudar a fase
+    const itensAbertos = itens.filter(i => i.pregaoId === id && (i.status === "EmDisputa" || i.status === "Aguardando"));
+    for (const it of itensAbertos) {
+      if (it.status === "EmDisputa") {
+        await encerrarItem(it.id);
+      } else {
+        await updateRow("pregao_itens", it.id, { status: "Deserto", encerrado_em: new Date().toISOString() });
+      }
+    }
+    const ok = await updateRow("pregoes", id, { status: "Habilitacao", data_encerramento_disputa: new Date().toISOString() });
     if (ok) await load();
     return ok;
   };
