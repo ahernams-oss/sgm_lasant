@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Gavel, Plus, MoreHorizontal, Eye, Edit, Trash2, PlayCircle, XCircle, Search, FileCheck2, Trophy } from "lucide-react";
+import { Gavel, Plus, MoreHorizontal, Eye, Edit, Trash2, PlayCircle, XCircle, Search, FileCheck2, Trophy, PauseCircle } from "lucide-react";
 import { usePregao, type PregaoStatus } from "@/contexts/PregaoContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { formatNumeroAno } from "@/lib/formatNumero";
@@ -37,11 +37,12 @@ const STATUS_COLORS: Record<PregaoStatus, string> = {
   Homologado: "bg-green-100 text-green-800",
   Cancelado: "bg-red-100 text-red-800",
   Encerrado: "bg-slate-200 text-slate-800",
+  Suspenso: "bg-yellow-100 text-yellow-900",
 };
 
 export default function Pregoes() {
   const nav = useNavigate();
-  const { pregoes, itens, participantes, deletePregao, publicarPregao, cancelarPregao, loading } = usePregao();
+  const { pregoes, itens, participantes, deletePregao, publicarPregao, cancelarPregao, suspenderPregao, retomarPregao, loading } = usePregao();
   const { tem } = usePermissao();
   const podeCriar = tem("pregao.criar");
   const podePregoeiro = tem("pregao.pregoeiro");
@@ -80,6 +81,19 @@ export default function Pregoes() {
     if (ok) toast.success("Pregão cancelado.");
   };
 
+  const handleSuspender = async (id: string) => {
+    const motivo = window.prompt("Informe o motivo da suspensão:");
+    if (!motivo) return;
+    const ok = await suspenderPregao(id, motivo);
+    if (ok) toast.success("Pregão suspenso.");
+  };
+
+  const handleRetomar = async (id: string) => {
+    if (!window.confirm("Deseja retomar este pregão?")) return;
+    const ok = await retomarPregao(id);
+    if (ok) toast.success("Pregão retomado.");
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -111,7 +125,7 @@ export default function Pregoes() {
               <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos os status</SelectItem>
-                {(["Rascunho","Publicado","Credenciamento","Propostas","Disputa","Habilitacao","Adjudicado","Homologado","Cancelado","Encerrado"] as PregaoStatus[]).map(s => (
+                {(["Rascunho","Publicado","Credenciamento","Propostas","Disputa","Habilitacao","Adjudicado","Homologado","Suspenso","Cancelado","Encerrado"] as PregaoStatus[]).map(s => (
                   <SelectItem key={s} value={s}>{s}</SelectItem>
                 ))}
               </SelectContent>
@@ -174,6 +188,16 @@ export default function Pregoes() {
                           {podeCriar && p.status === "Rascunho" && (
                             <DropdownMenuItem onClick={() => handlePublicar(p.id)}>
                               <PlayCircle className="h-4 w-4 mr-2" /> Publicar
+                            </DropdownMenuItem>
+                          )}
+                          {podePregoeiro && p.status !== "Rascunho" && p.status !== "Cancelado" && p.status !== "Encerrado" && p.status !== "Homologado" && p.status !== "Suspenso" && (
+                            <DropdownMenuItem onClick={() => handleSuspender(p.id)} className="text-yellow-700">
+                              <PauseCircle className="h-4 w-4 mr-2" /> Suspender
+                            </DropdownMenuItem>
+                          )}
+                          {podePregoeiro && p.status === "Suspenso" && (
+                            <DropdownMenuItem onClick={() => handleRetomar(p.id)}>
+                              <PlayCircle className="h-4 w-4 mr-2" /> Retomar
                             </DropdownMenuItem>
                           )}
                           {podePregoeiro && p.status !== "Rascunho" && p.status !== "Cancelado" && p.status !== "Encerrado" && p.status !== "Homologado" && (

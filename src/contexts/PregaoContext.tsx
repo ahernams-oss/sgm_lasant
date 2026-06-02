@@ -9,7 +9,7 @@ export type PregaoTipoDisputa = "Item" | "Lote" | "Misto";
 export type PregaoStatus =
   | "Rascunho" | "Publicado" | "Credenciamento" | "Propostas"
   | "Disputa" | "Habilitacao" | "Adjudicado" | "Homologado"
-  | "Cancelado" | "Encerrado";
+  | "Cancelado" | "Encerrado" | "Suspenso";
 
 export interface Pregao {
   id: string;
@@ -318,6 +318,8 @@ interface PregaoContextType {
   deletePregao: (id: string) => Promise<boolean>;
   publicarPregao: (id: string) => Promise<boolean>;
   cancelarPregao: (id: string, motivo: string) => Promise<boolean>;
+  suspenderPregao: (id: string, motivo: string) => Promise<boolean>;
+  retomarPregao: (id: string) => Promise<boolean>;
   abrirDisputa: (id: string) => Promise<boolean>;
   encerrarDisputa: (id: string) => Promise<boolean>;
   publicarResultado: (id: string) => Promise<boolean>;
@@ -697,11 +699,23 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
     return ok;
   };
 
+  const suspenderPregao = async (id: string, motivo: string) => {
+    const ok = await updateRow("pregoes", id, { status: "Suspenso", motivo_cancelamento: motivo });
+    if (ok) await load();
+    return ok;
+  };
+
+  const retomarPregao = async (id: string) => {
+    const ok = await updateRow("pregoes", id, { status: "Publicado", motivo_cancelamento: null });
+    if (ok) await load();
+    return ok;
+  };
+
   return (
     <PregaoContext.Provider value={{
       pregoes, itens, documentos, participantes, lances, mensagens, propostasIniciais, habilitacoes,
       loading, reload: load, loadDisputa, loadHabilitacao,
-      addPregao, updatePregao, deletePregao, publicarPregao, cancelarPregao,
+      addPregao, updatePregao, deletePregao, publicarPregao, cancelarPregao, suspenderPregao, retomarPregao,
       abrirDisputa, encerrarDisputa, publicarResultado, adjudicarPregao, homologarPregao,
       addItem, updateItem, deleteItem,
       iniciarItem, encerrarItem, prorrogarItem,
