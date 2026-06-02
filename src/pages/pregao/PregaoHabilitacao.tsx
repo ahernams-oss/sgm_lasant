@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ArrowLeft, FileCheck2, Upload, CheckCircle2, XCircle, Trophy, Gavel, ExternalLink } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ArrowLeft, FileCheck2, Upload, CheckCircle2, XCircle, Trophy, Gavel, ExternalLink, MessageSquare, Send, Lock, Unlock } from "lucide-react";
 import { toast } from "sonner";
 import { usePregao } from "@/contexts/PregaoContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -27,10 +28,11 @@ export default function PregaoHabilitacao() {
   const { usuarioLogado } = useAuth();
   const { tem, acessoTotal } = usePermissao();
   const {
-    pregoes, itens, participantes, lances, documentos, habilitacoes,
+    pregoes, itens, participantes, lances, mensagens, documentos, habilitacoes,
     loadHabilitacao, loadDisputa,
     addHabilitacao, uploadDocumentoHabilitacao, avaliarHabilitacao, deleteHabilitacao,
     setParticipanteStatus, adjudicarPregao, homologarPregao,
+    enviarMensagem, setChatParticipante,
   } = usePregao();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
@@ -49,6 +51,10 @@ export default function PregaoHabilitacao() {
   const [novoDocNome, setNovoDocNome] = useState("");
   const [novoDocFile, setNovoDocFile] = useState<File | null>(null);
   const [novoDocExigidoId, setNovoDocExigidoId] = useState<string>("");
+  const [novaMsg, setNovaMsg] = useState("");
+  const chatRef = useRef<HTMLDivElement>(null);
+
+  const msgsPregao = useMemo(() => mensagens.filter(m => m.pregaoId === id).sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime()), [mensagens, id]);
 
   useEffect(() => {
     if (id) { loadHabilitacao(id); loadDisputa(id); }
@@ -163,6 +169,24 @@ export default function PregaoHabilitacao() {
     }
   }
 
+  async function handleEnviarMsg() {
+    if (!novaMsg.trim()) return;
+    const autorNome = `Pregoeiro · ${usuarioLogado?.nome ?? ""}`;
+    const ok = await enviarMensagem(pregao!.id, "pregoeiro", autorNome, novaMsg.trim());
+    if (ok) setNovaMsg("");
+  }
+
+  useEffect(() => {
+    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
+  }, [msgsPregao.length]);
+
+  function formatarDataHora(iso: string) {
+    if (!iso) return "";
+    try {
+      return new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    } catch { return ""; }
+  }
+
   return (
     <div className="p-4 space-y-4">
       {/* Header */}
@@ -200,7 +224,7 @@ export default function PregaoHabilitacao() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr_320px] gap-4">
         {/* Lista de participantes (ranking) */}
         <Card className="rounded-xl">
           <CardHeader className="pb-2"><CardTitle className="text-sm">Classificação Provisória</CardTitle></CardHeader>
@@ -293,6 +317,67 @@ export default function PregaoHabilitacao() {
               <div className="text-xs text-muted-foreground">
                 <strong>Documentos exigidos no edital:</strong>{" "}
                 {docsPregao.map(d => `${d.nome}${d.obrigatorio ? "*" : ""}`).join(" · ")}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Coluna 3 — Chat oficial */}
+        <Card className="rounded-xl flex flex-col h-full">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Chat Oficial</CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col p-3 gap-2">
+            {/* Controle de chat por participante (somente pregoeiro) */}
+            {ehPregoeiro && partsPregao.length > 0 && (
+              <div className="border rounded-lg p-2 bg-muted/30 space-y-1 max-h-[140px] overflow-y-auto">
+                <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                  Permissão de fala
+                </div>
+                {partsPregao.map(p => (
+                  <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
+                    <span className="truncate">{p.apelido} · {p.fornecedorNome}</span>
+                    <Button
+                      size="sm"
+                      variant={p.chatAberto ? "default" : "outline"}
+                      className="h-6 px-2 text-[11px]"
+                      onClick={async () => {
+                        const ok = await setChatParticipante(p.id, !p.chatAberto);
+                        if (ok) toast.success(p.chatAberto ? "Chat fechado para o licitante." : "Chat aberto para o licitante.");
+                      }}
+                    >
+                      {p.chatAberto ? <><Unlock className="h-3 w-3 mr-1" /> Aberto</> : <><Lock className="h-3 w-3 mr-1" /> Fechado</>}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div ref={chatRef} className="flex-1 overflow-y-auto space-y-2 h-[45vh] pr-1">
+              {msgsPregao.map(m => (
+                <div key={m.id} className={`p-2 rounded-lg text-sm ${m.autorTipo === "pregoeiro" ? "bg-primary/10 border-l-2 border-primary" : "bg-muted"}`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold">{m.autorNomeExibicao}</span>
+                    <span className="text-[10px] text-muted-foreground">{formatarDataHora(m.ts)}</span>
+                  </div>
+                  <div>{m.mensagem}</div>
+                </div>
+              ))}
+              {!msgsPregao.length && <div className="text-xs text-muted-foreground text-center mt-4">Sem mensagens.</div>}
+            </div>
+            {ehPregoeiro ? (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Mensagem do pregoeiro..."
+                  value={novaMsg}
+                  onChange={e => setNovaMsg(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleEnviarMsg()}
+                />
+                <Button size="icon" onClick={handleEnviarMsg}><Send className="h-4 w-4" /></Button>
+              </div>
+            ) : (
+              <div className="text-[11px] text-muted-foreground text-center py-2 border rounded-lg bg-muted/30">
+                Apenas o pregoeiro envia mensagens neste chat.
               </div>
             )}
           </CardContent>
