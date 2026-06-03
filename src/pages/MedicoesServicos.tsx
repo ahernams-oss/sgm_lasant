@@ -715,6 +715,13 @@ const MedicoesServicos = () => {
                 ))}
               </TableBody>
             </Table>
+            <PaginationControls
+              currentPage={pageMed}
+              totalItems={medicoesFiltradas.length}
+              onPageChange={setPageMed}
+              pageSize={pageSizeMed}
+              onPageSizeChange={(s) => { setPageSizeMed(s); setPageMed(1); }}
+            />
           </div>
         )}
 
