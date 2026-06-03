@@ -836,6 +836,16 @@ const MedicoesServicos = () => {
                                     <span className="truncate">{a.nome}</span>
                                   </button>
                                   <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-5 w-5"
+                                    title="Baixar"
+                                    onClick={() => baixarAnexo(a)}
+                                  >
+                                    <DownloadCloud className="h-3 w-3 text-primary" />
+                                  </Button>
+                                  <Button
                                     variant="ghost"
                                     size="icon"
                                     className="h-5 w-5"
