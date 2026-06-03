@@ -477,7 +477,7 @@ const Cargos = () => {
                           className="text-xs gap-1"
                         >
                           {expandedCargoId === cargo.id ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                          Salários
+                          Salários e EPIs
                         </Button>
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(cargo)} className="text-xs">Editar</Button>
                         <Button variant="ghost" size="sm" onClick={() => requestDelete(cargo.id)} className="text-destructive hover:text-destructive">
