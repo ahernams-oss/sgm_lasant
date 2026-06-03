@@ -28,7 +28,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { usePermissao } from "@/hooks/usePermissao";
-import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText, CheckSquare, MessageCircle } from "lucide-react";
+import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText, CheckSquare, MessageCircle, AlertTriangle } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { Checkbox } from "@/components/ui/checkbox";
 import { downloadPdfCotacao } from "@/lib/gerarPdfCotacao";
@@ -1083,16 +1083,25 @@ export default function CotacaoComprasPage() {
               <TableRow><TableCell colSpan={colOrder.length + 2} className="text-center text-muted-foreground py-8">Nenhuma cotação encontrada</TableCell></TableRow>
             ) : paginate(filtered, pageCot, pageSizeCot).paginated.map((c, idx) => {
               const rcVinculada = requisicoes.find(r => r.id === c.requisicaoId);
+              const horasDesdeCriacao = (Date.now() - new Date(c.dataCriacao).getTime()) / (1000 * 60 * 60);
+              const cotacaoAberta = c.status === "Em Andamento" || c.status === "Aguardando Aprovação";
+              const alertaUrgente = rcVinculada?.urgencia === "Urgente" && horasDesdeCriacao > 12 && cotacaoAberta;
+              const alertaTitle = alertaUrgente ? "Urgente: cotação aberta há mais de 12h sem finalização" : "";
               const cellMap: Record<string, ReactNode> = {
-                numero: <span className="font-mono font-bold">COT-{String(c.numero).padStart(4, "0")}</span>,
+                numero: (
+                  <span className="font-mono font-bold inline-flex items-center gap-1">
+                    COT-{String(c.numero).padStart(4, "0")}
+                    {alertaUrgente && <AlertTriangle className="h-4 w-4 text-red-600 animate-blink-urgent" aria-label={alertaTitle} />}
+                  </span>
+                ),
                 centroCusto: <span className="text-sm">{rcVinculada?.centroCustoNome || "-"}</span>,
                 urgencia: rcVinculada?.urgencia ? (
-                  <Badge className={
+                  <Badge title={alertaTitle} className={`${
                     rcVinculada.urgencia === "Urgente" ? "bg-red-600 text-white hover:bg-red-700" :
                     rcVinculada.urgencia === "Alta" ? "bg-orange-500 text-white hover:bg-orange-600" :
                     rcVinculada.urgencia === "Normal" ? "bg-blue-500 text-white hover:bg-blue-600" :
                     "bg-gray-400 text-white hover:bg-gray-500"
-                  }>{rcVinculada.urgencia}</Badge>
+                  } ${alertaUrgente ? "animate-blink-urgent" : ""}`}>{rcVinculada.urgencia}</Badge>
                 ) : <span className="text-muted-foreground">-</span>,
                 rcs: <span className="font-mono">RC-{String(c.requisicaoNumero).padStart(4, "0")}</span>,
                 data: format(new Date(c.dataCriacao), "dd/MM/yyyy"),
