@@ -684,7 +684,7 @@ const MedicoesServicos = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginate(medicoesFiltradas, pageMed).paginated.map(m => (
+                {paginate(medicoesFiltradas, pageMed, pageSizeMed).paginated.map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="font-mono">{m.numero}</TableCell>
                     <TableCell className="font-mono">{(m as any).ordem_compra_numero || "—"}</TableCell>
