@@ -41,6 +41,8 @@ export interface Contrato {
   id: string; numero: string; numeroProcesso?: string; descricao: string; dataInicio: string; dataFim: string;
   bdi: string; valorBase: string; valorBase2: string; valorBase3: string;
   mesSco: string; anoSco: string;
+  valorContrato?: string;
+  inss?: string; pis?: string; cofins?: string; csll?: string; irrf?: string; iss?: string;
   faturamentos: Faturamento[];
 }
 export interface Cliente {
