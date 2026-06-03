@@ -271,6 +271,38 @@ const Cargos = () => {
       reader.readAsText(file);
     }
   };
+  // EPIs Padrão state
+  const [novoEpiCatalogoId, setNovoEpiCatalogoId] = useState<Record<string, string>>({});
+  const [novoEpiQtd, setNovoEpiQtd] = useState<Record<string, string>>({});
+
+  const addEpiPadrao = (cargoId: string) => {
+    const epiId = novoEpiCatalogoId[cargoId];
+    const qtd = parseInt(novoEpiQtd[cargoId] || "1", 10);
+    if (!epiId) { toast.error("Selecione um EPI do catálogo."); return; }
+    const epi = catalogoEpis.find((e) => e.id === epiId);
+    if (!epi) { toast.error("EPI não encontrado."); return; }
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    if ((cargo.episPadrao || []).some((e) => e.epiCatalogoId === epiId)) {
+      toast.error("Este EPI já está vinculado ao cargo."); return;
+    }
+    const novo: EpiPadraoCargo = {
+      id: crypto.randomUUID(), epiCatalogoId: epi.id,
+      descricao: epi.descricao, ca: epi.ca, quantidade: isNaN(qtd) || qtd < 1 ? 1 : qtd,
+    };
+    updateCargo(cargoId, { episPadrao: [...(cargo.episPadrao || []), novo] });
+    setNovoEpiCatalogoId((p) => ({ ...p, [cargoId]: "" }));
+    setNovoEpiQtd((p) => ({ ...p, [cargoId]: "" }));
+    toast.success("EPI vinculado!");
+  };
+
+  const deleteEpiPadrao = (cargoId: string, epiId: string) => {
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    updateCargo(cargoId, { episPadrao: (cargo.episPadrao || []).filter((e) => e.id !== epiId) });
+    toast.success("EPI removido.");
+  };
+
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
