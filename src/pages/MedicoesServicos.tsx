@@ -91,6 +91,25 @@ const MedicoesServicos = () => {
   const [observacoes, setObservacoes] = useState("");
   const [anexos, setAnexos] = useState<{ nome: string; path: string; tamanho: number }[]>([]);
   const [uploadingAnexo, setUploadingAnexo] = useState(false);
+
+  const baixarAnexo = async (a: { nome: string; path: string }) => {
+    try {
+      const { data, error } = await supabase.storage.from("medicoes-anexos").createSignedUrl(a.path, 60);
+      if (error || !data?.signedUrl) throw error;
+      const res = await fetch(data.signedUrl);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = a.nome;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      toast({ title: "Erro ao baixar anexo", variant: "destructive" });
+    }
+  };
   const [fornecedorId, setFornecedorId] = useState("");
   const [fornecedorNome, setFornecedorNome] = useState("");
   const [dataPagamento, setDataPagamento] = useState<Date | undefined>(undefined);
