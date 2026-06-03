@@ -13,7 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCargos, type SalarioDataBase, type AnexoCargo, type NrCargo } from "@/contexts/CargosContext";
+import { useCargos, type SalarioDataBase, type AnexoCargo, type NrCargo, type EpiPadraoCargo } from "@/contexts/CargosContext";
+import { useEpisCatalogo } from "@/contexts/EpisCatalogoContext";
 import { supabase } from "@/integrations/supabase/client";
 import * as XLSX from "xlsx";
 import { Badge } from "@/components/ui/badge";
