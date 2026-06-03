@@ -32,6 +32,12 @@ export interface Faturamento {
   valorBruto: string;
   valorLiquido: string;
   valorFolha: string;
+  valeTransporte?: string;
+  valeAlimentacao?: string;
+  custoFixo?: string;
+  foraFolha?: string;
+  provisaoFerias?: string;
+  provisao13?: string;
   anexoNfUrl: string;
   anexoNfNome: string;
   pago: boolean;
