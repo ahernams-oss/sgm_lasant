@@ -122,17 +122,19 @@ export async function registrarAuditoria(params: {
       descreverEntidade(params.dadosDepois) ??
       descreverEntidade(params.dadosAntes);
 
-    await (supabase as any).from("auditoria").insert({
-      usuario_id: u?.id ?? null,
-      usuario_nome: u?.nome ?? null,
-      usuario_email: u?.email ?? null,
-      modulo: params.modulo,
-      acao: params.acao,
-      entidade_id: params.entidadeId ? String(params.entidadeId) : null,
-      entidade_descricao: descricao,
-      dados_antes: params.dadosAntes ? sanitize(params.dadosAntes) : null,
-      dados_depois: params.dadosDepois ? sanitize(params.dadosDepois) : null,
-      user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+    await (supabase as any).functions.invoke("audit-write", {
+      body: {
+        usuario_id: u?.id ?? null,
+        usuario_nome: u?.nome ?? null,
+        usuario_email: u?.email ?? null,
+        modulo: params.modulo,
+        acao: params.acao,
+        entidade_id: params.entidadeId ? String(params.entidadeId) : null,
+        entidade_descricao: descricao,
+        dados_antes: params.dadosAntes ? sanitize(params.dadosAntes) : null,
+        dados_depois: params.dadosDepois ? sanitize(params.dadosDepois) : null,
+        user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+      },
     });
   } catch (e) {
     // Auditoria nunca deve interromper a operação principal.
