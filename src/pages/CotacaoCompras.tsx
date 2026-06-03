@@ -98,6 +98,7 @@ export default function CotacaoComprasPage() {
   const colDefs: Record<string, { label: string; className?: string }> = {
     numero: { label: "Nº Cotação", className: "text-center" },
     centroCusto: { label: "Centro de Custo" },
+    urgencia: { label: "Urgência", className: "text-center" },
     rcs: { label: "RCS Vinculada", className: "text-center" },
     data: { label: "Data", className: "text-center" },
     comprador: { label: "Comprador" },
@@ -106,7 +107,7 @@ export default function CotacaoComprasPage() {
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "compras.cotacoes",
-    ["numero", "centroCusto", "rcs", "data", "comprador", "propostas", "status"]
+    ["numero", "centroCusto", "urgencia", "rcs", "data", "comprador", "propostas", "status"]
   );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -1085,6 +1086,14 @@ export default function CotacaoComprasPage() {
               const cellMap: Record<string, ReactNode> = {
                 numero: <span className="font-mono font-bold">COT-{String(c.numero).padStart(4, "0")}</span>,
                 centroCusto: <span className="text-sm">{rcVinculada?.centroCustoNome || "-"}</span>,
+                urgencia: rcVinculada?.urgencia ? (
+                  <Badge className={
+                    rcVinculada.urgencia === "Urgente" ? "bg-red-600 text-white hover:bg-red-700" :
+                    rcVinculada.urgencia === "Alta" ? "bg-orange-500 text-white hover:bg-orange-600" :
+                    rcVinculada.urgencia === "Normal" ? "bg-blue-500 text-white hover:bg-blue-600" :
+                    "bg-gray-400 text-white hover:bg-gray-500"
+                  }>{rcVinculada.urgencia}</Badge>
+                ) : <span className="text-muted-foreground">-</span>,
                 rcs: <span className="font-mono">RC-{String(c.requisicaoNumero).padStart(4, "0")}</span>,
                 data: format(new Date(c.dataCriacao), "dd/MM/yyyy"),
                 comprador: c.comprador,
