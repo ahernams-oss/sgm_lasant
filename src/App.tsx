@@ -416,6 +416,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ClientesProvider>
     <CargosProvider>
+    <EpisCatalogoProvider>
     <FuncionariosProvider>
     <LancamentosProvider>
     <UsuariosProvider>
