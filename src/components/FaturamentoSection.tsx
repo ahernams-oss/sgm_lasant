@@ -339,6 +339,16 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
                     <Lock className="h-3 w-3" /> Folha: {formatCurrency(f.valorFolha)}
                   </p>
                 )}
+                {podeVerValorFolha && (
+                  <>
+                    <p className="text-muted-foreground">VT: {formatCurrency(f.valeTransporte)}</p>
+                    <p className="text-muted-foreground">VA: {formatCurrency(f.valeAlimentacao)}</p>
+                    <p className="text-muted-foreground">Custo Fixo: {formatCurrency(f.custoFixo)}</p>
+                    <p className="text-muted-foreground">Fora Folha: {formatCurrency(f.foraFolha)}</p>
+                    <p className="text-muted-foreground">Prov. Férias: {formatCurrency(f.provisaoFerias)}</p>
+                    <p className="text-muted-foreground">Prov. 13º: {formatCurrency(f.provisao13)}</p>
+                  </>
+                )}
                 <p className="text-muted-foreground">
                   Emissão: {f.dataEmissaoNf ? new Date(f.dataEmissaoNf + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
                 </p>
