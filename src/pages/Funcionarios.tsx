@@ -253,11 +253,17 @@ const DependentesTab = ({ dependentes, onChange }: { dependentes: Dependente[]; 
   );
 };
 
-const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) => void }) => {
+const EpiTab = ({ epis, onChange, cargoId }: { epis: EpiItem[]; onChange: (e: EpiItem[]) => void; cargoId?: string }) => {
   const [novo, setNovo] = useState({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "" });
   const [epiPopoverOpen, setEpiPopoverOpen] = useState(false);
   const { materiais } = useMateriaisServicos();
   const { grupos, subGrupos, classes } = useCategoriasCompras();
+  const { cargos } = useCargos();
+
+  const cargoEpis = useMemo(() => {
+    const cargo = cargos.find((c) => c.id === cargoId);
+    return cargo?.episPadrao || [];
+  }, [cargos, cargoId]);
 
   const materiaisGrupo04 = useMemo(() => {
     const grupo = grupos.find((g) => g.codigo === "04");
@@ -266,6 +272,45 @@ const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) 
     const classeIds = new Set(classes.filter((c) => subIds.has(c.subGrupoId)).map((c) => c.id));
     return materiais.filter((m) => classeIds.has(m.categoriaId));
   }, [materiais, grupos, subGrupos, classes]);
+
+  // Auto-prefill EPIs from cargo when list is empty and cargo has episPadrao
+  useEffect(() => {
+    if (epis.length === 0 && cargoEpis.length > 0) {
+      onChange(
+        cargoEpis.map((e) => ({
+          id: crypto.randomUUID(),
+          quantidade: e.quantidade || 1,
+          descricao: e.descricao,
+          ca: e.ca || "",
+          dataEntrega: "",
+          dataVencimento: "",
+        }))
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cargoId, cargoEpis.length]);
+
+  const recarregarDoCargo = () => {
+    if (cargoEpis.length === 0) { toast.error("Este cargo não possui EPIs cadastrados."); return; }
+    const existentesDesc = new Set(epis.map((e) => e.descricao));
+    const novosDoCargo = cargoEpis
+      .filter((e) => !existentesDesc.has(e.descricao))
+      .map((e) => ({
+        id: crypto.randomUUID(),
+        quantidade: e.quantidade || 1,
+        descricao: e.descricao,
+        ca: e.ca || "",
+        dataEntrega: "",
+        dataVencimento: "",
+      }));
+    if (novosDoCargo.length === 0) { toast.info("Todos os EPIs do cargo já estão na lista."); return; }
+    onChange([...epis, ...novosDoCargo]);
+    toast.success(`${novosDoCargo.length} EPI(s) carregado(s) do cargo.`);
+  };
+
+  const updateEpi = (id: string, patch: Partial<EpiItem>) => {
+    onChange(epis.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+  };
 
   const addEpi = () => {
     if (!novo.descricao.trim()) { toast.error("Informe a descrição do EPI."); return; }
