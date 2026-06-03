@@ -4,12 +4,13 @@ import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper"
 export interface SalarioDataBase { id: string; valor: string; dataBase: string; }
 export interface AnexoCargo { id: string; nome: string; url: string; tipo: string; }
 export interface NrCargo { id: string; numero: string; descricao: string; }
+export interface EpiPadraoCargo { id: string; epiCatalogoId: string; descricao: string; ca: string; quantidade: number; }
 
 export interface Cargo {
   id: string; nome: string; cbo: string; descricao: string; salario: string;
   nivel: string; dataBaseSalario: string; salarios: SalarioDataBase[];
   missao: string; responsabilidades: string; perfilCompetencias: string;
-  anexos: AnexoCargo[]; nrs: NrCargo[];
+  anexos: AnexoCargo[]; nrs: NrCargo[]; episPadrao: EpiPadraoCargo[];
 }
 
 interface CargosContextType {
@@ -25,6 +26,7 @@ const rowToCargo = (r: any): Cargo => ({
   salario: r.salario ?? "", nivel: r.nivel ?? "", dataBaseSalario: r.data_base_salario ?? "",
   salarios: r.salarios ?? [], missao: r.missao ?? "", responsabilidades: r.responsabilidades ?? "",
   perfilCompetencias: r.perfil_competencias ?? "", anexos: r.anexos ?? [], nrs: r.nrs ?? [],
+  episPadrao: r.epis_padrao ?? [],
 });
 
 const cargoToRow = (c: Omit<Cargo, "id">) => ({
@@ -32,6 +34,7 @@ const cargoToRow = (c: Omit<Cargo, "id">) => ({
   nivel: c.nivel, data_base_salario: c.dataBaseSalario, salarios: c.salarios as any,
   missao: c.missao, responsabilidades: c.responsabilidades,
   perfil_competencias: c.perfilCompetencias, anexos: c.anexos as any, nrs: c.nrs as any,
+  epis_padrao: (c.episPadrao ?? []) as any,
 });
 
 export function CargosProvider({ children }: { children: ReactNode }) {
