@@ -63,15 +63,10 @@ export default function Auditoria() {
 
   const carregar = async () => {
     setLoading(true);
-    let q: any = (supabase as any)
-      .from("auditoria")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(2000);
-    if (dataIni) q = q.gte("created_at", new Date(dataIni + "T00:00:00").toISOString());
-    if (dataFim) q = q.lte("created_at", new Date(dataFim + "T23:59:59").toISOString());
-    const { data, error } = await q;
-    if (!error) setRegistros(data || []);
+    const { data, error } = await (supabase as any).functions.invoke("audit-read", {
+      body: { dataIni, dataFim, limit: 2000 },
+    });
+    if (!error && data?.ok) setRegistros(data.data || []);
     setLoading(false);
   };
 
