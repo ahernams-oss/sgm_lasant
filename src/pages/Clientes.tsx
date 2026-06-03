@@ -574,6 +574,13 @@ const Clientes = () => {
                           <p className="text-muted-foreground">VTM Contratual: {ct.valorBase3 || "—"}</p>
                           <p className="text-muted-foreground">Mês SCO: {ct.mesSco || "—"}</p>
                           <p className="text-muted-foreground">Ano SCO: {ct.anoSco || "—"}</p>
+                          <p className="text-muted-foreground">Valor Contrato: {ct.valorContrato || "—"}</p>
+                          <p className="text-muted-foreground">INSS: {ct.inss ? `${ct.inss}%` : "—"}</p>
+                          <p className="text-muted-foreground">PIS: {ct.pis ? `${ct.pis}%` : "—"}</p>
+                          <p className="text-muted-foreground">COFINS: {ct.cofins ? `${ct.cofins}%` : "—"}</p>
+                          <p className="text-muted-foreground">CSLL: {ct.csll ? `${ct.csll}%` : "—"}</p>
+                          <p className="text-muted-foreground">IRRF: {ct.irrf ? `${ct.irrf}%` : "—"}</p>
+                          <p className="text-muted-foreground">ISS: {ct.iss ? `${ct.iss}%` : "—"}</p>
                         </div>
                         <div className="flex gap-1 shrink-0">
                           <Button variant="outline" size="sm" type="button" onClick={() => setFaturamentoContratoId(faturamentoContratoId === ct.id ? null : ct.id)} className="text-xs gap-1" title="Gerenciar Faturamento">
