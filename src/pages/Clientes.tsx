@@ -531,6 +531,13 @@ const Clientes = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                <Input type="number" step="0.01" placeholder="Valor do Contrato (R$)" value={contratoForm.valorContrato} onChange={e => setContratoForm(p => ({ ...p, valorContrato: e.target.value }))} className="sm:col-span-2 md:col-span-3" />
+                <Input type="number" step="0.01" placeholder="INSS (%)" value={contratoForm.inss} onChange={e => setContratoForm(p => ({ ...p, inss: e.target.value }))} />
+                <Input type="number" step="0.01" placeholder="PIS (%)" value={contratoForm.pis} onChange={e => setContratoForm(p => ({ ...p, pis: e.target.value }))} />
+                <Input type="number" step="0.01" placeholder="COFINS (%)" value={contratoForm.cofins} onChange={e => setContratoForm(p => ({ ...p, cofins: e.target.value }))} />
+                <Input type="number" step="0.01" placeholder="CSLL (%)" value={contratoForm.csll} onChange={e => setContratoForm(p => ({ ...p, csll: e.target.value }))} />
+                <Input type="number" step="0.01" placeholder="IRRF (%)" value={contratoForm.irrf} onChange={e => setContratoForm(p => ({ ...p, irrf: e.target.value }))} />
+                <Input type="number" step="0.01" placeholder="ISS (%)" value={contratoForm.iss} onChange={e => setContratoForm(p => ({ ...p, iss: e.target.value }))} />
               </div>
 
               <div className="flex gap-2 mb-4">
