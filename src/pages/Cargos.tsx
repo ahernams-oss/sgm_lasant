@@ -726,7 +726,7 @@ const Cargos = () => {
                           </h4>
                           <div className="flex gap-2 mb-3">
                             <Select
-                              value={novoEpiCatalogoId[cargo.id] || ""}
+                              value={novoEpiCatalogoId[cargo.id] || undefined}
                               onValueChange={(v) => setNovoEpiCatalogoId((p) => ({ ...p, [cargo.id]: v }))}
                             >
                               <SelectTrigger className="flex-1 h-8 text-sm">
