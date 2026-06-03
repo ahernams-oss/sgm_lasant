@@ -381,8 +381,9 @@ const MedicoesServicos = () => {
                         valor_unitario: i.precoUnitario,
                         valor_total_contratado: i.valorTotal,
                       }));
-                      setItens(ocItens.length > 0 ? ocItens : [emptyItem()]);
-                    }
+                       setItens(ocItens.length > 0 ? ocItens : [emptyItem()]);
+                       setValorEmpreiteiro(Number(oc.valorTotal) || 0);
+                     }
                   }}>
                     <SelectTrigger><SelectValue placeholder="Selecione a OC" /></SelectTrigger>
                     <SelectContent>
