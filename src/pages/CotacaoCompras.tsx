@@ -98,6 +98,7 @@ export default function CotacaoComprasPage() {
   const colDefs: Record<string, { label: string; className?: string }> = {
     numero: { label: "Nº Cotação", className: "text-center" },
     centroCusto: { label: "Centro de Custo" },
+    urgencia: { label: "Urgência", className: "text-center" },
     rcs: { label: "RCS Vinculada", className: "text-center" },
     data: { label: "Data", className: "text-center" },
     comprador: { label: "Comprador" },
@@ -106,7 +107,7 @@ export default function CotacaoComprasPage() {
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "compras.cotacoes",
-    ["numero", "centroCusto", "rcs", "data", "comprador", "propostas", "status"]
+    ["numero", "centroCusto", "urgencia", "rcs", "data", "comprador", "propostas", "status"]
   );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
