@@ -718,7 +718,60 @@ const Cargos = () => {
                             </div>
                           )}
                         </div>
+
+                        {/* EPIs Padrão */}
+                        <div className="mt-4 ml-4 border-l-2 border-muted pl-4">
+                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            EPIs Necessários ({(cargo.episPadrao || []).length})
+                          </h4>
+                          <div className="flex gap-2 mb-3">
+                            <Select
+                              value={novoEpiCatalogoId[cargo.id] || ""}
+                              onValueChange={(v) => setNovoEpiCatalogoId((p) => ({ ...p, [cargo.id]: v }))}
+                            >
+                              <SelectTrigger className="flex-1 h-8 text-sm">
+                                <SelectValue placeholder={catalogoEpis.length === 0 ? "Cadastre EPIs em Catálogo de EPIs" : "Selecione um EPI do catálogo"} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {catalogoEpis.map((e) => (
+                                  <SelectItem key={e.id} value={e.id}>
+                                    {e.descricao}{e.ca ? ` (CA ${e.ca})` : ""}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Input
+                              type="number" min={1}
+                              placeholder="Qtd"
+                              value={novoEpiQtd[cargo.id] || ""}
+                              onChange={(e) => setNovoEpiQtd((p) => ({ ...p, [cargo.id]: e.target.value }))}
+                              className="w-20 h-8 text-sm"
+                            />
+                            <Button type="button" size="sm" onClick={() => addEpiPadrao(cargo.id)} className="gap-1 shrink-0 h-8 text-xs">
+                              <Plus className="h-3 w-3" /> Adicionar
+                            </Button>
+                          </div>
+                          {(!cargo.episPadrao || cargo.episPadrao.length === 0) ? (
+                            <p className="text-xs text-muted-foreground text-center py-2">Nenhum EPI vinculado a este cargo.</p>
+                          ) : (
+                            <div className="divide-y divide-border rounded border border-border">
+                              {cargo.episPadrao.map((epi) => (
+                                <div key={epi.id} className="flex items-center justify-between px-3 py-2">
+                                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                                    <Badge variant="default" className="text-[10px] shrink-0">{String(epi.quantidade).padStart(2, "0")}</Badge>
+                                    <span className="text-xs font-medium truncate">{epi.descricao}</span>
+                                    {epi.ca && <Badge variant="outline" className="text-[9px] shrink-0">CA {epi.ca}</Badge>}
+                                  </div>
+                                  <Button type="button" variant="ghost" size="sm" onClick={() => deleteEpiPadrao(cargo.id, epi.id)} className="text-destructive hover:text-destructive h-7">
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </>
+
                     )}
                   </div>
                 );
