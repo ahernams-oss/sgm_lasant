@@ -175,6 +175,7 @@ function ProtectedAppRoutes() {
         <Route path="/cargos" element={<RotaProtegida perm="cargos"><Cargos /></RotaProtegida>} />
         <Route path="/funcionarios" element={<RotaProtegida perm="funcionarios"><Funcionarios /></RotaProtegida>} />
         <Route path="/epis" element={<RotaProtegida perm="funcionarios"><EpisPage /></RotaProtegida>} />
+        <Route path="/epis/catalogo" element={<RotaProtegida perm="cargos"><EpisCatalogoPage /></RotaProtegida>} />
         <Route path="/exames" element={<RotaProtegida perm="funcionarios"><ExamesPage /></RotaProtegida>} />
         <Route path="/mapa-funcionarios" element={<RotaProtegida perm="mapa_funcionarios"><MapaFuncionarios /></RotaProtegida>} />
         <Route path="/mapa-plantoes" element={<RotaProtegida perm="mapa_funcionarios"><MapaPlantoes /></RotaProtegida>} />
