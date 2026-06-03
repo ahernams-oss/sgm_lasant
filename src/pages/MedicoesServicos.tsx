@@ -74,6 +74,7 @@ const MedicoesServicos = () => {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [showLancamento, setShowLancamento] = useState(false);
   const [pageMed, setPageMed] = useState(1);
+  const [pageSizeMed, setPageSizeMed] = useState(7);
 
   // Filter state
   const [filterBusca, setFilterBusca] = useState("");
@@ -683,7 +684,7 @@ const MedicoesServicos = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginate(medicoesFiltradas, pageMed).paginated.map(m => (
+                {paginate(medicoesFiltradas, pageMed, pageSizeMed).paginated.map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="font-mono">{m.numero}</TableCell>
                     <TableCell className="font-mono">{(m as any).ordem_compra_numero || "—"}</TableCell>
@@ -714,6 +715,13 @@ const MedicoesServicos = () => {
                 ))}
               </TableBody>
             </Table>
+            <PaginationControls
+              currentPage={pageMed}
+              totalItems={medicoesFiltradas.length}
+              onPageChange={setPageMed}
+              pageSize={pageSizeMed}
+              onPageSizeChange={(s) => { setPageSizeMed(s); setPageMed(1); }}
+            />
           </div>
         )}
 

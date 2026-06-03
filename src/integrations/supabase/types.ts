@@ -3763,6 +3763,7 @@ export type Database = {
       }
       medicoes_servicos: {
         Row: {
+          anexos: Json | null
           cliente_id: string | null
           cliente_nome: string | null
           contrato: string | null
@@ -3786,6 +3787,7 @@ export type Database = {
           valor_total_medido: number | null
         }
         Insert: {
+          anexos?: Json | null
           cliente_id?: string | null
           cliente_nome?: string | null
           contrato?: string | null
@@ -3809,6 +3811,7 @@ export type Database = {
           valor_total_medido?: number | null
         }
         Update: {
+          anexos?: Json | null
           cliente_id?: string | null
           cliente_nome?: string | null
           contrato?: string | null

@@ -1,0 +1,1 @@
+ALTER TABLE public.medicoes_servicos ADD COLUMN IF NOT EXISTS anexos jsonb DEFAULT '[]'::jsonb;
