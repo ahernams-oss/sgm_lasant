@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { format } from "date-fns";
-import { Plus, Ruler, Trash2, Edit, Eye, X, ChevronDown, ChevronUp, CalendarIcon, FileText, Download, Search, Filter } from "lucide-react";
+import { Plus, Ruler, Trash2, Edit, Eye, X, ChevronDown, ChevronUp, CalendarIcon, FileText, Download, Search, Filter, DownloadCloud } from "lucide-react";
 import { downloadPdfMedicoes } from "@/lib/gerarPdfMedicoes";
 import { downloadExcelMedicoes } from "@/lib/gerarExcelMedicoes";
 import { downloadPdfHistoricoMedicao } from "@/lib/gerarPdfHistoricoMedicao";
@@ -91,6 +91,25 @@ const MedicoesServicos = () => {
   const [observacoes, setObservacoes] = useState("");
   const [anexos, setAnexos] = useState<{ nome: string; path: string; tamanho: number }[]>([]);
   const [uploadingAnexo, setUploadingAnexo] = useState(false);
+
+  const baixarAnexo = async (a: { nome: string; path: string }) => {
+    try {
+      const { data, error } = await supabase.storage.from("medicoes-anexos").createSignedUrl(a.path, 60);
+      if (error || !data?.signedUrl) throw error;
+      const res = await fetch(data.signedUrl);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = a.nome;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      toast({ title: "Erro ao baixar anexo", variant: "destructive" });
+    }
+  };
   const [fornecedorId, setFornecedorId] = useState("");
   const [fornecedorNome, setFornecedorNome] = useState("");
   const [dataPagamento, setDataPagamento] = useState<Date | undefined>(undefined);
@@ -550,18 +569,30 @@ const MedicoesServicos = () => {
                           ({(a.tamanho / 1024).toFixed(0)} KB)
                         </span>
                       </button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={async () => {
-                          await supabase.storage.from("medicoes-anexos").remove([a.path]);
-                          setAnexos((prev) => prev.filter((_, idx) => idx !== i));
-                          toast({ title: "Anexo removido" });
-                        }}
-                      >
-                        <X className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          title="Baixar"
+                          onClick={() => baixarAnexo(a)}
+                        >
+                          <DownloadCloud className="h-3.5 w-3.5 text-primary" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={async () => {
+                            await supabase.storage.from("medicoes-anexos").remove([a.path]);
+                            setAnexos((prev) => prev.filter((_, idx) => idx !== i));
+                            toast({ title: "Anexo removido" });
+                          }}
+                        >
+                          <X className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                   <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-primary hover:underline">
@@ -804,6 +835,16 @@ const MedicoesServicos = () => {
                                     <Paperclip className="h-3 w-3" />
                                     <span className="truncate">{a.nome}</span>
                                   </button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-5 w-5"
+                                    title="Baixar"
+                                    onClick={() => baixarAnexo(a)}
+                                  >
+                                    <DownloadCloud className="h-3 w-3 text-primary" />
+                                  </Button>
                                   <Button
                                     variant="ghost"
                                     size="icon"
