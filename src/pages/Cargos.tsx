@@ -13,7 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCargos, type SalarioDataBase, type AnexoCargo, type NrCargo } from "@/contexts/CargosContext";
+import { useCargos, type SalarioDataBase, type AnexoCargo, type NrCargo, type EpiPadraoCargo } from "@/contexts/CargosContext";
+import { useEpisCatalogo } from "@/contexts/EpisCatalogoContext";
 import { supabase } from "@/integrations/supabase/client";
 import * as XLSX from "xlsx";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ const emptyForm = { nome: "", descricao: "", nivel: "", missao: "", responsabili
 
 const Cargos = () => {
   const { cargos, addCargo, updateCargo, deleteCargo } = useCargos();
+  const { epis: catalogoEpis } = useEpisCatalogo();
   const { tem } = usePermissao();
   const podeCriar = tem("cargos.criar");
   const podeEditar = tem("cargos.editar");
@@ -77,7 +79,7 @@ const Cargos = () => {
       updateCargo(editingId, form);
       toast.success("Cargo atualizado com sucesso!");
     } else {
-      addCargo({ ...form, salario: "", dataBaseSalario: "", salarios: [], anexos: [], nrs: [] });
+      addCargo({ ...form, salario: "", dataBaseSalario: "", salarios: [], anexos: [], nrs: [], episPadrao: [] });
       toast.success("Cargo cadastrado com sucesso!");
     }
     resetForm();
@@ -269,6 +271,38 @@ const Cargos = () => {
       reader.readAsText(file);
     }
   };
+  // EPIs Padrão state
+  const [novoEpiCatalogoId, setNovoEpiCatalogoId] = useState<Record<string, string>>({});
+  const [novoEpiQtd, setNovoEpiQtd] = useState<Record<string, string>>({});
+
+  const addEpiPadrao = (cargoId: string) => {
+    const epiId = novoEpiCatalogoId[cargoId];
+    const qtd = parseInt(novoEpiQtd[cargoId] || "1", 10);
+    if (!epiId) { toast.error("Selecione um EPI do catálogo."); return; }
+    const epi = catalogoEpis.find((e) => e.id === epiId);
+    if (!epi) { toast.error("EPI não encontrado."); return; }
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    if ((cargo.episPadrao || []).some((e) => e.epiCatalogoId === epiId)) {
+      toast.error("Este EPI já está vinculado ao cargo."); return;
+    }
+    const novo: EpiPadraoCargo = {
+      id: crypto.randomUUID(), epiCatalogoId: epi.id,
+      descricao: epi.descricao, ca: epi.ca, quantidade: isNaN(qtd) || qtd < 1 ? 1 : qtd,
+    };
+    updateCargo(cargoId, { episPadrao: [...(cargo.episPadrao || []), novo] });
+    setNovoEpiCatalogoId((p) => ({ ...p, [cargoId]: "" }));
+    setNovoEpiQtd((p) => ({ ...p, [cargoId]: "" }));
+    toast.success("EPI vinculado!");
+  };
+
+  const deleteEpiPadrao = (cargoId: string, epiId: string) => {
+    const cargo = cargos.find((c) => c.id === cargoId);
+    if (!cargo) return;
+    updateCargo(cargoId, { episPadrao: (cargo.episPadrao || []).filter((e) => e.id !== epiId) });
+    toast.success("EPI removido.");
+  };
+
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -684,7 +718,60 @@ const Cargos = () => {
                             </div>
                           )}
                         </div>
+
+                        {/* EPIs Padrão */}
+                        <div className="mt-4 ml-4 border-l-2 border-muted pl-4">
+                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            EPIs Necessários ({(cargo.episPadrao || []).length})
+                          </h4>
+                          <div className="flex gap-2 mb-3">
+                            <Select
+                              value={novoEpiCatalogoId[cargo.id] || ""}
+                              onValueChange={(v) => setNovoEpiCatalogoId((p) => ({ ...p, [cargo.id]: v }))}
+                            >
+                              <SelectTrigger className="flex-1 h-8 text-sm">
+                                <SelectValue placeholder={catalogoEpis.length === 0 ? "Cadastre EPIs em Catálogo de EPIs" : "Selecione um EPI do catálogo"} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {catalogoEpis.map((e) => (
+                                  <SelectItem key={e.id} value={e.id}>
+                                    {e.descricao}{e.ca ? ` (CA ${e.ca})` : ""}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Input
+                              type="number" min={1}
+                              placeholder="Qtd"
+                              value={novoEpiQtd[cargo.id] || ""}
+                              onChange={(e) => setNovoEpiQtd((p) => ({ ...p, [cargo.id]: e.target.value }))}
+                              className="w-20 h-8 text-sm"
+                            />
+                            <Button type="button" size="sm" onClick={() => addEpiPadrao(cargo.id)} className="gap-1 shrink-0 h-8 text-xs">
+                              <Plus className="h-3 w-3" /> Adicionar
+                            </Button>
+                          </div>
+                          {(!cargo.episPadrao || cargo.episPadrao.length === 0) ? (
+                            <p className="text-xs text-muted-foreground text-center py-2">Nenhum EPI vinculado a este cargo.</p>
+                          ) : (
+                            <div className="divide-y divide-border rounded border border-border">
+                              {cargo.episPadrao.map((epi) => (
+                                <div key={epi.id} className="flex items-center justify-between px-3 py-2">
+                                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                                    <Badge variant="default" className="text-[10px] shrink-0">{String(epi.quantidade).padStart(2, "0")}</Badge>
+                                    <span className="text-xs font-medium truncate">{epi.descricao}</span>
+                                    {epi.ca && <Badge variant="outline" className="text-[9px] shrink-0">CA {epi.ca}</Badge>}
+                                  </div>
+                                  <Button type="button" variant="ghost" size="sm" onClick={() => deleteEpiPadrao(cargo.id, epi.id)} className="text-destructive hover:text-destructive h-7">
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </>
+
                     )}
                   </div>
                 );

@@ -216,6 +216,7 @@ const menuItems = [
       { title: "Equipamentos", url: "/cadastros/equipamentos", icon: Monitor, perm: "equipamentos" },
       { title: "Fornecedores", url: "/fornecedores", icon: Truck, perm: "fornecedores" },
       { title: "Cargos", url: "/cargos", icon: Briefcase, perm: "cargos" },
+      { title: "Catálogo de EPIs", url: "/epis/catalogo", icon: HardHat, perm: "cargos" },
       { title: "Categorias de Serviços", url: "/cadastros/categorias-servicos", icon: Tags, perm: "categorias_servicos" },
       { title: "Serviços", url: "/cadastros/servicos", icon: Wrench, perm: "servicos" },
       { title: "Responsáveis Técnicos", url: "/cadastros/responsaveis-tecnicos", icon: UserCheck, perm: "responsaveis_tecnicos" },

@@ -71,6 +71,8 @@ import PregaoHabilitacaoPage from "./pages/pregao/PregaoHabilitacao.tsx";
 import PregaoResultadoPage from "./pages/pregao/PregaoResultado.tsx";
 import FabricantesPage from "./pages/Fabricantes.tsx";
 import EpisPage from "./pages/EpisPage.tsx";
+import EpisCatalogoPage from "./pages/EpisCatalogo.tsx";
+import { EpisCatalogoProvider } from "@/contexts/EpisCatalogoContext";
 import ExamesPage from "./pages/ExamesPage.tsx";
 import UnsubscribePage from "./pages/Unsubscribe.tsx";
 import PortalCandidato from "./pages/PortalCandidato.tsx";
@@ -173,6 +175,7 @@ function ProtectedAppRoutes() {
         <Route path="/cargos" element={<RotaProtegida perm="cargos"><Cargos /></RotaProtegida>} />
         <Route path="/funcionarios" element={<RotaProtegida perm="funcionarios"><Funcionarios /></RotaProtegida>} />
         <Route path="/epis" element={<RotaProtegida perm="funcionarios"><EpisPage /></RotaProtegida>} />
+        <Route path="/epis/catalogo" element={<RotaProtegida perm="cargos"><EpisCatalogoPage /></RotaProtegida>} />
         <Route path="/exames" element={<RotaProtegida perm="funcionarios"><ExamesPage /></RotaProtegida>} />
         <Route path="/mapa-funcionarios" element={<RotaProtegida perm="mapa_funcionarios"><MapaFuncionarios /></RotaProtegida>} />
         <Route path="/mapa-plantoes" element={<RotaProtegida perm="mapa_funcionarios"><MapaPlantoes /></RotaProtegida>} />
@@ -414,6 +417,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ClientesProvider>
     <CargosProvider>
+    <EpisCatalogoProvider>
     <FuncionariosProvider>
     <LancamentosProvider>
     <UsuariosProvider>
@@ -529,6 +533,7 @@ const App = () => (
     </UsuariosProvider>
     </LancamentosProvider>
     </FuncionariosProvider>
+    </EpisCatalogoProvider>
     </CargosProvider>
     </ClientesProvider>
   </QueryClientProvider>

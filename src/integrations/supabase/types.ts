@@ -291,6 +291,7 @@ export type Database = {
           created_at: string | null
           data_base_salario: string | null
           descricao: string | null
+          epis_padrao: Json
           id: string
           missao: string | null
           nivel: string | null
@@ -307,6 +308,7 @@ export type Database = {
           created_at?: string | null
           data_base_salario?: string | null
           descricao?: string | null
+          epis_padrao?: Json
           id?: string
           missao?: string | null
           nivel?: string | null
@@ -323,6 +325,7 @@ export type Database = {
           created_at?: string | null
           data_base_salario?: string | null
           descricao?: string | null
+          epis_padrao?: Json
           id?: string
           missao?: string | null
           nivel?: string | null
@@ -1380,6 +1383,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      epis_catalogo: {
+        Row: {
+          ca: string | null
+          codigo: string | null
+          created_at: string
+          descricao: string
+          id: string
+          observacao: string | null
+          updated_at: string
+          validade_meses: number | null
+        }
+        Insert: {
+          ca?: string | null
+          codigo?: string | null
+          created_at?: string
+          descricao: string
+          id?: string
+          observacao?: string | null
+          updated_at?: string
+          validade_meses?: number | null
+        }
+        Update: {
+          ca?: string | null
+          codigo?: string | null
+          created_at?: string
+          descricao?: string
+          id?: string
+          observacao?: string | null
+          updated_at?: string
+          validade_meses?: number | null
+        }
+        Relationships: []
       }
       equipamentos: {
         Row: {
