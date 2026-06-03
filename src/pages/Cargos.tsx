@@ -26,6 +26,7 @@ const emptyForm = { nome: "", descricao: "", nivel: "", missao: "", responsabili
 
 const Cargos = () => {
   const { cargos, addCargo, updateCargo, deleteCargo } = useCargos();
+  const { epis: catalogoEpis } = useEpisCatalogo();
   const { tem } = usePermissao();
   const podeCriar = tem("cargos.criar");
   const podeEditar = tem("cargos.editar");
