@@ -253,11 +253,17 @@ const DependentesTab = ({ dependentes, onChange }: { dependentes: Dependente[]; 
   );
 };
 
-const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) => void }) => {
+const EpiTab = ({ epis, onChange, cargoId }: { epis: EpiItem[]; onChange: (e: EpiItem[]) => void; cargoId?: string }) => {
   const [novo, setNovo] = useState({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "" });
   const [epiPopoverOpen, setEpiPopoverOpen] = useState(false);
   const { materiais } = useMateriaisServicos();
   const { grupos, subGrupos, classes } = useCategoriasCompras();
+  const { cargos } = useCargos();
+
+  const cargoEpis = useMemo(() => {
+    const cargo = cargos.find((c) => c.id === cargoId);
+    return cargo?.episPadrao || [];
+  }, [cargos, cargoId]);
 
   const materiaisGrupo04 = useMemo(() => {
     const grupo = grupos.find((g) => g.codigo === "04");
@@ -266,6 +272,45 @@ const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) 
     const classeIds = new Set(classes.filter((c) => subIds.has(c.subGrupoId)).map((c) => c.id));
     return materiais.filter((m) => classeIds.has(m.categoriaId));
   }, [materiais, grupos, subGrupos, classes]);
+
+  // Auto-prefill EPIs from cargo when list is empty and cargo has episPadrao
+  useEffect(() => {
+    if (epis.length === 0 && cargoEpis.length > 0) {
+      onChange(
+        cargoEpis.map((e) => ({
+          id: crypto.randomUUID(),
+          quantidade: e.quantidade || 1,
+          descricao: e.descricao,
+          ca: e.ca || "",
+          dataEntrega: "",
+          dataVencimento: "",
+        }))
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cargoId, cargoEpis.length]);
+
+  const recarregarDoCargo = () => {
+    if (cargoEpis.length === 0) { toast.error("Este cargo não possui EPIs cadastrados."); return; }
+    const existentesDesc = new Set(epis.map((e) => e.descricao));
+    const novosDoCargo = cargoEpis
+      .filter((e) => !existentesDesc.has(e.descricao))
+      .map((e) => ({
+        id: crypto.randomUUID(),
+        quantidade: e.quantidade || 1,
+        descricao: e.descricao,
+        ca: e.ca || "",
+        dataEntrega: "",
+        dataVencimento: "",
+      }));
+    if (novosDoCargo.length === 0) { toast.info("Todos os EPIs do cargo já estão na lista."); return; }
+    onChange([...epis, ...novosDoCargo]);
+    toast.success(`${novosDoCargo.length} EPI(s) carregado(s) do cargo.`);
+  };
+
+  const updateEpi = (id: string, patch: Partial<EpiItem>) => {
+    onChange(epis.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+  };
 
   const addEpi = () => {
     if (!novo.descricao.trim()) { toast.error("Informe a descrição do EPI."); return; }
@@ -328,6 +373,11 @@ const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) 
         </Button>
       </div>
 
+      <div className="flex justify-end">
+        <Button type="button" variant="outline" size="sm" onClick={recarregarDoCargo} disabled={!cargoId}>
+          <HardHat className="h-4 w-4 mr-1" /> Recarregar EPIs do Cargo
+        </Button>
+      </div>
 
       {epis.length > 0 && (
         <div className="rounded-lg border border-border overflow-hidden">
@@ -336,20 +386,33 @@ const EpiTab = ({ epis, onChange }: { epis: EpiItem[]; onChange: (e: EpiItem[]) 
               <TableRow>
                 <TableHead className="w-20">Quant.</TableHead>
                 <TableHead>E.P.I</TableHead>
-                <TableHead className="w-24">CA</TableHead>
-                <TableHead className="w-32">Data Entrega</TableHead>
-                <TableHead className="w-32">Vencimento</TableHead>
+                <TableHead className="w-28">CA</TableHead>
+                <TableHead className="w-40">Data Entrega</TableHead>
+                <TableHead className="w-40">Vencimento</TableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {epis.map((epi) => (
                 <TableRow key={epi.id}>
-                  <TableCell className="text-center">{String(epi.quantidade).padStart(2, "0")}</TableCell>
+                  <TableCell className="text-center">
+                    <Input type="number" min={1} value={epi.quantidade}
+                      onChange={(e) => updateEpi(epi.id, { quantidade: parseInt(e.target.value) || 1 })}
+                      className="h-8 text-center" />
+                  </TableCell>
                   <TableCell>{epi.descricao}</TableCell>
-                  <TableCell className="text-center">{epi.ca || "—"}</TableCell>
-                  <TableCell className="text-center">{epi.dataEntrega ? epi.dataEntrega.split("-").reverse().join("/") : "—"}</TableCell>
-                  <TableCell className="text-center">{epi.dataVencimento ? epi.dataVencimento.split("-").reverse().join("/") : "—"}</TableCell>
+                  <TableCell>
+                    <Input value={epi.ca || ""} onChange={(e) => updateEpi(epi.id, { ca: e.target.value })}
+                      placeholder="Nº do CA" className="h-8" />
+                  </TableCell>
+                  <TableCell>
+                    <Input type="date" value={epi.dataEntrega || ""}
+                      onChange={(e) => updateEpi(epi.id, { dataEntrega: e.target.value })} className="h-8" />
+                  </TableCell>
+                  <TableCell>
+                    <Input type="date" value={epi.dataVencimento || ""}
+                      onChange={(e) => updateEpi(epi.id, { dataVencimento: e.target.value })} className="h-8" />
+                  </TableCell>
                   <TableCell>
                     <Button size="icon" variant="ghost" type="button" onClick={() => removeEpi(epi.id)} className="h-7 w-7 text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />
@@ -1065,7 +1128,7 @@ const Funcionarios = () => {
 
               {/* EPIs */}
               <TabsContent value="epis">
-                <EpiTab epis={form.epis || []} onChange={(e) => update("epis", e as any)} />
+                <EpiTab epis={form.epis || []} onChange={(e) => update("epis", e as any)} cargoId={form.cargoId} />
               </TabsContent>
 
               {/* NRs */}
