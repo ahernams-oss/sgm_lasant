@@ -74,6 +74,7 @@ const MedicoesServicos = () => {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [showLancamento, setShowLancamento] = useState(false);
   const [pageMed, setPageMed] = useState(1);
+  const [pageSizeMed, setPageSizeMed] = useState(7);
 
   // Filter state
   const [filterBusca, setFilterBusca] = useState("");
