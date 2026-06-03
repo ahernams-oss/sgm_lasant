@@ -452,7 +452,7 @@ const MedicoesServicos = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Valor Empreiteiro</Label>
-                  <Input type="number" min="0" step="0.01" value={valorEmpreiteiro || ""} onChange={e => setValorEmpreiteiro(Number(e.target.value))} placeholder="0,00" />
+                  <Input type="number" min="0" step="0.01" value={valorEmpreiteiro || ""} onChange={e => setValorEmpreiteiro(Number(e.target.value))} placeholder="0,00" disabled={!!ordemCompraId} className={ordemCompraId ? "bg-muted" : ""} />
                 </div>
                 <div className="space-y-2">
                   <Label>Diferença</Label>
