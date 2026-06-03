@@ -71,6 +71,8 @@ import PregaoHabilitacaoPage from "./pages/pregao/PregaoHabilitacao.tsx";
 import PregaoResultadoPage from "./pages/pregao/PregaoResultado.tsx";
 import FabricantesPage from "./pages/Fabricantes.tsx";
 import EpisPage from "./pages/EpisPage.tsx";
+import EpisCatalogoPage from "./pages/EpisCatalogo.tsx";
+import { EpisCatalogoProvider } from "@/contexts/EpisCatalogoContext";
 import ExamesPage from "./pages/ExamesPage.tsx";
 import UnsubscribePage from "./pages/Unsubscribe.tsx";
 import PortalCandidato from "./pages/PortalCandidato.tsx";
