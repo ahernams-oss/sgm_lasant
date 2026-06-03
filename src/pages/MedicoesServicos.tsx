@@ -569,18 +569,30 @@ const MedicoesServicos = () => {
                           ({(a.tamanho / 1024).toFixed(0)} KB)
                         </span>
                       </button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={async () => {
-                          await supabase.storage.from("medicoes-anexos").remove([a.path]);
-                          setAnexos((prev) => prev.filter((_, idx) => idx !== i));
-                          toast({ title: "Anexo removido" });
-                        }}
-                      >
-                        <X className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          title="Baixar"
+                          onClick={() => baixarAnexo(a)}
+                        >
+                          <DownloadCloud className="h-3.5 w-3.5 text-primary" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={async () => {
+                            await supabase.storage.from("medicoes-anexos").remove([a.path]);
+                            setAnexos((prev) => prev.filter((_, idx) => idx !== i));
+                            toast({ title: "Anexo removido" });
+                          }}
+                        >
+                          <X className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                   <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-primary hover:underline">
