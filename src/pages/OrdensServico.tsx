@@ -987,8 +987,18 @@ export default function OrdensServicoPage() {
                 const cellMap: Record<string, { node: ReactNode; className?: string }> = {
                   numero: {
                     node: (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span>{formatNumeroAno(os.numero, os.createdAt)}</span>
+                        {os.solicitacaoNumero ? (
+                          <a
+                            href={`/engenharia/solicitacao-servicos?numero=${os.solicitacaoNumero}`}
+                            className="text-[10px] text-primary hover:underline font-medium"
+                            title="Ver Solicitação de Serviço vinculada"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            SS {formatNumeroAno(os.solicitacaoNumero, os.createdAt)}
+                          </a>
+                        ) : null}
                         {ass.length > 0 && (
                           <span className="flex items-center gap-0.5 text-primary" title={`Assinada eletronicamente — ${tooltip}`}>
                             {ass.map((a) => (
