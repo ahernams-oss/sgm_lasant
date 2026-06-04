@@ -120,6 +120,16 @@ const MedicoesServicos = () => {
   const [valorLasant, setValorLasant] = useState(0);
   const [valorEmpreiteiro, setValorEmpreiteiro] = useState(0);
 
+  // Auto-preenche o nº do contrato vinculado ao fornecedor (e cliente, se houver)
+  useEffect(() => {
+    if (!fornecedorId) return;
+    const ct = contratosTerceiros.find(c =>
+      c.fornecedor_id === fornecedorId &&
+      (!clienteId || !c.cliente_id || c.cliente_id === clienteId)
+    );
+    if (ct?.numero) setContrato(String(ct.numero));
+  }, [fornecedorId, clienteId, contratosTerceiros]);
+
   // Lançamento state
   const [lancTipo, setLancTipo] = useState<"percentual" | "valor">("percentual");
   const [lancItens, setLancItens] = useState<{ item_id: string; descricao: string; percentual: number; valor: number; quantidade: number }[]>([]);
