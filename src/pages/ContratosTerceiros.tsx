@@ -419,7 +419,15 @@ function ContratosInner() {
 
                 <div>
                   <Label>Valor Total (R$)</Label>
-                  <Input type="number" step="0.01" value={form.valor ?? 0} onChange={(e) => setForm((p) => ({ ...p, valor: Number(e.target.value.replace(",", ".")) }))} />
+                  <Input
+                    inputMode="numeric"
+                    value={fmtMoney(form.valor)}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "");
+                      const n = digits ? Number(digits) / 100 : 0;
+                      setForm((p) => ({ ...p, valor: n }));
+                    }}
+                  />
                 </div>
                 <div>
                   <Label>Status</Label>
