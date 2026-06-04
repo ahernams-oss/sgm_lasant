@@ -131,6 +131,7 @@ function ContratosInner() {
       fornecedor_id: form.fornecedor_id,
       fornecedor_nome: form.fornecedor_nome || "",
       fornecedor_cnpj: form.fornecedor_cnpj || "",
+      fornecedor_endereco: (form as any).fornecedor_endereco || "",
       cliente_id: form.cliente_id || null,
       cliente_nome: form.cliente_nome || "",
       obra_id: form.obra_id || null,
