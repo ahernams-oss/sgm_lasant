@@ -787,7 +787,7 @@ export default function OrdensServicoPage() {
   const { paginated: ordensPage, totalPages, safePage } = paginate(ordensFiltradas, page, pageSize);
 
   const colDefs: Record<string, { label: string; className?: string }> = {
-    numero: { label: "Nº OS", className: "w-[80px]" },
+    numero: { label: "Nº OS", className: "w-[110px] whitespace-nowrap" },
     cliente: { label: "Cliente" },
     descricao: { label: "Descrição" },
     prioridade: { label: "Prioridade" },
@@ -1004,28 +1004,30 @@ export default function OrdensServicoPage() {
                 const cellMap: Record<string, { node: ReactNode; className?: string }> = {
                   numero: {
                     node: (
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span>{formatNumeroAno(os.numero, os.createdAt)}</span>
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-1 whitespace-nowrap">
+                          <span className="font-bold">{formatNumeroAno(os.numero, os.createdAt)}</span>
+                          {ass.length > 0 && (
+                            <span className="flex items-center gap-0.5 text-primary" title={`Assinada eletronicamente — ${tooltip}`}>
+                              {ass.map((a) => (
+                                <FileSignature key={a.id} className="h-3.5 w-3.5" />
+                              ))}
+                            </span>
+                          )}
+                        </div>
                         {os.solicitacaoNumero ? (
                           <a
                             href={`/engenharia/solicitacao-servicos?numero=${os.solicitacaoNumero}`}
-                            className="text-[10px] text-primary hover:underline font-medium"
+                            className="text-[10px] text-primary hover:underline font-medium whitespace-nowrap"
                             title="Ver Solicitação de Serviço vinculada"
                             onClick={(e) => e.stopPropagation()}
                           >
                             SS {formatNumeroAno(os.solicitacaoNumero, os.createdAt)}
                           </a>
                         ) : null}
-                        {ass.length > 0 && (
-                          <span className="flex items-center gap-0.5 text-primary" title={`Assinada eletronicamente — ${tooltip}`}>
-                            {ass.map((a) => (
-                              <FileSignature key={a.id} className="h-3.5 w-3.5" />
-                            ))}
-                          </span>
-                        )}
                       </div>
                     ),
-                    className: "font-bold",
+                    className: "align-top",
                   },
                   cliente: { node: os.clienteNome },
                   descricao: { node: os.descricaoServicos, className: "max-w-[250px] truncate" },
