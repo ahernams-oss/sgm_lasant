@@ -787,7 +787,7 @@ export default function OrdensServicoPage() {
   const { paginated: ordensPage, totalPages, safePage } = paginate(ordensFiltradas, page, pageSize);
 
   const colDefs: Record<string, { label: string; className?: string }> = {
-    numero: { label: "Nº OS", className: "w-[80px]" },
+    numero: { label: "Nº OS", className: "w-[110px] whitespace-nowrap" },
     cliente: { label: "Cliente" },
     descricao: { label: "Descrição" },
     prioridade: { label: "Prioridade" },
