@@ -64,6 +64,7 @@ const formatDate = (iso: string) => {
 export default function BancoPrecos() {
   const [pedidos, setPedidos] = useState<PedidoRow[]>([]);
   const [materiais, setMateriais] = useState<Material[]>([]);
+  const [reqItemToMaterial, setReqItemToMaterial] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState("");
   const [page, setPage] = useState(1);
@@ -72,7 +73,7 @@ export default function BancoPrecos() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [p, m] = await Promise.all([
+      const [p, m, r] = await Promise.all([
         supabase
           .from("pedidos_compra")
           .select("numero, data_criacao, created_at, fornecedor_nome, itens, status")
@@ -80,9 +81,18 @@ export default function BancoPrecos() {
           .order("created_at", { ascending: false })
           .limit(1000),
         supabase.from("materiais_servicos").select("id, codigo, descricao, unidade_medida"),
+        supabase.from("requisicoes_compras").select("itens").limit(2000),
       ]);
       setPedidos((p.data as any) || []);
       setMateriais((m.data as any) || []);
+      const map = new Map<string, string>();
+      ((r.data as any[]) || []).forEach((rc) => {
+        const itens = Array.isArray(rc.itens) ? rc.itens : [];
+        itens.forEach((it: any) => {
+          if (it?.id && it?.materialId) map.set(String(it.id), String(it.materialId));
+        });
+      });
+      setReqItemToMaterial(map);
       setLoading(false);
     })();
   }, []);
