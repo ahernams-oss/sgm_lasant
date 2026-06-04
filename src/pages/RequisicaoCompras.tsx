@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { FileSpreadsheet } from "lucide-react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras, GrauUrgencia, ItemRequisicaoCompras, AnexoRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
@@ -92,6 +92,23 @@ export default function RequisicaoComprasPage() {
   const [filterDataFim, setFilterDataFim] = useState("");
   const [pageReq, setPageReq] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const numeroParam = searchParams.get("numero");
+    if (numeroParam) {
+      setSearch(numeroParam);
+      setFilterStatus("Todos");
+      setFilterCentroCusto("Todos");
+      setFilterUrgencia("Todas");
+      setFilterSolicitante("Todos");
+      setFilterDataIni("");
+      setFilterDataFim("");
+      setPageReq(1);
+      searchParams.delete("numero");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const loadJustificativas = async () => {
     const data = await fetchAll("requisicoes_compras_justificativas", "motivo");
