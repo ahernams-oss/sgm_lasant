@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, type ReactNode } from "react"; // OS page
+import { useState, useMemo, useCallback, useRef, useEffect, type ReactNode } from "react"; // OS page
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { updateRow, fetchAll } from "@/lib/supabaseHelper";
