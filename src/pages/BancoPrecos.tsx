@@ -249,8 +249,7 @@ export default function BancoPrecos() {
 
       {filtradas.length > 0 && (
         <PaginationControls
-          page={page}
-          totalPages={totalPages}
+          currentPage={page}
           onPageChange={setPage}
           pageSize={pageSize}
           onPageSizeChange={setPageSize}
