@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { usePedidoCompra, PedidoCompra, StatusPedido } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
@@ -79,6 +80,24 @@ export default function PedidoCompraPage() {
   const [filterDataIni, setFilterDataIni] = useState("");
   const [filterDataFim, setFilterDataFim] = useState("");
   const [pagePed, setPagePed] = useState(1);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const numero = searchParams.get("numero");
+    if (numero) {
+      setSearch(numero);
+      setFilterStatus("Todos");
+      setFilterFornecedor("Todos");
+      setFilterComprador("Todos");
+      setFilterCentroCusto("Todos");
+      setFilterDataIni("");
+      setFilterDataFim("");
+      setPagePed(1);
+      const next = new URLSearchParams(searchParams);
+      next.delete("numero");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   const [pageSize, setPageSize] = useState(7);
   const [viewPedido, setViewPedido] = useState<PedidoCompra | null>(null);
   const [historicoPedido, setHistoricoPedido] = useState<PedidoCompra | null>(null);
@@ -518,9 +537,9 @@ export default function PedidoCompraPage() {
               const rcVinculada = requisicoes.find(r => r.id === p.requisicaoId);
               const canUpdate = getNextStatuses(p.status).length > 0;
               const cellMap: Record<string, ReactNode> = {
-                numero: <span className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</span>,
+                numero: <a href={`/compras/pedidos?numero=${p.numero}`} className="font-mono font-bold text-primary hover:underline">PC-{String(p.numero).padStart(4, "0")}</a>,
                 centroCusto: <span className="text-sm">{rcVinculada?.centroCustoNome || "-"}</span>,
-                rc: <span className="font-mono">RCS-{String(p.requisicaoNumero).padStart(4, "0")}</span>,
+                rc: <a href={`/compras/requisicoes?numero=${p.requisicaoNumero}`} className="font-mono text-primary hover:underline">RCS-{String(p.requisicaoNumero).padStart(4, "0")}</a>,
                 data: format(new Date(p.dataCriacao), "dd/MM/yyyy"),
                 fornecedor: p.fornecedorNome,
                 valorTotal: <span className="font-medium">{formatCurrency(p.valorTotal)}</span>,
