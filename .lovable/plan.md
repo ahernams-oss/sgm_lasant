@@ -1,126 +1,91 @@
+# Migração para Supabase Auth + RLS restritiva
 
-# Pregão Eletrônico — Plano de implementação
+## Contexto
 
-Novo módulo dentro de **Compras e Suprimentos**, com sala de disputa em tempo real, anonimato controlado e papel de **Pregoeiro** distinto do fornecedor.
+Hoje o sistema usa autenticação customizada (tabela `usuarios` + Edge Function `auth-login` + sessão em localStorage). Todas as chamadas ao banco usam a chave anon, e por isso `auth.uid()` é sempre `null` — o que obriga as policies de RLS a permitirem operações públicas. Isso é o que o scanner de segurança apontou: 11 tabelas com dados sensíveis (CPF, contas bancárias, exames médicos, lances de pregão, salários) acessíveis a qualquer visitante.
 
-## 1. Papéis e permissões
+Para fechar essas vulnerabilidades de forma definitiva, vamos migrar o login para o **Supabase Auth** nativo, e em seguida aplicar RLS restritiva (`authenticated`-only) em todas as tabelas sensíveis.
 
-Novas chaves no perfil de acesso:
-- `pregao.visualizar` — ver lista e acompanhar sessão pública
-- `pregao.criar` — criar/editar pregão em rascunho
-- `pregao.pregoeiro` — conduzir sessão (abrir lances, suspender, habilitar, adjudicar)
-- `pregao.homologar` — homologação final (gestor)
+## Estratégia: 3 fases
 
-Fornecedor usa o **Portal do Fornecedor** já existente (login e-mail+senha). Acrescentaremos a aba **"Pregões disponíveis"**.
+A migração é grande (~60 contextos consomem o `supabase` cliente). Vou dividir em fases pequenas e seguras. **Cada fase só vai pro ar depois de testada — não vou avançar sem sua aprovação entre fases.**
 
-## 2. Fluxo geral
+### Fase 1 — Infraestrutura de Auth (sem quebrar nada)
 
-```text
-Rascunho → Publicado → Credenciamento aberto → Propostas iniciais →
-Sessão de disputa (anônima) → Encerrada → Habilitação (documentação) →
-Adjudicação → Homologação → Encerrado
-```
+**Objetivo:** ter Supabase Auth funcionando em paralelo, sem mexer no login atual.
 
-- **Anonimato:** durante "Sessão de disputa", fornecedores se enxergam como "Licitante 01, Licitante 02…" (mapeamento aleatório fixo por pregão). Pregoeiro vê tudo. Ao **Encerrar disputa**, o pregoeiro clica em "Tornar resultado público" e os nomes reais passam a aparecer para todos.
-- **Habilitação:** após encerrar a disputa, pregoeiro analisa documentos do 1º colocado; se inabilitar, convoca o próximo, e assim por diante.
+1. Adicionar coluna `auth_user_id uuid` (nullable, unique) em `public.usuarios`, com FK para `auth.users(id) ON DELETE SET NULL`.
+2. Criar trigger `on_auth_user_created` que sincroniza `auth.users` → `public.usuarios.auth_user_id` quando alguém é criado no Auth.
+3. Criar Edge Function `migrate-users-to-auth` (service role) que, para cada `usuarios` sem `auth_user_id`:
+   - cria um usuário em `auth.users` com o mesmo email e senha aleatória forte
+   - grava `auth_user_id` em `public.usuarios`
+   - envia e-mail "Defina sua nova senha" (link `resetPasswordForEmail`) usando o template já existente
+4. Criar página `/redefinir-senha` (rota pública) que processa o `type=recovery` e chama `supabase.auth.updateUser({ password })`.
+5. Criar função SQL `has_role(_uid uuid)` e `current_usuario_id()` que retorna o `usuarios.id` a partir de `auth.uid()` via `auth_user_id`. Será usada em todas as policies da Fase 3.
 
-## 3. Modalidades (escolhidas ao criar o pregão)
+**Resultado:** todos os usuários existentes ganham conta no Supabase Auth e recebem e-mail para definir senha. O login atual continua funcionando.
 
-- **Aberto:** tempo inicial X min + prorrogação automática de 2 min sempre que houver lance nos últimos 2 min.
-- **Aberto-Fechado:** fase aberta + 3 melhores enviam proposta final lacrada (campo único, revelado só ao fechar).
-- **Fechado:** todos enviam 1 proposta lacrada antes da abertura; ao bater a hora, sistema abre tudo e ordena.
+### Fase 2 — Cutover do Login
 
-## 4. Estrutura por item ou lote
+**Objetivo:** substituir o login customizado pelo Supabase Auth.
 
-Ao montar o edital, o pregoeiro escolhe por item:
-- **Item isolado** — disputa própria, vencedor próprio.
-- **Lote** — disputa pelo valor total do lote; preço unitário é registrado depois.
+1. Reescrever `AuthContext.login()` para chamar `supabase.auth.signInWithPassword({ email, senha })`.
+2. Substituir `localStorage["usuarioLogado"]` por `supabase.auth.getSession()` + listener `onAuthStateChange`. Manter o objeto `Usuario` enriquecido (com `cargoId`, `clientesPermitidos`, etc.) buscado de `public.usuarios` após login.
+3. Atualizar `logout()` para chamar `supabase.auth.signOut()`.
+4. Atualizar `resetSenha()` para usar `supabase.auth.resetPasswordForEmail()` com redirect para `/redefinir-senha`.
+5. Atualizar `SupervisorPasswordDialog` (`verificarSenhaUsuario`) para validar via uma Edge Function que faz `signInWithPassword` num cliente isolado (sem sobrescrever a sessão atual).
+6. Atualizar `auth-login` / `auth-set-password` Edge Functions: marcar como deprecated, manter compatibilidade durante 1 versão.
+7. Migrar `clientes_credenciais`, `usuarios_credenciais`, `empresa_credenciais` para serem somente um espelho de status (`senha_status`), sem armazenar a senha real.
 
-## 5. Cadastro do pregão (pregoeiro)
+**Resultado:** todos os usuários passam a logar via Supabase Auth. JWT real, `auth.uid()` válido em todas as queries.
 
-Aba **Dados gerais:** número (auto NN-YYYY), objeto, modalidade, tipo (item/lote/misto), datas (publicação, abertura credenciamento, abertura propostas, início disputa), critério de julgamento (menor preço), termo de participação (rich text), valor estimado total (sigiloso ou público).
+### Fase 3 — RLS restritiva nas tabelas sensíveis
 
-Aba **Itens/Lotes:** material (combobox do catálogo `materiais_servicos`), qtd, unidade, preço de referência (sigiloso por padrão), agrupamento em lote.
+**Objetivo:** fechar as 11 vulnerabilidades + bonus.
 
-Aba **Documentos exigidos para habilitação:** checklist configurável (CNPJ, CND federal, FGTS, atestados, etc.).
+Para cada tabela abaixo, substituir as policies `USING (true)` por policies que exigem `authenticated`:
 
-Aba **Termo de participação:** texto que o fornecedor precisa aceitar (registro de aceite com IP + data/hora + hash).
+| Tabela | Nova policy SELECT | Nova policy WRITE |
+|---|---|---|
+| `funcionarios` | `auth.role() = 'authenticated'` | `authenticated` + `has_module('funcionarios')` |
+| `fin_contas_bancarias` | `authenticated` + `has_module('financeiro')` | mesmo |
+| `exames_periodicos` | `authenticated` + `has_module('exames')` | mesmo |
+| `juridico_decisoes_pagamentos` | `authenticated` + `has_module('juridico')` | mesmo |
+| `processos_trabalhistas` | mesmo | mesmo |
+| `usuarios` + `perfis_acesso` | `authenticated` | apenas usuários com `has_module('usuarios')` |
+| `comunicacao_mensagens` | participante da conversa | autor |
+| `comunicacao_notificacoes` | `auth.uid() = destinatario_auth_id` | sistema |
+| `lancamentos` | `authenticated` + `has_module('lancamentos')` | mesmo |
+| `processos_seletivos` | `authenticated` + `has_module('processo_seletivo')` | mesmo |
+| `pregao_propostas_fechadas` | só pregoeiro OU `revelada=true` | só via Edge Function |
 
-Aba **Fornecedores:** lista somente leitura dos credenciados (vai sendo populada).
+Adicionalmente:
+- Remover `pregao_lances` e `pregao_mensagens` da publication `supabase_realtime`. Substituir consumo no front por polling via Edge Function que filtra por participante autenticado.
+- Auditar outras ~115 tabelas e ajustar policies para `authenticated`-only (mantendo `anon` SELECT apenas onde realmente necessário — ex.: `clientes` no portal do fornecedor, se aplicável).
 
-## 6. Sala de disputa (rota `/compras/pregao/:id/sala`)
+### Fase 4 — Limpeza (opcional, depois)
 
-Layout em 3 painéis:
-- **Esquerda:** lista de itens/lotes do pregão com status (aguardando, em disputa, encerrado, suspenso).
-- **Centro:** item em disputa — melhor lance atual, cronômetro, ranking anônimo dos 10 melhores, campo "Dar lance" (fornecedor) ou painel de comando (pregoeiro: Abrir, Suspender, Reabrir, Encerrar, Próximo item, Mensagem ao chat).
-- **Direita:** chat oficial do pregão (mensagens do pregoeiro são públicas; fornecedores se identificam como "Licitante NN").
+- Remover `usuarios_credenciais.senha` (passar a usar somente Supabase Auth).
+- Remover Edge Functions `auth-login` / `auth-set-password`.
+- Remover `verifySenha.ts` legado.
 
-**Regras de lance:**
-- Lance precisa ser estritamente menor que o melhor atual (ou menor que o último do próprio fornecedor, a critério da configuração).
-- Decremento mínimo configurável (R$ ou %).
-- Lance é gravado e propagado por Realtime do Supabase.
+## Riscos & mitigações
 
-**Realtime:** habilitar `supabase_realtime` para tabelas `pregao_lances`, `pregao_itens`, `pregao_mensagens`. Frontend assina e atualiza UI ao vivo.
+- **Login quebrar para todo mundo na Fase 2.** → Antes do cutover, executo a Fase 1 e confirmo que 100% dos usuários têm `auth_user_id`. Mantenho `auth-login` antiga como fallback por 1 release.
+- **Senhas atuais perdidas.** → Inevitável: o Supabase Auth não aceita importação de bcrypt customizado sem hash compatível. Cada usuário precisa redefinir a senha via e-mail (link enviado na Fase 1).
+- **Portal do Fornecedor / Portal do Candidato** usam credenciais separadas (`clientes_credenciais`). → Decidir se mantemos esses portais com auth customizada (escopo limitado a tabelas do portal) ou também migramos. Recomendo manter por ora.
+- **Edge Functions com `verify_jwt = false`** que recebem o `usuario.id` no body precisam validar JWT do chamador. → Refator nas funções afetadas na Fase 2.
 
-## 7. Após encerrar disputa
+## O que preciso de você
 
-1. Pregoeiro clica **"Encerrar e divulgar"** → status muda para `Habilitacao`, anonimato é removido, todos passam a ver os nomes reais.
-2. **Habilitação:** pregoeiro vê documentos enviados pelo 1º colocado (lista da Aba 4), marca cada item como **Aprovado/Reprovado** com observação. Se inabilitado, sistema convoca o próximo automaticamente.
-3. **Adjudicação:** pregoeiro confirma vencedor por item/lote.
-4. **Homologação:** gestor com permissão `pregao.homologar` finaliza. Pode gerar **RC (Requisição de Compras)** automática para o vencedor reaproveitando o catálogo existente.
+1. **Confirma a estratégia em 3 fases?** Posso começar pela Fase 1 hoje (não quebra nada) e te chamo antes de avançar para a Fase 2.
+2. **Portal do Fornecedor/Candidato:** mantém com auth própria (recomendado) ou migra junto?
+3. **Comunicar usuários:** posso disparar o e-mail "defina sua nova senha" para todos os ~N usuários no fim da Fase 1, ou prefere disparar em lotes/manualmente?
 
-## 8. Notificações automáticas (WhatsApp ChatPro + e-mail)
+## Detalhes técnicos
 
-- Publicação do pregão → fornecedores ativos
-- 1h antes da abertura → credenciados
-- Início da disputa → credenciados
-- Suspensão/reabertura → credenciados
-- Convocação para habilitação → 1º colocado
-- Resultado homologado → todos os participantes
-
-## 9. Banco de dados (migration nova)
-
-Tabelas (todas com `GRANT` + RLS pública seguindo padrão do projeto):
-- `pregoes` — cabeçalho do pregão
-- `pregao_itens` — itens/lotes; FK `pregao_id`, campo `lote_id` (nullable) para agrupar
-- `pregao_documentos_exigidos` — checklist de habilitação
-- `pregao_participantes` — fornecedor credenciado + apelido anônimo + aceite (IP, hash, timestamp) + status (credenciado/desclassificado/inabilitado/habilitado/vencedor)
-- `pregao_propostas_iniciais` — proposta inicial por item por fornecedor
-- `pregao_lances` — cada lance (pregao_id, item_id, participante_id, valor, ts)
-- `pregao_propostas_fechadas` — fase fechada do modelo Aberto-Fechado
-- `pregao_habilitacao` — análise documental (documento, status, observação, anexo_url)
-- `pregao_mensagens` — chat oficial
-- `pregao_eventos` — auditoria (abriu, suspendeu, encerrou, prorrogou, etc.)
-
-Triggers de numeração anual seguindo padrão `set_next_*_numero` já em uso.
-
-Storage bucket novo: `pregao-documentos` (público, igual aos demais).
-
-## 10. Frontend
-
-Estrutura nova:
-- `src/contexts/PregaoContext.tsx`
-- `src/pages/pregao/Pregoes.tsx` — grid de pregões
-- `src/pages/pregao/PregaoForm.tsx` — criação/edição (tabs)
-- `src/pages/pregao/PregaoSala.tsx` — sala de disputa (pregoeiro + fornecedor; UI condicional pelo papel)
-- `src/pages/pregao/PregaoHabilitacao.tsx`
-- `src/pages/pregao/PregaoResultado.tsx` — público, pós-divulgação
-- `src/pages/portal-fornecedor/PortalPregoes.tsx` — listagem para o fornecedor logado
-- `src/lib/gerarPdfAtaPregao.ts` — Ata da sessão (PDF Lasant)
-
-Item de menu novo no `AppSidebar` em **Compras e Suprimentos → Pregão Eletrônico**, controlado por `temModulo("pregao")`. Rota também adicionada em `accessRoutes.ts`.
-
-## 11. Auditoria e segurança
-
-- Cada lance, mensagem e ação de pregoeiro grava em `pregao_eventos` (ator, ip, ts, payload).
-- Anonimato: backend nunca devolve `fornecedor_id` real durante `status='Disputa'`; só o apelido. Função RPC `pregao_ranking_anonimo(pregao_id, item_id)` retorna ranking sem expor identidades.
-- Aceite do termo: hash SHA-256 do texto + IP + timestamp, gravado no `pregao_participantes`.
-- DoubleConfirmDelete para excluir pregão em rascunho; pregão publicado **não pode ser excluído**, apenas cancelado com motivo.
-
-## 12. Entregas em fases (sugiro implementar nesta ordem)
-
-1. **Fase 1 — Schema + cadastro:** migration, contexto, CRUD do pregão e itens, termo de participação, menu/permissões, credenciamento do fornecedor no portal.
-2. **Fase 2 — Sala de disputa:** Realtime, lances, anonimato, 3 modalidades, cronômetro com prorrogação.
-3. **Fase 3 — Pós-disputa:** habilitação, adjudicação, homologação, geração de RC automática, Ata em PDF, notificações WhatsApp/e-mail.
-
-Posso começar pela **Fase 1** assim que você aprovar.
+- Migrations criadas em ordem para que cada uma seja idempotente.
+- `current_usuario_id()` será `SECURITY DEFINER` e `STABLE`, com `SET search_path=public`, retornando `(SELECT id FROM usuarios WHERE auth_user_id = auth.uid())`.
+- `has_module(text)` será `SECURITY DEFINER`, consultando `perfis_acesso.modulos` JSONB com `current_usuario_id()`. Evita recursão de RLS em `perfis_acesso`.
+- Cargos com acesso total (`Diretor`, `Gerente Executivo`, `Coordenador`) continuam com bypass via função `is_acesso_total()`.
+- Confirmação de e-mail: vou desabilitar `auto_confirm_email` apenas para signups normais; o `migrate-users-to-auth` cria usuários já confirmados via `auth.admin.createUser({ email_confirm: true })`.
