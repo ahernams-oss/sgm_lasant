@@ -426,9 +426,9 @@ export default function RequisicaoComprasPage() {
               const horasDesdeCriacao = (Date.now() - new Date(r.dataCriacao).getTime()) / 3600000;
               const cotacaoPendente = cotacaoExist && !["Finalizada", "Cancelada"].includes(cotacaoExist.status);
               const semCotacao = !cotacaoExist && !["Cancelada", "Recusada", "Concluída"].includes(r.status);
-              const alertaUrgente = r.urgencia === "Urgente" && horasDesdeCriacao > 12 && (semCotacao || cotacaoPendente);
+              const alertaUrgente = (r.urgencia === "Urgente" || r.urgencia === "Alta") && horasDesdeCriacao > 12 && (semCotacao || cotacaoPendente);
               const alertaTitle = alertaUrgente
-                ? (cotacaoPendente ? "Urgente: cotação em andamento há mais de 12h sem finalização" : "Urgente: mais de 12h sem iniciar cotação")
+                ? (cotacaoPendente ? `${r.urgencia}: cotação em andamento há mais de 12h sem finalização` : `${r.urgencia}: mais de 12h sem iniciar cotação`)
                 : "";
               const cellMap: Record<string, ReactNode> = {
                 numero: (
