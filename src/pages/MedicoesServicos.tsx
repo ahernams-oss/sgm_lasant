@@ -30,7 +30,7 @@ import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { usePermissao } from "@/hooks/usePermissao";
-import { useContratosTerceiros } from "@/contexts/ContratosTerceirosContext";
+import { ContratosTerceirosProvider, useContratosTerceiros } from "@/contexts/ContratosTerceirosContext";
 
 const emptyItem = (): ItemServico => ({
   id: crypto.randomUUID(),
