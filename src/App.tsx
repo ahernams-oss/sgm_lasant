@@ -19,6 +19,7 @@ import MapaUniformes from "./pages/MapaUniformes.tsx";
 import Usuarios from "./pages/Usuarios.tsx";
 import Login from "./pages/Login.tsx";
 import EsqueciSenha from "./pages/EsqueciSenha.tsx";
+import RedefinirSenha from "./pages/RedefinirSenha.tsx";
 import ProcessoSeletivo from "./pages/ProcessoSeletivo.tsx";
 import ProcessosSeletivos from "./pages/ProcessosSeletivos.tsx";
 import Sco from "./pages/Sco.tsx";
@@ -406,6 +407,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+      <Route path="/redefinir-senha" element={<RedefinirSenha />} />
       <Route
         path="/*"
         element={

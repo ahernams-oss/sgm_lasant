@@ -6927,6 +6927,7 @@ export type Database = {
       }
       usuarios: {
         Row: {
+          auth_user_id: string | null
           cargo_id: string | null
           clientes_permitidos: Json | null
           created_at: string | null
@@ -6942,6 +6943,7 @@ export type Database = {
           telefone: string | null
         }
         Insert: {
+          auth_user_id?: string | null
           cargo_id?: string | null
           clientes_permitidos?: Json | null
           created_at?: string | null
@@ -6957,6 +6959,7 @@ export type Database = {
           telefone?: string | null
         }
         Update: {
+          auth_user_id?: string | null
           cargo_id?: string | null
           clientes_permitidos?: Json | null
           created_at?: string | null
@@ -7105,6 +7108,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_usuario_id: { Args: never; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -7113,6 +7117,8 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      has_module: { Args: { _modulo: string }; Returns: boolean }
+      is_acesso_total: { Args: never; Returns: boolean }
       kb_buscar_semantico: {
         Args: {
           match_count?: number
