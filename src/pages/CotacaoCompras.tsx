@@ -981,7 +981,7 @@ export default function CotacaoComprasPage() {
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 pl-1">
         <div className="flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-[220px] max-w-sm">
             <Label className="text-xs">Buscar</Label>
