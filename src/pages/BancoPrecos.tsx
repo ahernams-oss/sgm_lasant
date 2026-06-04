@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileDown, FileSpreadsheet } from "lucide-react";
 import PaginationControls from "@/components/PaginationControls";
 import { gerarPdfEstoque, gerarExcelEstoque } from "@/lib/gerarRelatorioEstoque";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 
 interface PedidoItem {
   itemId?: string;
