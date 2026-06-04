@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, type ReactNode } from "react"; // OS page
+import { useState, useMemo, useCallback, useRef, useEffect, type ReactNode } from "react"; // OS page
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { updateRow, fetchAll } from "@/lib/supabaseHelper";
@@ -6,7 +6,7 @@ import { SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
 import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { supabase } from "@/integrations/supabase/client";
 import { formatNumeroAno } from "@/lib/formatNumero";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useOrdensServico, OrdemServico, MaterialOS, ProfissionalOS, AnexoOS, FotoOS, ObservacaoOS, ObservacaoFiscalizacao, TIPOS_OS, TipoOS } from "@/contexts/OrdensServicoContext";
 import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { useServicos } from "@/contexts/ServicosContext";
@@ -234,6 +234,23 @@ export default function OrdensServicoPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const numero = searchParams.get("numero");
+    if (numero) {
+      setBusca(numero);
+      setFiltroSituacao("Todas");
+      setFiltroCliente("Todos");
+      setFiltroPrioridade("Todas");
+      setFiltroDataInicio("");
+      setFiltroDataFim("");
+      setPage(1);
+      const next = new URLSearchParams(searchParams);
+      next.delete("numero");
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Form fields
   const [clienteId, setClienteId] = useState("");

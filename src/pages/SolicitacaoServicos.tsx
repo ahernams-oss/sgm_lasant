@@ -1204,7 +1204,21 @@ export default function SolicitacaoServicosPage() {
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">Situação</Label>
-                    <Badge variant="outline" className="mt-1">{viewTarget.situacao}</Badge>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <Badge variant="outline">{viewTarget.situacao}</Badge>
+                      {(() => {
+                        const osVinc = ordens.find(o => o.solicitacaoId === viewTarget.id);
+                        return osVinc ? (
+                          <a
+                            href={`/engenharia/ordem-servico?numero=${osVinc.numero}`}
+                            className="text-xs text-primary hover:underline font-medium"
+                            title="Ver Ordem de Serviço vinculada"
+                          >
+                            OS {formatNumeroAno(osVinc.numero, osVinc.createdAt)}
+                          </a>
+                        ) : null;
+                      })()}
+                    </div>
                   </div>
                   {viewTarget.prioridade && (
                     <div>
