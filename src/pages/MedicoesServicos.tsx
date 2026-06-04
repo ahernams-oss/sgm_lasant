@@ -31,6 +31,7 @@ import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { ContratosTerceirosProvider, useContratosTerceiros } from "@/contexts/ContratosTerceirosContext";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 const emptyItem = (): ItemServico => ({
   id: crypto.randomUUID(),
