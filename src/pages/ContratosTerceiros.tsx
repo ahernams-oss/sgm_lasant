@@ -48,12 +48,21 @@ function ContratosInner() {
   const { clientes } = useClientes();
   const { obras } = useObras();
   const { empresa } = useEmpresa();
+  const { pedidos } = usePedidoCompra();
+  const { requisicoes } = useRequisicaoCompras();
+  const { materiais } = useMateriaisServicos();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ContratoTerceiro | null>(null);
   const [form, setForm] = useState<Partial<ContratoTerceiro>>({});
   const [filtro, setFiltro] = useState("");
+  const [centrosCusto, setCentrosCusto] = useState<any[]>([]);
+  const [pedidoSelId, setPedidoSelId] = useState<string>("");
+
+  React.useEffect(() => {
+    fetchAll("fin_centros_custo", "codigo").then((d) => setCentrosCusto(d as any[]));
+  }, []);
 
   const fornecedores = useMemo(() => clientes.filter((c: any) => c.tipo === "Fornecedor"), [clientes]);
   const apenasClientes = useMemo(() => clientes.filter((c: any) => c.tipo === "Cliente"), [clientes]);
@@ -61,6 +70,44 @@ function ContratosInner() {
     () => obras.filter((o) => o.cliente_id === form.cliente_id),
     [obras, form.cliente_id],
   );
+
+  // PCs de serviços: somente pedidos cujos itens são todos do tipo "Serviço"
+  const pedidosServico = useMemo(() => {
+    const tipoById = new Map(materiais.map((m: any) => [m.id, m.tipo]));
+    return pedidos.filter((p) => {
+      if (!p.itens?.length) return false;
+      return p.itens.every((it: any) => tipoById.get(it.itemId) === "Serviço");
+    });
+  }, [pedidos, materiais]);
+
+  const onSelectPedido = (pedidoId: string) => {
+    setPedidoSelId(pedidoId);
+    const p = pedidos.find((x) => x.id === pedidoId);
+    if (!p) return;
+    // Fornecedor + CNPJ/CPF + endereço
+    const f: any = clientes.find((c: any) => c.id === p.fornecedorId);
+    const endParts = f ? [
+      [f.logradouro, f.numero].filter(Boolean).join(", "),
+      f.complemento, f.bairro,
+      [f.cidade, f.uf].filter(Boolean).join("/"),
+    ].filter(Boolean) : [];
+    // Cliente via Requisição → Centro de Custo
+    const req = requisicoes.find((r) => r.id === p.requisicaoId);
+    const cc = req ? centrosCusto.find((c) => c.id === req.centroCusto || c.codigo === req.centroCusto) : null;
+    const cli = cc ? clientes.find((c: any) => c.id === cc.cliente_id) : null;
+    setForm((prev) => ({
+      ...prev,
+      fornecedor_id: p.fornecedorId,
+      fornecedor_nome: p.fornecedorNome || f?.nome || "",
+      fornecedor_cnpj: f?.cnpj || f?.cpf || "",
+      fornecedor_endereco: endParts.join(" - "),
+      cliente_id: cli?.id || prev.cliente_id || null,
+      cliente_nome: cli?.nome || prev.cliente_nome || "",
+      valor: p.valorTotal,
+      objeto: prev.objeto || p.itens.map((i: any) => `${i.quantidade} ${i.unidadeMedida} - ${i.descricao}`).join("; "),
+    }) as any);
+  };
+
 
   const resetForm = () => {
     setForm({
