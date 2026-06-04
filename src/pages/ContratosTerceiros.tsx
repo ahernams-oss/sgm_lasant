@@ -17,11 +17,15 @@ import { ContratosTerceirosProvider, useContratosTerceiros, type ContratoTerceir
 import { useClientes } from "@/contexts/ClientesContext";
 import { useObras } from "@/contexts/ObrasContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
+import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
+import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
+import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { fetchAll } from "@/lib/supabaseHelper";
 import { gerarPdfContratoTerceiro } from "@/lib/gerarPdfContratoTerceiro";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
 
 const STATUS = ["ativo", "encerrado", "suspenso", "cancelado"] as const;
 
