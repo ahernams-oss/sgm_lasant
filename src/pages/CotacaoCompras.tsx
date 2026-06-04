@@ -1117,7 +1117,7 @@ export default function CotacaoComprasPage() {
                     "bg-gray-400 text-white hover:bg-gray-500"
                   } ${alertaUrgente ? "animate-blink-urgent" : ""}`}>{rcVinculada.urgencia}</Badge>
                 ) : <span className="text-muted-foreground">-</span>,
-                rcs: <span className="font-mono">RC-{String(c.requisicaoNumero).padStart(4, "0")}</span>,
+                rcs: <a href={`/compras/requisicoes?numero=${c.requisicaoNumero}`} className="font-mono text-primary hover:underline">RC-{String(c.requisicaoNumero).padStart(4, "0")}</a>,
                 data: format(new Date(c.dataCriacao), "dd/MM/yyyy"),
                 comprador: c.comprador,
                 propostas: <Badge variant="secondary">{c.propostas.length}</Badge>,
