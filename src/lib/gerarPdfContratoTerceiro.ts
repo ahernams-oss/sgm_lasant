@@ -42,7 +42,7 @@ export async function gerarPdfContratoTerceiro(c: ContratoTerceiro, empresa?: Em
   doc.setFontSize(10);
   doc.text("CONTRATANTE:", ml, y);
   doc.setFont("helvetica", "normal");
-  doc.text(empresa?.razao_social || empresa?.nome_fantasia || "—", ml + 32, y);
+  doc.text((empresa as any)?.razaoSocial || (empresa as any)?.nomeFantasia || "—", ml + 32, y);
   y += 5;
   doc.setFont("helvetica", "bold");
   doc.text("CNPJ:", ml, y);
