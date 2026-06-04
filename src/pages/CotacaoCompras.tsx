@@ -999,6 +999,16 @@ export default function CotacaoComprasPage() {
             </SelectContent>
           </Select>
         </div>
+        <div className="w-48">
+          <Label className="text-xs">Comprador</Label>
+          <Select value={filterComprador} onValueChange={v => { setFilterComprador(v); setPageCot(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos Compradores</SelectItem>
+              {compradores.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="w-44">
           <Label className="text-xs">Status</Label>
           <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPageCot(1); }}>
