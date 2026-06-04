@@ -1030,4 +1030,10 @@ const MedicoesServicos = () => {
   );
 };
 
-export default MedicoesServicos;
+const MedicoesServicosPage = () => (
+  <ContratosTerceirosProvider>
+    <MedicoesServicos />
+  </ContratosTerceirosProvider>
+);
+
+export default MedicoesServicosPage;
