@@ -32,6 +32,7 @@ import { usePermissao } from "@/hooks/usePermissao";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--destructive))", "hsl(210,60%,50%)", "hsl(40,80%,50%)", "hsl(150,60%,40%)", "hsl(280,60%,50%)", "hsl(20,80%,50%)", "hsl(170,60%,40%)"];
+  const { empresa } = useEmpresa();
 
 export default function RelatoriosEstoquePage() {
   const { movimentacoes, inventarios, getSaldos, getSaldoPorMaterial } = useEstoque();
