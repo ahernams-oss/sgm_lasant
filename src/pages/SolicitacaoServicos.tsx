@@ -1197,6 +1197,15 @@ export default function SolicitacaoServicosPage() {
                   <div>
                     <Label className="text-xs text-muted-foreground">Solicitante</Label>
                     <p className="text-sm font-medium">{viewTarget.solicitanteNome || "-"}</p>
+                    {(() => {
+                      const aprov = [...(viewTarget.historico || [])].reverse().find(h => h.situacao === "Aprovada");
+                      return aprov?.usuario ? (
+                        <>
+                          <Label className="text-xs text-muted-foreground mt-2 block">Aprovador</Label>
+                          <p className="text-sm font-medium">{aprov.usuario}</p>
+                        </>
+                      ) : null;
+                    })()}
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">Tipo</Label>
