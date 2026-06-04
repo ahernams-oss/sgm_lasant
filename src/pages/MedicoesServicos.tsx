@@ -50,6 +50,7 @@ const MedicoesServicos = () => {
   const { materiais } = useMateriaisServicos();
   const { toast } = useToast();
   const { tem } = usePermissao();
+  const { contratos: contratosTerceiros } = useContratosTerceiros();
   const podeExcluir = tem("medicoes.excluir");
 
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
