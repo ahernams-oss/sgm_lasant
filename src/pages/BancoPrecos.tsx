@@ -173,7 +173,7 @@ export default function BancoPrecos() {
     });
 
     return out.sort((a, b) => a.descricao.localeCompare(b.descricao));
-  }, [pedidos, matById]);
+  }, [pedidos, matById, matByDesc, reqItemToMaterial]);
 
   const filtradas = useMemo(() => {
     const q = busca.trim().toLowerCase();
