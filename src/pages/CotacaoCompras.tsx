@@ -981,73 +981,77 @@ export default function CotacaoComprasPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3 items-end">
-        <div className="flex-1 min-w-[220px] max-w-sm">
-          <Label className="text-xs">Buscar</Label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Nº cotação, RC, comprador..." value={search} onChange={e => { setSearch(e.target.value); setPageCot(1); }} className="pl-9" />
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="flex-1 min-w-[220px] max-w-sm">
+            <Label className="text-xs">Buscar</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Nº cotação, RC, comprador..." value={search} onChange={e => { setSearch(e.target.value); setPageCot(1); }} className="pl-9" />
+            </div>
+          </div>
+          <div className="w-56">
+            <Label className="text-xs">Centro de Custo</Label>
+            <Select value={filterCentroCusto} onValueChange={v => { setFilterCentroCusto(v); setPageCot(1); }}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Todos">Todos Centros de Custo</SelectItem>
+                {centrosCustoUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-44">
+            <Label className="text-xs">Status</Label>
+            <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPageCot(1); }}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Todos">Todos os Status</SelectItem>
+                <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+                <SelectItem value="Aguardando Aprovação">Aguardando Aprovação</SelectItem>
+                <SelectItem value="Finalizada">Finalizada</SelectItem>
+                <SelectItem value="Cancelada">Cancelada</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-48">
+            <Label className="text-xs">Comprador</Label>
+            <Select value={filterComprador} onValueChange={v => { setFilterComprador(v); setPageCot(1); }}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Todos">Todos Compradores</SelectItem>
+                {compradores.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
         </div>
-        <div className="w-56">
-          <Label className="text-xs">Centro de Custo</Label>
-          <Select value={filterCentroCusto} onValueChange={v => { setFilterCentroCusto(v); setPageCot(1); }}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Todos">Todos Centros de Custo</SelectItem>
-              {centrosCustoUnicos.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="w-40">
+            <Label className="text-xs">Período</Label>
+            <Select value={filterPeriodo} onValueChange={v => { setFilterPeriodo(v); setPageCot(1); }}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Todos">Todo Período</SelectItem>
+                <SelectItem value="7">Últimos 7 dias</SelectItem>
+                <SelectItem value="30">Últimos 30 dias</SelectItem>
+                <SelectItem value="90">Últimos 90 dias</SelectItem>
+                <SelectItem value="365">Último ano</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-40">
+            <Label className="text-xs">Data inicial</Label>
+            <Input type="date" value={filterDataIni} onChange={e => { setFilterDataIni(e.target.value); setPageCot(1); }} />
+          </div>
+          <div className="w-40">
+            <Label className="text-xs">Data final</Label>
+            <Input type="date" value={filterDataFim} onChange={e => { setFilterDataFim(e.target.value); setPageCot(1); }} />
+          </div>
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+              <FilterX className="mr-1 h-4 w-4" />Limpar
+            </Button>
+          )}
         </div>
-        <div className="w-48">
-          <Label className="text-xs">Comprador</Label>
-          <Select value={filterComprador} onValueChange={v => { setFilterComprador(v); setPageCot(1); }}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Todos">Todos Compradores</SelectItem>
-              {compradores.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-44">
-          <Label className="text-xs">Status</Label>
-          <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPageCot(1); }}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Todos">Todos os Status</SelectItem>
-              <SelectItem value="Em Andamento">Em Andamento</SelectItem>
-              <SelectItem value="Aguardando Aprovação">Aguardando Aprovação</SelectItem>
-              <SelectItem value="Finalizada">Finalizada</SelectItem>
-              <SelectItem value="Cancelada">Cancelada</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-40">
-          <Label className="text-xs">Período</Label>
-          <Select value={filterPeriodo} onValueChange={v => { setFilterPeriodo(v); setPageCot(1); }}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Todos">Todo Período</SelectItem>
-              <SelectItem value="7">Últimos 7 dias</SelectItem>
-              <SelectItem value="30">Últimos 30 dias</SelectItem>
-              <SelectItem value="90">Últimos 90 dias</SelectItem>
-              <SelectItem value="365">Último ano</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-40">
-          <Label className="text-xs">Data inicial</Label>
-          <Input type="date" value={filterDataIni} onChange={e => { setFilterDataIni(e.target.value); setPageCot(1); }} />
-        </div>
-        <div className="w-40">
-          <Label className="text-xs">Data final</Label>
-          <Input type="date" value={filterDataFim} onChange={e => { setFilterDataFim(e.target.value); setPageCot(1); }} />
-        </div>
-        {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
-            <FilterX className="mr-1 h-4 w-4" />Limpar
-          </Button>
-        )}
       </div>
 
       <div className="flex items-center justify-between">
