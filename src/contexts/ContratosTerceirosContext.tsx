@@ -32,6 +32,7 @@ export interface ContratoTerceiro {
   fornecedor_id?: string | null;
   fornecedor_nome?: string | null;
   fornecedor_cnpj?: string | null;
+  fornecedor_endereco?: string | null;
   cliente_id?: string | null;
   cliente_nome?: string | null;
   obra_id?: string | null;
