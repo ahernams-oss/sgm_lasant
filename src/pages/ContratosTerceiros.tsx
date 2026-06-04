@@ -287,7 +287,39 @@ function ContratosInner() {
             </TabsList>
 
             <TabsContent value="dados" className="space-y-4 pt-4">
+              <div className="rounded-md border bg-muted/30 p-3">
+                <Label>Ordem de Compra (Serviços) — preenche Fornecedor, CNPJ/CPF, Cliente e Valor</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" className="w-full justify-between font-normal mt-1">
+                      <span className="truncate">
+                        {pedidoSelId
+                          ? (() => { const p = pedidos.find(x => x.id === pedidoSelId); return p ? `OC ${String(p.numero).padStart(4,"0")} — ${p.fornecedorNome} (${fmtMoney(p.valorTotal)})` : "Selecione..."; })()
+                          : "Selecione uma OC de serviços..."}
+                      </span>
+                      <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Buscar por número ou fornecedor..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhuma OC de serviços encontrada</CommandEmpty>
+                        <CommandGroup>
+                          {pedidosServico.map((p) => (
+                            <CommandItem key={p.id} value={`${p.numero} ${p.fornecedorNome}`} onSelect={() => onSelectPedido(p.id)}>
+                              <Check className={`mr-2 h-4 w-4 ${pedidoSelId === p.id ? "opacity-100" : "opacity-0"}`} />
+                              OC {String(p.numero).padStart(4, "0")} — {p.fornecedorNome} — {fmtMoney(p.valorTotal)}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
               <div className="grid grid-cols-2 gap-4">
+
                 <div>
                   <Label>Fornecedor / Prestador *</Label>
                   <Popover>
