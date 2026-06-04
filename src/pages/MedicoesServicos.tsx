@@ -390,10 +390,18 @@ const MedicoesServicos = () => {
                       setFornecedorNome(oc.fornecedorNome);
                       // Auto-fill cliente from requisição vinculada
                       const req = requisicoes.find(r => r.id === oc.requisicaoId);
+                      let cliId = "";
                       if (req) {
+                        cliId = req.centroCusto;
                         setClienteId(req.centroCusto);
                         setClienteNome(req.centroCustoNome);
                       }
+                      // Auto-fill contrato vinculado (contratos_terceiros) por fornecedor + cliente
+                      const ct = contratosTerceiros.find(c =>
+                        c.fornecedor_id === oc.fornecedorId &&
+                        (!cliId || !c.cliente_id || c.cliente_id === cliId)
+                      );
+                      if (ct?.numero) setContrato(String(ct.numero));
                       const ocItens: ItemServico[] = oc.itens.map(i => ({
                         id: crypto.randomUUID(),
                         descricao: i.descricao,
