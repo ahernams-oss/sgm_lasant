@@ -74,7 +74,7 @@ function ContratosInner() {
   const abrirEdit = (c: ContratoTerceiro) => { setEditing(c); setForm({ ...c }); setOpen(true); };
 
   const onSelectFornecedor = (id: string) => {
-    const f = fornecedores.find((x) => x.id === id);
+    const f: any = fornecedores.find((x: any) => x.id === id);
     const endParts = [
       [f?.logradouro, f?.numero].filter(Boolean).join(", "),
       f?.complemento,
@@ -85,8 +85,8 @@ function ContratosInner() {
     setForm((p) => ({
       ...p,
       fornecedor_id: id,
-      fornecedor_nome: f?.nome || f?.razaoSocial || "",
-      fornecedor_cnpj: f?.cnpj || f?.cpf || "",
+      fornecedor_nome: f?.nome || (f as any)?.razaoSocial || "",
+      fornecedor_cnpj: f?.cnpj || (f as any)?.cpf || "",
       fornecedor_endereco: endereco,
     } as any));
   };
