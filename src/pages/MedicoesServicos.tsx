@@ -412,7 +412,7 @@ const MedicoesServicos = () => {
                         c.fornecedor_id === oc.fornecedorId &&
                         (!cliId || !c.cliente_id || c.cliente_id === cliId)
                       );
-                      if (ct?.numero) setContrato(String(ct.numero));
+                      if (ct?.numero) setContrato(formatNumeroAno(ct.numero, ct.created_at));
                       const ocItens: ItemServico[] = oc.itens.map(i => ({
                         id: crypto.randomUUID(),
                         descricao: i.descricao,
