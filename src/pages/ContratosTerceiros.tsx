@@ -9,6 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { ChevronsUpDown, Check } from "lucide-react";
 import { Plus, Trash2, Pencil, FileDown, Paperclip } from "lucide-react";
 import { ContratosTerceirosProvider, useContratosTerceiros, type ContratoTerceiro, type ContratoAditivo } from "@/contexts/ContratosTerceirosContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -236,14 +239,30 @@ function ContratosInner() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Fornecedor / Prestador *</Label>
-                  <Select value={form.fornecedor_id || ""} onValueChange={onSelectFornecedor}>
-                    <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                    <SelectContent>
-                      {fornecedores.map((f) => (
-                        <SelectItem key={f.id} value={f.id}>{f.nome || f.razaoSocial}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                        <span className="truncate">{form.fornecedor_nome || "Selecione..."}</span>
+                        <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar fornecedor..." />
+                        <CommandList>
+                          <CommandEmpty>Nenhum encontrado</CommandEmpty>
+                          <CommandGroup>
+                            {fornecedores.map((f) => (
+                              <CommandItem key={f.id} value={`${f.nome || f.razaoSocial} ${f.cnpj || ""}`} onSelect={() => onSelectFornecedor(f.id)}>
+                                <Check className={`mr-2 h-4 w-4 ${form.fornecedor_id === f.id ? "opacity-100" : "opacity-0"}`} />
+                                {f.nome || f.razaoSocial}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <Label>CNPJ/CPF</Label>
@@ -252,25 +271,57 @@ function ContratosInner() {
 
                 <div>
                   <Label>Cliente</Label>
-                  <Select value={form.cliente_id || ""} onValueChange={onSelectCliente}>
-                    <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                    <SelectContent>
-                      {apenasClientes.map((c: any) => (
-                        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                        <span className="truncate">{form.cliente_nome || "Selecione..."}</span>
+                        <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar cliente..." />
+                        <CommandList>
+                          <CommandEmpty>Nenhum encontrado</CommandEmpty>
+                          <CommandGroup>
+                            {apenasClientes.map((c: any) => (
+                              <CommandItem key={c.id} value={c.nome} onSelect={() => onSelectCliente(c.id)}>
+                                <Check className={`mr-2 h-4 w-4 ${form.cliente_id === c.id ? "opacity-100" : "opacity-0"}`} />
+                                {c.nome}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <Label>Obra</Label>
-                  <Select value={form.obra_id || ""} onValueChange={onSelectObra} disabled={!form.cliente_id}>
-                    <SelectTrigger><SelectValue placeholder={form.cliente_id ? "Selecione..." : "Selecione um cliente"} /></SelectTrigger>
-                    <SelectContent>
-                      {obrasDoCliente.map((o) => (
-                        <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" role="combobox" disabled={!form.cliente_id} className="w-full justify-between font-normal">
+                        <span className="truncate">{form.obra_nome || (form.cliente_id ? "Selecione..." : "Selecione um cliente")}</span>
+                        <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar obra..." />
+                        <CommandList>
+                          <CommandEmpty>Nenhuma encontrada</CommandEmpty>
+                          <CommandGroup>
+                            {obrasDoCliente.map((o) => (
+                              <CommandItem key={o.id} value={o.nome} onSelect={() => onSelectObra(o.id)}>
+                                <Check className={`mr-2 h-4 w-4 ${form.obra_id === o.id ? "opacity-100" : "opacity-0"}`} />
+                                {o.nome}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 <div className="col-span-2">
