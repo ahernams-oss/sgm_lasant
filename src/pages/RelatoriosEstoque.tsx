@@ -279,8 +279,8 @@ export default function RelatoriosEstoquePage() {
   }, [movimentacoes, dataInicio, dataFim, filtroUnidade, filtroUsuario, search]);
 
   // Export helpers
-  const exportPdf = (title: string, cols: string[], rows: string[][]) => gerarPdfEstoque(title, cols, rows, filtersText());
-  const exportExcel = (title: string, cols: string[], rows: string[][]) => gerarExcelEstoque(title, cols, rows);
+  const exportPdf = (title: string, cols: string[], rows: string[][]) => gerarPdfEstoque(title, cols, rows, filtersText(), empresa?.logoUrl);
+  const exportExcel = (title: string, cols: string[], rows: string[][]) => gerarExcelEstoque(title, cols, rows, filtersText());
   const handlePrint = () => window.print();
 
   const formatDate = (d: string) => d ? new Date(d).toLocaleDateString("pt-BR") : "-";
