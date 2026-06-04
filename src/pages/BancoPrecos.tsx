@@ -291,12 +291,12 @@ export default function BancoPrecos() {
 
   function handleExportPdf() {
     const { columns, rows } = buildExportRows();
-    gerarPdfEstoque("Banco de Preços", columns, rows, filtrosTexto());
+    gerarPdfEstoque("Banco de Preços", columns, rows, filtrosTexto(), empresa?.logoUrl);
   }
 
   function handleExportExcel() {
     const { columns, rows } = buildExportRows();
-    gerarExcelEstoque("Banco de Preços", columns, rows);
+    gerarExcelEstoque("Banco de Preços", columns, rows, filtrosTexto());
   }
 
   return (
