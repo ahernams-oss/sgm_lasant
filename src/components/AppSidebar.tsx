@@ -144,6 +144,7 @@ const menuItems = [
       { title: "Assinar PC em Lote", url: "/compras/assinar-lote-pc", icon: ShieldCheck, perm: "pc_assinatura" },
       { title: "Inteligência de Compras", url: "/compras/inteligencia", icon: Sparkles, perm: "requisicoes_compras" },
       { title: "Recebimento", url: "/compras/recebimento", icon: PackageCheck, perm: "recebimento" },
+      { title: "Banco de Preços", url: "/compras/banco-precos", icon: DollarSign, perm: "pedidos_compra" },
       { title: "Estoque", url: "/compras/estoque", icon: Warehouse, perm: "estoque" },
       { title: "Relatórios de Estoque", url: "/compras/relatorios-estoque", icon: FileBarChart, perm: "estoque" },
       { title: "Pregão Eletrônico", url: "/compras/pregao", icon: Gavel, perm: "pregao" },
