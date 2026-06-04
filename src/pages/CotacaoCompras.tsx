@@ -972,7 +972,7 @@ export default function CotacaoComprasPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">  Cotações de Compras</h1>
+        <h1 className="text-2xl font-bold text-foreground mx-[5px]">  Cotações de Compras</h1>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={syncPropostasExternas} title="Sincronizar propostas externas">
             <RefreshCw className="mr-2 h-4 w-4" />Sincronizar
