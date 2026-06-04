@@ -917,6 +917,7 @@ export type Database = {
           data_fim: string | null
           data_inicio: string | null
           fornecedor_cnpj: string | null
+          fornecedor_endereco: string | null
           fornecedor_id: string | null
           fornecedor_nome: string | null
           id: string
@@ -939,6 +940,7 @@ export type Database = {
           data_fim?: string | null
           data_inicio?: string | null
           fornecedor_cnpj?: string | null
+          fornecedor_endereco?: string | null
           fornecedor_id?: string | null
           fornecedor_nome?: string | null
           id?: string
@@ -961,6 +963,7 @@ export type Database = {
           data_fim?: string | null
           data_inicio?: string | null
           fornecedor_cnpj?: string | null
+          fornecedor_endereco?: string | null
           fornecedor_id?: string | null
           fornecedor_nome?: string | null
           id?: string
