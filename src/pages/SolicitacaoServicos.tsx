@@ -115,6 +115,22 @@ export default function SolicitacaoServicosPage() {
   const [filterTipo, setFilterTipo] = useState("all");
   const [filterSituacao, setFilterSituacao] = useState("all");
   const [filterVisitado, setFilterVisitado] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const numero = searchParams.get("numero");
+    if (numero) {
+      setSearch(numero);
+      setFilterCliente("all");
+      setFilterTipo("all");
+      setFilterSituacao("all");
+      setFilterVisitado("all");
+      setPage(1);
+      const next = new URLSearchParams(searchParams);
+      next.delete("numero");
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [batchPrinting, setBatchPrinting] = useState(false);
   const [imagens, setImagens] = useState<{ file?: File; url: string }[]>([]);
