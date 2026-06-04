@@ -17,11 +17,15 @@ import { ContratosTerceirosProvider, useContratosTerceiros, type ContratoTerceir
 import { useClientes } from "@/contexts/ClientesContext";
 import { useObras } from "@/contexts/ObrasContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
+import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
+import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
+import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { fetchAll } from "@/lib/supabaseHelper";
 import { gerarPdfContratoTerceiro } from "@/lib/gerarPdfContratoTerceiro";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
 
 const STATUS = ["ativo", "encerrado", "suspenso", "cancelado"] as const;
 
@@ -44,12 +48,21 @@ function ContratosInner() {
   const { clientes } = useClientes();
   const { obras } = useObras();
   const { empresa } = useEmpresa();
+  const { pedidos } = usePedidoCompra();
+  const { requisicoes } = useRequisicaoCompras();
+  const { materiais } = useMateriaisServicos();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ContratoTerceiro | null>(null);
   const [form, setForm] = useState<Partial<ContratoTerceiro>>({});
   const [filtro, setFiltro] = useState("");
+  const [centrosCusto, setCentrosCusto] = useState<any[]>([]);
+  const [pedidoSelId, setPedidoSelId] = useState<string>("");
+
+  React.useEffect(() => {
+    fetchAll("fin_centros_custo", "codigo").then((d) => setCentrosCusto(d as any[]));
+  }, []);
 
   const fornecedores = useMemo(() => clientes.filter((c: any) => c.tipo === "Fornecedor"), [clientes]);
   const apenasClientes = useMemo(() => clientes.filter((c: any) => c.tipo === "Cliente"), [clientes]);
@@ -57,6 +70,44 @@ function ContratosInner() {
     () => obras.filter((o) => o.cliente_id === form.cliente_id),
     [obras, form.cliente_id],
   );
+
+  // PCs de serviços: somente pedidos cujos itens são todos do tipo "Serviço"
+  const pedidosServico = useMemo(() => {
+    const tipoById = new Map(materiais.map((m: any) => [m.id, m.tipo]));
+    return pedidos.filter((p) => {
+      if (!p.itens?.length) return false;
+      return p.itens.every((it: any) => tipoById.get(it.itemId) === "Serviço");
+    });
+  }, [pedidos, materiais]);
+
+  const onSelectPedido = (pedidoId: string) => {
+    setPedidoSelId(pedidoId);
+    const p = pedidos.find((x) => x.id === pedidoId);
+    if (!p) return;
+    // Fornecedor + CNPJ/CPF + endereço
+    const f: any = clientes.find((c: any) => c.id === p.fornecedorId);
+    const endParts = f ? [
+      [f.logradouro, f.numero].filter(Boolean).join(", "),
+      f.complemento, f.bairro,
+      [f.cidade, f.uf].filter(Boolean).join("/"),
+    ].filter(Boolean) : [];
+    // Cliente via Requisição → Centro de Custo
+    const req = requisicoes.find((r) => r.id === p.requisicaoId);
+    const cc = req ? centrosCusto.find((c) => c.id === req.centroCusto || c.codigo === req.centroCusto) : null;
+    const cli = cc ? clientes.find((c: any) => c.id === cc.cliente_id) : null;
+    setForm((prev) => ({
+      ...prev,
+      fornecedor_id: p.fornecedorId,
+      fornecedor_nome: p.fornecedorNome || f?.nome || "",
+      fornecedor_cnpj: f?.cnpj || f?.cpf || "",
+      fornecedor_endereco: endParts.join(" - "),
+      cliente_id: cli?.id || prev.cliente_id || null,
+      cliente_nome: cli?.nome || prev.cliente_nome || "",
+      valor: p.valorTotal,
+      objeto: prev.objeto || p.itens.map((i: any) => `${i.quantidade} ${i.unidadeMedida} - ${i.descricao}`).join("; "),
+    }) as any);
+  };
+
 
   const resetForm = () => {
     setForm({
@@ -68,7 +119,9 @@ function ContratosInner() {
       anexos: [],
     });
     setEditing(null);
+    setPedidoSelId("");
   };
+
 
   const abrirNovo = () => { resetForm(); setOpen(true); };
   const abrirEdit = (c: ContratoTerceiro) => { setEditing(c); setForm({ ...c }); setOpen(true); };
@@ -234,7 +287,39 @@ function ContratosInner() {
             </TabsList>
 
             <TabsContent value="dados" className="space-y-4 pt-4">
+              <div className="rounded-md border bg-muted/30 p-3">
+                <Label>Ordem de Compra (Serviços) — preenche Fornecedor, CNPJ/CPF, Cliente e Valor</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" className="w-full justify-between font-normal mt-1">
+                      <span className="truncate">
+                        {pedidoSelId
+                          ? (() => { const p = pedidos.find(x => x.id === pedidoSelId); return p ? `OC ${String(p.numero).padStart(4,"0")} — ${p.fornecedorNome} (${fmtMoney(p.valorTotal)})` : "Selecione..."; })()
+                          : "Selecione uma OC de serviços..."}
+                      </span>
+                      <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Buscar por número ou fornecedor..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhuma OC de serviços encontrada</CommandEmpty>
+                        <CommandGroup>
+                          {pedidosServico.map((p) => (
+                            <CommandItem key={p.id} value={`${p.numero} ${p.fornecedorNome}`} onSelect={() => onSelectPedido(p.id)}>
+                              <Check className={`mr-2 h-4 w-4 ${pedidoSelId === p.id ? "opacity-100" : "opacity-0"}`} />
+                              OC {String(p.numero).padStart(4, "0")} — {p.fornecedorNome} — {fmtMoney(p.valorTotal)}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
               <div className="grid grid-cols-2 gap-4">
+
                 <div>
                   <Label>Fornecedor / Prestador *</Label>
                   <Popover>
