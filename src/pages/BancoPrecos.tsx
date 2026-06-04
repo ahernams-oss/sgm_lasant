@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileDown, FileSpreadsheet } from "lucide-react";
 import PaginationControls from "@/components/PaginationControls";
 import { gerarPdfEstoque, gerarExcelEstoque } from "@/lib/gerarRelatorioEstoque";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 
 interface PedidoItem {
   itemId?: string;
@@ -70,6 +71,7 @@ const formatDate = (iso: string) => {
 };
 
 export default function BancoPrecos() {
+  const { empresa } = useEmpresa();
   const [pedidos, setPedidos] = useState<PedidoRow[]>([]);
   const [materiais, setMateriais] = useState<Material[]>([]);
   const [reqItemToMaterial, setReqItemToMaterial] = useState<Map<string, string>>(new Map());
@@ -291,12 +293,12 @@ export default function BancoPrecos() {
 
   function handleExportPdf() {
     const { columns, rows } = buildExportRows();
-    gerarPdfEstoque("Banco de Preços", columns, rows, filtrosTexto());
+    gerarPdfEstoque("Banco de Preços", columns, rows, filtrosTexto(), empresa?.logoUrl);
   }
 
   function handleExportExcel() {
     const { columns, rows } = buildExportRows();
-    gerarExcelEstoque("Banco de Preços", columns, rows);
+    gerarExcelEstoque("Banco de Preços", columns, rows, filtrosTexto());
   }
 
   return (

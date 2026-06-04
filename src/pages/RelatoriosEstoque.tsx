@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { gerarPdfEstoque, gerarExcelEstoque } from "@/lib/gerarRelatorioEstoque";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import {
   CalendarIcon, FileText, FileSpreadsheet, Printer, Search, Package, TrendingDown,
   AlertTriangle, BarChart3, History, ArrowLeftRight, ClipboardList, Warehouse,
@@ -31,6 +32,7 @@ import { usePermissao } from "@/hooks/usePermissao";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--destructive))", "hsl(210,60%,50%)", "hsl(40,80%,50%)", "hsl(150,60%,40%)", "hsl(280,60%,50%)", "hsl(20,80%,50%)", "hsl(170,60%,40%)"];
+  const { empresa } = useEmpresa();
 
 export default function RelatoriosEstoquePage() {
   const { movimentacoes, inventarios, getSaldos, getSaldoPorMaterial } = useEstoque();
@@ -279,8 +281,8 @@ export default function RelatoriosEstoquePage() {
   }, [movimentacoes, dataInicio, dataFim, filtroUnidade, filtroUsuario, search]);
 
   // Export helpers
-  const exportPdf = (title: string, cols: string[], rows: string[][]) => gerarPdfEstoque(title, cols, rows, filtersText());
-  const exportExcel = (title: string, cols: string[], rows: string[][]) => gerarExcelEstoque(title, cols, rows);
+  const exportPdf = (title: string, cols: string[], rows: string[][]) => gerarPdfEstoque(title, cols, rows, filtersText(), empresa?.logoUrl);
+  const exportExcel = (title: string, cols: string[], rows: string[][]) => gerarExcelEstoque(title, cols, rows, filtersText());
   const handlePrint = () => window.print();
 
   const formatDate = (d: string) => d ? new Date(d).toLocaleDateString("pt-BR") : "-";
