@@ -71,14 +71,23 @@ function ContratosInner() {
     [obras, form.cliente_id],
   );
 
-  // PCs de serviços: somente pedidos cujos itens são todos do tipo "Serviço"
+  // PCs de serviços: somente pedidos cujos itens são todos do tipo "Serviço".
+  // O itemId do pedido referencia o item da Requisição; o vínculo com o
+  // cadastro de Materiais/Serviços é via requisicao.itens[].materialId.
   const pedidosServico = useMemo(() => {
-    const tipoById = new Map(materiais.map((m: any) => [m.id, m.tipo]));
+    const tipoByMaterialId = new Map(materiais.map((m: any) => [m.id, m.tipo]));
+    const reqById = new Map(requisicoes.map((r: any) => [r.id, r]));
     return pedidos.filter((p) => {
       if (!p.itens?.length) return false;
-      return p.itens.every((it: any) => tipoById.get(it.itemId) === "Serviço");
+      const req: any = reqById.get(p.requisicaoId);
+      const reqItens: any[] = req?.itens || [];
+      return p.itens.every((it: any) => {
+        const reqIt = reqItens.find((ri: any) => ri.id === it.itemId);
+        const matId = reqIt?.materialId;
+        return matId && tipoByMaterialId.get(matId) === "Serviço";
+      });
     });
-  }, [pedidos, materiais]);
+  }, [pedidos, materiais, requisicoes]);
 
   const onSelectPedido = (pedidoId: string) => {
     setPedidoSelId(pedidoId);
