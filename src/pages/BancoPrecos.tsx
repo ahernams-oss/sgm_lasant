@@ -71,6 +71,7 @@ const formatDate = (iso: string) => {
 };
 
 export default function BancoPrecos() {
+  const { empresa } = useEmpresa();
   const [pedidos, setPedidos] = useState<PedidoRow[]>([]);
   const [materiais, setMateriais] = useState<Material[]>([]);
   const [reqItemToMaterial, setReqItemToMaterial] = useState<Map<string, string>>(new Map());
