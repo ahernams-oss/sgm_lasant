@@ -64,6 +64,7 @@ const formatDate = (iso: string) => {
 export default function BancoPrecos() {
   const [pedidos, setPedidos] = useState<PedidoRow[]>([]);
   const [materiais, setMateriais] = useState<Material[]>([]);
+  const [reqItemToMaterial, setReqItemToMaterial] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState("");
   const [page, setPage] = useState(1);
@@ -72,7 +73,7 @@ export default function BancoPrecos() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [p, m] = await Promise.all([
+      const [p, m, r] = await Promise.all([
         supabase
           .from("pedidos_compra")
           .select("numero, data_criacao, created_at, fornecedor_nome, itens, status")
@@ -80,9 +81,18 @@ export default function BancoPrecos() {
           .order("created_at", { ascending: false })
           .limit(1000),
         supabase.from("materiais_servicos").select("id, codigo, descricao, unidade_medida"),
+        supabase.from("requisicoes_compras").select("itens").limit(2000),
       ]);
       setPedidos((p.data as any) || []);
       setMateriais((m.data as any) || []);
+      const map = new Map<string, string>();
+      ((r.data as any[]) || []).forEach((rc) => {
+        const itens = Array.isArray(rc.itens) ? rc.itens : [];
+        itens.forEach((it: any) => {
+          if (it?.id && it?.materialId) map.set(String(it.id), String(it.materialId));
+        });
+      });
+      setReqItemToMaterial(map);
       setLoading(false);
     })();
   }, []);
@@ -90,6 +100,12 @@ export default function BancoPrecos() {
   const matById = useMemo(() => {
     const map = new Map<string, Material>();
     materiais.forEach((m) => map.set(m.id, m));
+    return map;
+  }, [materiais]);
+
+  const matByDesc = useMemo(() => {
+    const map = new Map<string, Material>();
+    materiais.forEach((m) => map.set(m.descricao.toUpperCase().trim(), m));
     return map;
   }, [materiais]);
 
@@ -101,7 +117,13 @@ export default function BancoPrecos() {
       const dataISO = ped.created_at;
       const ts = new Date(dataISO).getTime();
       for (const it of itens) {
-        const key = it.itemId || `desc:${(it.descricao || "").toUpperCase().trim()}`;
+        const desc = (it.descricao || "").toUpperCase().trim();
+        let materialId = reqItemToMaterial.get(String(it.itemId || "")) || "";
+        if (!materialId && desc) {
+          const m = matByDesc.get(desc);
+          if (m) materialId = m.id;
+        }
+        const key = materialId || (desc ? `desc:${desc}` : "");
         if (!key) continue;
         const preco = Number(it.precoUnitario) || 0;
         if (preco <= 0) continue;
@@ -151,7 +173,7 @@ export default function BancoPrecos() {
     });
 
     return out.sort((a, b) => a.descricao.localeCompare(b.descricao));
-  }, [pedidos, matById]);
+  }, [pedidos, matById, matByDesc, reqItemToMaterial]);
 
   const filtradas = useMemo(() => {
     const q = busca.trim().toLowerCase();
