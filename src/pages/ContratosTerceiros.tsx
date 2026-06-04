@@ -100,10 +100,21 @@ function ContratosInner() {
       f.complemento, f.bairro,
       [f.cidade, f.uf].filter(Boolean).join("/"),
     ].filter(Boolean) : [];
-    // Cliente via Requisição → Centro de Custo
-    const req = requisicoes.find((r) => r.id === p.requisicaoId);
-    const cc = req ? centrosCusto.find((c) => c.id === req.centroCusto || c.codigo === req.centroCusto) : null;
-    const cli = cc ? clientes.find((c: any) => c.id === cc.cliente_id) : null;
+    // Cliente: tenta via Requisição → Centro de Custo (cliente_id),
+    // ou pelo próprio centroCusto sendo um UUID de cliente,
+    // ou casando por centroCustoNome.
+    const req: any = requisicoes.find((r) => r.id === p.requisicaoId);
+    let cli: any = null;
+    if (req) {
+      const cc = centrosCusto.find((c) => c.id === req.centroCusto || c.codigo === req.centroCusto);
+      if (cc?.cliente_id) cli = clientes.find((c: any) => c.id === cc.cliente_id);
+      if (!cli) cli = clientes.find((c: any) => c.id === req.centroCusto);
+      if (!cli && req.centroCustoNome) {
+        const nome = String(req.centroCustoNome).toLowerCase();
+        cli = clientes.find((c: any) => (c.nome || "").toLowerCase() === nome) ||
+              clientes.find((c: any) => (c.nome || "").toLowerCase().includes(nome));
+      }
+    }
     setForm((prev) => ({
       ...prev,
       fornecedor_id: p.fornecedorId,
@@ -113,7 +124,6 @@ function ContratosInner() {
       cliente_id: cli?.id || prev.cliente_id || null,
       cliente_nome: cli?.nome || prev.cliente_nome || "",
       valor: p.valorTotal,
-      objeto: prev.objeto || p.itens.map((i: any) => `${i.quantidade} ${i.unidadeMedida} - ${i.descricao}`).join("; "),
     }) as any);
   };
 
