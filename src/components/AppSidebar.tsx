@@ -45,6 +45,7 @@ import {
   GanttChartSquare,
   MapPin,
   Shirt,
+  FileSignature,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissao } from "@/hooks/usePermissao";
@@ -120,6 +121,7 @@ const menuItems = [
       { title: "RDO - Diário de Obras", url: "/engenharia/rdo", icon: FileSpreadsheet, perm: "rdo" },
       { title: "Cronograma Físico-Financeiro", url: "/engenharia/cronograma", icon: CalendarClock, perm: "cronograma" },
       { title: "Eventograma", url: "/engenharia/eventograma", icon: GanttChartSquare, perm: "eventograma" },
+      { title: "Contratos de Terceiro", url: "/engenharia/contratos-terceiros", icon: FileSignature, perm: "medicoes" },
       { title: "Medição de Serviços", url: "/engenharia/medicoes", icon: Ruler, perm: "medicoes" },
       { title: "BIM - Modelagem 3D", url: "/obras/bim", icon: Box, perm: "bim" },
     ],

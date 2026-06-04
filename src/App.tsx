@@ -128,6 +128,7 @@ import BaseConhecimentoPage from "./pages/BaseConhecimento.tsx";
 import MonitorTV from "./pages/MonitorTV.tsx";
 import CronogramaPage from "./pages/Cronograma.tsx";
 import BimPage from "./pages/Bim.tsx";
+import ContratosTerceirosPage from "./pages/ContratosTerceiros.tsx";
 import { BimProvider } from "@/contexts/BimContext";
 import { CronogramasProvider } from "@/contexts/CronogramasContext";
 import EventogramaPage from "./pages/Eventograma.tsx";
@@ -224,7 +225,9 @@ function ProtectedAppRoutes() {
             </RotaProtegida>
           }
         />
+        <Route path="/engenharia/contratos-terceiros" element={<RotaProtegida perm="medicoes"><ContratosTerceirosPage /></RotaProtegida>} />
         <Route path="/engenharia/medicoes" element={<RotaProtegida perm="medicoes"><MedicoesProvider><MedicoesServicosPage /></MedicoesProvider></RotaProtegida>} />
+
         <Route path="/patrimonio/ferramentas" element={<RotaProtegida perm="ferramentas"><FerramentasPage /></RotaProtegida>} />
         <Route path="/qualidade/evidencias" element={<RotaProtegida perm="evidencias"><EvidenciasPage /></RotaProtegida>} />
         <Route path="/qualidade/checklists" element={<RotaProtegida perm="checklists"><ChecklistsPage /></RotaProtegida>} />
