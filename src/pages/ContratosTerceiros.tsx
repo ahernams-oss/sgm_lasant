@@ -119,7 +119,9 @@ function ContratosInner() {
       anexos: [],
     });
     setEditing(null);
+    setPedidoSelId("");
   };
+
 
   const abrirNovo = () => { resetForm(); setOpen(true); };
   const abrirEdit = (c: ContratoTerceiro) => { setEditing(c); setForm({ ...c }); setOpen(true); };
