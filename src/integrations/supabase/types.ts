@@ -907,6 +907,75 @@ export type Database = {
           },
         ]
       }
+      contratos_terceiros: {
+        Row: {
+          aditivos: Json
+          anexos: Json
+          cliente_id: string | null
+          cliente_nome: string | null
+          created_at: string
+          data_fim: string | null
+          data_inicio: string | null
+          fornecedor_cnpj: string | null
+          fornecedor_id: string | null
+          fornecedor_nome: string | null
+          id: string
+          medicoes_vinculadas: Json
+          numero: number | null
+          objeto: string
+          obra_id: string | null
+          obra_nome: string | null
+          observacoes: string | null
+          status: string
+          updated_at: string
+          valor: number | null
+        }
+        Insert: {
+          aditivos?: Json
+          anexos?: Json
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          fornecedor_cnpj?: string | null
+          fornecedor_id?: string | null
+          fornecedor_nome?: string | null
+          id?: string
+          medicoes_vinculadas?: Json
+          numero?: number | null
+          objeto: string
+          obra_id?: string | null
+          obra_nome?: string | null
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          valor?: number | null
+        }
+        Update: {
+          aditivos?: Json
+          anexos?: Json
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          fornecedor_cnpj?: string | null
+          fornecedor_id?: string | null
+          fornecedor_nome?: string | null
+          id?: string
+          medicoes_vinculadas?: Json
+          numero?: number | null
+          objeto?: string
+          obra_id?: string | null
+          obra_nome?: string | null
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          valor?: number | null
+        }
+        Relationships: []
+      }
       cotacao_convites: {
         Row: {
           comprador: string
