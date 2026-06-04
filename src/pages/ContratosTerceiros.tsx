@@ -46,14 +46,12 @@ function ContratosInner() {
   const { empresa } = useEmpresa();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
-  const [fornecedores, setFornecedores] = useState<any[]>([]);
-  React.useEffect(() => { fetchAll("clientes", "nome").then((d) => setFornecedores((d || []).filter((x: any) => x.tipo === "Fornecedor"))); }, []);
-
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ContratoTerceiro | null>(null);
   const [form, setForm] = useState<Partial<ContratoTerceiro>>({});
   const [filtro, setFiltro] = useState("");
 
+  const fornecedores = useMemo(() => clientes.filter((c: any) => c.tipo === "Fornecedor"), [clientes]);
   const apenasClientes = useMemo(() => clientes.filter((c: any) => c.tipo === "Cliente"), [clientes]);
   const obrasDoCliente = useMemo(
     () => obras.filter((o) => o.cliente_id === form.cliente_id),
