@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { gerarPdfEstoque, gerarExcelEstoque } from "@/lib/gerarRelatorioEstoque";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import {
   CalendarIcon, FileText, FileSpreadsheet, Printer, Search, Package, TrendingDown,
   AlertTriangle, BarChart3, History, ArrowLeftRight, ClipboardList, Warehouse,
