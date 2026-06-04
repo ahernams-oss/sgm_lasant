@@ -250,8 +250,8 @@ function ContratosInner() {
                         <CommandList>
                           <CommandEmpty>Nenhum encontrado</CommandEmpty>
                           <CommandGroup>
-                            {fornecedores.map((f) => (
-                              <CommandItem key={f.id} value={`${f.nome || f.razaoSocial} ${f.cnpj || ""}`} onSelect={() => onSelectFornecedor(f.id)}>
+                            {fornecedores.map((f: any) => (
+                              <CommandItem key={f.id} value={`${f.nome || f.razaoSocial || ""} ${f.cnpj || ""}`} onSelect={() => onSelectFornecedor(f.id)}>
                                 <Check className={`mr-2 h-4 w-4 ${form.fornecedor_id === f.id ? "opacity-100" : "opacity-0"}`} />
                                 {f.nome || f.razaoSocial}
                               </CommandItem>
