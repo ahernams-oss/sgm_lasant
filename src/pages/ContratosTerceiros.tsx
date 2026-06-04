@@ -74,7 +74,20 @@ function ContratosInner() {
 
   const onSelectFornecedor = (id: string) => {
     const f = fornecedores.find((x) => x.id === id);
-    setForm((p) => ({ ...p, fornecedor_id: id, fornecedor_nome: f?.nome || f?.razaoSocial || "", fornecedor_cnpj: f?.cnpj || f?.cpf || "" }));
+    const endParts = [
+      [f?.logradouro, f?.numero].filter(Boolean).join(", "),
+      f?.complemento,
+      f?.bairro,
+      [f?.cidade, f?.uf].filter(Boolean).join("/"),
+    ].filter(Boolean);
+    const endereco = endParts.join(" - ");
+    setForm((p) => ({
+      ...p,
+      fornecedor_id: id,
+      fornecedor_nome: f?.nome || f?.razaoSocial || "",
+      fornecedor_cnpj: f?.cnpj || f?.cpf || "",
+      fornecedor_endereco: endereco,
+    } as any));
   };
   const onSelectCliente = (id: string) => {
     const cl = clientes.find((c) => c.id === id);
@@ -118,6 +131,7 @@ function ContratosInner() {
       fornecedor_id: form.fornecedor_id,
       fornecedor_nome: form.fornecedor_nome || "",
       fornecedor_cnpj: form.fornecedor_cnpj || "",
+      fornecedor_endereco: (form as any).fornecedor_endereco || "",
       cliente_id: form.cliente_id || null,
       cliente_nome: form.cliente_nome || "",
       obra_id: form.obra_id || null,
