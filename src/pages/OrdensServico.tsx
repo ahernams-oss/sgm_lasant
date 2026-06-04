@@ -234,6 +234,23 @@ export default function OrdensServicoPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const numero = searchParams.get("numero");
+    if (numero) {
+      setBusca(numero);
+      setFiltroSituacao("Todas");
+      setFiltroCliente("Todos");
+      setFiltroPrioridade("Todas");
+      setFiltroDataInicio("");
+      setFiltroDataFim("");
+      setPage(1);
+      const next = new URLSearchParams(searchParams);
+      next.delete("numero");
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Form fields
   const [clienteId, setClienteId] = useState("");
