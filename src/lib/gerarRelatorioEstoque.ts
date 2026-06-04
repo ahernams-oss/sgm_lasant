@@ -2,25 +2,97 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 
+const DARK_BLUE: [number, number, number] = [30, 58, 107];
+
 interface ReportHeader {
   title: string;
   subtitle?: string;
   filters?: string;
 }
 
-function addHeader(doc: jsPDF, h: ReportHeader) {
+async function loadImageAsDataUrl(url: string): Promise<string | null> {
+  try {
+    return await new Promise<string>((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = img.width;
+        c.height = img.height;
+        const ctx = c.getContext("2d");
+        ctx?.drawImage(img, 0, 0);
+        resolve(c.toDataURL("image/png"));
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  } catch {
+    try {
+      const r = await fetch(url);
+      const b = await r.blob();
+      return await new Promise<string>((resolve) => {
+        const fr = new FileReader();
+        fr.onloadend = () => resolve(fr.result as string);
+        fr.readAsDataURL(b);
+      });
+    } catch {
+      return null;
+    }
+  }
+}
+
+async function addHeader(doc: jsPDF, h: ReportHeader, logoUrl?: string) {
   const pw = doc.internal.pageSize.getWidth();
-  doc.setFillColor(30, 58, 107);
-  doc.rect(0, 0, pw, 28, "F");
+  const ml = 14;
+  const mr = 14;
+  const headerH = 34;
+
+  // Blue rectangle on the RIGHT half
+  const blueStartX = pw * 0.42;
+  doc.setFillColor(...DARK_BLUE);
+  doc.rect(blueStartX, 0, pw - blueStartX, headerH, "F");
+
+  // Logo on the LEFT
+  const logoSrc = logoUrl || "/Logo_Lasant.png";
+  const logoData = await loadImageAsDataUrl(logoSrc);
+  if (logoData) {
+    try {
+      doc.addImage(logoData, "PNG", ml, 4, 42, 26);
+    } catch {
+      doc.setTextColor(...DARK_BLUE);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("LASANT", ml, 20);
+    }
+  } else {
+    doc.setTextColor(...DARK_BLUE);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("LASANT", ml, 20);
+  }
+
+  // Title on the RIGHT (inside blue area)
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(14);
+  doc.setFontSize(15);
   doc.setFont("helvetica", "bold");
-  doc.text(h.title, 14, 12);
+  doc.text(h.title.toUpperCase(), pw - mr, 13, { align: "right" });
+
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  if (h.subtitle) doc.text(h.subtitle, 14, 20);
-  doc.text(`Gerado em: ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR")}`, pw - 14, 12, { align: "right" });
-  if (h.filters) doc.text(h.filters, pw - 14, 20, { align: "right" });
+  if (h.subtitle) doc.text(h.subtitle, pw - mr, 20, { align: "right" });
+  doc.text(
+    `Gerado em: ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR")}`,
+    pw - mr,
+    26,
+    { align: "right" }
+  );
+
+  if (h.filters) {
+    doc.setTextColor(40, 40, 40);
+    doc.setFontSize(8);
+    doc.text(h.filters, ml, headerH + 6, { maxWidth: pw - ml - mr });
+  }
+
   doc.setTextColor(30, 30, 30);
 }
 
@@ -36,30 +108,41 @@ function addFooter(doc: jsPDF) {
   }
 }
 
-export function gerarPdfEstoque(title: string, columns: string[], rows: string[][], filters?: string) {
+export async function gerarPdfEstoque(
+  title: string,
+  columns: string[],
+  rows: string[][],
+  filters?: string,
+  logoUrl?: string
+) {
   const doc = new jsPDF({ orientation: columns.length > 6 ? "landscape" : "portrait" });
-  addHeader(doc, { title, subtitle: `Total: ${rows.length} registros`, filters });
+  await addHeader(doc, { title, subtitle: `Total: ${rows.length} registros`, filters }, logoUrl);
   autoTable(doc, {
-    startY: 34,
+    startY: filters ? 44 : 38,
     head: [columns],
     body: rows,
     styles: { fontSize: 7, cellPadding: 2 },
-    headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
+    headStyles: { fillColor: DARK_BLUE, textColor: 255, fontStyle: "bold" },
     alternateRowStyles: { fillColor: [245, 247, 250] },
-    didDrawPage: () => {},
   });
   addFooter(doc);
   doc.save(`${title.replace(/\s+/g, "_").toLowerCase()}.pdf`);
 }
 
-export function gerarExcelEstoque(title: string, columns: string[], rows: string[][]) {
-  const data = rows.map(row => {
-    const obj: Record<string, string> = {};
-    columns.forEach((col, i) => { obj[col] = row[i] || ""; });
-    return obj;
-  });
-  const ws = XLSX.utils.json_to_sheet(data);
-  ws["!cols"] = columns.map(() => ({ wch: 18 }));
+export function gerarExcelEstoque(title: string, columns: string[], rows: string[][], filters?: string) {
+  const aoa: (string | number)[][] = [];
+  aoa.push([title.toUpperCase()]);
+  aoa.push([`Gerado em: ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR")}`]);
+  if (filters) aoa.push([filters]);
+  aoa.push([`Total: ${rows.length} registros`]);
+  aoa.push([]);
+  aoa.push(columns);
+  rows.forEach((r) => aoa.push(r));
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws["!cols"] = columns.map(() => ({ wch: 20 }));
+  const merge = { s: { r: 0, c: 0 }, e: { r: 0, c: Math.max(0, columns.length - 1) } };
+  ws["!merges"] = [merge];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, title.substring(0, 31));
   XLSX.writeFile(wb, `${title.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
