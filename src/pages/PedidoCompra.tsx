@@ -537,9 +537,9 @@ export default function PedidoCompraPage() {
               const rcVinculada = requisicoes.find(r => r.id === p.requisicaoId);
               const canUpdate = getNextStatuses(p.status).length > 0;
               const cellMap: Record<string, ReactNode> = {
-                numero: <span className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</span>,
+                numero: <a href={`/compras/pedidos?numero=${p.numero}`} className="font-mono font-bold text-primary hover:underline">PC-{String(p.numero).padStart(4, "0")}</a>,
                 centroCusto: <span className="text-sm">{rcVinculada?.centroCustoNome || "-"}</span>,
-                rc: <span className="font-mono">RCS-{String(p.requisicaoNumero).padStart(4, "0")}</span>,
+                rc: <a href={`/compras/requisicoes?numero=${p.requisicaoNumero}`} className="font-mono text-primary hover:underline">RCS-{String(p.requisicaoNumero).padStart(4, "0")}</a>,
                 data: format(new Date(p.dataCriacao), "dd/MM/yyyy"),
                 fornecedor: p.fornecedorNome,
                 valorTotal: <span className="font-medium">{formatCurrency(p.valorTotal)}</span>,
