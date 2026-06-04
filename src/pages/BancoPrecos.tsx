@@ -103,6 +103,12 @@ export default function BancoPrecos() {
     return map;
   }, [materiais]);
 
+  const matByDesc = useMemo(() => {
+    const map = new Map<string, Material>();
+    materiais.forEach((m) => map.set(m.descricao.toUpperCase().trim(), m));
+    return map;
+  }, [materiais]);
+
   const linhas = useMemo<LinhaBanco[]>(() => {
     const agrup = new Map<string, CompraHist[]>();
 
