@@ -366,9 +366,8 @@ function ContratosInner() {
 
       <DoubleConfirmDelete
         open={!!deleteId}
-        onCancel={cancelDelete}
+        onOpenChange={(v) => { if (!v) cancelDelete(); }}
         onConfirm={async () => { if (deleteId) { await remove(deleteId); cancelDelete(); } }}
-        itemName="contrato"
       />
     </div>
   );
