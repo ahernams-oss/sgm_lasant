@@ -1099,8 +1099,8 @@ export default function CotacaoComprasPage() {
               const rcVinculada = requisicoes.find(r => r.id === c.requisicaoId);
               const horasDesdeCriacao = (Date.now() - new Date(c.dataCriacao).getTime()) / (1000 * 60 * 60);
               const cotacaoAberta = c.status === "Em Andamento" || c.status === "Aguardando Aprovação";
-              const alertaUrgente = rcVinculada?.urgencia === "Urgente" && horasDesdeCriacao > 12 && cotacaoAberta;
-              const alertaTitle = alertaUrgente ? "Urgente: cotação aberta há mais de 12h sem finalização" : "";
+              const alertaUrgente = (rcVinculada?.urgencia === "Urgente" || rcVinculada?.urgencia === "Alta") && horasDesdeCriacao > 12 && cotacaoAberta;
+              const alertaTitle = alertaUrgente ? `${rcVinculada?.urgencia}: cotação aberta há mais de 12h sem finalização` : "";
               const cellMap: Record<string, ReactNode> = {
                 numero: (
                   <span className="font-mono font-bold inline-flex items-center gap-1">
