@@ -80,6 +80,24 @@ export default function PedidoCompraPage() {
   const [filterDataIni, setFilterDataIni] = useState("");
   const [filterDataFim, setFilterDataFim] = useState("");
   const [pagePed, setPagePed] = useState(1);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const numero = searchParams.get("numero");
+    if (numero) {
+      setSearch(numero);
+      setFilterStatus("Todos");
+      setFilterFornecedor("Todos");
+      setFilterComprador("Todos");
+      setFilterCentroCusto("Todos");
+      setFilterDataIni("");
+      setFilterDataFim("");
+      setPagePed(1);
+      const next = new URLSearchParams(searchParams);
+      next.delete("numero");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   const [pageSize, setPageSize] = useState(7);
   const [viewPedido, setViewPedido] = useState<PedidoCompra | null>(null);
   const [historicoPedido, setHistoricoPedido] = useState<PedidoCompra | null>(null);
