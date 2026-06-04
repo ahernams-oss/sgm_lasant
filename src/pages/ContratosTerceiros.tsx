@@ -46,14 +46,12 @@ function ContratosInner() {
   const { empresa } = useEmpresa();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
-  const [fornecedores, setFornecedores] = useState<any[]>([]);
-  React.useEffect(() => { fetchAll("clientes", "nome").then((d) => setFornecedores((d || []).filter((x: any) => x.tipo === "Fornecedor"))); }, []);
-
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ContratoTerceiro | null>(null);
   const [form, setForm] = useState<Partial<ContratoTerceiro>>({});
   const [filtro, setFiltro] = useState("");
 
+  const fornecedores = useMemo(() => clientes.filter((c: any) => c.tipo === "Fornecedor"), [clientes]);
   const apenasClientes = useMemo(() => clientes.filter((c: any) => c.tipo === "Cliente"), [clientes]);
   const obrasDoCliente = useMemo(
     () => obras.filter((o) => o.cliente_id === form.cliente_id),
@@ -76,7 +74,7 @@ function ContratosInner() {
   const abrirEdit = (c: ContratoTerceiro) => { setEditing(c); setForm({ ...c }); setOpen(true); };
 
   const onSelectFornecedor = (id: string) => {
-    const f = fornecedores.find((x) => x.id === id);
+    const f: any = fornecedores.find((x: any) => x.id === id);
     const endParts = [
       [f?.logradouro, f?.numero].filter(Boolean).join(", "),
       f?.complemento,
@@ -87,8 +85,8 @@ function ContratosInner() {
     setForm((p) => ({
       ...p,
       fornecedor_id: id,
-      fornecedor_nome: f?.nome || f?.razaoSocial || "",
-      fornecedor_cnpj: f?.cnpj || f?.cpf || "",
+      fornecedor_nome: f?.nome || (f as any)?.razaoSocial || "",
+      fornecedor_cnpj: f?.cnpj || (f as any)?.cpf || "",
       fornecedor_endereco: endereco,
     } as any));
   };
@@ -252,8 +250,8 @@ function ContratosInner() {
                         <CommandList>
                           <CommandEmpty>Nenhum encontrado</CommandEmpty>
                           <CommandGroup>
-                            {fornecedores.map((f) => (
-                              <CommandItem key={f.id} value={`${f.nome || f.razaoSocial} ${f.cnpj || ""}`} onSelect={() => onSelectFornecedor(f.id)}>
+                            {fornecedores.map((f: any) => (
+                              <CommandItem key={f.id} value={`${f.nome || f.razaoSocial || ""} ${f.cnpj || ""}`} onSelect={() => onSelectFornecedor(f.id)}>
                                 <Check className={`mr-2 h-4 w-4 ${form.fornecedor_id === f.id ? "opacity-100" : "opacity-0"}`} />
                                 {f.nome || f.razaoSocial}
                               </CommandItem>
