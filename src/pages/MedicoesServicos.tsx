@@ -31,6 +31,7 @@ import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { ContratosTerceirosProvider, useContratosTerceiros } from "@/contexts/ContratosTerceirosContext";
+import { formatNumeroAno } from "@/lib/formatNumero";
 
 const emptyItem = (): ItemServico => ({
   id: crypto.randomUUID(),
@@ -127,7 +128,7 @@ const MedicoesServicos = () => {
       c.fornecedor_id === fornecedorId &&
       (!clienteId || !c.cliente_id || c.cliente_id === clienteId)
     );
-    if (ct?.numero) setContrato(String(ct.numero));
+    if (ct?.numero) setContrato(formatNumeroAno(ct.numero, ct.created_at));
   }, [fornecedorId, clienteId, contratosTerceiros]);
 
   // Lançamento state
@@ -411,7 +412,7 @@ const MedicoesServicos = () => {
                         c.fornecedor_id === oc.fornecedorId &&
                         (!cliId || !c.cliente_id || c.cliente_id === cliId)
                       );
-                      if (ct?.numero) setContrato(String(ct.numero));
+                      if (ct?.numero) setContrato(formatNumeroAno(ct.numero, ct.created_at));
                       const ocItens: ItemServico[] = oc.itens.map(i => ({
                         id: crypto.randomUUID(),
                         descricao: i.descricao,
