@@ -30,6 +30,7 @@ import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { usePermissao } from "@/hooks/usePermissao";
+import { ContratosTerceirosProvider, useContratosTerceiros } from "@/contexts/ContratosTerceirosContext";
 
 const emptyItem = (): ItemServico => ({
   id: crypto.randomUUID(),
@@ -49,6 +50,7 @@ const MedicoesServicos = () => {
   const { materiais } = useMateriaisServicos();
   const { toast } = useToast();
   const { tem } = usePermissao();
+  const { contratos: contratosTerceiros } = useContratosTerceiros();
   const podeExcluir = tem("medicoes.excluir");
 
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
@@ -388,10 +390,18 @@ const MedicoesServicos = () => {
                       setFornecedorNome(oc.fornecedorNome);
                       // Auto-fill cliente from requisição vinculada
                       const req = requisicoes.find(r => r.id === oc.requisicaoId);
+                      let cliId = "";
                       if (req) {
+                        cliId = req.centroCusto;
                         setClienteId(req.centroCusto);
                         setClienteNome(req.centroCustoNome);
                       }
+                      // Auto-fill contrato vinculado (contratos_terceiros) por fornecedor + cliente
+                      const ct = contratosTerceiros.find(c =>
+                        c.fornecedor_id === oc.fornecedorId &&
+                        (!cliId || !c.cliente_id || c.cliente_id === cliId)
+                      );
+                      if (ct?.numero) setContrato(String(ct.numero));
                       const ocItens: ItemServico[] = oc.itens.map(i => ({
                         id: crypto.randomUUID(),
                         descricao: i.descricao,
@@ -1020,4 +1030,10 @@ const MedicoesServicos = () => {
   );
 };
 
-export default MedicoesServicos;
+const MedicoesServicosPage = () => (
+  <ContratosTerceirosProvider>
+    <MedicoesServicos />
+  </ContratosTerceirosProvider>
+);
+
+export default MedicoesServicosPage;
