@@ -117,7 +117,13 @@ export default function BancoPrecos() {
       const dataISO = ped.created_at;
       const ts = new Date(dataISO).getTime();
       for (const it of itens) {
-        const key = it.itemId || `desc:${(it.descricao || "").toUpperCase().trim()}`;
+        const desc = (it.descricao || "").toUpperCase().trim();
+        let materialId = reqItemToMaterial.get(String(it.itemId || "")) || "";
+        if (!materialId && desc) {
+          const m = matByDesc.get(desc);
+          if (m) materialId = m.id;
+        }
+        const key = materialId || (desc ? `desc:${desc}` : "");
         if (!key) continue;
         const preco = Number(it.precoUnitario) || 0;
         if (preco <= 0) continue;
