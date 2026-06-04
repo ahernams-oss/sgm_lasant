@@ -9,6 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { ChevronsUpDown, Check } from "lucide-react";
 import { Plus, Trash2, Pencil, FileDown, Paperclip } from "lucide-react";
 import { ContratosTerceirosProvider, useContratosTerceiros, type ContratoTerceiro, type ContratoAditivo } from "@/contexts/ContratosTerceirosContext";
 import { useClientes } from "@/contexts/ClientesContext";
