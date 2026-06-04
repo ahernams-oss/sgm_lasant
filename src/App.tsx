@@ -40,6 +40,7 @@ import RelatoriosEstoquePage from "./pages/RelatoriosEstoque.tsx";
 import PerfisAcessoPage from "./pages/PerfisAcesso.tsx";
 import AuditoriaPage from "./pages/Auditoria.tsx";
 import EmpresaDadosPage from "./pages/EmpresaDados.tsx";
+import BancoPrecosPage from "./pages/BancoPrecos.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
