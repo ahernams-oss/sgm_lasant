@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { format } from "date-fns";
@@ -119,6 +119,16 @@ const MedicoesServicos = () => {
   const [ordemCompraNumero, setOrdemCompraNumero] = useState(0);
   const [valorLasant, setValorLasant] = useState(0);
   const [valorEmpreiteiro, setValorEmpreiteiro] = useState(0);
+
+  // Auto-preenche o nº do contrato vinculado ao fornecedor (e cliente, se houver)
+  useEffect(() => {
+    if (!fornecedorId) return;
+    const ct = contratosTerceiros.find(c =>
+      c.fornecedor_id === fornecedorId &&
+      (!clienteId || !c.cliente_id || c.cliente_id === clienteId)
+    );
+    if (ct?.numero) setContrato(String(ct.numero));
+  }, [fornecedorId, clienteId, contratosTerceiros]);
 
   // Lançamento state
   const [lancTipo, setLancTipo] = useState<"percentual" | "valor">("percentual");
