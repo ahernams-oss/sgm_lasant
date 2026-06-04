@@ -40,6 +40,7 @@ import RelatoriosEstoquePage from "./pages/RelatoriosEstoque.tsx";
 import PerfisAcessoPage from "./pages/PerfisAcesso.tsx";
 import AuditoriaPage from "./pages/Auditoria.tsx";
 import EmpresaDadosPage from "./pages/EmpresaDados.tsx";
+import BancoPrecosPage from "./pages/BancoPrecos.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
@@ -202,6 +203,7 @@ function ProtectedAppRoutes() {
         <Route path="/compras/estoque" element={<RotaProtegida perm="estoque"><EstoquePage /></RotaProtegida>} />
         <Route path="/compras/relatorios-estoque" element={<RotaProtegida perm="estoque"><RelatoriosEstoquePage /></RotaProtegida>} />
         <Route path="/compras/dashboard" element={<RotaProtegida perm="dashboard_compras"><DashboardCompras /></RotaProtegida>} />
+        <Route path="/compras/banco-precos" element={<RotaProtegida perm="pedidos_compra"><BancoPrecosPage /></RotaProtegida>} />
         <Route path="/compras/fabricantes" element={<RotaProtegida perm="fabricantes"><FabricantesPage /></RotaProtegida>} />
         <Route path="/compras/pregao" element={<RotaProtegida perm="pregao"><PregoesPage /></RotaProtegida>} />
         <Route path="/compras/pregao/novo" element={<RotaProtegida perm="pregao"><PregaoFormPage /></RotaProtegida>} />
