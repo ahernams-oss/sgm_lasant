@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, Upload, FileText, X, Lock, FileDown } from "lucide-react";
+import { Plus, Trash2, Upload, FileText, X, Lock, FileDown, Receipt } from "lucide-react";
 import type { Cliente, Contrato, Faturamento } from "@/contexts/ClientesContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { usePermissao } from "@/hooks/usePermissao";
