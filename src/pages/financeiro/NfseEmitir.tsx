@@ -116,7 +116,7 @@ export default function NfseEmitir() {
               <SelectTrigger className="w-64"><SelectValue placeholder="Cliente" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos os clientes</SelectItem>
-                {clientes.map((c) => <SelectItem key={c.id} value={c.id}>{c.razaoSocial || c.nomeFantasia}</SelectItem>)}
+                {clientes.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome || c.nomeFantasia}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -318,7 +318,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
       tomador: {
         tipo: (cliente as any).cnpj ? "CNPJ" : "CPF",
         documento: (cliente as any).cnpj || (cliente as any).cpf || "",
-        razaoSocial: cliente.razaoSocial || cliente.nomeFantasia,
+        razaoSocial: cliente.nome || cliente.nomeFantasia,
         inscricaoMunicipal: (cliente as any).inscricaoMunicipal,
         email: (cliente as any).email,
         endereco: {
@@ -372,13 +372,13 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
               <SelectTrigger><SelectValue placeholder="Selecione o tomador..." /></SelectTrigger>
               <SelectContent>
                 {clientes.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.razaoSocial || c.nomeFantasia} — {(c as any).cnpj || (c as any).cpf || "—"}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>{c.nome || c.nomeFantasia} — {(c as any).cnpj || (c as any).cpf || "—"}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {cliente && (
               <div className="text-sm bg-muted p-3 rounded">
-                <p><strong>{cliente.razaoSocial}</strong></p>
+                <p><strong>{cliente.nome}</strong></p>
                 <p>{(cliente as any).logradouro}, {(cliente as any).numero} — {(cliente as any).bairro}</p>
                 <p>{(cliente as any).cidade}/{(cliente as any).uf} — CEP {(cliente as any).cep}</p>
               </div>
@@ -428,7 +428,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
               <p><strong>Prestador:</strong> {empresa?.razaoSocial} — {empresa?.cnpj}</p>
               <p><strong>Ambiente:</strong> {config?.ambiente === 1 ? "Produção" : "Homologação"}</p>
               <p><strong>Série:</strong> {config?.serie_padrao || "00001"}</p>
-              <p><strong>Tomador:</strong> {cliente?.razaoSocial || "—"}</p>
+              <p><strong>Tomador:</strong> {cliente?.nome || "—"}</p>
               <p><strong>Valor:</strong> {formatBRL(parseNum(valorServico))} • <strong>ISS:</strong> {formatBRL(parseNum(valorServico) * parseNum(aliquotaIss) / 100)}</p>
             </div>
             <div>
