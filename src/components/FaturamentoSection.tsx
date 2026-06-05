@@ -367,6 +367,25 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
                 <Button variant="ghost" size="sm" type="button" onClick={() => handleGerarRelatorio(f)} className="text-xs gap-1" title="Relatório de Medição (PDF)">
                   <FileDown className="h-3.5 w-3.5" /> Relatório
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  type="button"
+                  className="text-xs gap-1"
+                  title="Emitir NFS-e (homologação)"
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      faturamentoId: f.id,
+                      clienteId: cliente?.id || "",
+                      contrato: contratoNumero || "",
+                      valor: String(f.valorBruto || ""),
+                      descricao: f.descricao || `Medição ${f.numeroMedicao || ""}`.trim(),
+                    });
+                    navigate(`/financeiro/nfse?emitir=1&${params.toString()}`);
+                  }}
+                >
+                  <Receipt className="h-3.5 w-3.5" /> NFS-e
+                </Button>
                 <Button variant="ghost" size="sm" type="button" onClick={() => handleEdit(f)} className="text-xs">Editar</Button>
                 <Button variant="ghost" size="sm" type="button" onClick={() => requestDelete(f.id)} className="text-destructive hover:text-destructive">
                   <Trash2 className="h-3.5 w-3.5" />
