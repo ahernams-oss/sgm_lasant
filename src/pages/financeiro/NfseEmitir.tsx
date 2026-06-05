@@ -15,7 +15,7 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
-import DoubleConfirmDelete from "@/components/DoubleConfirmDelete";
+import { Trash2 } from "lucide-react";
 
 const formatBRL = (v: number) => (Number(v) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const formatDate = (s: string | null) => {
