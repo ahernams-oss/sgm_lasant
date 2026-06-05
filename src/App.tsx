@@ -470,6 +470,7 @@ const App = () => (
     <OsAssinaturasProvider>
     <PcAssinaturasProvider>
     <FinanceiroProvider>
+    <NfsesProvider>
     <AuthProvider> {/* auth wrapper */}
     <TooltipProvider>
       <Toaster />
