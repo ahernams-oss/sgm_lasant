@@ -48,6 +48,7 @@ interface Props {
 }
 
 export default function FaturamentoSection({ faturamentos, onChange, contratoNumero, cliente, contrato }: Props) {
+  const navigate = useNavigate();
   const [form, setForm] = useState<Omit<Faturamento, "id">>(emptyFaturamento);
   const [editingId, setEditingId] = useState<string | null>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
