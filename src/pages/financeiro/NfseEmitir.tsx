@@ -174,7 +174,10 @@ export default function NfseEmitir() {
                         </Button>
                       )}
                       {(n.status === "rejeitada" || n.status === "rascunho") && (
-                        <DoubleConfirmDelete onConfirm={() => remover(n.id)} itemLabel={`NFS-e ${n.numero_dps}`} />
+                        <Button size="icon" variant="ghost" title="Remover"
+                          onClick={() => { if (confirm("Remover este rascunho?")) remover(n.id); }}>
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
                       )}
                     </div>
                   </TableCell>
@@ -182,7 +185,7 @@ export default function NfseEmitir() {
               ))}
             </TableBody>
           </Table>
-          <PaginationControls page={page} setPage={setPage} perPage={perPage} setPerPage={setPerPage} total={filtrados.length} />
+          <PaginationControls currentPage={page} totalItems={filtrados.length} onPageChange={setPage} pageSize={perPage} onPageSizeChange={setPerPage} />
         </CardContent>
       </Card>
 
