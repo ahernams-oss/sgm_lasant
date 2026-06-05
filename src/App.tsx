@@ -352,6 +352,7 @@ function ProtectedAppRoutes() {
         <Route path="/financeiro/relatorios" element={<RotaProtegida perm="financeiro.relatorios"><RelatoriosFinanceiros /></RotaProtegida>} />
         <Route path="/financeiro/condicoes-pagamento" element={<RotaProtegida perm="financeiro.condicoes_pagamento"><CondicoesPagamento /></RotaProtegida>} />
         <Route path="/financeiro/nfes-recebidas" element={<RotaProtegida perm="financeiro.nfes_recebidas"><NfesRecebidas /></RotaProtegida>} />
+        <Route path="/financeiro/nfse" element={<RotaProtegida perm="financeiro.nfes_recebidas"><NfseEmitir /></RotaProtegida>} />
         <Route
           path="/gerencial/relatorios"
           element={
