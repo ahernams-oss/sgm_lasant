@@ -335,7 +335,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
       clienteId,
       prestador: {
         cnpj: empresa.cnpj, im: empresa.inscricaoMunicipal, razaoSocial: empresa.razaoSocial,
-        codigoMunicipio: config?.codigo_municipio_prestador || "0000000",
+        codigoMunicipio: municipioPrest.id,
         optanteSimples: !!config?.optante_simples,
         regimeTributario: config?.regime_tributario || "1",
       },
