@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,13 +9,19 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Plus, Eye, Download, XCircle, Loader2, Receipt } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { FileText, Plus, Eye, Download, XCircle, Loader2, Receipt, Check, ChevronsUpDown } from "lucide-react";
 import { useNfses, ModeloEmissaoNfse, NfseEmitida } from "@/contexts/NfsesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
+
 
 const formatBRL = (v: number) => (Number(v) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const formatDate = (s: string | null) => {
@@ -294,10 +300,23 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   const [aliquotaIss, setAliquotaIss] = useState<string>(String(config?.aliquota_iss_padrao || "5"));
   const [issRetido, setIssRetido] = useState<boolean>(!!config?.iss_retido_padrao);
   const [senhaCert, setSenhaCert] = useState("");
+  const [ufPrest, setUfPrest] = useState<string>("");
+  const [municipioPrest, setMunicipioPrest] = useState<{ id: string; nome: string } | null>(null);
+  const [municipios, setMunicipios] = useState<{ id: string; nome: string }[]>([]);
+  const [openMun, setOpenMun] = useState(false);
+
+  useEffect(() => {
+    if (!ufPrest) { setMunicipios([]); return; }
+    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${ufPrest}/municipios`)
+      .then((r) => r.json())
+      .then((rows: any[]) => setMunicipios(rows.map((m) => ({ id: String(m.id), nome: m.nome }))))
+      .catch(() => setMunicipios([]));
+  }, [ufPrest]);
 
   const cliente = clientes.find((c) => c.id === clienteId);
 
   const parseNum = (s: string) => Number(String(s).replace(/\./g, "").replace(",", ".")) || 0;
+
 
   const onSubmit = async () => {
     if (!empresa?.id) return toast.error("Cadastre os dados da empresa primeiro");
@@ -306,6 +325,8 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
     if (!descricao) return toast.error("Informe a descrição do serviço");
     if (!codigoTrib) return toast.error("Informe o código de tributação municipal (LC 116)");
     if (!senhaCert) return toast.error("Informe a senha do certificado A1");
+    if (!municipioPrest) return toast.error("Selecione o município de prestação do serviço");
+
 
     const modelo: ModeloEmissaoNfse = {
       empresaId: empresa.id,
@@ -314,7 +335,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
       clienteId,
       prestador: {
         cnpj: empresa.cnpj, im: empresa.inscricaoMunicipal, razaoSocial: empresa.razaoSocial,
-        codigoMunicipio: config?.codigo_municipio_prestador || "0000000",
+        codigoMunicipio: municipioPrest.id,
         optanteSimples: !!config?.optante_simples,
         regimeTributario: config?.regime_tributario || "1",
       },
@@ -393,6 +414,47 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
               <Label>Descrição do serviço</Label>
               <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={4} />
             </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label>UF da prestação</Label>
+                <Select value={ufPrest} onValueChange={(v) => { setUfPrest(v); setMunicipioPrest(null); }}>
+                  <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {UFS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2">
+                <Label>Município de prestação do serviço</Label>
+                <Popover open={openMun} onOpenChange={setOpenMun}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" disabled={!ufPrest}
+                      className={cn("w-full justify-between font-normal", !municipioPrest && "text-muted-foreground")}>
+                      {municipioPrest ? `${municipioPrest.nome} (${municipioPrest.id})` : (ufPrest ? "Selecione o município..." : "Selecione a UF primeiro")}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Buscar município..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhum município encontrado.</CommandEmpty>
+                        <CommandGroup>
+                          {municipios.map((m) => (
+                            <CommandItem key={m.id} value={m.nome}
+                              onSelect={() => { setMunicipioPrest(m); setOpenMun(false); }}>
+                              <Check className={cn("mr-2 h-4 w-4", municipioPrest?.id === m.id ? "opacity-100" : "opacity-0")} />
+                              {m.nome} <span className="ml-2 text-xs text-muted-foreground">{m.id}</span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Código de tributação municipal (LC 116)</Label>
