@@ -414,6 +414,47 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
               <Label>Descrição do serviço</Label>
               <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={4} />
             </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label>UF da prestação</Label>
+                <Select value={ufPrest} onValueChange={(v) => { setUfPrest(v); setMunicipioPrest(null); }}>
+                  <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {UFS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2">
+                <Label>Município de prestação do serviço</Label>
+                <Popover open={openMun} onOpenChange={setOpenMun}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" disabled={!ufPrest}
+                      className={cn("w-full justify-between font-normal", !municipioPrest && "text-muted-foreground")}>
+                      {municipioPrest ? `${municipioPrest.nome} (${municipioPrest.id})` : (ufPrest ? "Selecione o município..." : "Selecione a UF primeiro")}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Buscar município..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhum município encontrado.</CommandEmpty>
+                        <CommandGroup>
+                          {municipios.map((m) => (
+                            <CommandItem key={m.id} value={m.nome}
+                              onSelect={() => { setMunicipioPrest(m); setOpenMun(false); }}>
+                              <Check className={cn("mr-2 h-4 w-4", municipioPrest?.id === m.id ? "opacity-100" : "opacity-0")} />
+                              {m.nome} <span className="ml-2 text-xs text-muted-foreground">{m.id}</span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Código de tributação municipal (LC 116)</Label>
