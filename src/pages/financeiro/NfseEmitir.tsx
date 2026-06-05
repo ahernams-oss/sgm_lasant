@@ -63,7 +63,7 @@ export default function NfseEmitir() {
     return lista;
   }, [nfses, filtroStatus, filtroCliente, filtroBusca]);
 
-  const pageItems = paginate(filtrados, page, perPage);
+  const { paginated: pageItems } = paginate(filtrados, page, perPage);
 
   const kpis = useMemo(() => {
     const mes = new Date().getMonth(), ano = new Date().getFullYear();
