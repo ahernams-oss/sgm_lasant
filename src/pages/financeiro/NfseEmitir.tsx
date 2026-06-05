@@ -410,6 +410,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
       },
       servico: {
         descricao,
+        codigoTributacaoNacional: codigoTribNacional || undefined,
         codigoTributacaoMunicipio: codigoTrib,
         codigoNbs: codigoNbs || undefined,
         valorServico: parseNum(valorServico),
