@@ -502,6 +502,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>
+    </NfsesProvider>
     </FinanceiroProvider>
     </PcAssinaturasProvider>
     </OsAssinaturasProvider>

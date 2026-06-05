@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, Upload, FileText, X, Lock, FileDown } from "lucide-react";
+import { Plus, Trash2, Upload, FileText, X, Lock, FileDown, Receipt } from "lucide-react";
 import type { Cliente, Contrato, Faturamento } from "@/contexts/ClientesContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { usePermissao } from "@/hooks/usePermissao";
@@ -47,6 +48,7 @@ interface Props {
 }
 
 export default function FaturamentoSection({ faturamentos, onChange, contratoNumero, cliente, contrato }: Props) {
+  const navigate = useNavigate();
   const [form, setForm] = useState<Omit<Faturamento, "id">>(emptyFaturamento);
   const [editingId, setEditingId] = useState<string | null>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
@@ -364,6 +366,25 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
               <div className="flex gap-1 shrink-0">
                 <Button variant="ghost" size="sm" type="button" onClick={() => handleGerarRelatorio(f)} className="text-xs gap-1" title="Relatório de Medição (PDF)">
                   <FileDown className="h-3.5 w-3.5" /> Relatório
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  type="button"
+                  className="text-xs gap-1"
+                  title="Emitir NFS-e (homologação)"
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      faturamentoId: f.id,
+                      clienteId: cliente?.id || "",
+                      contrato: contratoNumero || "",
+                      valor: String(f.valorBruto || ""),
+                      descricao: f.descricao || `Medição ${f.numeroMedicao || ""}`.trim(),
+                    });
+                    navigate(`/financeiro/nfse?emitir=1&${params.toString()}`);
+                  }}
+                >
+                  <Receipt className="h-3.5 w-3.5" /> NFS-e
                 </Button>
                 <Button variant="ghost" size="sm" type="button" onClick={() => handleEdit(f)} className="text-xs">Editar</Button>
                 <Button variant="ghost" size="sm" type="button" onClick={() => requestDelete(f.id)} className="text-destructive hover:text-destructive">
