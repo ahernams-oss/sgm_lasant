@@ -300,10 +300,23 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   const [aliquotaIss, setAliquotaIss] = useState<string>(String(config?.aliquota_iss_padrao || "5"));
   const [issRetido, setIssRetido] = useState<boolean>(!!config?.iss_retido_padrao);
   const [senhaCert, setSenhaCert] = useState("");
+  const [ufPrest, setUfPrest] = useState<string>("");
+  const [municipioPrest, setMunicipioPrest] = useState<{ id: string; nome: string } | null>(null);
+  const [municipios, setMunicipios] = useState<{ id: string; nome: string }[]>([]);
+  const [openMun, setOpenMun] = useState(false);
+
+  useEffect(() => {
+    if (!ufPrest) { setMunicipios([]); return; }
+    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${ufPrest}/municipios`)
+      .then((r) => r.json())
+      .then((rows: any[]) => setMunicipios(rows.map((m) => ({ id: String(m.id), nome: m.nome }))))
+      .catch(() => setMunicipios([]));
+  }, [ufPrest]);
 
   const cliente = clientes.find((c) => c.id === clienteId);
 
   const parseNum = (s: string) => Number(String(s).replace(/\./g, "").replace(",", ".")) || 0;
+
 
   const onSubmit = async () => {
     if (!empresa?.id) return toast.error("Cadastre os dados da empresa primeiro");
