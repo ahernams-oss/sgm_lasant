@@ -325,6 +325,8 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
     if (!descricao) return toast.error("Informe a descrição do serviço");
     if (!codigoTrib) return toast.error("Informe o código de tributação municipal (LC 116)");
     if (!senhaCert) return toast.error("Informe a senha do certificado A1");
+    if (!municipioPrest) return toast.error("Selecione o município de prestação do serviço");
+
 
     const modelo: ModeloEmissaoNfse = {
       empresaId: empresa.id,
