@@ -511,11 +511,37 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               <div>
-                <Label>Código de tributação municipal (LC 116)</Label>
-                <Input value={codigoTrib} onChange={(e) => setCodigoTrib(e.target.value)} placeholder="ex: 01.07" />
+                <Label>Código de Tributação Nacional</Label>
+                <Select value={codigoTribNacional} onValueChange={setCodigoTribNacional}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o código nacional..." /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {CODIGOS_TRIB_NACIONAL.map((c) => (
+                      <SelectItem key={c.codigo} value={c.codigo}>
+                        <span className="font-mono mr-2">{c.codigo}</span>
+                        <span className="text-xs">{c.descricao.length > 90 ? c.descricao.slice(0, 90) + "…" : c.descricao}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+              <div>
+                <Label>Código de Tributação Municipal (LC 116)</Label>
+                <Select value={codigoTrib} onValueChange={setCodigoTrib}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o código municipal..." /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {CODIGOS_TRIB_MUNICIPAL.map((c) => (
+                      <SelectItem key={c.codigo} value={c.codigo}>
+                        <span className="font-mono mr-2">{c.codigo}</span>
+                        <span className="text-xs">{c.descricao}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <Label>Código NBS (opcional)</Label>
                 <Input value={codigoNbs} onChange={(e) => setCodigoNbs(e.target.value)} />
