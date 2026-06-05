@@ -22,6 +22,61 @@ import { cn } from "@/lib/utils";
 
 const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 
+const CODIGOS_TRIB_NACIONAL: { codigo: string; descricao: string }[] = [
+  { codigo: "07.05.01", descricao: "Reparação, conservação e reforma de edifícios e congêneres (exceto o fornecimento de mercadorias produzidas pelo prestador dos serviços, fora do local da prestação dos serviços, que fica sujeito ao ICMS)." },
+  { codigo: "14.01.01", descricao: "Lubrificação, limpeza, lustração, revisão, carga e recarga, conserto, restauração, blindagem, manutenção e conservação de máquinas, veículos, aparelhos, equipamentos, motores, elevadores ou de qualquer objeto (exceto peças e partes empregadas, que ficam sujeitas ao ICMS)." },
+];
+
+const CODIGOS_TRIB_MUNICIPAL: { codigo: string; descricao: string }[] = [
+  { codigo: "07.05.01", descricao: "Reparação de edifícios e congêneres" },
+  { codigo: "07.05.02", descricao: "Reparação de estradas e congêneres" },
+  { codigo: "07.05.03", descricao: "Reparação de pontes e congêneres" },
+  { codigo: "07.05.04", descricao: "Reparação de portos e congêneres" },
+  { codigo: "07.05.05", descricao: "Reparação de imóveis em geral" },
+  { codigo: "07.05.06", descricao: "Reparação de edifícios/congêneres componente de obra licenciada (hotelaria)" },
+  { codigo: "07.05.07", descricao: "Conservação de edifícios e congêneres" },
+  { codigo: "07.05.08", descricao: "Conservação de estradas e congêneres" },
+  { codigo: "07.05.09", descricao: "Conservação de pontes e congêneres" },
+  { codigo: "07.05.10", descricao: "Conservação de portos e congêneres" },
+  { codigo: "07.05.11", descricao: "Conservação de imóveis em geral" },
+  { codigo: "07.05.12", descricao: "Conservação de edifícios/congêneres componente de obra licenciada (hotelaria)" },
+  { codigo: "07.05.13", descricao: "Reforma de edifícios e congêneres" },
+  { codigo: "07.05.14", descricao: "Reforma de estradas e congêneres" },
+  { codigo: "07.05.15", descricao: "Reforma de pontes e congêneres" },
+  { codigo: "07.05.16", descricao: "Reforma de portos e congêneres" },
+  { codigo: "07.05.17", descricao: "Reforma de imóveis em geral" },
+  { codigo: "07.05.18", descricao: "Reforma de edifícios/congêneres componente de obra licenciada (hotelaria)" },
+  { codigo: "14.01.01", descricao: "Lubrificação de máquinas" },
+  { codigo: "14.01.02", descricao: "Limpeza ou lustração de máquinas" },
+  { codigo: "14.01.03", descricao: "Revisão de máquinas" },
+  { codigo: "14.01.04", descricao: "Carga e recarga de máquinas" },
+  { codigo: "14.01.05", descricao: "Conserto de máquinas" },
+  { codigo: "14.01.06", descricao: "Restauração de máquinas" },
+  { codigo: "14.01.07", descricao: "Manutenção de máquinas" },
+  { codigo: "14.01.08", descricao: "Conservação de máquinas" },
+  { codigo: "14.01.09", descricao: "Lubrificação de aparelhos" },
+  { codigo: "14.01.10", descricao: "Limpeza ou lustração de aparelhos" },
+  { codigo: "14.01.11", descricao: "Revisão de aparelhos" },
+  { codigo: "14.01.12", descricao: "Carga e recarga de aparelhos" },
+  { codigo: "14.01.13", descricao: "Conserto de aparelhos" },
+  { codigo: "14.01.14", descricao: "Restauração de aparelhos" },
+  { codigo: "14.01.15", descricao: "Manutenção de aparelhos" },
+  { codigo: "14.01.16", descricao: "Conservação de aparelhos" },
+  { codigo: "14.01.17", descricao: "Conservação de veículos" },
+  { codigo: "14.01.18", descricao: "Lubrificação de veículos" },
+  { codigo: "14.01.19", descricao: "Limpeza de veículos" },
+  { codigo: "14.01.20", descricao: "Revisão de veículos" },
+  { codigo: "14.01.22", descricao: "Conserto de veículos" },
+  { codigo: "14.01.23", descricao: "Restauração de veículos" },
+  { codigo: "14.01.24", descricao: "Manutenção de veículos" },
+  { codigo: "14.01.25", descricao: "Blindagem de veículos" },
+  { codigo: "14.01.26", descricao: "Lustração de veículos" },
+  { codigo: "14.01.27", descricao: "Lubrificação de equipamentos" },
+  { codigo: "14.01.28", descricao: "Limpeza de equipamentos" },
+  { codigo: "14.01.29", descricao: "Revisão de equipamentos" },
+  { codigo: "14.01.30", descricao: "Conserto de equipamentos" },
+];
+
 
 const formatBRL = (v: number) => (Number(v) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const formatDate = (s: string | null) => {
@@ -294,6 +349,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   const [clienteId, setClienteId] = useState<string>("");
   const [descricao, setDescricao] = useState("");
   const [codigoTrib, setCodigoTrib] = useState<string>(config?.codigo_servico_padrao || "");
+  const [codigoTribNacional, setCodigoTribNacional] = useState<string>("");
   const [codigoNbs, setCodigoNbs] = useState<string>(config?.codigo_nbs || "");
   const [valorServico, setValorServico] = useState<string>("0,00");
   const [deducoes, setDeducoes] = useState<string>("0,00");
@@ -354,6 +410,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
       },
       servico: {
         descricao,
+        codigoTributacaoNacional: codigoTribNacional || undefined,
         codigoTributacaoMunicipio: codigoTrib,
         codigoNbs: codigoNbs || undefined,
         valorServico: parseNum(valorServico),
@@ -455,11 +512,37 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               <div>
-                <Label>Código de tributação municipal (LC 116)</Label>
-                <Input value={codigoTrib} onChange={(e) => setCodigoTrib(e.target.value)} placeholder="ex: 01.07" />
+                <Label>Código de Tributação Nacional</Label>
+                <Select value={codigoTribNacional} onValueChange={setCodigoTribNacional}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o código nacional..." /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {CODIGOS_TRIB_NACIONAL.map((c) => (
+                      <SelectItem key={c.codigo} value={c.codigo}>
+                        <span className="font-mono mr-2">{c.codigo}</span>
+                        <span className="text-xs">{c.descricao.length > 90 ? c.descricao.slice(0, 90) + "…" : c.descricao}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+              <div>
+                <Label>Código de Tributação Municipal (LC 116)</Label>
+                <Select value={codigoTrib} onValueChange={setCodigoTrib}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o código municipal..." /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {CODIGOS_TRIB_MUNICIPAL.map((c) => (
+                      <SelectItem key={c.codigo} value={c.codigo}>
+                        <span className="font-mono mr-2">{c.codigo}</span>
+                        <span className="text-xs">{c.descricao}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <Label>Código NBS (opcional)</Label>
                 <Input value={codigoNbs} onChange={(e) => setCodigoNbs(e.target.value)} />
