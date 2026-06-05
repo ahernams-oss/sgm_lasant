@@ -87,9 +87,10 @@ export function NfsesProvider({ children }: { children: ReactNode }) {
   const reload = useCallback(async () => {
     setLoading(true);
     const [list, cfgs] = await Promise.all([
-      fetchAll("nfses_emitidas", "created_at", { ascending: false }),
+      fetchAll("nfses_emitidas", "created_at"),
       fetchAll("nfse_config", "created_at"),
     ]);
+    (list as any[]).reverse();
     setNfses(list as any);
     setConfig((cfgs?.[0] as any) || null);
     setLoading(false);
