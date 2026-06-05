@@ -1,91 +1,79 @@
-# Migração para Supabase Auth + RLS restritiva
+# NFS-e Nacional — Emissão via API (Homologação)
 
-## Contexto
+Implementação da emissão de NFS-e direto no **Emissor Nacional (sefin.nfse.gov.br)** em ambiente de homologação, usando o certificado A1 já cadastrado em Empresa.
 
-Hoje o sistema usa autenticação customizada (tabela `usuarios` + Edge Function `auth-login` + sessão em localStorage). Todas as chamadas ao banco usam a chave anon, e por isso `auth.uid()` é sempre `null` — o que obriga as policies de RLS a permitirem operações públicas. Isso é o que o scanner de segurança apontou: 11 tabelas com dados sensíveis (CPF, contas bancárias, exames médicos, lances de pregão, salários) acessíveis a qualquer visitante.
+## Arquitetura
 
-Para fechar essas vulnerabilidades de forma definitiva, vamos migrar o login para o **Supabase Auth** nativo, e em seguida aplicar RLS restritiva (`authenticated`-only) em todas as tabelas sensíveis.
+```text
+[UI React]  →  [Edge Function nfse-emitir]  →  [sefin.nfse.gov.br/sefinnacional/dps]
+     ↑                    ↓                                      ↓
+     └──── nfses_emitidas (Supabase) ←── XML DPS assinado + XML NFS-e devolvido
+```
 
-## Estratégia: 3 fases
+Toda a complexidade fica na edge function (que tem acesso ao certificado A1 + chave de assinatura). O frontend só envia o "modelo" e recebe status + links.
 
-A migração é grande (~60 contextos consomem o `supabase` cliente). Vou dividir em fases pequenas e seguras. **Cada fase só vai pro ar depois de testada — não vou avançar sem sua aprovação entre fases.**
+## Backend
 
-### Fase 1 — Infraestrutura de Auth (sem quebrar nada)
+### 1. Tabela `nfses_emitidas` (migração)
+Campos principais: numero_dps, serie, ambiente (1=prod/2=homol), status (rascunho/emitida/rejeitada/cancelada), chave_acesso, protocolo, data_emissao, prestador (JSONB), tomador (JSONB), servico (JSONB — descrição, codigo trib. municipal, codigo NBS, valor serviços, deducoes, ISS), tributos (JSONB — ISS retido?, PIS, COFINS, INSS, IR, CSLL), xml_dps, xml_nfse, url_danfse, mensagem_retorno, faturamento_id (FK opcional para faturamento de medição), cliente_id.
 
-**Objetivo:** ter Supabase Auth funcionando em paralelo, sem mexer no login atual.
+### 2. Tabela `nfse_config`
+Configurações por empresa: serie_padrao, proximo_numero_dps, regime_tributario, regime_especial, optante_simples, incentivador_cultural, codigo_municipio_prestador, codigo_servico_padrao, aliquota_iss_padrao, ambiente_padrao.
 
-1. Adicionar coluna `auth_user_id uuid` (nullable, unique) em `public.usuarios`, com FK para `auth.users(id) ON DELETE SET NULL`.
-2. Criar trigger `on_auth_user_created` que sincroniza `auth.users` → `public.usuarios.auth_user_id` quando alguém é criado no Auth.
-3. Criar Edge Function `migrate-users-to-auth` (service role) que, para cada `usuarios` sem `auth_user_id`:
-   - cria um usuário em `auth.users` com o mesmo email e senha aleatória forte
-   - grava `auth_user_id` em `public.usuarios`
-   - envia e-mail "Defina sua nova senha" (link `resetPasswordForEmail`) usando o template já existente
-4. Criar página `/redefinir-senha` (rota pública) que processa o `type=recovery` e chama `supabase.auth.updateUser({ password })`.
-5. Criar função SQL `has_role(_uid uuid)` e `current_usuario_id()` que retorna o `usuarios.id` a partir de `auth.uid()` via `auth_user_id`. Será usada em todas as policies da Fase 3.
+### 3. Edge Functions
 
-**Resultado:** todos os usuários existentes ganham conta no Supabase Auth e recebem e-mail para definir senha. O login atual continua funcionando.
+**`nfse-emitir`** (`verify_jwt = false`):
+- Recebe payload do modelo (prestador/tomador/serviço/tributos)
+- Monta XML DPS conforme XSD nacional v1.00 (schema NFS-e Nacional)
+- Carrega certificado A1 do storage `certificados-digitais`, descriptografa com senha
+- Assina o DPS com **XMLDSig enveloped** (algoritmo RSA-SHA256, C14N exclusive)
+- POST para `https://sefin.staging.cloud.gov.br/sefinnacional/nfse` (homologação) com header `Content-Type: application/xml`
+- Persiste retorno (XML NFS-e ou rejeição) em `nfses_emitidas`
 
-### Fase 2 — Cutover do Login
+**`nfse-consultar`**: consulta por chave de acesso (GET `/nfse/{chave}`)
 
-**Objetivo:** substituir o login customizado pelo Supabase Auth.
+**`nfse-cancelar`**: monta evento de cancelamento, assina, envia
 
-1. Reescrever `AuthContext.login()` para chamar `supabase.auth.signInWithPassword({ email, senha })`.
-2. Substituir `localStorage["usuarioLogado"]` por `supabase.auth.getSession()` + listener `onAuthStateChange`. Manter o objeto `Usuario` enriquecido (com `cargoId`, `clientesPermitidos`, etc.) buscado de `public.usuarios` após login.
-3. Atualizar `logout()` para chamar `supabase.auth.signOut()`.
-4. Atualizar `resetSenha()` para usar `supabase.auth.resetPasswordForEmail()` com redirect para `/redefinir-senha`.
-5. Atualizar `SupervisorPasswordDialog` (`verificarSenhaUsuario`) para validar via uma Edge Function que faz `signInWithPassword` num cliente isolado (sem sobrescrever a sessão atual).
-6. Atualizar `auth-login` / `auth-set-password` Edge Functions: marcar como deprecated, manter compatibilidade durante 1 versão.
-7. Migrar `clientes_credenciais`, `usuarios_credenciais`, `empresa_credenciais` para serem somente um espelho de status (`senha_status`), sem armazenar a senha real.
+**`nfse-danfse`**: gera PDF do DANFSe a partir do XML autorizado
 
-**Resultado:** todos os usuários passam a logar via Supabase Auth. JWT real, `auth.uid()` válido em todas as queries.
+Bibliotecas Deno: `npm:node-forge` (certificado A1 PFX) + `npm:xmldsigjs` ou implementação manual com `npm:xml-crypto` adaptada para Deno.
 
-### Fase 3 — RLS restritiva nas tabelas sensíveis
+## Frontend
 
-**Objetivo:** fechar as 11 vulnerabilidades + bonus.
+### 4. Contexto `NfsesContext`
+CRUD padrão consumindo `nfses_emitidas`. Métodos: `emitir(modelo)`, `consultar(id)`, `cancelar(id, motivo)`, `baixarDanfse(id)`, `baixarXml(id)`.
 
-Para cada tabela abaixo, substituir as policies `USING (true)` por policies que exigem `authenticated`:
+### 5. Página `src/pages/financeiro/NfseEmitir.tsx`
+Sidebar em **Financeiro > NFS-e**. Layout Berry:
+- **KPIs**: Emitidas no mês, Rejeitadas, Canceladas, Valor total ISS
+- **Filtros**: período, cliente, status, ambiente
+- **Grid**: número, série, data, tomador, valor serviço, valor ISS, status (badge), ações (visualizar, baixar XML, baixar DANFSe, cancelar)
+- **Botão "Emitir NFS-e"** abre dialog com abas: Prestador (preenchido da Empresa), Tomador (combobox de clientes), Serviço (descrição, código municipal, valor, deduções), Tributos (ISS, retenções federais), Revisão (preview do DPS)
 
-| Tabela | Nova policy SELECT | Nova policy WRITE |
-|---|---|---|
-| `funcionarios` | `auth.role() = 'authenticated'` | `authenticated` + `has_module('funcionarios')` |
-| `fin_contas_bancarias` | `authenticated` + `has_module('financeiro')` | mesmo |
-| `exames_periodicos` | `authenticated` + `has_module('exames')` | mesmo |
-| `juridico_decisoes_pagamentos` | `authenticated` + `has_module('juridico')` | mesmo |
-| `processos_trabalhistas` | mesmo | mesmo |
-| `usuarios` + `perfis_acesso` | `authenticated` | apenas usuários com `has_module('usuarios')` |
-| `comunicacao_mensagens` | participante da conversa | autor |
-| `comunicacao_notificacoes` | `auth.uid() = destinatario_auth_id` | sistema |
-| `lancamentos` | `authenticated` + `has_module('lancamentos')` | mesmo |
-| `processos_seletivos` | `authenticated` + `has_module('processo_seletivo')` | mesmo |
-| `pregao_propostas_fechadas` | só pregoeiro OU `revelada=true` | só via Edge Function |
+### 6. Página `src/pages/financeiro/NfseConfig.tsx`
+Tela de configuração (série padrão, próximo número, regime tributário, código serviço padrão, alíquota ISS padrão, ambiente).
 
-Adicionalmente:
-- Remover `pregao_lances` e `pregao_mensagens` da publication `supabase_realtime`. Substituir consumo no front por polling via Edge Function que filtra por participante autenticado.
-- Auditar outras ~115 tabelas e ajustar policies para `authenticated`-only (mantendo `anon` SELECT apenas onde realmente necessário — ex.: `clientes` no portal do fornecedor, se aplicável).
+### 7. Integração com Faturamento existente
+Em `src/components/FaturamentoSection.tsx`: novo botão **"Emitir NFS-e"** em cada linha de faturamento que ainda não tem nota emitida. Abre o mesmo dialog de emissão pré-preenchido com cliente do contrato, valor líquido, descrição (período + contrato). Após emitir, vincula `nfse_id` ao faturamento e mostra link.
 
-### Fase 4 — Limpeza (opcional, depois)
+### 8. Rotas e Sidebar
+- `/financeiro/nfse` (grid + emissão)
+- `/financeiro/nfse/config` (configurações)
+- Item no `AppSidebar` em **Financeiro**, com permissão no `PerfisAcesso`.
 
-- Remover `usuarios_credenciais.senha` (passar a usar somente Supabase Auth).
-- Remover Edge Functions `auth-login` / `auth-set-password`.
-- Remover `verifySenha.ts` legado.
+## Detalhes técnicos importantes
 
-## Riscos & mitigações
+- **Certificado A1**: já existe em `empresa.certificado_a1_url` (bucket privado `certificados-digitais`). A senha é salva criptografada — a edge function busca via `empresa-certificado-a1` helper.
+- **Schema DPS v1.00**: namespace `http://www.sped.fazenda.gov.br/nfse`. Estrutura obrigatória: `infDPS` com `tpAmb`, `dhEmi`, `verAplic`, `serie`, `nDPS`, `dCompet`, `prest`, `toma`, `serv`, `valores`.
+- **Assinatura**: o elemento `infDPS` precisa de `Id` e a `<Signature>` vai dentro do `DPS` (enveloped, referência ao Id).
+- **Endpoints homologação**: `https://sefin.staging.cloud.gov.br/sefinnacional/`
+- **Numeração**: trigger no banco para incrementar `numero_dps` por série/ambiente, similar aos triggers existentes (`set_next_os_numero`).
 
-- **Login quebrar para todo mundo na Fase 2.** → Antes do cutover, executo a Fase 1 e confirmo que 100% dos usuários têm `auth_user_id`. Mantenho `auth-login` antiga como fallback por 1 release.
-- **Senhas atuais perdidas.** → Inevitável: o Supabase Auth não aceita importação de bcrypt customizado sem hash compatível. Cada usuário precisa redefinir a senha via e-mail (link enviado na Fase 1).
-- **Portal do Fornecedor / Portal do Candidato** usam credenciais separadas (`clientes_credenciais`). → Decidir se mantemos esses portais com auth customizada (escopo limitado a tabelas do portal) ou também migramos. Recomendo manter por ora.
-- **Edge Functions com `verify_jwt = false`** que recebem o `usuario.id` no body precisam validar JWT do chamador. → Refator nas funções afetadas na Fase 2.
+## Entrega faseada
+1. Migrações + edge function `nfse-emitir` + endpoint de consulta
+2. Contexto + página de configuração
+3. Página NFS-e (grid + dialog de emissão)
+4. Integração com Faturamento
+5. Cancelamento + DANFSe PDF
 
-## O que preciso de você
-
-1. **Confirma a estratégia em 3 fases?** Posso começar pela Fase 1 hoje (não quebra nada) e te chamo antes de avançar para a Fase 2.
-2. **Portal do Fornecedor/Candidato:** mantém com auth própria (recomendado) ou migra junto?
-3. **Comunicar usuários:** posso disparar o e-mail "defina sua nova senha" para todos os ~N usuários no fim da Fase 1, ou prefere disparar em lotes/manualmente?
-
-## Detalhes técnicos
-
-- Migrations criadas em ordem para que cada uma seja idempotente.
-- `current_usuario_id()` será `SECURITY DEFINER` e `STABLE`, com `SET search_path=public`, retornando `(SELECT id FROM usuarios WHERE auth_user_id = auth.uid())`.
-- `has_module(text)` será `SECURITY DEFINER`, consultando `perfis_acesso.modulos` JSONB com `current_usuario_id()`. Evita recursão de RLS em `perfis_acesso`.
-- Cargos com acesso total (`Diretor`, `Gerente Executivo`, `Coordenador`) continuam com bypass via função `is_acesso_total()`.
-- Confirmação de e-mail: vou desabilitar `auto_confirm_email` apenas para signups normais; o `migrate-users-to-auth` cria usuários já confirmados via `auth.admin.createUser({ email_confirm: true })`.
+Após aprovação começo pela fase 1 (migrações + edge function de emissão).
