@@ -155,6 +155,8 @@ import Lancamentos from "./pages/financeiro/Lancamentos.tsx";
 import RelatoriosFinanceiros from "./pages/financeiro/RelatoriosFinanceiros.tsx";
 import CondicoesPagamento from "./pages/financeiro/CondicoesPagamento.tsx";
 import NfesRecebidas from "./pages/financeiro/NfesRecebidas.tsx";
+import NfseEmitir from "./pages/financeiro/NfseEmitir.tsx";
+import { NfsesProvider } from "@/contexts/NfsesContext";
 import RelatoriosGerenciais from "./pages/gerencial/RelatoriosGerenciais.tsx";
 import RelatoriosMultidimensional from "./pages/gerencial/RelatoriosMultidimensional.tsx";
 import DashboardMultisistemico from "./pages/gerencial/DashboardMultisistemico.tsx";
@@ -350,6 +352,7 @@ function ProtectedAppRoutes() {
         <Route path="/financeiro/relatorios" element={<RotaProtegida perm="financeiro.relatorios"><RelatoriosFinanceiros /></RotaProtegida>} />
         <Route path="/financeiro/condicoes-pagamento" element={<RotaProtegida perm="financeiro.condicoes_pagamento"><CondicoesPagamento /></RotaProtegida>} />
         <Route path="/financeiro/nfes-recebidas" element={<RotaProtegida perm="financeiro.nfes_recebidas"><NfesRecebidas /></RotaProtegida>} />
+        <Route path="/financeiro/nfse" element={<RotaProtegida perm="financeiro.nfes_recebidas"><NfseEmitir /></RotaProtegida>} />
         <Route
           path="/gerencial/relatorios"
           element={
@@ -467,6 +470,7 @@ const App = () => (
     <OsAssinaturasProvider>
     <PcAssinaturasProvider>
     <FinanceiroProvider>
+    <NfsesProvider>
     <AuthProvider> {/* auth wrapper */}
     <TooltipProvider>
       <Toaster />

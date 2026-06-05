@@ -4016,6 +4016,162 @@ export type Database = {
         }
         Relationships: []
       }
+      nfse_config: {
+        Row: {
+          aliquota_iss_padrao: number | null
+          ambiente: number
+          cnae_padrao: string | null
+          codigo_municipio_prestador: string | null
+          codigo_nbs: string | null
+          codigo_servico_padrao: string | null
+          codigo_tributacao_municipio: string | null
+          created_at: string
+          empresa_id: string
+          id: string
+          incentivador_cultural: boolean
+          iss_retido_padrao: boolean
+          natureza_operacao: string | null
+          optante_simples: boolean
+          proximo_numero_dps: number
+          regime_especial: string | null
+          regime_tributario: string | null
+          serie_padrao: string
+          updated_at: string
+        }
+        Insert: {
+          aliquota_iss_padrao?: number | null
+          ambiente?: number
+          cnae_padrao?: string | null
+          codigo_municipio_prestador?: string | null
+          codigo_nbs?: string | null
+          codigo_servico_padrao?: string | null
+          codigo_tributacao_municipio?: string | null
+          created_at?: string
+          empresa_id: string
+          id?: string
+          incentivador_cultural?: boolean
+          iss_retido_padrao?: boolean
+          natureza_operacao?: string | null
+          optante_simples?: boolean
+          proximo_numero_dps?: number
+          regime_especial?: string | null
+          regime_tributario?: string | null
+          serie_padrao?: string
+          updated_at?: string
+        }
+        Update: {
+          aliquota_iss_padrao?: number | null
+          ambiente?: number
+          cnae_padrao?: string | null
+          codigo_municipio_prestador?: string | null
+          codigo_nbs?: string | null
+          codigo_servico_padrao?: string | null
+          codigo_tributacao_municipio?: string | null
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          incentivador_cultural?: boolean
+          iss_retido_padrao?: boolean
+          natureza_operacao?: string | null
+          optante_simples?: boolean
+          proximo_numero_dps?: number
+          regime_especial?: string | null
+          regime_tributario?: string | null
+          serie_padrao?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      nfses_emitidas: {
+        Row: {
+          ambiente: number
+          chave_acesso: string | null
+          cliente_id: string | null
+          created_at: string
+          data_cancelamento: string | null
+          data_competencia: string | null
+          data_emissao: string | null
+          empresa_id: string | null
+          faturamento_id: string | null
+          id: string
+          mensagem_retorno: string | null
+          motivo_cancelamento: string | null
+          numero_dps: number
+          prestador: Json
+          protocolo: string | null
+          serie: string
+          servico: Json
+          status: string
+          tomador: Json
+          tributos: Json
+          updated_at: string
+          url_danfse: string | null
+          valor_iss: number
+          valor_liquido: number
+          valor_servico: number
+          xml_dps: string | null
+          xml_nfse: string | null
+        }
+        Insert: {
+          ambiente?: number
+          chave_acesso?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          data_cancelamento?: string | null
+          data_competencia?: string | null
+          data_emissao?: string | null
+          empresa_id?: string | null
+          faturamento_id?: string | null
+          id?: string
+          mensagem_retorno?: string | null
+          motivo_cancelamento?: string | null
+          numero_dps: number
+          prestador?: Json
+          protocolo?: string | null
+          serie?: string
+          servico?: Json
+          status?: string
+          tomador?: Json
+          tributos?: Json
+          updated_at?: string
+          url_danfse?: string | null
+          valor_iss?: number
+          valor_liquido?: number
+          valor_servico?: number
+          xml_dps?: string | null
+          xml_nfse?: string | null
+        }
+        Update: {
+          ambiente?: number
+          chave_acesso?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          data_cancelamento?: string | null
+          data_competencia?: string | null
+          data_emissao?: string | null
+          empresa_id?: string | null
+          faturamento_id?: string | null
+          id?: string
+          mensagem_retorno?: string | null
+          motivo_cancelamento?: string | null
+          numero_dps?: number
+          prestador?: Json
+          protocolo?: string | null
+          serie?: string
+          servico?: Json
+          status?: string
+          tomador?: Json
+          tributos?: Json
+          updated_at?: string
+          url_danfse?: string | null
+          valor_iss?: number
+          valor_liquido?: number
+          valor_servico?: number
+          xml_dps?: string | null
+          xml_nfse?: string | null
+        }
+        Relationships: []
+      }
       nfses_tomadas: {
         Row: {
           ambiente: string | null
