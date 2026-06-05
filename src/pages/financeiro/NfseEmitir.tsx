@@ -349,6 +349,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   const [clienteId, setClienteId] = useState<string>("");
   const [descricao, setDescricao] = useState("");
   const [codigoTrib, setCodigoTrib] = useState<string>(config?.codigo_servico_padrao || "");
+  const [codigoTribNacional, setCodigoTribNacional] = useState<string>("");
   const [codigoNbs, setCodigoNbs] = useState<string>(config?.codigo_nbs || "");
   const [valorServico, setValorServico] = useState<string>("0,00");
   const [deducoes, setDeducoes] = useState<string>("0,00");
