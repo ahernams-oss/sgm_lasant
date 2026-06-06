@@ -383,6 +383,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   const [irrf, setIrrf] = useState<string>("0,00");
   const [contribSociaisRetidas, setContribSociaisRetidas] = useState<string>("0,00");
   const [contribPrevidRetida, setContribPrevidRetida] = useState<string>("0,00");
+  const [baseInss, setBaseInss] = useState<string>("0,00");
 
   // Total dos tributos
   const [totalFederal, setTotalFederal] = useState<string>("0,00");
@@ -439,6 +440,9 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
     setIrrf(fmt2(base * 0.015));
     setContribSociaisRetidas(fmt2(base * 0.01));
   }, [basePisCofins]);
+
+  // Base de cálculo INSS = valor do serviço (preenche automaticamente)
+  useEffect(() => { setBaseInss(valorServico || "0,00"); }, [valorServico]);
 
 
 
@@ -785,6 +789,11 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
               <div>
                 <Label>Base de cálculo PIS/COFINS (R$)</Label>
                 <Input value={basePisCofins} readOnly className="bg-muted" />
+                <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente com o valor bruto do serviço.</p>
+              </div>
+              <div>
+                <Label>Base de cálculo INSS (R$)</Label>
+                <Input value={baseInss} onChange={(e) => setBaseInss(e.target.value)} />
                 <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente com o valor bruto do serviço.</p>
               </div>
               <div className="grid grid-cols-4 gap-3">
