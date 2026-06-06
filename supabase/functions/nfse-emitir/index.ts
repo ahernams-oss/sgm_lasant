@@ -33,7 +33,7 @@ async function httpsPostJson(targetUrl: string, body: string): Promise<{ status:
     body,
   ].join("\r\n");
 
-  const conn = await Deno.connectTls({ hostname, port });
+  const conn = await Deno.connectTls({ hostname, port, alpnProtocols: ["http/1.1"] });
   try {
     await conn.write(new TextEncoder().encode(request));
     const chunks: Uint8Array[] = [];
