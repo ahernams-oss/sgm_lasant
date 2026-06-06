@@ -321,21 +321,16 @@ Deno.serve(async (req) => {
       protocolo: string | null = null, dataEmissao: string | null = null;
     try {
       const dpsXmlGZipB64 = Buffer.from(gzipSync(Buffer.from(xmlAssinado, "utf-8"))).toString("base64");
-      const resp = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({ dpsXmlGZipB64 }),
-      });
+      const resp = await httpsPostJson(url, JSON.stringify({ dpsXmlGZipB64 }));
       respStatus = resp.status;
-      respText = await resp.text();
+      respText = resp.text;
 
       let nfseXml: string | null = null;
-      if (resp.ok) {
+      if (respStatus >= 200 && respStatus < 300) {
         try {
           const j = JSON.parse(respText);
           chaveAcesso = j.chaveAcesso || null;
           if (j.nfseXmlGZipB64) {
-            const { gunzipSync } = await import("node:zlib");
             nfseXml = gunzipSync(Buffer.from(j.nfseXmlGZipB64, "base64")).toString("utf-8");
             protocolo = (nfseXml.match(/<nProt>([^<]+)<\/nProt>/) || [])[1] || null;
             dataEmissao = (nfseXml.match(/<dhProc>([^<]+)<\/dhProc>/) || [])[1] || null;
