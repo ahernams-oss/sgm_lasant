@@ -617,6 +617,24 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
                 </Select>
               </div>
             </div>
+            <div>
+              <Label>Código de Obra</Label>
+              <Select value={obraId || "nenhuma"} onValueChange={(v) => setObraId(v === "nenhuma" ? "" : v)}>
+                <SelectTrigger><SelectValue placeholder="Selecione a obra..." /></SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value="nenhuma">— Sem obra vinculada —</SelectItem>
+                  {(clienteId ? porCliente(clienteId) : obras).map((o) => (
+                    <SelectItem key={o.id} value={o.id}>
+                      <span className="font-mono mr-2">{o.numero ?? "—"}</span>
+                      {o.nome}{!clienteId && o.cliente_nome ? ` (${o.cliente_nome})` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {clienteId && porCliente(clienteId).length === 0 && (
+                <p className="text-xs text-muted-foreground mt-1">Nenhuma obra cadastrada para este cliente.</p>
+              )}
+            </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <Label>Código NBS (opcional)</Label>
