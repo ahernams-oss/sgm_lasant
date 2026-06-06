@@ -417,6 +417,13 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   // Auto: Total Municipal % = alíquota ISS
   useEffect(() => { setTotalMunicipal(fmt2(parseNum(aliquotaIss))); }, [aliquotaIss]);
 
+  // Auto: IRRF = base × 1,5% e Contribuições Sociais Retidas = base × 1%
+  useEffect(() => {
+    const base = parseNum(basePisCofins);
+    setIrrf(fmt2(base * 0.015));
+    setContribSociaisRetidas(fmt2(base * 0.01));
+  }, [basePisCofins]);
+
 
 
   const onSubmit = async () => {
