@@ -620,15 +620,110 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
             </div>
           </TabsContent>
 
-          <TabsContent value="tributos" className="space-y-3 pt-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Alíquota ISS (%)</Label>
-                <Input value={aliquotaIss} onChange={(e) => setAliquotaIss(e.target.value)} />
+          <TabsContent value="tributos" className="space-y-4 pt-3">
+            {/* ISS Municipal */}
+            <div className="border rounded-lg p-3 space-y-3">
+              <h4 className="text-sm font-semibold text-primary">ISS Municipal</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Alíquota ISS (%)</Label>
+                  <Input value={aliquotaIss} onChange={(e) => setAliquotaIss(e.target.value)} />
+                </div>
+                <div className="flex items-end gap-2">
+                  <input id="issRet" type="checkbox" checked={issRetido} onChange={(e) => setIssRetido(e.target.checked)} />
+                  <Label htmlFor="issRet">ISS retido pelo tomador</Label>
+                </div>
               </div>
-              <div className="flex items-end gap-2">
-                <input id="issRet" type="checkbox" checked={issRetido} onChange={(e) => setIssRetido(e.target.checked)} />
-                <Label htmlFor="issRet">ISS retido pelo tomador</Label>
+            </div>
+
+            {/* Tributação Federal */}
+            <div className="border rounded-lg p-3 space-y-3">
+              <h4 className="text-sm font-semibold text-primary">Tributação Federal</h4>
+              <div>
+                <Label>Situação tributária do PIS/COFINS</Label>
+                <Select value={pisCofinsSituacao} onValueChange={setPisCofinsSituacao}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 - Operação Tributável com Alíquota Básica</SelectItem>
+                    <SelectItem value="2">2 - Operação Tributável com Alíquota Diferenciada</SelectItem>
+                    <SelectItem value="3">3 - Operação Tributável com Alíquota por Unidade</SelectItem>
+                    <SelectItem value="4">4 - Operação Tributável Monofásica - Revenda a Alíquota Zero</SelectItem>
+                    <SelectItem value="5">5 - Operação Tributável por Substituição Tributária</SelectItem>
+                    <SelectItem value="6">6 - Operação Tributável a Alíquota Zero</SelectItem>
+                    <SelectItem value="7">7 - Operação Isenta</SelectItem>
+                    <SelectItem value="8">8 - Operação sem Incidência</SelectItem>
+                    <SelectItem value="9">9 - Operação com Suspensão</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Base de cálculo PIS/COFINS (R$)</Label>
+                <Input value={basePisCofins} onChange={(e) => setBasePisCofins(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-4 gap-3">
+                <div>
+                  <Label>PIS - Alíquota (%)</Label>
+                  <Input value={aliquotaPis} onChange={(e) => setAliquotaPis(e.target.value)} />
+                </div>
+                <div>
+                  <Label>PIS - Débito Apuração Própria (R$)</Label>
+                  <Input value={pisDebito} onChange={(e) => setPisDebito(e.target.value)} />
+                </div>
+                <div>
+                  <Label>COFINS - Alíquota (%)</Label>
+                  <Input value={aliquotaCofins} onChange={(e) => setAliquotaCofins(e.target.value)} />
+                </div>
+                <div>
+                  <Label>COFINS - Débito Apuração Própria (R$)</Label>
+                  <Input value={cofinsDebito} onChange={(e) => setCofinsDebito(e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <Label>Descrição Contribuições Sociais - Retidas</Label>
+                <Select value={descContribRetidas} onValueChange={setDescContribRetidas}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">0 - Não Retido</SelectItem>
+                    <SelectItem value="1">1 - PIS Retido</SelectItem>
+                    <SelectItem value="2">2 - COFINS Retido</SelectItem>
+                    <SelectItem value="3">3 - PIS/COFINS/CSLL Retidos</SelectItem>
+                    <SelectItem value="4">4 - CSLL Retido</SelectItem>
+                    <SelectItem value="5">5 - PIS/COFINS Retidos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label>IRRF (R$)</Label>
+                  <Input value={irrf} onChange={(e) => setIrrf(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Contribuições Sociais - Retidas (R$)</Label>
+                  <Input value={contribSociaisRetidas} onChange={(e) => setContribSociaisRetidas(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Contribuição Previdenciária - Retida (R$)</Label>
+                  <Input value={contribPrevidRetida} onChange={(e) => setContribPrevidRetida(e.target.value)} />
+                </div>
+              </div>
+            </div>
+
+            {/* Total dos tributos */}
+            <div className="border rounded-lg p-3 space-y-3">
+              <h4 className="text-sm font-semibold text-primary">Total dos tributos</h4>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label>Federal (%)</Label>
+                  <Input value={totalFederal} onChange={(e) => setTotalFederal(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Estadual (%)</Label>
+                  <Input value={totalEstadual} onChange={(e) => setTotalEstadual(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Municipal (%)</Label>
+                  <Input value={totalMunicipal} onChange={(e) => setTotalMunicipal(e.target.value)} />
+                </div>
               </div>
             </div>
           </TabsContent>
