@@ -641,23 +641,83 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
                 </Select>
               </div>
             </div>
-            <div>
-              <Label>Código de Obra</Label>
-              <Select value={obraId || "nenhuma"} onValueChange={(v) => setObraId(v === "nenhuma" ? "" : v)}>
-                <SelectTrigger><SelectValue placeholder="Selecione a obra..." /></SelectTrigger>
-                <SelectContent className="max-h-72">
-                  <SelectItem value="nenhuma">— Sem obra vinculada —</SelectItem>
-                  {(clienteId ? porCliente(clienteId) : obras).map((o) => (
-                    <SelectItem key={o.id} value={o.id}>
-                      <span className="font-mono mr-2">{o.numero ?? "—"}</span>
-                      {o.nome}{!clienteId && o.cliente_nome ? ` (${o.cliente_nome})` : ""}
-                    </SelectItem>
+            <div className="border rounded-md p-3 space-y-3">
+              <div className="text-sm font-semibold text-primary">INFORMAÇÕES PARA OBRA</div>
+              <div>
+                <Label className="text-sm">Selecione uma das opções abaixo: <span className="text-destructive">*</span></Label>
+                <div className="mt-2 space-y-1.5">
+                  {[
+                    { v: "codigo", l: "Código de obra" },
+                    { v: "cib", l: "Código do Cadastro Imobiliário Brasileiro - CIB" },
+                    { v: "endBR", l: "Endereço no Brasil" },
+                    { v: "endEX", l: "Endereço no exterior" },
+                  ].map((opt) => (
+                    <label key={opt.v} className="flex items-center gap-2 cursor-pointer text-sm">
+                      <input
+                        type="radio"
+                        name="tipoInfoObra"
+                        value={opt.v}
+                        checked={tipoInfoObra === opt.v}
+                        onChange={() => setTipoInfoObra(opt.v as any)}
+                        className="accent-primary"
+                      />
+                      {opt.l}
+                    </label>
                   ))}
-                </SelectContent>
-              </Select>
-              {clienteId && porCliente(clienteId).length === 0 && (
-                <p className="text-xs text-muted-foreground mt-1">Nenhuma obra cadastrada para este cliente.</p>
+                </div>
+              </div>
+
+              {tipoInfoObra === "codigo" && (
+                <div>
+                  <Label>Código da Obra <span className="text-destructive">*</span></Label>
+                  <Select value={obraId || "nenhuma"} onValueChange={(v) => setObraId(v === "nenhuma" ? "" : v)}>
+                    <SelectTrigger><SelectValue placeholder="Selecione a obra..." /></SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      <SelectItem value="nenhuma">— Sem obra vinculada —</SelectItem>
+                      {(clienteId ? porCliente(clienteId) : obras).map((o) => (
+                        <SelectItem key={o.id} value={o.id}>
+                          <span className="font-mono mr-2">{o.numero ?? "—"}</span>
+                          {o.nome}{!clienteId && o.cliente_nome ? ` (${o.cliente_nome})` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {clienteId && porCliente(clienteId).length === 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">Nenhuma obra cadastrada para este cliente.</p>
+                  )}
+                </div>
               )}
+
+              {tipoInfoObra === "cib" && (
+                <div>
+                  <Label>Código CIB <span className="text-destructive">*</span></Label>
+                  <Input value={obraCib} onChange={(e) => setObraCib(e.target.value)} placeholder="Informe o código CIB" />
+                </div>
+              )}
+
+              {tipoInfoObra === "endBR" && (
+                <div className="grid grid-cols-12 gap-2">
+                  <div className="col-span-3"><Label>CEP <span className="text-destructive">*</span></Label><Input value={obraEndCep} onChange={(e) => setObraEndCep(e.target.value)} /></div>
+                  <div className="col-span-7"><Label>Logradouro <span className="text-destructive">*</span></Label><Input value={obraEndLogradouro} onChange={(e) => setObraEndLogradouro(e.target.value)} /></div>
+                  <div className="col-span-2"><Label>Número</Label><Input value={obraEndNumero} onChange={(e) => setObraEndNumero(e.target.value)} /></div>
+                  <div className="col-span-6"><Label>Complemento</Label><Input value={obraEndComplemento} onChange={(e) => setObraEndComplemento(e.target.value)} /></div>
+                  <div className="col-span-6"><Label>Bairro <span className="text-destructive">*</span></Label><Input value={obraEndBairro} onChange={(e) => setObraEndBairro(e.target.value)} /></div>
+                  <div className="col-span-9"><Label>Município <span className="text-destructive">*</span></Label><Input value={obraEndMunicipio} onChange={(e) => setObraEndMunicipio(e.target.value)} /></div>
+                  <div className="col-span-3"><Label>UF <span className="text-destructive">*</span></Label><Input value={obraEndUf} onChange={(e) => setObraEndUf(e.target.value.toUpperCase())} maxLength={2} /></div>
+                </div>
+              )}
+
+              {tipoInfoObra === "endEX" && (
+                <div className="grid grid-cols-12 gap-2">
+                  <div className="col-span-4"><Label>País <span className="text-destructive">*</span></Label><Input value={obraEndPais} onChange={(e) => setObraEndPais(e.target.value)} /></div>
+                  <div className="col-span-8"><Label>Endereço no exterior <span className="text-destructive">*</span></Label><Input value={obraEndExterior} onChange={(e) => setObraEndExterior(e.target.value)} /></div>
+                </div>
+              )}
+
+              <div>
+                <Label>Inscrição Imobiliária Fiscal</Label>
+                <Input value={obraInscMobiliaria} onChange={(e) => setObraInscMobiliaria(e.target.value)} placeholder="Opcional" />
+              </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
