@@ -83,18 +83,42 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
       try {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(content, "text/xml");
-        const nNF = xmlDoc.getElementsByTagName("nNF")[0]?.textContent || "";
-        const vNF = xmlDoc.getElementsByTagName("vNF")[0]?.textContent || "";
-        const vLiq = xmlDoc.getElementsByTagName("vLiq")[0]?.textContent
-          || xmlDoc.getElementsByTagName("vNF")[0]?.textContent || "";
-        const dhEmi = xmlDoc.getElementsByTagName("dhEmi")[0]?.textContent || "";
+        const getTag = (...names: string[]) => {
+          for (const n of names) {
+            const els = xmlDoc.getElementsByTagName(n);
+            for (let i = 0; i < els.length; i++) {
+              const txt = els[i]?.textContent?.trim();
+              if (txt) return txt;
+            }
+            // try with namespace prefix wildcard
+            const all = xmlDoc.getElementsByTagName("*");
+            for (let i = 0; i < all.length; i++) {
+              if (all[i].localName === n) {
+                const txt = all[i].textContent?.trim();
+                if (txt) return txt;
+              }
+            }
+          }
+          return "";
+        };
+
+        // NFe (nota fiscal eletrônica de produto) e NFSe (serviços - ABRASF / municipais)
+        const nNF = getTag("nNF", "Numero", "NumeroNfse", "numero_nfse", "numero");
+        const vNF = getTag("vNF", "ValorServicos", "valor_servicos", "ValorTotal", "valor_total", "ValorBruto", "valor_bruto");
+        const vLiq = getTag("vLiq", "ValorLiquidoNfse", "valor_liquido_nfse", "ValorLiquido", "valor_liquido") || vNF;
+        const dhEmi = getTag("dhEmi", "DataEmissao", "data_emissao", "DataEmissaoRps");
         const dataEmi = dhEmi ? dhEmi.substring(0, 10) : "";
-        // Chave NF: try infNFe Id attribute (NFe44...) or chNFe element
-        let chave = xmlDoc.getElementsByTagName("chNFe")[0]?.textContent || "";
+
+        // Chave: NFe (chNFe / infNFe@Id), NFSe (CodigoVerificacao) ou nome do arquivo (chave de 44+ dígitos)
+        let chave = getTag("chNFe", "ChaveAcesso", "chave_acesso", "CodigoVerificacao", "codigo_verificacao");
         if (!chave) {
           const infNFe = xmlDoc.getElementsByTagName("infNFe")[0];
           const id = infNFe?.getAttribute("Id") || "";
           chave = id.replace(/^NFe/i, "");
+        }
+        if (!chave) {
+          const m = file.name.match(/\d{40,}/);
+          if (m) chave = m[0];
         }
 
         setForm((prev) => ({
@@ -113,6 +137,7 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
         setForm((prev) => ({ ...prev, xmlNfNome: file.name, xmlNfConteudo: content.substring(0, 5000) }));
         toast.success("XML importado.");
       }
+
     };
     reader.readAsText(file);
     e.target.value = "";
