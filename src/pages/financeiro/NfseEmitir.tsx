@@ -483,7 +483,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
         obraNome: obraId ? obras.find((o) => o.id === obraId)?.nome : undefined,
         informacoesObra: {
           tipo: tipoInfoObra,
-          codigoObra: tipoInfoObra === "codigo" ? (obraId ? (obras.find((o) => o.id === obraId)?.numero || obraId) : undefined) : undefined,
+          codigoObra: tipoInfoObra === "codigo" ? (codigoObraTexto || (obraId ? (obras.find((o) => o.id === obraId)?.numero || obraId) : undefined)) : undefined,
           cib: tipoInfoObra === "cib" ? obraCib || undefined : undefined,
           inscricaoMobiliariaFiscal: obraInscMobiliaria || undefined,
           enderecoBrasil: tipoInfoObra === "endBR" ? {
