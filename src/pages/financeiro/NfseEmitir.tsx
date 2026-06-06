@@ -669,23 +669,33 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
               </div>
 
               {tipoInfoObra === "codigo" && (
-                <div>
-                  <Label>Código da Obra <span className="text-destructive">*</span></Label>
-                  <Select value={obraId || "nenhuma"} onValueChange={(v) => setObraId(v === "nenhuma" ? "" : v)}>
-                    <SelectTrigger><SelectValue placeholder="Selecione a obra..." /></SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      <SelectItem value="nenhuma">— Sem obra vinculada —</SelectItem>
-                      {(clienteId ? porCliente(clienteId) : obras).map((o) => (
-                        <SelectItem key={o.id} value={o.id}>
-                          <span className="font-mono mr-2">{o.numero ?? "—"}</span>
-                          {o.nome}{!clienteId && o.cliente_nome ? ` (${o.cliente_nome})` : ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {clienteId && porCliente(clienteId).length === 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">Nenhuma obra cadastrada para este cliente.</p>
-                  )}
+                <div className="space-y-3">
+                  <div>
+                    <Label>Código da Obra <span className="text-destructive">*</span></Label>
+                    <Input
+                      value={codigoObraTexto}
+                      onChange={(e) => setCodigoObraTexto(e.target.value)}
+                      placeholder="COI"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Vincular obra cadastrada (opcional)</Label>
+                    <Select value={obraId || "nenhuma"} onValueChange={(v) => setObraId(v === "nenhuma" ? "" : v)}>
+                      <SelectTrigger><SelectValue placeholder="Selecione a obra..." /></SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        <SelectItem value="nenhuma">— Sem obra vinculada —</SelectItem>
+                        {(clienteId ? porCliente(clienteId) : obras).map((o) => (
+                          <SelectItem key={o.id} value={o.id}>
+                            <span className="font-mono mr-2">{o.numero ?? "—"}</span>
+                            {o.nome}{!clienteId && o.cliente_nome ? ` (${o.cliente_nome})` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {clienteId && porCliente(clienteId).length === 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">Nenhuma obra cadastrada para este cliente.</p>
+                    )}
+                  </div>
                 </div>
               )}
 
