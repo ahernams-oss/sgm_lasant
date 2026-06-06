@@ -480,6 +480,18 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
         codigoObra: obraId ? (obras.find((o) => o.id === obraId)?.numero || obraId) : undefined,
         obraId: obraId || undefined,
         obraNome: obraId ? obras.find((o) => o.id === obraId)?.nome : undefined,
+        informacoesObra: {
+          tipo: tipoInfoObra,
+          codigoObra: tipoInfoObra === "codigo" ? (obraId ? (obras.find((o) => o.id === obraId)?.numero || obraId) : undefined) : undefined,
+          cib: tipoInfoObra === "cib" ? obraCib || undefined : undefined,
+          inscricaoMobiliariaFiscal: obraInscMobiliaria || undefined,
+          enderecoBrasil: tipoInfoObra === "endBR" ? {
+            cep: obraEndCep, logradouro: obraEndLogradouro, numero: obraEndNumero,
+            complemento: obraEndComplemento, bairro: obraEndBairro,
+            municipio: obraEndMunicipio, uf: obraEndUf,
+          } : undefined,
+          enderecoExterior: tipoInfoObra === "endEX" ? { pais: obraEndPais, endereco: obraEndExterior } : undefined,
+        },
         codigoTributacaoNacional: codigoTribNacional || undefined,
         codigoTributacaoMunicipio: codigoTrib,
         codigoNbs: codigoNbs || undefined,
