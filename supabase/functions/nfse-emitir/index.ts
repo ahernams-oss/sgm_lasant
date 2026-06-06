@@ -10,11 +10,39 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import forge from "npm:node-forge@1.3.1";
-import { gzipSync } from "node:zlib";
+import { gzipSync, gunzipSync } from "node:zlib";
 import { Buffer } from "node:buffer";
+import https from "node:https";
+import { URL as NodeURL } from "node:url";
 
 const SANDBOX_URL = "https://sefin.producaorestrita.nfse.gov.br/SefinNacional/nfse";
 const PROD_URL = "https://sefin.nfse.gov.br/SefinNacional/nfse";
+
+// Edge Runtime fetch força HTTP/2; o endpoint NFS-e exige HTTP/1.1.
+// Workaround usando node:https.
+function httpsPostJson(targetUrl: string, body: string): Promise<{ status: number; text: string }> {
+  return new Promise((resolve, reject) => {
+    const u = new NodeURL(targetUrl);
+    const req = https.request({
+      method: "POST",
+      hostname: u.hostname,
+      port: u.port || 443,
+      path: u.pathname + u.search,
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Content-Length": Buffer.byteLength(body),
+      },
+    }, (res) => {
+      const chunks: Buffer[] = [];
+      res.on("data", (c) => chunks.push(c));
+      res.on("end", () => resolve({ status: res.statusCode || 0, text: Buffer.concat(chunks).toString("utf-8") }));
+    });
+    req.on("error", reject);
+    req.write(body);
+    req.end();
+  });
+}
 
 type Modelo = {
   empresaId: string;
@@ -293,21 +321,16 @@ Deno.serve(async (req) => {
       protocolo: string | null = null, dataEmissao: string | null = null;
     try {
       const dpsXmlGZipB64 = Buffer.from(gzipSync(Buffer.from(xmlAssinado, "utf-8"))).toString("base64");
-      const resp = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({ dpsXmlGZipB64 }),
-      });
+      const resp = await httpsPostJson(url, JSON.stringify({ dpsXmlGZipB64 }));
       respStatus = resp.status;
-      respText = await resp.text();
+      respText = resp.text;
 
       let nfseXml: string | null = null;
-      if (resp.ok) {
+      if (respStatus >= 200 && respStatus < 300) {
         try {
           const j = JSON.parse(respText);
           chaveAcesso = j.chaveAcesso || null;
           if (j.nfseXmlGZipB64) {
-            const { gunzipSync } = await import("node:zlib");
             nfseXml = gunzipSync(Buffer.from(j.nfseXmlGZipB64, "base64")).toString("utf-8");
             protocolo = (nfseXml.match(/<nProt>([^<]+)<\/nProt>/) || [])[1] || null;
             dataEmissao = (nfseXml.match(/<dhProc>([^<]+)<\/dhProc>/) || [])[1] || null;
