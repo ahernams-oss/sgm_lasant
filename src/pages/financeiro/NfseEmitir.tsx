@@ -746,11 +746,19 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
               </div>
               <div>
                 <Label>Valor do serviço (R$)</Label>
-                <Input value={valorServico} onChange={(e) => setValorServico(e.target.value)} />
+                <Input
+                  value={valorServico}
+                  onChange={(e) => setValorServico(e.target.value)}
+                  onBlur={(e) => setValorServico(fmt2(parseNum(e.target.value)))}
+                />
               </div>
               <div>
                 <Label>Deduções (R$)</Label>
-                <Input value={deducoes} onChange={(e) => setDeducoes(e.target.value)} />
+                <Input
+                  value={deducoes}
+                  onChange={(e) => setDeducoes(e.target.value)}
+                  onBlur={(e) => setDeducoes(fmt2(parseNum(e.target.value)))}
+                />
               </div>
             </div>
           </TabsContent>
