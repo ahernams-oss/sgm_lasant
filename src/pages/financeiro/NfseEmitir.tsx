@@ -441,6 +441,9 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
     setContribSociaisRetidas(fmt2(base * 0.01));
   }, [basePisCofins]);
 
+  // Base de cálculo INSS = valor do serviço (preenche automaticamente)
+  useEffect(() => { setBaseInss(valorServico || "0,00"); }, [valorServico]);
+
 
 
   const onSubmit = async () => {
