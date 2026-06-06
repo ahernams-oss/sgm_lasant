@@ -15,6 +15,7 @@ import { FileText, Plus, Eye, Download, XCircle, Loader2, Receipt, Check, Chevro
 import { useNfses, ModeloEmissaoNfse, NfseEmitida } from "@/contexts/NfsesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { useObras } from "@/contexts/ObrasContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
