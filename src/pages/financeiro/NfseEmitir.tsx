@@ -658,7 +658,8 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
               </div>
               <div>
                 <Label>Base de cálculo PIS/COFINS (R$)</Label>
-                <Input value={basePisCofins} onChange={(e) => setBasePisCofins(e.target.value)} />
+                <Input value={basePisCofins} readOnly className="bg-muted" />
+                <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente com o valor bruto do serviço.</p>
               </div>
               <div className="grid grid-cols-4 gap-3">
                 <div>
