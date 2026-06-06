@@ -356,6 +356,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   const [valorServico, setValorServico] = useState<string>("0,00");
   const [deducoes, setDeducoes] = useState<string>("0,00");
   const [obraId, setObraId] = useState<string>("");
+  const [codigoObraTexto, setCodigoObraTexto] = useState<string>("COI");
   const [tipoInfoObra, setTipoInfoObra] = useState<"codigo" | "cib" | "endBR" | "endEX">("codigo");
   const [obraCib, setObraCib] = useState<string>("");
   const [obraEndCep, setObraEndCep] = useState<string>("");
@@ -482,7 +483,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
         obraNome: obraId ? obras.find((o) => o.id === obraId)?.nome : undefined,
         informacoesObra: {
           tipo: tipoInfoObra,
-          codigoObra: tipoInfoObra === "codigo" ? (obraId ? (obras.find((o) => o.id === obraId)?.numero || obraId) : undefined) : undefined,
+          codigoObra: tipoInfoObra === "codigo" ? (codigoObraTexto || (obraId ? (obras.find((o) => o.id === obraId)?.numero || obraId) : undefined)) : undefined,
           cib: tipoInfoObra === "cib" ? obraCib || undefined : undefined,
           inscricaoMobiliariaFiscal: obraInscMobiliaria || undefined,
           enderecoBrasil: tipoInfoObra === "endBR" ? {
@@ -668,23 +669,33 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
               </div>
 
               {tipoInfoObra === "codigo" && (
-                <div>
-                  <Label>Código da Obra <span className="text-destructive">*</span></Label>
-                  <Select value={obraId || "nenhuma"} onValueChange={(v) => setObraId(v === "nenhuma" ? "" : v)}>
-                    <SelectTrigger><SelectValue placeholder="Selecione a obra..." /></SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      <SelectItem value="nenhuma">— Sem obra vinculada —</SelectItem>
-                      {(clienteId ? porCliente(clienteId) : obras).map((o) => (
-                        <SelectItem key={o.id} value={o.id}>
-                          <span className="font-mono mr-2">{o.numero ?? "—"}</span>
-                          {o.nome}{!clienteId && o.cliente_nome ? ` (${o.cliente_nome})` : ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {clienteId && porCliente(clienteId).length === 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">Nenhuma obra cadastrada para este cliente.</p>
-                  )}
+                <div className="space-y-3">
+                  <div>
+                    <Label>Código da Obra <span className="text-destructive">*</span></Label>
+                    <Input
+                      value={codigoObraTexto}
+                      onChange={(e) => setCodigoObraTexto(e.target.value)}
+                      placeholder="COI"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Vincular obra cadastrada (opcional)</Label>
+                    <Select value={obraId || "nenhuma"} onValueChange={(v) => setObraId(v === "nenhuma" ? "" : v)}>
+                      <SelectTrigger><SelectValue placeholder="Selecione a obra..." /></SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        <SelectItem value="nenhuma">— Sem obra vinculada —</SelectItem>
+                        {(clienteId ? porCliente(clienteId) : obras).map((o) => (
+                          <SelectItem key={o.id} value={o.id}>
+                            <span className="font-mono mr-2">{o.numero ?? "—"}</span>
+                            {o.nome}{!clienteId && o.cliente_nome ? ` (${o.cliente_nome})` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {clienteId && porCliente(clienteId).length === 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">Nenhuma obra cadastrada para este cliente.</p>
+                    )}
+                  </div>
                 </div>
               )}
 
