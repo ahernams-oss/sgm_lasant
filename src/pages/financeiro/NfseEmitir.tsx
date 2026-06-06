@@ -355,6 +355,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   const [codigoNbs, setCodigoNbs] = useState<string>(config?.codigo_nbs || "");
   const [valorServico, setValorServico] = useState<string>("0,00");
   const [deducoes, setDeducoes] = useState<string>("0,00");
+  const [obraId, setObraId] = useState<string>("");
   const [aliquotaIss, setAliquotaIss] = useState<string>(String(config?.aliquota_iss_padrao || "5"));
   const [issRetido, setIssRetido] = useState<boolean>(!!config?.iss_retido_padrao);
 
