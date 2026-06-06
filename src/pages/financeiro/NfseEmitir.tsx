@@ -662,20 +662,20 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
                 <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente com o valor bruto do serviço.</p>
               </div>
               <div className="grid grid-cols-4 gap-3">
-                <div>
-                  <Label>PIS - Alíquota (%)</Label>
+                <div className="flex flex-col">
+                  <Label className="min-h-[2.5rem] leading-tight">PIS - Alíquota (%)</Label>
                   <Input value={aliquotaPis} onChange={(e) => setAliquotaPis(e.target.value)} />
                 </div>
-                <div>
-                  <Label>PIS - Débito Apuração Própria (R$)</Label>
+                <div className="flex flex-col">
+                  <Label className="min-h-[2.5rem] leading-tight">PIS - Débito Apuração Própria (R$)</Label>
                   <Input value={pisDebito} onChange={(e) => setPisDebito(e.target.value)} />
                 </div>
-                <div>
-                  <Label>COFINS - Alíquota (%)</Label>
+                <div className="flex flex-col">
+                  <Label className="min-h-[2.5rem] leading-tight">COFINS - Alíquota (%)</Label>
                   <Input value={aliquotaCofins} onChange={(e) => setAliquotaCofins(e.target.value)} />
                 </div>
-                <div>
-                  <Label>COFINS - Débito Apuração Própria (R$)</Label>
+                <div className="flex flex-col">
+                  <Label className="min-h-[2.5rem] leading-tight">COFINS - Débito Apuração Própria (R$)</Label>
                   <Input value={cofinsDebito} onChange={(e) => setCofinsDebito(e.target.value)} />
                 </div>
               </div>
@@ -694,16 +694,16 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
                 </Select>
               </div>
               <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <Label>IRRF (R$)</Label>
+                <div className="flex flex-col">
+                  <Label className="min-h-[2.5rem] leading-tight">IRRF (R$)</Label>
                   <Input value={irrf} onChange={(e) => setIrrf(e.target.value)} />
                 </div>
-                <div>
-                  <Label>Contribuições Sociais - Retidas (R$)</Label>
+                <div className="flex flex-col">
+                  <Label className="min-h-[2.5rem] leading-tight">Contribuições Sociais - Retidas (R$)</Label>
                   <Input value={contribSociaisRetidas} onChange={(e) => setContribSociaisRetidas(e.target.value)} />
                 </div>
-                <div>
-                  <Label>Contribuição Previdenciária - Retida (R$)</Label>
+                <div className="flex flex-col">
+                  <Label className="min-h-[2.5rem] leading-tight">Contribuição Previdenciária - Retida (R$)</Label>
                   <Input value={contribPrevidRetida} onChange={(e) => setContribPrevidRetida(e.target.value)} />
                 </div>
               </div>
