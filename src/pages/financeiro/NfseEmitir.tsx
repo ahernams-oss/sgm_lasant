@@ -356,6 +356,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   const [valorServico, setValorServico] = useState<string>("0,00");
   const [deducoes, setDeducoes] = useState<string>("0,00");
   const [obraId, setObraId] = useState<string>("");
+  const [codigoObraTexto, setCodigoObraTexto] = useState<string>("COI");
   const [tipoInfoObra, setTipoInfoObra] = useState<"codigo" | "cib" | "endBR" | "endEX">("codigo");
   const [obraCib, setObraCib] = useState<string>("");
   const [obraEndCep, setObraEndCep] = useState<string>("");
