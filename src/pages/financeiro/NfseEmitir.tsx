@@ -464,6 +464,23 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
       tributos: {
         aliquotaIss: parseNum(aliquotaIss),
         issRetido,
+        federal: {
+          pisCofinsSituacao,
+          basePisCofins: parseNum(basePisCofins),
+          aliquotaPis: parseNum(aliquotaPis),
+          pisDebito: parseNum(pisDebito),
+          aliquotaCofins: parseNum(aliquotaCofins),
+          cofinsDebito: parseNum(cofinsDebito),
+          descContribRetidas,
+          irrf: parseNum(irrf),
+          contribSociaisRetidas: parseNum(contribSociaisRetidas),
+          contribPrevidRetida: parseNum(contribPrevidRetida),
+        },
+        totais: {
+          federal: parseNum(totalFederal),
+          estadual: parseNum(totalEstadual),
+          municipal: parseNum(totalMunicipal),
+        },
       },
       certificadoSenha: senhaCert,
     };
