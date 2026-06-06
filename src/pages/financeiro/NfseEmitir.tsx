@@ -441,8 +441,10 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
     setContribSociaisRetidas(fmt2(base * 0.01));
   }, [basePisCofins]);
 
-  // Base de cálculo INSS = valor do serviço (preenche automaticamente)
-  useEffect(() => { setBaseInss(valorServico || "0,00"); }, [valorServico]);
+  // Base de cálculo INSS = Valor do serviço − Deduções
+  useEffect(() => {
+    setBaseInss(fmt2(Math.max(0, parseNum(valorServico) - parseNum(deducoes))));
+  }, [valorServico, deducoes]);
 
   // Contribuição Previdenciária Retida = 11% da base INSS
   useEffect(() => { setContribPrevidRetida(fmt2(parseNum(baseInss) * 0.11)); }, [baseInss]);
