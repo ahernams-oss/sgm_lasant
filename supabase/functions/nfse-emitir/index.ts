@@ -1,5 +1,5 @@
 // Emissão NFS-e Nacional (Emissor Nacional gov.br) — Homologação
-// Endpoint sandbox: https://sefin.staging.cloud.gov.br/sefinnacional/nfse
+// Endpoint sandbox: https://hom.sefin.nfse.gov.br/sefinnacional/nfse
 //
 // Fluxo:
 // 1. Recebe modelo (prestador, tomador, serviço, tributos, valores)
@@ -11,7 +11,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import forge from "npm:node-forge@1.3.1";
 
-const SANDBOX_URL = "https://sefin.staging.cloud.gov.br/sefinnacional/nfse";
+const SANDBOX_URL = "https://hom.sefin.nfse.gov.br/sefinnacional/nfse";
 const PROD_URL = "https://sefin.nfse.gov.br/sefinnacional/nfse";
 
 type Modelo = {
