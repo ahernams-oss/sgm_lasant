@@ -344,6 +344,7 @@ function downloadText(filename: string, content: string) {
 function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () => void; initial?: Partial<ModeloEmissaoNfse> }) {
   const { empresa } = useEmpresa();
   const { clientes } = useClientes();
+  const { obras, porCliente } = useObras();
   const { emitir, config } = useNfses();
 
   const [submitting, setSubmitting] = useState(false);
