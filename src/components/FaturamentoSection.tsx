@@ -116,7 +116,7 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
           if (!v) return "";
           const num = Number(String(v).replace(",", "."));
           if (!isFinite(num)) return "";
-          return num.toFixed(2).replace(".", ",");
+          return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         };
         const vNFbr = toBR(vNF);
         const vLiqBr = toBR(vLiq);
