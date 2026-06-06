@@ -444,6 +444,9 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   // Base de cálculo INSS = valor do serviço (preenche automaticamente)
   useEffect(() => { setBaseInss(valorServico || "0,00"); }, [valorServico]);
 
+  // Contribuição Previdenciária Retida = 11% da base INSS
+  useEffect(() => { setContribPrevidRetida(fmt2(parseNum(baseInss) * 0.11)); }, [baseInss]);
+
 
 
   const onSubmit = async () => {
@@ -839,7 +842,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
                 </div>
                 <div className="flex flex-col">
                   <Label className="min-h-[2.5rem] leading-tight">Contribuição Previdenciária - Retida (R$)</Label>
-                  <Input value={contribPrevidRetida} onChange={(e) => setContribPrevidRetida(e.target.value)} />
+                  <Input value={contribPrevidRetida} readOnly className="bg-muted" />
                 </div>
               </div>
             </div>
