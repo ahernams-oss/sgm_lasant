@@ -383,6 +383,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   const [irrf, setIrrf] = useState<string>("0,00");
   const [contribSociaisRetidas, setContribSociaisRetidas] = useState<string>("0,00");
   const [contribPrevidRetida, setContribPrevidRetida] = useState<string>("0,00");
+  const [baseInss, setBaseInss] = useState<string>("0,00");
 
   // Total dos tributos
   const [totalFederal, setTotalFederal] = useState<string>("0,00");
