@@ -355,6 +355,23 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   const [deducoes, setDeducoes] = useState<string>("0,00");
   const [aliquotaIss, setAliquotaIss] = useState<string>(String(config?.aliquota_iss_padrao || "5"));
   const [issRetido, setIssRetido] = useState<boolean>(!!config?.iss_retido_padrao);
+
+  // Tributação Federal
+  const [pisCofinsSituacao, setPisCofinsSituacao] = useState<string>("1");
+  const [basePisCofins, setBasePisCofins] = useState<string>("0,00");
+  const [aliquotaPis, setAliquotaPis] = useState<string>("0,65");
+  const [pisDebito, setPisDebito] = useState<string>("0,00");
+  const [aliquotaCofins, setAliquotaCofins] = useState<string>("3,00");
+  const [cofinsDebito, setCofinsDebito] = useState<string>("0,00");
+  const [descContribRetidas, setDescContribRetidas] = useState<string>("0");
+  const [irrf, setIrrf] = useState<string>("0,00");
+  const [contribSociaisRetidas, setContribSociaisRetidas] = useState<string>("0,00");
+  const [contribPrevidRetida, setContribPrevidRetida] = useState<string>("0,00");
+
+  // Total dos tributos
+  const [totalFederal, setTotalFederal] = useState<string>("0,00");
+  const [totalEstadual, setTotalEstadual] = useState<string>("0,00");
+  const [totalMunicipal, setTotalMunicipal] = useState<string>("0,00");
   const [senhaCert, setSenhaCert] = useState("");
   const [ufPrest, setUfPrest] = useState<string>("");
   const [municipioPrest, setMunicipioPrest] = useState<{ id: string; nome: string } | null>(null);
