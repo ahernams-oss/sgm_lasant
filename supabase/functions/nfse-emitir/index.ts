@@ -292,10 +292,11 @@ Deno.serve(async (req) => {
     let respStatus = 0, respText = "", chaveAcesso: string | null = null,
       protocolo: string | null = null, dataEmissao: string | null = null;
     try {
+      const dpsXmlGZipB64 = Buffer.from(gzipSync(Buffer.from(xmlAssinado, "utf-8"))).toString("base64");
       const resp = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/xml", "Accept": "application/xml" },
-        body: xmlAssinado,
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ dpsXmlGZipB64 }),
       });
       respStatus = resp.status;
       respText = await resp.text();
