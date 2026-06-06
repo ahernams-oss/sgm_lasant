@@ -12,36 +12,46 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import forge from "npm:node-forge@1.3.1";
 import { gzipSync, gunzipSync } from "node:zlib";
 import { Buffer } from "node:buffer";
-import https from "node:https";
-import { URL as NodeURL } from "node:url";
 
 const SANDBOX_URL = "https://sefin.producaorestrita.nfse.gov.br/SefinNacional/nfse";
 const PROD_URL = "https://sefin.nfse.gov.br/SefinNacional/nfse";
 
-// Edge Runtime fetch força HTTP/2; o endpoint NFS-e exige HTTP/1.1.
-// Workaround usando node:https.
-function httpsPostJson(targetUrl: string, body: string): Promise<{ status: number; text: string }> {
-  return new Promise((resolve, reject) => {
-    const u = new NodeURL(targetUrl);
-    const req = https.request({
-      method: "POST",
-      hostname: u.hostname,
-      port: u.port || 443,
-      path: u.pathname + u.search,
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Content-Length": Buffer.byteLength(body),
-      },
-    }, (res) => {
-      const chunks: Buffer[] = [];
-      res.on("data", (c) => chunks.push(c));
-      res.on("end", () => resolve({ status: res.statusCode || 0, text: Buffer.concat(chunks).toString("utf-8") }));
-    });
-    req.on("error", reject);
-    req.write(body);
-    req.end();
-  });
+// Edge Runtime/node:https pode falhar no ambiente da função; usamos socket TLS + HTTP/1.1 cru.
+async function httpsPostJson(targetUrl: string, body: string): Promise<{ status: number; text: string }> {
+  const u = new URL(targetUrl);
+  const hostname = u.hostname;
+  const port = Number(u.port || 443);
+  const path = `${u.pathname}${u.search}`;
+  const request = [
+    `POST ${path} HTTP/1.1`,
+    `Host: ${hostname}`,
+    "Content-Type: application/json",
+    "Accept: application/json",
+    "Connection: close",
+    `Content-Length: ${Buffer.byteLength(body)}`,
+    "",
+    body,
+  ].join("\r\n");
+
+  const conn = await Deno.connectTls({ hostname, port, alpnProtocols: ["http/1.1"] });
+  try {
+    await conn.write(new TextEncoder().encode(request));
+    const chunks: Uint8Array[] = [];
+    const buf = new Uint8Array(16 * 1024);
+    while (true) {
+      const n = await conn.read(buf);
+      if (n === null) break;
+      chunks.push(buf.slice(0, n));
+    }
+    const raw = new TextDecoder().decode(Buffer.concat(chunks));
+    const headerEnd = raw.indexOf("\r\n\r\n");
+    const head = headerEnd >= 0 ? raw.slice(0, headerEnd) : raw;
+    const text = headerEnd >= 0 ? raw.slice(headerEnd + 4) : "";
+    const status = Number((head.match(/^HTTP\/\d(?:\.\d)?\s+(\d+)/) || [])[1] || 0);
+    return { status, text };
+  } finally {
+    try { conn.close(); } catch (_) { /* noop */ }
+  }
 }
 
 type Modelo = {
