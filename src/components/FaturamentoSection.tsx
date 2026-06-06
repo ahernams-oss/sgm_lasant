@@ -104,10 +104,22 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
 
         // NFe (nota fiscal eletrônica de produto) e NFSe (serviços - ABRASF / municipais)
         const nNF = getTag("nNF", "Numero", "NumeroNfse", "numero_nfse", "numero");
-        const vNF = getTag("vNF", "ValorServicos", "valor_servicos", "ValorTotal", "valor_total", "ValorBruto", "valor_bruto");
+        // Valor Bruto = Valor dos Serviços (ValorServicos) na NFS-e
+        const vServ = getTag("ValorServicos", "valor_servicos", "vServ", "ValorServico", "valor_servico");
+        const vNF = vServ || getTag("vNF", "ValorTotal", "valor_total", "ValorBruto", "valor_bruto");
         const vLiq = getTag("vLiq", "ValorLiquidoNfse", "valor_liquido_nfse", "ValorLiquido", "valor_liquido") || vNF;
         const dhEmi = getTag("dhEmi", "DataEmissao", "data_emissao", "DataEmissaoRps");
         const dataEmi = dhEmi ? dhEmi.substring(0, 10) : "";
+
+        // Converte valores do formato XML (1234.56) para BR (1234,56)
+        const toBR = (v: string) => {
+          if (!v) return "";
+          const num = Number(String(v).replace(",", "."));
+          if (!isFinite(num)) return "";
+          return num.toFixed(2).replace(".", ",");
+        };
+        const vNFbr = toBR(vNF);
+        const vLiqBr = toBR(vLiq);
 
         // Chave: NFe (chNFe / infNFe@Id), NFSe (CodigoVerificacao) ou nome do arquivo (chave de 44+ dígitos)
         let chave = getTag("chNFe", "ChaveAcesso", "chave_acesso", "CodigoVerificacao", "codigo_verificacao");
@@ -128,10 +140,11 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
           ...(nNF && !prev.numeroNf ? { numeroNf: nNF } : {}),
           ...(chave && !prev.chaveNf ? { chaveNf: chave } : {}),
           ...(nNF && !prev.numeroMedicao ? { numeroMedicao: nNF } : {}),
-          ...(vNF && !prev.valorBruto ? { valorBruto: vNF } : {}),
-          ...(vLiq && !prev.valorLiquido ? { valorLiquido: vLiq } : {}),
+          ...(vNFbr && (!prev.valorBruto || prev.valorBruto === "0,00") ? { valorBruto: vNFbr } : {}),
+          ...(vLiqBr && (!prev.valorLiquido || prev.valorLiquido === "0,00") ? { valorLiquido: vLiqBr } : {}),
           ...(dataEmi && !prev.dataEmissaoNf ? { dataEmissaoNf: dataEmi } : {}),
         }));
+
         toast.success("XML importado! Dados extraídos automaticamente.");
       } catch {
         setForm((prev) => ({ ...prev, xmlNfNome: file.name, xmlNfConteudo: content.substring(0, 5000) }));
