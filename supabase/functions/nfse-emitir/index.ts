@@ -68,7 +68,11 @@ function montarPayloadFocus(numero: number, m: Modelo, cnpjEmpresa: string) {
   return {
     data_emissao: dataEmissao,
     natureza_operacao: 1, // tributação no município
-    prestador: { cnpj: cnpjEmpresa, inscricao_municipal: m.prestador.im || undefined },
+    prestador: {
+      cnpj: cnpjEmpresa,
+      inscricao_municipal: m.prestador.im || undefined,
+      codigo_municipio: m.prestador.codigoMunicipio,
+    },
     tomador: {
       ...tomadorDoc,
       razao_social: m.tomador.razaoSocial,
