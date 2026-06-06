@@ -389,6 +389,34 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   const cliente = clientes.find((c) => c.id === clienteId);
 
   const parseNum = (s: string) => Number(String(s).replace(/\./g, "").replace(",", ".")) || 0;
+  const fmt2 = (n: number) => (Number(n) || 0).toFixed(2).replace(".", ",");
+
+  // Auto: base PIS/COFINS = valor do serviço
+  useEffect(() => {
+    setBasePisCofins(fmt2(parseNum(valorServico)));
+  }, [valorServico]);
+
+  // Auto: PIS débito = base × alíquota PIS
+  useEffect(() => {
+    setPisDebito(fmt2(parseNum(basePisCofins) * parseNum(aliquotaPis) / 100));
+  }, [basePisCofins, aliquotaPis]);
+
+  // Auto: COFINS débito = base × alíquota COFINS
+  useEffect(() => {
+    setCofinsDebito(fmt2(parseNum(basePisCofins) * parseNum(aliquotaCofins) / 100));
+  }, [basePisCofins, aliquotaCofins]);
+
+  // Auto: Total Federal % = (PIS + COFINS + IRRF + Contrib. Sociais + Contrib. Prev.) / valor × 100
+  useEffect(() => {
+    const v = parseNum(valorServico);
+    if (v <= 0) { setTotalFederal("0,00"); return; }
+    const total = parseNum(pisDebito) + parseNum(cofinsDebito) + parseNum(irrf) + parseNum(contribSociaisRetidas) + parseNum(contribPrevidRetida);
+    setTotalFederal(fmt2(total / v * 100));
+  }, [pisDebito, cofinsDebito, irrf, contribSociaisRetidas, contribPrevidRetida, valorServico]);
+
+  // Auto: Total Municipal % = alíquota ISS
+  useEffect(() => { setTotalMunicipal(fmt2(parseNum(aliquotaIss))); }, [aliquotaIss]);
+
 
 
   const onSubmit = async () => {
