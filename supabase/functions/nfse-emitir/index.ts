@@ -10,8 +10,10 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import forge from "npm:node-forge@1.3.1";
+import { gzipSync } from "node:zlib";
+import { Buffer } from "node:buffer";
 
-const SANDBOX_URL = "https://sefin.producaorestrita.nfse.gov.br/API/SefinNacional/nfse";
+const SANDBOX_URL = "https://sefin.producaorestrita.nfse.gov.br/SefinNacional/nfse";
 const PROD_URL = "https://sefin.nfse.gov.br/SefinNacional/nfse";
 
 type Modelo = {
@@ -290,19 +292,27 @@ Deno.serve(async (req) => {
     let respStatus = 0, respText = "", chaveAcesso: string | null = null,
       protocolo: string | null = null, dataEmissao: string | null = null;
     try {
+      const dpsXmlGZipB64 = Buffer.from(gzipSync(Buffer.from(xmlAssinado, "utf-8"))).toString("base64");
       const resp = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/xml", "Accept": "application/xml" },
-        body: xmlAssinado,
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ dpsXmlGZipB64 }),
       });
       respStatus = resp.status;
       respText = await resp.text();
 
+      let nfseXml: string | null = null;
       if (resp.ok) {
-        // Extração simples — schema real devolve <NFSe> ou <retNFSe>
-        chaveAcesso = (respText.match(/<chNFSe>([^<]+)<\/chNFSe>/) || [])[1] || null;
-        protocolo = (respText.match(/<nProt>([^<]+)<\/nProt>/) || [])[1] || null;
-        dataEmissao = (respText.match(/<dhProc>([^<]+)<\/dhProc>/) || [])[1] || null;
+        try {
+          const j = JSON.parse(respText);
+          chaveAcesso = j.chaveAcesso || null;
+          if (j.nfseXmlGZipB64) {
+            const { gunzipSync } = await import("node:zlib");
+            nfseXml = gunzipSync(Buffer.from(j.nfseXmlGZipB64, "base64")).toString("utf-8");
+            protocolo = (nfseXml.match(/<nProt>([^<]+)<\/nProt>/) || [])[1] || null;
+            dataEmissao = (nfseXml.match(/<dhProc>([^<]+)<\/dhProc>/) || [])[1] || null;
+          }
+        } catch (_) { /* keep raw text */ }
       }
     } catch (e) {
       respText = "Falha de rede ao chamar Emissor Nacional: " + (e as Error).message;
