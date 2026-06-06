@@ -15,6 +15,7 @@ import { FileText, Plus, Eye, Download, XCircle, Loader2, Receipt, Check, Chevro
 import { useNfses, ModeloEmissaoNfse, NfseEmitida } from "@/contexts/NfsesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { useObras } from "@/contexts/ObrasContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
@@ -343,6 +344,7 @@ function downloadText(filename: string, content: string) {
 function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () => void; initial?: Partial<ModeloEmissaoNfse> }) {
   const { empresa } = useEmpresa();
   const { clientes } = useClientes();
+  const { obras, porCliente } = useObras();
   const { emitir, config } = useNfses();
 
   const [submitting, setSubmitting] = useState(false);
@@ -353,6 +355,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   const [codigoNbs, setCodigoNbs] = useState<string>(config?.codigo_nbs || "");
   const [valorServico, setValorServico] = useState<string>("0,00");
   const [deducoes, setDeducoes] = useState<string>("0,00");
+  const [obraId, setObraId] = useState<string>("");
   const [aliquotaIss, setAliquotaIss] = useState<string>(String(config?.aliquota_iss_padrao || "5"));
   const [issRetido, setIssRetido] = useState<boolean>(!!config?.iss_retido_padrao);
 
@@ -462,6 +465,9 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
       },
       servico: {
         descricao,
+        codigoObra: obraId ? (obras.find((o) => o.id === obraId)?.numero || obraId) : undefined,
+        obraId: obraId || undefined,
+        obraNome: obraId ? obras.find((o) => o.id === obraId)?.nome : undefined,
         codigoTributacaoNacional: codigoTribNacional || undefined,
         codigoTributacaoMunicipio: codigoTrib,
         codigoNbs: codigoNbs || undefined,
@@ -610,6 +616,24 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div>
+              <Label>Código de Obra</Label>
+              <Select value={obraId || "nenhuma"} onValueChange={(v) => setObraId(v === "nenhuma" ? "" : v)}>
+                <SelectTrigger><SelectValue placeholder="Selecione a obra..." /></SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value="nenhuma">— Sem obra vinculada —</SelectItem>
+                  {(clienteId ? porCliente(clienteId) : obras).map((o) => (
+                    <SelectItem key={o.id} value={o.id}>
+                      <span className="font-mono mr-2">{o.numero ?? "—"}</span>
+                      {o.nome}{!clienteId && o.cliente_nome ? ` (${o.cliente_nome})` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {clienteId && porCliente(clienteId).length === 0 && (
+                <p className="text-xs text-muted-foreground mt-1">Nenhuma obra cadastrada para este cliente.</p>
+              )}
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
