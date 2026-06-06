@@ -791,6 +791,11 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
                 <Input value={basePisCofins} readOnly className="bg-muted" />
                 <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente com o valor bruto do serviço.</p>
               </div>
+              <div>
+                <Label>Base de cálculo INSS (R$)</Label>
+                <Input value={baseInss} onChange={(e) => setBaseInss(e.target.value)} />
+                <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente com o valor bruto do serviço.</p>
+              </div>
               <div className="grid grid-cols-4 gap-3">
                 <div className="flex flex-col">
                   <Label className="min-h-[2.5rem] leading-tight">PIS - Alíquota (%)</Label>
