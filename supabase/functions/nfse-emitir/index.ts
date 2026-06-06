@@ -1,62 +1,22 @@
-// Emissão NFS-e Nacional (Emissor Nacional gov.br) — Homologação
-// Endpoint sandbox: https://sefin.producaorestrita.nfse.gov.br/API/SefinNacional/nfse
+// Emissão NFS-e via Focus NFE
+// Docs: https://focusnfe.com.br/doc/#nfse
+// - POST /v2/nfse?ref={ref}  -> dispara emissão (assíncrona)
+// - GET  /v2/nfse/{ref}      -> consulta status
 //
-// Fluxo:
-// 1. Recebe modelo (prestador, tomador, serviço, tributos, valores)
-// 2. Persiste rascunho em nfses_emitidas (gera número via trigger)
-// 3. Monta DPS XML segundo schema nacional v1.00
-// 4. Carrega certificado A1 da empresa (bucket certificados-digitais) e assina XMLDSig
-// 5. POST para sandbox e atualiza registro com resposta
+// Ambiente: empresa.nfe_ambiente ("homologacao" | "producao") OU modelo.ambiente (2=hom, 1=prod)
+// Token: FOCUS_NFE_TOKEN_HOMOLOGACAO / FOCUS_NFE_TOKEN_PRODUCAO (Basic auth com token como user)
+
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import forge from "npm:node-forge@1.3.1";
-import { gzipSync, gunzipSync } from "node:zlib";
-import { Buffer } from "node:buffer";
 
-const SANDBOX_URL = "https://sefin.producaorestrita.nfse.gov.br/SefinNacional/nfse";
-const PROD_URL = "https://sefin.nfse.gov.br/SefinNacional/nfse";
+const URL_HOM = "https://homologacao.focusnfe.com.br";
+const URL_PROD = "https://api.focusnfe.com.br";
 
-// Edge Runtime/node:https pode falhar no ambiente da função; usamos socket TLS + HTTP/1.1 cru.
-async function httpsPostJson(targetUrl: string, body: string): Promise<{ status: number; text: string }> {
-  const u = new URL(targetUrl);
-  const hostname = u.hostname;
-  const port = Number(u.port || 443);
-  const path = `${u.pathname}${u.search}`;
-  const request = [
-    `POST ${path} HTTP/1.1`,
-    `Host: ${hostname}`,
-    "Content-Type: application/json",
-    "Accept: application/json",
-    "Connection: close",
-    `Content-Length: ${Buffer.byteLength(body)}`,
-    "",
-    body,
-  ].join("\r\n");
-
-  const conn = await Deno.connectTls({ hostname, port, alpnProtocols: ["http/1.1"] });
-  try {
-    await conn.write(new TextEncoder().encode(request));
-    const chunks: Uint8Array[] = [];
-    const buf = new Uint8Array(16 * 1024);
-    while (true) {
-      const n = await conn.read(buf);
-      if (n === null) break;
-      chunks.push(buf.slice(0, n));
-    }
-    const raw = new TextDecoder().decode(Buffer.concat(chunks));
-    const headerEnd = raw.indexOf("\r\n\r\n");
-    const head = headerEnd >= 0 ? raw.slice(0, headerEnd) : raw;
-    const text = headerEnd >= 0 ? raw.slice(headerEnd + 4) : "";
-    const status = Number((head.match(/^HTTP\/\d(?:\.\d)?\s+(\d+)/) || [])[1] || 0);
-    return { status, text };
-  } finally {
-    try { conn.close(); } catch (_) { /* noop */ }
-  }
-}
+const digits = (s: string) => (s || "").replace(/\D+/g, "");
 
 type Modelo = {
   empresaId: string;
-  ambiente?: 1 | 2;
+  ambiente?: 1 | 2; // 1=prod, 2=hom (compat com schema antigo)
   serie?: string;
   dataCompetencia?: string;
   faturamentoId?: string | null;
@@ -87,168 +47,79 @@ type Modelo = {
     issRetido: boolean;
     pis?: number; cofins?: number; inss?: number; ir?: number; csll?: number;
   };
-  certificadoSenha: string;
+  certificadoSenha?: string; // ignorado (Focus gerencia o certificado)
 };
 
-function esc(s: string | number | undefined | null): string {
-  if (s === undefined || s === null) return "";
-  return String(s)
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
-}
-
-function digits(s: string) { return (s || "").replace(/\D+/g, ""); }
-function fmt(n: number, d = 2) { return (Number(n) || 0).toFixed(d); }
-
-/** Monta XML DPS (Declaração de Prestação de Serviço) conforme schema nacional v1.00 */
-function buildDPSXml(numeroDps: number, m: Modelo): { xml: string; id: string } {
-  const amb = m.ambiente || 2;
-  const serie = m.serie || "00001";
-  const dCompet = m.dataCompetencia || new Date().toISOString().slice(0, 10);
-  const dhEmi = new Date().toISOString().replace(/\.\d+Z$/, "-03:00");
-  const idDps = `DPS${digits(m.prestador.cnpj).padStart(14, "0")}${amb}${serie.padStart(5, "0")}${String(numeroDps).padStart(15, "0")}`;
-
-  const valorServico = Number(m.servico.valorServico) || 0;
+function montarPayloadFocus(numero: number, m: Modelo, cnpjEmpresa: string) {
+  const dataEmissao = new Date().toISOString().replace(/\.\d+Z$/, "-03:00");
+  const valor = Number(m.servico.valorServico) || 0;
   const deducoes = Number(m.servico.deducoes) || 0;
-  const baseCalculo = Math.max(0, valorServico - deducoes - (m.servico.descontoIncondicionado || 0));
-  const valorIss = baseCalculo * (Number(m.tributos.aliquotaIss) || 0) / 100;
-
-  const tomadorDoc = digits(m.tomador.documento);
-  const tomadorTag = m.tomador.tipo === "CPF"
-    ? `<CPF>${esc(tomadorDoc)}</CPF>`
-    : m.tomador.tipo === "CNPJ"
-    ? `<CNPJ>${esc(tomadorDoc)}</CNPJ>`
-    : `<NIFTom>${esc(tomadorDoc)}</NIFTom>`;
-
+  const descIncond = Number(m.servico.descontoIncondicionado || 0);
+  const descCond = Number(m.servico.descontoCondicionado || 0);
+  const base = Math.max(0, valor - deducoes - descIncond);
+  const aliq = Number(m.tributos.aliquotaIss) || 0;
+  const valorIss = +(base * aliq / 100).toFixed(2);
   const end = m.tomador.endereco || {};
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<DPS xmlns="http://www.sped.fazenda.gov.br/nfse" versao="1.00">
-  <infDPS Id="${idDps}" versao="1.00">
-    <tpAmb>${amb}</tpAmb>
-    <dhEmi>${dhEmi}</dhEmi>
-    <verAplic>1.00</verAplic>
-    <serie>${esc(serie)}</serie>
-    <nDPS>${numeroDps}</nDPS>
-    <dCompet>${esc(dCompet)}</dCompet>
-    <tpEmit>1</tpEmit>
-    <cLocEmi>${esc(m.prestador.codigoMunicipio)}</cLocEmi>
-    <prest>
-      <CNPJ>${esc(digits(m.prestador.cnpj))}</CNPJ>
-      ${m.prestador.im ? `<IM>${esc(m.prestador.im)}</IM>` : ""}
-      <xNome>${esc(m.prestador.razaoSocial)}</xNome>
-      <regTrib>
-        <opSimpNac>${m.prestador.optanteSimples ? 1 : 2}</opSimpNac>
-        <regApTribSN>${m.prestador.regimeTributario || 1}</regApTribSN>
-      </regTrib>
-    </prest>
-    <toma>
-      ${tomadorTag}
-      ${m.tomador.inscricaoMunicipal ? `<IM>${esc(m.tomador.inscricaoMunicipal)}</IM>` : ""}
-      <xNome>${esc(m.tomador.razaoSocial)}</xNome>
-      <end>
-        <endNac>
-          <cMun>${esc(end.codigoMunicipio || m.prestador.codigoMunicipio)}</cMun>
-          <CEP>${esc(digits(end.cep || ""))}</CEP>
-        </endNac>
-        <xLgr>${esc(end.logradouro || "")}</xLgr>
-        <nro>${esc(end.numero || "S/N")}</nro>
-        ${end.complemento ? `<xCpl>${esc(end.complemento)}</xCpl>` : ""}
-        <xBairro>${esc(end.bairro || "")}</xBairro>
-      </end>
-      ${m.tomador.email ? `<email>${esc(m.tomador.email)}</email>` : ""}
-    </toma>
-    <serv>
-      <locPrest><cLocPrestacao>${esc(m.prestador.codigoMunicipio)}</cLocPrestacao></locPrest>
-      <cServ>
-        <cTribNac>${esc(m.servico.codigoTributacaoMunicipio)}</cTribNac>
-        ${m.servico.codigoNbs ? `<cNBS>${esc(m.servico.codigoNbs)}</cNBS>` : ""}
-        ${m.servico.cnae ? `<CNAE>${esc(m.servico.cnae)}</CNAE>` : ""}
-        <xDescServ>${esc(m.servico.descricao)}</xDescServ>
-      </cServ>
-    </serv>
-    <valores>
-      <vServPrest>
-        <vReceb>${fmt(valorServico)}</vReceb>
-        <vServ>${fmt(valorServico)}</vServ>
-      </vServPrest>
-      <vDescCondIncond>
-        <vDescIncond>${fmt(m.servico.descontoIncondicionado || 0)}</vDescIncond>
-        <vDescCond>${fmt(m.servico.descontoCondicionado || 0)}</vDescCond>
-      </vDescCondIncond>
-      <vDedRed>
-        <vDR>${fmt(deducoes)}</vDR>
-      </vDedRed>
-      <trib>
-        <tribMun>
-          <tribISSQN>${m.tributos.issRetido ? 2 : 1}</tribISSQN>
-          <cLocIncid>${esc(m.prestador.codigoMunicipio)}</cLocIncid>
-          <pAliq>${fmt(m.tributos.aliquotaIss, 4)}</pAliq>
-          <tpRetISSQN>${m.tributos.issRetido ? 1 : 2}</tpRetISSQN>
-        </tribMun>
-        <totTrib>
-          <vTotTrib>
-            <vTotTribFed>${fmt((m.tributos.pis||0)+(m.tributos.cofins||0)+(m.tributos.ir||0)+(m.tributos.csll||0)+(m.tributos.inss||0))}</vTotTribFed>
-            <vTotTribEst>0.00</vTotTribEst>
-            <vTotTribMun>${fmt(valorIss)}</vTotTribMun>
-          </vTotTrib>
-        </totTrib>
-      </trib>
-    </valores>
-  </infDPS>
-</DPS>`.trim();
+  const tomadorDoc: any = {};
+  if (m.tomador.tipo === "CNPJ") tomadorDoc.cnpj = digits(m.tomador.documento);
+  else if (m.tomador.tipo === "CPF") tomadorDoc.cpf = digits(m.tomador.documento);
 
-  return { xml, id: idDps };
+  return {
+    data_emissao: dataEmissao,
+    natureza_operacao: 1, // tributação no município
+    prestador: { cnpj: cnpjEmpresa, inscricao_municipal: m.prestador.im || undefined },
+    tomador: {
+      ...tomadorDoc,
+      razao_social: m.tomador.razaoSocial,
+      email: m.tomador.email || undefined,
+      inscricao_municipal: m.tomador.inscricaoMunicipal || undefined,
+      endereco: {
+        logradouro: end.logradouro || undefined,
+        numero: end.numero || "S/N",
+        complemento: end.complemento || undefined,
+        bairro: end.bairro || undefined,
+        codigo_municipio: end.codigoMunicipio || m.prestador.codigoMunicipio,
+        uf: end.uf || undefined,
+        cep: digits(end.cep || "") || undefined,
+      },
+    },
+    servico: {
+      aliquota: aliq,
+      discriminacao: m.servico.descricao,
+      iss_retido: m.tributos.issRetido ? "true" : "false",
+      item_lista_servico: m.servico.codigoTributacaoMunicipio,
+      codigo_tributario_municipio: m.servico.codigoTributacaoMunicipio,
+      codigo_cnae: m.servico.cnae || undefined,
+      codigo_municipio: m.prestador.codigoMunicipio,
+      valor_servicos: valor,
+      valor_deducoes: deducoes || undefined,
+      valor_iss: valorIss,
+      base_calculo: base,
+      desconto_incondicionado: descIncond || undefined,
+      desconto_condicionado: descCond || undefined,
+      valor_pis: m.tributos.pis || undefined,
+      valor_cofins: m.tributos.cofins || undefined,
+      valor_inss: m.tributos.inss || undefined,
+      valor_ir: m.tributos.ir || undefined,
+      valor_csll: m.tributos.csll || undefined,
+    },
+  };
 }
 
-/** Assina o XML DPS com XMLDSig enveloped (RSA-SHA256, C14N exclusive) usando node-forge */
-function signDPS(xml: string, infDpsId: string, privateKey: forge.pki.PrivateKey, cert: forge.pki.Certificate): string {
-  // 1. Extrai elemento <infDPS ...>...</infDPS>
-  const infMatch = xml.match(/<infDPS\b[^>]*>[\s\S]*?<\/infDPS>/);
-  if (!infMatch) throw new Error("Não foi possível localizar <infDPS> no XML");
-  const infXml = infMatch[0];
-
-  // 2. Canonicaliza (simplificado — para conformidade total c14n exclusive use uma lib)
-  //    Aqui aplicamos normalização básica: remove whitespace entre tags.
-  const canonical = infXml.replace(/>\s+</g, "><").trim();
-
-  // 3. Digest SHA-256 (base64)
-  const md = forge.md.sha256.create();
-  md.update(canonical, "raw");
-  const digestB64 = forge.util.encode64(md.digest().bytes());
-
-  // 4. Monta SignedInfo
-  const signedInfo = `<SignedInfo xmlns="http://www.w3.org/2000/09/xmldsig#">` +
-    `<CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>` +
-    `<SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>` +
-    `<Reference URI="#${infDpsId}">` +
-      `<Transforms>` +
-        `<Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>` +
-        `<Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>` +
-      `</Transforms>` +
-      `<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>` +
-      `<DigestValue>${digestB64}</DigestValue>` +
-    `</Reference>` +
-  `</SignedInfo>`;
-
-  // 5. Assina SignedInfo
-  const signMd = forge.md.sha256.create();
-  signMd.update(signedInfo, "raw");
-  const signature = (privateKey as forge.pki.rsa.PrivateKey).sign(signMd);
-  const signatureB64 = forge.util.encode64(signature);
-
-  // 6. Certificado em base64 DER
-  const certDer = forge.asn1.toDer(forge.pki.certificateToAsn1(cert)).getBytes();
-  const certB64 = forge.util.encode64(certDer);
-
-  const signatureXml = `<Signature xmlns="http://www.w3.org/2000/09/xmldsig#">` +
-    signedInfo +
-    `<SignatureValue>${signatureB64}</SignatureValue>` +
-    `<KeyInfo><X509Data><X509Certificate>${certB64}</X509Certificate></X509Data></KeyInfo>` +
-  `</Signature>`;
-
-  // 7. Insere a Signature dentro do <DPS> logo após </infDPS>
-  return xml.replace("</infDPS>", `</infDPS>${signatureXml}`);
+async function consultarStatus(baseUrl: string, auth: string, ref: string, tentativas = 6, intervaloMs = 1500) {
+  for (let i = 0; i < tentativas; i++) {
+    const r = await fetch(`${baseUrl}/v2/nfse/${encodeURIComponent(ref)}`, {
+      headers: { Authorization: auth, Accept: "application/json" },
+    });
+    const txt = await r.text();
+    let j: any = null;
+    try { j = JSON.parse(txt); } catch {}
+    const status = (j?.status || "").toLowerCase();
+    if (status && status !== "processando_autorizacao") return { httpStatus: r.status, body: j, raw: txt };
+    if (i < tentativas - 1) await new Promise((res) => setTimeout(res, intervaloMs));
+  }
+  return { httpStatus: 0, body: null, raw: "Tempo de processamento excedido" };
 }
 
 Deno.serve(async (req) => {
@@ -257,109 +128,118 @@ Deno.serve(async (req) => {
   try {
     const modelo = await req.json() as Modelo;
     if (!modelo?.empresaId) throw new Error("empresaId é obrigatório");
-    if (!modelo?.certificadoSenha) throw new Error("Senha do certificado A1 é obrigatória");
 
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const ambiente = modelo.ambiente || 2;
-    const serie = modelo.serie || "00001";
+
+    // Empresa + ambiente
+    const { data: empresa, error: empErr } = await admin
+      .from("empresa").select("cnpj, razao_social, nfe_ambiente").eq("id", modelo.empresaId).maybeSingle();
+    if (empErr || !empresa) throw new Error("Empresa não encontrada");
+    const cnpjEmpresa = digits(empresa.cnpj || "");
+    if (cnpjEmpresa.length !== 14) throw new Error("CNPJ da empresa inválido");
+
+    // Determina ambiente: aceita modelo.ambiente (1/2) ou empresa.nfe_ambiente
+    let ambienteStr = String(empresa.nfe_ambiente || "homologacao").toLowerCase();
+    if (modelo.ambiente === 1) ambienteStr = "producao";
+    if (modelo.ambiente === 2) ambienteStr = "homologacao";
+    const ambienteNum = ambienteStr === "producao" ? 1 : 2;
+
+    const baseUrl = ambienteStr === "producao" ? URL_PROD : URL_HOM;
+    const tokenName = ambienteStr === "producao" ? "FOCUS_NFE_TOKEN_PRODUCAO" : "FOCUS_NFE_TOKEN_HOMOLOGACAO";
+    const token = Deno.env.get(tokenName);
+    if (!token) throw new Error(`Token ${tokenName} não configurado`);
+    const auth = "Basic " + btoa(`${token}:`);
 
     // 1. Cria rascunho (trigger gera numero_dps)
-    const valorServico = Number(modelo.servico.valorServico) || 0;
+    const valor = Number(modelo.servico.valorServico) || 0;
     const deducoes = Number(modelo.servico.deducoes) || 0;
-    const baseCalculo = Math.max(0, valorServico - deducoes - (modelo.servico.descontoIncondicionado || 0));
-    const valorIss = baseCalculo * (Number(modelo.tributos.aliquotaIss) || 0) / 100;
+    const base = Math.max(0, valor - deducoes - (modelo.servico.descontoIncondicionado || 0));
+    const valorIss = +(base * (Number(modelo.tributos.aliquotaIss) || 0) / 100).toFixed(2);
+    const serie = modelo.serie || "00001";
 
     const { data: inserted, error: insErr } = await admin.from("nfses_emitidas").insert({
-      empresa_id: modelo.empresaId, ambiente, serie,
+      empresa_id: modelo.empresaId,
+      ambiente: ambienteNum,
+      serie,
       status: "processando",
       cliente_id: modelo.clienteId || null,
       faturamento_id: modelo.faturamentoId || null,
       data_competencia: modelo.dataCompetencia || new Date().toISOString().slice(0, 10),
-      prestador: modelo.prestador, tomador: modelo.tomador,
-      servico: modelo.servico, tributos: modelo.tributos,
-      valor_servico: valorServico,
+      prestador: modelo.prestador,
+      tomador: modelo.tomador,
+      servico: modelo.servico,
+      tributos: modelo.tributos,
+      valor_servico: valor,
       valor_iss: valorIss,
-      valor_liquido: valorServico - (modelo.tributos.issRetido ? valorIss : 0),
+      valor_liquido: valor - (modelo.tributos.issRetido ? valorIss : 0),
     }).select("*").single();
     if (insErr || !inserted) throw new Error("Falha ao gravar rascunho: " + insErr?.message);
 
-    // 2. Busca certificado da empresa
-    const { data: empresa, error: empErr } = await admin.from("empresa")
-      .select("certificado_a1_url, cnpj, razao_social").eq("id", modelo.empresaId).single();
-    if (empErr || !empresa?.certificado_a1_url) {
+    // 2. Monta ref único e envia para Focus
+    const ref = `nfse-${inserted.id}`;
+    const payload = montarPayloadFocus(inserted.numero_dps, modelo, cnpjEmpresa);
+
+    const postResp = await fetch(`${baseUrl}/v2/nfse?ref=${encodeURIComponent(ref)}`, {
+      method: "POST",
+      headers: { Authorization: auth, "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const postText = await postResp.text();
+    let postJson: any = null;
+    try { postJson = JSON.parse(postText); } catch {}
+
+    // Focus: 202 = aceito, em processamento; 4xx = erro de validação
+    if (postResp.status >= 400 && postResp.status !== 422) {
+      const msg = postJson?.mensagem || postJson?.erros?.[0]?.mensagem || postText.slice(0, 500);
       await admin.from("nfses_emitidas").update({
-        status: "rejeitada", mensagem_retorno: "Certificado A1 não cadastrado em Dados da Empresa",
+        status: "rejeitada",
+        mensagem_retorno: `Focus HTTP ${postResp.status}: ${msg}`,
       }).eq("id", inserted.id);
-      throw new Error("Empresa sem certificado A1 cadastrado");
+      return new Response(JSON.stringify({
+        ok: false, id: inserted.id, httpStatus: postResp.status, mensagem: msg,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const { data: pfxFile, error: dlErr } = await admin.storage
-      .from("certificados-digitais").download(empresa.certificado_a1_url);
-    if (dlErr || !pfxFile) {
-      await admin.from("nfses_emitidas").update({
-        status: "rejeitada", mensagem_retorno: "Falha ao baixar certificado A1: " + (dlErr?.message || ""),
-      }).eq("id", inserted.id);
-      throw new Error("Falha ao baixar certificado");
+    // 3. Consulta status até autorizada/erro
+    const consulta = await consultarStatus(baseUrl, auth, ref);
+    const j = consulta.body || {};
+    const status = String(j.status || "").toLowerCase();
+
+    let novoStatus: string = "processando";
+    let mensagem = j.mensagem || j.mensagem_sefaz || "Em processamento";
+    let chave = j.codigo_verificacao || j.numero || null;
+    let protocolo = j.numero_rps || j.numero || null;
+    let dataEmissao: string | null = j.data_emissao || null;
+    let urlDanfse: string | null = j.url || j.caminho_xml_nota_fiscal || null;
+    let xmlNfse: string | null = null;
+
+    if (status === "autorizado") {
+      novoStatus = "emitida";
+      mensagem = "NFS-e autorizada";
+      // baixa XML
+      try {
+        const xmlPath = j.caminho_xml_nota_fiscal;
+        if (xmlPath) {
+          const xmlUrl = xmlPath.startsWith("http") ? xmlPath : `${baseUrl}${xmlPath}`;
+          const xr = await fetch(xmlUrl, { headers: { Authorization: auth } });
+          if (xr.ok) xmlNfse = await xr.text();
+        }
+      } catch (_) { /* opcional */ }
+    } else if (status === "cancelado") {
+      novoStatus = "cancelada";
+    } else if (status === "erro_autorizacao" || status === "rejeitado") {
+      novoStatus = "rejeitada";
+      mensagem = j.mensagem_sefaz || j.mensagem || "Rejeitada pela prefeitura";
     }
 
-    const buf = new Uint8Array(await pfxFile.arrayBuffer());
-    const binary = String.fromCharCode(...buf);
-    let p12: forge.pkcs12.Pkcs12Pfx;
-    try {
-      p12 = forge.pkcs12.pkcs12FromAsn1(forge.asn1.fromDer(binary, false), false, modelo.certificadoSenha);
-    } catch {
-      await admin.from("nfses_emitidas").update({
-        status: "rejeitada", mensagem_retorno: "Senha do certificado A1 incorreta",
-      }).eq("id", inserted.id);
-      return new Response(JSON.stringify({ ok: false, error: "Senha do certificado A1 incorreta" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    const certBags = p12.getBags({ bagType: forge.pki.oids.certBag });
-    const keyBags = p12.getBags({ bagType: forge.pki.oids.pkcs8ShroudedKeyBag });
-    const cert = (certBags[forge.pki.oids.certBag] || [])[0]?.cert;
-    const key = (keyBags[forge.pki.oids.pkcs8ShroudedKeyBag] || [])[0]?.key;
-    if (!cert || !key) throw new Error("Certificado ou chave privada não localizados no .pfx");
-
-    // 3. Monta + assina DPS
-    const { xml: xmlDps, id: idDps } = buildDPSXml(inserted.numero_dps, modelo);
-    const xmlAssinado = signDPS(xmlDps, idDps, key, cert);
-
-    // 4. Envia para Emissor Nacional
-    const url = ambiente === 1 ? PROD_URL : SANDBOX_URL;
-    let respStatus = 0, respText = "", chaveAcesso: string | null = null,
-      protocolo: string | null = null, dataEmissao: string | null = null;
-    try {
-      const dpsXmlGZipB64 = Buffer.from(gzipSync(Buffer.from(xmlAssinado, "utf-8"))).toString("base64");
-      const resp = await httpsPostJson(url, JSON.stringify({ dpsXmlGZipB64 }));
-      respStatus = resp.status;
-      respText = resp.text;
-
-      let nfseXml: string | null = null;
-      if (respStatus >= 200 && respStatus < 300) {
-        try {
-          const j = JSON.parse(respText);
-          chaveAcesso = j.chaveAcesso || null;
-          if (j.nfseXmlGZipB64) {
-            nfseXml = gunzipSync(Buffer.from(j.nfseXmlGZipB64, "base64")).toString("utf-8");
-            protocolo = (nfseXml.match(/<nProt>([^<]+)<\/nProt>/) || [])[1] || null;
-            dataEmissao = (nfseXml.match(/<dhProc>([^<]+)<\/dhProc>/) || [])[1] || null;
-          }
-        } catch (_) { /* keep raw text */ }
-      }
-    } catch (e) {
-      respText = "Falha de rede ao chamar Emissor Nacional: " + (e as Error).message;
-    }
-
-    const novoStatus = respStatus >= 200 && respStatus < 300 ? "emitida" : "rejeitada";
     await admin.from("nfses_emitidas").update({
       status: novoStatus,
-      xml_dps: xmlAssinado,
-      xml_nfse: novoStatus === "emitida" ? respText : null,
-      chave_acesso: chaveAcesso,
+      xml_nfse: xmlNfse,
+      chave_acesso: chave,
       protocolo,
       data_emissao: dataEmissao || (novoStatus === "emitida" ? new Date().toISOString() : null),
-      mensagem_retorno: novoStatus === "emitida" ? "Autorizada" : `HTTP ${respStatus}: ${respText.slice(0, 2000)}`,
+      url_danfse: urlDanfse,
+      mensagem_retorno: mensagem,
     }).eq("id", inserted.id);
 
     return new Response(JSON.stringify({
@@ -367,9 +247,11 @@ Deno.serve(async (req) => {
       id: inserted.id,
       numero_dps: inserted.numero_dps,
       status: novoStatus,
-      httpStatus: respStatus,
-      chaveAcesso, protocolo,
-      mensagem: novoStatus === "emitida" ? "NFS-e autorizada" : respText.slice(0, 500),
+      ref,
+      mensagem,
+      chaveAcesso: chave,
+      protocolo,
+      url: urlDanfse,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (e) {
