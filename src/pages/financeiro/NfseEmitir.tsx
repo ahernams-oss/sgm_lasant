@@ -389,7 +389,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
   const cliente = clientes.find((c) => c.id === clienteId);
 
   const parseNum = (s: string) => Number(String(s).replace(/\./g, "").replace(",", ".")) || 0;
-  const fmt2 = (n: number) => (Number(n) || 0).toFixed(2).replace(".", ",");
+  const fmt2 = (n: number) => (Number(n) || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   // Auto: base PIS/COFINS = valor do serviço
   useEffect(() => {
