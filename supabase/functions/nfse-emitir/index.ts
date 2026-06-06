@@ -10,8 +10,10 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import forge from "npm:node-forge@1.3.1";
+import { gzipSync } from "node:zlib";
+import { Buffer } from "node:buffer";
 
-const SANDBOX_URL = "https://sefin.producaorestrita.nfse.gov.br/API/SefinNacional/nfse";
+const SANDBOX_URL = "https://sefin.producaorestrita.nfse.gov.br/SefinNacional/nfse";
 const PROD_URL = "https://sefin.nfse.gov.br/SefinNacional/nfse";
 
 type Modelo = {
