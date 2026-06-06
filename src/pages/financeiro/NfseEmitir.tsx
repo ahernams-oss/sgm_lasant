@@ -842,7 +842,7 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
                 </div>
                 <div className="flex flex-col">
                   <Label className="min-h-[2.5rem] leading-tight">Contribuição Previdenciária - Retida (R$)</Label>
-                  <Input value={contribPrevidRetida} onChange={(e) => setContribPrevidRetida(e.target.value)} />
+                  <Input value={contribPrevidRetida} readOnly className="bg-muted" />
                 </div>
               </div>
             </div>
