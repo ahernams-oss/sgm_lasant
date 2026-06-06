@@ -465,6 +465,9 @@ function EmitirDialog({ open, onClose, initial }: { open: boolean; onClose: () =
       },
       servico: {
         descricao,
+        codigoObra: obraId ? (obras.find((o) => o.id === obraId)?.numero || obraId) : undefined,
+        obraId: obraId || undefined,
+        obraNome: obraId ? obras.find((o) => o.id === obraId)?.nome : undefined,
         codigoTributacaoNacional: codigoTribNacional || undefined,
         codigoTributacaoMunicipio: codigoTrib,
         codigoNbs: codigoNbs || undefined,
