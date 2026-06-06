@@ -301,11 +301,18 @@ Deno.serve(async (req) => {
       respStatus = resp.status;
       respText = await resp.text();
 
+      let nfseXml: string | null = null;
       if (resp.ok) {
-        // Extração simples — schema real devolve <NFSe> ou <retNFSe>
-        chaveAcesso = (respText.match(/<chNFSe>([^<]+)<\/chNFSe>/) || [])[1] || null;
-        protocolo = (respText.match(/<nProt>([^<]+)<\/nProt>/) || [])[1] || null;
-        dataEmissao = (respText.match(/<dhProc>([^<]+)<\/dhProc>/) || [])[1] || null;
+        try {
+          const j = JSON.parse(respText);
+          chaveAcesso = j.chaveAcesso || null;
+          if (j.nfseXmlGZipB64) {
+            const { gunzipSync } = await import("node:zlib");
+            nfseXml = gunzipSync(Buffer.from(j.nfseXmlGZipB64, "base64")).toString("utf-8");
+            protocolo = (nfseXml.match(/<nProt>([^<]+)<\/nProt>/) || [])[1] || null;
+            dataEmissao = (nfseXml.match(/<dhProc>([^<]+)<\/dhProc>/) || [])[1] || null;
+          }
+        } catch (_) { /* keep raw text */ }
       }
     } catch (e) {
       respText = "Falha de rede ao chamar Emissor Nacional: " + (e as Error).message;
