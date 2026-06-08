@@ -647,12 +647,15 @@ const Funcionarios = () => {
       if (!active) return;
       if (!error && data) {
         const atrasadas = new Set<string>();
+        const pendentes = new Set<string>();
         const agora = Date.now();
         for (const row of data as any[]) {
+          pendentes.add(row.funcionario_id);
           const horas = (agora - new Date(row.solicitado_em).getTime()) / 3600000;
           if (horas > 12) atrasadas.add(row.funcionario_id);
         }
         setTransferenciasAtrasadas(atrasadas);
+        setTransferenciasPendentes(pendentes);
       }
     };
     fetchTransferencias();
