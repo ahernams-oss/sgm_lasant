@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import promocaoPendenteIcon from "@/assets/promocao-pendente.png";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
-import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown, HardHat, Stethoscope, TrendingUp, Clock, MoreHorizontal, ArrowRightLeft } from "lucide-react";
+import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown, HardHat, Stethoscope, TrendingUp, Clock, MoreHorizontal, ArrowRightLeft, FileClock } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import TransferirClienteDialog from "@/components/TransferirClienteDialog";
 import { Input } from "@/components/ui/input";
@@ -614,6 +614,7 @@ const Funcionarios = () => {
   );
 
   const [promocoesPendentes, setPromocoesPendentes] = useState<Set<string>>(new Set());
+  const [transferenciasAtrasadas, setTransferenciasAtrasadas] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let active = true;
@@ -631,6 +632,32 @@ const Funcionarios = () => {
     const ch = supabase
       .channel("promocoes-pendentes")
       .on("postgres_changes", { event: "*", schema: "public", table: "promocoes" }, fetchPendentes)
+      .subscribe();
+    return () => { active = false; supabase.removeChannel(ch); };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const fetchTransferencias = async () => {
+      const { data, error } = await supabase
+        .from("funcionario_transferencia_solicitacoes")
+        .select("funcionario_id, solicitado_em")
+        .eq("status", "pendente");
+      if (!active) return;
+      if (!error && data) {
+        const atrasadas = new Set<string>();
+        const agora = Date.now();
+        for (const row of data as any[]) {
+          const horas = (agora - new Date(row.solicitado_em).getTime()) / 3600000;
+          if (horas > 12) atrasadas.add(row.funcionario_id);
+        }
+        setTransferenciasAtrasadas(atrasadas);
+      }
+    };
+    fetchTransferencias();
+    const ch = supabase
+      .channel("transferencias-pendentes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "funcionario_transferencia_solicitacoes" }, fetchTransferencias)
       .subscribe();
     return () => { active = false; supabase.removeChannel(ch); };
   }, []);
@@ -1276,6 +1303,12 @@ const Funcionarios = () => {
                               alt="Promoção pendente"
                               title="Solicitação de promoção pendente"
                               className="h-5 w-5 object-contain"
+                            />
+                          )}
+                          {transferenciasAtrasadas.has(f.id) && (
+                            <FileClock
+                              className="h-5 w-5 text-red-600 animate-pulse shrink-0"
+                              title="Transferência pendente há mais de 12h"
                             />
                           )}
                         </div>
