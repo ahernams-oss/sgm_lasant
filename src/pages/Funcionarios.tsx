@@ -1307,8 +1307,8 @@ const Funcionarios = () => {
                             {podeEditar && <DropdownMenuItem onClick={() => handleEdit(f)}>
                               <Pencil className="h-4 w-4 mr-2" /> Editar
                             </DropdownMenuItem>}
-                            {podeTransferirCliente && <DropdownMenuItem onClick={() => setTransferir({ id: f.id, nome: f.nome, clienteId: f.clienteId })}>
-                              <ArrowRightLeft className="h-4 w-4 mr-2" /> Transferir Cliente/Unidade
+                            {podeEditar && <DropdownMenuItem onClick={() => setTransferir({ id: f.id, nome: f.nome, clienteId: f.clienteId })}>
+                              <ArrowRightLeft className="h-4 w-4 mr-2" /> {podeTransferirCliente ? "Transferir Cliente/Unidade" : "Solicitar Transferência de Cliente/Unidade"}
                             </DropdownMenuItem>}
                             {podeExcluir && <DropdownMenuSeparator />}
                             {podeExcluir && <DropdownMenuItem onClick={() => requestDelete(f.id)} className="text-destructive focus:text-destructive">
