@@ -1328,6 +1328,15 @@ const Funcionarios = () => {
         </div>
       </div>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
+      {transferir && (
+        <TransferirClienteDialog
+          open={!!transferir}
+          onOpenChange={(v) => !v && setTransferir(null)}
+          funcionarioId={transferir.id}
+          funcionarioNome={transferir.nome}
+          clienteAtualId={transferir.clienteId}
+        />
+      )}
     </div>
   );
 };
