@@ -1309,9 +1309,9 @@ const Funcionarios = () => {
                               className="h-5 w-5 object-contain"
                             />
                           )}
-                          {transferenciasAtrasadas.has(f.id) && (
-                            <span title="Transferência pendente há mais de 12h">
-                              <FileClock className="h-5 w-5 text-red-600 animate-pulse shrink-0" />
+                          {transferenciasPendentes.has(f.id) && (
+                            <span title={transferenciasAtrasadas.has(f.id) ? "Transferência pendente há mais de 12h" : "Transferência pendente de autorização"}>
+                              <FileClock className={`h-5 w-5 shrink-0 ${transferenciasAtrasadas.has(f.id) ? "text-red-600 animate-pulse" : "text-amber-600"}`} />
                             </span>
                           )}
                         </div>
