@@ -5,8 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import promocaoPendenteIcon from "@/assets/promocao-pendente.png";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
-import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown, HardHat, Stethoscope, TrendingUp, Clock, MoreHorizontal } from "lucide-react";
+import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown, HardHat, Stethoscope, TrendingUp, Clock, MoreHorizontal, ArrowRightLeft } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import TransferirClienteDialog from "@/components/TransferirClienteDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -595,6 +596,7 @@ const Funcionarios = () => {
   const [filterCliente, setFilterCliente] = useState<string>("todos");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [transferir, setTransferir] = useState<{ id: string; nome: string; clienteId: string } | null>(null);
 
   const colDefs: Record<string, { label: string; className?: string }> = {
     nome: { label: "Nome" },
@@ -1304,6 +1306,9 @@ const Funcionarios = () => {
                             {podeEditar && <DropdownMenuItem onClick={() => handleEdit(f)}>
                               <Pencil className="h-4 w-4 mr-2" /> Editar
                             </DropdownMenuItem>}
+                            {podeEditar && <DropdownMenuItem onClick={() => setTransferir({ id: f.id, nome: f.nome, clienteId: f.clienteId })}>
+                              <ArrowRightLeft className="h-4 w-4 mr-2" /> Transferir Cliente/Unidade
+                            </DropdownMenuItem>}
                             {podeExcluir && <DropdownMenuSeparator />}
                             {podeExcluir && <DropdownMenuItem onClick={() => requestDelete(f.id)} className="text-destructive focus:text-destructive">
                               <Trash2 className="h-4 w-4 mr-2" /> Excluir
@@ -1323,6 +1328,15 @@ const Funcionarios = () => {
         </div>
       </div>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={handleConfirmDelete} />
+      {transferir && (
+        <TransferirClienteDialog
+          open={!!transferir}
+          onOpenChange={(v) => !v && setTransferir(null)}
+          funcionarioId={transferir.id}
+          funcionarioNome={transferir.nome}
+          clienteAtualId={transferir.clienteId}
+        />
+      )}
     </div>
   );
 };

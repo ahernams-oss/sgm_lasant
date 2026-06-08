@@ -2778,6 +2778,60 @@ export type Database = {
           },
         ]
       }
+      funcionario_cliente_historico: {
+        Row: {
+          alterado_por: string | null
+          autorizado_por_email: string | null
+          cliente_id: string | null
+          cliente_nome: string | null
+          created_at: string
+          data_fim: string | null
+          data_inicio: string
+          funcionario_id: string
+          id: string
+          justificativa: string | null
+        }
+        Insert: {
+          alterado_por?: string | null
+          autorizado_por_email?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          funcionario_id: string
+          id?: string
+          justificativa?: string | null
+        }
+        Update: {
+          alterado_por?: string | null
+          autorizado_por_email?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          funcionario_id?: string
+          id?: string
+          justificativa?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funcionario_cliente_historico_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "funcionario_cliente_historico_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       funcionarios: {
         Row: {
           agencia: string | null
