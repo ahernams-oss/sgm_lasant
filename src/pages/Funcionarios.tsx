@@ -596,6 +596,7 @@ const Funcionarios = () => {
   const [filterCliente, setFilterCliente] = useState<string>("todos");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [transferir, setTransferir] = useState<{ id: string; nome: string; clienteId: string } | null>(null);
 
   const colDefs: Record<string, { label: string; className?: string }> = {
     nome: { label: "Nome" },
