@@ -303,7 +303,10 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
                 Solicitações pendentes ({pendentes.length})
               </div>
               <div className="divide-y">
-                {pendentes.map((p) => (
+                {pendentes.map((p) => {
+                  const horas = (Date.now() - new Date(p.solicitado_em).getTime()) / 3600000;
+                  const atrasada = horas > 12;
+                  return (
                   <div key={p.id} className="p-3 text-xs space-y-1">
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-0.5">
@@ -311,7 +314,10 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
                         <div><strong>Solicitante:</strong> {p.solicitado_por} • {fmt(p.solicitado_em)}</div>
                         {p.justificativa && <div className="text-muted-foreground">"{p.justificativa}"</div>}
                       </div>
-                      <Badge variant="outline" className="border-amber-400 text-amber-700">Pendente</Badge>
+                      <Badge variant="outline" className={cn("border-amber-400 text-amber-700 flex items-center gap-1", atrasada && "animate-pulse border-red-500 text-red-700 bg-red-50")}>
+                        {atrasada && <FileClock className="h-3 w-3" />}
+                        Pendente{atrasada && " > 12h"}
+                      </Badge>
                     </div>
                     {podeAutorizar && (
                       <div className="flex gap-2 pt-2">
