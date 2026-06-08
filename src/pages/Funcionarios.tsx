@@ -1306,10 +1306,9 @@ const Funcionarios = () => {
                             />
                           )}
                           {transferenciasAtrasadas.has(f.id) && (
-                            <FileClock
-                              className="h-5 w-5 text-red-600 animate-pulse shrink-0"
-                              title="Transferência pendente há mais de 12h"
-                            />
+                            <span title="Transferência pendente há mais de 12h">
+                              <FileClock className="h-5 w-5 text-red-600 animate-pulse shrink-0" />
+                            </span>
                           )}
                         </div>
                       ),
