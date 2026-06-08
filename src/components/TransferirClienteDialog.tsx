@@ -363,8 +363,13 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 flex-wrap">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={salvando}>Cancelar</Button>
+          {podeAutorizar && (
+            <Button variant="outline" onClick={enviarSolicitacaoPendente} disabled={salvando}>
+              Enviar ao RH (pendente)
+            </Button>
+          )}
           <Button onClick={handleConfirm} disabled={salvando}>
             {salvando ? "Processando..." : (podeAutorizar ? "Confirmar transferência" : "Enviar solicitação ao RH")}
           </Button>
