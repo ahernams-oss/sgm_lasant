@@ -330,7 +330,8 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
                       </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
