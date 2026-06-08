@@ -587,6 +587,7 @@ const Funcionarios = () => {
   const podeEditar = tem("funcionarios.editar");
   const podeExcluir = tem("funcionarios.excluir");
   const podeExportarPdf = tem("funcionarios.exportar_pdf");
+  const podeTransferirCliente = tem("funcionarios.transferir_cliente");
 
   const [form, setForm] = useState(emptyFuncionarioForm);
   const [editingId, setEditingId] = useState<string | null>(null);
