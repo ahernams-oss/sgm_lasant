@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
-import { Check, ChevronsUpDown, ArrowRightLeft, History, Clock, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Check, ChevronsUpDown, ArrowRightLeft, History, Clock, ThumbsUp, ThumbsDown, FileClock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
