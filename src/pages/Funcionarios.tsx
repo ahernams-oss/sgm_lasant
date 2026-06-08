@@ -615,6 +615,7 @@ const Funcionarios = () => {
 
   const [promocoesPendentes, setPromocoesPendentes] = useState<Set<string>>(new Set());
   const [transferenciasAtrasadas, setTransferenciasAtrasadas] = useState<Set<string>>(new Set());
+  const [transferenciasPendentes, setTransferenciasPendentes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let active = true;
@@ -646,12 +647,15 @@ const Funcionarios = () => {
       if (!active) return;
       if (!error && data) {
         const atrasadas = new Set<string>();
+        const pendentes = new Set<string>();
         const agora = Date.now();
         for (const row of data as any[]) {
+          pendentes.add(row.funcionario_id);
           const horas = (agora - new Date(row.solicitado_em).getTime()) / 3600000;
           if (horas > 12) atrasadas.add(row.funcionario_id);
         }
         setTransferenciasAtrasadas(atrasadas);
+        setTransferenciasPendentes(pendentes);
       }
     };
     fetchTransferencias();
@@ -1305,9 +1309,9 @@ const Funcionarios = () => {
                               className="h-5 w-5 object-contain"
                             />
                           )}
-                          {transferenciasAtrasadas.has(f.id) && (
-                            <span title="Transferência pendente há mais de 12h">
-                              <FileClock className="h-5 w-5 text-red-600 animate-pulse shrink-0" />
+                          {transferenciasPendentes.has(f.id) && (
+                            <span title={transferenciasAtrasadas.has(f.id) ? "Transferência pendente há mais de 12h" : "Transferência pendente de autorização"}>
+                              <FileClock className={`h-5 w-5 shrink-0 ${transferenciasAtrasadas.has(f.id) ? "text-red-600 animate-pulse" : "text-amber-600"}`} />
                             </span>
                           )}
                         </div>
