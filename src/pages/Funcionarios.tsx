@@ -1336,6 +1336,7 @@ const Funcionarios = () => {
           funcionarioId={transferir.id}
           funcionarioNome={transferir.nome}
           clienteAtualId={transferir.clienteId}
+          podeAutorizar={podeTransferirCliente}
         />
       )}
     </div>
