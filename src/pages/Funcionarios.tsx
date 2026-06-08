@@ -587,6 +587,7 @@ const Funcionarios = () => {
   const podeEditar = tem("funcionarios.editar");
   const podeExcluir = tem("funcionarios.excluir");
   const podeExportarPdf = tem("funcionarios.exportar_pdf");
+  const podeTransferirCliente = tem("funcionarios.transferir_cliente");
 
   const [form, setForm] = useState(emptyFuncionarioForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -1306,7 +1307,7 @@ const Funcionarios = () => {
                             {podeEditar && <DropdownMenuItem onClick={() => handleEdit(f)}>
                               <Pencil className="h-4 w-4 mr-2" /> Editar
                             </DropdownMenuItem>}
-                            {podeEditar && <DropdownMenuItem onClick={() => setTransferir({ id: f.id, nome: f.nome, clienteId: f.clienteId })}>
+                            {podeTransferirCliente && <DropdownMenuItem onClick={() => setTransferir({ id: f.id, nome: f.nome, clienteId: f.clienteId })}>
                               <ArrowRightLeft className="h-4 w-4 mr-2" /> Transferir Cliente/Unidade
                             </DropdownMenuItem>}
                             {podeExcluir && <DropdownMenuSeparator />}
