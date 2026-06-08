@@ -131,52 +131,64 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
     await updateFuncionario(funcionarioId, { clienteId: opts.novoId });
   };
 
+  const validarBase = () => {
+    if (!novoClienteId) { toast.error("Selecione o novo Cliente/Unidade."); return false; }
+    if (novoClienteId === clienteAtualId) { toast.error("Selecione um Cliente/Unidade diferente do atual."); return false; }
+    if (justificativa.trim().length < 5) { toast.error("Informe a justificativa (mín. 5 caracteres)."); return false; }
+    return true;
+  };
+
+  const enviarSolicitacaoPendente = async () => {
+    if (!validarBase()) return;
+    setSalvando(true);
+    try {
+      const { error } = await (supabase as any).from("funcionario_transferencia_solicitacoes").insert({
+        funcionario_id: funcionarioId, funcionario_nome: funcionarioNome,
+        cliente_atual_id: clienteAtualId || null, cliente_atual_nome: clienteAtualNome,
+        novo_cliente_id: novoClienteId, novo_cliente_nome: novoClienteNome,
+        justificativa: justificativa.trim(), status: "pendente",
+        solicitado_por: quemSou,
+      });
+      if (error) {
+        console.error("Erro insert solicitação:", error);
+        toast.error("Erro ao registrar solicitação: " + (error.message || ""));
+        return;
+      }
+      try {
+        const rh = await getWhatsappRH();
+        if (rh) {
+          const msg = `🔄 *Solicitação de Transferência de Cliente/Unidade*\n\n` +
+            `*Funcionário:* ${funcionarioNome}\n` +
+            `*De:* ${clienteAtualNome}\n` +
+            `*Para:* ${novoClienteNome}\n` +
+            `*Solicitante:* ${quemSou}\n` +
+            `*Justificativa:* ${justificativa.trim()}\n\n` +
+            `Aguardando autorização do RH no sistema.`;
+          await enviarWhatsApp(rh, msg);
+        }
+      } catch (e) { console.error("WA RH falhou", e); }
+      toast.success("Solicitação enviada ao RH para autorização.");
+      onOpenChange(false);
+    } finally {
+      setSalvando(false);
+    }
+  };
+
   const handleConfirm = async () => {
-    if (!novoClienteId) { toast.error("Selecione o novo Cliente/Unidade."); return; }
-    if (novoClienteId === clienteAtualId) { toast.error("Selecione um Cliente/Unidade diferente do atual."); return; }
-    if (justificativa.trim().length < 5) { toast.error("Informe a justificativa (mín. 5 caracteres)."); return; }
+    if (!validarBase()) return;
+    if (!podeAutorizar) { await enviarSolicitacaoPendente(); return; }
 
     setSalvando(true);
     try {
-      if (podeAutorizar) {
-        if (!email.trim() || !senha) { toast.error("Informe e-mail e senha do supervisor."); return; }
-        const ok = await verificarSenhaUsuario(email, senha);
-        if (!ok) { toast.error("Credenciais de supervisor inválidas."); return; }
-        await executarTransferencia({
-          novoId: novoClienteId, novoNome: novoClienteNome, just: justificativa.trim(),
-          autorizadoPorEmail: email.trim().toLowerCase(),
-        });
-        toast.success("Cliente/Unidade transferido com sucesso.");
-        onOpenChange(false);
-      } else {
-        // Solicitação pendente
-        const { error } = await (supabase as any).from("funcionario_transferencia_solicitacoes").insert({
-          funcionario_id: funcionarioId, funcionario_nome: funcionarioNome,
-          cliente_atual_id: clienteAtualId || null, cliente_atual_nome: clienteAtualNome,
-          novo_cliente_id: novoClienteId, novo_cliente_nome: novoClienteNome,
-          justificativa: justificativa.trim(), status: "pendente",
-          solicitado_por: quemSou,
-        });
-        if (error) { toast.error("Erro ao registrar solicitação."); return; }
-
-        // WhatsApp para o RH
-        try {
-          const rh = await getWhatsappRH();
-          if (rh) {
-            const msg = `🔄 *Solicitação de Transferência de Cliente/Unidade*\n\n` +
-              `*Funcionário:* ${funcionarioNome}\n` +
-              `*De:* ${clienteAtualNome}\n` +
-              `*Para:* ${novoClienteNome}\n` +
-              `*Solicitante:* ${quemSou}\n` +
-              `*Justificativa:* ${justificativa.trim()}\n\n` +
-              `Aguardando autorização do RH no sistema.`;
-            await enviarWhatsApp(rh, msg);
-          }
-        } catch (e) { console.error("WA RH falhou", e); }
-
-        toast.success("Solicitação enviada ao RH para autorização.");
-        onOpenChange(false);
-      }
+      if (!email.trim() || !senha) { toast.error("Informe e-mail e senha do supervisor."); return; }
+      const ok = await verificarSenhaUsuario(email, senha);
+      if (!ok) { toast.error("Credenciais de supervisor inválidas."); return; }
+      await executarTransferencia({
+        novoId: novoClienteId, novoNome: novoClienteNome, just: justificativa.trim(),
+        autorizadoPorEmail: email.trim().toLowerCase(),
+      });
+      toast.success("Cliente/Unidade transferido com sucesso.");
+      onOpenChange(false);
     } finally {
       setSalvando(false);
     }
