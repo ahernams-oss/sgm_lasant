@@ -2832,6 +2832,63 @@ export type Database = {
           },
         ]
       }
+      funcionario_transferencia_solicitacoes: {
+        Row: {
+          cliente_atual_id: string | null
+          cliente_atual_nome: string | null
+          created_at: string
+          decidido_em: string | null
+          decidido_por: string | null
+          decisao_observacao: string | null
+          funcionario_id: string
+          funcionario_nome: string | null
+          id: string
+          justificativa: string | null
+          novo_cliente_id: string
+          novo_cliente_nome: string | null
+          solicitado_em: string
+          solicitado_por: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cliente_atual_id?: string | null
+          cliente_atual_nome?: string | null
+          created_at?: string
+          decidido_em?: string | null
+          decidido_por?: string | null
+          decisao_observacao?: string | null
+          funcionario_id: string
+          funcionario_nome?: string | null
+          id?: string
+          justificativa?: string | null
+          novo_cliente_id: string
+          novo_cliente_nome?: string | null
+          solicitado_em?: string
+          solicitado_por?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cliente_atual_id?: string | null
+          cliente_atual_nome?: string | null
+          created_at?: string
+          decidido_em?: string | null
+          decidido_por?: string | null
+          decisao_observacao?: string | null
+          funcionario_id?: string
+          funcionario_nome?: string | null
+          id?: string
+          justificativa?: string | null
+          novo_cliente_id?: string
+          novo_cliente_nome?: string | null
+          solicitado_em?: string
+          solicitado_por?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       funcionarios: {
         Row: {
           agencia: string | null

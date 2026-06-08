@@ -6,11 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Check, ChevronsUpDown, ArrowRightLeft, History } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Check, ChevronsUpDown, ArrowRightLeft, History, Clock, ThumbsUp, ThumbsDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { verificarSenhaUsuario } from "@/lib/verifySenha";
+import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
@@ -26,12 +28,30 @@ interface HistoricoRow {
   alterado_por: string | null;
 }
 
+interface PendenteRow {
+  id: string;
+  funcionario_id: string;
+  funcionario_nome: string | null;
+  cliente_atual_id: string | null;
+  cliente_atual_nome: string | null;
+  novo_cliente_id: string;
+  novo_cliente_nome: string | null;
+  justificativa: string | null;
+  status: string;
+  solicitado_por: string | null;
+  solicitado_em: string;
+  decidido_por: string | null;
+  decidido_em: string | null;
+  decisao_observacao: string | null;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   funcionarioId: string;
   funcionarioNome: string;
   clienteAtualId: string;
+  podeAutorizar: boolean;
 }
 
 const fmt = (s?: string | null) => {
@@ -41,7 +61,12 @@ const fmt = (s?: string | null) => {
   return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 };
 
-export default function TransferirClienteDialog({ open, onOpenChange, funcionarioId, funcionarioNome, clienteAtualId }: Props) {
+async function getWhatsappRH(): Promise<string> {
+  const { data } = await (supabase as any).from("empresa").select("whatsapp_rh").limit(1).maybeSingle();
+  return (data?.whatsapp_rh || "").trim();
+}
+
+export default function TransferirClienteDialog({ open, onOpenChange, funcionarioId, funcionarioNome, clienteAtualId, podeAutorizar }: Props) {
   const { clientes } = useClientes();
   const { updateFuncionario } = useFuncionarios();
   const { usuarioLogado } = useAuth();
@@ -53,102 +78,155 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
   const [senha, setSenha] = useState("");
   const [salvando, setSalvando] = useState(false);
   const [historico, setHistorico] = useState<HistoricoRow[]>([]);
+  const [pendentes, setPendentes] = useState<PendenteRow[]>([]);
 
   const clientesAtivos = clientes.filter((c) => c.tipo === "Cliente");
   const clienteAtualNome = clientes.find((c) => c.id === clienteAtualId)?.nome ?? "—";
   const novoClienteNome = clientes.find((c) => c.id === novoClienteId)?.nome ?? "";
+  const quemSou = usuarioLogado?.nome || usuarioLogado?.email || "Usuário";
 
   const loadHistorico = async () => {
-    const { data } = await (supabase as any)
-      .from("funcionario_cliente_historico")
-      .select("*")
-      .eq("funcionario_id", funcionarioId)
-      .order("data_inicio", { ascending: false });
-    setHistorico((data as HistoricoRow[]) || []);
+    const [{ data: hist }, { data: pend }] = await Promise.all([
+      (supabase as any).from("funcionario_cliente_historico").select("*").eq("funcionario_id", funcionarioId).order("data_inicio", { ascending: false }),
+      (supabase as any).from("funcionario_transferencia_solicitacoes").select("*").eq("funcionario_id", funcionarioId).eq("status", "pendente").order("solicitado_em", { ascending: false }),
+    ]);
+    setHistorico((hist as HistoricoRow[]) || []);
+    setPendentes((pend as PendenteRow[]) || []);
   };
 
   useEffect(() => {
     if (open) {
-      setNovoClienteId("");
-      setJustificativa("");
-      setEmail("");
-      setSenha("");
-      loadHistorico();
+      setNovoClienteId(""); setJustificativa(""); setEmail(""); setSenha("");
+      loadHistorque();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, funcionarioId]);
+
+  // typo guard
+  const loadHistorque = loadHistorico;
+
+  const executarTransferencia = async (opts: {
+    novoId: string; novoNome: string; just: string; autorizadoPorEmail: string;
+  }) => {
+    const agora = new Date().toISOString();
+    await (supabase as any).from("funcionario_cliente_historico").update({ data_fim: agora })
+      .eq("funcionario_id", funcionarioId).is("data_fim", null);
+
+    const { data: abertos } = await (supabase as any).from("funcionario_cliente_historico")
+      .select("id").eq("funcionario_id", funcionarioId).limit(1);
+    if ((!abertos || abertos.length === 0) && clienteAtualId) {
+      await (supabase as any).from("funcionario_cliente_historico").insert({
+        funcionario_id: funcionarioId, cliente_id: clienteAtualId, cliente_nome: clienteAtualNome,
+        data_inicio: agora, data_fim: agora,
+        justificativa: "Registro inicial (anterior à transferência)",
+        autorizado_por_email: opts.autorizadoPorEmail, alterado_por: quemSou,
+      });
+    }
+    const { error: insErr } = await (supabase as any).from("funcionario_cliente_historico").insert({
+      funcionario_id: funcionarioId, cliente_id: opts.novoId, cliente_nome: opts.novoNome,
+      data_inicio: agora, data_fim: null,
+      justificativa: opts.just, autorizado_por_email: opts.autorizadoPorEmail, alterado_por: quemSou,
+    });
+    if (insErr) throw insErr;
+    await updateFuncionario(funcionarioId, { clienteId: opts.novoId });
+  };
 
   const handleConfirm = async () => {
     if (!novoClienteId) { toast.error("Selecione o novo Cliente/Unidade."); return; }
     if (novoClienteId === clienteAtualId) { toast.error("Selecione um Cliente/Unidade diferente do atual."); return; }
     if (justificativa.trim().length < 5) { toast.error("Informe a justificativa (mín. 5 caracteres)."); return; }
-    if (!email.trim() || !senha) { toast.error("Informe e-mail e senha do supervisor."); return; }
 
     setSalvando(true);
     try {
-      const ok = await verificarSenhaUsuario(email, senha);
-      if (!ok) { toast.error("Credenciais de supervisor inválidas."); return; }
-
-      const agora = new Date().toISOString();
-
-      // Fecha histórico aberto (data_fim null)
-      await (supabase as any)
-        .from("funcionario_cliente_historico")
-        .update({ data_fim: agora })
-        .eq("funcionario_id", funcionarioId)
-        .is("data_fim", null);
-
-      // Se não existir nenhum registro aberto e havia cliente atual, registra o período anterior
-      const { data: abertos } = await (supabase as any)
-        .from("funcionario_cliente_historico")
-        .select("id")
-        .eq("funcionario_id", funcionarioId)
-        .limit(1);
-      if ((!abertos || abertos.length === 0) && clienteAtualId) {
-        await (supabase as any).from("funcionario_cliente_historico").insert({
-          funcionario_id: funcionarioId,
-          cliente_id: clienteAtualId,
-          cliente_nome: clienteAtualNome,
-          data_inicio: agora,
-          data_fim: agora,
-          justificativa: "Registro inicial (anterior à transferência)",
-          autorizado_por_email: email.trim().toLowerCase(),
-          alterado_por: usuarioLogado?.nome || usuarioLogado?.email || null,
+      if (podeAutorizar) {
+        if (!email.trim() || !senha) { toast.error("Informe e-mail e senha do supervisor."); return; }
+        const ok = await verificarSenhaUsuario(email, senha);
+        if (!ok) { toast.error("Credenciais de supervisor inválidas."); return; }
+        await executarTransferencia({
+          novoId: novoClienteId, novoNome: novoClienteNome, just: justificativa.trim(),
+          autorizadoPorEmail: email.trim().toLowerCase(),
         });
+        toast.success("Cliente/Unidade transferido com sucesso.");
+        onOpenChange(false);
+      } else {
+        // Solicitação pendente
+        const { error } = await (supabase as any).from("funcionario_transferencia_solicitacoes").insert({
+          funcionario_id: funcionarioId, funcionario_nome: funcionarioNome,
+          cliente_atual_id: clienteAtualId || null, cliente_atual_nome: clienteAtualNome,
+          novo_cliente_id: novoClienteId, novo_cliente_nome: novoClienteNome,
+          justificativa: justificativa.trim(), status: "pendente",
+          solicitado_por: quemSou,
+        });
+        if (error) { toast.error("Erro ao registrar solicitação."); return; }
+
+        // WhatsApp para o RH
+        try {
+          const rh = await getWhatsappRH();
+          if (rh) {
+            const msg = `🔄 *Solicitação de Transferência de Cliente/Unidade*\n\n` +
+              `*Funcionário:* ${funcionarioNome}\n` +
+              `*De:* ${clienteAtualNome}\n` +
+              `*Para:* ${novoClienteNome}\n` +
+              `*Solicitante:* ${quemSou}\n` +
+              `*Justificativa:* ${justificativa.trim()}\n\n` +
+              `Aguardando autorização do RH no sistema.`;
+            await enviarWhatsApp(rh, msg);
+          }
+        } catch (e) { console.error("WA RH falhou", e); }
+
+        toast.success("Solicitação enviada ao RH para autorização.");
+        onOpenChange(false);
       }
-
-      // Cria novo período em aberto
-      const { error: insErr } = await (supabase as any).from("funcionario_cliente_historico").insert({
-        funcionario_id: funcionarioId,
-        cliente_id: novoClienteId,
-        cliente_nome: novoClienteNome,
-        data_inicio: agora,
-        data_fim: null,
-        justificativa: justificativa.trim(),
-        autorizado_por_email: email.trim().toLowerCase(),
-        alterado_por: usuarioLogado?.nome || usuarioLogado?.email || null,
-      });
-      if (insErr) { toast.error("Erro ao registrar histórico."); return; }
-
-      await updateFuncionario(funcionarioId, { clienteId: novoClienteId });
-      toast.success("Cliente/Unidade transferido com sucesso.");
-      onOpenChange(false);
     } finally {
       setSalvando(false);
     }
   };
 
+  const aprovarPendente = async (p: PendenteRow) => {
+    if (!email.trim() || !senha) { toast.error("Informe e-mail e senha do supervisor para aprovar."); return; }
+    setSalvando(true);
+    try {
+      const ok = await verificarSenhaUsuario(email, senha);
+      if (!ok) { toast.error("Credenciais de supervisor inválidas."); return; }
+      await executarTransferencia({
+        novoId: p.novo_cliente_id, novoNome: p.novo_cliente_nome || "",
+        just: p.justificativa || "", autorizadoPorEmail: email.trim().toLowerCase(),
+      });
+      await (supabase as any).from("funcionario_transferencia_solicitacoes").update({
+        status: "aprovada", decidido_por: quemSou, decidido_em: new Date().toISOString(),
+      }).eq("id", p.id);
+      toast.success("Transferência aprovada e aplicada.");
+      onOpenChange(false);
+    } finally { setSalvando(false); }
+  };
+
+  const rejeitarPendente = async (p: PendenteRow) => {
+    if (!email.trim() || !senha) { toast.error("Informe e-mail e senha do supervisor para rejeitar."); return; }
+    setSalvando(true);
+    try {
+      const ok = await verificarSenhaUsuario(email, senha);
+      if (!ok) { toast.error("Credenciais de supervisor inválidas."); return; }
+      await (supabase as any).from("funcionario_transferencia_solicitacoes").update({
+        status: "rejeitada", decidido_por: quemSou, decidido_em: new Date().toISOString(),
+      }).eq("id", p.id);
+      toast.success("Solicitação rejeitada.");
+      loadHistorico();
+    } finally { setSalvando(false); }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ArrowRightLeft className="h-5 w-5 text-primary" />
-            Transferir Cliente/Unidade
+            {podeAutorizar ? "Transferir Cliente/Unidade" : "Solicitar Transferência de Cliente/Unidade"}
           </DialogTitle>
           <DialogDescription>
             {funcionarioNome} — atualmente em <strong>{clienteAtualNome}</strong>.
-            Esta ação exige autorização de supervisor.
+            {podeAutorizar
+              ? " Esta ação exige autorização de supervisor."
+              : " Sua solicitação ficará pendente e o RH será notificado por WhatsApp."}
           </DialogDescription>
         </DialogHeader>
 
@@ -186,17 +264,58 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
             <Textarea rows={3} value={justificativa} onChange={(e) => setJustificativa(e.target.value)} placeholder="Motivo da transferência..." className="mt-1.5" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 p-3 border rounded-lg bg-amber-50 dark:bg-amber-900/10">
-            <div className="col-span-2 text-xs font-semibold text-amber-700 dark:text-amber-400">🛡️ Autorização do supervisor</div>
-            <div>
-              <Label className="text-xs">E-mail</Label>
-              <Input type="email" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="supervisor@empresa.com" className="mt-1" />
+          {podeAutorizar && (
+            <div className="grid grid-cols-2 gap-3 p-3 border rounded-lg bg-amber-50 dark:bg-amber-900/10">
+              <div className="col-span-2 text-xs font-semibold text-amber-700 dark:text-amber-400">🛡️ Autorização do supervisor</div>
+              <div>
+                <Label className="text-xs">E-mail</Label>
+                <Input type="email" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="supervisor@empresa.com" className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs">Senha</Label>
+                <Input type="password" autoComplete="new-password" value={senha} onChange={(e) => setSenha(e.target.value)} className="mt-1" />
+              </div>
             </div>
-            <div>
-              <Label className="text-xs">Senha</Label>
-              <Input type="password" autoComplete="new-password" value={senha} onChange={(e) => setSenha(e.target.value)} className="mt-1" />
+          )}
+
+          {!podeAutorizar && (
+            <div className="p-3 border rounded-lg bg-blue-50 dark:bg-blue-900/10 text-xs text-blue-800 dark:text-blue-300">
+              ℹ️ Você não possui permissão para autorizar transferências. Sua solicitação será encaminhada ao RH e ficará pendente até aprovação.
             </div>
-          </div>
+          )}
+
+          {pendentes.length > 0 && (
+            <div className="border rounded-lg">
+              <div className="flex items-center gap-2 px-3 py-2 border-b bg-amber-50 dark:bg-amber-900/10 text-xs font-semibold text-amber-800 dark:text-amber-300">
+                <Clock className="h-4 w-4" />
+                Solicitações pendentes ({pendentes.length})
+              </div>
+              <div className="divide-y">
+                {pendentes.map((p) => (
+                  <div key={p.id} className="p-3 text-xs space-y-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <div><strong>Para:</strong> {p.novo_cliente_nome}</div>
+                        <div><strong>Solicitante:</strong> {p.solicitado_por} • {fmt(p.solicitado_em)}</div>
+                        {p.justificativa && <div className="text-muted-foreground">"{p.justificativa}"</div>}
+                      </div>
+                      <Badge variant="outline" className="border-amber-400 text-amber-700">Pendente</Badge>
+                    </div>
+                    {podeAutorizar && (
+                      <div className="flex gap-2 pt-2">
+                        <Button size="sm" variant="outline" className="text-emerald-700 border-emerald-300" onClick={() => aprovarPendente(p)} disabled={salvando}>
+                          <ThumbsUp className="h-3 w-3 mr-1" /> Aprovar
+                        </Button>
+                        <Button size="sm" variant="outline" className="text-red-700 border-red-300" onClick={() => rejeitarPendente(p)} disabled={salvando}>
+                          <ThumbsDown className="h-3 w-3 mr-1" /> Rejeitar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="border rounded-lg">
             <div className="flex items-center gap-2 px-3 py-2 border-b bg-muted/40 text-xs font-semibold">
@@ -235,7 +354,7 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={salvando}>Cancelar</Button>
           <Button onClick={handleConfirm} disabled={salvando}>
-            {salvando ? "Processando..." : "Confirmar transferência"}
+            {salvando ? "Processando..." : (podeAutorizar ? "Confirmar transferência" : "Enviar solicitação ao RH")}
           </Button>
         </DialogFooter>
       </DialogContent>
