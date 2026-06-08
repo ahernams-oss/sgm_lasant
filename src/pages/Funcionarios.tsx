@@ -615,6 +615,7 @@ const Funcionarios = () => {
 
   const [promocoesPendentes, setPromocoesPendentes] = useState<Set<string>>(new Set());
   const [transferenciasAtrasadas, setTransferenciasAtrasadas] = useState<Set<string>>(new Set());
+  const [transferenciasPendentes, setTransferenciasPendentes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let active = true;
