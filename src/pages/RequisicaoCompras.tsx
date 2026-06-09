@@ -544,6 +544,7 @@ export default function RequisicaoComprasPage() {
               const podeIniciarCotacao = ["Enviada", "Aguardando Aprovação"].includes(r.status);
               const podeRecusarReq = podeRecusar && ["Enviada", "Em Cotação", "Aguardando Aprovação"].includes(r.status);
               const podeEditarReq = r.status === "Recusada" && r.solicitante === (usuarioLogado?.nome || "");
+              const podeCancelarReq = !cotacaoExist && r.status === "Enviada" && (r.solicitante === (usuarioLogado?.nome || "") || podeRecusar);
               return (
               <TableRow key={r.id} className={idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}>
                 {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
