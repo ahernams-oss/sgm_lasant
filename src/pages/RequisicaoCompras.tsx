@@ -405,6 +405,21 @@ export default function RequisicaoComprasPage() {
     }
   };
 
+  const handleCancelar = async () => {
+    if (cancelId) {
+      const req = requisicoes.find(r => r.id === cancelId);
+      const podeCancelar = req && (req.solicitante === (usuarioLogado?.nome || "") || podeRecusar);
+      if (!podeCancelar) {
+        toast({ title: "Você não possui permissão para cancelar esta requisição.", variant: "destructive" });
+        abortCancel();
+        return;
+      }
+      cancelarRequisicao(cancelId, usuarioLogado?.nome || "Usuário", "Cancelada pelo solicitante antes do início da cotação");
+      toast({ title: "Requisição cancelada" });
+      abortCancel();
+    }
+  };
+
   const handleMaterialSelect = (materialId: string) => {
     setItemMaterialId(materialId);
     const mat = materiais.find(m => m.id === materialId);
