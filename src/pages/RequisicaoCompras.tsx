@@ -289,31 +289,52 @@ export default function RequisicaoComprasPage() {
     } else {
       // Regra: alertar quando mais de 3 RCs "Urgente" no mesmo dia pelo mesmo solicitante
       if (urgencia === "Urgente") {
-        const hoje = new Date().toISOString().slice(0, 10);
         const solicitanteNome = usuarioLogado?.nome || "Usuário";
-        const urgentesHoje = requisicoes.filter(r =>
-          r.urgencia === "Urgente" &&
-          r.solicitante === solicitanteNome &&
-          (r.dataCriacao || "").slice(0, 10) === hoje
-        ).length;
-        if (urgentesHoje >= 3) {
+        const hojeInicio = new Date(); hojeInicio.setHours(0,0,0,0);
+        const hojeFim = new Date(); hojeFim.setHours(23,59,59,999);
+        let urgentesHoje = 0;
+        try {
+          const { count } = await (supabase as any)
+            .from("requisicoes_compras")
+            .select("id", { count: "exact", head: true })
+            .eq("urgencia", "Urgente")
+            .eq("solicitante", solicitanteNome)
+            .gte("data_criacao", hojeInicio.toISOString())
+            .lte("data_criacao", hojeFim.toISOString());
+          urgentesHoje = count || 0;
+        } catch (e) {
+          console.error("Falha ao contar urgentes:", e);
+          urgentesHoje = requisicoes.filter(r =>
+            r.urgencia === "Urgente" &&
+            r.solicitante === solicitanteNome &&
+            (r.dataCriacao || "").slice(0, 10) === new Date().toISOString().slice(0,10)
+          ).length;
+        }
+        if (urgentesHoje + 1 > 3) {
           toast({
             title: "Muitos pedidos Urgentes hoje",
-            description: "Você já registrou mais de 3 requisições 'Urgente' hoje. Planeje melhor suas compras para evitar pedidos emergenciais.",
+            description: `Esta é sua ${urgentesHoje + 1}ª requisição 'Urgente' hoje. Planeje melhor suas compras para evitar pedidos emergenciais.`,
             variant: "destructive",
           });
           // Notifica coordenadores via WhatsApp (não bloqueia o fluxo)
           (async () => {
             try {
-              const { data: coords } = await (supabase as any)
+              const { data: usuariosAll } = await (supabase as any)
                 .from("usuarios")
-                .select("nome,telefone,cargo_id,cargos:cargo_id(nome)");
-              const destinatarios = (coords || []).filter((u: any) =>
-                u?.telefone && /coorden/i.test(u?.cargos?.nome || "")
+                .select("nome,telefone,cargo_id");
+              const { data: cargosAll } = await (supabase as any)
+                .from("cargos")
+                .select("id,nome");
+              const cargosCoord = new Set(
+                (cargosAll || []).filter((c: any) => /coorden/i.test(c?.nome || "")).map((c: any) => String(c.id))
               );
+              const destinatarios = (usuariosAll || []).filter((u: any) =>
+                u?.telefone && cargosCoord.has(String(u?.cargo_id))
+              );
+              const hojeBR = new Date().toLocaleDateString("pt-BR");
               const mensagem =
                 `⚠️ *Alerta de RCs Urgentes*\n\n` +
-                `O solicitante *${solicitanteNome}* já realizou *${urgentesHoje + 1}* requisições de compra com urgência *Urgente* hoje (${hoje.split("-").reverse().join("/")}).\n\n` +
+                `O solicitante *${solicitanteNome}* já realizou *${urgentesHoje + 1}* requisições de compra com urgência *Urgente* hoje (${hojeBR}).\n\n` +
                 `É necessário orientar o solicitante a realizar planejamento de compras para evitar pedidos emergenciais.`;
               for (const u of destinatarios) {
                 try { await enviarWhatsApp(u.telefone, mensagem); } catch (e) { console.error("WA coord fail", e); }
