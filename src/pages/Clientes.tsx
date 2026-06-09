@@ -584,6 +584,9 @@ const Clientes = () => {
                           <p className="text-muted-foreground">CSLL: {ct.csll ? `${ct.csll}%` : "—"}</p>
                           <p className="text-muted-foreground">IRRF: {ct.irrf ? `${ct.irrf}%` : "—"}</p>
                           <p className="text-muted-foreground">ISS: {ct.iss ? `${ct.iss}%` : "—"}</p>
+                          <p className="text-muted-foreground">Meta 1: {ct.meta1 ? `R$ ${ct.meta1}` : "—"}</p>
+                          <p className="text-muted-foreground">Meta 2: {ct.meta2 ? `R$ ${ct.meta2}` : "—"}</p>
+                          <p className="text-muted-foreground">Meta 3: {ct.meta3 ? `R$ ${ct.meta3}` : "—"}</p>
                         </div>
                         <div className="flex gap-1 shrink-0">
                           <Button variant="outline" size="sm" type="button" onClick={() => setFaturamentoContratoId(faturamentoContratoId === ct.id ? null : ct.id)} className="text-xs gap-1" title="Gerenciar Faturamento">
