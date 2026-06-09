@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Search, Eye, FileText, Clock, Paperclip, X, ChevronsUpDown, Check, XCircle, Pencil, MoreHorizontal, AlertTriangle } from "lucide-react";
+import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -85,6 +86,7 @@ export default function RequisicaoComprasPage() {
   const [novoMotivoText, setNovoMotivoText] = useState("");
   const [justificativas, setJustificativas] = useState<{ id: string; motivo: string }[]>([]);
   const [gerenciarMotivosOpen, setGerenciarMotivosOpen] = useState(false);
+  const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: abortCancel } = useDoubleConfirmDelete();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("Todos");
   const [filterCentroCusto, setFilterCentroCusto] = useState<string>("Todos");
@@ -403,6 +405,21 @@ export default function RequisicaoComprasPage() {
     }
   };
 
+  const handleCancelar = async () => {
+    if (cancelId) {
+      const req = requisicoes.find(r => r.id === cancelId);
+      const podeCancelar = req && (req.solicitante === (usuarioLogado?.nome || "") || podeRecusar);
+      if (!podeCancelar) {
+        toast({ title: "Você não possui permissão para cancelar esta requisição.", variant: "destructive" });
+        abortCancel();
+        return;
+      }
+      cancelarRequisicao(cancelId, usuarioLogado?.nome || "Usuário", "Cancelada pelo solicitante antes do início da cotação");
+      toast({ title: "Requisição cancelada" });
+      abortCancel();
+    }
+  };
+
   const handleMaterialSelect = (materialId: string) => {
     setItemMaterialId(materialId);
     const mat = materiais.find(m => m.id === materialId);
@@ -527,6 +544,7 @@ export default function RequisicaoComprasPage() {
               const podeIniciarCotacao = ["Enviada", "Aguardando Aprovação"].includes(r.status);
               const podeRecusarReq = podeRecusar && ["Enviada", "Em Cotação", "Aguardando Aprovação"].includes(r.status);
               const podeEditarReq = r.status === "Recusada" && r.solicitante === (usuarioLogado?.nome || "");
+              const podeCancelarReq = !cotacaoExist && r.status === "Enviada" && (r.solicitante === (usuarioLogado?.nome || "") || podeRecusar);
               return (
               <TableRow key={r.id} className={idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}>
                 {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
@@ -567,6 +585,11 @@ export default function RequisicaoComprasPage() {
                           <FileSpreadsheet className="mr-2 h-4 w-4 text-primary" />Iniciar Cotação
                         </DropdownMenuItem>
                       )}
+                      {podeCancelarReq && (
+                        <DropdownMenuItem onClick={() => requestCancel(r.id)}>
+                          <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar requisição
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -580,6 +603,8 @@ export default function RequisicaoComprasPage() {
           <PaginationControls currentPage={pageReq} totalItems={filtered.length} onPageChange={setPageReq} pageSize={7} />
         </div>
       </div>
+
+      <DoubleConfirmDelete open={!!cancelId} onOpenChange={o => !o && abortCancel()} onConfirm={handleCancelar} />
 
       {/* Dialog Nova Requisição / Editar */}
       <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setEditingId(null); resetForm(); } }}>
