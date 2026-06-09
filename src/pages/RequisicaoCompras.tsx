@@ -86,6 +86,7 @@ export default function RequisicaoComprasPage() {
   const [novoMotivoText, setNovoMotivoText] = useState("");
   const [justificativas, setJustificativas] = useState<{ id: string; motivo: string }[]>([]);
   const [gerenciarMotivosOpen, setGerenciarMotivosOpen] = useState(false);
+  const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: abortCancel } = useDoubleConfirmDelete();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("Todos");
   const [filterCentroCusto, setFilterCentroCusto] = useState<string>("Todos");
