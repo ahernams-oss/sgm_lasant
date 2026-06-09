@@ -49,6 +49,7 @@ export interface Contrato {
   mesSco: string; anoSco: string;
   valorContrato?: string;
   inss?: string; pis?: string; cofins?: string; csll?: string; irrf?: string; iss?: string;
+  meta1?: string; meta2?: string; meta3?: string;
   faturamentos: Faturamento[];
 }
 export interface Cliente {
