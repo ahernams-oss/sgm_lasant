@@ -290,19 +290,21 @@ export default function RequisicaoComprasPage() {
       toast({ title: "Requisição reenviada com sucesso!" });
     } else {
       // Regra: alertar quando mais de 3 RCs "Urgente" no mesmo dia pelo mesmo solicitante
+      let alertaUrgenteMsg = "";
       if (urgencia === "Urgente") {
         const solicitanteNome = usuarioLogado?.nome || "Usuário";
         const hojeInicio = new Date(); hojeInicio.setHours(0,0,0,0);
         const hojeFim = new Date(); hojeFim.setHours(23,59,59,999);
         let urgentesHoje = 0;
         try {
-          const { count } = await (supabase as any)
+          const { count, error } = await (supabase as any)
             .from("requisicoes_compras")
             .select("id", { count: "exact", head: true })
             .eq("urgencia", "Urgente")
             .eq("solicitante", solicitanteNome)
             .gte("data_criacao", hojeInicio.toISOString())
             .lte("data_criacao", hojeFim.toISOString());
+          if (error) throw error;
           urgentesHoje = count || 0;
         } catch (e) {
           console.error("Falha ao contar urgentes:", e);
@@ -312,12 +314,9 @@ export default function RequisicaoComprasPage() {
             (r.dataCriacao || "").slice(0, 10) === new Date().toISOString().slice(0,10)
           ).length;
         }
+        console.log("[RC Urgente] count hoje:", urgentesHoje, "solicitante:", solicitanteNome);
         if (urgentesHoje + 1 > 3) {
-          toast({
-            title: "Muitos pedidos Urgentes hoje",
-            description: `Esta é sua ${urgentesHoje + 1}ª requisição 'Urgente' hoje. Planeje melhor suas compras para evitar pedidos emergenciais.`,
-            variant: "destructive",
-          });
+          alertaUrgenteMsg = `Esta é sua ${urgentesHoje + 1}ª requisição 'Urgente' hoje. Planeje melhor suas compras para evitar pedidos emergenciais.`;
           // Notifica coordenadores via WhatsApp (não bloqueia o fluxo)
           (async () => {
             try {
@@ -356,8 +355,18 @@ export default function RequisicaoComprasPage() {
         itens,
         anexos,
       });
-      toast({ title: "Requisição de compra criada com sucesso!" });
+      if (alertaUrgenteMsg) {
+        toast({
+          title: "⚠️ Muitos pedidos Urgentes hoje",
+          description: `${alertaUrgenteMsg} A requisição foi criada e os coordenadores foram notificados.`,
+          variant: "destructive",
+          duration: 10000,
+        });
+      } else {
+        toast({ title: "Requisição de compra criada com sucesso!" });
+      }
     }
+
     setDialogOpen(false);
     setEditingId(null);
     resetForm();
