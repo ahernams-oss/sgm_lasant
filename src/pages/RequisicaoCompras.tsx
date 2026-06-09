@@ -287,6 +287,41 @@ export default function RequisicaoComprasPage() {
       await updateStatus(editingId, "Enviada", usuarioLogado?.nome || "Usuário", "Requisição corrigida e reenviada");
       toast({ title: "Requisição reenviada com sucesso!" });
     } else {
+      // Regra: alertar quando mais de 3 RCs "Urgente" no mesmo dia pelo mesmo solicitante
+      if (urgencia === "Urgente") {
+        const hoje = new Date().toISOString().slice(0, 10);
+        const solicitanteNome = usuarioLogado?.nome || "Usuário";
+        const urgentesHoje = requisicoes.filter(r =>
+          r.urgencia === "Urgente" &&
+          r.solicitante === solicitanteNome &&
+          (r.dataCriacao || "").slice(0, 10) === hoje
+        ).length;
+        if (urgentesHoje >= 3) {
+          toast({
+            title: "Muitos pedidos Urgentes hoje",
+            description: "Você já registrou mais de 3 requisições 'Urgente' hoje. Planeje melhor suas compras para evitar pedidos emergenciais.",
+            variant: "destructive",
+          });
+          // Notifica coordenadores via WhatsApp (não bloqueia o fluxo)
+          (async () => {
+            try {
+              const { data: coords } = await (supabase as any)
+                .from("usuarios")
+                .select("nome,telefone,cargo_id,cargos:cargo_id(nome)");
+              const destinatarios = (coords || []).filter((u: any) =>
+                u?.telefone && /coorden/i.test(u?.cargos?.nome || "")
+              );
+              const mensagem =
+                `⚠️ *Alerta de RCs Urgentes*\n\n` +
+                `O solicitante *${solicitanteNome}* já realizou *${urgentesHoje + 1}* requisições de compra com urgência *Urgente* hoje (${hoje.split("-").reverse().join("/")}).\n\n` +
+                `É necessário orientar o solicitante a realizar planejamento de compras para evitar pedidos emergenciais.`;
+              for (const u of destinatarios) {
+                try { await enviarWhatsApp(u.telefone, mensagem); } catch (e) { console.error("WA coord fail", e); }
+              }
+            } catch (e) { console.error("Falha ao notificar coordenadores:", e); }
+          })();
+        }
+      }
       addRequisicao({
         solicitante: usuarioLogado?.nome || "Usuário",
         centroCusto,
