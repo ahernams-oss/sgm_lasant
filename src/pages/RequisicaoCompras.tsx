@@ -31,6 +31,8 @@ import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTable
 import type { ReactNode } from "react";
 import { usePermissao } from "@/hooks/usePermissao";
 import { fetchAll, insertRow, deleteRow } from "@/lib/supabaseHelper";
+import { supabase } from "@/integrations/supabase/client";
+import { enviarWhatsApp } from "@/lib/whatsapp";
 
 const statusColors: Record<StatusRequisicaoCompras, string> = {
   Rascunho: "bg-muted text-muted-foreground",
