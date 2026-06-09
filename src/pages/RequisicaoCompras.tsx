@@ -585,6 +585,11 @@ export default function RequisicaoComprasPage() {
                           <FileSpreadsheet className="mr-2 h-4 w-4 text-primary" />Iniciar Cotação
                         </DropdownMenuItem>
                       )}
+                      {podeCancelarReq && (
+                        <DropdownMenuItem onClick={() => requestCancel(r.id)}>
+                          <XCircle className="mr-2 h-4 w-4 text-destructive" />Cancelar requisição
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -598,6 +603,8 @@ export default function RequisicaoComprasPage() {
           <PaginationControls currentPage={pageReq} totalItems={filtered.length} onPageChange={setPageReq} pageSize={7} />
         </div>
       </div>
+
+      <DoubleConfirmDelete open={!!cancelId} onOpenChange={o => !o && abortCancel()} onConfirm={handleCancelar} />
 
       {/* Dialog Nova Requisição / Editar */}
       <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setEditingId(null); resetForm(); } }}>
