@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -352,33 +353,40 @@ interface PregaoContextType {
   deleteHabilitacao: (habId: string) => Promise<boolean>;
 }
 
-const PregaoContext = createContext<PregaoContextType | undefined>(undefined);
+const QK_PREGOES = ["pregoes"] as const;
+const QK_ITENS = ["pregao_itens"] as const;
+const QK_DOCS = ["pregao_documentos_exigidos"] as const;
+const QK_PARTS = ["pregao_participantes"] as const;
 
 export function PregaoProvider({ children }: { children: ReactNode }) {
-  const [pregoes, setPregoes] = useState<Pregao[]>([]);
-  const [itens, setItens] = useState<PregaoItem[]>([]);
-  const [documentos, setDocumentos] = useState<PregaoDocumentoExigido[]>([]);
-  const [participantes, setParticipantes] = useState<PregaoParticipante[]>([]);
+  const qc = useQueryClient();
   const [lances, setLances] = useState<PregaoLance[]>([]);
   const [mensagens, setMensagens] = useState<PregaoMensagem[]>([]);
   const [propostasIniciais, setPropostasIniciais] = useState<PregaoPropostaInicial[]>([]);
   const [habilitacoes, setHabilitacoes] = useState<PregaoHabilitacao[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const [pp, ii, dd, pt] = await Promise.all([
-      fetchAll("pregoes", "created_at"),
-      fetchAll("pregao_itens", "ordem"),
-      fetchAll("pregao_documentos_exigidos", "ordem"),
-      fetchAll("pregao_participantes", "created_at"),
-    ]);
-    setPregoes(pp.map(rowToPregao));
-    setItens(ii.map(rowToItem));
-    setDocumentos(dd.map(rowToDoc));
-    setParticipantes(pt.map(rowToPart));
-    setLoading(false);
-  }, []);
+  const opts = { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 };
+  const results = useQueries({
+    queries: [
+      { queryKey: QK_PREGOES, queryFn: async () => (await fetchAll("pregoes", "created_at")).map(rowToPregao), ...opts },
+      { queryKey: QK_ITENS, queryFn: async () => (await fetchAll("pregao_itens", "ordem")).map(rowToItem), ...opts },
+      { queryKey: QK_DOCS, queryFn: async () => (await fetchAll("pregao_documentos_exigidos", "ordem")).map(rowToDoc), ...opts },
+      { queryKey: QK_PARTS, queryFn: async () => (await fetchAll("pregao_participantes", "created_at")).map(rowToPart), ...opts },
+    ],
+  });
+  const pregoes = (results[0].data as Pregao[]) ?? [];
+  const itens = (results[1].data as PregaoItem[]) ?? [];
+  const documentos = (results[2].data as PregaoDocumentoExigido[]) ?? [];
+  const participantes = (results[3].data as PregaoParticipante[]) ?? [];
+  const loading = results.some(r => r.isLoading);
+
+  const invAll = () => {
+    qc.invalidateQueries({ queryKey: QK_PREGOES });
+    qc.invalidateQueries({ queryKey: QK_ITENS });
+    qc.invalidateQueries({ queryKey: QK_DOCS });
+    qc.invalidateQueries({ queryKey: QK_PARTS });
+  };
+  const load = useCallback(async () => { invAll(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadDisputa = useCallback(async (pregaoId: string) => {
     const [{ data: ll }, { data: mm }, { data: pi }] = await Promise.all([
@@ -390,8 +398,6 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
     setMensagens((mm ?? []).map(rowToMsg));
     setPropostasIniciais((pi ?? []).map(rowToPropIni));
   }, []);
-
-  useEffect(() => { load(); }, [load]);
 
   // Realtime global para tabelas de disputa
   useEffect(() => {
@@ -406,15 +412,17 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
         if (payload.eventType === "INSERT") setMensagens(prev => [...prev, rowToMsg(payload.new)]);
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "pregao_itens" }, (payload: any) => {
-        setItens(prev => prev.map(i => i.id === payload.new.id ? rowToItem(payload.new) : i));
+        qc.setQueryData<PregaoItem[]>(QK_ITENS, (prev = []) => prev.map(i => i.id === payload.new.id ? rowToItem(payload.new) : i));
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "pregao_participantes" }, () => { load(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "pregao_participantes" }, () => {
+        qc.invalidateQueries({ queryKey: QK_PARTS });
+      })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "pregoes" }, (payload: any) => {
-        setPregoes(prev => prev.map(p => p.id === payload.new.id ? rowToPregao(payload.new) : p));
+        qc.setQueryData<Pregao[]>(QK_PREGOES, (prev = []) => prev.map(p => p.id === payload.new.id ? rowToPregao(payload.new) : p));
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [load]);
+  }, [qc]);
 
   const addPregao = async (data: Omit<Pregao, "id" | "numero" | "createdAt">) => {
     const hash = data.termoParticipacao ? await sha256(data.termoParticipacao) : "";
