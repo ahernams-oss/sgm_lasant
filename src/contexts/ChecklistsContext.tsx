@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode } from "react";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { toast } from "sonner";
 
@@ -54,69 +55,72 @@ interface ChecklistsContextType {
 }
 
 const ChecklistsContext = createContext<ChecklistsContextType>({} as ChecklistsContextType);
-
 export const useChecklists = () => useContext(ChecklistsContext);
 
+const QK_C = ["checklists"] as const;
+const QK_P = ["checklist_preenchimentos"] as const;
+
 export function ChecklistsProvider({ children }: { children: ReactNode }) {
-  const [checklists, setChecklists] = useState<Checklist[]>([]);
-  const [preenchimentos, setPreenchimentos] = useState<ChecklistPreenchimento[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const load = async () => {
-    setLoading(true);
-    const [cl, pr] = await Promise.all([
-      fetchAll("checklists"),
-      fetchAll("checklist_preenchimentos"),
-    ]);
-    setChecklists(cl as Checklist[]);
-    setPreenchimentos(pr as ChecklistPreenchimento[]);
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); }, []);
+  const qc = useQueryClient();
+  const results = useQueries({
+    queries: [
+      {
+        queryKey: QK_C,
+        queryFn: async () => (await fetchAll("checklists")) as Checklist[],
+        staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+      },
+      {
+        queryKey: QK_P,
+        queryFn: async () => (await fetchAll("checklist_preenchimentos")) as ChecklistPreenchimento[],
+        staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+      },
+    ],
+  });
+  const checklists = results[0].data ?? [];
+  const preenchimentos = results[1].data ?? [];
+  const loading = results.some(r => r.isLoading);
+  const invC = () => qc.invalidateQueries({ queryKey: QK_C });
+  const invP = () => qc.invalidateQueries({ queryKey: QK_P });
 
   const addChecklist = async (c: Partial<Checklist>) => {
     const data = await insertRow("checklists", c);
-    if (data) { await load(); toast.success("Checklist criado com sucesso!"); }
+    if (data) { invC(); toast.success("Checklist criado com sucesso!"); }
     return data;
   };
-
   const updateChecklist = async (id: string, c: Partial<Checklist>) => {
     const ok = await updateRow("checklists", id, c);
-    if (ok) { await load(); toast.success("Checklist atualizado!"); }
+    if (ok) { invC(); toast.success("Checklist atualizado!"); }
     return ok;
   };
-
   const deleteChecklist = async (id: string) => {
     const ok = await deleteRow("checklists", id);
-    if (ok) { await load(); toast.success("Checklist removido!"); }
+    if (ok) { invC(); toast.success("Checklist removido!"); }
     return ok;
   };
 
   const addPreenchimento = async (p: Partial<ChecklistPreenchimento>) => {
     const data = await insertRow("checklist_preenchimentos", p);
-    if (data) { await load(); toast.success("Checklist preenchido com sucesso!"); }
+    if (data) { invP(); toast.success("Checklist preenchido com sucesso!"); }
     return data;
   };
-
   const updatePreenchimento = async (id: string, p: Partial<ChecklistPreenchimento>) => {
     const ok = await updateRow("checklist_preenchimentos", id, p);
-    if (ok) { await load(); toast.success("Preenchimento atualizado!"); }
+    if (ok) { invP(); toast.success("Preenchimento atualizado!"); }
     return ok;
   };
-
   const deletePreenchimento = async (id: string) => {
     const ok = await deleteRow("checklist_preenchimentos", id);
-    if (ok) { await load(); toast.success("Preenchimento removido!"); }
+    if (ok) { invP(); toast.success("Preenchimento removido!"); }
     return ok;
   };
+  const refresh = async () => { invC(); invP(); };
 
   return (
     <ChecklistsContext.Provider value={{
       checklists, preenchimentos, loading,
       addChecklist, updateChecklist, deleteChecklist,
       addPreenchimento, updatePreenchimento, deletePreenchimento,
-      refresh: load,
+      refresh,
     }}>
       {children}
     </ChecklistsContext.Provider>

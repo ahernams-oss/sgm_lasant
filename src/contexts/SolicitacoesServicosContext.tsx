@@ -1,5 +1,6 @@
 // Solicitações de Serviços Context
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface HistoricoEntry {
@@ -9,29 +10,16 @@ export interface HistoricoEntry {
 }
 
 export interface SolicitacaoServico {
-  id: string;
-  numero: number;
-  tipo: string;
-  clienteId: string;
-  clienteNome: string;
-  localId: string;
-  localDescricao: string;
-  pavimentoId: string;
-  pavimentoDescricao: string;
-  setorId: string;
-  setorDescricao: string;
-  equipamentoId: string;
-  equipamentoNome: string;
-  descricaoServicos: string;
-  situacao: string;
-  prioridade: string;
-  observacoes: string;
-  visitado: boolean;
-  imagens: string[];
-  createdAt: string;
-  dataHoraSolicitacao: string;
-  solicitanteId: string;
-  solicitanteNome: string;
+  id: string; numero: number; tipo: string;
+  clienteId: string; clienteNome: string;
+  localId: string; localDescricao: string;
+  pavimentoId: string; pavimentoDescricao: string;
+  setorId: string; setorDescricao: string;
+  equipamentoId: string; equipamentoNome: string;
+  descricaoServicos: string; situacao: string; prioridade: string;
+  observacoes: string; visitado: boolean; imagens: string[];
+  createdAt: string; dataHoraSolicitacao: string;
+  solicitanteId: string; solicitanteNome: string;
   historico: HistoricoEntry[];
 }
 
@@ -43,25 +31,18 @@ interface SolicitacoesServicosContextType {
 }
 
 const SolicitacoesServicosContext = createContext<SolicitacoesServicosContextType | undefined>(undefined);
+const QK = ["solicitacoes_servicos"] as const;
 
 const rowToSolicitacao = (r: any): SolicitacaoServico => ({
-  id: r.id,
-  numero: r.numero ?? 0,
-  tipo: r.tipo ?? "Predial",
-  clienteId: r.cliente_id ?? "",
-  clienteNome: r.cliente_nome ?? "",
-  localId: r.local_id ?? "",
-  localDescricao: r.local_descricao ?? "",
-  pavimentoId: r.pavimento_id ?? "",
-  pavimentoDescricao: r.pavimento_descricao ?? "",
-  setorId: r.setor_id ?? "",
-  setorDescricao: r.setor_descricao ?? "",
-  equipamentoId: r.equipamento_id ?? "",
-  equipamentoNome: r.equipamento_nome ?? "",
+  id: r.id, numero: r.numero ?? 0, tipo: r.tipo ?? "Predial",
+  clienteId: r.cliente_id ?? "", clienteNome: r.cliente_nome ?? "",
+  localId: r.local_id ?? "", localDescricao: r.local_descricao ?? "",
+  pavimentoId: r.pavimento_id ?? "", pavimentoDescricao: r.pavimento_descricao ?? "",
+  setorId: r.setor_id ?? "", setorDescricao: r.setor_descricao ?? "",
+  equipamentoId: r.equipamento_id ?? "", equipamentoNome: r.equipamento_nome ?? "",
   descricaoServicos: r.descricao_servicos ?? "",
   situacao: r.situacao ?? "Aguardando aprovação",
-  prioridade: r.prioridade ?? "",
-  observacoes: r.observacoes ?? "",
+  prioridade: r.prioridade ?? "", observacoes: r.observacoes ?? "",
   visitado: r.visitado ?? false,
   imagens: Array.isArray(r.imagens) ? r.imagens : [],
   createdAt: r.created_at ?? "",
@@ -72,18 +53,17 @@ const rowToSolicitacao = (r: any): SolicitacaoServico => ({
 });
 
 export function SolicitacoesServicosProvider({ children }: { children: ReactNode }) {
-  const [solicitacoes, setSolicitacoes] = useState<SolicitacaoServico[]>([]);
+  const qc = useQueryClient();
+  const { data: solicitacoes = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("solicitacoes_servicos", "numero")).map(rowToSolicitacao),
+    staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
-  const load = useCallback(async () => {
-    const data = await fetchAll("solicitacoes_servicos", "numero");
-    setSolicitacoes(data.map(rowToSolicitacao));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const addSolicitacao = async (d: any) => { await insertRow("solicitacoes_servicos", d); await load(); };
-  const updateSolicitacao = async (id: string, d: any) => { await updateRow("solicitacoes_servicos", id, d); await load(); };
-  const deleteSolicitacao = async (id: string) => { await deleteRow("solicitacoes_servicos", id); await load(); };
+  const addSolicitacao = async (d: any) => { await insertRow("solicitacoes_servicos", d); invalidate(); };
+  const updateSolicitacao = async (id: string, d: any) => { await updateRow("solicitacoes_servicos", id, d); invalidate(); };
+  const deleteSolicitacao = async (id: string) => { await deleteRow("solicitacoes_servicos", id); invalidate(); };
 
   return (
     <SolicitacoesServicosContext.Provider value={{ solicitacoes, addSolicitacao, updateSolicitacao, deleteSolicitacao }}>

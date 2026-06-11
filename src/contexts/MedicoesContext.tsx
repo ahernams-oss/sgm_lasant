@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface ItemServico {
@@ -56,40 +57,27 @@ interface MedicoesContextType {
 }
 
 const MedicoesContext = createContext<MedicoesContextType | undefined>(undefined);
+const QK = ["medicoes_servicos"] as const;
 
 export function MedicoesProvider({ children }: { children: ReactNode }) {
-  const [medicoes, setMedicoes] = useState<MedicaoServico[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const load = async () => {
-    setLoading(true);
-    const data = await fetchAll("medicoes_servicos");
-    setMedicoes(
-      (data || []).map((d: any) => ({
+  const qc = useQueryClient();
+  const { data: medicoes = [], isLoading: loading } = useQuery({
+    queryKey: QK,
+    queryFn: async () => {
+      const data = await fetchAll("medicoes_servicos");
+      return (data || []).map((d: any) => ({
         ...d,
         itens: Array.isArray(d.itens) ? d.itens : [],
         medicoes: Array.isArray(d.medicoes) ? d.medicoes : [],
-      }))
-    );
-    setLoading(false);
-  };
+      })) as MedicaoServico[];
+    },
+    staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
-  useEffect(() => { load(); }, []);
-
-  const addMedicao = async (m: Omit<MedicaoServico, "id">) => {
-    await insertRow("medicoes_servicos", m);
-    await load();
-  };
-
-  const updateMedicao = async (id: string, m: Partial<MedicaoServico>) => {
-    await updateRow("medicoes_servicos", id, m);
-    await load();
-  };
-
-  const deleteMedicao = async (id: string) => {
-    await deleteRow("medicoes_servicos", id);
-    await load();
-  };
+  const addMedicao = async (m: Omit<MedicaoServico, "id">) => { await insertRow("medicoes_servicos", m); invalidate(); };
+  const updateMedicao = async (id: string, m: Partial<MedicaoServico>) => { await updateRow("medicoes_servicos", id, m); invalidate(); };
+  const deleteMedicao = async (id: string) => { await deleteRow("medicoes_servicos", id); invalidate(); };
 
   return (
     <MedicoesContext.Provider value={{ medicoes, loading, addMedicao, updateMedicao, deleteMedicao }}>

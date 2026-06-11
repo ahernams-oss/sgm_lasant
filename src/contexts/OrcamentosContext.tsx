@@ -1,53 +1,27 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface ItemScoOrcamento {
-  id: string;
-  codSco: string;
-  descricao: string;
-  unidade: string;
-  quantidade: number;
-  valorUnitario: number;
-  valorTotal: number;
+  id: string; codSco: string; descricao: string; unidade: string;
+  quantidade: number; valorUnitario: number; valorTotal: number;
 }
 
 export interface ItemMaterialOrcamento {
-  id: string;
-  materialId: string;
-  codigo: string;
-  descricao: string;
-  unidade: string;
-  quantidade: number;
-  valorUnitario: number;
-  valorTotal: number;
+  id: string; materialId: string; codigo: string; descricao: string;
+  unidade: string; quantidade: number; valorUnitario: number; valorTotal: number;
 }
 
-export interface RevisaoEntry {
-  motivo: string;
-  data: string;
-  usuario: string;
-}
+export interface RevisaoEntry { motivo: string; data: string; usuario: string; }
 
 export interface Orcamento {
-  id: string;
-  numero: number;
-  solicitacaoId: string;
-  solicitacaoNumero: number;
-  clienteId: string;
-  clienteNome: string;
-  itensSco: ItemScoOrcamento[];
-  itensMateriais: ItemMaterialOrcamento[];
-  anexos: string[];
-  valorTotal: number;
-  status: string;
-  observacoes: string;
-  revisaoMotivo: string;
-  revisoes: RevisaoEntry[];
-  aprovadoPor: string;
-  dataAprovacao: string;
-  criadoPor: string;
-  dataCriacao: string;
-  createdAt: string;
+  id: string; numero: number; solicitacaoId: string; solicitacaoNumero: number;
+  clienteId: string; clienteNome: string;
+  itensSco: ItemScoOrcamento[]; itensMateriais: ItemMaterialOrcamento[];
+  anexos: string[]; valorTotal: number; status: string; observacoes: string;
+  revisaoMotivo: string; revisoes: RevisaoEntry[];
+  aprovadoPor: string; dataAprovacao: string;
+  criadoPor: string; dataCriacao: string; createdAt: string;
 }
 
 interface OrcamentosContextType {
@@ -59,49 +33,45 @@ interface OrcamentosContextType {
 }
 
 const OrcamentosContext = createContext<OrcamentosContextType | undefined>(undefined);
+const QK = ["orcamentos"] as const;
 
 const rowToOrcamento = (r: any): Orcamento => ({
-  id: r.id,
-  numero: r.numero ?? 0,
-  solicitacaoId: r.solicitacao_id ?? "",
-  solicitacaoNumero: r.solicitacao_numero ?? 0,
-  clienteId: r.cliente_id ?? "",
-  clienteNome: r.cliente_nome ?? "",
+  id: r.id, numero: r.numero ?? 0,
+  solicitacaoId: r.solicitacao_id ?? "", solicitacaoNumero: r.solicitacao_numero ?? 0,
+  clienteId: r.cliente_id ?? "", clienteNome: r.cliente_nome ?? "",
   itensSco: Array.isArray(r.itens_sco) ? r.itens_sco : [],
   itensMateriais: Array.isArray(r.itens_materiais) ? r.itens_materiais : [],
   anexos: Array.isArray(r.anexos) ? r.anexos : [],
   valorTotal: Number(r.valor_total) || 0,
-  status: r.status ?? "Pendente",
-  observacoes: r.observacoes ?? "",
+  status: r.status ?? "Pendente", observacoes: r.observacoes ?? "",
   revisaoMotivo: r.revisao_motivo ?? "",
   revisoes: Array.isArray(r.revisoes) ? r.revisoes : [],
-  aprovadoPor: r.aprovado_por ?? "",
-  dataAprovacao: r.data_aprovacao ?? "",
+  aprovadoPor: r.aprovado_por ?? "", dataAprovacao: r.data_aprovacao ?? "",
   criadoPor: r.criado_por ?? "",
   dataCriacao: r.data_criacao ?? r.created_at ?? "",
   createdAt: r.created_at ?? "",
 });
 
 export function OrcamentosProvider({ children }: { children: ReactNode }) {
-  const [orcamentos, setOrcamentos] = useState<Orcamento[]>([]);
-
-  const load = useCallback(async () => {
-    const data = await fetchAll("orcamentos", "numero");
-    setOrcamentos(data.map(rowToOrcamento));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const qc = useQueryClient();
+  const { data: orcamentos = [], refetch } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("orcamentos", "numero")).map(rowToOrcamento),
+    staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
   const addOrcamento = async (d: any) => {
     const result = await insertRow("orcamentos", d);
-    await load();
+    invalidate();
     return result;
   };
-  const updateOrcamento = async (id: string, d: any) => { await updateRow("orcamentos", id, d); await load(); };
-  const deleteOrcamento = async (id: string) => { await deleteRow("orcamentos", id); await load(); };
+  const updateOrcamento = async (id: string, d: any) => { await updateRow("orcamentos", id, d); invalidate(); };
+  const deleteOrcamento = async (id: string) => { await deleteRow("orcamentos", id); invalidate(); };
+  const reload = async () => { await refetch(); };
 
   return (
-    <OrcamentosContext.Provider value={{ orcamentos, addOrcamento, updateOrcamento, deleteOrcamento, reload: load }}>
+    <OrcamentosContext.Provider value={{ orcamentos, addOrcamento, updateOrcamento, deleteOrcamento, reload }}>
       {children}
     </OrcamentosContext.Provider>
   );

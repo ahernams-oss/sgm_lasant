@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -27,38 +28,32 @@ interface Ctx {
 
 const ResponsaveisTecnicosContext = createContext<Ctx>({} as Ctx);
 export const useResponsaveisTecnicos = () => useContext(ResponsaveisTecnicosContext);
+const QK = ["responsaveis_tecnicos"] as const;
 
 export function ResponsaveisTecnicosProvider({ children }: { children: ReactNode }) {
-  const [responsaveis, setResponsaveis] = useState<ResponsavelTecnico[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    const data = await fetchAll("responsaveis_tecnicos", "nome");
-    setResponsaveis(data as ResponsavelTecnico[]);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const qc = useQueryClient();
+  const { data: responsaveis = [], isLoading: loading, refetch } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("responsaveis_tecnicos", "nome")) as ResponsavelTecnico[],
+    staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
   const add = async (r: Partial<ResponsavelTecnico>) => {
     const data = await insertRow("responsaveis_tecnicos", r);
-    if (data) { await load(); toast.success("Responsável Técnico cadastrado!"); }
+    if (data) { invalidate(); toast.success("Responsável Técnico cadastrado!"); }
     return data;
   };
-
   const update = async (id: string, r: Partial<ResponsavelTecnico>) => {
     const ok = await updateRow("responsaveis_tecnicos", id, r);
-    if (ok) { await load(); toast.success("Responsável Técnico atualizado!"); }
+    if (ok) { invalidate(); toast.success("Responsável Técnico atualizado!"); }
     return ok;
   };
-
   const remove = async (id: string) => {
     const ok = await deleteRow("responsaveis_tecnicos", id);
-    if (ok) { await load(); toast.success("Responsável Técnico removido!"); }
+    if (ok) { invalidate(); toast.success("Responsável Técnico removido!"); }
     return ok;
   };
-
   const uploadCarteira = async (file: File) => {
     const ext = file.name.split(".").pop();
     const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
@@ -67,9 +62,10 @@ export function ResponsaveisTecnicosProvider({ children }: { children: ReactNode
     const { data } = supabase.storage.from("responsaveis-tecnicos").getPublicUrl(path);
     return { url: data.publicUrl, nome: file.name };
   };
+  const refresh = async () => { await refetch(); };
 
   return (
-    <ResponsaveisTecnicosContext.Provider value={{ responsaveis, loading, add, update, remove, uploadCarteira, refresh: load }}>
+    <ResponsaveisTecnicosContext.Provider value={{ responsaveis, loading, add, update, remove, uploadCarteira, refresh }}>
       {children}
     </ResponsaveisTecnicosContext.Provider>
   );

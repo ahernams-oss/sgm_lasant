@@ -1,63 +1,39 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface ScoServico {
-  codigo: string;
-  descricao: string;
-  unidade: string;
-  preco: number;
-  capitulo?: string;
-  capitulo_descricao?: string;
-  secao?: string;
-  secao_descricao?: string;
-  subsecao?: string;
-  subsecao_descricao?: string;
+  codigo: string; descricao: string; unidade: string; preco: number;
+  capitulo?: string; capitulo_descricao?: string;
+  secao?: string; secao_descricao?: string;
+  subsecao?: string; subsecao_descricao?: string;
 }
 
 export interface ScoElementar {
-  codigo: string;
-  descricao: string;
-  unidade: string;
-  grupo: string;
-  preco: number;
+  codigo: string; descricao: string; unidade: string; grupo: string; preco: number;
 }
 
 export interface ScoComposicao {
-  servico_codigo: string;
-  elementar_codigo: string;
-  elementar_descricao: string;
-  unidade: string;
-  quantidade: number;
+  servico_codigo: string; elementar_codigo: string;
+  elementar_descricao: string; unidade: string; quantidade: number;
 }
 
 export interface OrcamentoScoItem {
-  servico_codigo: string;
-  descricao: string;
-  unidade: string;
-  quantidade: number;
-  preco_unit: number;
-  preco_total: number;
+  servico_codigo: string; descricao: string; unidade: string;
+  quantidade: number; preco_unit: number; preco_total: number;
 }
 
 export interface OrcamentoSco {
-  id: string;
-  numero: number;
-  titulo: string;
-  cliente_id?: string | null;
-  cliente_nome?: string;
+  id: string; numero: number; titulo: string;
+  cliente_id?: string | null; cliente_nome?: string;
   obra?: string;
   tipo_analise: "sintetica" | "analitica";
-  bdi: number;
-  desconto: number;
-  observacoes?: string;
-  referencia?: string;
+  bdi: number; desconto: number;
+  observacoes?: string; referencia?: string;
   itens: OrcamentoScoItem[];
-  subtotal: number;
-  valor_total: number;
-  status: string;
-  criado_por?: string;
-  created_at: string;
+  subtotal: number; valor_total: number;
+  status: string; criado_por?: string; created_at: string;
 }
 
 interface Ctx {
@@ -76,36 +52,35 @@ interface Ctx {
 }
 
 const C = createContext<Ctx | undefined>(undefined);
+const QK = ["orcamentos_sco"] as const;
 
 export function OrcamentosScoProvider({ children }: { children: ReactNode }) {
-  const [orcamentos, setOrcamentos] = useState<OrcamentoSco[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const reload = useCallback(async () => {
-    setLoading(true);
-    const data = await fetchAll("orcamentos_sco", "numero");
-    setOrcamentos(
-      (data || []).map((r: any) => ({
+  const qc = useQueryClient();
+  const { data: orcamentos = [], isLoading: loading, refetch } = useQuery({
+    queryKey: QK,
+    queryFn: async () => {
+      const data = await fetchAll("orcamentos_sco", "numero");
+      return (data || []).map((r: any) => ({
         ...r,
         bdi: Number(r.bdi || 0),
         desconto: Number(r.desconto || 0),
         subtotal: Number(r.subtotal || 0),
         valor_total: Number(r.valor_total || 0),
         itens: Array.isArray(r.itens) ? r.itens : [],
-      })),
-    );
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { reload(); }, [reload]);
+      })) as OrcamentoSco[];
+    },
+    staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
+  const reload = async () => { await refetch(); };
 
   const add: Ctx["add"] = async (o) => {
     const r = await insertRow("orcamentos_sco", o);
-    await reload();
+    invalidate();
     return r;
   };
-  const update: Ctx["update"] = async (id, o) => { await updateRow("orcamentos_sco", id, o); await reload(); };
-  const remove: Ctx["remove"] = async (id) => { await deleteRow("orcamentos_sco", id); await reload(); };
+  const update: Ctx["update"] = async (id, o) => { await updateRow("orcamentos_sco", id, o); invalidate(); };
+  const remove: Ctx["remove"] = async (id) => { await deleteRow("orcamentos_sco", id); invalidate(); };
 
   const searchServicos: Ctx["searchServicos"] = async (q, limit = 30, referencia) => {
     const t = (q || "").trim();
