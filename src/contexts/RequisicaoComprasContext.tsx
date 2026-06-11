@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 
 export type StatusRequisicaoCompras =
@@ -34,6 +35,7 @@ interface RequisicaoComprasContextType {
 }
 
 const RequisicaoComprasContext = createContext<RequisicaoComprasContextType | undefined>(undefined);
+const QK = ["requisicoes_compras"] as const;
 
 const rowToReq = (r: any): RequisicaoCompras => ({
   id: r.id, numero: r.numero ?? 0, dataCriacao: r.data_criacao ?? "",
@@ -53,14 +55,15 @@ const reqToRow = (r: RequisicaoCompras) => ({
 });
 
 export function RequisicaoComprasProvider({ children }: { children: ReactNode }) {
-  const [requisicoes, setRequisicoes] = useState<RequisicaoCompras[]>([]);
+  const qc = useQueryClient();
+  const { data: requisicoes = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("requisicoes_compras", "created_at")).map(rowToReq),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
-  const load = useCallback(async () => {
-    const data = await fetchAll("requisicoes_compras", "created_at");
-    setRequisicoes(data.map(rowToReq));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
   const addRequisicao = async (data: Omit<RequisicaoCompras, "id" | "numero" | "dataCriacao" | "status" | "historicoStatus">) => {
     const now = new Date().toISOString();
@@ -70,7 +73,7 @@ export function RequisicaoComprasProvider({ children }: { children: ReactNode })
       historicoStatus: [{ status: "Enviada", dataHora: now, usuario: data.solicitante, observacao: "Solicitação criada" }],
     };
     await insertRow("requisicoes_compras", reqToRow(req));
-    await load();
+    invalidate();
   };
 
   const updateRequisicao = async (id: string, data: Partial<Omit<RequisicaoCompras, "id" | "numero" | "dataCriacao">>) => {
@@ -78,7 +81,7 @@ export function RequisicaoComprasProvider({ children }: { children: ReactNode })
     if (!current || !["Rascunho", "Enviada", "Recusada"].includes(current.status)) return;
     const merged = { ...current, ...data };
     await updateRow("requisicoes_compras", id, reqToRow(merged));
-    await load();
+    invalidate();
   };
 
   const updateStatus = async (id: string, status: StatusRequisicaoCompras, usuario: string, observacao = "") => {
@@ -89,7 +92,7 @@ export function RequisicaoComprasProvider({ children }: { children: ReactNode })
       historicoStatus: [...current.historicoStatus, { status, dataHora: new Date().toISOString(), usuario, observacao }],
     };
     await updateRow("requisicoes_compras", id, reqToRow(updated));
-    await load();
+    invalidate();
   };
 
   const cancelarRequisicao = (id: string, usuario: string, motivo: string) => {

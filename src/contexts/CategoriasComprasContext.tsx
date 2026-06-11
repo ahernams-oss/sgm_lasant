@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface GrupoCompras { id: string; codigo: string; nome: string; }
@@ -22,35 +23,44 @@ interface CategoriasComprasContextType {
 }
 
 const CategoriasComprasContext = createContext<CategoriasComprasContextType | undefined>(undefined);
+const QK_G = ["categorias_compras_grupos"] as const;
+const QK_S = ["categorias_compras_subgrupos"] as const;
+const QK_C = ["categorias_compras_classes"] as const;
 
 export function CategoriasComprasProvider({ children }: { children: ReactNode }) {
-  const [grupos, setGrupos] = useState<GrupoCompras[]>([]);
-  const [subGrupos, setSubGrupos] = useState<SubGrupoCompras[]>([]);
-  const [classes, setClasses] = useState<ClasseCompras[]>([]);
+  const qc = useQueryClient();
 
-  const loadAll = useCallback(async () => {
-    const [g, s, c] = await Promise.all([
-      fetchAll("categorias_compras_grupos", "codigo"),
-      fetchAll("categorias_compras_subgrupos", "codigo"),
-      fetchAll("categorias_compras_classes", "codigo"),
-    ]);
-    setGrupos(g.map((r: any) => ({ id: r.id, codigo: r.codigo ?? "", nome: r.nome ?? "" })));
-    setSubGrupos(s.map((r: any) => ({ id: r.id, grupoId: r.grupo_id ?? "", codigo: r.codigo ?? "", nome: r.nome ?? "" })));
-    setClasses(c.map((r: any) => ({ id: r.id, subGrupoId: r.sub_grupo_id ?? "", codigo: r.codigo ?? "", nome: r.nome ?? "" })));
-  }, []);
+  const { data: grupos = [] } = useQuery({
+    queryKey: QK_G,
+    queryFn: async () => (await fetchAll("categorias_compras_grupos", "codigo")).map((r: any) => ({ id: r.id, codigo: r.codigo ?? "", nome: r.nome ?? "" })),
+    staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
+  const { data: subGrupos = [] } = useQuery({
+    queryKey: QK_S,
+    queryFn: async () => (await fetchAll("categorias_compras_subgrupos", "codigo")).map((r: any) => ({ id: r.id, grupoId: r.grupo_id ?? "", codigo: r.codigo ?? "", nome: r.nome ?? "" })),
+    staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
+  const { data: classes = [] } = useQuery({
+    queryKey: QK_C,
+    queryFn: async () => (await fetchAll("categorias_compras_classes", "codigo")).map((r: any) => ({ id: r.id, subGrupoId: r.sub_grupo_id ?? "", codigo: r.codigo ?? "", nome: r.nome ?? "" })),
+    staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
 
-  useEffect(() => { loadAll(); }, [loadAll]);
+  const invAll = () => {
+    qc.invalidateQueries({ queryKey: QK_G });
+    qc.invalidateQueries({ queryKey: QK_S });
+    qc.invalidateQueries({ queryKey: QK_C });
+  };
 
   const addGrupo = async (g: Omit<GrupoCompras, "id">) => {
     await insertRow("categorias_compras_grupos", { codigo: g.codigo, nome: g.nome });
-    await loadAll();
+    qc.invalidateQueries({ queryKey: QK_G });
   };
   const updateGrupo = async (id: string, data: Partial<Omit<GrupoCompras, "id">>) => {
     await updateRow("categorias_compras_grupos", id, data);
-    await loadAll();
+    qc.invalidateQueries({ queryKey: QK_G });
   };
   const deleteGrupo = async (id: string) => {
-    // Delete children
     const subIds = subGrupos.filter(s => s.grupoId === id).map(s => s.id);
     for (const cid of classes.filter(c => subIds.includes(c.subGrupoId)).map(c => c.id)) {
       await deleteRow("categorias_compras_classes", cid);
@@ -59,12 +69,12 @@ export function CategoriasComprasProvider({ children }: { children: ReactNode })
       await deleteRow("categorias_compras_subgrupos", sid);
     }
     await deleteRow("categorias_compras_grupos", id);
-    await loadAll();
+    invAll();
   };
 
   const addSubGrupo = async (s: Omit<SubGrupoCompras, "id">) => {
     await insertRow("categorias_compras_subgrupos", { grupo_id: s.grupoId, codigo: s.codigo, nome: s.nome });
-    await loadAll();
+    qc.invalidateQueries({ queryKey: QK_S });
   };
   const updateSubGrupo = async (id: string, data: Partial<Omit<SubGrupoCompras, "id">>) => {
     const row: any = {};
@@ -72,19 +82,20 @@ export function CategoriasComprasProvider({ children }: { children: ReactNode })
     if (data.codigo !== undefined) row.codigo = data.codigo;
     if (data.nome !== undefined) row.nome = data.nome;
     await updateRow("categorias_compras_subgrupos", id, row);
-    await loadAll();
+    qc.invalidateQueries({ queryKey: QK_S });
   };
   const deleteSubGrupo = async (id: string) => {
     for (const cid of classes.filter(c => c.subGrupoId === id).map(c => c.id)) {
       await deleteRow("categorias_compras_classes", cid);
     }
     await deleteRow("categorias_compras_subgrupos", id);
-    await loadAll();
+    qc.invalidateQueries({ queryKey: QK_S });
+    qc.invalidateQueries({ queryKey: QK_C });
   };
 
   const addClasse = async (c: Omit<ClasseCompras, "id">) => {
     await insertRow("categorias_compras_classes", { sub_grupo_id: c.subGrupoId, codigo: c.codigo, nome: c.nome });
-    await loadAll();
+    qc.invalidateQueries({ queryKey: QK_C });
   };
   const updateClasse = async (id: string, data: Partial<Omit<ClasseCompras, "id">>) => {
     const row: any = {};
@@ -92,11 +103,11 @@ export function CategoriasComprasProvider({ children }: { children: ReactNode })
     if (data.codigo !== undefined) row.codigo = data.codigo;
     if (data.nome !== undefined) row.nome = data.nome;
     await updateRow("categorias_compras_classes", id, row);
-    await loadAll();
+    qc.invalidateQueries({ queryKey: QK_C });
   };
   const deleteClasse = async (id: string) => {
     await deleteRow("categorias_compras_classes", id);
-    await loadAll();
+    qc.invalidateQueries({ queryKey: QK_C });
   };
 
   const getCodigoCompleto = (classeId: string): string => {

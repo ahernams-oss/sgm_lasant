@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useCallback, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 
 export interface MovimentacaoEstoque {
@@ -75,6 +76,8 @@ interface EstoqueContextType {
 }
 
 const EstoqueContext = createContext<EstoqueContextType | undefined>(undefined);
+const QK_MOV = ["estoque_movimentacoes"] as const;
+const QK_INV = ["estoque_inventarios"] as const;
 
 const rowToMov = (r: any): MovimentacaoEstoque => ({
   id: r.id, materialId: r.material_id ?? "", materialCodigo: r.material_codigo ?? "",
@@ -95,19 +98,22 @@ const rowToInv = (r: any): Inventario => ({
 });
 
 export function EstoqueProvider({ children }: { children: ReactNode }) {
-  const [movimentacoes, setMovimentacoes] = useState<MovimentacaoEstoque[]>([]);
-  const [inventarios, setInventarios] = useState<Inventario[]>([]);
+  const qc = useQueryClient();
 
-  const load = useCallback(async () => {
-    const [movData, invData] = await Promise.all([
-      fetchAll("estoque_movimentacoes", "created_at"),
-      fetchAll("estoque_inventarios", "created_at"),
-    ]);
-    setMovimentacoes(movData.map(rowToMov));
-    setInventarios(invData.map(rowToInv));
-  }, []);
+  const { data: movimentacoes = [], refetch: refetchMov } = useQuery({
+    queryKey: QK_MOV,
+    queryFn: async () => (await fetchAll("estoque_movimentacoes", "created_at")).map(rowToMov),
+    staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
+  const { data: inventarios = [], refetch: refetchInv } = useQuery({
+    queryKey: QK_INV,
+    queryFn: async () => (await fetchAll("estoque_inventarios", "created_at")).map(rowToInv),
+    staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
 
-  useEffect(() => { load(); }, [load]);
+  const invMov = () => qc.invalidateQueries({ queryKey: QK_MOV });
+  const invInv = () => qc.invalidateQueries({ queryKey: QK_INV });
+  const reload = async () => { await Promise.all([refetchMov(), refetchInv()]); };
 
   const registrarMovimentacao = async (data: Omit<MovimentacaoEstoque, "id" | "dataMovimentacao">) => {
     await insertRow("estoque_movimentacoes", {
@@ -121,7 +127,7 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
       fornecedor_nome: data.fornecedorNome || "",
       valor_unitario: data.valorUnitario || 0,
     });
-    await load();
+    invMov();
   };
 
   const registrarEntradaRecebimento = async (
@@ -140,12 +146,10 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
         });
       }
     }
-    await load();
+    invMov();
   };
 
-  // FIFO: retorna lotes restantes ordenados por data (mais antigo primeiro)
   const getLotesFIFO = useCallback((materialId: string, local: string): LoteFIFO[] => {
-    // Pegar todas as entradas e saídas para este material+local, ordenadas por data
     const movs = movimentacoes
       .filter(m => m.materialId === materialId && m.local === local)
       .sort((a, b) => (a.dataMovimentacao || "").localeCompare(b.dataMovimentacao || ""));
@@ -153,7 +157,6 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
     const lotes: LoteFIFO[] = [];
     let saidasPendentes = 0;
 
-    // Separar entradas como lotes
     for (const m of movs) {
       if (m.tipo === "entrada" || m.tipo === "ajuste") {
         if (m.quantidade > 0) {
@@ -171,7 +174,6 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    // Consumir saídas dos lotes mais antigos (FIFO)
     for (const lote of lotes) {
       if (saidasPendentes <= 0) break;
       const consumir = Math.min(saidasPendentes, lote.quantidade);
@@ -230,18 +232,17 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
       status: "Aberto", itens: data.itens as any, usuario: data.usuario,
       observacao: data.observacao,
     });
-    await load();
+    invInv();
   };
 
   const atualizarInventario = async (id: string, itens: ItemInventario[], observacao: string) => {
     await updateRow("estoque_inventarios", id, { itens: itens as any, observacao });
-    await load();
+    invInv();
   };
 
   const fecharInventario = async (id: string, usuario: string) => {
     const inv = inventarios.find(i => i.id === id);
     if (!inv) return;
-    // Gerar ajustes para cada diferença
     for (const item of inv.itens) {
       const diferenca = item.quantidadeContada - item.saldoSistema;
       if (diferenca !== 0) {
@@ -256,7 +257,7 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
       }
     }
     await updateRow("estoque_inventarios", id, { status: "Fechado" });
-    await load();
+    invMov(); invInv();
   };
 
   const transferirEntreLocais = async (data: { materialId: string; materialCodigo: string; materialDescricao: string; quantidade: number; localOrigem: string; localDestino: string; usuario: string; observacao?: string }) => {
@@ -271,7 +272,6 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
     const docRef = `Transferência ${localOrigem} → ${localDestino}`;
     let restante = quantidade;
 
-    // Saída do origem (uma única movimentação com valor médio FIFO)
     const valorTotalConsumido = (() => {
       let v = 0; let q = quantidade;
       for (const l of lotes) { if (q <= 0) break; const u = Math.min(q, l.quantidade); v += u * l.valorUnitario; q -= u; }
@@ -286,7 +286,6 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
       usuario, data_movimentacao: dataMov, valor_unitario: valorMedio,
     });
 
-    // Entrada no destino: cria uma movimentação por lote para preservar custos FIFO
     for (const lote of lotes) {
       if (restante <= 0) break;
       const usar = Math.min(restante, lote.quantidade);
@@ -298,13 +297,13 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
       });
       restante -= usar;
     }
-    await load();
+    invMov();
   };
 
   return (
     <EstoqueContext.Provider value={{
       movimentacoes, inventarios, registrarMovimentacao, registrarEntradaRecebimento,
-      getSaldos, getSaldoPorMaterial, getSaldoPorLocal, getLotesFIFO, transferirEntreLocais, criarInventario, atualizarInventario, fecharInventario, reload: load,
+      getSaldos, getSaldoPorMaterial, getSaldoPorLocal, getLotesFIFO, transferirEntreLocais, criarInventario, atualizarInventario, fecharInventario, reload,
     }}>
       {children}
     </EstoqueContext.Provider>

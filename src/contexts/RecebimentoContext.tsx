@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useEstoque } from "@/contexts/EstoqueContext";
@@ -26,6 +27,7 @@ interface RecebimentoContextType {
 }
 
 const RecebimentoContext = createContext<RecebimentoContextType | undefined>(undefined);
+const QK = ["recebimentos"] as const;
 
 const rowToRecebimento = (r: any): Recebimento => ({
   id: r.id, pedidoId: r.pedido_id ?? "", pedidoNumero: r.pedido_numero ?? 0,
@@ -46,18 +48,17 @@ const recebimentoToRow = (r: Recebimento) => ({
 });
 
 export function RecebimentoProvider({ children }: { children: ReactNode }) {
+  const qc = useQueryClient();
   const { pedidos, updateStatus: updatePedidoStatus } = usePedidoCompra();
   const { requisicoes, updateStatus: updateReqStatus } = useRequisicaoCompras();
   const { registrarEntradaRecebimento } = useEstoque();
 
-  const [recebimentos, setRecebimentos] = useState<Recebimento[]>([]);
-
-  const load = useCallback(async () => {
-    const data = await fetchAll("recebimentos", "created_at");
-    setRecebimentos(data.map(rowToRecebimento));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const { data: recebimentos = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("recebimentos", "created_at")).map(rowToRecebimento),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
   const getRecebimentosByPedido = (pedidoId: string) =>
     recebimentos.filter(r => r.pedidoId === pedidoId);
@@ -90,7 +91,6 @@ export function RecebimentoProvider({ children }: { children: ReactNode }) {
 
     await insertRow("recebimentos", recebimentoToRow(recebimento));
 
-    // Entrada automática no estoque
     const itensEstoque = data.itens
       .filter(i => i.quantidadeRecebida > 0)
       .map(i => {
@@ -137,7 +137,7 @@ export function RecebimentoProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    await load();
+    qc.invalidateQueries({ queryKey: QK });
   };
 
   return (
