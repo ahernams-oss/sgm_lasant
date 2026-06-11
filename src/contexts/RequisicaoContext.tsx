@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 import { enviarNotificacaoRP } from "@/lib/notificacaoRP";
 
@@ -64,15 +65,17 @@ const reqToRow = (r: Requisicao) => ({
   historico_status: r.historicoStatus as any,
 });
 
+const QK = ["requisicoes_pessoal"] as const;
+
 export function RequisicaoProvider({ children }: { children: ReactNode }) {
-  const [requisicoes, setRequisicoes] = useState<Requisicao[]>([]);
-
-  const load = useCallback(async () => {
-    const data = await fetchAll("requisicoes", "created_at");
-    setRequisicoes(data.map(rowToReq));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const qc = useQueryClient();
+  const { data: requisicoes = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("requisicoes", "created_at")).map(rowToReq),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+  const load = async () => { await qc.invalidateQueries({ queryKey: QK }); };
 
   const addRequisicao = async (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "historicoStatus">) => {
     const maxNum = requisicoes.length > 0 ? Math.max(...requisicoes.map(r => r.numero)) : 0;

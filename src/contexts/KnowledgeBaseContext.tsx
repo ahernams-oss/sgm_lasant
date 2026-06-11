@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { toast } from "sonner";
@@ -6,7 +7,7 @@ import { toast } from "sonner";
 export interface KbAnexo {
   nome: string;
   url: string;
-  tipo: string; // mime
+  tipo: string;
   tamanho?: number;
 }
 
@@ -65,24 +66,18 @@ interface KnowledgeBaseContextType {
   vinculosEquip: KbVinculoEquipamento[];
   loading: boolean;
   reload: () => Promise<void>;
-  // Categorias
   addCategoria: (c: Omit<KbCategoria, "id">) => Promise<void>;
   updateCategoria: (id: string, c: Partial<KbCategoria>) => Promise<void>;
   deleteCategoria: (id: string) => Promise<void>;
-  // Artigos
   addArtigo: (a: Omit<KbArtigo, "id" | "visualizacoes" | "uteis" | "nao_uteis" | "created_at" | "updated_at">) => Promise<KbArtigo | null>;
   updateArtigo: (id: string, a: Partial<KbArtigo>) => Promise<void>;
   deleteArtigo: (id: string) => Promise<void>;
   incrementarVisualizacao: (id: string, atual: number) => Promise<void>;
-  // FAQ
   addFaq: (f: Omit<KbFaq, "id" | "visualizacoes" | "created_at" | "updated_at">) => Promise<KbFaq | null>;
   updateFaq: (id: string, f: Partial<KbFaq>) => Promise<void>;
   deleteFaq: (id: string) => Promise<void>;
-  // Vínculos com equipamentos
   setVinculosEquipamento: (artigoId: string, equipamentos: { id: string; descricao: string }[]) => Promise<void>;
-  // Anexos
   uploadAnexo: (file: File) => Promise<KbAnexo | null>;
-  // IA
   gerarEmbeddingArtigo: (artigoId: string, texto: string) => Promise<void>;
   gerarEmbeddingFaq: (faqId: string, texto: string) => Promise<void>;
 }
@@ -121,55 +116,60 @@ const rowToFaq = (r: any): KbFaq => ({
   updated_at: r.updated_at ?? "",
 });
 
+const QK_CAT = ["kb_categorias"] as const;
+const QK_ART = ["kb_artigos"] as const;
+const QK_FAQ = ["kb_faq"] as const;
+const QK_VIN = ["kb_artigo_equipamentos"] as const;
+
 export function KnowledgeBaseProvider({ children }: { children: ReactNode }) {
-  const [categorias, setCategorias] = useState<KbCategoria[]>([]);
-  const [artigos, setArtigos] = useState<KbArtigo[]>([]);
-  const [faqs, setFaqs] = useState<KbFaq[]>([]);
-  const [vinculosEquip, setVinculosEquip] = useState<KbVinculoEquipamento[]>([]);
-  const [loading, setLoading] = useState(false);
+  const qc = useQueryClient();
+  const opts = { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 };
+  const results = useQueries({
+    queries: [
+      { queryKey: QK_CAT, queryFn: () => fetchAll("kb_categorias", "ordem"), ...opts },
+      { queryKey: QK_ART, queryFn: async () => (await fetchAll("kb_artigos", "updated_at")).map(rowToArtigo).reverse(), ...opts },
+      { queryKey: QK_FAQ, queryFn: async () => (await fetchAll("kb_faq", "ordem")).map(rowToFaq), ...opts },
+      { queryKey: QK_VIN, queryFn: () => fetchAll("kb_artigo_equipamentos", "created_at"), ...opts },
+    ],
+  });
+  const categorias = (results[0].data as KbCategoria[]) ?? [];
+  const artigos = (results[1].data as KbArtigo[]) ?? [];
+  const faqs = (results[2].data as KbFaq[]) ?? [];
+  const vinculosEquip = (results[3].data as KbVinculoEquipamento[]) ?? [];
+  const loading = results.some(r => r.isLoading);
 
-  const reload = useCallback(async () => {
-    setLoading(true);
+  const invCat = () => qc.invalidateQueries({ queryKey: QK_CAT });
+  const invArt = () => qc.invalidateQueries({ queryKey: QK_ART });
+  const invFaq = () => qc.invalidateQueries({ queryKey: QK_FAQ });
+  const invVin = () => qc.invalidateQueries({ queryKey: QK_VIN });
+  const reload = async () => { invCat(); invArt(); invFaq(); invVin(); };
+
+  const addCategoria = async (c: Omit<KbCategoria, "id">) => { await insertRow("kb_categorias", c); invCat(); };
+  const updateCategoria = async (id: string, c: Partial<KbCategoria>) => { await updateRow("kb_categorias", id, c); invCat(); };
+  const deleteCategoria = async (id: string) => { await deleteRow("kb_categorias", id); invCat(); };
+
+  const callEmbedding = async (text: string): Promise<number[] | null> => {
     try {
-      const [cats, arts, fqs, vins] = await Promise.all([
-        fetchAll("kb_categorias", "ordem"),
-        fetchAll("kb_artigos", "updated_at"),
-        fetchAll("kb_faq", "ordem"),
-        fetchAll("kb_artigo_equipamentos", "created_at"),
-      ]);
-      setCategorias(cats as KbCategoria[]);
-      setArtigos((arts as any[]).map(rowToArtigo).reverse());
-      setFaqs((fqs as any[]).map(rowToFaq));
-      setVinculosEquip(vins as KbVinculoEquipamento[]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { reload(); }, [reload]);
-
-  // ===== Categorias =====
-  const addCategoria = async (c: Omit<KbCategoria, "id">) => {
-    await insertRow("kb_categorias", c);
-    await reload();
+      const { data, error } = await (supabase as any).functions.invoke("kb-embedding", { body: { text } });
+      if (error) { console.error("kb-embedding error", error); return null; }
+      return (data as any)?.embedding ?? null;
+    } catch (e) { console.error(e); return null; }
   };
-  const updateCategoria = async (id: string, c: Partial<KbCategoria>) => {
-    await updateRow("kb_categorias", id, c);
-    await reload();
+  const gerarEmbeddingArtigo = async (artigoId: string, texto: string) => {
+    const emb = await callEmbedding(texto);
+    if (emb) await (supabase as any).from("kb_artigos").update({ embedding: emb }).eq("id", artigoId);
   };
-  const deleteCategoria = async (id: string) => {
-    await deleteRow("kb_categorias", id);
-    await reload();
+  const gerarEmbeddingFaq = async (faqId: string, texto: string) => {
+    const emb = await callEmbedding(texto);
+    if (emb) await (supabase as any).from("kb_faq").update({ embedding: emb }).eq("id", faqId);
   };
 
-  // ===== Artigos =====
   const addArtigo: KnowledgeBaseContextType["addArtigo"] = async (a) => {
     const inserted = await insertRow("kb_artigos", a);
     if (inserted) {
       const novo = rowToArtigo(inserted);
-      // Gera embedding em background
       gerarEmbeddingArtigo(novo.id, `${novo.titulo}\n${novo.resumo}\n${novo.conteudo}`).catch(() => {});
-      await reload();
+      invArt();
       return novo;
     }
     return null;
@@ -177,26 +177,21 @@ export function KnowledgeBaseProvider({ children }: { children: ReactNode }) {
   const updateArtigo = async (id: string, a: Partial<KbArtigo>) => {
     await updateRow("kb_artigos", id, a);
     if (a.titulo || a.conteudo || a.resumo) {
-      const texto = `${a.titulo ?? ""}\n${a.resumo ?? ""}\n${a.conteudo ?? ""}`;
-      gerarEmbeddingArtigo(id, texto).catch(() => {});
+      gerarEmbeddingArtigo(id, `${a.titulo ?? ""}\n${a.resumo ?? ""}\n${a.conteudo ?? ""}`).catch(() => {});
     }
-    await reload();
+    invArt();
   };
-  const deleteArtigo = async (id: string) => {
-    await deleteRow("kb_artigos", id);
-    await reload();
-  };
+  const deleteArtigo = async (id: string) => { await deleteRow("kb_artigos", id); invArt(); };
   const incrementarVisualizacao = async (id: string, atual: number) => {
     await updateRow("kb_artigos", id, { visualizacoes: atual + 1 });
   };
 
-  // ===== FAQ =====
   const addFaq: KnowledgeBaseContextType["addFaq"] = async (f) => {
     const inserted = await insertRow("kb_faq", f);
     if (inserted) {
       const novo = rowToFaq(inserted);
       gerarEmbeddingFaq(novo.id, `${novo.pergunta}\n${novo.resposta}`).catch(() => {});
-      await reload();
+      invFaq();
       return novo;
     }
     return null;
@@ -206,14 +201,10 @@ export function KnowledgeBaseProvider({ children }: { children: ReactNode }) {
     if (f.pergunta || f.resposta) {
       gerarEmbeddingFaq(id, `${f.pergunta ?? ""}\n${f.resposta ?? ""}`).catch(() => {});
     }
-    await reload();
+    invFaq();
   };
-  const deleteFaq = async (id: string) => {
-    await deleteRow("kb_faq", id);
-    await reload();
-  };
+  const deleteFaq = async (id: string) => { await deleteRow("kb_faq", id); invFaq(); };
 
-  // ===== Vínculos Equipamento =====
   const setVinculosEquipamento = async (
     artigoId: string,
     equipamentos: { id: string; descricao: string }[]
@@ -227,10 +218,9 @@ export function KnowledgeBaseProvider({ children }: { children: ReactNode }) {
       }));
       await (supabase as any).from("kb_artigo_equipamentos").insert(rows);
     }
-    await reload();
+    invVin();
   };
 
-  // ===== Upload de anexos =====
   const uploadAnexo = async (file: File): Promise<KbAnexo | null> => {
     try {
       const ts = Date.now();
@@ -240,40 +230,12 @@ export function KnowledgeBaseProvider({ children }: { children: ReactNode }) {
         upsert: false,
         contentType: file.type,
       });
-      if (error) {
-        console.error(error);
-        toast.error("Erro ao enviar anexo");
-        return null;
-      }
+      if (error) { console.error(error); toast.error("Erro ao enviar anexo"); return null; }
       const { data: pub } = (supabase as any).storage.from("kb-anexos").getPublicUrl(path);
       return { nome: file.name, url: pub.publicUrl, tipo: file.type, tamanho: file.size };
     } catch (e) {
-      console.error(e);
-      toast.error("Erro ao enviar anexo");
-      return null;
+      console.error(e); toast.error("Erro ao enviar anexo"); return null;
     }
-  };
-
-  // ===== Embeddings =====
-  const callEmbedding = async (text: string): Promise<number[] | null> => {
-    try {
-      const { data, error } = await (supabase as any).functions.invoke("kb-embedding", {
-        body: { text },
-      });
-      if (error) { console.error("kb-embedding error", error); return null; }
-      return (data as any)?.embedding ?? null;
-    } catch (e) {
-      console.error(e);
-      return null;
-    }
-  };
-  const gerarEmbeddingArtigo = async (artigoId: string, texto: string) => {
-    const emb = await callEmbedding(texto);
-    if (emb) await (supabase as any).from("kb_artigos").update({ embedding: emb }).eq("id", artigoId);
-  };
-  const gerarEmbeddingFaq = async (faqId: string, texto: string) => {
-    const emb = await callEmbedding(texto);
-    if (emb) await (supabase as any).from("kb_faq").update({ embedding: emb }).eq("id", faqId);
   };
 
   return (
