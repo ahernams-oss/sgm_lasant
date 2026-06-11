@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -78,25 +79,39 @@ interface Ctx {
 }
 
 const NfsesContext = createContext<Ctx | undefined>(undefined);
+const QK_NFS = ["nfses_emitidas"] as const;
+const QK_CFG = ["nfse_config"] as const;
 
 export function NfsesProvider({ children }: { children: ReactNode }) {
-  const [nfses, setNfses] = useState<NfseEmitida[]>([]);
-  const [config, setConfig] = useState<NfseConfig | null>(null);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
 
-  const reload = useCallback(async () => {
-    setLoading(true);
-    const [list, cfgs] = await Promise.all([
-      fetchAll("nfses_emitidas", "created_at"),
-      fetchAll("nfse_config", "created_at"),
-    ]);
-    (list as any[]).reverse();
-    setNfses(list as any);
-    setConfig((cfgs?.[0] as any) || null);
-    setLoading(false);
-  }, []);
+  const { data: nfses = [], isLoading: loadingNfses } = useQuery({
+    queryKey: QK_NFS,
+    queryFn: async () => {
+      const list = await fetchAll("nfses_emitidas", "created_at");
+      (list as any[]).reverse();
+      return list as NfseEmitida[];
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
-  useEffect(() => { reload(); }, [reload]);
+  const { data: config = null } = useQuery({
+    queryKey: QK_CFG,
+    queryFn: async () => {
+      const cfgs = await fetchAll("nfse_config", "created_at");
+      return (cfgs?.[0] as NfseConfig) || null;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+
+  const loading = loadingNfses;
+
+  const reload = async () => {
+    qc.invalidateQueries({ queryKey: QK_NFS });
+    qc.invalidateQueries({ queryKey: QK_CFG });
+  };
 
   const saveConfig = async (c: Partial<NfseConfig> & { empresa_id: string }) => {
     if (config?.id) {
@@ -104,16 +119,13 @@ export function NfsesProvider({ children }: { children: ReactNode }) {
     } else {
       await (supabase as any).from("nfse_config").insert(c);
     }
-    await reload();
+    qc.invalidateQueries({ queryKey: QK_CFG });
   };
 
   const emitir = async (modelo: ModeloEmissaoNfse) => {
     const { data, error } = await supabase.functions.invoke("nfse-emitir", { body: modelo });
-    if (error) {
-      await reload();
-      return { ok: false, mensagem: error.message };
-    }
-    await reload();
+    qc.invalidateQueries({ queryKey: QK_NFS });
+    if (error) return { ok: false, mensagem: error.message };
     return { ok: !!data?.ok, id: data?.id, mensagem: data?.mensagem || data?.error };
   };
 
@@ -121,12 +133,12 @@ export function NfsesProvider({ children }: { children: ReactNode }) {
     await updateRow("nfses_emitidas", id, {
       status: "cancelada", motivo_cancelamento: motivo, data_cancelamento: new Date().toISOString(),
     });
-    await reload();
+    qc.invalidateQueries({ queryKey: QK_NFS });
   };
 
   const remover = async (id: string) => {
     await deleteRow("nfses_emitidas", id);
-    await reload();
+    qc.invalidateQueries({ queryKey: QK_NFS });
   };
 
   return (
