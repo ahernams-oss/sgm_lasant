@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AppLayout from "@/components/AppLayout";
 import Index from "./pages/Index.tsx";
+import Home from "./pages/Home.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Clientes from "./pages/Clientes.tsx";
@@ -182,7 +183,9 @@ function ProtectedAppRoutes() {
   return (
     <AppLayout>
       <Routes>
-        <Route path="/" element={<RotaProtegida perm="requisicao_colaboradores"><Index /></RotaProtegida>} />
+        <Route path="/" element={<Home />} />
+        <Route path="/requisicao-pessoal" element={<RotaProtegida perm="requisicao_colaboradores"><Index /></RotaProtegida>} />
+
         <Route path="/dashboard" element={<RotaProtegida perm="dashboard_gp"><Dashboard /></RotaProtegida>} />
         <Route path="/clientes" element={<RotaProtegida perm="clientes"><OrdensServicoProvider><Clientes /></OrdensServicoProvider></RotaProtegida>} />
         <Route path="/fornecedores" element={<RotaProtegida perm="fornecedores"><Fornecedores /></RotaProtegida>} />
