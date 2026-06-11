@@ -353,6 +353,8 @@ interface PregaoContextType {
   deleteHabilitacao: (habId: string) => Promise<boolean>;
 }
 
+const PregaoContext = createContext<PregaoContextType | undefined>(undefined);
+
 const QK_PREGOES = ["pregoes"] as const;
 const QK_ITENS = ["pregao_itens"] as const;
 const QK_DOCS = ["pregao_documentos_exigidos"] as const;
@@ -699,7 +701,9 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
   const setChatParticipante = async (participanteId: string, aberto: boolean) => {
     const ok = await updateRow("pregao_participantes", participanteId, { chat_aberto: aberto });
     if (ok) {
-      setParticipantes(prev => prev.map(p => p.id === participanteId ? { ...p, chatAberto: aberto } : p));
+      qc.setQueryData<PregaoParticipante[]>(QK_PARTS, (prev = []) =>
+        prev.map(p => p.id === participanteId ? { ...p, chatAberto: aberto } : p)
+      );
     }
     return ok;
   };
