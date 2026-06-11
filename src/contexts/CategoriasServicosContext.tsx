@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface CategoriaServico {
@@ -15,31 +16,28 @@ interface CategoriasServicosContextType {
 }
 
 const CategoriasServicosContext = createContext<CategoriasServicosContextType | undefined>(undefined);
+const QK = ["categorias_servicos"] as const;
 
 export function CategoriasServicosProvider({ children }: { children: ReactNode }) {
-  const [categorias, setCategorias] = useState<CategoriaServico[]>([]);
-
-  const load = useCallback(async () => {
-    const data = await fetchAll("categorias_servicos", "nome");
-    setCategorias(data.map((r: any) => ({ id: r.id, nome: r.nome ?? "", descricao: r.descricao ?? "" })));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const qc = useQueryClient();
+  const { data: categorias = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("categorias_servicos", "nome")).map((r: any) => ({
+      id: r.id, nome: r.nome ?? "", descricao: r.descricao ?? "",
+    })),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
   const addCategoria = async (c: Omit<CategoriaServico, "id">) => {
     await insertRow("categorias_servicos", { nome: c.nome, descricao: c.descricao });
-    await load();
+    invalidate();
   };
-
   const updateCategoria = async (id: string, data: Partial<Omit<CategoriaServico, "id">>) => {
-    await updateRow("categorias_servicos", id, data);
-    await load();
+    await updateRow("categorias_servicos", id, data); invalidate();
   };
-
-  const deleteCategoria = async (id: string) => {
-    await deleteRow("categorias_servicos", id);
-    await load();
-  };
+  const deleteCategoria = async (id: string) => { await deleteRow("categorias_servicos", id); invalidate(); };
 
   return (
     <CategoriasServicosContext.Provider value={{ categorias, addCategoria, updateCategoria, deleteCategoria }}>

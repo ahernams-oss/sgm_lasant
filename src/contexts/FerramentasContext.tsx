@@ -1,69 +1,37 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export interface Ferramenta {
-  id: string;
-  codigo: string;
-  descricao: string;
-  marca: string;
-  modelo: string;
-  numeroSerie: string;
-  estadoConservacao: string;
-  valorAquisicao: number;
-  dataAquisicao: string;
-  notaFiscal: string;
-  patrimonio: string;
-  fotoUrl: string;
-  observacoes: string;
-  dataCalibracao: string;
-  validadeCalibracao: string;
-  certificadoCalibracaoUrl: string;
-  centroCustoAtualId: string;
-  centroCustoAtualNome: string;
-  status: string;
+  id: string; codigo: string; descricao: string; marca: string; modelo: string;
+  numeroSerie: string; estadoConservacao: string; valorAquisicao: number;
+  dataAquisicao: string; notaFiscal: string; patrimonio: string; fotoUrl: string;
+  observacoes: string; dataCalibracao: string; validadeCalibracao: string;
+  certificadoCalibracaoUrl: string; centroCustoAtualId: string;
+  centroCustoAtualNome: string; status: string;
 }
 
 export interface FerramentaVinculo {
-  id: string;
-  ferramentaId: string;
-  ferramentaDescricao: string;
-  ferramentasIds: string[];
-  ferramentasDescricoes: string[];
-  funcionarioId: string;
-  funcionarioNome: string;
-  dataVinculo: string;
-  dataDevolucao: string;
-  observacoes: string;
-  status: string;
+  id: string; ferramentaId: string; ferramentaDescricao: string;
+  ferramentasIds: string[]; ferramentasDescricoes: string[];
+  funcionarioId: string; funcionarioNome: string;
+  dataVinculo: string; dataDevolucao: string; observacoes: string; status: string;
 }
 
 export interface FerramentaEmprestimo {
-  id: string;
-  ferramentaId: string;
-  ferramentaDescricao: string;
-  centroCustoOrigemId: string;
-  centroCustoOrigemNome: string;
-  centroCustoDestinoId: string;
-  centroCustoDestinoNome: string;
-  solicitante: string;
-  dataSolicitacao: string;
-  dataAprovacao: string;
-  aprovadoPor: string;
-  dataDevolucaoPrevista: string;
-  dataDevolucaoReal: string;
-  status: string;
-  observacoes: string;
+  id: string; ferramentaId: string; ferramentaDescricao: string;
+  centroCustoOrigemId: string; centroCustoOrigemNome: string;
+  centroCustoDestinoId: string; centroCustoDestinoNome: string;
+  solicitante: string; dataSolicitacao: string;
+  dataAprovacao: string; aprovadoPor: string;
+  dataDevolucaoPrevista: string; dataDevolucaoReal: string;
+  status: string; observacoes: string;
 }
 
 export interface FerramentaHistorico {
-  id: string;
-  ferramentaId: string;
-  ferramentaDescricao: string;
-  tipo: string;
-  descricao: string;
-  usuario: string;
-  dataEvento: string;
+  id: string; ferramentaId: string; ferramentaDescricao: string;
+  tipo: string; descricao: string; usuario: string; dataEvento: string;
 }
 
 export const emptyFerramentaForm: Omit<Ferramenta, "id"> = {
@@ -142,48 +110,72 @@ interface FerramentasContextType {
 
 const FerramentasContext = createContext<FerramentasContextType | undefined>(undefined);
 
+const QK_F = ["ferramentas"] as const;
+const QK_V = ["ferramentas_vinculos"] as const;
+const QK_E = ["ferramentas_emprestimos"] as const;
+const QK_H = ["ferramentas_historico"] as const;
+
 export function FerramentasProvider({ children }: { children: ReactNode }) {
-  const [ferramentas, setFerramentas] = useState<Ferramenta[]>([]);
-  const [vinculos, setVinculos] = useState<FerramentaVinculo[]>([]);
-  const [emprestimos, setEmprestimos] = useState<FerramentaEmprestimo[]>([]);
-  const [historico, setHistorico] = useState<FerramentaHistorico[]>([]);
+  const qc = useQueryClient();
 
-  const fetchFerramentas = useCallback(async () => {
-    const { data, error } = await (supabase as any).from("ferramentas").select("*").order("codigo");
-    if (error) { console.error(error); return; }
-    setFerramentas((data || []).map(rowToFerramenta));
-  }, []);
+  const results = useQueries({
+    queries: [
+      {
+        queryKey: QK_F,
+        queryFn: async () => {
+          const { data, error } = await (supabase as any).from("ferramentas").select("*").order("codigo");
+          if (error) throw error;
+          return (data || []).map(rowToFerramenta);
+        },
+        staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+      },
+      {
+        queryKey: QK_V,
+        queryFn: async () => {
+          const { data, error } = await (supabase as any).from("ferramentas_vinculos").select("*").order("created_at", { ascending: false });
+          if (error) throw error;
+          return (data || []).map(rowToVinculo);
+        },
+        staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+      },
+      {
+        queryKey: QK_E,
+        queryFn: async () => {
+          const { data, error } = await (supabase as any).from("ferramentas_emprestimos").select("*").order("created_at", { ascending: false });
+          if (error) throw error;
+          return (data || []).map(rowToEmprestimo);
+        },
+        staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+      },
+      {
+        queryKey: QK_H,
+        queryFn: async () => {
+          const { data, error } = await (supabase as any).from("ferramentas_historico").select("*").order("created_at", { ascending: false });
+          if (error) throw error;
+          return (data || []).map(rowToHistorico);
+        },
+        staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+      },
+    ],
+  });
 
-  const fetchVinculos = useCallback(async () => {
-    const { data, error } = await (supabase as any).from("ferramentas_vinculos").select("*").order("created_at", { ascending: false });
-    if (error) { console.error(error); return; }
-    setVinculos((data || []).map(rowToVinculo));
-  }, []);
+  const ferramentas = (results[0].data as Ferramenta[]) || [];
+  const vinculos = (results[1].data as FerramentaVinculo[]) || [];
+  const emprestimos = (results[2].data as FerramentaEmprestimo[]) || [];
+  const historico = (results[3].data as FerramentaHistorico[]) || [];
 
-  const fetchEmprestimos = useCallback(async () => {
-    const { data, error } = await (supabase as any).from("ferramentas_emprestimos").select("*").order("created_at", { ascending: false });
-    if (error) { console.error(error); return; }
-    setEmprestimos((data || []).map(rowToEmprestimo));
-  }, []);
-
-  const fetchHistorico = useCallback(async () => {
-    const { data, error } = await (supabase as any).from("ferramentas_historico").select("*").order("created_at", { ascending: false });
-    if (error) { console.error(error); return; }
-    setHistorico((data || []).map(rowToHistorico));
-  }, []);
-
-  const refreshAll = useCallback(async () => {
-    await Promise.all([fetchFerramentas(), fetchVinculos(), fetchEmprestimos(), fetchHistorico()]);
-  }, [fetchFerramentas, fetchVinculos, fetchEmprestimos, fetchHistorico]);
-
-  useEffect(() => { refreshAll(); }, [refreshAll]);
+  const invF = () => qc.invalidateQueries({ queryKey: QK_F });
+  const invV = () => qc.invalidateQueries({ queryKey: QK_V });
+  const invE = () => qc.invalidateQueries({ queryKey: QK_E });
+  const invH = () => qc.invalidateQueries({ queryKey: QK_H });
+  const refreshAll = async () => { invF(); invV(); invE(); invH(); };
 
   const addHistorico = async (h: Omit<FerramentaHistorico, "id">) => {
     await (supabase as any).from("ferramentas_historico").insert({
       ferramenta_id: h.ferramentaId, ferramenta_descricao: h.ferramentaDescricao,
       tipo: h.tipo, descricao: h.descricao, usuario: h.usuario, data_evento: h.dataEvento,
     });
-    await fetchHistorico();
+    invH();
   };
 
   const addFerramenta = async (f: Omit<Ferramenta, "id">) => {
@@ -191,7 +183,7 @@ export function FerramentasProvider({ children }: { children: ReactNode }) {
     if (error) { toast.error("Erro ao cadastrar ferramenta."); return; }
     toast.success("Ferramenta cadastrada!");
     await addHistorico({ ferramentaId: "", ferramentaDescricao: f.descricao, tipo: "Cadastro", descricao: `Ferramenta ${f.codigo} - ${f.descricao} cadastrada`, usuario: "", dataEvento: new Date().toISOString().slice(0,10) });
-    await fetchFerramentas();
+    invF();
   };
 
   const updateFerramenta = async (id: string, data: Partial<Omit<Ferramenta, "id">>) => {
@@ -201,14 +193,14 @@ export function FerramentasProvider({ children }: { children: ReactNode }) {
     const { error } = await (supabase as any).from("ferramentas").update(ferramentaToRow(rest)).eq("id", id);
     if (error) { toast.error("Erro ao atualizar."); return; }
     toast.success("Ferramenta atualizada!");
-    await fetchFerramentas();
+    invF();
   };
 
   const deleteFerramenta = async (id: string) => {
     const { error } = await (supabase as any).from("ferramentas").delete().eq("id", id);
     if (error) { toast.error("Erro ao remover."); return; }
     toast.success("Ferramenta removida!");
-    await fetchFerramentas();
+    invF();
   };
 
   const addVinculoMulti = async (
