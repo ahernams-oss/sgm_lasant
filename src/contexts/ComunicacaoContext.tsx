@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
@@ -99,63 +100,109 @@ interface ComunicacaoContextType {
 
 const ComunicacaoContext = createContext<ComunicacaoContextType | undefined>(undefined);
 
+const QK_GRUPOS = ["comunicacao_grupos"] as const;
+const QK_CONV = ["comunicacao_conversas"] as const;
+const QK_AVISOS = ["comunicacao_avisos"] as const;
+const QK_NOTIF = ["comunicacao_notificacoes"] as const;
+
+const mapGrupo = (g: any): Grupo => ({
+  id: g.id,
+  nome: g.nome ?? "",
+  descricao: g.descricao ?? "",
+  membrosEmails: Array.isArray(g.membros_emails) ? g.membros_emails : [],
+  criadoPor: g.criado_por ?? "",
+  createdAt: g.created_at ?? "",
+});
+
+const mapNotif = (n: any): Notificacao => ({
+  id: n.id,
+  destinatarioNome: n.destinatario_nome ?? "",
+  destinatarioEmail: n.destinatario_email ?? "",
+  titulo: n.titulo ?? "",
+  descricao: n.descricao ?? "",
+  tipo: n.tipo ?? "tarefa",
+  lida: n.lida ?? false,
+  criadoPor: n.criado_por ?? "",
+  createdAt: n.created_at ?? "",
+});
+
 export function ComunicacaoProvider({ children }: { children: ReactNode }) {
-  const [conversas, setConversas] = useState<Conversa[]>([]);
+  const qc = useQueryClient();
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
-  const [avisos, setAvisos] = useState<Aviso[]>([]);
-  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
-  const [grupos, setGrupos] = useState<Grupo[]>([]);
+  const opts = { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 };
 
-  const loadGrupos = useCallback(async () => {
-    const data = await fetchAll("comunicacao_grupos", "created_at");
-    setGrupos(data.reverse().map((g: any) => ({
-      id: g.id,
-      nome: g.nome ?? "",
-      descricao: g.descricao ?? "",
-      membrosEmails: Array.isArray(g.membros_emails) ? g.membros_emails : [],
-      criadoPor: g.criado_por ?? "",
-      createdAt: g.created_at ?? "",
-    })));
-  }, []);
+  const { data: grupos = [] } = useQuery({
+    queryKey: QK_GRUPOS,
+    queryFn: async () => (await fetchAll("comunicacao_grupos", "created_at")).reverse().map(mapGrupo),
+    ...opts,
+  });
 
-  const addGrupo = async (data: any) => {
-    await insertRow("comunicacao_grupos", data);
-    await loadGrupos();
-  };
+  const convQueries = useQueries({
+    queries: [
+      { queryKey: [...QK_CONV, "raw"], queryFn: () => fetchAll("comunicacao_conversas", "created_at"), ...opts },
+      { queryKey: ["comunicacao_participantes"], queryFn: () => fetchAll("comunicacao_participantes", "created_at"), ...opts },
+    ],
+  });
+  const convData = (convQueries[0].data as any[]) ?? [];
+  const partData = (convQueries[1].data as any[]) ?? [];
+  const conversas: Conversa[] = convData.map((c: any) => ({
+    id: c.id,
+    tipo: c.tipo ?? "direta",
+    titulo: c.titulo ?? "",
+    criadoPor: c.criado_por ?? "",
+    createdAt: c.created_at ?? "",
+    participantes: partData.filter((p: any) => p.conversa_id === c.id).map((p: any) => ({
+      id: p.id, conversaId: p.conversa_id,
+      usuarioNome: p.usuario_nome ?? "", usuarioEmail: p.usuario_email ?? "",
+    })),
+  })).reverse();
 
-  const updateGrupo = async (id: string, data: any) => {
-    await updateRow("comunicacao_grupos", id, data);
-    await loadGrupos();
-  };
+  const avisoQueries = useQueries({
+    queries: [
+      { queryKey: [...QK_AVISOS, "raw"], queryFn: () => fetchAll("comunicacao_avisos", "created_at"), ...opts },
+      { queryKey: ["comunicacao_avisos_leitura"], queryFn: () => fetchAll("comunicacao_avisos_leitura", "lido_em"), ...opts },
+    ],
+  });
+  const avData = (avisoQueries[0].data as any[]) ?? [];
+  const leitData = (avisoQueries[1].data as any[]) ?? [];
+  const avisos: Aviso[] = avData.slice().reverse().map((a: any) => ({
+    id: a.id,
+    titulo: a.titulo ?? "",
+    conteudo: a.conteudo ?? "",
+    prioridade: a.prioridade ?? "Normal",
+    criadoPor: a.criado_por ?? "",
+    ativo: a.ativo ?? true,
+    createdAt: a.created_at ?? "",
+    leituras: leitData.filter((l: any) => l.aviso_id === a.id).map((l: any) => ({
+      id: l.id, avisoId: l.aviso_id,
+      usuarioNome: l.usuario_nome ?? "", usuarioEmail: l.usuario_email ?? "",
+      lidoEm: l.lido_em ?? "",
+    })),
+    destinatariosEmails: Array.isArray(a.destinatarios_emails) ? a.destinatarios_emails : [],
+    gruposIds: Array.isArray(a.grupos_ids) ? a.grupos_ids : [],
+  }));
 
-  const deleteGrupo = async (id: string) => {
-    await deleteRow("comunicacao_grupos", id);
-    await loadGrupos();
-  };
+  const { data: notificacoes = [] } = useQuery({
+    queryKey: QK_NOTIF,
+    queryFn: async () => (await fetchAll("comunicacao_notificacoes", "created_at")).reverse().map(mapNotif),
+    ...opts,
+  });
 
-  const loadConversas = useCallback(async () => {
-    const convData = await fetchAll("comunicacao_conversas", "created_at");
-    const partData = await fetchAll("comunicacao_participantes", "created_at");
-    
-    const mapped: Conversa[] = convData.map((c: any) => ({
-      id: c.id,
-      tipo: c.tipo ?? "direta",
-      titulo: c.titulo ?? "",
-      criadoPor: c.criado_por ?? "",
-      createdAt: c.created_at ?? "",
-      participantes: partData
-        .filter((p: any) => p.conversa_id === c.id)
-        .map((p: any) => ({
-          id: p.id,
-          conversaId: p.conversa_id,
-          usuarioNome: p.usuario_nome ?? "",
-          usuarioEmail: p.usuario_email ?? "",
-        })),
-    }));
-    setConversas(mapped.reverse());
-  }, []);
+  const invGrupos = () => qc.invalidateQueries({ queryKey: QK_GRUPOS });
+  const invConv = () => { qc.invalidateQueries({ queryKey: [...QK_CONV, "raw"] }); qc.invalidateQueries({ queryKey: ["comunicacao_participantes"] }); };
+  const invAvisos = () => { qc.invalidateQueries({ queryKey: [...QK_AVISOS, "raw"] }); qc.invalidateQueries({ queryKey: ["comunicacao_avisos_leitura"] }); };
+  const invNotif = () => qc.invalidateQueries({ queryKey: QK_NOTIF });
 
-  const loadMensagens = useCallback(async (conversaId: string) => {
+  const loadGrupos = async () => { invGrupos(); };
+  const loadConversas = async () => { invConv(); };
+  const loadAvisos = async () => { invAvisos(); };
+  const loadNotificacoes = async () => { invNotif(); };
+
+  const addGrupo = async (data: any) => { await insertRow("comunicacao_grupos", data); invGrupos(); };
+  const updateGrupo = async (id: string, data: any) => { await updateRow("comunicacao_grupos", id, data); invGrupos(); };
+  const deleteGrupo = async (id: string) => { await deleteRow("comunicacao_grupos", id); invGrupos(); };
+
+  const loadMensagens = async (conversaId: string) => {
     const { data, error } = await (supabase as any)
       .from("comunicacao_mensagens")
       .select("*")
@@ -171,103 +218,25 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
         createdAt: m.created_at ?? "",
       })));
     }
-  }, []);
+  };
 
-  const loadAvisos = useCallback(async () => {
-    const avData = await fetchAll("comunicacao_avisos", "created_at");
-    const leitData = await fetchAll("comunicacao_avisos_leitura", "lido_em");
-    
-    setAvisos(avData.reverse().map((a: any) => ({
-      id: a.id,
-      titulo: a.titulo ?? "",
-      conteudo: a.conteudo ?? "",
-      prioridade: a.prioridade ?? "Normal",
-      criadoPor: a.criado_por ?? "",
-      ativo: a.ativo ?? true,
-      createdAt: a.created_at ?? "",
-      leituras: leitData
-        .filter((l: any) => l.aviso_id === a.id)
-        .map((l: any) => ({
-          id: l.id,
-          avisoId: l.aviso_id,
-          usuarioNome: l.usuario_nome ?? "",
-          usuarioEmail: l.usuario_email ?? "",
-          lidoEm: l.lido_em ?? "",
-        })),
-      destinatariosEmails: Array.isArray(a.destinatarios_emails) ? a.destinatarios_emails : [],
-      gruposIds: Array.isArray(a.grupos_ids) ? a.grupos_ids : [],
-    })));
-  }, []);
-
-  const loadNotificacoes = useCallback(async () => {
-    const data = await fetchAll("comunicacao_notificacoes", "created_at");
-    setNotificacoes(data.reverse().map((n: any) => ({
-      id: n.id,
-      destinatarioNome: n.destinatario_nome ?? "",
-      destinatarioEmail: n.destinatario_email ?? "",
-      titulo: n.titulo ?? "",
-      descricao: n.descricao ?? "",
-      tipo: n.tipo ?? "tarefa",
-      lida: n.lida ?? false,
-      criadoPor: n.criado_por ?? "",
-      createdAt: n.created_at ?? "",
-    })));
-  }, []);
-
-  useEffect(() => {
-    loadConversas();
-    loadAvisos();
-    loadNotificacoes();
-    loadGrupos();
-  }, [loadConversas, loadAvisos, loadNotificacoes, loadGrupos]);
-
-  // Realtime for messages
   useEffect(() => {
     const channel = supabase
       .channel("comunicacao-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "comunicacao_mensagens" }, () => {
-        // Reload mensagens if we have a current conversa
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "comunicacao_avisos" }, () => {
-        loadAvisos();
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "comunicacao_notificacoes" }, () => {
-        loadNotificacoes();
-      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "comunicacao_mensagens" }, () => {})
+      .on("postgres_changes", { event: "*", schema: "public", table: "comunicacao_avisos" }, () => { invAvisos(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "comunicacao_notificacoes" }, () => { invNotif(); })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [loadAvisos, loadNotificacoes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const addConversa = async (data: any) => {
-    const result = await insertRow("comunicacao_conversas", data);
-    await loadConversas();
-    return result;
-  };
-
-  const addParticipante = async (data: any) => {
-    await insertRow("comunicacao_participantes", data);
-    await loadConversas();
-  };
-
-  const addMensagem = async (data: any) => {
-    await insertRow("comunicacao_mensagens", data);
-  };
-
-  const addAviso = async (data: any) => {
-    await insertRow("comunicacao_avisos", data);
-    await loadAvisos();
-  };
-
-  const updateAviso = async (id: string, data: any) => {
-    await updateRow("comunicacao_avisos", id, data);
-    await loadAvisos();
-  };
-
-  const deleteAviso = async (id: string) => {
-    await deleteRow("comunicacao_avisos", id);
-    await loadAvisos();
-  };
-
+  const addConversa = async (data: any) => { const result = await insertRow("comunicacao_conversas", data); invConv(); return result; };
+  const addParticipante = async (data: any) => { await insertRow("comunicacao_participantes", data); invConv(); };
+  const addMensagem = async (data: any) => { await insertRow("comunicacao_mensagens", data); };
+  const addAviso = async (data: any) => { await insertRow("comunicacao_avisos", data); invAvisos(); };
+  const updateAviso = async (id: string, data: any) => { await updateRow("comunicacao_avisos", id, data); invAvisos(); };
+  const deleteAviso = async (id: string) => { await deleteRow("comunicacao_avisos", id); invAvisos(); };
   const confirmarLeitura = async (data: any) => {
     const { data: existing } = await (supabase as any)
       .from("comunicacao_avisos_leitura")
@@ -277,28 +246,12 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
       .maybeSingle();
     if (existing) return;
     await insertRow("comunicacao_avisos_leitura", data);
-    await loadAvisos();
+    invAvisos();
   };
-
-  const addNotificacao = async (data: any) => {
-    await insertRow("comunicacao_notificacoes", data);
-    await loadNotificacoes();
-  };
-
-  const marcarNotificacaoLida = async (id: string) => {
-    await updateRow("comunicacao_notificacoes", id, { lida: true });
-    await loadNotificacoes();
-  };
-
-  const deleteNotificacao = async (id: string) => {
-    await deleteRow("comunicacao_notificacoes", id);
-    await loadNotificacoes();
-  };
-
-  const deleteConversa = async (id: string) => {
-    await deleteRow("comunicacao_conversas", id);
-    await loadConversas();
-  };
+  const addNotificacao = async (data: any) => { await insertRow("comunicacao_notificacoes", data); invNotif(); };
+  const marcarNotificacaoLida = async (id: string) => { await updateRow("comunicacao_notificacoes", id, { lida: true }); invNotif(); };
+  const deleteNotificacao = async (id: string) => { await deleteRow("comunicacao_notificacoes", id); invNotif(); };
+  const deleteConversa = async (id: string) => { await deleteRow("comunicacao_conversas", id); invConv(); };
 
   return (
     <ComunicacaoContext.Provider value={{
