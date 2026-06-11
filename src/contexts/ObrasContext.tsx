@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { toast } from "sonner";
 
@@ -30,52 +31,42 @@ interface Ctx {
 }
 
 const ObrasContext = createContext<Ctx>({
-  obras: [],
-  loading: false,
-  add: async () => null,
-  update: async () => false,
-  remove: async () => false,
-  porCliente: () => [],
-  refresh: async () => {},
+  obras: [], loading: false,
+  add: async () => null, update: async () => false, remove: async () => false,
+  porCliente: () => [], refresh: async () => {},
 });
 export const useObras = () => useContext(ObrasContext);
+const QK = ["obras"] as const;
 
 export function ObrasProvider({ children }: { children: ReactNode }) {
-  const [obras, setObras] = useState<Obra[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    const data = await fetchAll("obras", "nome");
-    setObras(data as Obra[]);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const qc = useQueryClient();
+  const { data: obras = [], isLoading: loading, refetch } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("obras", "nome")) as Obra[],
+    staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
   const add = async (o: Partial<Obra>) => {
     const data = await insertRow("obras", o);
-    if (data) { await load(); toast.success("Obra cadastrada!"); }
+    if (data) { invalidate(); toast.success("Obra cadastrada!"); }
     return data as Obra | null;
   };
-
   const update = async (id: string, o: Partial<Obra>) => {
     const ok = await updateRow("obras", id, o);
-    if (ok) { await load(); toast.success("Obra atualizada!"); }
+    if (ok) { invalidate(); toast.success("Obra atualizada!"); }
     return ok;
   };
-
   const remove = async (id: string) => {
     const ok = await deleteRow("obras", id);
-    if (ok) { await load(); toast.success("Obra removida!"); }
+    if (ok) { invalidate(); toast.success("Obra removida!"); }
     return ok;
   };
-
-  const porCliente = (clienteId: string) =>
-    obras.filter((o) => o.cliente_id === clienteId);
+  const porCliente = (clienteId: string) => obras.filter((o) => o.cliente_id === clienteId);
+  const refresh = async () => { await refetch(); };
 
   return (
-    <ObrasContext.Provider value={{ obras, loading, add, update, remove, porCliente, refresh: load }}>
+    <ObrasContext.Provider value={{ obras, loading, add, update, remove, porCliente, refresh }}>
       {children}
     </ObrasContext.Provider>
   );

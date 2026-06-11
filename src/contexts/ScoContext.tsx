@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export type TipoSco = "SCO" | "SINAPI" | "EMOP";
@@ -15,6 +16,7 @@ interface ScoContextType {
 }
 
 const ScoContext = createContext<ScoContextType | undefined>(undefined);
+const QK = ["scos"] as const;
 
 const rowToSco = (r: any): Sco => ({
   id: r.id, codSco: r.cod_sco ?? "", descricaoSco: r.descricao_sco ?? "",
@@ -26,25 +28,24 @@ const scoToRow = (s: Omit<Sco, "id">) => ({
 });
 
 export function ScoProvider({ children }: { children: ReactNode }) {
-  const [scos, setScos] = useState<Sco[]>([]);
+  const qc = useQueryClient();
+  const { data: scos = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("scos", "cod_sco")).map(rowToSco),
+    staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
-  const load = useCallback(async () => {
-    const data = await fetchAll("scos", "cod_sco");
-    setScos(data.map(rowToSco));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const addSco = async (s: Omit<Sco, "id">) => { await insertRow("scos", scoToRow(s)); await load(); };
+  const addSco = async (s: Omit<Sco, "id">) => { await insertRow("scos", scoToRow(s)); invalidate(); };
   const updateSco = async (id: string, data: Partial<Omit<Sco, "id">>) => {
     const current = scos.find(s => s.id === id);
     if (!current) return;
     const merged = { ...current, ...data };
     const { id: _, ...rest } = merged;
     await updateRow("scos", id, scoToRow(rest));
-    await load();
+    invalidate();
   };
-  const deleteSco = async (id: string) => { await deleteRow("scos", id); await load(); };
+  const deleteSco = async (id: string) => { await deleteRow("scos", id); invalidate(); };
 
   return (
     <ScoContext.Provider value={{ scos, addSco, updateSco, deleteSco }}>

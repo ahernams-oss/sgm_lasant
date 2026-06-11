@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 // ---- Interfaces ----
@@ -190,56 +191,47 @@ interface PmocContextType {
 const PmocContext = createContext<PmocContextType>({} as PmocContextType);
 export const usePmoc = () => useContext(PmocContext);
 
+const TABLES = [
+  { table: "pmoc_planos", order: "titulo", key: ["pmoc_planos"] as const, mapper: rowToPlano },
+  { table: "pmoc_atividades", order: "descricao", key: ["pmoc_atividades"] as const, mapper: rowToAtividade },
+  { table: "pmoc_ordens_servico", order: "numero", key: ["pmoc_ordens_servico"] as const, mapper: rowToOS },
+  { table: "pmoc_responsaveis_tecnicos", order: "nome", key: ["pmoc_responsaveis_tecnicos"] as const, mapper: rowToRT },
+  { table: "pmoc_qualidade_ar_pontos", order: "descricao", key: ["pmoc_qualidade_ar_pontos"] as const, mapper: rowToPonto },
+  { table: "pmoc_qualidade_ar_medicoes", order: "data_medicao", key: ["pmoc_qualidade_ar_medicoes"] as const, mapper: rowToMedicao },
+  { table: "pmoc_inconformidades", order: "numero", key: ["pmoc_inconformidades"] as const, mapper: rowToInconformidade },
+  { table: "pmoc_biblioteca_rotinas", order: "titulo", key: ["pmoc_biblioteca_rotinas"] as const, mapper: rowToRotina },
+];
+
 export function PmocProvider({ children }: { children: ReactNode }) {
-  const [planos, setPlanos] = useState<PmocPlano[]>([]);
-  const [atividades, setAtividades] = useState<PmocAtividade[]>([]);
-  const [ordensServico, setOrdensServico] = useState<PmocOrdemServico[]>([]);
-  const [responsaveisTecnicos, setRTs] = useState<PmocResponsavelTecnico[]>([]);
-  const [pontosQA, setPontosQA] = useState<PmocQualidadeArPonto[]>([]);
-  const [medicoesQA, setMedicoesQA] = useState<PmocQualidadeArMedicao[]>([]);
-  const [inconformidades, setInconformidades] = useState<PmocInconformidade[]>([]);
-  const [biblioteca, setBiblioteca] = useState<PmocBibliotecaRotina[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const results = useQueries({
+    queries: TABLES.map(t => ({
+      queryKey: t.key,
+      queryFn: async () => (await fetchAll(t.table, t.order)).map(t.mapper),
+      staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+    })),
+  });
+  const [planos, atividades, ordensServico, responsaveisTecnicos, pontosQA, medicoesQA, inconformidades, biblioteca] =
+    results.map(r => (r.data ?? []) as any[]);
+  const loading = results.some(r => r.isLoading);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const [p, a, os, rt, pqa, mqa, inc, bib] = await Promise.all([
-      fetchAll("pmoc_planos", "titulo"),
-      fetchAll("pmoc_atividades", "descricao"),
-      fetchAll("pmoc_ordens_servico", "numero"),
-      fetchAll("pmoc_responsaveis_tecnicos", "nome"),
-      fetchAll("pmoc_qualidade_ar_pontos", "descricao"),
-      fetchAll("pmoc_qualidade_ar_medicoes", "data_medicao"),
-      fetchAll("pmoc_inconformidades", "numero"),
-      fetchAll("pmoc_biblioteca_rotinas", "titulo"),
-    ]);
-    setPlanos(p.map(rowToPlano));
-    setAtividades(a.map(rowToAtividade));
-    setOrdensServico(os.map(rowToOS));
-    setRTs(rt.map(rowToRT));
-    setPontosQA(pqa.map(rowToPonto));
-    setMedicoesQA(mqa.map(rowToMedicao));
-    setInconformidades(inc.map(rowToInconformidade));
-    setBiblioteca(bib.map(rowToRotina));
-    setLoading(false);
-  }, []);
+  const invalidate = (key: readonly string[]) => qc.invalidateQueries({ queryKey: key });
+  const refresh = async () => { TABLES.forEach(t => invalidate(t.key)); };
 
-  useEffect(() => { load(); }, [load]);
-
-  const crud = (table: string) => ({
-    add: async (d: any) => { await insertRow(table, d); await load(); },
-    update: async (id: string, d: any) => { await updateRow(table, id, d); await load(); },
-    del: async (id: string) => { await deleteRow(table, id); await load(); },
+  const crud = (table: string, key: readonly string[]) => ({
+    add: async (d: any) => { await insertRow(table, d); invalidate(key); },
+    update: async (id: string, d: any) => { await updateRow(table, id, d); invalidate(key); },
+    del: async (id: string) => { await deleteRow(table, id); invalidate(key); },
   });
 
-  const planosCrud = crud("pmoc_planos");
-  const atividadesCrud = crud("pmoc_atividades");
-  const osCrud = crud("pmoc_ordens_servico");
-  const rtCrud = crud("pmoc_responsaveis_tecnicos");
-  const pontosCrud = crud("pmoc_qualidade_ar_pontos");
-  const medicoesCrud = crud("pmoc_qualidade_ar_medicoes");
-  const incCrud = crud("pmoc_inconformidades");
-  const bibCrud = crud("pmoc_biblioteca_rotinas");
+  const planosCrud = crud("pmoc_planos", TABLES[0].key);
+  const atividadesCrud = crud("pmoc_atividades", TABLES[1].key);
+  const osCrud = crud("pmoc_ordens_servico", TABLES[2].key);
+  const rtCrud = crud("pmoc_responsaveis_tecnicos", TABLES[3].key);
+  const pontosCrud = crud("pmoc_qualidade_ar_pontos", TABLES[4].key);
+  const medicoesCrud = crud("pmoc_qualidade_ar_medicoes", TABLES[5].key);
+  const incCrud = crud("pmoc_inconformidades", TABLES[6].key);
+  const bibCrud = crud("pmoc_biblioteca_rotinas", TABLES[7].key);
 
   return (
     <PmocContext.Provider value={{
@@ -253,7 +245,7 @@ export function PmocProvider({ children }: { children: ReactNode }) {
       addMedicaoQA: medicoesCrud.add, updateMedicaoQA: medicoesCrud.update, deleteMedicaoQA: medicoesCrud.del,
       addInconformidade: incCrud.add, updateInconformidade: incCrud.update, deleteInconformidade: incCrud.del,
       addRotina: bibCrud.add, updateRotina: bibCrud.update, deleteRotina: bibCrud.del,
-      refresh: load,
+      refresh,
     }}>
       {children}
     </PmocContext.Provider>

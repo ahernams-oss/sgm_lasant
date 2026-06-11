@@ -1,56 +1,38 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { toast } from "sonner";
 
-export interface CronogramaPeriodo {
-  rotulo: string;
-  inicio: string;
-  fim: string;
-}
+export interface CronogramaPeriodo { rotulo: string; inicio: string; fim: string; }
 
 export interface CronogramaAtividadeValor {
-  previsto_fisico: number;
-  previsto_financeiro: number;
-  realizado_fisico: number;
-  realizado_financeiro: number;
+  previsto_fisico: number; previsto_financeiro: number;
+  realizado_fisico: number; realizado_financeiro: number;
 }
 
 export interface CronogramaAtividade {
-  id: string;
-  ordem: number;
-  descricao: string;
-  unidade: string;
-  quantidade: number;
-  peso: number;
-  valor_total: number;
-  modo_financeiro: "distribuido" | "manual";
+  id: string; ordem: number; descricao: string;
+  unidade: string; quantidade: number; peso: number;
+  valor_total: number; modo_financeiro: "distribuido" | "manual";
   valores: Record<string, CronogramaAtividadeValor>;
   vincular_rdo: boolean;
 }
 
 export interface Cronograma {
-  id: string;
-  numero: number;
-  cliente_id: string;
-  cliente_nome: string;
-  obra: string;
-  descricao: string;
-  responsavel: string;
-  data_inicio: string;
-  data_fim: string;
+  id: string; numero: number;
+  cliente_id: string; cliente_nome: string;
+  obra: string; descricao: string; responsavel: string;
+  data_inicio: string; data_fim: string;
   granularidade: "mensal" | "semanal";
   valor_total: number;
   atividades: CronogramaAtividade[];
   periodos: CronogramaPeriodo[];
-  status: string;
-  observacoes: string;
-  created_at: string;
-  updated_at: string;
+  status: string; observacoes: string;
+  created_at: string; updated_at: string;
 }
 
 interface CronogramasContextType {
-  cronogramas: Cronograma[];
-  loading: boolean;
+  cronogramas: Cronograma[]; loading: boolean;
   addCronograma: (c: Partial<Cronograma>) => Promise<Cronograma | null>;
   updateCronograma: (id: string, c: Partial<Cronograma>) => Promise<boolean>;
   deleteCronograma: (id: string) => Promise<boolean>;
@@ -59,51 +41,39 @@ interface CronogramasContextType {
 
 const CronogramasContext = createContext<CronogramasContextType>({} as CronogramasContextType);
 export const useCronogramas = () => useContext(CronogramasContext);
+const QK = ["cronogramas"] as const;
 
 export function CronogramasProvider({ children }: { children: ReactNode }) {
-  const [cronogramas, setCronogramas] = useState<Cronograma[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const load = async () => {
-    setLoading(true);
-    const data = await fetchAll("cronogramas", "created_at");
-    setCronogramas((data as Cronograma[]).reverse());
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    load();
-  }, []);
+  const qc = useQueryClient();
+  const { data: cronogramas = [], isLoading: loading, refetch } = useQuery({
+    queryKey: QK,
+    queryFn: async () => {
+      const data = await fetchAll("cronogramas", "created_at");
+      return (data as Cronograma[]).reverse();
+    },
+    staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
   const addCronograma = async (c: Partial<Cronograma>) => {
     const data = await insertRow("cronogramas", c);
-    if (data) {
-      await load();
-      toast.success("Cronograma criado!");
-    }
+    if (data) { invalidate(); toast.success("Cronograma criado!"); }
     return data;
   };
-
   const updateCronograma = async (id: string, c: Partial<Cronograma>) => {
     const ok = await updateRow("cronogramas", id, { ...c, updated_at: new Date().toISOString() });
-    if (ok) {
-      await load();
-      toast.success("Cronograma atualizado!");
-    }
+    if (ok) { invalidate(); toast.success("Cronograma atualizado!"); }
     return ok;
   };
-
   const deleteCronograma = async (id: string) => {
     const ok = await deleteRow("cronogramas", id);
-    if (ok) {
-      await load();
-      toast.success("Cronograma removido!");
-    }
+    if (ok) { invalidate(); toast.success("Cronograma removido!"); }
     return ok;
   };
+  const refresh = async () => { await refetch(); };
 
   return (
-    <CronogramasContext.Provider value={{ cronogramas, loading, addCronograma, updateCronograma, deleteCronograma, refresh: load }}>
+    <CronogramasContext.Provider value={{ cronogramas, loading, addCronograma, updateCronograma, deleteCronograma, refresh }}>
       {children}
     </CronogramasContext.Provider>
   );
