@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -235,78 +236,77 @@ interface LicitacoesContextType {
 
 const LicitacoesContext = createContext<LicitacoesContextType | undefined>(undefined);
 
+const QK_LIC = ["licitacoes"] as const;
+const QK_DOC = ["licitacoes_documentos"] as const;
+const QK_ANA = ["licitacoes_analises"] as const;
+
 export function LicitacoesProvider({ children }: { children: ReactNode }) {
-  const [licitacoes, setLicitacoes] = useState<Licitacao[]>([]);
-  const [documentos, setDocumentos] = useState<DocumentoLicitacao[]>([]);
-  const [analises, setAnalises] = useState<AnaliseLicitacao[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const opts = { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 };
+  const results = useQueries({
+    queries: [
+      { queryKey: QK_LIC, queryFn: async () => (await fetchAll("licitacoes", "created_at")).map(rowToLicitacao), ...opts },
+      { queryKey: QK_DOC, queryFn: async () => (await fetchAll("licitacoes_documentos", "created_at")).map(rowToDocumento), ...opts },
+      { queryKey: QK_ANA, queryFn: async () => (await fetchAll("licitacoes_analises", "created_at")).map(rowToAnalise), ...opts },
+    ],
+  });
+  const licitacoes = (results[0].data as Licitacao[]) ?? [];
+  const documentos = (results[1].data as DocumentoLicitacao[]) ?? [];
+  const analises = (results[2].data as AnaliseLicitacao[]) ?? [];
+  const loading = results.some(r => r.isLoading);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const [lics, docs, anals] = await Promise.all([
-      fetchAll("licitacoes", "created_at"),
-      fetchAll("licitacoes_documentos", "created_at"),
-      fetchAll("licitacoes_analises", "created_at"),
-    ]);
-    setLicitacoes(lics.map(rowToLicitacao));
-    setDocumentos(docs.map(rowToDocumento));
-    setAnalises(anals.map(rowToAnalise));
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: QK_LIC });
+    qc.invalidateQueries({ queryKey: QK_DOC });
+    qc.invalidateQueries({ queryKey: QK_ANA });
+  };
+  const reload = async () => { invalidateAll(); };
 
   const addLicitacao = async (data: Omit<Licitacao, "id">) => {
     const row = await insertRow("licitacoes", licitacaoToRow(data));
-    if (row) { await load(); return rowToLicitacao(row); }
+    if (row) { qc.invalidateQueries({ queryKey: QK_LIC }); return rowToLicitacao(row); }
     return null;
   };
-
   const updateLicitacao = async (id: string, data: Omit<Licitacao, "id">) => {
     const ok = await updateRow("licitacoes", id, licitacaoToRow(data));
-    if (ok) await load();
+    if (ok) qc.invalidateQueries({ queryKey: QK_LIC });
     return ok;
   };
-
   const deleteLicitacao = async (id: string) => {
     const ok = await deleteRow("licitacoes", id);
-    if (ok) await load();
+    if (ok) qc.invalidateQueries({ queryKey: QK_LIC });
     return ok;
   };
 
   const addDocumento = async (data: Omit<DocumentoLicitacao, "id">) => {
     const row = await insertRow("licitacoes_documentos", documentoToRow(data));
-    if (row) { await load(); return rowToDocumento(row); }
+    if (row) { qc.invalidateQueries({ queryKey: QK_DOC }); return rowToDocumento(row); }
     return null;
   };
-
   const updateDocumento = async (id: string, data: Omit<DocumentoLicitacao, "id">) => {
     const ok = await updateRow("licitacoes_documentos", id, documentoToRow(data));
-    if (ok) await load();
+    if (ok) qc.invalidateQueries({ queryKey: QK_DOC });
     return ok;
   };
-
   const deleteDocumento = async (id: string) => {
     const ok = await deleteRow("licitacoes_documentos", id);
-    if (ok) await load();
+    if (ok) qc.invalidateQueries({ queryKey: QK_DOC });
     return ok;
   };
 
   const addAnalise = async (data: Omit<AnaliseLicitacao, "id">) => {
     const row = await insertRow("licitacoes_analises", analiseToRow(data));
-    if (row) { await load(); return rowToAnalise(row); }
+    if (row) { qc.invalidateQueries({ queryKey: QK_ANA }); return rowToAnalise(row); }
     return null;
   };
-
   const updateAnalise = async (id: string, data: Omit<AnaliseLicitacao, "id">) => {
     const ok = await updateRow("licitacoes_analises", id, analiseToRow(data));
-    if (ok) await load();
+    if (ok) qc.invalidateQueries({ queryKey: QK_ANA });
     return ok;
   };
-
   const deleteAnalise = async (id: string) => {
     const ok = await deleteRow("licitacoes_analises", id);
-    if (ok) await load();
+    if (ok) qc.invalidateQueries({ queryKey: QK_ANA });
     return ok;
   };
 
@@ -327,7 +327,7 @@ export function LicitacoesProvider({ children }: { children: ReactNode }) {
       addLicitacao, updateLicitacao, deleteLicitacao,
       addDocumento, updateDocumento, deleteDocumento,
       addAnalise, updateAnalise, deleteAnalise,
-      uploadArquivo, reload: load,
+      uploadArquivo, reload,
     }}>
       {children}
     </LicitacoesContext.Provider>
