@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export type StatusPagar = "aberta" | "paga" | "parcial" | "cancelada";
@@ -146,62 +147,49 @@ interface Ctx {
 
 const FinanceiroContext = createContext<Ctx | undefined>(undefined);
 
+const QK_CB = ["fin_contas_bancarias"] as const;
+const QK_PC = ["fin_plano_contas"] as const;
+const QK_CC = ["fin_centros_custo"] as const;
+const QK_CP = ["fin_contas_pagar"] as const;
+const QK_CR = ["fin_contas_receber"] as const;
+const QK_LN = ["fin_lancamentos"] as const;
+const QK_OFX = ["fin_movimentos_ofx"] as const;
+
 export function FinanceiroProvider({ children }: { children: ReactNode }) {
-  const [loading, setLoading] = useState(true);
-  const [contasBancarias, setContasBancarias] = useState<ContaBancaria[]>([]);
-  const [planoContas, setPlanoContas] = useState<PlanoConta[]>([]);
-  const [centrosCusto, setCentrosCusto] = useState<CentroCusto[]>([]);
-  const [contasPagar, setContasPagar] = useState<ContaPagar[]>([]);
-  const [contasReceber, setContasReceber] = useState<ContaReceber[]>([]);
-  const [lancamentos, setLancamentos] = useState<Lancamento[]>([]);
-  const [movimentosOfx, setMovimentosOfx] = useState<MovimentoOfx[]>([]);
+  const qc = useQueryClient();
 
-  const reload = useCallback(async () => {
-    setLoading(true);
-    const [cb, pc, cc, cp, cr, ln, ofx] = await Promise.all([
-      fetchAll("fin_contas_bancarias", "nome"),
-      fetchAll("fin_plano_contas", "codigo"),
-      fetchAll("fin_centros_custo", "nome"),
-      fetchAll("fin_contas_pagar", "data_vencimento"),
-      fetchAll("fin_contas_receber", "data_vencimento"),
-      fetchAll("fin_lancamentos", "data"),
-      fetchAll("fin_movimentos_ofx", "data"),
-    ]);
-    setContasBancarias(cb);
-    setPlanoContas(pc);
-    setCentrosCusto(cc);
-    setContasPagar(cp);
-    setContasReceber(cr);
-    setLancamentos(ln);
-    setMovimentosOfx(ofx);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { reload(); }, [reload]);
-
-  const wrap = <T extends { id: string }>(setter: React.Dispatch<React.SetStateAction<T[]>>) => ({
-    add: async (table: string, row: any) => {
-      const created = await insertRow(table, row);
-      if (created) setter((prev) => [...prev, created]);
-      return created as T | null;
-    },
-    update: async (table: string, id: string, row: any) => {
-      const ok = await updateRow(table, id, row);
-      if (ok) setter((prev) => prev.map((p) => (p.id === id ? { ...p, ...row } : p)));
-    },
-    remove: async (table: string, id: string) => {
-      const ok = await deleteRow(table, id);
-      if (ok) setter((prev) => prev.filter((p) => p.id !== id));
-    },
+  const results = useQueries({
+    queries: [
+      { queryKey: QK_CB, queryFn: async () => fetchAll("fin_contas_bancarias", "nome"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
+      { queryKey: QK_PC, queryFn: async () => fetchAll("fin_plano_contas", "codigo"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
+      { queryKey: QK_CC, queryFn: async () => fetchAll("fin_centros_custo", "nome"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
+      { queryKey: QK_CP, queryFn: async () => fetchAll("fin_contas_pagar", "data_vencimento"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
+      { queryKey: QK_CR, queryFn: async () => fetchAll("fin_contas_receber", "data_vencimento"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
+      { queryKey: QK_LN, queryFn: async () => fetchAll("fin_lancamentos", "data"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
+      { queryKey: QK_OFX, queryFn: async () => fetchAll("fin_movimentos_ofx", "data"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
+    ],
   });
 
-  const cb = wrap(setContasBancarias);
-  const pc = wrap(setPlanoContas);
-  const cc = wrap(setCentrosCusto);
-  const cp = wrap(setContasPagar);
-  const cr = wrap(setContasReceber);
-  const ln = wrap(setLancamentos);
-  const ofx = wrap(setMovimentosOfx);
+  const contasBancarias = (results[0].data as ContaBancaria[]) || [];
+  const planoContas = (results[1].data as PlanoConta[]) || [];
+  const centrosCusto = (results[2].data as CentroCusto[]) || [];
+  const contasPagar = (results[3].data as ContaPagar[]) || [];
+  const contasReceber = (results[4].data as ContaReceber[]) || [];
+  const lancamentos = (results[5].data as Lancamento[]) || [];
+  const movimentosOfx = (results[6].data as MovimentoOfx[]) || [];
+  const loading = results.some((r) => r.isLoading);
+
+  const invCB = () => qc.invalidateQueries({ queryKey: QK_CB });
+  const invPC = () => qc.invalidateQueries({ queryKey: QK_PC });
+  const invCC = () => qc.invalidateQueries({ queryKey: QK_CC });
+  const invCP = () => qc.invalidateQueries({ queryKey: QK_CP });
+  const invCR = () => qc.invalidateQueries({ queryKey: QK_CR });
+  const invLN = () => qc.invalidateQueries({ queryKey: QK_LN });
+  const invOFX = () => qc.invalidateQueries({ queryKey: QK_OFX });
+
+  const reload = async () => {
+    invCB(); invPC(); invCC(); invCP(); invCR(); invLN(); invOFX();
+  };
 
   const saldoConta = (contaId: string) => {
     const conta = contasBancarias.find((c) => c.id === contaId);
@@ -225,25 +213,25 @@ export function FinanceiroProvider({ children }: { children: ReactNode }) {
       value={{
         loading, contasBancarias, planoContas, centrosCusto,
         contasPagar, contasReceber, lancamentos, movimentosOfx, reload,
-        addContaBancaria: (r) => cb.add("fin_contas_bancarias", r) as Promise<ContaBancaria | null>,
-        updateContaBancaria: (id, r) => cb.update("fin_contas_bancarias", id, r),
-        deleteContaBancaria: (id) => cb.remove("fin_contas_bancarias", id),
-        addPlanoConta: (r) => pc.add("fin_plano_contas", r).then(() => undefined),
-        updatePlanoConta: (id, r) => pc.update("fin_plano_contas", id, r),
-        deletePlanoConta: (id) => pc.remove("fin_plano_contas", id),
-        addCentroCusto: (r) => cc.add("fin_centros_custo", r).then(() => undefined),
-        updateCentroCusto: (id, r) => cc.update("fin_centros_custo", id, r),
-        deleteCentroCusto: (id) => cc.remove("fin_centros_custo", id),
-        addContaPagar: (r) => cp.add("fin_contas_pagar", r) as Promise<ContaPagar | null>,
-        updateContaPagar: (id, r) => cp.update("fin_contas_pagar", id, r),
-        deleteContaPagar: (id) => cp.remove("fin_contas_pagar", id),
-        addContaReceber: (r) => cr.add("fin_contas_receber", r) as Promise<ContaReceber | null>,
-        updateContaReceber: (id, r) => cr.update("fin_contas_receber", id, r),
-        deleteContaReceber: (id) => cr.remove("fin_contas_receber", id),
-        addLancamento: (r) => ln.add("fin_lancamentos", r) as Promise<Lancamento | null>,
-        deleteLancamento: (id) => ln.remove("fin_lancamentos", id),
-        addMovimentoOfx: (r) => ofx.add("fin_movimentos_ofx", r).then(() => undefined),
-        updateMovimentoOfx: (id, r) => ofx.update("fin_movimentos_ofx", id, r),
+        addContaBancaria: async (r) => { const created = await insertRow("fin_contas_bancarias", r); invCB(); return created as ContaBancaria | null; },
+        updateContaBancaria: async (id, r) => { await updateRow("fin_contas_bancarias", id, r); invCB(); },
+        deleteContaBancaria: async (id) => { await deleteRow("fin_contas_bancarias", id); invCB(); },
+        addPlanoConta: async (r) => { await insertRow("fin_plano_contas", r); invPC(); },
+        updatePlanoConta: async (id, r) => { await updateRow("fin_plano_contas", id, r); invPC(); },
+        deletePlanoConta: async (id) => { await deleteRow("fin_plano_contas", id); invPC(); },
+        addCentroCusto: async (r) => { await insertRow("fin_centros_custo", r); invCC(); },
+        updateCentroCusto: async (id, r) => { await updateRow("fin_centros_custo", id, r); invCC(); },
+        deleteCentroCusto: async (id) => { await deleteRow("fin_centros_custo", id); invCC(); },
+        addContaPagar: async (r) => { const created = await insertRow("fin_contas_pagar", r); invCP(); return created as ContaPagar | null; },
+        updateContaPagar: async (id, r) => { await updateRow("fin_contas_pagar", id, r); invCP(); },
+        deleteContaPagar: async (id) => { await deleteRow("fin_contas_pagar", id); invCP(); },
+        addContaReceber: async (r) => { const created = await insertRow("fin_contas_receber", r); invCR(); return created as ContaReceber | null; },
+        updateContaReceber: async (id, r) => { await updateRow("fin_contas_receber", id, r); invCR(); },
+        deleteContaReceber: async (id) => { await deleteRow("fin_contas_receber", id); invCR(); },
+        addLancamento: async (r) => { const created = await insertRow("fin_lancamentos", r); invLN(); return created as Lancamento | null; },
+        deleteLancamento: async (id) => { await deleteRow("fin_lancamentos", id); invLN(); },
+        addMovimentoOfx: async (r) => { await insertRow("fin_movimentos_ofx", r); invOFX(); },
+        updateMovimentoOfx: async (id, r) => { await updateRow("fin_movimentos_ofx", id, r); invOFX(); },
         saldoConta,
       }}
     >

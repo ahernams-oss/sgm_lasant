@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export type PapelPcAssinatura = "aprovador";
@@ -37,27 +38,34 @@ const PcAssinaturasContext = createContext<Ctx>({
 });
 export const usePcAssinaturas = () => useContext(PcAssinaturasContext);
 
+const QK = ["pc_assinaturas"] as const;
+
 export function PcAssinaturasProvider({ children }: { children: ReactNode }) {
-  const [assinaturas, setAssinaturas] = useState<PcAssinatura[]>([]);
+  const qc = useQueryClient();
 
-  const load = useCallback(async () => {
-    const { data } = await supabase.from("pc_assinaturas").select("*").order("signed_at");
-    setAssinaturas((data || []) as PcAssinatura[]);
-  }, []);
+  const { data: assinaturas = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => {
+      const { data } = await supabase.from("pc_assinaturas").select("*").order("signed_at");
+      return (data || []) as PcAssinatura[];
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
-  useEffect(() => { load(); }, [load]);
+  const refresh = async () => qc.invalidateQueries({ queryKey: QK });
 
   const registrar = async (a: Partial<PcAssinatura>) => {
     const { data, error } = await supabase.from("pc_assinaturas").insert(a as any).select().single();
     if (error || !data) return null;
-    await load();
+    qc.invalidateQueries({ queryKey: QK });
     return data as PcAssinatura;
   };
 
   const porPedido = (pedidoId: string) => assinaturas.filter((a) => a.pedido_id === pedidoId);
 
   return (
-    <PcAssinaturasContext.Provider value={{ assinaturas, porPedido, registrar, refresh: load }}>
+    <PcAssinaturasContext.Provider value={{ assinaturas, porPedido, registrar, refresh }}>
       {children}
     </PcAssinaturasContext.Provider>
   );
