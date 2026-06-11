@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { enviarNotificacaoRP } from "@/lib/notificacaoRP";
@@ -79,34 +80,42 @@ const processoToRow = (p: ProcessoSeletivo) => ({
   requisicao_id: p.requisicaoId, data_criacao: p.dataCriacao, candidatos: p.candidatos as any,
 });
 
+const QK = ["processos_seletivos"] as const;
+
 export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) {
-  const [processos, setProcessos] = useState<ProcessoSeletivo[]>([]);
+  const queryClient = useQueryClient();
 
-  const load = useCallback(async () => {
-    const data = await fetchAll("processos_seletivos", "created_at");
-    setProcessos(data.map(rowToProcesso));
-  }, []);
+  const { data: processos = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => {
+      const data = await fetchAll("processos_seletivos", "created_at");
+      return data.map(rowToProcesso) as ProcessoSeletivo[];
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
-  useEffect(() => { load(); }, [load]);
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: QK });
 
-  // Aplica um patch sobre o processo mais recente em memória (evita closures velhas em chamadas
-  // sequenciais) e persiste em background.
+  // Aplica um patch otimista no cache do React Query e persiste em background.
   const applyPatch = async (
     id: string,
     patch: (p: ProcessoSeletivo) => ProcessoSeletivo,
   ): Promise<ProcessoSeletivo | null> => {
     let updated: ProcessoSeletivo | null = null;
-    setProcessos(prev => prev.map(p => {
-      if (p.id !== id) return p;
-      updated = patch(p);
-      return updated;
-    }));
+    queryClient.setQueryData<ProcessoSeletivo[]>(QK, (prev = []) =>
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        updated = patch(p);
+        return updated;
+      })
+    );
     if (updated) {
       try {
         await updateRow("processos_seletivos", id, processoToRow(updated));
       } catch (e) {
         console.error("Falha ao salvar processo seletivo, recarregando...", e);
-        await load();
+        await invalidate();
       }
     }
     return updated;
@@ -124,7 +133,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
       id: crypto.randomUUID(), requisicaoId,
       dataCriacao: new Date().toLocaleDateString("pt-BR"), candidatos: [],
     };
-    insertRow("processos_seletivos", processoToRow(novo)).then(() => load());
+    insertRow("processos_seletivos", processoToRow(novo)).then(() => invalidate());
     return novo;
   };
 

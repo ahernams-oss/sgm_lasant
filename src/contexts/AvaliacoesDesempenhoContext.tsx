@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface AvaliacaoDesempenho {
@@ -66,27 +67,34 @@ interface Ctx {
 
 const AvaliacoesDesempenhoContext = createContext<Ctx | undefined>(undefined);
 
+const QK = ["avaliacoes_desempenho"] as const;
+
 export function AvaliacoesDesempenhoProvider({ children }: { children: ReactNode }) {
-  const [avaliacoes, setAvaliacoes] = useState<AvaliacaoDesempenho[]>([]);
+  const queryClient = useQueryClient();
 
-  const load = useCallback(async () => {
-    const data = await fetchAll("avaliacoes_desempenho", "data_avaliacao");
-    setAvaliacoes(data.map(rowToAval).reverse());
-  }, []);
+  const { data: avaliacoes = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => {
+      const data = await fetchAll("avaliacoes_desempenho", "data_avaliacao");
+      return data.map(rowToAval).reverse() as AvaliacaoDesempenho[];
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
-  useEffect(() => { load(); }, [load]);
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: QK });
 
   const addAvaliacao = async (a: Omit<AvaliacaoDesempenho, "id">) => {
     await insertRow("avaliacoes_desempenho", avalToRow(a));
-    await load();
+    await invalidate();
   };
   const updateAvaliacao = async (id: string, a: Omit<AvaliacaoDesempenho, "id">) => {
     await updateRow("avaliacoes_desempenho", id, avalToRow(a));
-    await load();
+    await invalidate();
   };
   const deleteAvaliacao = async (id: string) => {
     await deleteRow("avaliacoes_desempenho", id);
-    await load();
+    await invalidate();
   };
 
   return (

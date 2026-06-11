@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -131,21 +132,28 @@ interface FuncionariosContextType {
 
 const FuncionariosContext = createContext<FuncionariosContextType | undefined>(undefined);
 
+const QK = ["funcionarios"] as const;
+
 export function FuncionariosProvider({ children }: { children: ReactNode }) {
-  const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
+  const queryClient = useQueryClient();
 
-  const fetchFuncionarios = useCallback(async () => {
-    const { data, error } = await (supabase as any).from("funcionarios").select("*").order("nome");
-    if (error) { console.error("Erro:", error); toast.error("Erro ao carregar funcionários."); return; }
-    setFuncionarios((data || []).map(rowToFuncionario));
-  }, []);
+  const { data: funcionarios = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).from("funcionarios").select("*").order("nome");
+      if (error) { console.error("Erro:", error); throw error; }
+      return (data || []).map(rowToFuncionario) as Funcionario[];
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
-  useEffect(() => { fetchFuncionarios(); }, [fetchFuncionarios]);
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: QK });
 
   const addFuncionario = async (f: Omit<Funcionario, "id">) => {
     const { error } = await (supabase as any).from("funcionarios").insert(funcionarioToRow(f));
     if (error) { console.error("Erro:", error); toast.error("Erro ao cadastrar."); return; }
-    await fetchFuncionarios();
+    await invalidate();
   };
 
   const updateFuncionario = async (id: string, data: Partial<Omit<Funcionario, "id">>) => {
@@ -153,13 +161,13 @@ export function FuncionariosProvider({ children }: { children: ReactNode }) {
     const { id: _id, ...rest } = fullData as Funcionario;
     const { error } = await (supabase as any).from("funcionarios").update(funcionarioToRow(rest)).eq("id", id);
     if (error) { console.error("Erro:", error); toast.error("Erro ao atualizar."); return; }
-    await fetchFuncionarios();
+    await invalidate();
   };
 
   const deleteFuncionario = async (id: string) => {
     const { error } = await (supabase as any).from("funcionarios").delete().eq("id", id);
     if (error) { console.error("Erro:", error); toast.error("Erro ao remover."); return; }
-    await fetchFuncionarios();
+    await invalidate();
   };
 
   return (
