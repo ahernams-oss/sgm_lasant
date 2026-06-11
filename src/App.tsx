@@ -162,7 +162,16 @@ import RelatoriosMultidimensional from "./pages/gerencial/RelatoriosMultidimensi
 import DashboardMultisistemico from "./pages/gerencial/DashboardMultisistemico.tsx";
 import MapaClientes from "./pages/gerencial/MapaClientes.tsx";
 import { RotaProtegida } from "@/components/RotaProtegida";
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
