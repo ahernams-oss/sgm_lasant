@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface EpiCatalogo {
@@ -36,19 +37,26 @@ const toRow = (e: Omit<EpiCatalogo, "id">) => ({
   observacao: e.observacao || null,
 });
 
+const QK = ["epis_catalogo"] as const;
+
 export function EpisCatalogoProvider({ children }: { children: ReactNode }) {
-  const [epis, setEpis] = useState<EpiCatalogo[]>([]);
+  const queryClient = useQueryClient();
 
-  const load = useCallback(async () => {
-    const data = await fetchAll("epis_catalogo", "descricao");
-    setEpis(data.map(rowTo));
-  }, []);
+  const { data: epis = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => {
+      const data = await fetchAll("epis_catalogo", "descricao");
+      return data.map(rowTo) as EpiCatalogo[];
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
-  useEffect(() => { load(); }, [load]);
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: QK });
 
   const addEpi = async (e: Omit<EpiCatalogo, "id">) => {
     await insertRow("epis_catalogo", toRow(e));
-    await load();
+    await invalidate();
   };
 
   const updateEpi = async (id: string, e: Partial<Omit<EpiCatalogo, "id">>) => {
@@ -57,12 +65,12 @@ export function EpisCatalogoProvider({ children }: { children: ReactNode }) {
     const merged = { ...current, ...e };
     const { id: _, ...rest } = merged;
     await updateRow("epis_catalogo", id, toRow(rest));
-    await load();
+    await invalidate();
   };
 
   const deleteEpi = async (id: string) => {
     await deleteRow("epis_catalogo", id);
-    await load();
+    await invalidate();
   };
 
   return (

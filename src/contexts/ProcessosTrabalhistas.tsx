@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -55,55 +56,59 @@ interface ContextType {
 
 const Ctx = createContext<ContextType | undefined>(undefined);
 
+const QK = ["processos_trabalhistas"] as const;
+
 export function ProcessosTrabalhalistasProvider({ children }: { children: ReactNode }) {
-  const [processos, setProcessos] = useState<ProcessoTrabalhista[]>([]);
+  const queryClient = useQueryClient();
   const [andamentos, setAndamentos] = useState<Andamento[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const data = await fetchAll("processos_trabalhistas", "created_at");
-    setProcessos(data.map((r: any) => ({
-      id: r.id,
-      numero_processo: r.numero_processo ?? "",
-      vara: r.vara ?? "",
-      comarca: r.comarca ?? "",
-      estado: r.estado ?? "",
-      autor_nome: r.autor_nome ?? "",
-      autor_cpf: r.autor_cpf ?? "",
-      advogado_autor: r.advogado_autor ?? "",
-      advogado_empresa: r.advogado_empresa ?? "",
-      data_distribuicao: r.data_distribuicao ?? null,
-      objeto_acao: r.objeto_acao ?? "",
-      valor_causa: Number(r.valor_causa) || 0,
-      provisao_contabil: Number(r.provisao_contabil) || 0,
-      valor_acordo: Number(r.valor_acordo) || 0,
-      valor_condenacao: Number(r.valor_condenacao) || 0,
-      honorarios: Number(r.honorarios) || 0,
-      risco: r.risco ?? "Médio",
-      status: r.status ?? "Ativo",
-      fase_processual: r.fase_processual ?? "Inicial",
-      observacoes: r.observacoes ?? "",
-      anexos: Array.isArray(r.anexos) ? r.anexos : [],
-      cliente_id: r.cliente_id ?? "",
-      cliente_nome: r.cliente_nome ?? "",
-    })));
-    setLoading(false);
-  }, []);
+  const { data: processos = [], isLoading: loading } = useQuery({
+    queryKey: QK,
+    queryFn: async () => {
+      const data = await fetchAll("processos_trabalhistas", "created_at");
+      return data.map((r: any) => ({
+        id: r.id,
+        numero_processo: r.numero_processo ?? "",
+        vara: r.vara ?? "",
+        comarca: r.comarca ?? "",
+        estado: r.estado ?? "",
+        autor_nome: r.autor_nome ?? "",
+        autor_cpf: r.autor_cpf ?? "",
+        advogado_autor: r.advogado_autor ?? "",
+        advogado_empresa: r.advogado_empresa ?? "",
+        data_distribuicao: r.data_distribuicao ?? null,
+        objeto_acao: r.objeto_acao ?? "",
+        valor_causa: Number(r.valor_causa) || 0,
+        provisao_contabil: Number(r.provisao_contabil) || 0,
+        valor_acordo: Number(r.valor_acordo) || 0,
+        valor_condenacao: Number(r.valor_condenacao) || 0,
+        honorarios: Number(r.honorarios) || 0,
+        risco: r.risco ?? "Médio",
+        status: r.status ?? "Ativo",
+        fase_processual: r.fase_processual ?? "Inicial",
+        observacoes: r.observacoes ?? "",
+        anexos: Array.isArray(r.anexos) ? r.anexos : [],
+        cliente_id: r.cliente_id ?? "",
+        cliente_nome: r.cliente_nome ?? "",
+      })) as ProcessoTrabalhista[];
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
-  useEffect(() => { load(); }, [load]);
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: QK });
 
   const addProcesso = async (p: Omit<ProcessoTrabalhista, "id">) => {
     await insertRow("processos_trabalhistas", p);
-    await load();
+    await invalidate();
   };
   const updateProcesso = async (id: string, data: Partial<ProcessoTrabalhista>) => {
     await updateRow("processos_trabalhistas", id, data);
-    await load();
+    await invalidate();
   };
   const deleteProcesso = async (id: string) => {
     await deleteRow("processos_trabalhistas", id);
-    await load();
+    await invalidate();
   };
 
   const loadAndamentos = useCallback(async (processoId: string): Promise<Andamento[]> => {

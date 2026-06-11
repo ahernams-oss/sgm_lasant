@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface SalarioDataBase { id: string; valor: string; dataBase: string; }
@@ -37,19 +38,26 @@ const cargoToRow = (c: Omit<Cargo, "id">) => ({
   epis_padrao: (c.episPadrao ?? []) as any,
 });
 
+const QK = ["cargos"] as const;
+
 export function CargosProvider({ children }: { children: ReactNode }) {
-  const [cargos, setCargos] = useState<Cargo[]>([]);
+  const queryClient = useQueryClient();
 
-  const load = useCallback(async () => {
-    const data = await fetchAll("cargos", "nome");
-    setCargos(data.map(rowToCargo));
-  }, []);
+  const { data: cargos = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => {
+      const data = await fetchAll("cargos", "nome");
+      return data.map(rowToCargo) as Cargo[];
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
-  useEffect(() => { load(); }, [load]);
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: QK });
 
   const addCargo = async (cargo: Omit<Cargo, "id">) => {
     await insertRow("cargos", cargoToRow(cargo));
-    await load();
+    await invalidate();
   };
 
   const updateCargo = async (id: string, data: Partial<Omit<Cargo, "id">>) => {
@@ -58,12 +66,12 @@ export function CargosProvider({ children }: { children: ReactNode }) {
     const merged = { ...current, ...data };
     const { id: _, ...rest } = merged;
     await updateRow("cargos", id, cargoToRow(rest));
-    await load();
+    await invalidate();
   };
 
   const deleteCargo = async (id: string) => {
     await deleteRow("cargos", id);
-    await load();
+    await invalidate();
   };
 
   return (
