@@ -1,5 +1,8 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode, type Context } from "react";
+import { createContext, useContext, ReactNode, type Context } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+
+const PERFIS_QK = ["perfis_acesso"] as const;
 
 export interface PermissaoModulo {
   key: string;
@@ -915,29 +918,18 @@ const perfilToRow = (p: Omit<PerfilAcesso, "id">) => ({
 });
 
 export function PerfisAcessoProvider({ children }: { children: ReactNode }) {
-  const [perfis, setPerfis] = useState<PerfilAcesso[]>([]);
+  const qc = useQueryClient();
+  const { data: perfis = [] } = useQuery({
+    queryKey: PERFIS_QK,
+    queryFn: async () => (await fetchAll("perfis_acesso", "nome")).map(rowToPerfil),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: PERFIS_QK });
 
-  const load = useCallback(async () => {
-    const data = await fetchAll("perfis_acesso", "nome");
-    setPerfis(data.map(rowToPerfil));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const addPerfil = async (p: Omit<PerfilAcesso, "id">) => {
-    await insertRow("perfis_acesso", perfilToRow(p));
-    await load();
-  };
-
-  const updatePerfil = async (id: string, data: Omit<PerfilAcesso, "id">) => {
-    await updateRow("perfis_acesso", id, perfilToRow(data));
-    await load();
-  };
-
-  const deletePerfil = async (id: string) => {
-    await deleteRow("perfis_acesso", id);
-    await load();
-  };
+  const addPerfil = async (p: Omit<PerfilAcesso, "id">) => { await insertRow("perfis_acesso", perfilToRow(p)); invalidate(); };
+  const updatePerfil = async (id: string, data: Omit<PerfilAcesso, "id">) => { await updateRow("perfis_acesso", id, perfilToRow(data)); invalidate(); };
+  const deletePerfil = async (id: string) => { await deleteRow("perfis_acesso", id); invalidate(); };
 
   return (
     <PerfisAcessoContext.Provider value={{ perfis, addPerfil, updatePerfil, deletePerfil }}>

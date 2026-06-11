@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface Usuario {
@@ -16,6 +17,7 @@ interface UsuariosContextType {
 }
 
 const UsuariosContext = createContext<UsuariosContextType | undefined>(undefined);
+const QK = ["usuarios"] as const;
 
 const rowToUsuario = (r: any): Usuario => ({
   id: r.id, nome: r.nome ?? "", cargoId: r.cargo_id ?? "",
@@ -37,29 +39,18 @@ const usuarioToRow = (u: Omit<Usuario, "id">) => ({
 });
 
 export function UsuariosProvider({ children }: { children: ReactNode }) {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const qc = useQueryClient();
+  const { data: usuarios = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("usuarios", "nome")).map(rowToUsuario),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
-  const load = useCallback(async () => {
-    const data = await fetchAll("usuarios", "nome");
-    setUsuarios(data.map(rowToUsuario));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const addUsuario = async (u: Omit<Usuario, "id">) => {
-    await insertRow("usuarios", usuarioToRow(u));
-    await load();
-  };
-
-  const updateUsuario = async (id: string, data: Omit<Usuario, "id">) => {
-    await updateRow("usuarios", id, usuarioToRow(data));
-    await load();
-  };
-
-  const deleteUsuario = async (id: string) => {
-    await deleteRow("usuarios", id);
-    await load();
-  };
+  const addUsuario = async (u: Omit<Usuario, "id">) => { await insertRow("usuarios", usuarioToRow(u)); invalidate(); };
+  const updateUsuario = async (id: string, data: Omit<Usuario, "id">) => { await updateRow("usuarios", id, usuarioToRow(data)); invalidate(); };
+  const deleteUsuario = async (id: string) => { await deleteRow("usuarios", id); invalidate(); };
 
   return (
     <UsuariosContext.Provider value={{ usuarios, addUsuario, updateUsuario, deleteUsuario }}>

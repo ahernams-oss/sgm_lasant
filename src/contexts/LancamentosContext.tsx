@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export type TipoLancamento = "falta" | "hora_extra" | "advertencia";
@@ -22,6 +23,7 @@ interface LancamentosContextType {
 }
 
 const LancamentosContext = createContext<LancamentosContextType | undefined>(undefined);
+const QK = ["lancamentos"] as const;
 
 const rowToLancamento = (r: any): Lancamento => ({
   id: r.id, funcionarioId: r.funcionario_id ?? "", tipo: r.tipo ?? "falta",
@@ -42,19 +44,19 @@ const lancamentoToRow = (l: Omit<Lancamento, "id">) => ({
 });
 
 export function LancamentosProvider({ children }: { children: ReactNode }) {
-  const [lancamentos, setLancamentos] = useState<Lancamento[]>([]);
-
-  const load = useCallback(async () => {
-    const data = await fetchAll("lancamentos", "created_at");
-    setLancamentos(data.map(rowToLancamento));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const qc = useQueryClient();
+  const { data: lancamentos = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("lancamentos", "created_at")).map(rowToLancamento),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
   const addLancamento = async (l: Omit<Lancamento, "id" | "criadoEm">) => {
     const criadoEm = new Date().toISOString();
     await insertRow("lancamentos", lancamentoToRow({ ...l, criadoEm }));
-    await load();
+    invalidate();
   };
 
   const updateLancamento = async (id: string, data: Partial<Omit<Lancamento, "id" | "criadoEm">>) => {
@@ -63,13 +65,10 @@ export function LancamentosProvider({ children }: { children: ReactNode }) {
     const merged = { ...current, ...data };
     const { id: _, ...rest } = merged;
     await updateRow("lancamentos", id, lancamentoToRow(rest));
-    await load();
+    invalidate();
   };
 
-  const deleteLancamento = async (id: string) => {
-    await deleteRow("lancamentos", id);
-    await load();
-  };
+  const deleteLancamento = async (id: string) => { await deleteRow("lancamentos", id); invalidate(); };
 
   return (
     <LancamentosContext.Provider value={{ lancamentos, addLancamento, updateLancamento, deleteLancamento }}>

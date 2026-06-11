@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface InformacaoFinanceira { id: string; banco: string; agencia: string; conta: string; chavePix: string; }
@@ -77,6 +78,7 @@ interface ClientesContextType {
 }
 
 const ClientesContext = createContext<ClientesContextType | undefined>(undefined);
+const QK = ["clientes"] as const;
 
 const rowToCliente = (r: any): Cliente => ({
   id: r.id, tipo: r.tipo || "Cliente", nome: r.nome ?? "", nomeFantasia: r.nome_fantasia ?? "",
@@ -118,18 +120,18 @@ const clienteToRow = (c: Omit<Cliente, "id">) => ({
 });
 
 export function ClientesProvider({ children }: { children: ReactNode }) {
-  const [clientes, setClientes] = useState<Cliente[]>([]);
-
-  const load = useCallback(async () => {
-    const data = await fetchAll("clientes", "nome");
-    setClientes(data.map(rowToCliente));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const qc = useQueryClient();
+  const { data: clientes = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("clientes", "nome")).map(rowToCliente),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
   const addCliente = async (c: Omit<Cliente, "id">) => {
     await insertRow("clientes", clienteToRow(c));
-    await load();
+    invalidate();
   };
 
   const updateCliente = async (id: string, data: Partial<Omit<Cliente, "id">>) => {
@@ -138,13 +140,10 @@ export function ClientesProvider({ children }: { children: ReactNode }) {
     const merged = { ...current, ...data };
     const { id: _, ...rest } = merged;
     await updateRow("clientes", id, clienteToRow(rest));
-    await load();
+    invalidate();
   };
 
-  const deleteCliente = async (id: string) => {
-    await deleteRow("clientes", id);
-    await load();
-  };
+  const deleteCliente = async (id: string) => { await deleteRow("clientes", id); invalidate(); };
 
   return (
     <ClientesContext.Provider value={{ clientes, addCliente, updateCliente, deleteCliente }}>
