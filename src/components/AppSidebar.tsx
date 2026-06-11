@@ -73,7 +73,7 @@ const menuItems = [
     group: "Gestão de Pessoas",
     items: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, perm: "dashboard_gp" },
-      { title: "Requisição de Pessoal", url: "/", icon: ClipboardList, perm: "requisicao_colaboradores" },
+      { title: "Requisição de Pessoal", url: "/requisicao-pessoal", icon: ClipboardList, perm: "requisicao_colaboradores" },
       { title: "Processos Seletivos", url: "/processos-seletivos", icon: ClipboardCheck, perm: "processos_seletivos" },
       { title: "Funcionários", url: "/funcionarios", icon: UserCheck, perm: "funcionarios" },
       { title: "EPIs", url: "/epis", icon: HardHat, perm: "funcionarios" },

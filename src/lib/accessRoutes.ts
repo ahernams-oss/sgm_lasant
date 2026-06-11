@@ -2,7 +2,7 @@
 // can access when their default landing page is denied.
 export const ACCESS_ROUTES: { perm: string; url: string }[] = [
   { perm: "dashboard_gp", url: "/dashboard" },
-  { perm: "requisicao_colaboradores", url: "/" },
+  { perm: "requisicao_colaboradores", url: "/requisicao-pessoal" },
   { perm: "processos_seletivos", url: "/processos-seletivos" },
   { perm: "funcionarios", url: "/funcionarios" },
   { perm: "mapa_funcionarios", url: "/mapa-funcionarios" },
