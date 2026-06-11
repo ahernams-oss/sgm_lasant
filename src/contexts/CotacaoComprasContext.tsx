@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 
 export type StatusCotacao = "Em Andamento" | "Aguardando Aprovação" | "Finalizada" | "Cancelada";
@@ -35,6 +36,7 @@ interface CotacaoComprasContextType {
 }
 
 const CotacaoComprasContext = createContext<CotacaoComprasContextType | undefined>(undefined);
+const QK = ["cotacoes_compras"] as const;
 
 const rowToCotacao = (r: any): CotacaoCompras => ({
   id: r.id, requisicaoId: r.requisicao_id ?? "", requisicaoNumero: r.requisicao_numero ?? 0,
@@ -53,18 +55,19 @@ const cotacaoToRow = (c: CotacaoCompras) => ({
 });
 
 export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
-  const [cotacoes, setCotacoes] = useState<CotacaoCompras[]>([]);
+  const qc = useQueryClient();
+  const { data: cotacoes = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("cotacoes_compras", "created_at")).map(rowToCotacao),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
-  const load = useCallback(async () => {
-    const data = await fetchAll("cotacoes_compras", "created_at");
-    setCotacoes(data.map(rowToCotacao));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
   const saveAndReload = async (id: string, updated: CotacaoCompras) => {
     await updateRow("cotacoes_compras", id, cotacaoToRow(updated));
-    await load();
+    invalidate();
   };
 
   const addCotacao = (data: Omit<CotacaoCompras, "id" | "numero" | "dataCriacao" | "status" | "propostas" | "fornecedorVencedorId" | "justificativaEscolha" | "itensVencedores">) => {
@@ -74,8 +77,7 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
       dataCriacao: new Date().toISOString(), status: "Em Andamento",
       propostas: [], fornecedorVencedorId: "", justificativaEscolha: "", itensVencedores: [],
     };
-    // Fire and forget insert
-    insertRow("cotacoes_compras", cotacaoToRow(cot)).then(() => load());
+    insertRow("cotacoes_compras", cotacaoToRow(cot)).then(() => invalidate());
     return cot;
   };
 

@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface MaterialServico {
@@ -15,6 +16,7 @@ interface MateriaisServicosContextType {
 }
 
 const MateriaisServicosContext = createContext<MateriaisServicosContextType | undefined>(undefined);
+const QK = ["materiais_servicos"] as const;
 
 const rowToMaterial = (r: any): MaterialServico => ({
   id: r.id, codigo: r.codigo ?? "", descricao: r.descricao ?? "",
@@ -25,14 +27,14 @@ const rowToMaterial = (r: any): MaterialServico => ({
 });
 
 export function MateriaisServicosProvider({ children }: { children: ReactNode }) {
-  const [materiais, setMateriais] = useState<MaterialServico[]>([]);
-
-  const load = useCallback(async () => {
-    const data = await fetchAll("materiais_servicos", "codigo");
-    setMateriais(data.map(rowToMaterial));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const qc = useQueryClient();
+  const { data: materiais = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("materiais_servicos", "codigo")).map(rowToMaterial),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
   const nextCodigo = () => {
     const nums = materiais.map(m => parseInt(m.codigo, 10)).filter(n => !isNaN(n));
@@ -45,7 +47,7 @@ export function MateriaisServicosProvider({ children }: { children: ReactNode })
       unidade_medida: m.unidadeMedida, categoria_id: m.categoriaId, fabricante_id: m.fabricanteId,
       estoque_minimo: m.estoqueMinimo || 0, fotos: m.fotos || [],
     });
-    await load();
+    invalidate();
   };
 
   const updateMaterial = async (id: string, data: Partial<Omit<MaterialServico, "id">>) => {
@@ -58,10 +60,10 @@ export function MateriaisServicosProvider({ children }: { children: ReactNode })
       fabricante_id: merged.fabricanteId, estoque_minimo: merged.estoqueMinimo,
       fotos: merged.fotos || [],
     });
-    await load();
+    invalidate();
   };
 
-  const deleteMaterial = async (id: string) => { await deleteRow("materiais_servicos", id); await load(); };
+  const deleteMaterial = async (id: string) => { await deleteRow("materiais_servicos", id); invalidate(); };
 
   return (
     <MateriaisServicosContext.Provider value={{ materiais, addMaterial, updateMaterial, deleteMaterial }}>

@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export interface Fabricante { id: string; nome: string; }
@@ -10,31 +11,21 @@ interface FabricantesContextType {
 }
 
 const FabricantesContext = createContext<FabricantesContextType | undefined>(undefined);
+const QK = ["fabricantes"] as const;
 
 export function FabricantesProvider({ children }: { children: ReactNode }) {
-  const [fabricantes, setFabricantes] = useState<Fabricante[]>([]);
+  const qc = useQueryClient();
+  const { data: fabricantes = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("fabricantes", "nome")).map((r: any) => ({ id: r.id, nome: r.nome ?? "" })),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
-  const load = useCallback(async () => {
-    const data = await fetchAll("fabricantes", "nome");
-    setFabricantes(data.map((r: any) => ({ id: r.id, nome: r.nome ?? "" })));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const addFabricante = async (nome: string) => {
-    await insertRow("fabricantes", { nome });
-    await load();
-  };
-
-  const updateFabricante = async (id: string, nome: string) => {
-    await updateRow("fabricantes", id, { nome });
-    await load();
-  };
-
-  const deleteFabricante = async (id: string) => {
-    await deleteRow("fabricantes", id);
-    await load();
-  };
+  const addFabricante = async (nome: string) => { await insertRow("fabricantes", { nome }); invalidate(); };
+  const updateFabricante = async (id: string, nome: string) => { await updateRow("fabricantes", id, { nome }); invalidate(); };
+  const deleteFabricante = async (id: string) => { await deleteRow("fabricantes", id); invalidate(); };
 
   return (
     <FabricantesContext.Provider value={{ fabricantes, addFabricante, updateFabricante, deleteFabricante }}>

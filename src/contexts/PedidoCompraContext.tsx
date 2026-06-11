@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 import { gerarContasPagarDePC } from "@/lib/financeiroFromPC";
 
@@ -27,6 +28,7 @@ interface PedidoCompraContextType {
 }
 
 const PedidoCompraContext = createContext<PedidoCompraContextType | undefined>(undefined);
+const QK = ["pedidos_compra"] as const;
 
 const rowToPedido = (r: any): PedidoCompra => ({
   id: r.id, numero: r.numero ?? 0, cotacaoId: r.cotacao_id ?? "",
@@ -50,14 +52,14 @@ const pedidoToRow = (p: PedidoCompra) => ({
 });
 
 export function PedidoCompraProvider({ children }: { children: ReactNode }) {
-  const [pedidos, setPedidos] = useState<PedidoCompra[]>([]);
-
-  const load = useCallback(async () => {
-    const data = await fetchAll("pedidos_compra", "created_at");
-    setPedidos(data.map(rowToPedido));
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const qc = useQueryClient();
+  const { data: pedidos = [] } = useQuery({
+    queryKey: QK,
+    queryFn: async () => (await fetchAll("pedidos_compra", "created_at")).map(rowToPedido),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
   const addPedido = (data: Omit<PedidoCompra, "id" | "numero" | "dataCriacao" | "status" | "historicoStatus" | "valorTotal">) => {
     const now = new Date().toISOString();
@@ -68,9 +70,8 @@ export function PedidoCompraProvider({ children }: { children: ReactNode }) {
       valorTotal, status: "Emitido",
       historicoStatus: [{ status: "Emitido", dataHora: now, usuario: data.comprador, observacao: "Pedido emitido" }],
     };
-    insertRow("pedidos_compra", pedidoToRow(pedido)).then(async () => {
-      await load();
-      // auto-gera lançamentos no Contas a Pagar (silencioso para não poluir UI)
+    insertRow("pedidos_compra", pedidoToRow(pedido)).then(() => {
+      invalidate();
       gerarContasPagarDePC(pedido, { silent: false });
     });
     return pedido;
@@ -84,7 +85,7 @@ export function PedidoCompraProvider({ children }: { children: ReactNode }) {
       historicoStatus: [...current.historicoStatus, { status, dataHora: new Date().toISOString(), usuario, observacao }],
     };
     await updateRow("pedidos_compra", id, pedidoToRow(updated));
-    await load();
+    invalidate();
   };
 
   const cancelarPedido = (id: string, usuario: string, motivo: string) => {
