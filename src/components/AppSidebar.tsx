@@ -197,8 +197,14 @@ const menuItems = [
       { title: "Lançamentos", url: "/financeiro/lancamentos", icon: ClipboardList, perm: "financeiro.lancamentos" },
       { title: "Condições de Pagamento", url: "/financeiro/condicoes-pagamento", icon: CreditCard, perm: "financeiro.condicoes_pagamento" },
       { title: "NFes Recebidas", url: "/financeiro/nfes-recebidas", icon: FileText, perm: "financeiro.nfes_recebidas" },
-      { title: "NFS-e Emitidas", url: "/financeiro/nfse", icon: FileText, perm: "financeiro.nfes_recebidas" },
       { title: "Relatórios Financeiros", url: "/financeiro/relatorios", icon: FileBarChart, perm: "financeiro.relatorios" },
+    ],
+  },
+  {
+    group: "Faturamento",
+    items: [
+      { title: "Faturamento", url: "/clientes?tab=faturamento", icon: DollarSign, perm: "clientes" },
+      { title: "NFS-e Emitidas", url: "/financeiro/nfse", icon: FileText, perm: "financeiro.nfes_recebidas" },
     ],
   },
   {
@@ -211,12 +217,12 @@ const menuItems = [
       { title: "Mapa de Clientes - RJ", url: "/gerencial/mapa-clientes", icon: MapPin, perm: "gerencial_mapa_clientes" },
     ],
   },
+
   {
     group: "Cadastros",
     items: [
       { title: "Dados da Empresa", url: "/empresa", icon: Building2, perm: "empresa" },
       { title: "Clientes", url: "/clientes", icon: Users, perm: "clientes" },
-      { title: "Faturamento", url: "/clientes?tab=faturamento", icon: DollarSign, perm: "clientes" },
       { title: "Equipamentos", url: "/cadastros/equipamentos", icon: Monitor, perm: "equipamentos" },
       { title: "Fornecedores", url: "/fornecedores", icon: Truck, perm: "fornecedores" },
       { title: "Cargos", url: "/cargos", icon: Briefcase, perm: "cargos" },
