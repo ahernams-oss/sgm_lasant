@@ -17,14 +17,20 @@ const Home = () => {
       {isLoading && (
         <Skeleton className="absolute max-w-full max-h-[calc(100vh-3rem)] aspect-video w-[90vw] rounded-xl" />
       )}
-      <img
-        src="/tela-inicial.jpg"
-        alt="LASANT Construções — SGM"
-        className={`max-w-full max-h-[calc(100vh-3rem)] object-contain select-none transition-opacity duration-500 ${isLoading ? "opacity-0" : "opacity-100"}`}
-        draggable={false}
-        onLoad={() => setIsLoading(false)}
-        onError={() => setHasError(true)}
-      />
+      <picture>
+        <source srcSet="/tela-inicial.avif" type="image/avif" />
+        <source srcSet="/tela-inicial.webp" type="image/webp" />
+        <img
+          src="/tela-inicial.jpg"
+          alt="LASANT Construções — SGM"
+          className={`max-w-full max-h-[calc(100vh-3rem)] object-contain select-none transition-opacity duration-500 ${isLoading ? "opacity-0" : "opacity-100"}`}
+          draggable={false}
+          decoding="async"
+          fetchPriority="high"
+          onLoad={() => setIsLoading(false)}
+          onError={() => setHasError(true)}
+        />
+      </picture>
     </div>
   );
 };
