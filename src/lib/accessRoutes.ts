@@ -61,4 +61,4 @@ export const ACCESS_ROUTES: { perm: string; url: string }[] = [
   { perm: "auditoria", url: "/auditoria" },
 ];
 
-export const lastRouteKey = (userId: string) => `lastRoute:${userId}`;
+

@@ -29,18 +29,7 @@ const Login = () => {
       const success = await login(email, senha, lembrar);
       if (success) {
         toast.success("Login realizado com sucesso!");
-        // Tenta restaurar a última rota acessada pelo usuário; senão vai para "/"
-        // e o RotaProtegida redireciona para a primeira página permitida.
-        let target = "/";
-        try {
-          const stored = localStorage.getItem("usuarioLogado") || sessionStorage.getItem("usuarioLogado");
-          const uid = stored ? JSON.parse(stored)?.id : null;
-          if (uid) {
-            const last = localStorage.getItem(`lastRoute:${uid}`);
-            if (last) target = last;
-          }
-        } catch {}
-        navigate(target);
+        navigate("/");
       } else {
         toast.error("E-mail ou senha inválidos.");
       }
