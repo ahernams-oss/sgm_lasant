@@ -224,7 +224,6 @@ const menuItems = [
     items: [
       { title: "Dados da Empresa", url: "/empresa", icon: Building2, perm: "empresa" },
       { title: "Clientes", url: "/clientes", icon: Users, perm: "clientes" },
-      { title: "Faturamento", url: "/clientes?tab=faturamento", icon: DollarSign, perm: "clientes" },
       { title: "Equipamentos", url: "/cadastros/equipamentos", icon: Monitor, perm: "equipamentos" },
       { title: "Fornecedores", url: "/fornecedores", icon: Truck, perm: "fornecedores" },
       { title: "Cargos", url: "/cargos", icon: Briefcase, perm: "cargos" },
