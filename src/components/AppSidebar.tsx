@@ -202,6 +202,13 @@ const menuItems = [
     ],
   },
   {
+    group: "Faturamento",
+    items: [
+      { title: "Faturamento", url: "/clientes?tab=faturamento", icon: DollarSign, perm: "clientes" },
+      { title: "NFS-e Emitidas", url: "/financeiro/nfse", icon: FileText, perm: "financeiro.nfes_recebidas" },
+    ],
+  },
+  {
     group: "Gerencial",
     items: [
       { title: "Painel TV (Tempo Real)", url: "/monitor-tv", icon: Monitor, perm: "monitor_tv" },
@@ -211,6 +218,7 @@ const menuItems = [
       { title: "Mapa de Clientes - RJ", url: "/gerencial/mapa-clientes", icon: MapPin, perm: "gerencial_mapa_clientes" },
     ],
   },
+
   {
     group: "Cadastros",
     items: [
