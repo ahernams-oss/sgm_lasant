@@ -17,6 +17,7 @@ import MapaFuncionarios from "./pages/MapaFuncionarios.tsx";
 import MapaPlantoes from "./pages/MapaPlantoes.tsx";
 import MapaFerias from "./pages/MapaFerias.tsx";
 import MapaUniformes from "./pages/MapaUniformes.tsx";
+import IntegracaoPontomais from "./pages/IntegracaoPontomais.tsx";
 import Usuarios from "./pages/Usuarios.tsx";
 import Login from "./pages/Login.tsx";
 import EsqueciSenha from "./pages/EsqueciSenha.tsx";
