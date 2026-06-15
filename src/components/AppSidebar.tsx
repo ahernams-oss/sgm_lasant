@@ -84,6 +84,7 @@ const menuItems = [
       { title: "Mapa de Férias", url: "/mapa-ferias", icon: CalendarClock, perm: "mapa_funcionarios" },
       { title: "Mapa de Uniformes", url: "/mapa-uniformes", icon: Shirt, perm: "mapa_funcionarios" },
       { title: "Avaliações de Desempenho", url: "/avaliacoes-desempenho", icon: ClipboardCheck, perm: "avaliacoes_desempenho" },
+      { title: "Integração Pontomais", url: "/integracao-pontomais", icon: Fingerprint, perm: "funcionarios" },
     ],
   },
   {
