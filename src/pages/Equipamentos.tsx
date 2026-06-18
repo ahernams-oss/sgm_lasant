@@ -17,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useEquipamentos, type Equipamento } from "@/contexts/EquipamentosContext";
 import { useClientes } from "@/contexts/ClientesContext";
+import { usePmoc } from "@/contexts/PmocContext";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissao } from "@/hooks/usePermissao";
 
@@ -42,6 +43,7 @@ const emptyForm = {
 export default function Equipamentos() {
   const { equipamentos, addEquipamento, updateEquipamento, deleteEquipamento } = useEquipamentos();
   const { clientes } = useClientes();
+  const { planos: pmocPlanos } = usePmoc();
   const { tem } = usePermissao();
   const podeCriar = tem("equipamentos.criar");
   const podeEditar = tem("equipamentos.editar");
@@ -50,6 +52,8 @@ export default function Equipamentos() {
 
   const [formOpen, setFormOpen] = useState(true);
   const [form, setForm] = useState(emptyForm);
+  const planosDoCliente = useMemo(() => (pmocPlanos || []).filter((p: any) => p.clienteId === form.clienteId), [pmocPlanos, form.clienteId]);
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("");
@@ -413,7 +417,19 @@ export default function Equipamentos() {
             {/* Outros */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div><Label>Contrato</Label><Input value={form.contrato} onChange={e => setField("contrato", e.target.value)} /></div>
-              <div><Label>Plano de Manutenção</Label><Input value={form.planoManutencao} onChange={e => setField("planoManutencao", e.target.value)} /></div>
+              <div>
+                <Label>Plano de Manutenção</Label>
+                <Select value={form.planoManutencao || "__none"} onValueChange={v => setField("planoManutencao", v === "__none" ? "" : v)} disabled={!form.clienteId}>
+                  <SelectTrigger><SelectValue placeholder={form.clienteId ? "Selecione o plano" : "Selecione o cliente primeiro"} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none">— Sem plano —</SelectItem>
+                    {planosDoCliente.map(p => <SelectItem key={p.id} value={p.id}>{p.titulo}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                {form.clienteId && planosDoCliente.length === 0 && (
+                  <p className="text-[11px] text-muted-foreground mt-1">Nenhum plano PMOC cadastrado para este cliente.</p>
+                )}
+              </div>
               <div><Label>Nº Anvisa</Label><Input value={form.numeroAnvisa} onChange={e => setField("numeroAnvisa", e.target.value)} /></div>
             </div>
 
@@ -631,7 +647,7 @@ export default function Equipamentos() {
               <div><span className="font-semibold">Potência:</span> {viewEquip.potencia || "-"}</div>
               <div><span className="font-semibold">Capacidade BTU:</span> {viewEquip.capacidadeBtu || "-"}</div>
               <div><span className="font-semibold">Contrato:</span> {viewEquip.contrato || "-"}</div>
-              <div><span className="font-semibold">Plano Manutenção:</span> {viewEquip.planoManutencao || "-"}</div>
+              <div><span className="font-semibold">Plano Manutenção:</span> {(pmocPlanos || []).find((p: any) => p.id === viewEquip.planoManutencao)?.titulo || viewEquip.planoManutencao || "-"}</div>
               <div><span className="font-semibold">Nº Anvisa:</span> {viewEquip.numeroAnvisa || "-"}</div>
               {((viewEquip.fotos && viewEquip.fotos.length > 0) || viewEquip.fotoUrl) && (
                 <div className="col-span-2">
