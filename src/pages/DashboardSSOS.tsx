@@ -453,6 +453,19 @@ export default function DashboardSSOS() {
         </CardContent>
       </Card>
 
+      {/* Tabs Principais */}
+      <Tabs defaultValue="visao" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="visao" className="gap-2">
+            <BarChart3 className="h-4 w-4" /> Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="workflow" className="gap-2">
+            <GitBranch className="h-4 w-4" /> Workflow das Solicitações
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="visao" className="space-y-6 mt-4">
+
       {/* KPIs SS */}
       <div>
         <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
