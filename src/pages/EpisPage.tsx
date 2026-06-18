@@ -40,7 +40,7 @@ const EpisPage = () => {
     cargo: { label: "Cargo" },
     qtd: { label: "Qtd", className: "w-16 text-center" },
     epi: { label: "E.P.I" },
-    ca: { label: "CA", className: "w-24 text-center" },
+    ca: { label: "CA", className: "w-36 text-center" },
     dataEntrega: { label: "Data Entrega", className: "w-32 text-center" },
     vencimento: { label: "Vencimento", className: "w-32 text-center" },
   };
