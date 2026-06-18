@@ -1232,23 +1232,79 @@ function DashboardTab() {
   );
 }
 
+type TabKey = "dashboard" | "planos" | "atividades" | "os" | "inconformidades" | "qa" | "rt" | "biblioteca";
+
+const TAB_GROUPS: { label: string; items: { value: TabKey; label: string; icon: any; hint: string }[] }[] = [
+  {
+    label: "Visão Geral",
+    items: [
+      { value: "dashboard", label: "Painel", icon: BarChart3, hint: "Indicadores, OS por status e alertas consolidados" },
+    ],
+  },
+  {
+    label: "Planejamento",
+    items: [
+      { value: "planos", label: "Planos", icon: FileText, hint: "Cadastro de planos PMOC por cliente/contrato" },
+      { value: "atividades", label: "Atividades", icon: CalendarClock, hint: "Rotinas programadas por equipamento e periodicidade" },
+      { value: "biblioteca", label: "Biblioteca", icon: BookOpen, hint: "Modelos de rotinas reutilizáveis" },
+    ],
+  },
+  {
+    label: "Execução",
+    items: [
+      { value: "os", label: "Ordens de Serviço", icon: Wrench, hint: "OS PMOC geradas, em execução e concluídas" },
+      { value: "inconformidades", label: "Inconformidades", icon: AlertTriangle, hint: "Não conformidades identificadas nas execuções" },
+    ],
+  },
+  {
+    label: "Qualidade & Equipe",
+    items: [
+      { value: "qa", label: "Qualidade do Ar", icon: Wind, hint: "Pontos de coleta e medições de QAI" },
+      { value: "rt", label: "Resp. Técnicos", icon: Users, hint: "Responsáveis técnicos cadastrados (ART/RRT)" },
+    ],
+  },
+];
+
+const TAB_HINTS: Record<TabKey, string> = Object.fromEntries(
+  TAB_GROUPS.flatMap(g => g.items.map(i => [i.value, i.hint]))
+) as Record<TabKey, string>;
+
 // ====================== MAIN PAGE ======================
 export default function PmocPage() {
+  const [tab, setTab] = useState<TabKey>("dashboard");
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">PMOC – Plano de Manutenção, Operação e Controle</h1>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">PMOC</h1>
+        <p className="text-sm text-muted-foreground">Plano de Manutenção, Operação e Controle — gestão completa por cliente e contrato.</p>
+      </div>
 
-      <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="flex flex-wrap h-auto gap-1">
-          <TabsTrigger value="dashboard" className="flex items-center gap-1"><BarChart3 className="h-4 w-4" />Painel</TabsTrigger>
-          <TabsTrigger value="planos" className="flex items-center gap-1"><FileText className="h-4 w-4" />Planos</TabsTrigger>
-          <TabsTrigger value="atividades" className="flex items-center gap-1"><CalendarClock className="h-4 w-4" />Atividades</TabsTrigger>
-          <TabsTrigger value="os" className="flex items-center gap-1"><Wrench className="h-4 w-4" />Ordens de Serviço</TabsTrigger>
-          <TabsTrigger value="rt" className="flex items-center gap-1"><Users className="h-4 w-4" />Resp. Técnicos</TabsTrigger>
-          <TabsTrigger value="qa" className="flex items-center gap-1"><Wind className="h-4 w-4" />Qualidade do Ar</TabsTrigger>
-          <TabsTrigger value="inconformidades" className="flex items-center gap-1"><AlertTriangle className="h-4 w-4" />Inconformidades</TabsTrigger>
-          <TabsTrigger value="biblioteca" className="flex items-center gap-1"><BookOpen className="h-4 w-4" />Biblioteca</TabsTrigger>
-        </TabsList>
+      <Tabs value={tab} onValueChange={v => setTab(v as TabKey)} className="w-full">
+        <div className="rounded-lg border bg-card p-3 space-y-2">
+          {TAB_GROUPS.map(group => (
+            <div key={group.label} className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold w-full sm:w-32 shrink-0">{group.label}</span>
+              <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent p-0">
+                {group.items.map(item => {
+                  const Icon = item.icon;
+                  return (
+                    <TabsTrigger
+                      key={item.value}
+                      value={item.value}
+                      className="flex items-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                      title={item.hint}
+                    >
+                      <Icon className="h-4 w-4" />{item.label}
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-xs text-muted-foreground mt-3 mb-1 px-1">{TAB_HINTS[tab]}</p>
 
         <TabsContent value="dashboard"><DashboardTab /></TabsContent>
         <TabsContent value="planos"><PlanosTab /></TabsContent>
