@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { usePmoc } from "@/contexts/PmocContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
-import { useResponsaveisTecnicos } from "@/contexts/ResponsaveisTecnicosContext";
+
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { supabase } from "@/integrations/supabase/client";
