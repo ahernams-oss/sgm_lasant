@@ -66,7 +66,7 @@ function parseDate(s?: string): Date | null {
   return isValid(d) ? d : null;
 }
 
-export default function DashboardSSOS() {
+export default function DashboardSolicitacoes() {
   const { solicitacoes } = useSolicitacoesServicos();
   const { ordens } = useOrdensServico();
   const { orcamentos } = useOrcamentos();
