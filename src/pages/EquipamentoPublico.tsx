@@ -111,6 +111,87 @@ export default function EquipamentoPublico() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Wrench className="h-4 w-4 text-primary" />
+              Plano de Manutenção PMOC ({atividades.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Atividade</TableHead>
+                    <TableHead>Periodicidade</TableHead>
+                    <TableHead>Última execução</TableHead>
+                    <TableHead>Próxima execução</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {atividades.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhuma atividade no PMOC.</TableCell></TableRow>
+                  ) : atividades.map(a => {
+                    const st = statusManutencao(a.proxima_execucao);
+                    return (
+                      <TableRow key={a.id}>
+                        <TableCell className="text-sm">{a.descricao}</TableCell>
+                        <TableCell className="text-sm">{a.periodicidade || "-"}</TableCell>
+                        <TableCell className="text-sm">{fmtDate(a.ultima_execucao)}</TableCell>
+                        <TableCell className="text-sm">{fmtDate(a.proxima_execucao)}</TableCell>
+                        <TableCell><Badge variant={st.variant} className="text-xs">{st.label}</Badge></TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Wrench className="h-4 w-4 text-primary" />
+              Histórico de Execuções PMOC ({execucoes.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data execução</TableHead>
+                    <TableHead>Atividade</TableHead>
+                    <TableHead>Periodicidade</TableHead>
+                    <TableHead>Próxima</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {execucoes.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhuma execução registrada.</TableCell></TableRow>
+                  ) : execucoes.map(e => (
+                    <TableRow key={e.id}>
+                      <TableCell className="text-sm">{fmtDate(e.data_execucao)}</TableCell>
+                      <TableCell className="text-sm">{e.atividade_descricao || "-"}</TableCell>
+                      <TableCell className="text-sm">{e.periodicidade || "-"}</TableCell>
+                      <TableCell className="text-sm">{fmtDate(e.proxima_execucao)}</TableCell>
+                      <TableCell>
+                        <Badge variant={e.status === "Confirmada" ? "default" : e.status === "Rejeitada" ? "destructive" : "secondary"} className="text-xs">
+                          {e.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Wrench className="h-4 w-4 text-primary" />
               Manutenções ({manutencoes.length})
             </CardTitle>
           </CardHeader>
