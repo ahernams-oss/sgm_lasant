@@ -599,49 +599,7 @@ export default function PmocGerenciarOperacao() {
 
         {/* ============== HISTÓRICO ============== */}
         <TabsContent value="historico">
-          <Card>
-            <CardHeader>
-              <CardTitle>Histórico de Execuções</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Equipamento</TableHead>
-                    <TableHead>Atividade</TableHead>
-                    <TableHead>Executada em</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Registrado por</TableHead>
-                    <TableHead>Confirmado por</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {execucoes.map((p) => (
-                    <TableRow key={p.id}>
-                      <TableCell>{p.equipamento_nome || "—"}</TableCell>
-                      <TableCell>{p.atividade_descricao || "—"}</TableCell>
-                      <TableCell>{fmtDateTime(p.data_execucao)}</TableCell>
-                      <TableCell>
-                        <Badge variant={
-                          p.status === "Confirmada" ? "default"
-                            : p.status === "Rejeitada" ? "destructive" : "outline"
-                        }>{p.status}</Badge>
-                      </TableCell>
-                      <TableCell>{p.registrado_por || "—"}</TableCell>
-                      <TableCell>{p.confirmado_por || "—"}</TableCell>
-                    </TableRow>
-                  ))}
-                  {execucoes.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
-                        Nenhum registro.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <HistoricoExecucoes execucoes={execucoes} />
         </TabsContent>
       </Tabs>
     </div>
