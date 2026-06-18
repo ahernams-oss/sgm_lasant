@@ -15,7 +15,7 @@ export interface Equipamento {
   expectativaVida: string; dataGarantia: string;
   tensao: string; corrente: string; potencia: string; capacidadeBtu: string;
   contrato: string; planoManutencao: string; numeroAnvisa: string;
-  fotoUrl: string; manualUrl: string;
+  fotoUrl: string; manualUrl: string; fotos: string[];
   requerCalibracao: boolean;
   dataCalibracao: string; validadeCalibracao: string;
   frequenciaCalibracaoMeses: number;
@@ -53,6 +53,7 @@ const rowToEquipamento = (r: any): Equipamento => ({
   contrato: r.contrato ?? "", planoManutencao: r.plano_manutencao ?? "",
   numeroAnvisa: r.numero_anvisa ?? "",
   fotoUrl: r.foto_url ?? "", manualUrl: r.manual_url ?? "",
+  fotos: Array.isArray(r.fotos) ? r.fotos : (r.fotos ? (() => { try { return JSON.parse(r.fotos); } catch { return []; } })() : []),
   requerCalibracao: !!r.requer_calibracao,
   dataCalibracao: r.data_calibracao ?? "", validadeCalibracao: r.validade_calibracao ?? "",
   frequenciaCalibracaoMeses: Number(r.frequencia_calibracao_meses) || 12,
@@ -78,6 +79,7 @@ const equipamentoToRow = (e: Partial<Omit<Equipamento, "id">>) => ({
   tensao: e.tensao, corrente: e.corrente, potencia: e.potencia, capacidade_btu: e.capacidadeBtu,
   contrato: e.contrato, plano_manutencao: e.planoManutencao, numero_anvisa: e.numeroAnvisa,
   foto_url: e.fotoUrl, manual_url: e.manualUrl,
+  fotos: e.fotos ?? [],
   requer_calibracao: e.requerCalibracao,
   data_calibracao: e.dataCalibracao || null,
   validade_calibracao: e.validadeCalibracao || null,

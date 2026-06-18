@@ -1509,6 +1509,7 @@ export type Database = {
           expectativa_vida: string | null
           fabricante: string | null
           foto_url: string | null
+          fotos: Json
           frequencia_calibracao_meses: number | null
           grupo: string | null
           id: string
@@ -1563,6 +1564,7 @@ export type Database = {
           expectativa_vida?: string | null
           fabricante?: string | null
           foto_url?: string | null
+          fotos?: Json
           frequencia_calibracao_meses?: number | null
           grupo?: string | null
           id?: string
@@ -1617,6 +1619,7 @@ export type Database = {
           expectativa_vida?: string | null
           fabricante?: string | null
           foto_url?: string | null
+          fotos?: Json
           frequencia_calibracao_meses?: number | null
           grupo?: string | null
           id?: string
