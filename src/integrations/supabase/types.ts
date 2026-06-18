@@ -5149,6 +5149,71 @@ export type Database = {
         }
         Relationships: []
       }
+      pmoc_atividades_execucoes: {
+        Row: {
+          atividade_descricao: string | null
+          atividade_id: string
+          confirmado_por: string | null
+          created_at: string
+          data_confirmacao: string | null
+          data_execucao: string
+          equipamento_id: string | null
+          equipamento_nome: string | null
+          id: string
+          observacoes: string | null
+          periodicidade: string | null
+          plano_id: string | null
+          proxima_execucao: string | null
+          registrado_por: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          atividade_descricao?: string | null
+          atividade_id: string
+          confirmado_por?: string | null
+          created_at?: string
+          data_confirmacao?: string | null
+          data_execucao?: string
+          equipamento_id?: string | null
+          equipamento_nome?: string | null
+          id?: string
+          observacoes?: string | null
+          periodicidade?: string | null
+          plano_id?: string | null
+          proxima_execucao?: string | null
+          registrado_por?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          atividade_descricao?: string | null
+          atividade_id?: string
+          confirmado_por?: string | null
+          created_at?: string
+          data_confirmacao?: string | null
+          data_execucao?: string
+          equipamento_id?: string | null
+          equipamento_nome?: string | null
+          id?: string
+          observacoes?: string | null
+          periodicidade?: string | null
+          plano_id?: string | null
+          proxima_execucao?: string | null
+          registrado_por?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pmoc_atividades_execucoes_atividade_id_fkey"
+            columns: ["atividade_id"]
+            isOneToOne: false
+            referencedRelation: "pmoc_atividades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pmoc_biblioteca_rotinas: {
         Row: {
           ativa: boolean | null
