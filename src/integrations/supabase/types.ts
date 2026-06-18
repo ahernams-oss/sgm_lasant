@@ -5159,6 +5159,7 @@ export type Database = {
           data_execucao: string
           equipamento_id: string | null
           equipamento_nome: string | null
+          fotos: Json
           id: string
           observacoes: string | null
           periodicidade: string | null
@@ -5177,6 +5178,7 @@ export type Database = {
           data_execucao?: string
           equipamento_id?: string | null
           equipamento_nome?: string | null
+          fotos?: Json
           id?: string
           observacoes?: string | null
           periodicidade?: string | null
@@ -5195,6 +5197,7 @@ export type Database = {
           data_execucao?: string
           equipamento_id?: string | null
           equipamento_nome?: string | null
+          fotos?: Json
           id?: string
           observacoes?: string | null
           periodicidade?: string | null

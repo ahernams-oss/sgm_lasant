@@ -1,0 +1,1 @@
+ALTER TABLE public.pmoc_atividades_execucoes ADD COLUMN IF NOT EXISTS fotos jsonb NOT NULL DEFAULT '[]'::jsonb;
