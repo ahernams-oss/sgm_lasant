@@ -285,7 +285,7 @@ function PlanosTab() {
             </div>
             <div><Label>Responsável Técnico</Label>
               <Select value={form.responsavel_tecnico_nome || "__none"} onValueChange={v => setForm(f => ({ ...f, responsavel_tecnico_nome: v === "__none" ? "" : v }))}>
-                <SelectTrigger className="px-2"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectTrigger className="pl-1 pr-8 text-left"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none">—</SelectItem>
                   {responsaveisTec.map(r => <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>)}
@@ -798,7 +798,7 @@ function OrdensServicoTab() {
             <div><Label>Data Prazo</Label><Input type="date" value={form.data_prazo} onChange={e => setForm(f => ({ ...f, data_prazo: e.target.value }))} /></div>
             <div><Label>Técnico Responsável</Label>
               <Select value={form.tecnico_responsavel || "__none"} onValueChange={v => setForm(f => ({ ...f, tecnico_responsavel: v === "__none" ? "" : v }))}>
-                <SelectTrigger className="px-2"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectTrigger className="pl-1 pr-8 text-left"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none">—</SelectItem>
                   {responsaveisTec.map(r => <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>)}
