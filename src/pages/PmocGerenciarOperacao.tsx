@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePmoc } from "@/contexts/PmocContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -19,11 +23,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import {
   Search, Wrench, CheckCircle2, ArrowLeft, CalendarClock, X,
-  Clock, ShieldCheck, XCircle, FileText, FileSpreadsheet,
+  Clock, ShieldCheck, XCircle, FileText, FileSpreadsheet, Camera, ImagePlus, Trash2,
 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+
 
 const PERIODICIDADE_ORDEM = ["Diária", "Semanal", "Quinzenal", "Mensal", "Bimestral", "Trimestral", "Semestral", "Anual"];
 
@@ -88,6 +93,7 @@ interface Execucao {
   confirmado_por: string | null;
   data_confirmacao: string | null;
   observacoes: string | null;
+  fotos: string[] | null;
   created_at: string;
 }
 
@@ -108,6 +114,57 @@ export default function PmocGerenciarOperacao() {
 
   const [execucoes, setExecucoes] = useState<Execucao[]>([]);
   const [pendSelecionadas, setPendSelecionadas] = useState<Set<string>>(new Set());
+
+  // Dialog "Registrar Manutenção" com fotos
+  const [regAtividade, setRegAtividade] = useState<any | null>(null);
+  const [regFotos, setRegFotos] = useState<{ file: File; preview: string }[]>([]);
+  const [regObservacoes, setRegObservacoes] = useState("");
+  const [regUploading, setRegUploading] = useState(false);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const MAX_FOTOS = 6;
+  const MAX_FOTO_MB = 8;
+
+  const abrirRegistro = (atividade: any) => {
+    setRegAtividade(atividade);
+    setRegFotos([]);
+    setRegObservacoes("");
+  };
+  const fecharRegistro = () => {
+    regFotos.forEach((f) => URL.revokeObjectURL(f.preview));
+    setRegAtividade(null);
+    setRegFotos([]);
+    setRegObservacoes("");
+  };
+
+  const addFotos = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const restantes = MAX_FOTOS - regFotos.length;
+    if (restantes <= 0) {
+      toast({ title: `Máximo de ${MAX_FOTOS} fotos`, variant: "destructive" });
+      return;
+    }
+    const novos: { file: File; preview: string }[] = [];
+    Array.from(files).slice(0, restantes).forEach((file) => {
+      if (!file.type.startsWith("image/")) return;
+      if (file.size > MAX_FOTO_MB * 1024 * 1024) {
+        toast({ title: `Foto acima de ${MAX_FOTO_MB}MB ignorada`, description: file.name, variant: "destructive" });
+        return;
+      }
+      novos.push({ file, preview: URL.createObjectURL(file) });
+    });
+    setRegFotos((prev) => [...prev, ...novos]);
+  };
+
+  const removerFoto = (idx: number) => {
+    setRegFotos((prev) => {
+      const out = [...prev];
+      const [removed] = out.splice(idx, 1);
+      if (removed) URL.revokeObjectURL(removed.preview);
+      return out;
+    });
+  };
+
 
   const carregarExecucoes = async () => {
     const { data, error } = await supabase
@@ -192,39 +249,66 @@ export default function PmocGerenciarOperacao() {
     });
   }, [selected]);
 
-  const handleRegistrar = async (atividade: any) => {
+  const uploadFotos = async (atividadeId: string): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const f of regFotos) {
+      const ext = (f.file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      const path = `pmoc/fotos/${atividadeId}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("documentos").upload(path, f.file, {
+        cacheControl: "3600", upsert: false, contentType: f.file.type,
+      });
+      if (error) {
+        console.error("upload foto", error);
+        toast({ title: "Erro ao enviar foto", description: error.message, variant: "destructive" });
+        continue;
+      }
+      const { data } = supabase.storage.from("documentos").getPublicUrl(path);
+      urls.push(data.publicUrl);
+    }
+    return urls;
+  };
+
+  const confirmarRegistro = async () => {
+    if (!regAtividade) return;
+    setRegUploading(true);
     setBusy(true);
     try {
       const agora = new Date();
-      const proxima = addPeriodicidade(agora, atividade.periodicidade);
-      const equip = equipamentos.find((e) => e.id === atividade.equipamentoId);
+      const proxima = addPeriodicidade(agora, regAtividade.periodicidade);
+      const equip = equipamentos.find((e) => e.id === regAtividade.equipamentoId);
       const equipNome = equip
-        ? `${equip.tag || ""} ${equip.equipamento || ""}`.trim() || atividade.equipamentoNome
-        : atividade.equipamentoNome;
+        ? `${equip.tag || ""} ${equip.equipamento || ""}`.trim() || regAtividade.equipamentoNome
+        : regAtividade.equipamentoNome;
+      const fotosUrls = regFotos.length > 0 ? await uploadFotos(regAtividade.id) : [];
       const { error } = await supabase.from("pmoc_atividades_execucoes").insert({
-        atividade_id: atividade.id,
-        plano_id: atividade.planoId || null,
-        equipamento_id: atividade.equipamentoId || null,
+        atividade_id: regAtividade.id,
+        plano_id: regAtividade.planoId || null,
+        equipamento_id: regAtividade.equipamentoId || null,
         equipamento_nome: equipNome,
-        atividade_descricao: atividade.descricao,
-        periodicidade: atividade.periodicidade,
+        atividade_descricao: regAtividade.descricao,
+        periodicidade: regAtividade.periodicidade,
         data_execucao: agora.toISOString(),
         proxima_execucao: proxima.toISOString(),
         status: "Pendente",
         registrado_por: usuarioLogado?.nome || "",
+        observacoes: regObservacoes.trim() || null,
+        fotos: fotosUrls,
       });
       if (error) throw error;
       toast({
         title: "Registro enviado",
-        description: "A manutenção foi registrada e aguarda confirmação para ser concluída.",
+        description: `Manutenção registrada${fotosUrls.length ? ` com ${fotosUrls.length} foto(s)` : ""}. Aguarda confirmação.`,
       });
+      fecharRegistro();
       await carregarExecucoes();
     } catch (e: any) {
       toast({ title: "Erro ao registrar", description: e.message, variant: "destructive" });
     } finally {
       setBusy(false);
+      setRegUploading(false);
     }
   };
+
 
   const confirmarExecucoes = async (ids: string[]) => {
     if (ids.length === 0) return;
@@ -363,7 +447,7 @@ export default function PmocGerenciarOperacao() {
                       <TableCell className="text-right">
                         <Button
                           size="sm"
-                          onClick={() => handleRegistrar(a)}
+                          onClick={() => abrirRegistro(a)}
                           disabled={busy || !!pend || !liberado}
                           title={
                             pend
@@ -391,6 +475,103 @@ export default function PmocGerenciarOperacao() {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Dialog Registrar Manutenção com fotos */}
+        <Dialog open={!!regAtividade} onOpenChange={(o) => !o && fecharRegistro()}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Wrench className="h-5 w-5" /> Registrar Manutenção
+              </DialogTitle>
+              <DialogDescription>
+                {regAtividade?.descricao} — {regAtividade?.periodicidade}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium">
+                    Fotos da atividade ({regFotos.length}/{MAX_FOTOS})
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      ref={cameraInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={(e) => { addFotos(e.target.files); if (e.target) e.target.value = ""; }}
+                    />
+                    <input
+                      ref={galleryInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => { addFotos(e.target.files); if (e.target) e.target.value = ""; }}
+                    />
+                    <Button
+                      type="button" size="sm" variant="outline"
+                      disabled={regFotos.length >= MAX_FOTOS || regUploading}
+                      onClick={() => cameraInputRef.current?.click()}
+                    >
+                      <Camera className="h-4 w-4 mr-1" /> Tirar foto
+                    </Button>
+                    <Button
+                      type="button" size="sm" variant="outline"
+                      disabled={regFotos.length >= MAX_FOTOS || regUploading}
+                      onClick={() => galleryInputRef.current?.click()}
+                    >
+                      <ImagePlus className="h-4 w-4 mr-1" /> Galeria
+                    </Button>
+                  </div>
+                </div>
+                {regFotos.length === 0 ? (
+                  <div className="border-2 border-dashed rounded-md p-6 text-center text-sm text-muted-foreground">
+                    Adicione até {MAX_FOTOS} fotos da atividade executada. No celular, "Tirar foto" abre a câmera.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    {regFotos.map((f, idx) => (
+                      <div key={idx} className="relative group aspect-square rounded-md overflow-hidden border bg-muted">
+                        <img src={f.preview} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removerFoto(idx)}
+                          disabled={regUploading}
+                          className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Remover foto"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Observações (opcional)</label>
+                <Textarea
+                  value={regObservacoes}
+                  onChange={(e) => setRegObservacoes(e.target.value)}
+                  placeholder="Detalhes da execução, ocorrências, etc."
+                  rows={3}
+                  disabled={regUploading}
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={fecharRegistro} disabled={regUploading}>Cancelar</Button>
+              <Button onClick={confirmarRegistro} disabled={regUploading || busy}>
+                <CheckCircle2 className="h-4 w-4 mr-1" />
+                {regUploading ? "Enviando..." : "Registrar"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
