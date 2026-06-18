@@ -150,6 +150,7 @@ function PlanosTab() {
     setAtivEditing(null);
   };
 
+  const ativsDoPlano = managePlano ? atividades.filter(a => a.planoId === managePlano.id) : [];
   const ativsDoPlanoOrdenadas = useMemo(() => {
     const ordem = PERIODICIDADES;
     return [...ativsDoPlano].sort((a, b) => {
