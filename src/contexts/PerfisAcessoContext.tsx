@@ -474,6 +474,7 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "pmoc.excluir", label: "Excluir PMOC" },
           { key: "pmoc.exportar_pdf", label: "Exportar PDF" },
           { key: "pmoc.exportar_excel", label: "Exportar Excel" },
+          { key: "pmoc.confirmar_execucao", label: "Confirmar execução de manutenção" },
         ],
       },
       {
