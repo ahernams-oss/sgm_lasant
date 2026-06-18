@@ -644,6 +644,31 @@ export default function Equipamentos() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* QR Code */}
+      <Dialog open={!!qrEquip} onOpenChange={() => setQrEquip(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><QrCode className="h-5 w-5 text-primary" />QR Code do Equipamento</DialogTitle>
+          </DialogHeader>
+          {qrEquip && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="font-semibold">{qrEquip.equipamento}</p>
+                {qrEquip.tag && <p className="text-xs text-muted-foreground font-mono">TAG: {qrEquip.tag}</p>}
+                {qrEquip.clienteNome && <p className="text-xs text-muted-foreground">{qrEquip.clienteNome}</p>}
+              </div>
+              {qrDataUrl && <img src={qrDataUrl} alt="QR Code" className="mx-auto w-64 h-64 border rounded" />}
+              <p className="text-xs text-center text-muted-foreground break-all">{`${window.location.origin}/equipamento/${qrEquip.id}`}</p>
+              <p className="text-xs text-center text-muted-foreground">Acesso somente leitura: informações do equipamento e histórico de manutenções.</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={downloadQr}><Download className="h-4 w-4 mr-1" />Baixar PNG</Button>
+            <Button onClick={printQr}><Printer className="h-4 w-4 mr-1" />Imprimir</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
