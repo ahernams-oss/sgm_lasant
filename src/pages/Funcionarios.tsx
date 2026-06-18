@@ -390,6 +390,7 @@ const EpiTab = ({ epis, onChange, cargoId }: { epis: EpiItem[]; onChange: (e: Ep
                 <TableHead className="w-40">CA</TableHead>
                 <TableHead className="w-40">Data Entrega</TableHead>
                 <TableHead className="w-40">Vencimento</TableHead>
+                <TableHead className="w-40">Nº do pedido</TableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
@@ -413,6 +414,10 @@ const EpiTab = ({ epis, onChange, cargoId }: { epis: EpiItem[]; onChange: (e: Ep
                   <TableCell>
                     <Input type="date" value={epi.dataVencimento || ""}
                       onChange={(e) => updateEpi(epi.id, { dataVencimento: e.target.value })} className="h-8" />
+                  </TableCell>
+                  <TableCell>
+                    <Input value={epi.pedido || ""} onChange={(e) => updateEpi(epi.id, { pedido: e.target.value })}
+                      placeholder="Nº do pedido" className="h-8" />
                   </TableCell>
                   <TableCell>
                     <Button size="icon" variant="ghost" type="button" onClick={() => removeEpi(epi.id)} className="h-7 w-7 text-destructive hover:text-destructive">
