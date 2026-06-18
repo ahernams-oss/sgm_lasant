@@ -447,7 +447,7 @@ export default function PmocGerenciarOperacao() {
                       <TableCell className="text-right">
                         <Button
                           size="sm"
-                          onClick={() => handleRegistrar(a)}
+                          onClick={() => abrirRegistro(a)}
                           disabled={busy || !!pend || !liberado}
                           title={
                             pend
