@@ -218,9 +218,24 @@ export function PmocProvider({ children }: { children: ReactNode }) {
   const invalidate = (key: readonly string[]) => qc.invalidateQueries({ queryKey: key });
   const refresh = async () => { TABLES.forEach(t => invalidate(t.key)); };
 
+  const DATE_FIELDS = new Set([
+    "vigencia_inicio", "vigencia_fim",
+    "proxima_execucao", "ultima_execucao",
+    "data_medicao", "data_emissao", "data_validade",
+    "data_inicio", "data_fim", "data_prevista", "data_execucao",
+    "data_identificacao", "data_resolucao",
+  ]);
+  const sanitize = (d: any) => {
+    if (!d || typeof d !== "object") return d;
+    const out: any = Array.isArray(d) ? [...d] : { ...d };
+    for (const k of Object.keys(out)) {
+      if (DATE_FIELDS.has(k) && out[k] === "") out[k] = null;
+    }
+    return out;
+  };
   const crud = (table: string, key: readonly string[]) => ({
-    add: async (d: any) => { await insertRow(table, d); invalidate(key); },
-    update: async (id: string, d: any) => { await updateRow(table, id, d); invalidate(key); },
+    add: async (d: any) => { await insertRow(table, sanitize(d)); invalidate(key); },
+    update: async (id: string, d: any) => { await updateRow(table, id, sanitize(d)); invalidate(key); },
     del: async (id: string) => { await deleteRow(table, id); invalidate(key); },
   });
 
