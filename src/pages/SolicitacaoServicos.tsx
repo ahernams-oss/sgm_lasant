@@ -1131,6 +1131,7 @@ export default function SolicitacaoServicosPage() {
 
       {/* Orcamento Dialog */}
       <OrcamentoDialog
+        key={existingOrcamentoForTarget?.id ?? orcamentoTarget?.id ?? "novo"}
         open={orcamentoDialogOpen}
         onOpenChange={(o) => { setOrcamentoDialogOpen(o); if (!o) setOrcamentoTarget(null); }}
         solicitacao={orcamentoTarget}
