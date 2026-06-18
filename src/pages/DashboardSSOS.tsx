@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatNumeroAno } from "@/lib/formatNumero";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, AreaChart, Area,
@@ -15,7 +17,7 @@ import {
 import {
   ClipboardList, Wrench, Filter, X, CalendarIcon, TrendingUp, Trophy, Users,
   CheckCircle2, Clock, AlertTriangle, Sparkles, Building2, BarChart3, Activity,
-  FileDown, FileSpreadsheet, DollarSign, Calculator, UserCheck,
+  FileDown, FileSpreadsheet, DollarSign, Calculator, UserCheck, ArrowRight, GitBranch,
 } from "lucide-react";
 import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
