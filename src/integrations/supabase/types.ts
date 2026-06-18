@@ -5587,6 +5587,181 @@ export type Database = {
         }
         Relationships: []
       }
+      ponto_espelho_dia: {
+        Row: {
+          atrasos_min: number | null
+          cpf: string | null
+          created_at: string
+          data: string
+          funcionario_id: string | null
+          horas_extras_min: number | null
+          horas_faltantes_min: number | null
+          horas_trabalhadas_min: number | null
+          id: string
+          observacao: string | null
+          pontomais_employee_id: number | null
+          raw: Json | null
+          saldo_min: number | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          atrasos_min?: number | null
+          cpf?: string | null
+          created_at?: string
+          data: string
+          funcionario_id?: string | null
+          horas_extras_min?: number | null
+          horas_faltantes_min?: number | null
+          horas_trabalhadas_min?: number | null
+          id?: string
+          observacao?: string | null
+          pontomais_employee_id?: number | null
+          raw?: Json | null
+          saldo_min?: number | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          atrasos_min?: number | null
+          cpf?: string | null
+          created_at?: string
+          data?: string
+          funcionario_id?: string | null
+          horas_extras_min?: number | null
+          horas_faltantes_min?: number | null
+          horas_trabalhadas_min?: number | null
+          id?: string
+          observacao?: string | null
+          pontomais_employee_id?: number | null
+          raw?: Json | null
+          saldo_min?: number | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ponto_espelho_dia_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ponto_marcacoes: {
+        Row: {
+          cpf: string | null
+          created_at: string
+          data_hora: string
+          endereco: string | null
+          funcionario_id: string | null
+          hash: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          origem: string | null
+          pontomais_employee_id: number | null
+          pontomais_time_card_id: number | null
+          raw: Json | null
+          tipo: string | null
+          updated_at: string
+        }
+        Insert: {
+          cpf?: string | null
+          created_at?: string
+          data_hora: string
+          endereco?: string | null
+          funcionario_id?: string | null
+          hash: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          origem?: string | null
+          pontomais_employee_id?: number | null
+          pontomais_time_card_id?: number | null
+          raw?: Json | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cpf?: string | null
+          created_at?: string
+          data_hora?: string
+          endereco?: string | null
+          funcionario_id?: string | null
+          hash?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          origem?: string | null
+          pontomais_employee_id?: number | null
+          pontomais_time_card_id?: number | null
+          raw?: Json | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ponto_marcacoes_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ponto_sync_log: {
+        Row: {
+          created_at: string
+          detalhes: Json | null
+          finalizado_em: string | null
+          id: string
+          iniciado_em: string
+          mensagem: string | null
+          origem: string
+          periodo_fim: string | null
+          periodo_ini: string | null
+          status: string
+          total_espelhos: number | null
+          total_funcionarios: number | null
+          total_funcionarios_vinculados: number | null
+          total_marcacoes: number | null
+        }
+        Insert: {
+          created_at?: string
+          detalhes?: Json | null
+          finalizado_em?: string | null
+          id?: string
+          iniciado_em?: string
+          mensagem?: string | null
+          origem?: string
+          periodo_fim?: string | null
+          periodo_ini?: string | null
+          status?: string
+          total_espelhos?: number | null
+          total_funcionarios?: number | null
+          total_funcionarios_vinculados?: number | null
+          total_marcacoes?: number | null
+        }
+        Update: {
+          created_at?: string
+          detalhes?: Json | null
+          finalizado_em?: string | null
+          id?: string
+          iniciado_em?: string
+          mensagem?: string | null
+          origem?: string
+          periodo_fim?: string | null
+          periodo_ini?: string | null
+          status?: string
+          total_espelhos?: number | null
+          total_funcionarios?: number | null
+          total_funcionarios_vinculados?: number | null
+          total_marcacoes?: number | null
+        }
+        Relationships: []
+      }
       pregao_anexos_edital: {
         Row: {
           created_at: string
