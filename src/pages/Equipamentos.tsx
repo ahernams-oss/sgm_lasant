@@ -633,7 +633,16 @@ export default function Equipamentos() {
               <div><span className="font-semibold">Contrato:</span> {viewEquip.contrato || "-"}</div>
               <div><span className="font-semibold">Plano Manutenção:</span> {viewEquip.planoManutencao || "-"}</div>
               <div><span className="font-semibold">Nº Anvisa:</span> {viewEquip.numeroAnvisa || "-"}</div>
-              {viewEquip.fotoUrl && <div className="col-span-2"><span className="font-semibold">Foto:</span> <a href={viewEquip.fotoUrl} target="_blank" rel="noreferrer" className="text-primary underline ml-1">Ver foto</a></div>}
+              {((viewEquip.fotos && viewEquip.fotos.length > 0) || viewEquip.fotoUrl) && (
+                <div className="col-span-2">
+                  <span className="font-semibold">Fotos:</span>
+                  <div className="flex gap-2 flex-wrap mt-1">
+                    {(viewEquip.fotos && viewEquip.fotos.length > 0 ? viewEquip.fotos : [viewEquip.fotoUrl]).filter(Boolean).map((u, i) => (
+                      <a key={i} href={u} target="_blank" rel="noreferrer"><img src={u} alt={`Foto ${i+1}`} className="h-24 w-24 object-cover rounded border" /></a>
+                    ))}
+                  </div>
+                </div>
+              )}
               {viewEquip.manualUrl && <div className="col-span-2"><span className="font-semibold">Manual:</span> <a href={viewEquip.manualUrl} target="_blank" rel="noreferrer" className="text-primary underline ml-1">Ver manual</a></div>}
             </div>
           )}
