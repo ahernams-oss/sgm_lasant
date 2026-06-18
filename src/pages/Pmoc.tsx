@@ -43,13 +43,12 @@ const TIPOS_REGISTRO = ["CREA", "CRQ", "CRECI", "CFT", "Outro"];
 // ====================== PLANOS TAB ======================
 function PlanosTab() {
   const {
-    planos, atividades, biblioteca,
+    planos, atividades, biblioteca, responsaveisTecnicos: responsaveisTec,
     addPlano, updatePlano, deletePlano,
     addAtividade, updateAtividade, deleteAtividade,
   } = usePmoc();
   const { clientes } = useClientes();
   const { equipamentos, updateEquipamento } = useEquipamentos();
-  const { responsaveis: responsaveisTec } = useResponsaveisTecnicos();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
