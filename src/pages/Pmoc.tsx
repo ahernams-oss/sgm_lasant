@@ -427,14 +427,50 @@ function PlanosTab() {
       </Dialog>
 
       {/* Picker da biblioteca */}
-      <Dialog open={bibliotecaPicker} onOpenChange={setBibliotecaPicker}>
+      <Dialog open={bibliotecaPicker} onOpenChange={o => { setBibliotecaPicker(o); if (!o) { setFiltroTitulo(""); setFiltroTipoEquip(""); setFiltroTipo(""); setFiltroPeriodo(""); } }}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Selecionar rotina da biblioteca</DialogTitle></DialogHeader>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <Label className="text-xs">Título</Label>
+              <Input placeholder="Buscar título..." value={filtroTitulo} onChange={e => setFiltroTitulo(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">Tipo Equip.</Label>
+              <Select value={filtroTipoEquip} onValueChange={v => setFiltroTipoEquip(v)}>
+                <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {tiposEquipamento.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Tipo</Label>
+              <Select value={filtroTipo} onValueChange={v => setFiltroTipo(v)}>
+                <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {tiposAtividade.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Period.</Label>
+              <Select value={filtroPeriodo} onValueChange={v => setFiltroPeriodo(v)}>
+                <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {periodicidades.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <div className="border rounded-lg">
             <Table>
               <TableHeader><TableRow><TableHead>Título</TableHead><TableHead>Tipo Equip.</TableHead><TableHead>Tipo</TableHead><TableHead>Period.</TableHead><TableHead className="w-20"></TableHead></TableRow></TableHeader>
               <TableBody>
-                {biblioteca.map(b => (
+                {bibliotecaFiltrada.map(b => (
                   <TableRow key={b.id}>
                     <TableCell className="font-medium">{b.titulo}</TableCell>
                     <TableCell className="text-xs">{b.tipoEquipamento || "—"}</TableCell>
@@ -443,6 +479,9 @@ function PlanosTab() {
                     <TableCell><Button size="sm" onClick={() => addFromBiblioteca(b)}>Usar</Button></TableCell>
                   </TableRow>
                 ))}
+                {bibliotecaFiltrada.length === 0 && (
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhuma rotina encontrada</TableCell></TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
