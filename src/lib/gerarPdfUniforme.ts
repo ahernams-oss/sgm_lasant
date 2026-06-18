@@ -48,7 +48,7 @@ async function drawHeader(doc: jsPDF, pw: number, logoLasant: string | null, log
   }
 
   doc.setTextColor(0, 0, 0);
-  doc.setFontSize(18);
+  doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
   doc.text("FICHA DE CONTROLE DE UNIFORME", pw / 2, 21, { align: "center" });
 
