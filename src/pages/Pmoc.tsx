@@ -304,41 +304,9 @@ function PlanosTab() {
               {/* Form inline */}
               <div className="border rounded-lg p-3 bg-muted/30 space-y-3">
                 <p className="text-xs font-semibold text-muted-foreground">{ativEditing ? "Editando atividade" : "Nova atividade"}</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2"><Label className="text-xs">Descrição *</Label><Input value={ativForm.descricao} onChange={e => setAtivForm(f => ({ ...f, descricao: e.target.value }))} /></div>
-                  <div><Label className="text-xs">Equipamento</Label>
-                    <Select value={ativForm.equipamento_id || "__none"} onValueChange={v => {
-                      if (v === "__none") { setAtivForm(f => ({ ...f, equipamento_id: "", equipamento_nome: "" })); return; }
-                      const eq = equipamentos.find(e => e.id === v);
-                      setAtivForm(f => ({ ...f, equipamento_id: v, equipamento_nome: eq?.equipamento || "" }));
-                    }}>
-                      <SelectTrigger><SelectValue placeholder="Genérica (sem equipamento)" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none">— Genérica (sem equipamento) —</SelectItem>
-                        {equipsDoCliente.map(e => <SelectItem key={e.id} value={e.id}>{e.tag ? `${e.tag} - ` : ""}{e.equipamento}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div><Label className="text-xs">Tipo</Label>
-                    <Select value={ativForm.tipo} onValueChange={v => setAtivForm(f => ({ ...f, tipo: v }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>{TIPOS_ATIVIDADE.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                  <div><Label className="text-xs">Periodicidade</Label>
-                    <Select value={ativForm.periodicidade} onValueChange={v => setAtivForm(f => ({ ...f, periodicidade: v }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>{PERIODICIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                  <div><Label className="text-xs">Prioridade</Label>
-                    <Select value={ativForm.prioridade} onValueChange={v => setAtivForm(f => ({ ...f, prioridade: v }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>{PRIORIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                  <div><Label className="text-xs">Duração estimada</Label><Input value={ativForm.duracao_estimada} onChange={e => setAtivForm(f => ({ ...f, duracao_estimada: e.target.value }))} placeholder="Ex: 2h" /></div>
-                  <div><Label className="text-xs">Próxima execução</Label><Input type="date" value={ativForm.proxima_execucao} onChange={e => setAtivForm(f => ({ ...f, proxima_execucao: e.target.value }))} /></div>
+                <div className="grid grid-cols-1 gap-3">
+                  <div><Label className="text-xs">Descrição *</Label><Input value={ativForm.descricao} onChange={e => setAtivForm(f => ({ ...f, descricao: e.target.value }))} /></div>
+                  <p className="text-xs text-muted-foreground">Tipo, periodicidade e demais detalhes são definidos ao adicionar atividades da biblioteca.</p>
                 </div>
                 <div className="flex gap-2 justify-end">
                   {ativEditing && <Button size="sm" variant="ghost" onClick={resetAtivForm}>Cancelar</Button>}
