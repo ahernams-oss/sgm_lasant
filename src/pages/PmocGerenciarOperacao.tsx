@@ -48,6 +48,26 @@ function fmtDateTime(iso: string): string {
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+function podeRegistrarManutencao(proximaExecucao: string | null | undefined): boolean {
+  if (!proximaExecucao) return true;
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const prox = new Date(proximaExecucao);
+  prox.setHours(0, 0, 0, 0);
+  const limite = new Date(prox);
+  limite.setDate(limite.getDate() - 2);
+  return hoje >= limite;
+}
+
+function fmtDate(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+}
+
+
 const ALL = "__all__";
 
 interface Execucao {
