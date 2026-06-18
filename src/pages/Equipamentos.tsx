@@ -43,11 +43,13 @@ const emptyForm = {
 export default function Equipamentos() {
   const { equipamentos, addEquipamento, updateEquipamento, deleteEquipamento } = useEquipamentos();
   const { clientes } = useClientes();
+  const { planos: pmocPlanos } = usePmoc();
   const { tem } = usePermissao();
   const podeCriar = tem("equipamentos.criar");
   const podeEditar = tem("equipamentos.editar");
   const podeExcluir = tem("equipamentos.excluir");
   const clientesList = useMemo(() => clientes.filter(c => c.tipo === "Cliente"), [clientes]);
+  const planosDoCliente = useMemo(() => (pmocPlanos || []).filter((p: any) => p.clienteId === form.clienteId), [pmocPlanos, form.clienteId]);
 
   const [formOpen, setFormOpen] = useState(true);
   const [form, setForm] = useState(emptyForm);
