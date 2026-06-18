@@ -475,6 +475,103 @@ export default function PmocGerenciarOperacao() {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Dialog Registrar Manutenção com fotos */}
+        <Dialog open={!!regAtividade} onOpenChange={(o) => !o && fecharRegistro()}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Wrench className="h-5 w-5" /> Registrar Manutenção
+              </DialogTitle>
+              <DialogDescription>
+                {regAtividade?.descricao} — {regAtividade?.periodicidade}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium">
+                    Fotos da atividade ({regFotos.length}/{MAX_FOTOS})
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      ref={cameraInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={(e) => { addFotos(e.target.files); if (e.target) e.target.value = ""; }}
+                    />
+                    <input
+                      ref={galleryInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => { addFotos(e.target.files); if (e.target) e.target.value = ""; }}
+                    />
+                    <Button
+                      type="button" size="sm" variant="outline"
+                      disabled={regFotos.length >= MAX_FOTOS || regUploading}
+                      onClick={() => cameraInputRef.current?.click()}
+                    >
+                      <Camera className="h-4 w-4 mr-1" /> Tirar foto
+                    </Button>
+                    <Button
+                      type="button" size="sm" variant="outline"
+                      disabled={regFotos.length >= MAX_FOTOS || regUploading}
+                      onClick={() => galleryInputRef.current?.click()}
+                    >
+                      <ImagePlus className="h-4 w-4 mr-1" /> Galeria
+                    </Button>
+                  </div>
+                </div>
+                {regFotos.length === 0 ? (
+                  <div className="border-2 border-dashed rounded-md p-6 text-center text-sm text-muted-foreground">
+                    Adicione até {MAX_FOTOS} fotos da atividade executada. No celular, "Tirar foto" abre a câmera.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    {regFotos.map((f, idx) => (
+                      <div key={idx} className="relative group aspect-square rounded-md overflow-hidden border bg-muted">
+                        <img src={f.preview} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removerFoto(idx)}
+                          disabled={regUploading}
+                          className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Remover foto"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Observações (opcional)</label>
+                <Textarea
+                  value={regObservacoes}
+                  onChange={(e) => setRegObservacoes(e.target.value)}
+                  placeholder="Detalhes da execução, ocorrências, etc."
+                  rows={3}
+                  disabled={regUploading}
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={fecharRegistro} disabled={regUploading}>Cancelar</Button>
+              <Button onClick={confirmarRegistro} disabled={regUploading || busy}>
+                <CheckCircle2 className="h-4 w-4 mr-1" />
+                {regUploading ? "Enviando..." : "Registrar"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
