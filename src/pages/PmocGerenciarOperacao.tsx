@@ -115,6 +115,57 @@ export default function PmocGerenciarOperacao() {
   const [execucoes, setExecucoes] = useState<Execucao[]>([]);
   const [pendSelecionadas, setPendSelecionadas] = useState<Set<string>>(new Set());
 
+  // Dialog "Registrar Manutenção" com fotos
+  const [regAtividade, setRegAtividade] = useState<any | null>(null);
+  const [regFotos, setRegFotos] = useState<{ file: File; preview: string }[]>([]);
+  const [regObservacoes, setRegObservacoes] = useState("");
+  const [regUploading, setRegUploading] = useState(false);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const MAX_FOTOS = 6;
+  const MAX_FOTO_MB = 8;
+
+  const abrirRegistro = (atividade: any) => {
+    setRegAtividade(atividade);
+    setRegFotos([]);
+    setRegObservacoes("");
+  };
+  const fecharRegistro = () => {
+    regFotos.forEach((f) => URL.revokeObjectURL(f.preview));
+    setRegAtividade(null);
+    setRegFotos([]);
+    setRegObservacoes("");
+  };
+
+  const addFotos = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const restantes = MAX_FOTOS - regFotos.length;
+    if (restantes <= 0) {
+      toast({ title: `Máximo de ${MAX_FOTOS} fotos`, variant: "destructive" });
+      return;
+    }
+    const novos: { file: File; preview: string }[] = [];
+    Array.from(files).slice(0, restantes).forEach((file) => {
+      if (!file.type.startsWith("image/")) return;
+      if (file.size > MAX_FOTO_MB * 1024 * 1024) {
+        toast({ title: `Foto acima de ${MAX_FOTO_MB}MB ignorada`, description: file.name, variant: "destructive" });
+        return;
+      }
+      novos.push({ file, preview: URL.createObjectURL(file) });
+    });
+    setRegFotos((prev) => [...prev, ...novos]);
+  };
+
+  const removerFoto = (idx: number) => {
+    setRegFotos((prev) => {
+      const out = [...prev];
+      const [removed] = out.splice(idx, 1);
+      if (removed) URL.revokeObjectURL(removed.preview);
+      return out;
+    });
+  };
+
+
   const carregarExecucoes = async () => {
     const { data, error } = await supabase
       .from("pmoc_atividades_execucoes")
