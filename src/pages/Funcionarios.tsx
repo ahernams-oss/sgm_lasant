@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { gerarPdfFuncionario } from "@/lib/gerarPdfFuncionario";
 import { gerarPdfEpi } from "@/lib/gerarPdfEpi";
+import { gerarPdfUniforme } from "@/lib/gerarPdfUniforme";
 import { ExamesPeriodicosTab } from "@/components/ExamesPeriodicosTab";
 import { PromocoesTab } from "@/components/PromocoesTab";
 import { NRsFuncionarioTab } from "@/components/NRsFuncionarioTab";
@@ -1344,6 +1345,9 @@ const Funcionarios = () => {
                             </DropdownMenuItem>}
                             {podeExportarPdf && <DropdownMenuItem onClick={() => gerarPdfEpi(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })}>
                               <HardHat className="h-4 w-4 mr-2" /> Baixar PDF EPI
+                            </DropdownMenuItem>}
+                            {podeExportarPdf && <DropdownMenuItem onClick={() => gerarPdfUniforme(f, { cargoNome: getCargoNome(f.cargoId), clienteNome: f.clienteId ? getClienteNome(f.clienteId) : "" })}>
+                              <FileDown className="h-4 w-4 mr-2" /> Baixar PDF Uniforme
                             </DropdownMenuItem>}
                             {podeEditar && <DropdownMenuItem onClick={() => handleEdit(f)}>
                               <Pencil className="h-4 w-4 mr-2" /> Editar
