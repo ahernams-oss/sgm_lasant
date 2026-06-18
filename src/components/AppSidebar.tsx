@@ -101,6 +101,7 @@ const menuItems = [
   {
     group: "Solicitações de Serviço",
     items: [
+      { title: "Dashboard Solicitações", url: "/engenharia/dashboard-solicitacoes", icon: BarChart3, perm: "solicitacao_servicos" },
       { title: "Solicitação de Serviços", url: "/engenharia/solicitacao-servicos", icon: ClipboardList, perm: "solicitacao_servicos" },
       { title: "Aprovar SS em Lote", url: "/engenharia/aprovar-lote-ss", icon: ClipboardCheck, perm: "solicitacao_servicos.aprovar_lote" },
     ],
