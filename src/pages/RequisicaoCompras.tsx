@@ -525,17 +525,28 @@ export default function RequisicaoComprasPage() {
             ) : paginate(filtered, pageReq, 7).paginated.map((r, idx) => {
               const cotacaoExist = cotacoes.find(c => c.requisicaoId === r.id);
               const horasDesdeCriacao = (Date.now() - new Date(r.dataCriacao).getTime()) / 3600000;
+              const diasDesdeCriacao = horasDesdeCriacao / 24;
               const cotacaoPendente = cotacaoExist && !["Finalizada", "Cancelada"].includes(cotacaoExist.status);
               const semCotacao = !cotacaoExist && !["Cancelada", "Recusada", "Concluída"].includes(r.status);
+              const semCotacaoIniciada = !cotacaoExist && !["Rascunho", "Cancelada", "Recusada", "Concluída"].includes(r.status);
               const alertaUrgente = (r.urgencia === "Urgente" || r.urgencia === "Alta") && horasDesdeCriacao > 12 && (semCotacao || cotacaoPendente);
+              const alertaAtrasoCotacao = semCotacaoIniciada && (
+                (r.urgencia === "Normal" && diasDesdeCriacao > 4) ||
+                (r.urgencia === "Baixa" && diasDesdeCriacao > 6)
+              );
               const alertaTitle = alertaUrgente
                 ? (cotacaoPendente ? `${r.urgencia}: cotação em andamento há mais de 12h sem finalização` : `${r.urgencia}: mais de 12h sem iniciar cotação`)
+                : alertaAtrasoCotacao
+                ? `${r.urgencia}: ${Math.floor(diasDesdeCriacao)} dias sem cotação iniciada`
                 : "";
               const cellMap: Record<string, ReactNode> = {
                 numero: (
                   <span className="font-mono font-bold inline-flex items-center gap-1">
                     {alertaUrgente && (
                       <AlertTriangle className="h-4 w-4 text-red-600 animate-blink-urgent" aria-label="alerta urgente" />
+                    )}
+                    {alertaAtrasoCotacao && !alertaUrgente && (
+                      <Clock className="h-4 w-4 text-amber-600 animate-blink-urgent" aria-label="atraso cotação" />
                     )}
                     {r.status === "Recusada" && <span title="Requisição recusada" aria-label="recusada">🤦🏻‍♂️</span>}
                     RCS-{String(r.numero).padStart(4, "0")}
@@ -545,7 +556,7 @@ export default function RequisicaoComprasPage() {
                 solicitante: r.solicitante,
                 centroCusto: r.centroCustoNome,
                 urgencia: (
-                  <Badge title={alertaTitle} className={`${r.urgencia === "Urgente" ? "bg-red-500 text-white hover:bg-red-500" : r.urgencia === "Alta" ? "bg-orange-500 text-white hover:bg-orange-500" : r.urgencia === "Normal" ? "bg-green-600 text-white hover:bg-green-600" : "bg-muted text-muted-foreground"} ${alertaUrgente ? "animate-blink-urgent" : ""}`}>{r.urgencia}</Badge>
+                  <Badge title={alertaTitle} className={`${r.urgencia === "Urgente" ? "bg-red-500 text-white hover:bg-red-500" : r.urgencia === "Alta" ? "bg-orange-500 text-white hover:bg-orange-500" : r.urgencia === "Normal" ? "bg-green-600 text-white hover:bg-green-600" : "bg-muted text-muted-foreground"} ${alertaUrgente || alertaAtrasoCotacao ? "animate-blink-urgent" : ""}`}>{r.urgencia}</Badge>
                 ),
                 itens: r.itens.length,
                 status: <Badge className={statusColors[r.status]}>{r.status}</Badge>,
