@@ -78,8 +78,7 @@ export default function Equipamentos() {
     if (!qrEquip || !qrDataUrl) return;
     const w = window.open("", "_blank", "width=600,height=700");
     if (!w) return;
-    const url = `${window.location.origin}/equipamento/${qrEquip.id}`;
-    w.document.write(`<html><head><title>QR ${qrEquip.equipamento}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:24px}h2{margin:8px 0}p{margin:4px 0;font-size:12px;color:#555}img{width:320px;height:320px}</style></head><body><h2>${qrEquip.equipamento}</h2>${qrEquip.tag ? `<p>TAG: ${qrEquip.tag}</p>` : ""}${qrEquip.clienteNome ? `<p>${qrEquip.clienteNome}</p>` : ""}<img src="${qrDataUrl}" /><p style="word-break:break-all">${url}</p><script>window.onload=()=>{window.print();}<\/script></body></html>`);
+    w.document.write(`<html><head><title>QR ${qrEquip.equipamento}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:24px}h2{margin:8px 0}p{margin:4px 0;font-size:12px;color:#555}img{width:320px;height:320px}</style></head><body><h2>${qrEquip.equipamento}</h2>${qrEquip.tag ? `<p>TAG: ${qrEquip.tag}</p>` : ""}${qrEquip.clienteNome ? `<p>${qrEquip.clienteNome}</p>` : ""}<img src="${qrDataUrl}" /><script>window.onload=()=>{window.print();}<\/script></body></html>`);
     w.document.close();
   };
 
@@ -104,18 +103,17 @@ export default function Equipamentos() {
     const items = await Promise.all(list.map(async eq => {
       const url = `${window.location.origin}/equipamento/${eq.id}`;
       const dataUrl = await QRCode.toDataURL(url, { width: 400, margin: 1 });
-      return { eq, url, dataUrl };
+      return { eq, dataUrl };
     }));
     const w = window.open("", "_blank", "width=900,height=900");
     if (!w) return;
-    const cards = items.map(({ eq, url, dataUrl }) => `
+    const cards = items.map(({ eq, dataUrl }) => `
       <div class="label">
         <div class="title">${(eq.equipamento || "").replace(/</g, "&lt;")}</div>
         ${eq.tag ? `<div class="tag">TAG: ${eq.tag.replace(/</g, "&lt;")}</div>` : ""}
         ${eq.clienteNome ? `<div class="sub">${eq.clienteNome.replace(/</g, "&lt;")}</div>` : ""}
         ${eq.setorDescricao ? `<div class="sub">${eq.setorDescricao.replace(/</g, "&lt;")}</div>` : ""}
         <img src="${dataUrl}" />
-        <div class="url">${url}</div>
       </div>`).join("");
     w.document.write(`<html><head><title>Etiquetas QR</title><style>
       @page { size: A4; margin: 8mm; }
@@ -126,7 +124,6 @@ export default function Equipamentos() {
       .tag { font-family: monospace; font-size: 10px; color: #333; }
       .sub { font-size: 10px; color: #555; }
       .label img { width: 100%; max-width: 50mm; height: auto; margin: 4px auto; display: block; }
-      .url { font-size: 7px; color: #777; word-break: break-all; }
     </style></head><body><div class="grid">${cards}</div><script>window.onload=()=>window.print();<\/script></body></html>`);
     w.document.close();
   };
