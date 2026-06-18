@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
-import { Monitor, Trash2, Search, Plus, ChevronDown, ChevronUp, Pencil, Upload, Image, FileText, Award, History, AlertTriangle } from "lucide-react";
+import { Monitor, Trash2, Search, Plus, ChevronDown, ChevronUp, Pencil, Upload, Image, FileText, Award, History, AlertTriangle, QrCode, Printer, Download } from "lucide-react";
+import QRCode from "qrcode";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -62,6 +63,32 @@ export default function Equipamentos() {
   const [historico, setHistorico] = useState<any[]>([]);
   const [novaCalibOpen, setNovaCalibOpen] = useState(false);
   const [novaCalib, setNovaCalib] = useState({ data_calibracao: "", validade_calibracao: "", laboratorio: "", numero_certificado: "", certificado_url: "", responsavel: "", resultado: "Aprovado", observacoes: "", custo: 0 });
+  const [qrEquip, setQrEquip] = useState<Equipamento | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+
+  const openQr = async (eq: Equipamento) => {
+    const url = `${window.location.origin}/equipamento/${eq.id}`;
+    const dataUrl = await QRCode.toDataURL(url, { width: 512, margin: 2 });
+    setQrDataUrl(dataUrl);
+    setQrEquip(eq);
+  };
+
+  const printQr = () => {
+    if (!qrEquip || !qrDataUrl) return;
+    const w = window.open("", "_blank", "width=600,height=700");
+    if (!w) return;
+    const url = `${window.location.origin}/equipamento/${qrEquip.id}`;
+    w.document.write(`<html><head><title>QR ${qrEquip.equipamento}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:24px}h2{margin:8px 0}p{margin:4px 0;font-size:12px;color:#555}img{width:320px;height:320px}</style></head><body><h2>${qrEquip.equipamento}</h2>${qrEquip.tag ? `<p>TAG: ${qrEquip.tag}</p>` : ""}${qrEquip.clienteNome ? `<p>${qrEquip.clienteNome}</p>` : ""}<img src="${qrDataUrl}" /><p style="word-break:break-all">${url}</p><script>window.onload=()=>{window.print();}<\/script></body></html>`);
+    w.document.close();
+  };
+
+  const downloadQr = () => {
+    if (!qrEquip || !qrDataUrl) return;
+    const a = document.createElement("a");
+    a.href = qrDataUrl;
+    a.download = `qrcode-${(qrEquip.tag || qrEquip.equipamento || "equipamento").replace(/[^a-z0-9]/gi, "_")}.png`;
+    a.click();
+  };
 
   const selectedCliente = useMemo(() => clientesList.find(c => c.id === form.clienteId), [clientesList, form.clienteId]);
   const locais = useMemo(() => selectedCliente?.locais || [], [selectedCliente]);
@@ -474,6 +501,7 @@ export default function Equipamentos() {
                     <TableCell className="text-sm">{eq.fabricante || "-"}</TableCell>
                     <TableCell onClick={e => e.stopPropagation()}>
                       <div className="flex gap-1">
+                        <Button size="icon" variant="ghost" title="QR Code" onClick={() => openQr(eq)}><QrCode className="h-4 w-4 text-primary" /></Button>
                         {eq.requerCalibracao && <Button size="icon" variant="ghost" title="Histórico de Calibração" onClick={() => openHistorico(eq)}><History className="h-4 w-4 text-primary" /></Button>}
                         {podeEditar && <Button size="icon" variant="ghost" onClick={() => handleEdit(eq)}><Pencil className="h-4 w-4" /></Button>}
                         {podeExcluir && <Button size="icon" variant="ghost" onClick={() => requestDelete(eq.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
@@ -614,6 +642,31 @@ export default function Equipamentos() {
               </Table>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* QR Code */}
+      <Dialog open={!!qrEquip} onOpenChange={() => setQrEquip(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><QrCode className="h-5 w-5 text-primary" />QR Code do Equipamento</DialogTitle>
+          </DialogHeader>
+          {qrEquip && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="font-semibold">{qrEquip.equipamento}</p>
+                {qrEquip.tag && <p className="text-xs text-muted-foreground font-mono">TAG: {qrEquip.tag}</p>}
+                {qrEquip.clienteNome && <p className="text-xs text-muted-foreground">{qrEquip.clienteNome}</p>}
+              </div>
+              {qrDataUrl && <img src={qrDataUrl} alt="QR Code" className="mx-auto w-64 h-64 border rounded" />}
+              <p className="text-xs text-center text-muted-foreground break-all">{`${window.location.origin}/equipamento/${qrEquip.id}`}</p>
+              <p className="text-xs text-center text-muted-foreground">Acesso somente leitura: informações do equipamento e histórico de manutenções.</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={downloadQr}><Download className="h-4 w-4 mr-1" />Baixar PNG</Button>
+            <Button onClick={printQr}><Printer className="h-4 w-4 mr-1" />Imprimir</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

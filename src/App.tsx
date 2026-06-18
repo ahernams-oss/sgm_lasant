@@ -79,6 +79,7 @@ import { EpisCatalogoProvider } from "@/contexts/EpisCatalogoContext";
 import ExamesPage from "./pages/ExamesPage.tsx";
 import UnsubscribePage from "./pages/Unsubscribe.tsx";
 import PortalCandidato from "./pages/PortalCandidato.tsx";
+import EquipamentoPublico from "./pages/EquipamentoPublico.tsx";
 import Instalar from "./pages/Instalar.tsx";
 import LicitacoesPage from "./pages/Licitacoes.tsx";
 import MedicoesServicosPage from "./pages/MedicoesServicos.tsx";
@@ -494,6 +495,7 @@ const App = () => (
           <Route path="/portal-fornecedor/pregao/:id/sala" element={<PregaoSalaFornecedorPage />} />
           <Route path="/unsubscribe" element={<UnsubscribePage />} />
           <Route path="/portal-candidato/:processoId/:candidatoId" element={<PortalCandidato />} />
+          <Route path="/equipamento/:id" element={<EquipamentoPublico />} />
           <Route path="/instalar" element={<Instalar />} />
           <Route path="/verificar-assinatura" element={<VerificarAssinaturaPage />} />
           <Route path="/verificar-assinatura/:codigo" element={<VerificarAssinaturaPage />} />
