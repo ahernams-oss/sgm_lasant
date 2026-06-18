@@ -169,7 +169,10 @@ const menuItems = [
   },
   {
     group: "PMOC",
-    items: [{ title: "PMOC", url: "/pmoc", icon: Fan, perm: "pmoc" }],
+    items: [
+      { title: "PMOC", url: "/pmoc", icon: Fan, perm: "pmoc" },
+      { title: "Gerenciar Operação", url: "/pmoc/gerenciar-operacao", icon: Fan, perm: "pmoc" },
+    ],
   },
   {
     group: "Qualidade",
