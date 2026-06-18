@@ -91,6 +91,46 @@ export default function Equipamentos() {
     a.click();
   };
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const toggleSelected = (id: string) => setSelectedIds(prev => {
+    const n = new Set(prev);
+    n.has(id) ? n.delete(id) : n.add(id);
+    return n;
+  });
+
+  const printBulkQrs = async () => {
+    const list = equipamentos.filter(e => selectedIds.has(e.id));
+    if (list.length === 0) { toast.error("Selecione ao menos um equipamento."); return; }
+    const items = await Promise.all(list.map(async eq => {
+      const url = `${window.location.origin}/equipamento/${eq.id}`;
+      const dataUrl = await QRCode.toDataURL(url, { width: 400, margin: 1 });
+      return { eq, url, dataUrl };
+    }));
+    const w = window.open("", "_blank", "width=900,height=900");
+    if (!w) return;
+    const cards = items.map(({ eq, url, dataUrl }) => `
+      <div class="label">
+        <div class="title">${(eq.equipamento || "").replace(/</g, "&lt;")}</div>
+        ${eq.tag ? `<div class="tag">TAG: ${eq.tag.replace(/</g, "&lt;")}</div>` : ""}
+        ${eq.clienteNome ? `<div class="sub">${eq.clienteNome.replace(/</g, "&lt;")}</div>` : ""}
+        ${eq.setorDescricao ? `<div class="sub">${eq.setorDescricao.replace(/</g, "&lt;")}</div>` : ""}
+        <img src="${dataUrl}" />
+        <div class="url">${url}</div>
+      </div>`).join("");
+    w.document.write(`<html><head><title>Etiquetas QR</title><style>
+      @page { size: A4; margin: 8mm; }
+      body { font-family: Arial, sans-serif; margin: 0; }
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm; }
+      .label { border: 1px dashed #999; border-radius: 6px; padding: 6mm; text-align: center; page-break-inside: avoid; }
+      .title { font-weight: bold; font-size: 12px; margin-bottom: 2px; }
+      .tag { font-family: monospace; font-size: 10px; color: #333; }
+      .sub { font-size: 10px; color: #555; }
+      .label img { width: 100%; max-width: 50mm; height: auto; margin: 4px auto; display: block; }
+      .url { font-size: 7px; color: #777; word-break: break-all; }
+    </style></head><body><div class="grid">${cards}</div><script>window.onload=()=>window.print();<\/script></body></html>`);
+    w.document.close();
+  };
+
   const selectedCliente = useMemo(() => clientesList.find(c => c.id === form.clienteId), [clientesList, form.clienteId]);
   const locais = useMemo(() => selectedCliente?.locais || [], [selectedCliente]);
   const selectedLocal = useMemo(() => locais.find(l => l.id === form.localId), [locais, form.localId]);
