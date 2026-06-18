@@ -19,8 +19,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import {
   Search, Wrench, CheckCircle2, ArrowLeft, CalendarClock, X,
-  Clock, ShieldCheck, XCircle,
+  Clock, ShieldCheck, XCircle, FileText, FileSpreadsheet,
 } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 const PERIODICIDADE_ORDEM = ["Diária", "Semanal", "Quinzenal", "Mensal", "Bimestral", "Trimestral", "Semestral", "Anual"];
 
@@ -596,51 +599,194 @@ export default function PmocGerenciarOperacao() {
 
         {/* ============== HISTÓRICO ============== */}
         <TabsContent value="historico">
-          <Card>
-            <CardHeader>
-              <CardTitle>Histórico de Execuções</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Equipamento</TableHead>
-                    <TableHead>Atividade</TableHead>
-                    <TableHead>Executada em</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Registrado por</TableHead>
-                    <TableHead>Confirmado por</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {execucoes.map((p) => (
-                    <TableRow key={p.id}>
-                      <TableCell>{p.equipamento_nome || "—"}</TableCell>
-                      <TableCell>{p.atividade_descricao || "—"}</TableCell>
-                      <TableCell>{fmtDateTime(p.data_execucao)}</TableCell>
-                      <TableCell>
-                        <Badge variant={
-                          p.status === "Confirmada" ? "default"
-                            : p.status === "Rejeitada" ? "destructive" : "outline"
-                        }>{p.status}</Badge>
-                      </TableCell>
-                      <TableCell>{p.registrado_por || "—"}</TableCell>
-                      <TableCell>{p.confirmado_por || "—"}</TableCell>
-                    </TableRow>
-                  ))}
-                  {execucoes.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
-                        Nenhum registro.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <HistoricoExecucoes execucoes={execucoes} />
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
+  const [search, setSearch] = useState("");
+  const [statusFiltro, setStatusFiltro] = useState<string>(ALL);
+  const [equipFiltro, setEquipFiltro] = useState<string>(ALL);
+  const [dataIni, setDataIni] = useState<string>("");
+  const [dataFim, setDataFim] = useState<string>("");
+
+  const equipamentosUnicos = useMemo(() => {
+    const set = new Set<string>();
+    execucoes.forEach((e) => { if (e.equipamento_nome) set.add(e.equipamento_nome); });
+    return Array.from(set).sort();
+  }, [execucoes]);
+
+  const filtradas = useMemo(() => {
+    const ini = dataIni ? new Date(dataIni + "T00:00:00").getTime() : null;
+    const fim = dataFim ? new Date(dataFim + "T23:59:59").getTime() : null;
+    const term = search.trim().toLowerCase();
+    return execucoes.filter((e) => {
+      if (statusFiltro !== ALL && e.status !== statusFiltro) return false;
+      if (equipFiltro !== ALL && e.equipamento_nome !== equipFiltro) return false;
+      const t = new Date(e.data_execucao).getTime();
+      if (ini !== null && t < ini) return false;
+      if (fim !== null && t > fim) return false;
+      if (term) {
+        const blob = `${e.equipamento_nome || ""} ${e.atividade_descricao || ""} ${e.registrado_por || ""} ${e.confirmado_por || ""}`.toLowerCase();
+        if (!blob.includes(term)) return false;
+      }
+      return true;
+    });
+  }, [execucoes, statusFiltro, equipFiltro, dataIni, dataFim, search]);
+
+  const limpar = () => {
+    setSearch(""); setStatusFiltro(ALL); setEquipFiltro(ALL); setDataIni(""); setDataFim("");
+  };
+
+  const columns = ["Equipamento", "Atividade", "Executada em", "Status", "Registrado por", "Confirmado por"];
+  const buildRows = () => filtradas.map((p) => [
+    p.equipamento_nome || "-",
+    p.atividade_descricao || "-",
+    fmtDateTime(p.data_execucao),
+    p.status,
+    p.registrado_por || "-",
+    p.confirmado_por || "-",
+  ]);
+
+  const filtrosLabel = [
+    statusFiltro !== ALL ? `Status: ${statusFiltro}` : null,
+    equipFiltro !== ALL ? `Equip.: ${equipFiltro}` : null,
+    dataIni ? `De: ${dataIni}` : null,
+    dataFim ? `Até: ${dataFim}` : null,
+    search ? `Busca: ${search}` : null,
+  ].filter(Boolean).join(" | ");
+
+  const exportarPDF = () => {
+    const rows = buildRows();
+    if (rows.length === 0) return;
+    const doc = new jsPDF({ orientation: "l" });
+    const pw = doc.internal.pageSize.getWidth();
+    doc.setFillColor(30, 58, 107);
+    doc.rect(0, 0, pw, 28, "F");
+    doc.setTextColor(255); doc.setFontSize(14); doc.setFont("helvetica", "bold");
+    doc.text("Histórico de Execuções - PMOC", 14, 12);
+    doc.setFontSize(9); doc.setFont("helvetica", "normal");
+    doc.text(`Total: ${rows.length} registro(s)`, 14, 20);
+    doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pw - 14, 12, { align: "right" });
+    if (filtrosLabel) doc.text(filtrosLabel, pw - 14, 20, { align: "right" });
+    doc.setTextColor(30);
+    autoTable(doc, {
+      startY: 34,
+      head: [columns],
+      body: rows,
+      styles: { fontSize: 8, cellPadding: 2, overflow: "linebreak" },
+      headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+    });
+    const pages = doc.getNumberOfPages();
+    const ph = doc.internal.pageSize.getHeight();
+    for (let i = 1; i <= pages; i++) {
+      doc.setPage(i); doc.setFontSize(8); doc.setTextColor(150);
+      doc.text(`Página ${i} de ${pages}`, pw / 2, ph - 8, { align: "center" });
+    }
+    doc.save(`historico_execucoes_pmoc_${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
+  const exportarExcel = () => {
+    const rows = buildRows();
+    if (rows.length === 0) return;
+    const data = rows.map((r) => {
+      const o: Record<string, string> = {};
+      columns.forEach((c, i) => { o[c] = r[i] || ""; });
+      return o;
+    });
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws["!cols"] = columns.map(() => ({ wch: 22 }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Histórico");
+    XLSX.writeFile(wb, `historico_execucoes_pmoc_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <CardTitle>Histórico de Execuções ({filtradas.length})</CardTitle>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={exportarPDF} disabled={filtradas.length === 0}>
+              <FileText className="h-4 w-4 mr-1" />PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportarExcel} disabled={filtradas.length === 0}>
+              <FileSpreadsheet className="h-4 w-4 mr-1" />Excel
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
+          <div className="md:col-span-2 relative">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Buscar..." className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+          <Select value={statusFiltro} onValueChange={setStatusFiltro}>
+            <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Todos status</SelectItem>
+              <SelectItem value="Pendente">Pendente</SelectItem>
+              <SelectItem value="Confirmada">Confirmada</SelectItem>
+              <SelectItem value="Rejeitada">Rejeitada</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={equipFiltro} onValueChange={setEquipFiltro}>
+            <SelectTrigger><SelectValue placeholder="Equipamento" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Todos equipamentos</SelectItem>
+              {equipamentosUnicos.map((n) => (<SelectItem key={n} value={n}>{n}</SelectItem>))}
+            </SelectContent>
+          </Select>
+          <Input type="date" value={dataIni} onChange={(e) => setDataIni(e.target.value)} title="Data inicial" />
+          <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} title="Data final" />
+        </div>
+        {(search || statusFiltro !== ALL || equipFiltro !== ALL || dataIni || dataFim) && (
+          <Button variant="ghost" size="sm" onClick={limpar}>
+            <X className="h-4 w-4 mr-1" />Limpar filtros
+          </Button>
+        )}
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Equipamento</TableHead>
+              <TableHead>Atividade</TableHead>
+              <TableHead>Executada em</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Registrado por</TableHead>
+              <TableHead>Confirmado por</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filtradas.map((p) => (
+              <TableRow key={p.id}>
+                <TableCell>{p.equipamento_nome || "—"}</TableCell>
+                <TableCell>{p.atividade_descricao || "—"}</TableCell>
+                <TableCell>{fmtDateTime(p.data_execucao)}</TableCell>
+                <TableCell>
+                  <Badge variant={
+                    p.status === "Confirmada" ? "default"
+                      : p.status === "Rejeitada" ? "destructive" : "outline"
+                  }>{p.status}</Badge>
+                </TableCell>
+                <TableCell>{p.registrado_por || "—"}</TableCell>
+                <TableCell>{p.confirmado_por || "—"}</TableCell>
+              </TableRow>
+            ))}
+            {filtradas.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
+                  Nenhum registro.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
