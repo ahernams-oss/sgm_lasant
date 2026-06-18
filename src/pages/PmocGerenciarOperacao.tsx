@@ -28,6 +28,11 @@ import {
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import {
+  gerarPdfPmocInformacoes,
+  gerarPdfPmocManutencoesFotos,
+  gerarPdfPmocHistoricoAtividades,
+} from "@/lib/gerarPdfPmocEquipamento";
 
 
 const PERIODICIDADE_ORDEM = ["Diária", "Semanal", "Quinzenal", "Mensal", "Bimestral", "Trimestral", "Semestral", "Anual"];
