@@ -51,7 +51,7 @@ export default function PmocGerenciarOperacao() {
     atividades.forEach((a) => {
       if (!a.equipamentoId) return;
       const equip = equipamentos.find((e) => e.id === a.equipamentoId);
-      const nome = equip?.nome || a.equipamentoNome || "Equipamento";
+      const nome = equip ? `${equip.tag || ""} ${equip.equipamento || ""}`.trim() || a.equipamentoNome : a.equipamentoNome || "Equipamento";
       if (!map.has(a.equipamentoId)) {
         map.set(a.equipamentoId, { id: a.equipamentoId, nome, atividades: [] });
       }
