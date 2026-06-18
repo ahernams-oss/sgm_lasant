@@ -639,9 +639,8 @@ function AtividadesTab() {
 
 // ====================== ORDENS DE SERVIÇO TAB ======================
 function OrdensServicoTab() {
-  const { planos, ordensServico, addOS, updateOS, deleteOS } = usePmoc();
+  const { planos, ordensServico, responsaveisTecnicos: responsaveisTec, addOS, updateOS, deleteOS } = usePmoc();
   const { equipamentos } = useEquipamentos();
-  const { responsaveis: responsaveisTec } = useResponsaveisTecnicos();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
