@@ -249,39 +249,66 @@ export default function PmocGerenciarOperacao() {
     });
   }, [selected]);
 
-  const handleRegistrar = async (atividade: any) => {
+  const uploadFotos = async (atividadeId: string): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const f of regFotos) {
+      const ext = (f.file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      const path = `pmoc/fotos/${atividadeId}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("documentos").upload(path, f.file, {
+        cacheControl: "3600", upsert: false, contentType: f.file.type,
+      });
+      if (error) {
+        console.error("upload foto", error);
+        toast({ title: "Erro ao enviar foto", description: error.message, variant: "destructive" });
+        continue;
+      }
+      const { data } = supabase.storage.from("documentos").getPublicUrl(path);
+      urls.push(data.publicUrl);
+    }
+    return urls;
+  };
+
+  const confirmarRegistro = async () => {
+    if (!regAtividade) return;
+    setRegUploading(true);
     setBusy(true);
     try {
       const agora = new Date();
-      const proxima = addPeriodicidade(agora, atividade.periodicidade);
-      const equip = equipamentos.find((e) => e.id === atividade.equipamentoId);
+      const proxima = addPeriodicidade(agora, regAtividade.periodicidade);
+      const equip = equipamentos.find((e) => e.id === regAtividade.equipamentoId);
       const equipNome = equip
-        ? `${equip.tag || ""} ${equip.equipamento || ""}`.trim() || atividade.equipamentoNome
-        : atividade.equipamentoNome;
+        ? `${equip.tag || ""} ${equip.equipamento || ""}`.trim() || regAtividade.equipamentoNome
+        : regAtividade.equipamentoNome;
+      const fotosUrls = regFotos.length > 0 ? await uploadFotos(regAtividade.id) : [];
       const { error } = await supabase.from("pmoc_atividades_execucoes").insert({
-        atividade_id: atividade.id,
-        plano_id: atividade.planoId || null,
-        equipamento_id: atividade.equipamentoId || null,
+        atividade_id: regAtividade.id,
+        plano_id: regAtividade.planoId || null,
+        equipamento_id: regAtividade.equipamentoId || null,
         equipamento_nome: equipNome,
-        atividade_descricao: atividade.descricao,
-        periodicidade: atividade.periodicidade,
+        atividade_descricao: regAtividade.descricao,
+        periodicidade: regAtividade.periodicidade,
         data_execucao: agora.toISOString(),
         proxima_execucao: proxima.toISOString(),
         status: "Pendente",
         registrado_por: usuarioLogado?.nome || "",
+        observacoes: regObservacoes.trim() || null,
+        fotos: fotosUrls,
       });
       if (error) throw error;
       toast({
         title: "Registro enviado",
-        description: "A manutenção foi registrada e aguarda confirmação para ser concluída.",
+        description: `Manutenção registrada${fotosUrls.length ? ` com ${fotosUrls.length} foto(s)` : ""}. Aguarda confirmação.`,
       });
+      fecharRegistro();
       await carregarExecucoes();
     } catch (e: any) {
       toast({ title: "Erro ao registrar", description: e.message, variant: "destructive" });
     } finally {
       setBusy(false);
+      setRegUploading(false);
     }
   };
+
 
   const confirmarExecucoes = async (ids: string[]) => {
     if (ids.length === 0) return;
