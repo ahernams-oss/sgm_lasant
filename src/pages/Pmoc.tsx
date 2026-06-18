@@ -151,6 +151,18 @@ function PlanosTab() {
   };
 
   const ativsDoPlano = managePlano ? atividades.filter(a => a.planoId === managePlano.id) : [];
+  const ativsDoPlanoOrdenadas = useMemo(() => {
+    const ordem = PERIODICIDADES;
+    return [...ativsDoPlano].sort((a, b) => {
+      const ia = ordem.indexOf(a.periodicidade);
+      const ib = ordem.indexOf(b.periodicidade);
+      if (ia === -1 && ib === -1) return 0;
+      if (ia === -1) return 1;
+      if (ib === -1) return -1;
+      return ia - ib;
+    });
+  }, [ativsDoPlano]);
+
   const equipsDoCliente = managePlano ? equipamentos.filter(e => e.clienteId === managePlano.clienteId) : [];
 
   const startEditAtiv = (a: any) => {
@@ -327,9 +339,9 @@ function PlanosTab() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {ativsDoPlano.length === 0 ? (
+                    {ativsDoPlanoOrdenadas.length === 0 ? (
                       <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhuma atividade no plano</TableCell></TableRow>
-                    ) : ativsDoPlano.map(a => (
+                    ) : ativsDoPlanoOrdenadas.map(a => (
                       <TableRow key={a.id}>
                         <TableCell className="font-medium">{a.descricao}</TableCell>
                         <TableCell className="text-xs">{a.equipamentoNome || "—"}</TableCell>
