@@ -283,7 +283,15 @@ function PlanosTab() {
                 <SelectContent>{STATUS_PLANO.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div><Label>Responsável Técnico</Label><Input value={form.responsavel_tecnico_nome} onChange={e => setForm(f => ({ ...f, responsavel_tecnico_nome: e.target.value }))} /></div>
+            <div><Label>Responsável Técnico</Label>
+              <Select value={form.responsavel_tecnico_nome || "__none"} onValueChange={v => setForm(f => ({ ...f, responsavel_tecnico_nome: v === "__none" ? "" : v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">—</SelectItem>
+                  {responsaveisTec.map(r => <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="col-span-2"><Label>Procedimentos em Caso de Falha</Label><Textarea value={form.procedimentos_falha} onChange={e => setForm(f => ({ ...f, procedimentos_falha: e.target.value }))} rows={2} /></div>
             <div className="col-span-2"><Label>Contingência</Label><Textarea value={form.contingencia} onChange={e => setForm(f => ({ ...f, contingencia: e.target.value }))} rows={2} /></div>
             <div className="col-span-2"><Label>Observações</Label><Textarea value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} /></div>
