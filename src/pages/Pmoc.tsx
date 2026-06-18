@@ -41,8 +41,13 @@ const TIPOS_REGISTRO = ["CREA", "CRQ", "CRECI", "CFT", "Outro"];
 
 // ====================== PLANOS TAB ======================
 function PlanosTab() {
-  const { planos, atividades, addPlano, updatePlano, deletePlano } = usePmoc();
+  const {
+    planos, atividades, biblioteca,
+    addPlano, updatePlano, deletePlano,
+    addAtividade, updateAtividade, deleteAtividade,
+  } = usePmoc();
   const { clientes } = useClientes();
+  const { equipamentos, updateEquipamento } = useEquipamentos();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -59,11 +64,26 @@ function PlanosTab() {
     observacoes: "", procedimentos_falha: "", contingencia: "",
   });
 
+  // Gestão de atividades/equipamentos dentro do plano
+  const [managePlano, setManagePlano] = useState<any | null>(null);
+  const [manageTab, setManageTab] = useState<"atividades" | "equipamentos">("atividades");
+  const [ativEditing, setAtivEditing] = useState<string | null>(null);
+  const [ativForm, setAtivForm] = useState({
+    equipamento_id: "", equipamento_nome: "", descricao: "",
+    tipo: "Preventiva", periodicidade: "Mensal", prioridade: "Normal",
+    duracao_estimada: "", proxima_execucao: "",
+    parametros_tecnicos: "", procedimento_falha: "",
+  });
+  const [bibliotecaPicker, setBibliotecaPicker] = useState(false);
+
   const filtered = useMemo(() => {
     if (!search) return planos;
     const s = search.toLowerCase();
     return planos.filter(p => p.titulo.toLowerCase().includes(s) || p.clienteNome.toLowerCase().includes(s));
   }, [planos, search]);
+
+  const countAtiv = (planoId: string) => atividades.filter(a => a.planoId === planoId).length;
+  const countEquip = (planoId: string) => equipamentos.filter(e => e.planoManutencao === planoId).length;
 
   const openNew = () => {
     setForm({ titulo: "", descricao: "", cliente_id: "", cliente_nome: "", unidade: "",
@@ -104,6 +124,55 @@ function PlanosTab() {
     return "secondary";
   };
 
+  // === Atividades dentro do plano ===
+  const resetAtivForm = () => {
+    setAtivForm({ equipamento_id: "", equipamento_nome: "", descricao: "",
+      tipo: "Preventiva", periodicidade: "Mensal", prioridade: "Normal",
+      duracao_estimada: "", proxima_execucao: "", parametros_tecnicos: "", procedimento_falha: "" });
+    setAtivEditing(null);
+  };
+
+  const ativsDoPlano = managePlano ? atividades.filter(a => a.planoId === managePlano.id) : [];
+  const equipsDoCliente = managePlano ? equipamentos.filter(e => e.clienteId === managePlano.clienteId) : [];
+
+  const startEditAtiv = (a: any) => {
+    setAtivEditing(a.id);
+    setAtivForm({
+      equipamento_id: a.equipamentoId, equipamento_nome: a.equipamentoNome,
+      descricao: a.descricao, tipo: a.tipo, periodicidade: a.periodicidade,
+      prioridade: a.prioridade, duracao_estimada: a.duracaoEstimada,
+      proxima_execucao: a.proximaExecucao,
+      parametros_tecnicos: a.parametrosTecnicos, procedimento_falha: a.procedimentoFalha,
+    });
+  };
+
+  const saveAtiv = async () => {
+    if (!managePlano) return;
+    if (!ativForm.descricao.trim()) { toast({ title: "Descrição obrigatória", variant: "destructive" }); return; }
+    const payload = { ...ativForm, plano_id: managePlano.id };
+    if (ativEditing) { await updateAtividade(ativEditing, payload); toast({ title: "Atividade atualizada" }); }
+    else { await addAtividade(payload); toast({ title: "Atividade adicionada" }); }
+    resetAtivForm();
+  };
+
+  const addFromBiblioteca = async (rotina: any) => {
+    if (!managePlano) return;
+    await addAtividade({
+      plano_id: managePlano.id, equipamento_id: "", equipamento_nome: "",
+      descricao: rotina.titulo + (rotina.descricao ? ` — ${rotina.descricao}` : ""),
+      tipo: rotina.tipoAtividade, periodicidade: rotina.periodicidadeSugerida,
+      prioridade: "Normal", duracao_estimada: rotina.duracaoEstimada,
+      proxima_execucao: "", parametros_tecnicos: "", procedimento_falha: "",
+    });
+    setBibliotecaPicker(false);
+    toast({ title: "Atividade adicionada da biblioteca" });
+  };
+
+  const toggleEquipNoPlano = async (equipId: string, vincular: boolean) => {
+    if (!managePlano) return;
+    await updateEquipamento(equipId, { planoManutencao: vincular ? managePlano.id : "" } as any);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -123,12 +192,12 @@ function PlanosTab() {
             <TableRow>
               <TableHead>Título</TableHead>
               <TableHead>Cliente</TableHead>
-              <TableHead>Unidade</TableHead>
               <TableHead>Vigência</TableHead>
-              <TableHead>Rev.</TableHead>
+              <TableHead className="text-center">Atividades</TableHead>
+              <TableHead className="text-center">Equipamentos</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>RT</TableHead>
-              <TableHead className="w-24">Ações</TableHead>
+              <TableHead className="w-40">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -138,14 +207,17 @@ function PlanosTab() {
               <TableRow key={p.id}>
                 <TableCell className="font-medium">{p.titulo}</TableCell>
                 <TableCell>{p.clienteNome || "-"}</TableCell>
-                <TableCell>{p.unidade || "-"}</TableCell>
                 <TableCell className="text-xs">{p.vigenciaInicio && p.vigenciaFim ? `${p.vigenciaInicio} a ${p.vigenciaFim}` : "-"}</TableCell>
-                <TableCell>{p.revisao}</TableCell>
+                <TableCell className="text-center"><Badge variant="secondary">{countAtiv(p.id)}</Badge></TableCell>
+                <TableCell className="text-center"><Badge variant="secondary">{countEquip(p.id)}</Badge></TableCell>
                 <TableCell><Badge variant={statusColor(p.status)}>{p.status}</Badge></TableCell>
                 <TableCell className="text-xs">{p.responsavelTecnicoNome || "-"}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="outline" size="sm" onClick={() => { setManagePlano(p); setManageTab("atividades"); resetAtivForm(); }}>
+                      <ClipboardList className="h-3.5 w-3.5 mr-1" />Gerir
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(p)} title="Editar dados do plano"><Pencil className="h-4 w-4" /></Button>
                     {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDelete(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </div>
                 </TableCell>
@@ -156,6 +228,7 @@ function PlanosTab() {
       </div>
       <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
+      {/* Dialog: dados do plano */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editingId ? "Editar" : "Novo"} Plano PMOC</DialogTitle></DialogHeader>
@@ -187,6 +260,177 @@ function PlanosTab() {
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog: gerir atividades e equipamentos do plano */}
+      <Dialog open={!!managePlano} onOpenChange={o => { if (!o) { setManagePlano(null); resetAtivForm(); } }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Gerir Plano: {managePlano?.titulo}</DialogTitle>
+            <p className="text-xs text-muted-foreground">Cliente: {managePlano?.clienteNome || "—"}</p>
+          </DialogHeader>
+
+          <Tabs value={manageTab} onValueChange={v => setManageTab(v as any)}>
+            <TabsList>
+              <TabsTrigger value="atividades"><ClipboardList className="h-4 w-4 mr-1" />Atividades ({ativsDoPlano.length})</TabsTrigger>
+              <TabsTrigger value="equipamentos"><Settings className="h-4 w-4 mr-1" />Equipamentos vinculados ({equipsDoCliente.filter(e => e.planoManutencao === managePlano?.id).length})</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="atividades" className="space-y-4">
+              <div className="flex gap-2 flex-wrap">
+                <Button size="sm" onClick={resetAtivForm}><Plus className="h-4 w-4 mr-1" />Nova atividade</Button>
+                <Button size="sm" variant="outline" onClick={() => setBibliotecaPicker(true)} disabled={biblioteca.length === 0}>
+                  <BookOpen className="h-4 w-4 mr-1" />Adicionar da biblioteca
+                </Button>
+              </div>
+
+              {/* Form inline */}
+              <div className="border rounded-lg p-3 bg-muted/30 space-y-3">
+                <p className="text-xs font-semibold text-muted-foreground">{ativEditing ? "Editando atividade" : "Nova atividade"}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2"><Label className="text-xs">Descrição *</Label><Input value={ativForm.descricao} onChange={e => setAtivForm(f => ({ ...f, descricao: e.target.value }))} /></div>
+                  <div><Label className="text-xs">Equipamento</Label>
+                    <Select value={ativForm.equipamento_id || "__none"} onValueChange={v => {
+                      if (v === "__none") { setAtivForm(f => ({ ...f, equipamento_id: "", equipamento_nome: "" })); return; }
+                      const eq = equipamentos.find(e => e.id === v);
+                      setAtivForm(f => ({ ...f, equipamento_id: v, equipamento_nome: eq?.equipamento || "" }));
+                    }}>
+                      <SelectTrigger><SelectValue placeholder="Genérica (sem equipamento)" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none">— Genérica (sem equipamento) —</SelectItem>
+                        {equipsDoCliente.map(e => <SelectItem key={e.id} value={e.id}>{e.tag ? `${e.tag} - ` : ""}{e.equipamento}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div><Label className="text-xs">Tipo</Label>
+                    <Select value={ativForm.tipo} onValueChange={v => setAtivForm(f => ({ ...f, tipo: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{TIPOS_ATIVIDADE.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div><Label className="text-xs">Periodicidade</Label>
+                    <Select value={ativForm.periodicidade} onValueChange={v => setAtivForm(f => ({ ...f, periodicidade: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{PERIODICIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div><Label className="text-xs">Prioridade</Label>
+                    <Select value={ativForm.prioridade} onValueChange={v => setAtivForm(f => ({ ...f, prioridade: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{PRIORIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div><Label className="text-xs">Duração estimada</Label><Input value={ativForm.duracao_estimada} onChange={e => setAtivForm(f => ({ ...f, duracao_estimada: e.target.value }))} placeholder="Ex: 2h" /></div>
+                  <div><Label className="text-xs">Próxima execução</Label><Input type="date" value={ativForm.proxima_execucao} onChange={e => setAtivForm(f => ({ ...f, proxima_execucao: e.target.value }))} /></div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  {ativEditing && <Button size="sm" variant="ghost" onClick={resetAtivForm}>Cancelar</Button>}
+                  <Button size="sm" onClick={saveAtiv}>{ativEditing ? "Atualizar" : "Adicionar"}</Button>
+                </div>
+              </div>
+
+              {/* Lista de atividades */}
+              <div className="border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>Equipamento</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Periodicidade</TableHead>
+                      <TableHead className="w-24">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {ativsDoPlano.length === 0 ? (
+                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhuma atividade no plano</TableCell></TableRow>
+                    ) : ativsDoPlano.map(a => (
+                      <TableRow key={a.id}>
+                        <TableCell className="font-medium">{a.descricao}</TableCell>
+                        <TableCell className="text-xs">{a.equipamentoNome || "—"}</TableCell>
+                        <TableCell><Badge variant="outline" className="text-xs">{a.tipo}</Badge></TableCell>
+                        <TableCell className="text-xs">{a.periodicidade}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => startEditAtiv(a)}><Pencil className="h-4 w-4" /></Button>
+                            {podeExcluir && <Button variant="ghost" size="icon" onClick={async () => { await deleteAtividade(a.id); toast({ title: "Atividade removida" }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="equipamentos" className="space-y-3">
+              {!managePlano?.clienteId ? (
+                <p className="text-sm text-muted-foreground p-4 text-center">Defina o cliente do plano para vincular equipamentos.</p>
+              ) : equipsDoCliente.length === 0 ? (
+                <p className="text-sm text-muted-foreground p-4 text-center">Nenhum equipamento cadastrado para este cliente.</p>
+              ) : (
+                <div className="border rounded-lg max-h-96 overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12"></TableHead>
+                        <TableHead>TAG</TableHead>
+                        <TableHead>Equipamento</TableHead>
+                        <TableHead>Setor</TableHead>
+                        <TableHead>Plano atual</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {equipsDoCliente.map(e => {
+                        const vinculadoAqui = e.planoManutencao === managePlano!.id;
+                        const outroPlanoId = e.planoManutencao && !vinculadoAqui ? e.planoManutencao : "";
+                        const outroPlano = outroPlanoId ? planos.find(pp => pp.id === outroPlanoId)?.titulo : "";
+                        return (
+                          <TableRow key={e.id}>
+                            <TableCell>
+                              <input type="checkbox" checked={vinculadoAqui}
+                                onChange={ev => toggleEquipNoPlano(e.id, ev.target.checked)} />
+                            </TableCell>
+                            <TableCell className="font-mono text-xs">{e.tag || "—"}</TableCell>
+                            <TableCell>{e.equipamento}</TableCell>
+                            <TableCell className="text-xs">{e.setorDescricao || "—"}</TableCell>
+                            <TableCell className="text-xs">{vinculadoAqui ? <Badge>Este plano</Badge> : outroPlano ? <Badge variant="outline">{outroPlano}</Badge> : "—"}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+
+          <DialogFooter><Button variant="outline" onClick={() => { setManagePlano(null); resetAtivForm(); }}>Fechar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Picker da biblioteca */}
+      <Dialog open={bibliotecaPicker} onOpenChange={setBibliotecaPicker}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Selecionar rotina da biblioteca</DialogTitle></DialogHeader>
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader><TableRow><TableHead>Título</TableHead><TableHead>Tipo Equip.</TableHead><TableHead>Tipo</TableHead><TableHead>Period.</TableHead><TableHead className="w-20"></TableHead></TableRow></TableHeader>
+              <TableBody>
+                {biblioteca.map(b => (
+                  <TableRow key={b.id}>
+                    <TableCell className="font-medium">{b.titulo}</TableCell>
+                    <TableCell className="text-xs">{b.tipoEquipamento || "—"}</TableCell>
+                    <TableCell><Badge variant="outline" className="text-xs">{b.tipoAtividade}</Badge></TableCell>
+                    <TableCell className="text-xs">{b.periodicidadeSugerida}</TableCell>
+                    <TableCell><Button size="sm" onClick={() => addFromBiblioteca(b)}>Usar</Button></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={() => { if (deleteId && podeExcluir) { deletePlano(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
     </div>
   );
