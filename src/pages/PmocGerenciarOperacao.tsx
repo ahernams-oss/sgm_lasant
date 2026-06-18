@@ -389,13 +389,49 @@ export default function PmocGerenciarOperacao() {
   // ===================== DETALHE DO EQUIPAMENTO =====================
   if (selected) {
     const plano = planos.find((p) => p.id === selected.atividades[0]?.planoId);
+    const equipObj = equipamentos.find((e) => e.id === selected.id) || null;
+    const execsEquip = execucoes.filter((e) => e.equipamento_id === selected.id);
+
+    const relInformacoes = () =>
+      gerarPdfPmocInformacoes({
+        equip: equipObj,
+        equipNome: selected.nome,
+        planoTitulo: plano?.titulo,
+        atividades: atividadesOrdenadas as any,
+      });
+    const relManutencoesFotos = () =>
+      gerarPdfPmocManutencoesFotos({
+        equip: equipObj,
+        equipNome: selected.nome,
+        planoTitulo: plano?.titulo,
+        execucoes: execsEquip,
+      });
+    const relHistorico = () =>
+      gerarPdfPmocHistoricoAtividades({
+        equip: equipObj,
+        equipNome: selected.nome,
+        planoTitulo: plano?.titulo,
+        execucoes: execsEquip,
+      });
+
     return (
       <div className="p-6 space-y-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Button variant="outline" size="sm" onClick={() => setSelectedEquipId(null)}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
           </Button>
-          <h1 className="text-2xl font-serif font-semibold">{selected.nome}</h1>
+          <h1 className="text-2xl font-serif font-semibold flex-1">{selected.nome}</h1>
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" size="sm" onClick={relInformacoes}>
+              <FileText className="h-4 w-4 mr-1" /> Informações
+            </Button>
+            <Button variant="outline" size="sm" onClick={relManutencoesFotos}>
+              <Camera className="h-4 w-4 mr-1" /> Manutenções + Fotos
+            </Button>
+            <Button variant="outline" size="sm" onClick={relHistorico}>
+              <Clock className="h-4 w-4 mr-1" /> Histórico
+            </Button>
+          </div>
         </div>
         <Card>
           <CardHeader>
