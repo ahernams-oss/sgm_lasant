@@ -252,6 +252,7 @@ function ProtectedAppRoutes() {
         <Route path="/qualidade/checklists" element={<RotaProtegida perm="checklists"><ChecklistsPage /></RotaProtegida>} />
         <Route path="/cadastros/equipamentos" element={<RotaProtegida perm="equipamentos"><EquipamentosPage /></RotaProtegida>} />
         <Route path="/pmoc" element={<RotaProtegida perm="pmoc"><PmocPage /></RotaProtegida>} />
+        <Route path="/pmoc/gerenciar-operacao" element={<RotaProtegida perm="pmoc"><PmocGerenciarOperacaoPage /></RotaProtegida>} />
         <Route path="/engenharia/plano-manutencao" element={<RotaProtegida perm="plano_manutencao"><PlanoManutencaoPage /></RotaProtegida>} />
         <Route path="/engenharia/base-conhecimento" element={<RotaProtegida perm="base_conhecimento"><BaseConhecimentoPage /></RotaProtegida>} />
         <Route path="/cadastros/categorias-servicos" element={<RotaProtegida perm="categorias_servicos"><CategoriasServicosPage /></RotaProtegida>} />
