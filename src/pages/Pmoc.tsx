@@ -150,7 +150,18 @@ function PlanosTab() {
     setAtivEditing(null);
   };
 
-  const ativsDoPlano = managePlano ? atividades.filter(a => a.planoId === managePlano.id) : [];
+  const ativsDoPlanoOrdenadas = useMemo(() => {
+    const ordem = PERIODICIDADES;
+    return [...ativsDoPlano].sort((a, b) => {
+      const ia = ordem.indexOf(a.periodicidade);
+      const ib = ordem.indexOf(b.periodicidade);
+      if (ia === -1 && ib === -1) return 0;
+      if (ia === -1) return 1;
+      if (ib === -1) return -1;
+      return ia - ib;
+    });
+  }, [ativsDoPlano]);
+
   const equipsDoCliente = managePlano ? equipamentos.filter(e => e.clienteId === managePlano.clienteId) : [];
 
   const startEditAtiv = (a: any) => {
