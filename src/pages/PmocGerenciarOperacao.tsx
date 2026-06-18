@@ -93,6 +93,7 @@ interface Execucao {
   confirmado_por: string | null;
   data_confirmacao: string | null;
   observacoes: string | null;
+  fotos: string[] | null;
   created_at: string;
 }
 
