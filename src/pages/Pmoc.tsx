@@ -437,30 +437,30 @@ function PlanosTab() {
             </div>
             <div>
               <Label className="text-xs">Tipo Equip.</Label>
-              <Select value={filtroTipoEquip} onValueChange={v => setFiltroTipoEquip(v)}>
+              <Select value={filtroTipoEquip || "__all"} onValueChange={v => setFiltroTipoEquip(v === "__all" ? "" : v)}>
                 <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="__all">Todos</SelectItem>
                   {tiposEquipamento.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label className="text-xs">Tipo</Label>
-              <Select value={filtroTipo} onValueChange={v => setFiltroTipo(v)}>
+              <Select value={filtroTipo || "__all"} onValueChange={v => setFiltroTipo(v === "__all" ? "" : v)}>
                 <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="__all">Todos</SelectItem>
                   {tiposAtividade.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label className="text-xs">Period.</Label>
-              <Select value={filtroPeriodo} onValueChange={v => setFiltroPeriodo(v)}>
+              <Select value={filtroPeriodo || "__all"} onValueChange={v => setFiltroPeriodo(v === "__all" ? "" : v)}>
                 <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="__all">Todos</SelectItem>
                   {periodicidades.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                 </SelectContent>
               </Select>
