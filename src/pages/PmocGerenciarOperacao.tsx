@@ -19,8 +19,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import {
   Search, Wrench, CheckCircle2, ArrowLeft, CalendarClock, X,
-  Clock, ShieldCheck, XCircle,
+  Clock, ShieldCheck, XCircle, FileText, FileSpreadsheet,
 } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 const PERIODICIDADE_ORDEM = ["Diária", "Semanal", "Quinzenal", "Mensal", "Bimestral", "Trimestral", "Semestral", "Anual"];
 
