@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { usePmoc } from "@/contexts/PmocContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
-import { useResponsaveisTecnicos } from "@/contexts/ResponsaveisTecnicosContext";
+
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,13 +43,12 @@ const TIPOS_REGISTRO = ["CREA", "CRQ", "CRECI", "CFT", "Outro"];
 // ====================== PLANOS TAB ======================
 function PlanosTab() {
   const {
-    planos, atividades, biblioteca,
+    planos, atividades, biblioteca, responsaveisTecnicos: responsaveisTec,
     addPlano, updatePlano, deletePlano,
     addAtividade, updateAtividade, deleteAtividade,
   } = usePmoc();
   const { clientes } = useClientes();
   const { equipamentos, updateEquipamento } = useEquipamentos();
-  const { responsaveis: responsaveisTec } = useResponsaveisTecnicos();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -640,9 +639,8 @@ function AtividadesTab() {
 
 // ====================== ORDENS DE SERVIÇO TAB ======================
 function OrdensServicoTab() {
-  const { planos, ordensServico, addOS, updateOS, deleteOS } = usePmoc();
+  const { planos, ordensServico, responsaveisTecnicos: responsaveisTec, addOS, updateOS, deleteOS } = usePmoc();
   const { equipamentos } = useEquipamentos();
-  const { responsaveis: responsaveisTec } = useResponsaveisTecnicos();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
