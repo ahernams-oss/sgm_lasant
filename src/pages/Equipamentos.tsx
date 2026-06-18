@@ -498,6 +498,9 @@ export default function Equipamentos() {
                 {clientesList.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
               </SelectContent>
             </Select>
+            <Button variant="outline" disabled={selectedIds.size === 0} onClick={printBulkQrs}>
+              <Printer className="h-4 w-4 mr-1" />Imprimir QRs ({selectedIds.size})
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -505,6 +508,17 @@ export default function Equipamentos() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={paginatedItems.length > 0 && paginatedItems.every(e => selectedIds.has(e.id))}
+                      onCheckedChange={(c) => setSelectedIds(prev => {
+                        const n = new Set(prev);
+                        if (c) paginatedItems.forEach(e => n.add(e.id));
+                        else paginatedItems.forEach(e => n.delete(e.id));
+                        return n;
+                      })}
+                    />
+                  </TableHead>
                   <TableHead>TAG</TableHead>
                   <TableHead>Equipamento</TableHead>
                   <TableHead>Cliente</TableHead>
@@ -517,7 +531,7 @@ export default function Equipamentos() {
               </TableHeader>
               <TableBody>
                 {paginatedItems.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum equipamento encontrado.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhum equipamento encontrado.</TableCell></TableRow>
                 ) : paginatedItems.map(eq => {
                   let calibBadge: React.ReactNode = <span className="text-xs text-muted-foreground">-</span>;
                   if (eq.requerCalibracao) {
