@@ -8,8 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Wrench, CheckCircle2, ArrowLeft, CalendarClock } from "lucide-react";
+import { Search, Wrench, CheckCircle2, ArrowLeft, CalendarClock, X } from "lucide-react";
 
 const PERIODICIDADE_ORDEM = ["Diária", "Semanal", "Quinzenal", "Mensal", "Bimestral", "Trimestral", "Semestral", "Anual"];
 
@@ -37,34 +40,73 @@ function fmtDateTime(iso: string): string {
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+const ALL = "__all__";
+
 export default function PmocGerenciarOperacao() {
   const { atividades, planos, updateAtividade } = usePmoc();
   const { equipamentos } = useEquipamentos();
   const { toast } = useToast();
   const [search, setSearch] = useState("");
+  const [filtroCliente, setFiltroCliente] = useState(ALL);
+  const [filtroSetor, setFiltroSetor] = useState(ALL);
+  const [filtroPeriodicidade, setFiltroPeriodicidade] = useState(ALL);
   const [selectedEquipId, setSelectedEquipId] = useState<string | null>(null);
   const [registrandoId, setRegistrandoId] = useState<string | null>(null);
 
-  // Agrupa atividades por equipamento
+  // Agrupa atividades por equipamento (com dados do equipamento)
   const equipamentosComPlano = useMemo(() => {
-    const map = new Map<string, { id: string; nome: string; atividades: typeof atividades }>();
+    const map = new Map<string, {
+      id: string; nome: string; clienteNome: string; setorDescricao: string;
+      periodicidades: Set<string>; atividades: typeof atividades;
+    }>();
     atividades.forEach((a) => {
       if (!a.equipamentoId) return;
       const equip = equipamentos.find((e) => e.id === a.equipamentoId);
-      const nome = equip ? `${equip.tag || ""} ${equip.equipamento || ""}`.trim() || a.equipamentoNome : a.equipamentoNome || "Equipamento";
+      const nome = equip
+        ? `${equip.tag || ""} ${equip.equipamento || ""}`.trim() || a.equipamentoNome || "Equipamento"
+        : a.equipamentoNome || "Equipamento";
       if (!map.has(a.equipamentoId)) {
-        map.set(a.equipamentoId, { id: a.equipamentoId, nome, atividades: [] });
+        map.set(a.equipamentoId, {
+          id: a.equipamentoId,
+          nome,
+          clienteNome: equip?.clienteNome || "",
+          setorDescricao: equip?.setorDescricao || "",
+          periodicidades: new Set<string>(),
+          atividades: [],
+        });
       }
-      map.get(a.equipamentoId)!.atividades.push(a);
+      const entry = map.get(a.equipamentoId)!;
+      entry.atividades.push(a);
+      if (a.periodicidade) entry.periodicidades.add(a.periodicidade);
     });
     return Array.from(map.values()).sort((a, b) => a.nome.localeCompare(b.nome));
   }, [atividades, equipamentos]);
 
+  const clientesDisponiveis = useMemo(
+    () => [...new Set(equipamentosComPlano.map((e) => e.clienteNome).filter(Boolean))].sort(),
+    [equipamentosComPlano]
+  );
+  const setoresDisponiveis = useMemo(
+    () => [...new Set(equipamentosComPlano.map((e) => e.setorDescricao).filter(Boolean))].sort(),
+    [equipamentosComPlano]
+  );
+
   const filtered = useMemo(() => {
-    if (!search) return equipamentosComPlano;
     const s = search.toLowerCase();
-    return equipamentosComPlano.filter((e) => e.nome.toLowerCase().includes(s));
-  }, [equipamentosComPlano, search]);
+    return equipamentosComPlano.filter((e) => {
+      if (s && !e.nome.toLowerCase().includes(s) &&
+          !e.clienteNome.toLowerCase().includes(s) &&
+          !e.setorDescricao.toLowerCase().includes(s)) return false;
+      if (filtroCliente !== ALL && e.clienteNome !== filtroCliente) return false;
+      if (filtroSetor !== ALL && e.setorDescricao !== filtroSetor) return false;
+      if (filtroPeriodicidade !== ALL && !e.periodicidades.has(filtroPeriodicidade)) return false;
+      return true;
+    });
+  }, [equipamentosComPlano, search, filtroCliente, filtroSetor, filtroPeriodicidade]);
+
+  const limparFiltros = () => {
+    setSearch(""); setFiltroCliente(ALL); setFiltroSetor(ALL); setFiltroPeriodicidade(ALL);
+  };
 
   const selected = selectedEquipId
     ? equipamentosComPlano.find((e) => e.id === selectedEquipId)
@@ -114,11 +156,11 @@ export default function PmocGerenciarOperacao() {
             <CardTitle className="flex items-center gap-2">
               <Wrench className="h-5 w-5" /> Manutenções do Equipamento
             </CardTitle>
-            {plano && (
-              <p className="text-sm text-muted-foreground">
-                Plano: {plano.titulo} {plano.clienteNome ? `— ${plano.clienteNome}` : ""}
-              </p>
-            )}
+            <p className="text-sm text-muted-foreground">
+              {selected.clienteNome && <>Cliente: {selected.clienteNome} · </>}
+              {selected.setorDescricao && <>Setor: {selected.setorDescricao}</>}
+              {plano && <> · Plano: {plano.titulo}</>}
+            </p>
           </CardHeader>
           <CardContent>
             <Table>
@@ -139,9 +181,11 @@ export default function PmocGerenciarOperacao() {
                     <TableCell>{a.tipo}</TableCell>
                     <TableCell><Badge variant="secondary">{a.periodicidade}</Badge></TableCell>
                     <TableCell>{fmtDateTime(a.ultimaExecucao)}</TableCell>
-                    <TableCell className="flex items-center gap-1">
-                      <CalendarClock className="h-4 w-4 text-muted-foreground" />
-                      {fmtDateTime(a.proximaExecucao)}
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <CalendarClock className="h-4 w-4 text-muted-foreground" />
+                        {fmtDateTime(a.proximaExecucao)}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
@@ -170,6 +214,8 @@ export default function PmocGerenciarOperacao() {
     );
   }
 
+  const algumFiltro = search || filtroCliente !== ALL || filtroSetor !== ALL || filtroPeriodicidade !== ALL;
+
   return (
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-serif font-semibold">Gerenciar Operação</h1>
@@ -178,20 +224,50 @@ export default function PmocGerenciarOperacao() {
           <CardTitle>Equipamentos com Plano PMOC</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="relative max-w-md">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar equipamento..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8"
-            />
+          <div className="grid gap-3 md:grid-cols-[1fr_200px_200px_200px_auto]">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar equipamento, cliente ou setor..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <Select value={filtroCliente} onValueChange={setFiltroCliente}>
+              <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Todos os clientes</SelectItem>
+                {clientesDisponiveis.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filtroSetor} onValueChange={setFiltroSetor}>
+              <SelectTrigger><SelectValue placeholder="Setor" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Todos os setores</SelectItem>
+                {setoresDisponiveis.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filtroPeriodicidade} onValueChange={setFiltroPeriodicidade}>
+              <SelectTrigger><SelectValue placeholder="Periodicidade" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Todas periodicidades</SelectItem>
+                {PERIODICIDADE_ORDEM.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            {algumFiltro && (
+              <Button variant="ghost" onClick={limparFiltros}>
+                <X className="h-4 w-4 mr-1" /> Limpar
+              </Button>
+            )}
           </div>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Equipamento</TableHead>
-                <TableHead>Atividades</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Setor</TableHead>
+                <TableHead className="text-center">Atividades</TableHead>
                 <TableHead>Próxima Manutenção</TableHead>
                 <TableHead className="text-right">Ação</TableHead>
               </TableRow>
@@ -206,7 +282,9 @@ export default function PmocGerenciarOperacao() {
                 return (
                   <TableRow key={e.id}>
                     <TableCell className="font-medium">{e.nome}</TableCell>
-                    <TableCell>{e.atividades.length}</TableCell>
+                    <TableCell>{e.clienteNome || "—"}</TableCell>
+                    <TableCell>{e.setorDescricao || "—"}</TableCell>
+                    <TableCell className="text-center">{e.atividades.length}</TableCell>
                     <TableCell>{fmtDateTime(proxima)}</TableCell>
                     <TableCell className="text-right">
                       <Button size="sm" variant="outline" onClick={() => setSelectedEquipId(e.id)}>
@@ -218,7 +296,7 @@ export default function PmocGerenciarOperacao() {
               })}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground py-6">
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
                     Nenhum equipamento com plano PMOC encontrado.
                   </TableCell>
                 </TableRow>
