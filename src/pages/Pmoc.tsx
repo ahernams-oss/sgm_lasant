@@ -339,9 +339,9 @@ function PlanosTab() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {ativsDoPlano.length === 0 ? (
+                    {ativsDoPlanoOrdenadas.length === 0 ? (
                       <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhuma atividade no plano</TableCell></TableRow>
-                    ) : ativsDoPlano.map(a => (
+                    ) : ativsDoPlanoOrdenadas.map(a => (
                       <TableRow key={a.id}>
                         <TableCell className="font-medium">{a.descricao}</TableCell>
                         <TableCell className="text-xs">{a.equipamentoNome || "—"}</TableCell>
