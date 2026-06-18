@@ -69,6 +69,24 @@ export default function EquipamentoPublico() {
           </CardContent>
         </Card>
 
+        {(() => {
+          const fotos: string[] = Array.isArray(equip.fotos) ? equip.fotos : (equip.fotos ? (() => { try { return JSON.parse(equip.fotos); } catch { return []; } })() : []);
+          const list = fotos.length > 0 ? fotos : (equip.foto_url ? [equip.foto_url] : []);
+          if (list.length === 0) return null;
+          return (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Fotos</CardTitle></CardHeader>
+              <CardContent>
+                <div className="flex gap-2 flex-wrap">
+                  {list.map((u: string, i: number) => (
+                    <a key={i} href={u} target="_blank" rel="noreferrer"><img src={u} alt={`Foto ${i+1}`} className="h-32 w-32 object-cover rounded border" /></a>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
+
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
