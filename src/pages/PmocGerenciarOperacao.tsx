@@ -332,6 +332,10 @@ export default function PmocGerenciarOperacao() {
               <TableBody>
                 {atividadesOrdenadas.map((a) => {
                   const pend = pendentesPorAtividade.get(a.id);
+                  const liberado = podeRegistrarManutencao(a.proximaExecucao);
+                  const liberadoEm = a.proximaExecucao
+                    ? fmtDate(new Date(new Date(a.proximaExecucao).setDate(new Date(a.proximaExecucao).getDate() - 2)).toISOString())
+                    : "";
                   return (
                     <TableRow key={a.id}>
                       <TableCell className="font-medium">{a.descricao || "—"}</TableCell>
@@ -357,8 +361,14 @@ export default function PmocGerenciarOperacao() {
                         <Button
                           size="sm"
                           onClick={() => handleRegistrar(a)}
-                          disabled={busy || !!pend}
-                          title={pend ? "Já existe um registro pendente para esta atividade" : ""}
+                          disabled={busy || !!pend || !liberado}
+                          title={
+                            pend
+                              ? "Já existe um registro pendente para esta atividade"
+                              : !liberado
+                              ? `Disponível a partir de ${liberadoEm}`
+                              : ""
+                          }
                         >
                           <CheckCircle2 className="h-4 w-4 mr-1" />
                           {pend ? "Pendente" : "Registrar Manutenção"}
