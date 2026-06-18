@@ -647,7 +647,7 @@ export default function Equipamentos() {
               <div><span className="font-semibold">Potência:</span> {viewEquip.potencia || "-"}</div>
               <div><span className="font-semibold">Capacidade BTU:</span> {viewEquip.capacidadeBtu || "-"}</div>
               <div><span className="font-semibold">Contrato:</span> {viewEquip.contrato || "-"}</div>
-              <div><span className="font-semibold">Plano Manutenção:</span> {viewEquip.planoManutencao || "-"}</div>
+              <div><span className="font-semibold">Plano Manutenção:</span> {(pmocPlanos || []).find((p: any) => p.id === viewEquip.planoManutencao)?.titulo || viewEquip.planoManutencao || "-"}</div>
               <div><span className="font-semibold">Nº Anvisa:</span> {viewEquip.numeroAnvisa || "-"}</div>
               {((viewEquip.fotos && viewEquip.fotos.length > 0) || viewEquip.fotoUrl) && (
                 <div className="col-span-2">
