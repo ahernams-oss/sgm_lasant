@@ -387,7 +387,7 @@ const EpiTab = ({ epis, onChange, cargoId }: { epis: EpiItem[]; onChange: (e: Ep
               <TableRow>
                 <TableHead className="w-20">Quant.</TableHead>
                 <TableHead>E.P.I</TableHead>
-                <TableHead className="w-28">CA</TableHead>
+                <TableHead className="w-40">CA</TableHead>
                 <TableHead className="w-40">Data Entrega</TableHead>
                 <TableHead className="w-40">Vencimento</TableHead>
                 <TableHead className="w-16"></TableHead>
