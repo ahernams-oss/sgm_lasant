@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useEquipamentos, type Equipamento } from "@/contexts/EquipamentosContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -88,6 +89,46 @@ export default function Equipamentos() {
     a.href = qrDataUrl;
     a.download = `qrcode-${(qrEquip.tag || qrEquip.equipamento || "equipamento").replace(/[^a-z0-9]/gi, "_")}.png`;
     a.click();
+  };
+
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const toggleSelected = (id: string) => setSelectedIds(prev => {
+    const n = new Set(prev);
+    n.has(id) ? n.delete(id) : n.add(id);
+    return n;
+  });
+
+  const printBulkQrs = async () => {
+    const list = equipamentos.filter(e => selectedIds.has(e.id));
+    if (list.length === 0) { toast.error("Selecione ao menos um equipamento."); return; }
+    const items = await Promise.all(list.map(async eq => {
+      const url = `${window.location.origin}/equipamento/${eq.id}`;
+      const dataUrl = await QRCode.toDataURL(url, { width: 400, margin: 1 });
+      return { eq, url, dataUrl };
+    }));
+    const w = window.open("", "_blank", "width=900,height=900");
+    if (!w) return;
+    const cards = items.map(({ eq, url, dataUrl }) => `
+      <div class="label">
+        <div class="title">${(eq.equipamento || "").replace(/</g, "&lt;")}</div>
+        ${eq.tag ? `<div class="tag">TAG: ${eq.tag.replace(/</g, "&lt;")}</div>` : ""}
+        ${eq.clienteNome ? `<div class="sub">${eq.clienteNome.replace(/</g, "&lt;")}</div>` : ""}
+        ${eq.setorDescricao ? `<div class="sub">${eq.setorDescricao.replace(/</g, "&lt;")}</div>` : ""}
+        <img src="${dataUrl}" />
+        <div class="url">${url}</div>
+      </div>`).join("");
+    w.document.write(`<html><head><title>Etiquetas QR</title><style>
+      @page { size: A4; margin: 8mm; }
+      body { font-family: Arial, sans-serif; margin: 0; }
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm; }
+      .label { border: 1px dashed #999; border-radius: 6px; padding: 6mm; text-align: center; page-break-inside: avoid; }
+      .title { font-weight: bold; font-size: 12px; margin-bottom: 2px; }
+      .tag { font-family: monospace; font-size: 10px; color: #333; }
+      .sub { font-size: 10px; color: #555; }
+      .label img { width: 100%; max-width: 50mm; height: auto; margin: 4px auto; display: block; }
+      .url { font-size: 7px; color: #777; word-break: break-all; }
+    </style></head><body><div class="grid">${cards}</div><script>window.onload=()=>window.print();<\/script></body></html>`);
+    w.document.close();
   };
 
   const selectedCliente = useMemo(() => clientesList.find(c => c.id === form.clienteId), [clientesList, form.clienteId]);
@@ -457,6 +498,9 @@ export default function Equipamentos() {
                 {clientesList.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
               </SelectContent>
             </Select>
+            <Button variant="outline" disabled={selectedIds.size === 0} onClick={printBulkQrs}>
+              <Printer className="h-4 w-4 mr-1" />Imprimir QRs ({selectedIds.size})
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -464,6 +508,17 @@ export default function Equipamentos() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={paginatedItems.length > 0 && paginatedItems.every(e => selectedIds.has(e.id))}
+                      onCheckedChange={(c) => setSelectedIds(prev => {
+                        const n = new Set(prev);
+                        if (c) paginatedItems.forEach(e => n.add(e.id));
+                        else paginatedItems.forEach(e => n.delete(e.id));
+                        return n;
+                      })}
+                    />
+                  </TableHead>
                   <TableHead>TAG</TableHead>
                   <TableHead>Equipamento</TableHead>
                   <TableHead>Cliente</TableHead>
@@ -476,7 +531,7 @@ export default function Equipamentos() {
               </TableHeader>
               <TableBody>
                 {paginatedItems.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum equipamento encontrado.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhum equipamento encontrado.</TableCell></TableRow>
                 ) : paginatedItems.map(eq => {
                   let calibBadge: React.ReactNode = <span className="text-xs text-muted-foreground">-</span>;
                   if (eq.requerCalibracao) {
@@ -490,6 +545,9 @@ export default function Equipamentos() {
                   }
                   return (
                   <TableRow key={eq.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setViewEquip(eq)}>
+                    <TableCell onClick={e => e.stopPropagation()}>
+                      <Checkbox checked={selectedIds.has(eq.id)} onCheckedChange={() => toggleSelected(eq.id)} />
+                    </TableCell>
                     <TableCell className="font-mono text-xs">{eq.tag || "-"}</TableCell>
                     <TableCell className="font-medium">{eq.equipamento}</TableCell>
                     <TableCell className="text-sm">{eq.clienteNome}</TableCell>
