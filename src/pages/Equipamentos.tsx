@@ -545,6 +545,9 @@ export default function Equipamentos() {
                   }
                   return (
                   <TableRow key={eq.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setViewEquip(eq)}>
+                    <TableCell onClick={e => e.stopPropagation()}>
+                      <Checkbox checked={selectedIds.has(eq.id)} onCheckedChange={() => toggleSelected(eq.id)} />
+                    </TableCell>
                     <TableCell className="font-mono text-xs">{eq.tag || "-"}</TableCell>
                     <TableCell className="font-medium">{eq.equipamento}</TableCell>
                     <TableCell className="text-sm">{eq.clienteNome}</TableCell>
