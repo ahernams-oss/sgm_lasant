@@ -1476,7 +1476,7 @@ function DashboardTab() {
   );
 }
 
-type TabKey = "dashboard" | "planos" | "atividades" | "os" | "inconformidades" | "qa" | "rt" | "biblioteca";
+type TabKey = "dashboard" | "planos" | "os" | "inconformidades" | "qa" | "rt" | "biblioteca";
 
 const TAB_GROUPS: { label: string; items: { value: TabKey; label: string; icon: any; hint: string }[] }[] = [
   {
@@ -1488,9 +1488,8 @@ const TAB_GROUPS: { label: string; items: { value: TabKey; label: string; icon: 
   {
     label: "Planejamento",
     items: [
-      { value: "planos", label: "Planos", icon: FileText, hint: "Cadastro de planos PMOC por cliente/contrato" },
-      { value: "atividades", label: "Atividades", icon: CalendarClock, hint: "Rotinas programadas por equipamento e periodicidade" },
-      { value: "biblioteca", label: "Biblioteca", icon: BookOpen, hint: "Modelos de rotinas reutilizáveis" },
+      { value: "biblioteca", label: "1. Biblioteca de Rotinas", icon: BookOpen, hint: "Modelos reutilizáveis de atividades (opcional, agiliza criação)" },
+      { value: "planos", label: "2. Planos de Manutenção", icon: FileText, hint: "Crie o plano, adicione atividades (do zero ou da biblioteca) e vincule equipamentos — tudo em um só lugar" },
     ],
   },
   {
@@ -1524,6 +1523,16 @@ export default function PmocPage() {
         <p className="text-sm text-muted-foreground">Plano de Manutenção, Operação e Controle — gestão completa por cliente e contrato.</p>
       </div>
 
+      {/* Fluxo guiado */}
+      <div className="rounded-lg border bg-primary/5 px-4 py-3 text-xs text-muted-foreground">
+        <span className="font-semibold text-foreground">Fluxo recomendado:</span>{" "}
+        <span className="inline-flex items-center gap-1"><BookOpen className="h-3 w-3" />Biblioteca de Rotinas</span>
+        {" → "}
+        <span className="inline-flex items-center gap-1"><FileText className="h-3 w-3" />Plano de Manutenção (adicionar atividades + vincular equipamentos)</span>
+        {" → "}
+        <span className="inline-flex items-center gap-1"><Settings className="h-3 w-3" />Plano aparece no cadastro de Equipamentos</span>
+      </div>
+
       <Tabs value={tab} onValueChange={v => setTab(v as TabKey)} className="w-full">
         <div className="rounded-lg border bg-card p-3 space-y-2">
           {TAB_GROUPS.map(group => (
@@ -1552,7 +1561,6 @@ export default function PmocPage() {
 
         <TabsContent value="dashboard"><DashboardTab /></TabsContent>
         <TabsContent value="planos"><PlanosTab /></TabsContent>
-        <TabsContent value="atividades"><AtividadesTab /></TabsContent>
         <TabsContent value="os"><OrdensServicoTab /></TabsContent>
         <TabsContent value="rt"><ResponsaveisTecnicosTab /></TabsContent>
         <TabsContent value="qa"><QualidadeArTab /></TabsContent>
