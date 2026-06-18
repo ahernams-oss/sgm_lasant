@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { usePmoc } from "@/contexts/PmocContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
+import { useResponsaveisTecnicos } from "@/contexts/ResponsaveisTecnicosContext";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +49,7 @@ function PlanosTab() {
   } = usePmoc();
   const { clientes } = useClientes();
   const { equipamentos, updateEquipamento } = useEquipamentos();
+  const { responsaveis: responsaveisTec } = useResponsaveisTecnicos();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -282,7 +284,15 @@ function PlanosTab() {
                 <SelectContent>{STATUS_PLANO.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div><Label>Responsável Técnico</Label><Input value={form.responsavel_tecnico_nome} onChange={e => setForm(f => ({ ...f, responsavel_tecnico_nome: e.target.value }))} /></div>
+            <div><Label>Responsável Técnico</Label>
+              <Select value={form.responsavel_tecnico_nome || "__none"} onValueChange={v => setForm(f => ({ ...f, responsavel_tecnico_nome: v === "__none" ? "" : v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">—</SelectItem>
+                  {responsaveisTec.map(r => <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="col-span-2"><Label>Procedimentos em Caso de Falha</Label><Textarea value={form.procedimentos_falha} onChange={e => setForm(f => ({ ...f, procedimentos_falha: e.target.value }))} rows={2} /></div>
             <div className="col-span-2"><Label>Contingência</Label><Textarea value={form.contingencia} onChange={e => setForm(f => ({ ...f, contingencia: e.target.value }))} rows={2} /></div>
             <div className="col-span-2"><Label>Observações</Label><Textarea value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} /></div>
@@ -632,6 +642,7 @@ function AtividadesTab() {
 function OrdensServicoTab() {
   const { planos, ordensServico, addOS, updateOS, deleteOS } = usePmoc();
   const { equipamentos } = useEquipamentos();
+  const { responsaveis: responsaveisTec } = useResponsaveisTecnicos();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -787,7 +798,15 @@ function OrdensServicoTab() {
             <div><Label>Origem</Label><Input value={form.origem} onChange={e => setForm(f => ({ ...f, origem: e.target.value }))} /></div>
             <div><Label>Data Abertura</Label><Input type="date" value={form.data_abertura} onChange={e => setForm(f => ({ ...f, data_abertura: e.target.value }))} /></div>
             <div><Label>Data Prazo</Label><Input type="date" value={form.data_prazo} onChange={e => setForm(f => ({ ...f, data_prazo: e.target.value }))} /></div>
-            <div><Label>Técnico Responsável</Label><Input value={form.tecnico_responsavel} onChange={e => setForm(f => ({ ...f, tecnico_responsavel: e.target.value }))} /></div>
+            <div><Label>Técnico Responsável</Label>
+              <Select value={form.tecnico_responsavel || "__none"} onValueChange={v => setForm(f => ({ ...f, tecnico_responsavel: v === "__none" ? "" : v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">—</SelectItem>
+                  {responsaveisTec.map(r => <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <div><Label>Equipe</Label><Input value={form.equipe} onChange={e => setForm(f => ({ ...f, equipe: e.target.value }))} /></div>
             <div className="col-span-2"><Label>Observações</Label><Textarea value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} /></div>
           </div>
