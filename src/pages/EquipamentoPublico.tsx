@@ -12,6 +12,8 @@ export default function EquipamentoPublico() {
   const { id } = useParams<{ id: string }>();
   const [equip, setEquip] = useState<any>(null);
   const [manutencoes, setManutencoes] = useState<any[]>([]);
+  const [atividades, setAtividades] = useState<any[]>([]);
+  const [execucoes, setExecucoes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -21,18 +23,36 @@ export default function EquipamentoPublico() {
       const { data: eq } = await supabase.from("equipamentos").select("*").eq("id", id).maybeSingle();
       if (!eq) { setNotFound(true); setLoading(false); return; }
       setEquip(eq);
-      const { data: ss } = await supabase
-        .from("solicitacoes_servicos")
-        .select("id, numero, descricao_servicos, situacao, tipo, prioridade, data_hora_solicitacao, created_at")
-        .eq("equipamento_id", id)
-        .order("created_at", { ascending: false });
+      const [{ data: ss }, { data: ats }, { data: exs }] = await Promise.all([
+        supabase.from("solicitacoes_servicos")
+          .select("id, numero, descricao_servicos, situacao, tipo, prioridade, data_hora_solicitacao, created_at")
+          .eq("equipamento_id", id).order("created_at", { ascending: false }),
+        supabase.from("pmoc_atividades")
+          .select("id, descricao, periodicidade, ultima_execucao, proxima_execucao, ativa")
+          .eq("equipamento_id", id),
+        supabase.from("pmoc_atividades_execucoes")
+          .select("id, atividade_id, atividade_descricao, periodicidade, data_execucao, proxima_execucao, status, data_confirmacao")
+          .eq("equipamento_id", id).order("data_execucao", { ascending: false }),
+      ]);
       setManutencoes(ss || []);
+      setAtividades(ats || []);
+      setExecucoes(exs || []);
       setLoading(false);
     })();
   }, [id]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (notFound) return <div className="min-h-screen flex items-center justify-center text-destructive">Equipamento não encontrado.</div>;
+
+  const statusManutencao = (proxima?: string | null) => {
+    if (!proxima) return { label: "Sem agendamento", variant: "outline" as const };
+    const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+    const prox = new Date(proxima); prox.setHours(0, 0, 0, 0);
+    const diff = Math.round((prox.getTime() - hoje.getTime()) / 86400000);
+    if (diff < 0) return { label: `Vencida há ${Math.abs(diff)}d`, variant: "destructive" as const };
+    if (diff <= 2) return { label: `Vence em ${diff}d`, variant: "secondary" as const };
+    return { label: `Em dia (${diff}d)`, variant: "default" as const };
+  };
 
   const Info = ({ label, value }: { label: string; value: any }) => (
     <div className="border-b border-border/50 py-2">
