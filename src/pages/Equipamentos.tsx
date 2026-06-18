@@ -31,7 +31,7 @@ const emptyForm = {
   modelo: "", valor: 0, fabricante: "", dataAquisicao: "", nivelRisco: "",
   nivelManutencao: "", expectativaVida: "", dataGarantia: "", tensao: "",
   corrente: "", potencia: "", capacidadeBtu: "", contrato: "", planoManutencao: "",
-  numeroAnvisa: "", fotoUrl: "", manualUrl: "",
+  numeroAnvisa: "", fotoUrl: "", manualUrl: "", fotos: [] as string[],
   requerCalibracao: false, dataCalibracao: "", validadeCalibracao: "",
   frequenciaCalibracaoMeses: 12, certificadoCalibracaoUrl: "",
   laboratorioCalibracao: "", numeroCertificadoCalibracao: "",
@@ -170,6 +170,26 @@ export default function Equipamentos() {
     else setField("certificadoCalibracaoUrl", publicUrl);
     setter(false);
     toast.success(`Arquivo enviado!`);
+  };
+
+  const handleAddFoto = async (file: File) => {
+    const fotos = form.fotos || [];
+    if (fotos.length >= 5) { toast.error("Limite máximo de 5 fotos."); return; }
+    setUploadingFoto(true);
+    const ext = file.name.split(".").pop();
+    const path = `equipamentos/foto_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from("evidencias-anexos").upload(path, file);
+    if (error) { toast.error("Erro no upload."); setUploadingFoto(false); return; }
+    const { data: { publicUrl } } = supabase.storage.from("evidencias-anexos").getPublicUrl(path);
+    const novas = [...fotos, publicUrl];
+    setForm(prev => ({ ...prev, fotos: novas, fotoUrl: prev.fotoUrl || publicUrl }));
+    setUploadingFoto(false);
+    toast.success("Foto enviada!");
+  };
+
+  const handleRemoveFoto = (idx: number) => {
+    const novas = (form.fotos || []).filter((_, i) => i !== idx);
+    setForm(prev => ({ ...prev, fotos: novas, fotoUrl: novas[0] || "" }));
   };
 
   const loadHistorico = async (equipId: string) => {
@@ -450,14 +470,25 @@ export default function Equipamentos() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Foto</Label>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" disabled={uploadingFoto} onClick={() => document.getElementById("foto-upload")?.click()}>
-                    <Image className="h-4 w-4 mr-1" />{uploadingFoto ? "Enviando..." : "Upload Foto"}
+                <Label>Fotos ({(form.fotos || []).length}/5)</Label>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button variant="outline" size="sm" disabled={uploadingFoto || (form.fotos || []).length >= 5} onClick={() => document.getElementById("foto-upload")?.click()}>
+                    <Image className="h-4 w-4 mr-1" />{uploadingFoto ? "Enviando..." : "Adicionar Foto"}
                   </Button>
-                  <input id="foto-upload" type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && handleUpload(e.target.files[0], "foto")} />
-                  {form.fotoUrl && <a href={form.fotoUrl} target="_blank" rel="noreferrer" className="text-xs text-primary underline">Ver foto</a>}
+                  <input id="foto-upload" type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleAddFoto(f); e.target.value = ""; }} />
                 </div>
+                {(form.fotos || []).length > 0 && (
+                  <div className="flex gap-2 flex-wrap mt-2">
+                    {(form.fotos || []).map((url, idx) => (
+                      <div key={idx} className="relative group">
+                        <a href={url} target="_blank" rel="noreferrer">
+                          <img src={url} alt={`Foto ${idx + 1}`} className="h-20 w-20 object-cover rounded border" />
+                        </a>
+                        <button type="button" onClick={() => handleRemoveFoto(idx)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full h-5 w-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition">×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
                 <Label>Manual</Label>
