@@ -75,6 +75,24 @@ function PlanosTab() {
     parametros_tecnicos: "", procedimento_falha: "",
   });
   const [bibliotecaPicker, setBibliotecaPicker] = useState(false);
+  const [filtroTitulo, setFiltroTitulo] = useState("");
+  const [filtroTipoEquip, setFiltroTipoEquip] = useState("");
+  const [filtroTipo, setFiltroTipo] = useState("");
+  const [filtroPeriodo, setFiltroPeriodo] = useState("");
+
+  const bibliotecaFiltrada = useMemo(() => {
+    return biblioteca.filter(b => {
+      if (filtroTitulo && !b.titulo.toLowerCase().includes(filtroTitulo.toLowerCase())) return false;
+      if (filtroTipoEquip && b.tipoEquipamento !== filtroTipoEquip) return false;
+      if (filtroTipo && b.tipoAtividade !== filtroTipo) return false;
+      if (filtroPeriodo && b.periodicidadeSugerida !== filtroPeriodo) return false;
+      return true;
+    });
+  }, [biblioteca, filtroTitulo, filtroTipoEquip, filtroTipo, filtroPeriodo]);
+
+  const tiposEquipamento = useMemo(() => [...new Set(biblioteca.map(b => b.tipoEquipamento).filter(Boolean))].sort(), [biblioteca]);
+  const tiposAtividade = useMemo(() => [...new Set(biblioteca.map(b => b.tipoAtividade).filter(Boolean))].sort(), [biblioteca]);
+  const periodicidades = useMemo(() => [...new Set(biblioteca.map(b => b.periodicidadeSugerida).filter(Boolean))].sort(), [biblioteca]);
 
   const filtered = useMemo(() => {
     if (!search) return planos;
