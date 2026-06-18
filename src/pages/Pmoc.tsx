@@ -1549,7 +1549,7 @@ const TAB_GROUPS: { label: string; items: { value: TabKey; label: string; icon: 
   {
     label: "Execução",
     items: [
-      { value: "os", label: "Ordens de Serviço", icon: Wrench, hint: "OS PMOC geradas, em execução e concluídas" },
+      
       { value: "inconformidades", label: "Inconformidades", icon: AlertTriangle, hint: "Não conformidades identificadas nas execuções" },
     ],
   },
