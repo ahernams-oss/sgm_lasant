@@ -798,7 +798,15 @@ function OrdensServicoTab() {
             <div><Label>Origem</Label><Input value={form.origem} onChange={e => setForm(f => ({ ...f, origem: e.target.value }))} /></div>
             <div><Label>Data Abertura</Label><Input type="date" value={form.data_abertura} onChange={e => setForm(f => ({ ...f, data_abertura: e.target.value }))} /></div>
             <div><Label>Data Prazo</Label><Input type="date" value={form.data_prazo} onChange={e => setForm(f => ({ ...f, data_prazo: e.target.value }))} /></div>
-            <div><Label>Técnico Responsável</Label><Input value={form.tecnico_responsavel} onChange={e => setForm(f => ({ ...f, tecnico_responsavel: e.target.value }))} /></div>
+            <div><Label>Técnico Responsável</Label>
+              <Select value={form.tecnico_responsavel || "__none"} onValueChange={v => setForm(f => ({ ...f, tecnico_responsavel: v === "__none" ? "" : v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">—</SelectItem>
+                  {responsaveisTec.map(r => <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <div><Label>Equipe</Label><Input value={form.equipe} onChange={e => setForm(f => ({ ...f, equipe: e.target.value }))} /></div>
             <div className="col-span-2"><Label>Observações</Label><Textarea value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} /></div>
           </div>
