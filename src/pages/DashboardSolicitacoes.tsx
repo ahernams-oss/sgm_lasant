@@ -349,13 +349,13 @@ export default function DashboardSolicitacoes() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm mb-3">
               <Sparkles className="h-3.5 w-3.5" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider">Engenharia e Manutenção · Operacional</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider">Solicitações de Serviço · Operacional</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-              Dashboard de Solicitações e Ordens de Serviço
+              Dashboard de Solicitações de Serviço
             </h1>
             <p className="text-sm md:text-base text-primary-foreground/85 mt-1.5 max-w-2xl">
-              Acompanhamento operacional de SS, OS e produtividade da equipe técnica.
+              Acompanhamento de SS e OS — abertura, fluxo, situação e produtividade por cliente.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 shrink-0">
