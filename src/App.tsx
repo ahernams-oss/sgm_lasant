@@ -93,6 +93,7 @@ import { ChecklistsProvider } from "@/contexts/ChecklistsContext";
 import EquipamentosPage from "./pages/Equipamentos.tsx";
 import { EquipamentosProvider } from "@/contexts/EquipamentosContext";
 import PmocPage from "./pages/Pmoc.tsx";
+import PmocGerenciarOperacaoPage from "./pages/PmocGerenciarOperacao.tsx";
 import { PmocProvider } from "@/contexts/PmocContext";
 import { CategoriasServicosProvider } from "@/contexts/CategoriasServicosContext";
 import { ServicosProvider } from "@/contexts/ServicosContext";
