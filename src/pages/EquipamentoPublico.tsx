@@ -1,0 +1,113 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Monitor, Wrench, Lock } from "lucide-react";
+
+const fmtDate = (d?: string) => d ? new Date(d).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-";
+
+export default function EquipamentoPublico() {
+  const { id } = useParams<{ id: string }>();
+  const [equip, setEquip] = useState<any>(null);
+  const [manutencoes, setManutencoes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      const { data: eq } = await supabase.from("equipamentos").select("*").eq("id", id).maybeSingle();
+      if (!eq) { setNotFound(true); setLoading(false); return; }
+      setEquip(eq);
+      const { data: ss } = await supabase
+        .from("solicitacoes_servicos")
+        .select("id, numero, descricao_servicos, situacao, tipo, prioridade, data_hora_solicitacao, created_at")
+        .eq("equipamento_id", id)
+        .order("created_at", { ascending: false });
+      setManutencoes(ss || []);
+      setLoading(false);
+    })();
+  }, [id]);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  if (notFound) return <div className="min-h-screen flex items-center justify-center text-destructive">Equipamento não encontrado.</div>;
+
+  const Info = ({ label, value }: { label: string; value: any }) => (
+    <div className="border-b border-border/50 py-2">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-sm font-medium">{value || "-"}</div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div className="flex items-center gap-3">
+          <Monitor className="h-7 w-7 text-primary" />
+          <div>
+            <h1 className="text-xl font-bold text-foreground">{equip.equipamento || "Equipamento"}</h1>
+            {equip.tag && <p className="text-xs text-muted-foreground font-mono">TAG: {equip.tag}</p>}
+          </div>
+          <Badge variant="outline" className="ml-auto gap-1"><Lock className="h-3 w-3" />Somente leitura</Badge>
+        </div>
+
+        <Card>
+          <CardHeader><CardTitle className="text-base">Informações do Equipamento</CardTitle></CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+            <Info label="Cliente" value={equip.cliente_nome} />
+            <Info label="Local" value={equip.local_descricao} />
+            <Info label="Pavimento" value={equip.pavimento_descricao} />
+            <Info label="Setor" value={equip.setor_descricao} />
+            <Info label="Situação" value={<Badge variant={equip.situacao === "Ativo" ? "default" : equip.situacao === "Em Manutenção" ? "secondary" : "destructive"}>{equip.situacao}</Badge>} />
+            <Info label="Modelo" value={equip.modelo} />
+            <Info label="Fabricante" value={equip.fabricante} />
+            <Info label="Capacidade (BTU)" value={equip.capacidade_btu} />
+            <Info label="Tensão" value={equip.tensao} />
+            <Info label="Série" value={equip.serie} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Wrench className="h-4 w-4 text-primary" />
+              Manutenções ({manutencoes.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nº</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Situação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {manutencoes.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhuma manutenção registrada.</TableCell></TableRow>
+                  ) : manutencoes.map(m => (
+                    <TableRow key={m.id}>
+                      <TableCell className="font-mono text-xs">{m.numero || "-"}</TableCell>
+                      <TableCell className="text-sm">{fmtDate(m.data_hora_solicitacao || m.created_at)}</TableCell>
+                      <TableCell className="text-sm">{m.tipo || "-"}</TableCell>
+                      <TableCell className="text-sm max-w-md truncate">{m.descricao_servicos || "-"}</TableCell>
+                      <TableCell><Badge variant="outline" className="text-xs">{m.situacao}</Badge></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <p className="text-center text-xs text-muted-foreground">Visualização pública somente leitura.</p>
+      </div>
+    </div>
+  );
+}
