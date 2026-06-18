@@ -12,6 +12,8 @@ export default function EquipamentoPublico() {
   const { id } = useParams<{ id: string }>();
   const [equip, setEquip] = useState<any>(null);
   const [manutencoes, setManutencoes] = useState<any[]>([]);
+  const [atividades, setAtividades] = useState<any[]>([]);
+  const [execucoes, setExecucoes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -21,18 +23,36 @@ export default function EquipamentoPublico() {
       const { data: eq } = await supabase.from("equipamentos").select("*").eq("id", id).maybeSingle();
       if (!eq) { setNotFound(true); setLoading(false); return; }
       setEquip(eq);
-      const { data: ss } = await supabase
-        .from("solicitacoes_servicos")
-        .select("id, numero, descricao_servicos, situacao, tipo, prioridade, data_hora_solicitacao, created_at")
-        .eq("equipamento_id", id)
-        .order("created_at", { ascending: false });
+      const [{ data: ss }, { data: ats }, { data: exs }] = await Promise.all([
+        supabase.from("solicitacoes_servicos")
+          .select("id, numero, descricao_servicos, situacao, tipo, prioridade, data_hora_solicitacao, created_at")
+          .eq("equipamento_id", id).order("created_at", { ascending: false }),
+        supabase.from("pmoc_atividades")
+          .select("id, descricao, periodicidade, ultima_execucao, proxima_execucao, ativa")
+          .eq("equipamento_id", id),
+        supabase.from("pmoc_atividades_execucoes")
+          .select("id, atividade_id, atividade_descricao, periodicidade, data_execucao, proxima_execucao, status, data_confirmacao")
+          .eq("equipamento_id", id).order("data_execucao", { ascending: false }),
+      ]);
       setManutencoes(ss || []);
+      setAtividades(ats || []);
+      setExecucoes(exs || []);
       setLoading(false);
     })();
   }, [id]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (notFound) return <div className="min-h-screen flex items-center justify-center text-destructive">Equipamento não encontrado.</div>;
+
+  const statusManutencao = (proxima?: string | null) => {
+    if (!proxima) return { label: "Sem agendamento", variant: "outline" as const };
+    const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+    const prox = new Date(proxima); prox.setHours(0, 0, 0, 0);
+    const diff = Math.round((prox.getTime() - hoje.getTime()) / 86400000);
+    if (diff < 0) return { label: `Vencida há ${Math.abs(diff)}d`, variant: "destructive" as const };
+    if (diff <= 2) return { label: `Vence em ${diff}d`, variant: "secondary" as const };
+    return { label: `Em dia (${diff}d)`, variant: "default" as const };
+  };
 
   const Info = ({ label, value }: { label: string; value: any }) => (
     <div className="border-b border-border/50 py-2">
@@ -86,6 +106,87 @@ export default function EquipamentoPublico() {
             </Card>
           );
         })()}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Wrench className="h-4 w-4 text-primary" />
+              Plano de Manutenção PMOC ({atividades.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Atividade</TableHead>
+                    <TableHead>Periodicidade</TableHead>
+                    <TableHead>Última execução</TableHead>
+                    <TableHead>Próxima execução</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {atividades.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhuma atividade no PMOC.</TableCell></TableRow>
+                  ) : atividades.map(a => {
+                    const st = statusManutencao(a.proxima_execucao);
+                    return (
+                      <TableRow key={a.id}>
+                        <TableCell className="text-sm">{a.descricao}</TableCell>
+                        <TableCell className="text-sm">{a.periodicidade || "-"}</TableCell>
+                        <TableCell className="text-sm">{fmtDate(a.ultima_execucao)}</TableCell>
+                        <TableCell className="text-sm">{fmtDate(a.proxima_execucao)}</TableCell>
+                        <TableCell><Badge variant={st.variant} className="text-xs">{st.label}</Badge></TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Wrench className="h-4 w-4 text-primary" />
+              Histórico de Execuções PMOC ({execucoes.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data execução</TableHead>
+                    <TableHead>Atividade</TableHead>
+                    <TableHead>Periodicidade</TableHead>
+                    <TableHead>Próxima</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {execucoes.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhuma execução registrada.</TableCell></TableRow>
+                  ) : execucoes.map(e => (
+                    <TableRow key={e.id}>
+                      <TableCell className="text-sm">{fmtDate(e.data_execucao)}</TableCell>
+                      <TableCell className="text-sm">{e.atividade_descricao || "-"}</TableCell>
+                      <TableCell className="text-sm">{e.periodicidade || "-"}</TableCell>
+                      <TableCell className="text-sm">{fmtDate(e.proxima_execucao)}</TableCell>
+                      <TableCell>
+                        <Badge variant={e.status === "Confirmada" ? "default" : e.status === "Rejeitada" ? "destructive" : "secondary"} className="text-xs">
+                          {e.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
