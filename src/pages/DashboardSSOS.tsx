@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatNumeroAno } from "@/lib/formatNumero";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, AreaChart, Area,
@@ -15,7 +17,7 @@ import {
 import {
   ClipboardList, Wrench, Filter, X, CalendarIcon, TrendingUp, Trophy, Users,
   CheckCircle2, Clock, AlertTriangle, Sparkles, Building2, BarChart3, Activity,
-  FileDown, FileSpreadsheet, DollarSign, Calculator, UserCheck,
+  FileDown, FileSpreadsheet, DollarSign, Calculator, UserCheck, ArrowRight, GitBranch,
 } from "lucide-react";
 import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
@@ -451,6 +453,19 @@ export default function DashboardSSOS() {
         </CardContent>
       </Card>
 
+      {/* Tabs Principais */}
+      <Tabs defaultValue="visao" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="visao" className="gap-2">
+            <BarChart3 className="h-4 w-4" /> Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="workflow" className="gap-2">
+            <GitBranch className="h-4 w-4" /> Workflow das Solicitações
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="visao" className="space-y-6 mt-4">
+
       {/* KPIs SS */}
       <div>
         <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
@@ -846,6 +861,181 @@ export default function DashboardSSOS() {
           </CardContent>
         </Card>
       </div>
+
+        </TabsContent>
+
+        {/* === WORKFLOW DAS SOLICITAÇÕES === */}
+        <TabsContent value="workflow" className="space-y-6 mt-4">
+          {(() => {
+            const WORKFLOW_STAGES: { key: string; label: string; icon: any; color: string; bg: string; ring: string }[] = [
+              { key: "Aguardando aprovação", label: "Aguardando Aprovação", icon: Clock, color: "text-amber-600", bg: "bg-amber-50", ring: "from-amber-500 to-orange-600" },
+              { key: "Aprovada", label: "Aprovada", icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50", ring: "from-emerald-500 to-teal-600" },
+              { key: "Orçamento Solicitado", label: "Orçamento Solicitado", icon: Calculator, color: "text-purple-600", bg: "bg-purple-50", ring: "from-purple-500 to-fuchsia-600" },
+              { key: "Orçamento Disponível", label: "Orçamento Disponível", icon: DollarSign, color: "text-cyan-600", bg: "bg-cyan-50", ring: "from-cyan-500 to-sky-600" },
+              { key: "Em execução", label: "Em Execução", icon: Activity, color: "text-blue-600", bg: "bg-blue-50", ring: "from-blue-500 to-indigo-600" },
+              { key: "Concluída", label: "Concluída", icon: CheckCircle2, color: "text-emerald-700", bg: "bg-emerald-50", ring: "from-emerald-600 to-green-700" },
+            ];
+            const SIDE_STAGES: { key: string; label: string; icon: any; color: string; bg: string; border: string }[] = [
+              { key: "Reprovada", label: "Reprovadas", icon: X, color: "text-rose-700", bg: "bg-rose-50", border: "border-rose-200" },
+              { key: "Cancelada", label: "Canceladas", icon: X, color: "text-slate-700", bg: "bg-slate-100", border: "border-slate-200" },
+            ];
+
+            const bySituacao = (key: string) => ssFiltradas.filter(s => s.situacao === key);
+            const total = ssFiltradas.length || 1;
+            const totalAtivas = ssFiltradas.length;
+
+            return (
+              <>
+                {/* Header de contexto */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div>
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <GitBranch className="h-4 w-4 text-primary" /> Fluxo Operacional das SS
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Visualize o caminho percorrido pelas solicitações desde a abertura até a conclusão.
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="text-xs h-7 px-3 self-start">
+                        Total no período: <span className="ml-1 font-bold text-foreground">{totalAtivas}</span>
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                </Card>
+
+                {/* Pipeline */}
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex flex-col lg:flex-row lg:items-stretch gap-3 lg:gap-2 overflow-x-auto pb-2">
+                      {WORKFLOW_STAGES.map((stage, idx) => {
+                        const items = bySituacao(stage.key);
+                        const pct = ((items.length / total) * 100).toFixed(1);
+                        const Icon = stage.icon;
+                        return (
+                          <div key={stage.key} className="flex lg:flex-row items-stretch gap-2 flex-1 min-w-[200px]">
+                            <div className="flex-1 rounded-xl border border-border/60 bg-card overflow-hidden hover:shadow-md transition-all">
+                              <div className={cn("h-1 bg-gradient-to-r", stage.ring)} />
+                              <div className="p-3">
+                                <div className="flex items-center justify-between gap-2 mb-2">
+                                  <div className={cn("rounded-lg p-1.5", stage.bg)}>
+                                    <Icon className={cn("h-4 w-4", stage.color)} />
+                                  </div>
+                                  <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Etapa {idx + 1}</span>
+                                </div>
+                                <p className="text-[11px] font-semibold text-foreground leading-tight">{stage.label}</p>
+                                <div className="flex items-baseline gap-1.5 mt-1">
+                                  <span className="text-2xl font-bold text-foreground">{items.length}</span>
+                                  <span className="text-[10px] text-muted-foreground">({pct}%)</span>
+                                </div>
+                                <div className="mt-2 h-1 rounded-full bg-muted overflow-hidden">
+                                  <div className={cn("h-full bg-gradient-to-r rounded-full", stage.ring)} style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                            </div>
+                            {idx < WORKFLOW_STAGES.length - 1 && (
+                              <div className="hidden lg:flex items-center justify-center shrink-0">
+                                <ArrowRight className="h-4 w-4 text-muted-foreground/60" />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Saídas alternativas */}
+                    <div className="mt-6 pt-4 border-t border-dashed">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                        Saídas alternativas do fluxo
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {SIDE_STAGES.map(stage => {
+                          const items = bySituacao(stage.key);
+                          const Icon = stage.icon;
+                          return (
+                            <div key={stage.key} className={cn("rounded-xl border p-3 flex items-center justify-between gap-3", stage.bg, stage.border)}>
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className={cn("rounded-lg p-2 bg-white/60")}>
+                                  <Icon className={cn("h-4 w-4", stage.color)} />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className={cn("text-xs font-semibold", stage.color)}>{stage.label}</p>
+                                  <p className="text-[10px] text-muted-foreground">SS encerradas fora do fluxo principal</p>
+                                </div>
+                              </div>
+                              <span className={cn("text-2xl font-bold tabular-nums", stage.color)}>{items.length}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Detalhamento por etapa */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {[...WORKFLOW_STAGES, ...SIDE_STAGES.map(s => ({ ...s, ring: "from-rose-500 to-pink-600" } as any))].map((stage: any) => {
+                    const items = bySituacao(stage.key);
+                    const Icon = stage.icon;
+                    return (
+                      <Card key={stage.key} className="overflow-hidden">
+                        <div className={cn("h-1 bg-gradient-to-r", stage.ring || "from-slate-400 to-slate-500")} />
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-semibold flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className={cn("rounded-lg p-1.5", stage.bg)}>
+                                <Icon className={cn("h-3.5 w-3.5", stage.color)} />
+                              </div>
+                              <span className="truncate">{stage.label}</span>
+                            </div>
+                            <Badge variant="secondary" className="text-[10px] h-5 shrink-0">{items.length}</Badge>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {items.length === 0 ? (
+                            <p className="text-xs text-muted-foreground text-center py-6">Nenhuma SS nesta etapa.</p>
+                          ) : (
+                            <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+                              {items.slice(0, 50).map((s: any) => (
+                                <div key={s.id} className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 rounded-md hover:bg-muted/60 transition-colors border border-transparent hover:border-border/60">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-semibold text-foreground truncate">
+                                      SS {formatNumeroAno(s.numero, s.dataHoraSolicitacao || s.createdAt)}
+                                    </p>
+                                    <p className="text-[10px] text-muted-foreground truncate">{s.clienteNome || "—"}</p>
+                                  </div>
+                                  {s.prioridade && (
+                                    <Badge
+                                      variant="outline"
+                                      className={cn(
+                                        "text-[9px] h-4 px-1.5 shrink-0",
+                                        (s.prioridade || "").toUpperCase().includes("IMEDIATA") && "bg-rose-50 text-rose-700 border-rose-200",
+                                      )}
+                                    >
+                                      {s.prioridade}
+                                    </Badge>
+                                  )}
+                                </div>
+                              ))}
+                              {items.length > 50 && (
+                                <p className="text-[10px] text-muted-foreground text-center pt-2">
+                                  +{items.length - 50} adicionais
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </>
+            );
+          })()}
+        </TabsContent>
+      </Tabs>
     </div>
+
   );
 }
