@@ -48,6 +48,26 @@ function fmtDateTime(iso: string): string {
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+function podeRegistrarManutencao(proximaExecucao: string | null | undefined): boolean {
+  if (!proximaExecucao) return true;
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const prox = new Date(proximaExecucao);
+  prox.setHours(0, 0, 0, 0);
+  const limite = new Date(prox);
+  limite.setDate(limite.getDate() - 2);
+  return hoje >= limite;
+}
+
+function fmtDate(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+}
+
+
 const ALL = "__all__";
 
 interface Execucao {
@@ -312,6 +332,10 @@ export default function PmocGerenciarOperacao() {
               <TableBody>
                 {atividadesOrdenadas.map((a) => {
                   const pend = pendentesPorAtividade.get(a.id);
+                  const liberado = podeRegistrarManutencao(a.proximaExecucao);
+                  const liberadoEm = a.proximaExecucao
+                    ? fmtDate(new Date(new Date(a.proximaExecucao).setDate(new Date(a.proximaExecucao).getDate() - 2)).toISOString())
+                    : "";
                   return (
                     <TableRow key={a.id}>
                       <TableCell className="font-medium">{a.descricao || "—"}</TableCell>
@@ -337,8 +361,14 @@ export default function PmocGerenciarOperacao() {
                         <Button
                           size="sm"
                           onClick={() => handleRegistrar(a)}
-                          disabled={busy || !!pend}
-                          title={pend ? "Já existe um registro pendente para esta atividade" : ""}
+                          disabled={busy || !!pend || !liberado}
+                          title={
+                            pend
+                              ? "Já existe um registro pendente para esta atividade"
+                              : !liberado
+                              ? `Disponível a partir de ${liberadoEm}`
+                              : ""
+                          }
                         >
                           <CheckCircle2 className="h-4 w-4 mr-1" />
                           {pend ? "Pendente" : "Registrar Manutenção"}
