@@ -97,6 +97,7 @@ const rowToCliente = (r: any): Cliente => ({
   relLinha3: r.rel_linha3 ?? "", relLinha4: r.rel_linha4 ?? "",
   contato: r.contato ?? "", grupoWhatsapp: r.grupo_whatsapp ?? "",
   logoUrl: r.logo_url ?? "",
+  modeloOsId: r.modelo_os_id ?? "",
   informacoesFinanceiras: r.informacoes_financeiras ?? [],
   locais: r.locais ?? [], locaisEntrega: r.locais_entrega ?? [], contratos: r.contratos ?? [],
 });
