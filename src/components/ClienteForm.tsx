@@ -41,6 +41,7 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
   const [form, setForm] = useState<FormData>(initialData || emptyForm);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const { modelos } = useOsModelos();
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
