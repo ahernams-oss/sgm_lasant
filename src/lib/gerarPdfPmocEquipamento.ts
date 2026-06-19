@@ -137,7 +137,7 @@ function infoEquipamentoBlock(doc: jsPDF, pw: number, equip: Equipamento | null,
   return (doc as any).lastAutoTable.finalY + 6;
 }
 
-async function getLogo() {
+export async function getLogo() {
   return await loadImage("/Logo_Lasant.png");
 }
 
