@@ -24,7 +24,7 @@ const emptyForm: FormData = {
   telefones: [""], telefoneCelular: "", celulares: "", telefonesWhatsapp: "",
   cep: "", bairro: "", logradouro: "", numero: "", complemento: "", uf: "", cidade: "",
   endereco: "", dataInicioContrato: "", relLinha1: "", relLinha2: "", relLinha3: "",
-  relLinha4: "", contato: "", grupoWhatsapp: "", logoUrl: "",
+  relLinha4: "", contato: "", grupoWhatsapp: "", logoUrl: "", modeloOsId: "",
 };
 
 interface ClienteFormProps {
