@@ -32,6 +32,9 @@ import {
   gerarPdfPmocInformacoes,
   gerarPdfPmocManutencoesFotos,
   gerarPdfPmocHistoricoAtividades,
+  drawHeader,
+  rodape,
+  getLogo,
 } from "@/lib/gerarPdfPmocEquipamento";
 
 
