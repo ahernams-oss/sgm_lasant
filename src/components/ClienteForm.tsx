@@ -174,6 +174,16 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
           </Select>
         </div>
         <div className="md:col-span-2">
+          <label className="field-label">Modelo de OS</label>
+          <Select value={form.modeloOsId || "__none__"} onValueChange={(v) => update("modeloOsId", v === "__none__" ? "" : v)}>
+            <SelectTrigger><SelectValue placeholder="Selecione o modelo" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Nenhum</SelectItem>
+              {modelos.map((m) => <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="md:col-span-2">
           <label className="field-label">Descrição</label>
           <Textarea placeholder="Descrição do cliente" value={form.descricao} onChange={(e) => update("descricao", e.target.value)} rows={3} />
         </div>
