@@ -6,6 +6,17 @@ import { Empresa } from "@/contexts/EmpresaContext";
 import { Cliente } from "@/contexts/ClientesContext";
 import type { OsAssinatura } from "@/contexts/OsAssinaturasContext";
 import { formatNumeroAno } from "@/lib/formatNumero";
+import { supabase } from "@/integrations/supabase/client";
+import { renderOrdemServicoEducacao } from "@/lib/gerarPdfOrdemServicoEducacao";
+
+async function resolverModeloNome(cliente?: Cliente): Promise<string> {
+  const id = (cliente as any)?.modeloOsId;
+  if (!id) return "";
+  try {
+    const { data } = await (supabase as any).from("os_modelos").select("nome").eq("id", id).maybeSingle();
+    return data?.nome || "";
+  } catch { return ""; }
+}
 
 const DARK = [60, 60, 60] as const;
 const BORDER: [number, number, number] = [60, 60, 60];
@@ -579,7 +590,12 @@ function addFooter(doc: jsPDF, empresa?: Empresa, osNumero?: number | string) {
 
 export async function gerarPdfOrdemServico(opts: RenderOSOptions) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  await renderOS(doc, opts);
+  const modelo = await resolverModeloNome(opts.cliente);
+  if (modelo === "Modelo_Educação") {
+    await renderOrdemServicoEducacao(doc, opts);
+  } else {
+    await renderOS(doc, opts);
+  }
   addFooter(doc, opts.empresa, formatNumeroAno(opts.os.numero, opts.os.createdAt));
   doc.save(`OS_${formatNumeroAno(opts.os.numero, opts.os.createdAt)}_${(opts.os.clienteNome || "").replace(/\s+/g, "_")}.pdf`);
 }
@@ -589,7 +605,12 @@ export async function gerarPdfOrdemServicoLote(lista: RenderOSOptions[]) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   for (let i = 0; i < lista.length; i++) {
     if (i > 0) doc.addPage();
-    await renderOS(doc, lista[i]);
+    const modelo = await resolverModeloNome(lista[i].cliente);
+    if (modelo === "Modelo_Educação") {
+      await renderOrdemServicoEducacao(doc, lista[i]);
+    } else {
+      await renderOS(doc, lista[i]);
+    }
   }
   addFooter(doc, lista[0].empresa);
   const nums = lista.map(l => formatNumeroAno(l.os.numero, l.os.createdAt)).join("_");
