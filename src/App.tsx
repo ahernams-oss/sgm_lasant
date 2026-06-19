@@ -187,6 +187,7 @@ function ProtectedAppRoutes() {
     <AppLayout>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/trust" element={<Trust />} />
         <Route path="/requisicao-pessoal" element={<RotaProtegida perm="requisicao_colaboradores"><Index /></RotaProtegida>} />
 
         <Route path="/dashboard" element={<RotaProtegida perm="dashboard_gp"><Dashboard /></RotaProtegida>} />
