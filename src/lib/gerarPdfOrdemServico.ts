@@ -6,6 +6,17 @@ import { Empresa } from "@/contexts/EmpresaContext";
 import { Cliente } from "@/contexts/ClientesContext";
 import type { OsAssinatura } from "@/contexts/OsAssinaturasContext";
 import { formatNumeroAno } from "@/lib/formatNumero";
+import { supabase } from "@/integrations/supabase/client";
+import { renderOrdemServicoEducacao } from "@/lib/gerarPdfOrdemServicoEducacao";
+
+async function resolverModeloNome(cliente?: Cliente): Promise<string> {
+  const id = (cliente as any)?.modeloOsId;
+  if (!id) return "";
+  try {
+    const { data } = await (supabase as any).from("os_modelos").select("nome").eq("id", id).maybeSingle();
+    return data?.nome || "";
+  } catch { return ""; }
+}
 
 const DARK = [60, 60, 60] as const;
 const BORDER: [number, number, number] = [60, 60, 60];
