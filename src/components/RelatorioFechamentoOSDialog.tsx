@@ -656,14 +656,20 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     const found = hist.find(h => pattern.test((h.situacao || "").toLowerCase()));
     return found?.data || null;
   };
-  const diffDays = (a?: string | null, b?: string | null): number | null => {
+  const diffMs = (a?: string | null, b?: string | null): number | null => {
     if (!a || !b) return null;
     const ta = new Date(a).getTime();
     const tb = new Date(b).getTime();
     if (isNaN(ta) || isNaN(tb)) return null;
-    return (tb - ta) / (1000 * 60 * 60 * 24);
+    return tb - ta;
   };
-  const fmtDias = (d: number | null) => d == null ? "—" : `${d.toFixed(1)} d`;
+  const fmtHoraMin = (ms: number | null) => {
+    if (ms == null || ms < 0) return "—";
+    const totalMinutes = Math.round(ms / (1000 * 60));
+    const horas = Math.floor(totalMinutes / 60);
+    const minutos = totalMinutes % 60;
+    return `${horas}h ${minutos.toString().padStart(2, "0")}m`;
+  };
   const avg = (arr: (number | null)[]) => {
     const v = arr.filter((x): x is number => x != null);
     return v.length === 0 ? null : v.reduce((s, x) => s + x, 0) / v.length;
