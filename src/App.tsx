@@ -555,6 +555,7 @@ const App = () => (
     </ResponsaveisTecnicosProvider>
     </ProcessosTrabalhalistasProvider>
     </ComunicacaoProvider>
+    </OsModelosProvider>
     </ServicosProvider>
     </CategoriasServicosProvider>
     </PmocProvider>
