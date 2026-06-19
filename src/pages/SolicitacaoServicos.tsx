@@ -18,6 +18,7 @@ import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
 import { gerarPdfSolicitacao, gerarPdfSolicitacaoLote } from "@/lib/gerarPdfSolicitacao";
 import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
 import { supabase } from "@/integrations/supabase/client";
+import { enviarWhatsApp } from "@/lib/whatsapp";
 import { formatNumeroAno } from "@/lib/formatNumero";
 import iconRevisao from "@/assets/icon-revisao.png";
 
