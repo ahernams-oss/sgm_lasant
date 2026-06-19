@@ -18,6 +18,7 @@ import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
 import { gerarPdfSolicitacao, gerarPdfSolicitacaoLote } from "@/lib/gerarPdfSolicitacao";
 import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
 import { supabase } from "@/integrations/supabase/client";
+import { enviarWhatsApp } from "@/lib/whatsapp";
 import { formatNumeroAno } from "@/lib/formatNumero";
 import iconRevisao from "@/assets/icon-revisao.png";
 
@@ -428,6 +429,25 @@ export default function SolicitacaoServicosPage() {
       historico: buildHistoricoEntry("Orçamento Solicitado", full?.historico || []),
     });
     toast({ title: "Orçamento solicitado", description: `SS nº ${formatNumeroAno(s.numero, s.createdAt)} — Orçamento Solicitado` });
+
+    // Envio de aviso ao grupo de WhatsApp do cliente
+    try {
+      const cliente = clientes.find(c => c.id === s.clienteId);
+      const grupo = (cliente?.grupoWhatsapp || "").trim();
+      if (grupo) {
+        const numero = formatNumeroAno(s.numero, s.createdAt);
+        const msg =
+          `📋 *Solicitação de Orçamento*\n\n` +
+          `Cliente: ${s.clienteNome || cliente?.nome || "-"}\n` +
+          `SS nº: ${numero}\n` +
+          `Tipo: ${s.tipo || "-"}\n` +
+          `Descrição: ${s.descricaoServicos || "-"}\n\n` +
+          `Status: Orçamento Solicitado`;
+        await enviarWhatsApp(grupo, msg);
+      }
+    } catch (err) {
+      console.error("Falha ao enviar WhatsApp (Solicitar Orçamento):", err);
+    }
   };
 
   const handleOrcarSolicitacao = (s: any) => {
@@ -443,6 +463,24 @@ export default function SolicitacaoServicosPage() {
       historico: buildHistoricoEntry("Orçamento Disponível", full?.historico || []),
     });
     toast({ title: "Orçamento enviado", description: `SS nº ${formatNumeroAno(orcamentoTarget.numero, full?.createdAt)} — Orçamento Disponível` });
+
+    // Envio de aviso ao grupo de WhatsApp do cliente
+    try {
+      const cliente = clientes.find(c => c.id === orcamentoTarget.clienteId);
+      const grupo = (cliente?.grupoWhatsapp || "").trim();
+      if (grupo) {
+        const numero = formatNumeroAno(orcamentoTarget.numero, full?.createdAt);
+        const msg =
+          `💰 *Orçamento Disponível*\n\n` +
+          `Cliente: ${orcamentoTarget.clienteNome || cliente?.nome || "-"}\n` +
+          `SS nº: ${numero}\n` +
+          `Descrição: ${full?.descricaoServicos || "-"}\n\n` +
+          `Status: Orçamento Disponível para aprovação`;
+        await enviarWhatsApp(grupo, msg);
+      }
+    } catch (err) {
+      console.error("Falha ao enviar WhatsApp (Orçar Solicitação):", err);
+    }
   };
 
   const handleOrcamentoRevisao = async () => {
