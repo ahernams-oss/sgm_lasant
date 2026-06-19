@@ -117,6 +117,7 @@ const clienteToRow = (c: Omit<Cliente, "id">) => ({
   rel_linha1: c.relLinha1, rel_linha2: c.relLinha2, rel_linha3: c.relLinha3, rel_linha4: c.relLinha4,
   contato: c.contato, grupo_whatsapp: c.grupoWhatsapp,
   logo_url: c.logoUrl,
+  modelo_os_id: c.modeloOsId || null,
   informacoes_financeiras: c.informacoesFinanceiras as any,
   locais: c.locais as any, locais_entrega: c.locaisEntrega as any, contratos: c.contratos as any,
 });
