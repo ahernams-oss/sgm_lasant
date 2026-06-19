@@ -144,9 +144,10 @@ export async function renderOrdemServicoEducacao(doc: jsPDF, { os, empresa, clie
       ],
     ],
     columnStyles: {
-      0: { cellWidth: cw * 0.13 }, 1: { cellWidth: cw * 0.18 },
-      2: { cellWidth: cw * 0.10 }, 3: { cellWidth: cw * 0.17 },
-      4: { cellWidth: cw * 0.13 }, 5: { cellWidth: cw * 0.29 },
+      0: { cellWidth: cw * 0.14 }, 1: { cellWidth: cw * 0.20 },
+      2: { cellWidth: cw * 0.16 }, 3: { cellWidth: cw * 0.11 },
+      4: { cellWidth: cw * 0.17 }, 5: { cellWidth: cw * 0.10 },
+      6: { cellWidth: cw * 0.12 },
     },
     margin: { left: ml, right: mr },
   });
