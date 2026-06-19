@@ -276,6 +276,7 @@ function ProtectedAppRoutes() {
         <Route path="/engenharia/base-conhecimento" element={<RotaProtegida perm="base_conhecimento"><BaseConhecimentoPage /></RotaProtegida>} />
         <Route path="/cadastros/categorias-servicos" element={<RotaProtegida perm="categorias_servicos"><CategoriasServicosPage /></RotaProtegida>} />
         <Route path="/cadastros/servicos" element={<RotaProtegida perm="servicos"><ServicosPage /></RotaProtegida>} />
+        <Route path="/cadastros/modelos-os" element={<RotaProtegida><OsModelosPage /></RotaProtegida>} />
         <Route
           path="/engenharia/solicitacao-servicos"
           element={
