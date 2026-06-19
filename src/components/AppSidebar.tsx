@@ -233,6 +233,7 @@ const menuItems = [
       { title: "Catálogo de EPIs", url: "/epis/catalogo", icon: HardHat, perm: "cargos" },
       { title: "Categorias de Serviços", url: "/cadastros/categorias-servicos", icon: Tags, perm: "categorias_servicos" },
       { title: "Serviços", url: "/cadastros/servicos", icon: Wrench, perm: "servicos" },
+      { title: "Modelo de OS", url: "/cadastros/modelos-os", icon: FileText },
       { title: "Responsáveis Técnicos", url: "/cadastros/responsaveis-tecnicos", icon: UserCheck, perm: "responsaveis_tecnicos" },
       { title: "SCO", url: "/sco", icon: FileSpreadsheet, perm: "sco" },
       { title: "I0", url: "/i0", icon: DollarSign, perm: "sco" },

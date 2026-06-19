@@ -547,6 +547,7 @@ export type Database = {
           locais_entrega: Json | null
           logo_url: string | null
           logradouro: string | null
+          modelo_os_id: string | null
           nome: string
           nome_fantasia: string | null
           numero: string | null
@@ -591,6 +592,7 @@ export type Database = {
           locais_entrega?: Json | null
           logo_url?: string | null
           logradouro?: string | null
+          modelo_os_id?: string | null
           nome?: string
           nome_fantasia?: string | null
           numero?: string | null
@@ -635,6 +637,7 @@ export type Database = {
           locais_entrega?: Json | null
           logo_url?: string | null
           logradouro?: string | null
+          modelo_os_id?: string | null
           nome?: string
           nome_fantasia?: string | null
           numero?: string | null
@@ -648,7 +651,15 @@ export type Database = {
           tipo?: string | null
           uf?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clientes_modelo_os_id_fkey"
+            columns: ["modelo_os_id"]
+            isOneToOne: false
+            referencedRelation: "os_modelos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clientes_credenciais: {
         Row: {
@@ -4748,6 +4759,30 @@ export type Database = {
           signatario_user_id?: string
           signed_at?: string
           user_agent?: string | null
+        }
+        Relationships: []
+      }
+      os_modelos: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string
         }
         Relationships: []
       }

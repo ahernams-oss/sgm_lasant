@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import type { Cliente } from "@/contexts/ClientesContext";
+import { useOsModelos } from "@/contexts/OsModelosContext";
 
 const UF_OPTIONS = [
   "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA",
@@ -24,7 +25,7 @@ const emptyForm: FormData = {
   telefones: [""], telefoneCelular: "", celulares: "", telefonesWhatsapp: "",
   cep: "", bairro: "", logradouro: "", numero: "", complemento: "", uf: "", cidade: "",
   endereco: "", dataInicioContrato: "", relLinha1: "", relLinha2: "", relLinha3: "",
-  relLinha4: "", contato: "", grupoWhatsapp: "", logoUrl: "",
+  relLinha4: "", contato: "", grupoWhatsapp: "", logoUrl: "", modeloOsId: "",
 };
 
 interface ClienteFormProps {
@@ -40,6 +41,7 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
   const [form, setForm] = useState<FormData>(initialData || emptyForm);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const { modelos } = useOsModelos();
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -168,6 +170,16 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
             <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
             <SelectContent>
               {ESFERA_OPTIONS.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="md:col-span-2">
+          <label className="field-label">Modelo de OS</label>
+          <Select value={form.modeloOsId || "__none__"} onValueChange={(v) => update("modeloOsId", v === "__none__" ? "" : v)}>
+            <SelectTrigger><SelectValue placeholder="Selecione o modelo" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Nenhum</SelectItem>
+              {modelos.map((m) => <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>

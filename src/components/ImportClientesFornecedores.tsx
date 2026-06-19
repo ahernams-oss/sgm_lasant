@@ -97,7 +97,7 @@ export default function ImportClientesFornecedores({ tipo }: Props) {
           bairro: row.bairro || "", cidade: row.cidade || "", uf: row.uf || "",
           endereco: "", dataInicioContrato: "",
           relLinha1: "", relLinha2: "", relLinha3: "", relLinha4: "",
-          grupoWhatsapp: "", logoUrl: "",
+          grupoWhatsapp: "", logoUrl: "", modeloOsId: "",
           informacoesFinanceiras: [], locais: [], locaisEntrega: [], contratos: [],
         });
         success++;

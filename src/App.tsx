@@ -99,8 +99,10 @@ import PmocGerenciarOperacaoPage from "./pages/PmocGerenciarOperacao.tsx";
 import { PmocProvider } from "@/contexts/PmocContext";
 import { CategoriasServicosProvider } from "@/contexts/CategoriasServicosContext";
 import { ServicosProvider } from "@/contexts/ServicosContext";
+import { OsModelosProvider } from "@/contexts/OsModelosContext";
 import CategoriasServicosPage from "./pages/CategoriasServicosPage.tsx";
 import ServicosPage from "./pages/ServicosPage.tsx";
+import OsModelosPage from "./pages/OsModelos.tsx";
 import SolicitacaoServicosPage from "@/pages/SolicitacaoServicos";
 import { SolicitacoesServicosProvider } from "@/contexts/SolicitacoesServicosContext";
 import OrdensServicoPage from "@/pages/OrdensServico";
@@ -274,6 +276,7 @@ function ProtectedAppRoutes() {
         <Route path="/engenharia/base-conhecimento" element={<RotaProtegida perm="base_conhecimento"><BaseConhecimentoPage /></RotaProtegida>} />
         <Route path="/cadastros/categorias-servicos" element={<RotaProtegida perm="categorias_servicos"><CategoriasServicosPage /></RotaProtegida>} />
         <Route path="/cadastros/servicos" element={<RotaProtegida perm="servicos"><ServicosPage /></RotaProtegida>} />
+        <Route path="/cadastros/modelos-os" element={<RotaProtegida><OsModelosPage /></RotaProtegida>} />
         <Route
           path="/engenharia/solicitacao-servicos"
           element={
@@ -487,6 +490,7 @@ const App = () => (
     <PmocProvider>
     <CategoriasServicosProvider>
     <ServicosProvider>
+    <OsModelosProvider>
     <ComunicacaoProvider>
     <ProcessosTrabalhalistasProvider>
     <ResponsaveisTecnicosProvider>
@@ -551,6 +555,7 @@ const App = () => (
     </ResponsaveisTecnicosProvider>
     </ProcessosTrabalhalistasProvider>
     </ComunicacaoProvider>
+    </OsModelosProvider>
     </ServicosProvider>
     </CategoriasServicosProvider>
     </PmocProvider>
