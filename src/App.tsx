@@ -43,6 +43,7 @@ import PerfisAcessoPage from "./pages/PerfisAcesso.tsx";
 import AuditoriaPage from "./pages/Auditoria.tsx";
 import EmpresaDadosPage from "./pages/EmpresaDados.tsx";
 import BancoPrecosPage from "./pages/BancoPrecos.tsx";
+import Trust from "./pages/Trust.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
@@ -187,6 +188,7 @@ function ProtectedAppRoutes() {
     <AppLayout>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/trust" element={<Trust />} />
         <Route path="/requisicao-pessoal" element={<RotaProtegida perm="requisicao_colaboradores"><Index /></RotaProtegida>} />
 
         <Route path="/dashboard" element={<RotaProtegida perm="dashboard_gp"><Dashboard /></RotaProtegida>} />
