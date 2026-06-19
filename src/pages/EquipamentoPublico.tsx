@@ -133,11 +133,11 @@ export default function EquipamentoPublico() {
                     const st = statusManutencao(a.proxima_execucao);
                     return (
                       <TableRow key={a.id}>
-                        <TableCell className="text-sm">{a.descricao}</TableCell>
-                        <TableCell className="text-sm">{a.periodicidade || "-"}</TableCell>
-                        <TableCell className="text-sm">{fmtDate(a.ultima_execucao)}</TableCell>
-                        <TableCell className="text-sm">{fmtDate(a.proxima_execucao)}</TableCell>
-                        <TableCell><Badge variant={st.variant} className="text-xs">{st.label}</Badge></TableCell>
+                        <TableCell className="text-sm text-left">{a.descricao}</TableCell>
+                        <TableCell className="text-sm text-left">{a.periodicidade || "-"}</TableCell>
+                        <TableCell className="text-sm text-left">{fmtDate(a.ultima_execucao)}</TableCell>
+                        <TableCell className="text-sm text-left">{fmtDate(a.proxima_execucao)}</TableCell>
+                        <TableCell className="text-left"><Badge variant={st.variant} className="text-xs">{st.label}</Badge></TableCell>
                       </TableRow>
                     );
                   })}
@@ -171,11 +171,11 @@ export default function EquipamentoPublico() {
                     <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhuma execução registrada.</TableCell></TableRow>
                   ) : execucoes.map(e => (
                     <TableRow key={e.id}>
-                      <TableCell className="text-sm">{fmtDate(e.data_execucao)}</TableCell>
-                      <TableCell className="text-sm">{e.atividade_descricao || "-"}</TableCell>
-                      <TableCell className="text-sm">{e.periodicidade || "-"}</TableCell>
-                      <TableCell className="text-sm">{fmtDate(e.proxima_execucao)}</TableCell>
-                      <TableCell>
+                      <TableCell className="text-sm text-left">{fmtDate(e.data_execucao)}</TableCell>
+                      <TableCell className="text-sm text-left">{e.atividade_descricao || "-"}</TableCell>
+                      <TableCell className="text-sm text-left">{e.periodicidade || "-"}</TableCell>
+                      <TableCell className="text-sm text-left">{fmtDate(e.proxima_execucao)}</TableCell>
+                      <TableCell className="text-left">
                         <Badge variant={e.status === "Confirmada" ? "default" : e.status === "Rejeitada" ? "destructive" : "secondary"} className="text-xs">
                           {e.status}
                         </Badge>
@@ -212,11 +212,11 @@ export default function EquipamentoPublico() {
                     <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhuma manutenção registrada.</TableCell></TableRow>
                   ) : manutencoes.map(m => (
                     <TableRow key={m.id}>
-                      <TableCell className="font-mono text-xs">{m.numero || "-"}</TableCell>
-                      <TableCell className="text-sm">{fmtDate(m.data_hora_solicitacao || m.created_at)}</TableCell>
-                      <TableCell className="text-sm">{m.tipo || "-"}</TableCell>
-                      <TableCell className="text-sm max-w-md truncate">{m.descricao_servicos || "-"}</TableCell>
-                      <TableCell><Badge variant="outline" className="text-xs">{m.situacao}</Badge></TableCell>
+                      <TableCell className="font-mono text-xs text-left">{m.numero || "-"}</TableCell>
+                      <TableCell className="text-sm text-left">{fmtDate(m.data_hora_solicitacao || m.created_at)}</TableCell>
+                      <TableCell className="text-sm text-left">{m.tipo || "-"}</TableCell>
+                      <TableCell className="text-sm max-w-md truncate text-left">{m.descricao_servicos || "-"}</TableCell>
+                      <TableCell className="text-left"><Badge variant="outline" className="text-xs">{m.situacao}</Badge></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
