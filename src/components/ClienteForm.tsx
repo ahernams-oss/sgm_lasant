@@ -257,8 +257,9 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
           <Input placeholder="Formato: DD999999999,DD999999999" value={form.telefonesWhatsapp} onChange={(e) => update("telefonesWhatsapp", e.target.value)} />
         </div>
         <div className="md:col-span-2">
-          <label className="field-label">Código do Grupo de WhatsApp</label>
-          <Input placeholder="Ex: https://chat.whatsapp.com/AbCdEfGhIjK" value={form.grupoWhatsapp} onChange={(e) => update("grupoWhatsapp", e.target.value)} />
+          <label className="field-label">Código do Grupo de WhatsApp (JID)</label>
+          <Input placeholder="Ex: 1203630000000000@g.us" value={form.grupoWhatsapp} onChange={(e) => update("grupoWhatsapp", e.target.value)} />
+          <p className="text-xs text-muted-foreground mt-1">Informe o JID do grupo (formato <code>120363xxxxxxx@g.us</code>), não o link de convite.</p>
         </div>
       </div>
 
