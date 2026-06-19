@@ -884,20 +884,14 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
     search ? `Busca: ${search}` : null,
   ].filter(Boolean).join(" | ");
 
-  const exportarPDF = () => {
+  const exportarPDF = async () => {
     const rows = buildRows();
     if (rows.length === 0) return;
+    const logo = await getLogo();
     const doc = new jsPDF({ orientation: "l" });
     const pw = doc.internal.pageSize.getWidth();
-    doc.setFillColor(30, 58, 107);
-    doc.rect(0, 0, pw, 28, "F");
-    doc.setTextColor(255); doc.setFontSize(14); doc.setFont("helvetica", "bold");
-    doc.text("Histórico de Execuções - PMOC", 14, 12);
-    doc.setFontSize(9); doc.setFont("helvetica", "normal");
-    doc.text(`Total: ${rows.length} registro(s)`, 14, 20);
-    doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pw - 14, 12, { align: "right" });
-    if (filtrosLabel) doc.text(filtrosLabel, pw - 14, 20, { align: "right" });
-    doc.setTextColor(30);
+    await drawHeader(doc, pw, logo, "PMOC — Histórico de Execuções", `Total: ${rows.length} registro(s)${filtrosLabel ? " | " + filtrosLabel : ""}`);
+
     autoTable(doc, {
       startY: 34,
       head: [columns],
@@ -906,12 +900,8 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
       headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: [245, 247, 250] },
     });
-    const pages = doc.getNumberOfPages();
-    const ph = doc.internal.pageSize.getHeight();
-    for (let i = 1; i <= pages; i++) {
-      doc.setPage(i); doc.setFontSize(8); doc.setTextColor(150);
-      doc.text(`Página ${i} de ${pages}`, pw / 2, ph - 8, { align: "center" });
-    }
+
+    rodape(doc);
     doc.save(`historico_execucoes_pmoc_${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
