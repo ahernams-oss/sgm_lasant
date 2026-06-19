@@ -656,14 +656,20 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     const found = hist.find(h => pattern.test((h.situacao || "").toLowerCase()));
     return found?.data || null;
   };
-  const diffDays = (a?: string | null, b?: string | null): number | null => {
+  const diffMs = (a?: string | null, b?: string | null): number | null => {
     if (!a || !b) return null;
     const ta = new Date(a).getTime();
     const tb = new Date(b).getTime();
     if (isNaN(ta) || isNaN(tb)) return null;
-    return (tb - ta) / (1000 * 60 * 60 * 24);
+    return tb - ta;
   };
-  const fmtDias = (d: number | null) => d == null ? "—" : `${d.toFixed(1)} d`;
+  const fmtHoraMin = (ms: number | null) => {
+    if (ms == null || ms < 0) return "—";
+    const totalMinutes = Math.round(ms / (1000 * 60));
+    const horas = Math.floor(totalMinutes / 60);
+    const minutos = totalMinutes % 60;
+    return `${horas}h ${minutos.toString().padStart(2, "0")}m`;
+  };
   const avg = (arr: (number | null)[]) => {
     const v = arr.filter((x): x is number => x != null);
     return v.length === 0 ? null : v.reduce((s, x) => s + x, 0) / v.length;
@@ -693,9 +699,9 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const dSol = s.dataHoraSolicitacao || s.createdAt;
       const dAprov = findHistDate(s.historico, /aprov/);
       const dConcl = findHistDate(s.historico, /conclu|final|valid|encerr/);
-      const tSA = diffDays(dSol, dAprov);
-      const tAC = diffDays(dAprov, dConcl);
-      const tTot = diffDays(dSol, dConcl);
+      const tSA = diffMs(dSol, dAprov);
+      const tAC = diffMs(dAprov, dConcl);
+      const tTot = diffMs(dSol, dConcl);
       return { s, dSol, dAprov, dConcl, tSA, tAC, tTot };
     });
     const mSA = avg(linhas.map(l => l.tSA));
@@ -710,16 +716,16 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         "Solicitação": fmtDataHora(dSol),
         "Aprovação": fmtDataHora(dAprov),
         "Conclusão": fmtDataHora(dConcl),
-        "Solic → Aprov (dias)": tSA == null ? "" : Number(tSA.toFixed(2)),
-        "Aprov → Concl (dias)": tAC == null ? "" : Number(tAC.toFixed(2)),
-        "Total (dias)": tTot == null ? "" : Number(tTot.toFixed(2)),
+        "Solic → Aprov (h:min)": tSA == null ? "" : fmtHoraMin(tSA),
+        "Aprov → Concl (h:min)": tAC == null ? "" : fmtHoraMin(tAC),
+        "Total (h:min)": tTot == null ? "" : fmtHoraMin(tTot),
       }));
       data.push({
         "Nº SS": "" as any, "Cliente": "" as any, "Situação atual": "MÉDIA" as any,
         "Solicitação": "" as any, "Aprovação": "" as any, "Conclusão": "" as any,
-        "Solic → Aprov (dias)": (mSA == null ? "" : Number(mSA.toFixed(2))) as any,
-        "Aprov → Concl (dias)": (mAC == null ? "" : Number(mAC.toFixed(2))) as any,
-        "Total (dias)": (mTot == null ? "" : Number(mTot.toFixed(2))) as any,
+        "Solic → Aprov (h:min)": (mSA == null ? "" : fmtHoraMin(mSA)) as any,
+        "Aprov → Concl (h:min)": (mAC == null ? "" : fmtHoraMin(mAC)) as any,
+        "Total (h:min)": (mTot == null ? "" : fmtHoraMin(mTot)) as any,
       });
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
@@ -734,7 +740,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     addHeader(doc, "Ciclo de Vida — Solicitações de Serviço", `${ssFiltradas.length} SS(s) no período`, `Período: ${dataIni} a ${dataFimStr}`);
     autoTable(doc, {
       startY: 32,
-      head: [["Nº SS", "Cliente", "Situação", "Solicitação", "Aprovação", "Conclusão", "Sol-Apr", "Apr-Con", "Total"]],
+      head: [["Nº SS", "Cliente", "Situação", "Solicitação", "Aprovação", "Conclusão", "Sol-Apr (h:min)", "Apr-Con (h:min)", "Total (h:min)"]],
       body: linhas.map(({ s, dSol, dAprov, dConcl, tSA, tAC, tTot }) => [
         formatNumeroAno(s.numero, s.createdAt),
         s.clienteNome || "-",
@@ -742,11 +748,11 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         fmtDataHora(dSol),
         fmtDataHora(dAprov),
         fmtDataHora(dConcl),
-        fmtDias(tSA), fmtDias(tAC), fmtDias(tTot),
+        fmtHoraMin(tSA), fmtHoraMin(tAC), fmtHoraMin(tTot),
       ]),
       foot: [[
         { content: "MÉDIA", colSpan: 6, styles: { halign: "right" as const, fontStyle: "bold" as const } },
-        fmtDias(mSA), fmtDias(mAC), fmtDias(mTot),
+        fmtHoraMin(mSA), fmtHoraMin(mAC), fmtHoraMin(mTot),
       ]],
       styles: { fontSize: 8, cellPadding: 1.5 },
       headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
@@ -783,10 +789,10 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const dExec = findHistDate(o.historico, /execu|andamento/);
       const dConcl = findHistDate(o.historico, /conclu|final/);
       const dConf = findHistDate(o.historico, /valid|confirm|encerr/);
-      const tAE = diffDays(dAbert, dExec);
-      const tEC = diffDays(dExec, dConcl);
-      const tCV = diffDays(dConcl, dConf);
-      const tTot = diffDays(dAbert, dConf || dConcl);
+      const tAE = diffMs(dAbert, dExec);
+      const tEC = diffMs(dExec, dConcl);
+      const tCV = diffMs(dConcl, dConf);
+      const tTot = diffMs(dAbert, dConf || dConcl);
       return { o, dAbert, dExec, dConcl, dConf, tAE, tEC, tCV, tTot };
     });
     const mAE = avg(linhas.map(l => l.tAE));
@@ -803,18 +809,18 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         "Em Execução": fmtDataHora(dExec),
         "Concluída": fmtDataHora(dConcl),
         "Confirmada/Validada": fmtDataHora(dConf),
-        "Aber → Exec (dias)": tAE == null ? "" : Number(tAE.toFixed(2)),
-        "Exec → Concl (dias)": tEC == null ? "" : Number(tEC.toFixed(2)),
-        "Concl → Conf (dias)": tCV == null ? "" : Number(tCV.toFixed(2)),
-        "Total até Confirmação (dias)": tTot == null ? "" : Number(tTot.toFixed(2)),
+        "Aber → Exec (h:min)": tAE == null ? "" : fmtHoraMin(tAE),
+        "Exec → Concl (h:min)": tEC == null ? "" : fmtHoraMin(tEC),
+        "Concl → Conf (h:min)": tCV == null ? "" : fmtHoraMin(tCV),
+        "Total até Confirmação (h:min)": tTot == null ? "" : fmtHoraMin(tTot),
       }));
       data.push({
         "Nº OS": "" as any, "Cliente": "" as any, "Situação atual": "MÉDIA" as any,
         "Abertura": "" as any, "Em Execução": "" as any, "Concluída": "" as any, "Confirmada/Validada": "" as any,
-        "Aber → Exec (dias)": (mAE == null ? "" : Number(mAE.toFixed(2))) as any,
-        "Exec → Concl (dias)": (mEC == null ? "" : Number(mEC.toFixed(2))) as any,
-        "Concl → Conf (dias)": (mCV == null ? "" : Number(mCV.toFixed(2))) as any,
-        "Total até Confirmação (dias)": (mTot == null ? "" : Number(mTot.toFixed(2))) as any,
+        "Aber → Exec (h:min)": (mAE == null ? "" : fmtHoraMin(mAE)) as any,
+        "Exec → Concl (h:min)": (mEC == null ? "" : fmtHoraMin(mEC)) as any,
+        "Concl → Conf (h:min)": (mCV == null ? "" : fmtHoraMin(mCV)) as any,
+        "Total até Confirmação (h:min)": (mTot == null ? "" : fmtHoraMin(mTot)) as any,
       });
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
@@ -829,7 +835,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     addHeader(doc, "Ciclo de Vida — Ordens de Serviço", `${osList.length} OS(s) no período`, `Período: ${dataIni} a ${dataFimStr}`);
     autoTable(doc, {
       startY: 32,
-      head: [["Nº OS", "Cliente", "Situação", "Abertura", "Execução", "Conclusão", "Confirmação", "Ab-Ex", "Ex-Co", "Co-Cf", "Total"]],
+      head: [["Nº OS", "Cliente", "Situação", "Abertura", "Execução", "Conclusão", "Confirmação", "Ab-Ex (h:min)", "Ex-Co (h:min)", "Co-Cf (h:min)", "Total (h:min)"]],
       body: linhas.map(({ o, dAbert, dExec, dConcl, dConf, tAE, tEC, tCV, tTot }) => [
         formatNumeroAno(o.numero, o.createdAt),
         o.clienteNome || "-",
@@ -838,11 +844,11 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         fmtDataHora(dExec),
         fmtDataHora(dConcl),
         fmtDataHora(dConf),
-        fmtDias(tAE), fmtDias(tEC), fmtDias(tCV), fmtDias(tTot),
+        fmtHoraMin(tAE), fmtHoraMin(tEC), fmtHoraMin(tCV), fmtHoraMin(tTot),
       ]),
       foot: [[
         { content: "MÉDIA", colSpan: 7, styles: { halign: "right" as const, fontStyle: "bold" as const } },
-        fmtDias(mAE), fmtDias(mEC), fmtDias(mCV), fmtDias(mTot),
+        fmtHoraMin(mAE), fmtHoraMin(mEC), fmtHoraMin(mCV), fmtHoraMin(mTot),
       ]],
       styles: { fontSize: 7.5, cellPadding: 1.3 },
       headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
