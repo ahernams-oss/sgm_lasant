@@ -699,9 +699,9 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const dSol = s.dataHoraSolicitacao || s.createdAt;
       const dAprov = findHistDate(s.historico, /aprov/);
       const dConcl = findHistDate(s.historico, /conclu|final|valid|encerr/);
-      const tSA = diffDays(dSol, dAprov);
-      const tAC = diffDays(dAprov, dConcl);
-      const tTot = diffDays(dSol, dConcl);
+      const tSA = diffMs(dSol, dAprov);
+      const tAC = diffMs(dAprov, dConcl);
+      const tTot = diffMs(dSol, dConcl);
       return { s, dSol, dAprov, dConcl, tSA, tAC, tTot };
     });
     const mSA = avg(linhas.map(l => l.tSA));
@@ -789,10 +789,10 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const dExec = findHistDate(o.historico, /execu|andamento/);
       const dConcl = findHistDate(o.historico, /conclu|final/);
       const dConf = findHistDate(o.historico, /valid|confirm|encerr/);
-      const tAE = diffDays(dAbert, dExec);
-      const tEC = diffDays(dExec, dConcl);
-      const tCV = diffDays(dConcl, dConf);
-      const tTot = diffDays(dAbert, dConf || dConcl);
+      const tAE = diffMs(dAbert, dExec);
+      const tEC = diffMs(dExec, dConcl);
+      const tCV = diffMs(dConcl, dConf);
+      const tTot = diffMs(dAbert, dConf || dConcl);
       return { o, dAbert, dExec, dConcl, dConf, tAE, tEC, tCV, tTot };
     });
     const mAE = avg(linhas.map(l => l.tAE));
