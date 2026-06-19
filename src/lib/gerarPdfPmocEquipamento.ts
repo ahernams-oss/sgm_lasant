@@ -61,7 +61,7 @@ async function loadImage(url: string): Promise<{ data: string; w: number; h: num
   }
 }
 
-async function drawHeader(
+export async function drawHeader(
   doc: jsPDF,
   pw: number,
   logo: { data: string } | null,
@@ -89,7 +89,7 @@ async function drawHeader(
   doc.setTextColor(30);
 }
 
-function rodape(doc: jsPDF) {
+export function rodape(doc: jsPDF) {
   const pages = doc.getNumberOfPages();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
