@@ -65,6 +65,7 @@ export interface Cliente {
   relLinha1: string; relLinha2: string; relLinha3: string; relLinha4: string;
   contato: string; grupoWhatsapp: string;
   logoUrl: string;
+  modeloOsId: string;
   informacoesFinanceiras: InformacaoFinanceira[];
   locais: LocalCliente[];
   locaisEntrega: LocalEntrega[];
