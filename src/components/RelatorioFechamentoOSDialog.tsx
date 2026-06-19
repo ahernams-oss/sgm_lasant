@@ -716,16 +716,16 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         "Solicitação": fmtDataHora(dSol),
         "Aprovação": fmtDataHora(dAprov),
         "Conclusão": fmtDataHora(dConcl),
-        "Solic → Aprov (dias)": tSA == null ? "" : Number(tSA.toFixed(2)),
-        "Aprov → Concl (dias)": tAC == null ? "" : Number(tAC.toFixed(2)),
-        "Total (dias)": tTot == null ? "" : Number(tTot.toFixed(2)),
+        "Solic → Aprov (h:min)": tSA == null ? "" : fmtHoraMin(tSA),
+        "Aprov → Concl (h:min)": tAC == null ? "" : fmtHoraMin(tAC),
+        "Total (h:min)": tTot == null ? "" : fmtHoraMin(tTot),
       }));
       data.push({
         "Nº SS": "" as any, "Cliente": "" as any, "Situação atual": "MÉDIA" as any,
         "Solicitação": "" as any, "Aprovação": "" as any, "Conclusão": "" as any,
-        "Solic → Aprov (dias)": (mSA == null ? "" : Number(mSA.toFixed(2))) as any,
-        "Aprov → Concl (dias)": (mAC == null ? "" : Number(mAC.toFixed(2))) as any,
-        "Total (dias)": (mTot == null ? "" : Number(mTot.toFixed(2))) as any,
+        "Solic → Aprov (h:min)": (mSA == null ? "" : fmtHoraMin(mSA)) as any,
+        "Aprov → Concl (h:min)": (mAC == null ? "" : fmtHoraMin(mAC)) as any,
+        "Total (h:min)": (mTot == null ? "" : fmtHoraMin(mTot)) as any,
       });
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
@@ -740,7 +740,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     addHeader(doc, "Ciclo de Vida — Solicitações de Serviço", `${ssFiltradas.length} SS(s) no período`, `Período: ${dataIni} a ${dataFimStr}`);
     autoTable(doc, {
       startY: 32,
-      head: [["Nº SS", "Cliente", "Situação", "Solicitação", "Aprovação", "Conclusão", "Sol-Apr", "Apr-Con", "Total"]],
+      head: [["Nº SS", "Cliente", "Situação", "Solicitação", "Aprovação", "Conclusão", "Sol-Apr (h:min)", "Apr-Con (h:min)", "Total (h:min)"]],
       body: linhas.map(({ s, dSol, dAprov, dConcl, tSA, tAC, tTot }) => [
         formatNumeroAno(s.numero, s.createdAt),
         s.clienteNome || "-",
@@ -748,11 +748,11 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         fmtDataHora(dSol),
         fmtDataHora(dAprov),
         fmtDataHora(dConcl),
-        fmtDias(tSA), fmtDias(tAC), fmtDias(tTot),
+        fmtHoraMin(tSA), fmtHoraMin(tAC), fmtHoraMin(tTot),
       ]),
       foot: [[
         { content: "MÉDIA", colSpan: 6, styles: { halign: "right" as const, fontStyle: "bold" as const } },
-        fmtDias(mSA), fmtDias(mAC), fmtDias(mTot),
+        fmtHoraMin(mSA), fmtHoraMin(mAC), fmtHoraMin(mTot),
       ]],
       styles: { fontSize: 8, cellPadding: 1.5 },
       headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
