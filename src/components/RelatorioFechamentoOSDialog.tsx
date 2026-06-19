@@ -820,7 +820,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         "Aber → Exec (h:min)": (mAE == null ? "" : fmtHoraMin(mAE)) as any,
         "Exec → Concl (h:min)": (mEC == null ? "" : fmtHoraMin(mEC)) as any,
         "Concl → Conf (h:min)": (mCV == null ? "" : fmtHoraMin(mCV)) as any,
-        "Total até Confirmação (h:min)": (mTot == null ? "" : fmtHoraMin(mTot)) as any,
+        "Total até Confirmação (h:min)": (mAE == null ? "" : fmtHoraMin(mAE)) as any,
       });
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
@@ -848,7 +848,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       ]),
       foot: [[
         { content: "MÉDIA", colSpan: 7, styles: { halign: "right" as const, fontStyle: "bold" as const } },
-        fmtHoraMin(mAE), fmtHoraMin(mEC), fmtHoraMin(mCV), fmtHoraMin(mTot),
+        fmtHoraMin(mAE), fmtHoraMin(mEC), fmtHoraMin(mCV), fmtHoraMin(mAE),
       ]],
       styles: { fontSize: 7.5, cellPadding: 1.3 },
       headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
