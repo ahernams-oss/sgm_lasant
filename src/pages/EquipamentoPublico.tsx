@@ -192,7 +192,7 @@ export default function EquipamentoPublico() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Wrench className="h-4 w-4 text-primary" />
-              Manutenções ({manutencoes.length})
+              Solicitações de Serviços (SS) ({manutencoes.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
