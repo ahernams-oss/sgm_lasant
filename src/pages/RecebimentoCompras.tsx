@@ -38,6 +38,8 @@ export default function RecebimentoComprasPage() {
   const { pedidos, updateStatus: updatePedidoStatus } = usePedidoCompra();
   const { recebimentos, registrarRecebimento, getRecebimentosByPedido, getTotalRecebidoPorItem } = useRecebimento();
   const { usuarioLogado } = useAuth();
+  const { requisicoes } = useRequisicaoCompras();
+  const { clientes } = useClientes();
   const { tem } = usePermissao();
   const podeRegistrar = tem("recebimento.registrar");
   const { toast } = useToast();
