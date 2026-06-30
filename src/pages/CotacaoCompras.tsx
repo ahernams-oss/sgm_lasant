@@ -405,6 +405,7 @@ export default function CotacaoComprasPage() {
           ? `${fornecedorIds.length} pedidos gerados (aprovação por item)`
           : "Pedido gerado após aprovação"
       );
+      notificarStatusReq(cot.requisicaoId, "APROVADA - PEDIDO EMITIDO (COMPRADO)", "Data da aprovação");
 
       toast({ title: `Cotação aprovada! ${fornecedorIds.length} pedido(s) emitido(s) e assinado(s) eletronicamente.` });
     } else {
