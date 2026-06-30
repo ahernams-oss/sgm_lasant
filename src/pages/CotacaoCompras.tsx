@@ -317,6 +317,7 @@ export default function CotacaoComprasPage() {
     }
     submeterAprovacao(finalizarCotacaoId);
     updateStatus(cot.requisicaoId, "Em Cotação", usuarioLogado?.nome || "Comprador", "Cotação submetida para aprovação");
+    notificarStatusReq(cot.requisicaoId, "COTAÇÃO CONCLUIDA - AGUARDANDO APROVAÇÃO", "Data da cotação");
     toast({ title: "Cotação finalizada e enviada para aprovação!" });
     setFinalizarDialogOpen(false);
   };
