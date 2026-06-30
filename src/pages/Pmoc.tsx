@@ -267,13 +267,38 @@ function PlanosTab() {
             <div className="col-span-2"><Label>Título *</Label><Input value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} /></div>
             <div className="col-span-2"><Label>Descrição</Label><Textarea value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} rows={2} /></div>
             <div><Label>Cliente</Label>
-              <Select value={form.cliente_id} onValueChange={v => { const c = clientes.find(c => c.id === v); setForm(f => ({ ...f, cliente_id: v, cliente_nome: c?.nome || "" })); }}>
+              <Select value={form.cliente_id} onValueChange={v => { const c = clientes.find(c => c.id === v); setForm(f => ({ ...f, cliente_id: v, cliente_nome: c?.nome || "", contrato: "", vigencia_inicio: "", vigencia_fim: "" })); }}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>{clientes.filter(c => c.tipo === "Cliente").map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div><Label>Unidade</Label><Input value={form.unidade} onChange={e => setForm(f => ({ ...f, unidade: e.target.value }))} /></div>
-            <div><Label>Contrato</Label><Input value={form.contrato} onChange={e => setForm(f => ({ ...f, contrato: e.target.value }))} /></div>
+            <div><Label>Contrato</Label>
+              {(() => {
+                const cli = clientes.find(c => c.id === form.cliente_id);
+                const hoje = new Date().toISOString().substring(0, 10);
+                const contratosVigentes = (cli?.contratos || []).filter(ct => (!ct.dataFim || ct.dataFim >= hoje));
+                return (
+                  <Select
+                    value={form.contrato || "__none"}
+                    onValueChange={v => {
+                      if (v === "__none") { setForm(f => ({ ...f, contrato: "", vigencia_inicio: "", vigencia_fim: "" })); return; }
+                      const ct = contratosVigentes.find(c => c.numero === v);
+                      setForm(f => ({ ...f, contrato: v, vigencia_inicio: ct?.dataInicio || "", vigencia_fim: ct?.dataFim || "" }));
+                    }}
+                    disabled={!form.cliente_id}
+                  >
+                    <SelectTrigger><SelectValue placeholder={form.cliente_id ? "Selecione..." : "Selecione cliente"} /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">—</SelectItem>
+                      {contratosVigentes.map(ct => (
+                        <SelectItem key={ct.id} value={ct.numero}>{ct.numero}{ct.descricao ? ` - ${ct.descricao}` : ""}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                );
+              })()}
+            </div>
             <div><Label>Edifício</Label><Input value={form.edificio} onChange={e => setForm(f => ({ ...f, edificio: e.target.value }))} /></div>
             <div><Label>Vigência Início</Label><Input type="date" value={form.vigencia_inicio} onChange={e => setForm(f => ({ ...f, vigencia_inicio: e.target.value }))} /></div>
             <div><Label>Vigência Fim</Label><Input type="date" value={form.vigencia_fim} onChange={e => setForm(f => ({ ...f, vigencia_fim: e.target.value }))} /></div>
