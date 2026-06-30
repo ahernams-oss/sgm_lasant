@@ -356,6 +356,22 @@ export default function RequisicaoComprasPage() {
         itens,
         anexos,
       });
+      // Notifica grupo de WhatsApp do cliente
+      if (cliente?.grupoWhatsapp) {
+        const proxNumero = (requisicoes.length > 0 ? Math.max(...requisicoes.map(r => r.numero)) : 0) + 1;
+        const nowIso = new Date().toISOString();
+        notificarCompras({
+          jid: cliente.grupoWhatsapp,
+          clienteNome: cliente.nome,
+          pedido: formatarPedido(proxNumero, nowIso),
+          statusLabel: "REQUISIÇÃO DE COMPRA CRIADA",
+          dataSolicitacao: formatarDataHora(nowIso),
+          solicitante: usuarioLogado?.nome || "Usuário",
+          prioridade: formatarPrioridade(urgencia),
+          obs: justificativa,
+          entregaPrevista: prazoDesejado ? formatarData(prazoDesejado) : undefined,
+        });
+      }
       if (alertaUrgenteMsg) {
         toast({
           title: "⚠️ Muitos pedidos Urgentes hoje",
