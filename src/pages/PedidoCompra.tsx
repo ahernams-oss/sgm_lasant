@@ -319,6 +319,37 @@ export default function PedidoCompraPage() {
       if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       statusPedidoIds.forEach(id => updateStatus(id, newStatus, usuarioLogado?.nome || "Usuário", statusObs));
     }
+    // Notifica cliente via WhatsApp sobre a mudança de status
+    if (newStatus !== "Cancelado") {
+      const statusLabelMap: Record<string, string> = {
+        "Comprado": "COMPRADO",
+        "Em Entrega": "EM ENTREGA",
+        "Entregue Parcial": "ENTREGUE PARCIAL",
+        "Entregue": "ENTREGUE",
+      };
+      const label = statusLabelMap[newStatus] || String(newStatus).toUpperCase();
+      statusPedidoIds.forEach(id => {
+        const ped = pedidos.find(p => p.id === id);
+        if (!ped) return;
+        const req = requisicoes.find(r => r.id === ped.requisicaoId);
+        if (!req) return;
+        const cli = clientes.find(c => c.id === req.centroCusto);
+        if (!cli?.grupoWhatsapp) return;
+        notificarCompras({
+          jid: cli.grupoWhatsapp,
+          clienteNome: cli.nome,
+          pedido: formatarPedido(req.numero, req.dataCriacao),
+          statusLabel: label,
+          dataSolicitacao: formatarDataHora(req.dataCriacao),
+          dataExtraLabel: `Data ${label.toLowerCase()}`,
+          dataExtraValor: formatarDataHora(new Date().toISOString()),
+          solicitante: req.solicitante,
+          prioridade: formatarPrioridade(req.urgencia),
+          obs: statusObs || req.justificativa,
+          entregaPrevista: ped.prazoEntrega || (req.prazoDesejado ? formatarData(req.prazoDesejado) : undefined),
+        });
+      });
+    }
     toast({ title: `Status atualizado para: ${newStatus} (${statusPedidoIds.length} pedido${statusPedidoIds.length > 1 ? "s" : ""})` });
     setStatusDialogOpen(false);
     setSelectedIds([]);
