@@ -316,6 +316,24 @@ function PlanosTab() {
             <div><Label>Edifício</Label><Input value={form.edificio} onChange={e => setForm(f => ({ ...f, edificio: e.target.value }))} /></div>
             <div><Label>Vigência Início</Label><Input type="date" value={form.vigencia_inicio} onChange={e => setForm(f => ({ ...f, vigencia_inicio: e.target.value }))} /></div>
             <div><Label>Vigência Fim</Label><Input type="date" value={form.vigencia_fim} onChange={e => setForm(f => ({ ...f, vigencia_fim: e.target.value }))} /></div>
+            {(() => {
+              const hoje = new Date().toISOString().substring(0, 10);
+              const inicio = form.vigencia_inicio;
+              const fim = form.vigencia_fim;
+              let msg = "";
+              if (inicio && fim && fim < inicio) msg = "A data de fim da vigência é anterior à data de início.";
+              else if (fim && fim < hoje) msg = "O contrato está com a vigência vencida.";
+              if (!msg) return null;
+              return (
+                <div className="col-span-2">
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Vigência inválida</AlertTitle>
+                    <AlertDescription>{msg}</AlertDescription>
+                  </Alert>
+                </div>
+              );
+            })()}
             <div><Label>Status</Label>
               <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
