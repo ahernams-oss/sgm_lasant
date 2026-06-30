@@ -615,6 +615,22 @@ export default function RequisicaoComprasPage() {
                           } else {
                             addCotacao({ requisicaoId: r.id, requisicaoNumero: r.numero, comprador: usuarioLogado?.nome || "Comprador" });
                             updateStatus(r.id, "Em Cotação", usuarioLogado?.nome || "Comprador", "Cotação iniciada");
+                            const cli = clientes.find(c => c.id === r.centroCusto);
+                            if (cli?.grupoWhatsapp) {
+                              notificarCompras({
+                                jid: cli.grupoWhatsapp,
+                                clienteNome: cli.nome,
+                                pedido: formatarPedido(r.numero, r.dataCriacao),
+                                statusLabel: "COTAÇÃO INICIADA",
+                                dataSolicitacao: formatarDataHora(r.dataCriacao),
+                                dataExtraLabel: "Data início cotação",
+                                dataExtraValor: formatarDataHora(new Date().toISOString()),
+                                solicitante: r.solicitante,
+                                prioridade: formatarPrioridade(r.urgencia),
+                                obs: r.justificativa,
+                                entregaPrevista: r.prazoDesejado ? formatarData(r.prazoDesejado) : undefined,
+                              });
+                            }
                             toast({ title: "Cotação criada com sucesso!" });
                           }
                           navigate(`/compras/cotacoes?rcsId=${r.id}`);
