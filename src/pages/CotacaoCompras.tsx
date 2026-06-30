@@ -429,6 +429,7 @@ export default function CotacaoComprasPage() {
         });
         await assinarPedidoAutomatico(novoPedido);
         updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador", "Pedido gerado e assinado eletronicamente após aprovação");
+        notificarStatusReq(cot.requisicaoId, "APROVADA - PEDIDO EMITIDO (COMPRADO)", "Data da aprovação");
       }
       toast({ title: "Cotação aprovada e pedido emitido com assinatura eletrônica!" });
     }
