@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { usePermissao } from "@/hooks/usePermissao";
 import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText, CheckSquare, MessageCircle, AlertTriangle } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
+import { notificarCompras, formatarPrioridade, formatarDataHora, formatarData, formatarPedido } from "@/lib/notificacoesCompras";
 import { Checkbox } from "@/components/ui/checkbox";
 import { downloadPdfCotacao } from "@/lib/gerarPdfCotacao";
 import { downloadPdfPedidoCotacaoTodos, gerarBlobPedidoCotacao } from "@/lib/gerarPdfPedidoCotacao";
@@ -223,12 +224,33 @@ export default function CotacaoComprasPage() {
     return list.sort((a, b) => b.numero - a.numero);
   }, [cotacoes, requisicoes, search, filterStatus, filterPeriodo, filterComprador, filterCentroCusto, filterDataIni, filterDataFim]);
 
+  const notificarStatusReq = (reqId: string, statusLabel: string, dataExtraLabel?: string) => {
+    const r = requisicoes.find(x => x.id === reqId);
+    if (!r) return;
+    const cli = clientes.find(c => c.id === r.centroCusto);
+    if (!cli?.grupoWhatsapp) return;
+    notificarCompras({
+      jid: cli.grupoWhatsapp,
+      clienteNome: cli.nome,
+      pedido: formatarPedido(r.numero, r.dataCriacao),
+      statusLabel,
+      dataSolicitacao: formatarDataHora(r.dataCriacao),
+      dataExtraLabel,
+      dataExtraValor: dataExtraLabel ? formatarDataHora(new Date().toISOString()) : undefined,
+      solicitante: r.solicitante,
+      prioridade: formatarPrioridade(r.urgencia),
+      obs: r.justificativa,
+      entregaPrevista: r.prazoDesejado ? formatarData(r.prazoDesejado) : undefined,
+    });
+  };
+
   const handleCriarCotacao = () => {
     if (!selectedReqId) { toast({ title: "Selecione uma requisição", variant: "destructive" }); return; }
     const req = requisicoes.find(r => r.id === selectedReqId);
     if (!req) return;
     addCotacao({ requisicaoId: req.id, requisicaoNumero: req.numero, comprador: usuarioLogado?.nome || "Comprador" });
     updateStatus(req.id, "Em Cotação", usuarioLogado?.nome || "Comprador", "Cotação iniciada");
+    notificarStatusReq(req.id, "COTAÇÃO INICIADA", "Data início cotação");
     toast({ title: "Cotação criada com sucesso!" });
     setNovaDialogOpen(false);
     setSelectedReqId("");
@@ -295,6 +317,7 @@ export default function CotacaoComprasPage() {
     }
     submeterAprovacao(finalizarCotacaoId);
     updateStatus(cot.requisicaoId, "Em Cotação", usuarioLogado?.nome || "Comprador", "Cotação submetida para aprovação");
+    notificarStatusReq(cot.requisicaoId, "COTAÇÃO CONCLUIDA - AGUARDANDO APROVAÇÃO", "Data da cotação");
     toast({ title: "Cotação finalizada e enviada para aprovação!" });
     setFinalizarDialogOpen(false);
   };
@@ -382,6 +405,7 @@ export default function CotacaoComprasPage() {
           ? `${fornecedorIds.length} pedidos gerados (aprovação por item)`
           : "Pedido gerado após aprovação"
       );
+      notificarStatusReq(cot.requisicaoId, "APROVADA - PEDIDO EMITIDO (COMPRADO)", "Data da aprovação");
 
       toast({ title: `Cotação aprovada! ${fornecedorIds.length} pedido(s) emitido(s) e assinado(s) eletronicamente.` });
     } else {
@@ -405,6 +429,7 @@ export default function CotacaoComprasPage() {
         });
         await assinarPedidoAutomatico(novoPedido);
         updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador", "Pedido gerado e assinado eletronicamente após aprovação");
+        notificarStatusReq(cot.requisicaoId, "APROVADA - PEDIDO EMITIDO (COMPRADO)", "Data da aprovação");
       }
       toast({ title: "Cotação aprovada e pedido emitido com assinatura eletrônica!" });
     }

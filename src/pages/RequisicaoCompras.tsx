@@ -34,6 +34,7 @@ import { usePermissao } from "@/hooks/usePermissao";
 import { fetchAll, insertRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { enviarWhatsApp } from "@/lib/whatsapp";
+import { notificarCompras, formatarPrioridade, formatarDataHora, formatarData, formatarPedido } from "@/lib/notificacoesCompras";
 
 const statusColors: Record<StatusRequisicaoCompras, string> = {
   Rascunho: "bg-muted text-muted-foreground",
@@ -355,6 +356,22 @@ export default function RequisicaoComprasPage() {
         itens,
         anexos,
       });
+      // Notifica grupo de WhatsApp do cliente
+      if (cliente?.grupoWhatsapp) {
+        const proxNumero = (requisicoes.length > 0 ? Math.max(...requisicoes.map(r => r.numero)) : 0) + 1;
+        const nowIso = new Date().toISOString();
+        notificarCompras({
+          jid: cliente.grupoWhatsapp,
+          clienteNome: cliente.nome,
+          pedido: formatarPedido(proxNumero, nowIso),
+          statusLabel: "REQUISIÇÃO DE COMPRA CRIADA",
+          dataSolicitacao: formatarDataHora(nowIso),
+          solicitante: usuarioLogado?.nome || "Usuário",
+          prioridade: formatarPrioridade(urgencia),
+          obs: justificativa,
+          entregaPrevista: prazoDesejado ? formatarData(prazoDesejado) : undefined,
+        });
+      }
       if (alertaUrgenteMsg) {
         toast({
           title: "⚠️ Muitos pedidos Urgentes hoje",
@@ -598,6 +615,22 @@ export default function RequisicaoComprasPage() {
                           } else {
                             addCotacao({ requisicaoId: r.id, requisicaoNumero: r.numero, comprador: usuarioLogado?.nome || "Comprador" });
                             updateStatus(r.id, "Em Cotação", usuarioLogado?.nome || "Comprador", "Cotação iniciada");
+                            const cli = clientes.find(c => c.id === r.centroCusto);
+                            if (cli?.grupoWhatsapp) {
+                              notificarCompras({
+                                jid: cli.grupoWhatsapp,
+                                clienteNome: cli.nome,
+                                pedido: formatarPedido(r.numero, r.dataCriacao),
+                                statusLabel: "COTAÇÃO INICIADA",
+                                dataSolicitacao: formatarDataHora(r.dataCriacao),
+                                dataExtraLabel: "Data início cotação",
+                                dataExtraValor: formatarDataHora(new Date().toISOString()),
+                                solicitante: r.solicitante,
+                                prioridade: formatarPrioridade(r.urgencia),
+                                obs: r.justificativa,
+                                entregaPrevista: r.prazoDesejado ? formatarData(r.prazoDesejado) : undefined,
+                              });
+                            }
                             toast({ title: "Cotação criada com sucesso!" });
                           }
                           navigate(`/compras/cotacoes?rcsId=${r.id}`);
