@@ -224,12 +224,33 @@ export default function CotacaoComprasPage() {
     return list.sort((a, b) => b.numero - a.numero);
   }, [cotacoes, requisicoes, search, filterStatus, filterPeriodo, filterComprador, filterCentroCusto, filterDataIni, filterDataFim]);
 
+  const notificarStatusReq = (reqId: string, statusLabel: string, dataExtraLabel?: string) => {
+    const r = requisicoes.find(x => x.id === reqId);
+    if (!r) return;
+    const cli = clientes.find(c => c.id === r.centroCusto);
+    if (!cli?.grupoWhatsapp) return;
+    notificarCompras({
+      jid: cli.grupoWhatsapp,
+      clienteNome: cli.nome,
+      pedido: formatarPedido(r.numero, r.dataCriacao),
+      statusLabel,
+      dataSolicitacao: formatarDataHora(r.dataCriacao),
+      dataExtraLabel,
+      dataExtraValor: dataExtraLabel ? formatarDataHora(new Date().toISOString()) : undefined,
+      solicitante: r.solicitante,
+      prioridade: formatarPrioridade(r.urgencia),
+      obs: r.justificativa,
+      entregaPrevista: r.prazoDesejado ? formatarData(r.prazoDesejado) : undefined,
+    });
+  };
+
   const handleCriarCotacao = () => {
     if (!selectedReqId) { toast({ title: "Selecione uma requisição", variant: "destructive" }); return; }
     const req = requisicoes.find(r => r.id === selectedReqId);
     if (!req) return;
     addCotacao({ requisicaoId: req.id, requisicaoNumero: req.numero, comprador: usuarioLogado?.nome || "Comprador" });
     updateStatus(req.id, "Em Cotação", usuarioLogado?.nome || "Comprador", "Cotação iniciada");
+    notificarStatusReq(req.id, "COTAÇÃO INICIADA", "Data início cotação");
     toast({ title: "Cotação criada com sucesso!" });
     setNovaDialogOpen(false);
     setSelectedReqId("");
