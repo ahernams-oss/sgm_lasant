@@ -273,11 +273,19 @@ function PlanosTab() {
               </Select>
             </div>
             <div><Label>Unidade</Label><Input value={form.unidade} onChange={e => setForm(f => ({ ...f, unidade: e.target.value }))} /></div>
-            <div><Label>Contrato</Label>
+            <div>
+              <Label>Contrato</Label>
               {(() => {
                 const cli = clientes.find(c => c.id === form.cliente_id);
                 const hoje = new Date().toISOString().substring(0, 10);
                 const contratosVigentes = (cli?.contratos || []).filter(ct => (!ct.dataFim || ct.dataFim >= hoje));
+                if (form.cliente_id && contratosVigentes.length === 0) {
+                  return (
+                    <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
+                      Cliente sem contratos em vigor
+                    </div>
+                  );
+                }
                 return (
                   <Select
                     value={form.contrato || "__none"}
