@@ -168,6 +168,33 @@ export default function RecebimentoComprasPage() {
       anexosNF: recAnexos,
     });
 
+    // Notifica cliente via WhatsApp
+    try {
+      const req = requisicoes.find(r => r.id === recPedido.requisicaoId);
+      const cli = req ? clientes.find(c => c.id === req.centroCusto) : undefined;
+      if (req && cli?.grupoWhatsapp) {
+        const totalPedido = recPedido.itens.reduce((s, i) => s + i.quantidade, 0);
+        const totalRecebidoAcum = recPedido.itens.reduce(
+          (s, i) => s + getTotalRecebidoPorItem(recPedido.id, i.itemId), 0
+        );
+        const totalAtual = recItens.reduce((s, i) => s + i.quantidadeRecebida, 0);
+        const ehTotal = (totalRecebidoAcum + totalAtual) >= totalPedido;
+        const label = ehTotal ? "RECEBIDO" : "RECEBIDO PARCIAL";
+        notificarCompras({
+          jid: cli.grupoWhatsapp,
+          clienteNome: cli.nome,
+          pedido: formatarPedido(req.numero, req.dataCriacao),
+          statusLabel: label,
+          dataSolicitacao: formatarDataHora(req.dataCriacao),
+          dataExtraLabel: "Data do recebimento",
+          dataExtraValor: formatarDataHora(new Date().toISOString()),
+          solicitante: req.solicitante,
+          prioridade: formatarPrioridade(req.urgencia),
+          obs: recObservacao || (recNotaFiscal ? `NF: ${recNotaFiscal}` : req.justificativa),
+        });
+      }
+    } catch (e) { console.error("[Recebimento] WhatsApp falhou:", e); }
+
     toast({ title: "Recebimento registrado com sucesso!" });
     setRecDialogOpen(false);
   };
