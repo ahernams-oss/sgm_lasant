@@ -281,8 +281,13 @@ function PlanosTab() {
                 const contratosVigentes = (cli?.contratos || []).filter(ct => (!ct.dataFim || ct.dataFim >= hoje));
                 if (form.cliente_id && contratosVigentes.length === 0) {
                   return (
-                    <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
-                      Cliente sem contratos em vigor
+                    <div className="space-y-1">
+                      <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
+                        Cliente sem contratos em vigor
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Cadastre um contrato em vigor para o cliente em <span className="font-medium text-foreground">Cadastros &gt; Contratos</span>.
+                      </p>
                     </div>
                   );
                 }
