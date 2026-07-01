@@ -66,6 +66,10 @@ export default function AprovarLoteCotacoesPage() {
   const [pageSize, setPageSize] = useState(10);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [otpStep, setOtpStep] = useState<"idle" | "sending" | "await" | "verifying">("idle");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpTelefone, setOtpTelefone] = useState("");
+  const [otpError, setOtpError] = useState("");
 
   const elegiveis = useMemo(() => {
     return cotacoes
