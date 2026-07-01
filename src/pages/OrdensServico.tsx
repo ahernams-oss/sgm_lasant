@@ -787,6 +787,53 @@ export default function OrdensServicoPage() {
     }, 0);
   }, [ordensFiltradas]);
 
+  // Saldo VTM (Mensal / Anual) para o cliente selecionado
+  const parseBRLNum = (s?: string) => {
+    if (!s) return 0;
+    const cleaned = String(s).replace(/[R$\s]/g, "").replace(/\./g, "").replace(",", ".");
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? 0 : n;
+  };
+  const vtmInfo = useMemo(() => {
+    if (filtroCliente === "Todos") return null;
+    const cli = clientes.find(c => c.id === filtroCliente);
+    if (!cli) return null;
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = hoje.getMonth();
+    // contrato vigente
+    const contratoVigente = (cli.contratos || []).find(ct => {
+      if (!ct.dataInicio) return false;
+      const di = new Date(ct.dataInicio + "T00:00:00");
+      const df = ct.dataFim ? new Date(ct.dataFim + "T23:59:59") : null;
+      return di <= hoje && (!df || df >= hoje);
+    }) || (cli.contratos || [])[0];
+    if (!contratoVigente) return null;
+    const vtmMensal = parseBRLNum(contratoVigente.valorBase);
+    const vtmAnual = parseBRLNum(contratoVigente.valorBase2);
+    if (vtmMensal <= 0 && vtmAnual <= 0) return null;
+
+    const osCliente = ordens.filter(o => o.clienteId === filtroCliente);
+    const statusOk = (s: string) => s === "Serviço Confirmado" || s === "Validada";
+    const gastoMes = osCliente.reduce((acc, os) => {
+      const ref = os.createdAt ? new Date(os.createdAt) : null;
+      if (!ref || ref.getFullYear() !== ano || ref.getMonth() !== mes) return acc;
+      if (!statusOk(os.situacao)) return acc;
+      return acc + calcTotalComBDI(os.materiais || [], os.materiaisEstoque || [], os.bdi || 0);
+    }, 0);
+    const gastoAno = osCliente.reduce((acc, os) => {
+      const ref = os.createdAt ? new Date(os.createdAt) : null;
+      if (!ref || ref.getFullYear() !== ano) return acc;
+      if (os.situacao !== "Validada") return acc;
+      return acc + calcTotalComBDI(os.materiais || [], os.materiaisEstoque || [], os.bdi || 0);
+    }, 0);
+    return {
+      vtmMensal, gastoMes, saldoMes: vtmMensal - gastoMes,
+      vtmAnual, gastoAno, saldoAno: vtmAnual - gastoAno,
+      clienteNome: cli.nome,
+    };
+  }, [filtroCliente, clientes, ordens]);
+
   const { paginated: ordensPage, totalPages, safePage } = paginate(ordensFiltradas, page, pageSize);
 
   const colDefs: Record<string, { label: string; className?: string }> = {
