@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import { useSolicitacoesServicos, SolicitacaoServico, HistoricoEntry } from "@/contexts/SolicitacoesServicosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
