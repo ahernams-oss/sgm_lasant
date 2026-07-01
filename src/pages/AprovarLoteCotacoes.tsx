@@ -290,7 +290,7 @@ export default function AprovarLoteCotacoesPage() {
       <Card className="mx-[7px]">
         <CardHeader className="pb-3 flex flex-row items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2"><Search className="h-4 w-4" /> Filtros</CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFCompradorId("__all__"); setFFornecedorId("__all__"); setFStatus("__all__"); setFValorMin(""); setFValorMax(""); setPage(1); }}>Limpar</Button>
+          <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFCompradorId("__all__"); setFFornecedorId("__all__"); setFCentroCustoId("__all__"); setFStatus("__all__"); setFValorMin(""); setFValorMax(""); setPage(1); }}>Limpar</Button>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-3">
