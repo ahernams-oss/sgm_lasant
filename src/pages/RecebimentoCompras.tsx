@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { matchNumero } from "@/lib/matchNumero";
 import { usePedidoCompra, PedidoCompra } from "@/contexts/PedidoCompraContext";
