@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import { useNavigate } from "react-router-dom";
 import { useCotacaoCompras } from "@/contexts/CotacaoComprasContext";
 import { useRequisicaoCompras, ItemRequisicaoCompras, RequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
