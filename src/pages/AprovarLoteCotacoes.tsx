@@ -212,11 +212,63 @@ export default function AprovarLoteCotacoesPage() {
     });
   };
 
+  const enviarOtp = async () => {
+    if (!usuarioLogado?.id) { toast({ title: "Usuário não identificado.", variant: "destructive" }); return; }
+    setOtpError("");
+    setOtpStep("sending");
+    try {
+      const { data, error } = await supabase.functions.invoke("mfa-send-otp", {
+        body: { usuario_id: usuarioLogado.id, purpose: "aprovacao_lote_cotacoes" },
+      });
+      if (error || !data?.success) {
+        setOtpStep("idle");
+        setOtpError(data?.error || error?.message || "Falha ao enviar código.");
+        return;
+      }
+      setOtpTelefone(data.telefone_mascarado || "");
+      setOtpCode("");
+      setOtpStep("await");
+      toast({ title: "Código enviado por WhatsApp." });
+    } catch (e: unknown) {
+      setOtpStep("idle");
+      setOtpError(e instanceof Error ? e.message : "Falha ao enviar código.");
+    }
+  };
+
+  const abrirConfirmacao = async () => {
+    if (!podeAprovarCot) { toast({ title: "Você não possui permissão para aprovar cotações.", variant: "destructive" }); return; }
+    if (selecionados.length === 0) return;
+    if (!podeAprovar(totalSelecionado, "compras")) return;
+    setConfirmOpen(true);
+    setOtpStep("idle");
+    setOtpCode("");
+    setOtpError("");
+    await enviarOtp();
+  };
+
   const executar = async () => {
     if (!podeAprovarCot) { toast({ title: "Você não possui permissão para aprovar cotações.", variant: "destructive" }); return; }
     if (selecionados.length === 0) return;
-    // Valida limite de aprovação com o TOTAL do lote
     if (!podeAprovar(totalSelecionado, "compras")) { setConfirmOpen(false); return; }
+    if (!usuarioLogado?.id) return;
+
+    // Verifica OTP
+    setOtpStep("verifying");
+    setOtpError("");
+    try {
+      const { data, error } = await supabase.functions.invoke("mfa-verify-otp", {
+        body: { usuario_id: usuarioLogado.id, purpose: "aprovacao_lote_cotacoes", code: otpCode },
+      });
+      if (error || !data?.success) {
+        setOtpStep("await");
+        setOtpError(data?.error || error?.message || "Código inválido.");
+        return;
+      }
+    } catch (e: unknown) {
+      setOtpStep("await");
+      setOtpError(e instanceof Error ? e.message : "Falha ao validar código.");
+      return;
+    }
 
     setProcessing(true);
     let okCount = 0;
