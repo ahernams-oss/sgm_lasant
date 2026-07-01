@@ -36,8 +36,10 @@ export default function AprovarLoteSS() {
   const podeAprovarLote = tem("solicitacao_servicos.aprovar_lote");
   const { toast } = useToast();
 
-  const [search, setSearch] = useState("");
-  const [filterCliente, setFilterCliente] = useState("all");
+  const _saved = loadPersistedFilters<{ search: string; filterCliente: string; }>("aprovar_lote_ss_filters_v1");
+  const [search, setSearch] = useState(_saved?.search ?? "");
+  const [filterCliente, setFilterCliente] = useState(_saved?.filterCliente ?? "all");
+  usePersistFilters("aprovar_lote_ss_filters_v1", { search, filterCliente });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
