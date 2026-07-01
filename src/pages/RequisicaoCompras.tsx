@@ -88,13 +88,27 @@ export default function RequisicaoComprasPage() {
   const [justificativas, setJustificativas] = useState<{ id: string; motivo: string }[]>([]);
   const [gerenciarMotivosOpen, setGerenciarMotivosOpen] = useState(false);
   const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: abortCancel } = useDoubleConfirmDelete();
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<string>("Todos");
-  const [filterCentroCusto, setFilterCentroCusto] = useState<string>("Todos");
-  const [filterUrgencia, setFilterUrgencia] = useState<string>("Todas");
-  const [filterSolicitante, setFilterSolicitante] = useState<string>("Todos");
-  const [filterDataIni, setFilterDataIni] = useState("");
-  const [filterDataFim, setFilterDataFim] = useState("");
+  const FILTERS_KEY = "requisicao_compras_filters_v1";
+  const loadFilters = () => {
+    try {
+      const raw = localStorage.getItem(FILTERS_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw) as {
+        search: string; filterStatus: string; filterCentroCusto: string;
+        filterUrgencia: string; filterSolicitante: string;
+        filterDataIni: string; filterDataFim: string;
+      };
+    } catch { return null; }
+  };
+  const _savedFilters = loadFilters();
+  const [search, setSearch] = useState(_savedFilters?.search ?? "");
+  const [filterStatus, setFilterStatus] = useState<string>(_savedFilters?.filterStatus ?? "Todos");
+  const [filterCentroCusto, setFilterCentroCusto] = useState<string>(_savedFilters?.filterCentroCusto ?? "Todos");
+  const [filterUrgencia, setFilterUrgencia] = useState<string>(_savedFilters?.filterUrgencia ?? "Todas");
+  const [filterSolicitante, setFilterSolicitante] = useState<string>(_savedFilters?.filterSolicitante ?? "Todos");
+  const [filterDataIni, setFilterDataIni] = useState(_savedFilters?.filterDataIni ?? "");
+  const [filterDataFim, setFilterDataFim] = useState(_savedFilters?.filterDataFim ?? "");
+
   const [pageReq, setPageReq] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -114,6 +128,16 @@ export default function RequisicaoComprasPage() {
       setSearchParams(searchParams, { replace: true });
     }
   }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(FILTERS_KEY, JSON.stringify({
+        search, filterStatus, filterCentroCusto, filterUrgencia,
+        filterSolicitante, filterDataIni, filterDataFim,
+      }));
+    } catch { /* ignore */ }
+  }, [search, filterStatus, filterCentroCusto, filterUrgencia, filterSolicitante, filterDataIni, filterDataFim]);
+
 
   const loadJustificativas = async () => {
     const data = await fetchAll("requisicoes_compras_justificativas", "motivo");
