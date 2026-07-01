@@ -438,7 +438,7 @@ export default function SolicitacaoServicosPage() {
         const numero = formatNumeroAno(s.numero, s.createdAt);
         const msg =
           `📋 *Solicitação de Orçamento*\n\n` +
-          `Cliente: ${s.clienteNome || cliente?.nome || "-"}\n` +
+          `Cliente: *${s.clienteNome || cliente?.nome || "-"}*\n` +
           `SS nº: ${numero}\n` +
           `Tipo: ${s.tipo || "-"}\n` +
           `Descrição: ${s.descricaoServicos || "-"}\n\n` +
@@ -472,7 +472,7 @@ export default function SolicitacaoServicosPage() {
         const numero = formatNumeroAno(orcamentoTarget.numero, full?.createdAt);
         const msg =
           `💰 *Orçamento Disponível*\n\n` +
-          `Cliente: ${orcamentoTarget.clienteNome || cliente?.nome || "-"}\n` +
+          `Cliente: *${orcamentoTarget.clienteNome || cliente?.nome || "-"}*\n` +
           `SS nº: ${numero}\n` +
           `Descrição: ${full?.descricaoServicos || "-"}\n\n` +
           `Status: Orçamento Disponível para aprovação`;

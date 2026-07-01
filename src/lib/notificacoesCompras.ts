@@ -53,7 +53,7 @@ export async function notificarCompras(input: NotificarComprasInput): Promise<vo
   if (!jid) return;
   // Aceita JID de grupo ou número; helper enviarWhatsApp/edge function trata os dois
   const linhas: string[] = [];
-  linhas.push(input.clienteNome.toUpperCase(), "");
+  linhas.push(`*${input.clienteNome.toUpperCase()}*`, "");
   linhas.push(`PEDIDO: ${input.pedido}`, "");
   linhas.push(`STATUS: ${input.statusLabel}`, "");
   if (input.tipo) linhas.push(`Tipo de solicitação: ${input.tipo}`, "");
