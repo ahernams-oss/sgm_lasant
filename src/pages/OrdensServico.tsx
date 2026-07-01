@@ -233,7 +233,13 @@ export default function OrdensServicoPage() {
   const [filtroPrioridade, setFiltroPrioridade] = useState(_osSavedFilters?.filtroPrioridade ?? "Todas");
   const [filtroDataInicio, setFiltroDataInicio] = useState(_osSavedFilters?.filtroDataInicio ?? "");
   const [filtroDataFim, setFiltroDataFim] = useState(_osSavedFilters?.filtroDataFim ?? "");
+  const _osDatasStatus = loadPersistedFilters<{ confIni: string; confFim: string; valIni: string; valFim: string }>("ordens_servico_datas_status_v1");
+  const [filtroConfirmadoIni, setFiltroConfirmadoIni] = useState(_osDatasStatus?.confIni ?? "");
+  const [filtroConfirmadoFim, setFiltroConfirmadoFim] = useState(_osDatasStatus?.confFim ?? "");
+  const [filtroValidadaIni, setFiltroValidadaIni] = useState(_osDatasStatus?.valIni ?? "");
+  const [filtroValidadaFim, setFiltroValidadaFim] = useState(_osDatasStatus?.valFim ?? "");
   usePersistFilters("ordens_servico_filters_v1", { busca, filtroSituacao, filtroPrioridade, filtroDataInicio, filtroDataFim });
+  usePersistFilters("ordens_servico_datas_status_v1", { confIni: filtroConfirmadoIni, confFim: filtroConfirmadoFim, valIni: filtroValidadaIni, valFim: filtroValidadaFim });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
