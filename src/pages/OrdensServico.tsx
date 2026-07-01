@@ -233,7 +233,13 @@ export default function OrdensServicoPage() {
   const [filtroPrioridade, setFiltroPrioridade] = useState(_osSavedFilters?.filtroPrioridade ?? "Todas");
   const [filtroDataInicio, setFiltroDataInicio] = useState(_osSavedFilters?.filtroDataInicio ?? "");
   const [filtroDataFim, setFiltroDataFim] = useState(_osSavedFilters?.filtroDataFim ?? "");
+  const _osDatasStatus = loadPersistedFilters<{ confIni: string; confFim: string; valIni: string; valFim: string }>("ordens_servico_datas_status_v1");
+  const [filtroConfirmadoIni, setFiltroConfirmadoIni] = useState(_osDatasStatus?.confIni ?? "");
+  const [filtroConfirmadoFim, setFiltroConfirmadoFim] = useState(_osDatasStatus?.confFim ?? "");
+  const [filtroValidadaIni, setFiltroValidadaIni] = useState(_osDatasStatus?.valIni ?? "");
+  const [filtroValidadaFim, setFiltroValidadaFim] = useState(_osDatasStatus?.valFim ?? "");
   usePersistFilters("ordens_servico_filters_v1", { busca, filtroSituacao, filtroPrioridade, filtroDataInicio, filtroDataFim });
+  usePersistFilters("ordens_servico_datas_status_v1", { confIni: filtroConfirmadoIni, confFim: filtroConfirmadoFim, valIni: filtroValidadaIni, valFim: filtroValidadaFim });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -768,17 +774,32 @@ export default function OrdensServicoPage() {
       const matchPrioridade = filtroPrioridade === "Todas" || o.prioridade === filtroPrioridade;
       const matchDataInicio = !filtroDataInicio || o.dataInicio >= filtroDataInicio;
       const matchDataFim = !filtroDataFim || o.dataInicio <= filtroDataFim;
-      return matchBusca && matchSituacao && matchCliente && matchPrioridade && matchDataInicio && matchDataFim;
+      const dataStatus = (situacao: string): string | null => {
+        const hist = (o.historico || []).filter((h: any) => h?.situacao === situacao);
+        if (hist.length === 0) return null;
+        const last = hist[hist.length - 1];
+        const d = last?.data ? String(last.data).slice(0, 10) : null;
+        return d;
+      };
+      const dtConf = (filtroConfirmadoIni || filtroConfirmadoFim) ? dataStatus("Serviço Confirmado") : "ok";
+      const matchConfIni = !filtroConfirmadoIni || (dtConf && dtConf !== "ok" && dtConf >= filtroConfirmadoIni);
+      const matchConfFim = !filtroConfirmadoFim || (dtConf && dtConf !== "ok" && dtConf <= filtroConfirmadoFim);
+      const dtVal = (filtroValidadaIni || filtroValidadaFim) ? dataStatus("Validada") : "ok";
+      const matchValIni = !filtroValidadaIni || (dtVal && dtVal !== "ok" && dtVal >= filtroValidadaIni);
+      const matchValFim = !filtroValidadaFim || (dtVal && dtVal !== "ok" && dtVal <= filtroValidadaFim);
+      return matchBusca && matchSituacao && matchCliente && matchPrioridade && matchDataInicio && matchDataFim
+        && matchConfIni && matchConfFim && matchValIni && matchValFim;
     });
-  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim]);
+  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim]);
 
   const limparFiltros = () => {
     setBusca(""); setFiltroSituacao("Todas"); setFiltroCliente("Todos"); localStorage.setItem("os_filtroCliente", "Todos");
     setFiltroPrioridade("Todas"); setFiltroDataInicio(""); setFiltroDataFim("");
+    setFiltroConfirmadoIni(""); setFiltroConfirmadoFim(""); setFiltroValidadaIni(""); setFiltroValidadaFim("");
     setPage(1);
   };
 
-  const temFiltrosAtivos = busca || filtroSituacao !== "Todas" || filtroCliente !== "Todos" || filtroPrioridade !== "Todas" || filtroDataInicio || filtroDataFim;
+  const temFiltrosAtivos = busca || filtroSituacao !== "Todas" || filtroCliente !== "Todos" || filtroPrioridade !== "Todas" || filtroDataInicio || filtroDataFim || filtroConfirmadoIni || filtroConfirmadoFim || filtroValidadaIni || filtroValidadaFim;
 
   const totalValorFiltrado = useMemo(() => {
     return ordensFiltradas.reduce((acc, os) => {
@@ -968,6 +989,22 @@ export default function OrdensServicoPage() {
             <div className="w-[150px]">
               <Label>Data Fim</Label>
               <Input type="date" value={filtroDataFim} onChange={e => { setFiltroDataFim(e.target.value); setPage(1); }} />
+            </div>
+            <div className="w-[150px]">
+              <Label className="text-xs">Serv. Confirmado (de)</Label>
+              <Input type="date" value={filtroConfirmadoIni} onChange={e => { setFiltroConfirmadoIni(e.target.value); setPage(1); }} />
+            </div>
+            <div className="w-[150px]">
+              <Label className="text-xs">Serv. Confirmado (até)</Label>
+              <Input type="date" value={filtroConfirmadoFim} onChange={e => { setFiltroConfirmadoFim(e.target.value); setPage(1); }} />
+            </div>
+            <div className="w-[150px]">
+              <Label className="text-xs">Validação (de)</Label>
+              <Input type="date" value={filtroValidadaIni} onChange={e => { setFiltroValidadaIni(e.target.value); setPage(1); }} />
+            </div>
+            <div className="w-[150px]">
+              <Label className="text-xs">Validação (até)</Label>
+              <Input type="date" value={filtroValidadaFim} onChange={e => { setFiltroValidadaFim(e.target.value); setPage(1); }} />
             </div>
             {temFiltrosAtivos && (
               <Button variant="ghost" size="sm" onClick={limparFiltros} className="text-muted-foreground">
