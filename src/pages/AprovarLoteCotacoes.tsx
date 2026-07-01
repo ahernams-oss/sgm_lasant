@@ -27,6 +27,8 @@ import { notificarCompras, formatarPrioridade, formatarDataHora, formatarData, f
 type Preview = {
   cotacao: CotacaoCompras;
   reqNumero: number;
+  centroCusto: string;
+  centroCustoNome: string;
   itens: Array<{ itemId: string; descricao: string; quantidade: number; fornecedorId: string; fornecedorNome: string; precoUnitario: number; total: number; }>;
   porFornecedor: Array<{ fornecedorId: string; fornecedorNome: string; total: number; qtdItens: number; }>;
   totalCotacao: number;
