@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import { useSearchParams } from "react-router-dom";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { usePedidoCompra, PedidoCompra, StatusPedido } from "@/contexts/PedidoCompraContext";
