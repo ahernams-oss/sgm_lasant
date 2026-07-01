@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback } from "react";
+import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import { useCotacaoCompras, CotacaoCompras, ItemVencedor } from "@/contexts/CotacaoComprasContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { usePedidoCompra, PedidoCompra } from "@/contexts/PedidoCompraContext";
