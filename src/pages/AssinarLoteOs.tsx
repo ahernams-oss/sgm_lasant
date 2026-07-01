@@ -49,8 +49,10 @@ export default function AssinarLoteOs() {
   const { tem } = usePermissao();
   const { assinaturas, registrar, refresh } = useOsAssinaturas();
 
-  const [search, setSearch] = useState("");
-  const [filterCliente, setFilterCliente] = useState("all");
+  const _saved = loadPersistedFilters<{ search: string; filterCliente: string; }>("assinar_lote_os_filters_v1");
+  const [search, setSearch] = useState(_saved?.search ?? "");
+  const [filterCliente, setFilterCliente] = useState(_saved?.filterCliente ?? "all");
+  usePersistFilters("assinar_lote_os_filters_v1", { search, filterCliente });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
