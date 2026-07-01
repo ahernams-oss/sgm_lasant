@@ -476,11 +476,47 @@ export default function AprovarLoteCotacoesPage() {
             ))}
           </div>
           <div className="text-right font-semibold border-t pt-2">Valor total do lote: {brl(totalSelecionado)}</div>
+
+          <div className="border-t pt-3 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <MessageCircle className="h-4 w-4 text-green-600" />
+              Confirmação em duas etapas (WhatsApp)
+            </div>
+            {otpStep === "sending" && (
+              <div className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Enviando código para seu WhatsApp…</div>
+            )}
+            {(otpStep === "await" || otpStep === "verifying") && (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  Enviamos um código de 6 dígitos para o WhatsApp <b>{otpTelefone || "cadastrado"}</b>. Digite abaixo para confirmar.
+                </p>
+                <div className="flex items-center gap-3">
+                  <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} disabled={otpStep === "verifying" || processing}>
+                    <InputOTPGroup>
+                      {[0,1,2,3,4,5].map(i => <InputOTPSlot key={i} index={i} />)}
+                    </InputOTPGroup>
+                  </InputOTP>
+                  <Button variant="ghost" size="sm" onClick={enviarOtp} disabled={otpStep === "verifying" || processing}>
+                    Reenviar código
+                  </Button>
+                </div>
+              </>
+            )}
+            {otpStep === "idle" && (
+              <Button variant="outline" size="sm" onClick={enviarOtp}>Enviar código de confirmação</Button>
+            )}
+            {otpError && <div className="text-xs text-destructive">{otpError}</div>}
+          </div>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={processing}>Cancelar</Button>
-            <Button onClick={executar} disabled={processing} className="gap-2">
+            <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={processing || otpStep === "verifying"}>Cancelar</Button>
+            <Button
+              onClick={executar}
+              disabled={processing || otpStep !== "await" || otpCode.length !== 6}
+              className="gap-2"
+            >
               <CheckCircle2 className="h-4 w-4" />
-              {processing ? "Processando..." : "Confirmar Aprovação"}
+              {processing ? "Processando..." : otpStep === "verifying" ? "Validando código…" : "Confirmar Aprovação"}
             </Button>
           </DialogFooter>
         </DialogContent>
