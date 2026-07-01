@@ -838,11 +838,10 @@ export default function OrdensServicoPage() {
     if (vtmMensal <= 0 && vtmAnual <= 0) return null;
 
     const osCliente = ordens.filter(o => o.clienteId === filtroCliente);
-    const statusOk = (s: string) => s === "Serviço Confirmado" || s === "Validada";
     const gastoMes = osCliente.reduce((acc, os) => {
       const ref = os.createdAt ? new Date(os.createdAt) : null;
       if (!ref || ref.getFullYear() !== ano || ref.getMonth() !== mes) return acc;
-      if (!statusOk(os.situacao)) return acc;
+      if (os.situacao !== "Validada") return acc;
       return acc + calcTotalComBDI(os.materiais || [], os.materiaisEstoque || [], os.bdi || 0);
     }, 0);
     const gastoAno = osCliente.reduce((acc, os) => {
@@ -1254,7 +1253,7 @@ export default function OrdensServicoPage() {
             {(() => {
               const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
               const rows = [
-                { label: "Saldo VTM Mensal", vtm: vtmInfo.vtmMensal, gasto: vtmInfo.gastoMes, saldo: vtmInfo.saldoMes, hint: "Mês corrente • OS Serviço Confirmado / Validada" },
+                { label: "Saldo VTM Mensal", vtm: vtmInfo.vtmMensal, gasto: vtmInfo.gastoMes, saldo: vtmInfo.saldoMes, hint: "Mês corrente • OS Validadas" },
                 { label: "Saldo VTM Anual", vtm: vtmInfo.vtmAnual, gasto: vtmInfo.gastoAno, saldo: vtmInfo.saldoAno, hint: "Ano corrente • OS Validadas" },
               ];
               return rows.map((r, i) => {
