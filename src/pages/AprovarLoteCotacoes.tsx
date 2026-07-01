@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { matchNumero } from "@/lib/matchNumero";
@@ -50,6 +51,11 @@ export default function AprovarLoteCotacoesPage() {
   const podeAprovarCot = tem("cotacoes.status.finalizada");
 
   const [search, setSearch] = useState("");
+  const [fCompradorId, setFCompradorId] = useState<string>("__all__");
+  const [fFornecedorId, setFFornecedorId] = useState<string>("__all__");
+  const [fStatus, setFStatus] = useState<string>("__all__");
+  const [fValorMin, setFValorMin] = useState<string>("");
+  const [fValorMax, setFValorMax] = useState<string>("");
   const [selected, setSelected] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -102,16 +108,38 @@ export default function AprovarLoteCotacoesPage() {
     });
   }, [elegiveis, requisicoes]);
 
+  const compradoresOpts = useMemo(() => {
+    const set = new Set<string>();
+    previews.forEach(p => { if (p.cotacao.comprador) set.add(p.cotacao.comprador); });
+    return Array.from(set).sort();
+  }, [previews]);
+
+  const fornecedoresOpts = useMemo(() => {
+    const map = new Map<string, string>();
+    previews.forEach(p => p.porFornecedor.forEach(f => map.set(f.fornecedorId, f.fornecedorNome)));
+    return Array.from(map.entries()).map(([id, nome]) => ({ id, nome })).sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [previews]);
+
   const filtered = useMemo(() => {
-    if (!search.trim()) return previews;
-    const s = search.toLowerCase();
-    return previews.filter(p =>
-      matchNumero(p.cotacao.numero, s) ||
-      matchNumero(p.reqNumero, s) ||
-      p.cotacao.comprador.toLowerCase().includes(s) ||
-      p.porFornecedor.some(f => f.fornecedorNome.toLowerCase().includes(s))
-    );
-  }, [previews, search]);
+    const s = search.trim().toLowerCase();
+    const vMin = parseFloat(fValorMin.replace(",", ".")) || null;
+    const vMax = parseFloat(fValorMax.replace(",", ".")) || null;
+    return previews.filter(p => {
+      if (s && !(
+        matchNumero(p.cotacao.numero, s) ||
+        matchNumero(p.reqNumero, s) ||
+        p.cotacao.comprador.toLowerCase().includes(s) ||
+        p.porFornecedor.some(f => f.fornecedorNome.toLowerCase().includes(s))
+      )) return false;
+      if (fCompradorId !== "__all__" && p.cotacao.comprador !== fCompradorId) return false;
+      if (fFornecedorId !== "__all__" && !p.porFornecedor.some(f => f.fornecedorId === fFornecedorId)) return false;
+      if (fStatus === "pronta" && !p.possivel) return false;
+      if (fStatus === "incompleta" && p.possivel) return false;
+      if (vMin !== null && p.totalCotacao < vMin) return false;
+      if (vMax !== null && p.totalCotacao > vMax) return false;
+      return true;
+    });
+  }, [previews, search, fCompradorId, fFornecedorId, fStatus, fValorMin, fValorMax]);
 
   const { paginated, totalPages } = paginate(filtered, page, pageSize);
 
@@ -247,12 +275,41 @@ export default function AprovarLoteCotacoesPage() {
       </div>
 
       <Card className="mx-[7px]">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 flex flex-row items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2"><Search className="h-4 w-4" /> Filtros</CardTitle>
+          <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFCompradorId("__all__"); setFFornecedorId("__all__"); setFStatus("__all__"); setFValorMin(""); setFValorMax(""); setPage(1); }}>Limpar</Button>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <Input placeholder="Buscar por nº cotação, nº RCS, comprador, fornecedor..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
-          <div className="text-sm text-muted-foreground flex items-center">
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <Input className="lg:col-span-2" placeholder="Buscar nº cotação, RCS, comprador, fornecedor..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
+            <Select value={fCompradorId} onValueChange={(v) => { setFCompradorId(v); setPage(1); }}>
+              <SelectTrigger><SelectValue placeholder="Comprador" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">Todos compradores</SelectItem>
+                {compradoresOpts.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={fFornecedorId} onValueChange={(v) => { setFFornecedorId(v); setPage(1); }}>
+              <SelectTrigger><SelectValue placeholder="Fornecedor" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">Todos fornecedores</SelectItem>
+                {fornecedoresOpts.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={fStatus} onValueChange={(v) => { setFStatus(v); setPage(1); }}>
+              <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">Todos status</SelectItem>
+                <SelectItem value="pronta">Pronta</SelectItem>
+                <SelectItem value="incompleta">Incompleta</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex gap-2">
+              <Input type="number" inputMode="decimal" placeholder="Valor mín." value={fValorMin} onChange={e => { setFValorMin(e.target.value); setPage(1); }} />
+              <Input type="number" inputMode="decimal" placeholder="Valor máx." value={fValorMax} onChange={e => { setFValorMax(e.target.value); setPage(1); }} />
+            </div>
+          </div>
+          <div className="text-sm text-muted-foreground">
             {filtered.length} cotação(ões) elegível(is) — {selecionados.length} selecionada(s) — Total: <span className="font-semibold ml-1">{brl(totalSelecionado)}</span>
           </div>
         </CardContent>
