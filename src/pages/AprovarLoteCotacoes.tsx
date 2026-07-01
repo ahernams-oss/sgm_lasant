@@ -125,6 +125,12 @@ export default function AprovarLoteCotacoesPage() {
     return Array.from(map.entries()).map(([id, nome]) => ({ id, nome })).sort((a, b) => a.nome.localeCompare(b.nome));
   }, [previews]);
 
+  const centrosCustoOpts = useMemo(() => {
+    const map = new Map<string, string>();
+    previews.forEach(p => { if (p.centroCusto) map.set(p.centroCusto, p.centroCustoNome); });
+    return Array.from(map.entries()).map(([id, nome]) => ({ id, nome })).sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [previews]);
+
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
     const vMin = parseFloat(fValorMin.replace(",", ".")) || null;
@@ -134,17 +140,19 @@ export default function AprovarLoteCotacoesPage() {
         matchNumero(p.cotacao.numero, s) ||
         matchNumero(p.reqNumero, s) ||
         p.cotacao.comprador.toLowerCase().includes(s) ||
+        p.centroCustoNome.toLowerCase().includes(s) ||
         p.porFornecedor.some(f => f.fornecedorNome.toLowerCase().includes(s))
       )) return false;
       if (fCompradorId !== "__all__" && p.cotacao.comprador !== fCompradorId) return false;
       if (fFornecedorId !== "__all__" && !p.porFornecedor.some(f => f.fornecedorId === fFornecedorId)) return false;
+      if (fCentroCustoId !== "__all__" && p.centroCusto !== fCentroCustoId) return false;
       if (fStatus === "pronta" && !p.possivel) return false;
       if (fStatus === "incompleta" && p.possivel) return false;
       if (vMin !== null && p.totalCotacao < vMin) return false;
       if (vMax !== null && p.totalCotacao > vMax) return false;
       return true;
     });
-  }, [previews, search, fCompradorId, fFornecedorId, fStatus, fValorMin, fValorMax]);
+  }, [previews, search, fCompradorId, fFornecedorId, fCentroCustoId, fStatus, fValorMin, fValorMax]);
 
   const { paginated, totalPages } = paginate(filtered, page, pageSize);
 
