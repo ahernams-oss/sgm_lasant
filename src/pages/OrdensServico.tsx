@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect, type ReactNode } from "react"; // OS page
+import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { updateRow, fetchAll } from "@/lib/supabaseHelper";
