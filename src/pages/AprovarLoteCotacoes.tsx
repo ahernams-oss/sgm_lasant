@@ -337,7 +337,7 @@ export default function AprovarLoteCotacoesPage() {
         </div>
         <Button
           disabled={selecionados.length === 0 || processing}
-          onClick={() => setConfirmOpen(true)}
+          onClick={abrirConfirmacao}
           className="gap-2"
         >
           <CheckCircle2 className="h-4 w-4" />
