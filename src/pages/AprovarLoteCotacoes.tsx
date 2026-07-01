@@ -101,6 +101,8 @@ export default function AprovarLoteCotacoesPage() {
       return {
         cotacao: c,
         reqNumero: req.numero,
+        centroCusto: req.centroCusto,
+        centroCustoNome: req.centroCustoNome,
         itens,
         porFornecedor,
         totalCotacao,
