@@ -240,6 +240,9 @@ export default function OrdensServicoPage() {
   const [filtroValidadaFim, setFiltroValidadaFim] = useState(_osDatasStatus?.valFim ?? "");
   usePersistFilters("ordens_servico_filters_v1", { busca, filtroSituacao, filtroPrioridade, filtroDataInicio, filtroDataFim });
   usePersistFilters("ordens_servico_datas_status_v1", { confIni: filtroConfirmadoIni, confFim: filtroConfirmadoFim, valIni: filtroValidadaIni, valFim: filtroValidadaFim });
+  const _osTipoData = loadPersistedFilters<{ tipo: "inicio" | "confirmado" | "validada" }>("ordens_servico_tipo_data_v1");
+  const [tipoDataFiltro, setTipoDataFiltro] = useState<"inicio" | "confirmado" | "validada">(_osTipoData?.tipo ?? "inicio");
+  usePersistFilters("ordens_servico_tipo_data_v1", { tipo: tipoDataFiltro });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -982,29 +985,46 @@ export default function OrdensServicoPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-[150px]">
-              <Label>Data Início</Label>
-              <Input type="date" value={filtroDataInicio} onChange={e => { setFiltroDataInicio(e.target.value); setPage(1); }} />
+            <div className="w-[180px]">
+              <Label>Tipo de Data</Label>
+              <Select value={tipoDataFiltro} onValueChange={(v: any) => {
+                setTipoDataFiltro(v);
+                setFiltroDataInicio(""); setFiltroDataFim("");
+                setFiltroConfirmadoIni(""); setFiltroConfirmadoFim("");
+                setFiltroValidadaIni(""); setFiltroValidadaFim("");
+                setPage(1);
+              }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inicio">Data Início</SelectItem>
+                  <SelectItem value="confirmado">Serv. Confirmado</SelectItem>
+                  <SelectItem value="validada">Validação</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="w-[150px]">
-              <Label>Data Fim</Label>
-              <Input type="date" value={filtroDataFim} onChange={e => { setFiltroDataFim(e.target.value); setPage(1); }} />
+              <Label>De</Label>
+              <Input type="date"
+                value={tipoDataFiltro === "inicio" ? filtroDataInicio : tipoDataFiltro === "confirmado" ? filtroConfirmadoIni : filtroValidadaIni}
+                onChange={e => {
+                  const v = e.target.value;
+                  if (tipoDataFiltro === "inicio") setFiltroDataInicio(v);
+                  else if (tipoDataFiltro === "confirmado") setFiltroConfirmadoIni(v);
+                  else setFiltroValidadaIni(v);
+                  setPage(1);
+                }} />
             </div>
             <div className="w-[150px]">
-              <Label className="text-xs">Serv. Confirmado (de)</Label>
-              <Input type="date" value={filtroConfirmadoIni} onChange={e => { setFiltroConfirmadoIni(e.target.value); setPage(1); }} />
-            </div>
-            <div className="w-[150px]">
-              <Label className="text-xs">Serv. Confirmado (até)</Label>
-              <Input type="date" value={filtroConfirmadoFim} onChange={e => { setFiltroConfirmadoFim(e.target.value); setPage(1); }} />
-            </div>
-            <div className="w-[150px]">
-              <Label className="text-xs">Validação (de)</Label>
-              <Input type="date" value={filtroValidadaIni} onChange={e => { setFiltroValidadaIni(e.target.value); setPage(1); }} />
-            </div>
-            <div className="w-[150px]">
-              <Label className="text-xs">Validação (até)</Label>
-              <Input type="date" value={filtroValidadaFim} onChange={e => { setFiltroValidadaFim(e.target.value); setPage(1); }} />
+              <Label>Até</Label>
+              <Input type="date"
+                value={tipoDataFiltro === "inicio" ? filtroDataFim : tipoDataFiltro === "confirmado" ? filtroConfirmadoFim : filtroValidadaFim}
+                onChange={e => {
+                  const v = e.target.value;
+                  if (tipoDataFiltro === "inicio") setFiltroDataFim(v);
+                  else if (tipoDataFiltro === "confirmado") setFiltroConfirmadoFim(v);
+                  else setFiltroValidadaFim(v);
+                  setPage(1);
+                }} />
             </div>
             {temFiltrosAtivos && (
               <Button variant="ghost" size="sm" onClick={limparFiltros} className="text-muted-foreground">
