@@ -129,6 +129,16 @@ export default function RequisicaoComprasPage() {
     }
   }, [searchParams, setSearchParams]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(FILTERS_KEY, JSON.stringify({
+        search, filterStatus, filterCentroCusto, filterUrgencia,
+        filterSolicitante, filterDataIni, filterDataFim,
+      }));
+    } catch { /* ignore */ }
+  }, [search, filterStatus, filterCentroCusto, filterUrgencia, filterSolicitante, filterDataIni, filterDataFim]);
+
+
   const loadJustificativas = async () => {
     const data = await fetchAll("requisicoes_compras_justificativas", "motivo");
     setJustificativas(data.map((d: any) => ({ id: d.id, motivo: d.motivo })));
