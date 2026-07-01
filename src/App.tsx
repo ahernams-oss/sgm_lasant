@@ -33,6 +33,7 @@ import CotacaoComprasPage from "./pages/CotacaoCompras.tsx";
 import PedidoCompraPage from "./pages/PedidoCompra.tsx";
 import InteligenciaComprasPage from "./pages/InteligenciaCompras.tsx";
 import AssinarLotePcPage from "./pages/AssinarLotePc.tsx";
+import AprovarLoteCotacoesPage from "./pages/AprovarLoteCotacoes.tsx";
 import PropostaFornecedorPage from "./pages/PropostaFornecedor.tsx";
 import PortalFornecedorPage from "./pages/PortalFornecedor.tsx";
 import PregaoSalaFornecedorPage from "./pages/portal-fornecedor/PregaoSalaFornecedor.tsx";
@@ -221,6 +222,7 @@ function ProtectedAppRoutes() {
         <Route path="/compras/pedidos" element={<RotaProtegida perm="pedidos_compra"><PedidoCompraPage /></RotaProtegida>} />
         <Route path="/compras/inteligencia" element={<RotaProtegida perm="requisicoes_compras"><InteligenciaComprasPage /></RotaProtegida>} />
         <Route path="/compras/assinar-lote-pc" element={<RotaProtegida perm="pedidos_compra"><AssinarLotePcPage /></RotaProtegida>} />
+        <Route path="/compras/aprovar-lote-cotacoes" element={<RotaProtegida perm="cotacoes"><AprovarLoteCotacoesPage /></RotaProtegida>} />
         <Route path="/compras/recebimento" element={<RotaProtegida perm="recebimento"><RecebimentoComprasPage /></RotaProtegida>} />
         <Route path="/compras/estoque" element={<RotaProtegida perm="estoque"><EstoquePage /></RotaProtegida>} />
         <Route path="/compras/relatorios-estoque" element={<RotaProtegida perm="estoque"><RelatoriosEstoquePage /></RotaProtegida>} />
