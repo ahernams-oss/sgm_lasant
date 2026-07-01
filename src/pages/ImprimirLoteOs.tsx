@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import { useOrdensServico, OrdemServico } from "@/contexts/OrdensServicoContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
@@ -32,10 +33,12 @@ export default function ImprimirLoteOs() {
   const { tem } = usePermissao();
   const podeImprimirLote = tem("os.imprimir_lote");
 
-  const [search, setSearch] = useState("");
-  const [filterCliente, setFilterCliente] = useState("all");
-  const [filtroDataIni, setFiltroDataIni] = useState("");
-  const [filtroDataFim, setFiltroDataFim] = useState("");
+  const _saved = loadPersistedFilters<{ search: string; filterCliente: string; filtroDataIni: string; filtroDataFim: string; }>("imprimir_lote_os_filters_v1");
+  const [search, setSearch] = useState(_saved?.search ?? "");
+  const [filterCliente, setFilterCliente] = useState(_saved?.filterCliente ?? "all");
+  const [filtroDataIni, setFiltroDataIni] = useState(_saved?.filtroDataIni ?? "");
+  const [filtroDataFim, setFiltroDataFim] = useState(_saved?.filtroDataFim ?? "");
+  usePersistFilters("imprimir_lote_os_filters_v1", { search, filterCliente, filtroDataIni, filtroDataFim });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());

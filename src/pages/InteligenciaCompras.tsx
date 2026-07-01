@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import { useNavigate } from "react-router-dom";
 import { useCotacaoCompras } from "@/contexts/CotacaoComprasContext";
 import { useRequisicaoCompras, ItemRequisicaoCompras, RequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
@@ -62,13 +63,15 @@ export default function InteligenciaComprasPage() {
   const { tem } = usePermissao();
   const podeAglutinar = tem("inteligencia_compras.aglutinar");
 
-  const [search, setSearch] = useState("");
+  const _icSavedFilters = loadPersistedFilters<{ search: string; searchRC: string; }>("inteligencia_compras_filters_v1");
+  const [search, setSearch] = useState(_icSavedFilters?.search ?? "");
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   // ===== Tab 2 state =====
-  const [searchRC, setSearchRC] = useState("");
+  const [searchRC, setSearchRC] = useState(_icSavedFilters?.searchRC ?? "");
+  usePersistFilters("inteligencia_compras_filters_v1", { search, searchRC });
   const [selectedRCs, setSelectedRCs] = useState<Record<string, boolean>>({});
   const [expandedRC, setExpandedRC] = useState<Record<string, boolean>>({});
   const [activeGroupKey, setActiveGroupKey] = useState<string | null>(null);

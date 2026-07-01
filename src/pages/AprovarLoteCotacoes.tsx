@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback } from "react";
+import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import { useCotacaoCompras, CotacaoCompras, ItemVencedor } from "@/contexts/CotacaoComprasContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { usePedidoCompra, PedidoCompra } from "@/contexts/PedidoCompraContext";
@@ -54,13 +55,15 @@ export default function AprovarLoteCotacoesPage() {
 
   const podeAprovarCot = tem("cotacoes.status.finalizada");
 
-  const [search, setSearch] = useState("");
-  const [fCompradorId, setFCompradorId] = useState<string>("__all__");
-  const [fFornecedorId, setFFornecedorId] = useState<string>("__all__");
-  const [fCentroCustoId, setFCentroCustoId] = useState<string>("__all__");
-  const [fStatus, setFStatus] = useState<string>("__all__");
-  const [fValorMin, setFValorMin] = useState<string>("");
-  const [fValorMax, setFValorMax] = useState<string>("");
+  const _alcSavedFilters = loadPersistedFilters<{ search: string; fCompradorId: string; fFornecedorId: string; fCentroCustoId: string; fStatus: string; fValorMin: string; fValorMax: string; }>("aprovar_lote_cotacoes_filters_v1");
+  const [search, setSearch] = useState(_alcSavedFilters?.search ?? "");
+  const [fCompradorId, setFCompradorId] = useState<string>(_alcSavedFilters?.fCompradorId ?? "__all__");
+  const [fFornecedorId, setFFornecedorId] = useState<string>(_alcSavedFilters?.fFornecedorId ?? "__all__");
+  const [fCentroCustoId, setFCentroCustoId] = useState<string>(_alcSavedFilters?.fCentroCustoId ?? "__all__");
+  const [fStatus, setFStatus] = useState<string>(_alcSavedFilters?.fStatus ?? "__all__");
+  const [fValorMin, setFValorMin] = useState<string>(_alcSavedFilters?.fValorMin ?? "");
+  const [fValorMax, setFValorMax] = useState<string>(_alcSavedFilters?.fValorMax ?? "");
+  usePersistFilters("aprovar_lote_cotacoes_filters_v1", { search, fCompradorId, fFornecedorId, fCentroCustoId, fStatus, fValorMin, fValorMax });
   const [selected, setSelected] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);

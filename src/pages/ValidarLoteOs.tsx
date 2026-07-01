@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import { useOrdensServico, OrdemServico } from "@/contexts/OrdensServicoContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -32,8 +33,10 @@ export default function ValidarLoteOs() {
   const { tem } = usePermissao();
   const podeValidarLote = tem("os.validar_lote");
 
-  const [search, setSearch] = useState("");
-  const [filterCliente, setFilterCliente] = useState("all");
+  const _saved = loadPersistedFilters<{ search: string; filterCliente: string; }>("validar_lote_os_filters_v1");
+  const [search, setSearch] = useState(_saved?.search ?? "");
+  const [filterCliente, setFilterCliente] = useState(_saved?.filterCliente ?? "all");
+  usePersistFilters("validar_lote_os_filters_v1", { search, filterCliente });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());

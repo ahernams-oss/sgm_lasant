@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, type ReactNode } from "react";
+import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useCotacaoCompras, CotacaoCompras, PropostaFornecedor, ItemCotacaoFornecedor, ItemVencedor } from "@/contexts/CotacaoComprasContext";
 import { useRequisicaoCompras, RequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
@@ -86,13 +87,15 @@ export default function CotacaoComprasPage() {
   const fornecedores = useMemo(() => clientes.filter(c => c.tipo === "Fornecedor"), [clientes]);
   const reqDisponiveisParaCotacao = useMemo(() => requisicoes.filter(r => r.status === "Enviada" || r.status === "Em Cotação"), [requisicoes]);
 
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("Todos");
-  const [filterPeriodo, setFilterPeriodo] = useState("Todos");
-  const [filterComprador, setFilterComprador] = useState("Todos");
-  const [filterCentroCusto, setFilterCentroCusto] = useState("Todos");
-  const [filterDataIni, setFilterDataIni] = useState("");
-  const [filterDataFim, setFilterDataFim] = useState("");
+  const _cotSavedFilters = loadPersistedFilters<{ search: string; filterStatus: string; filterPeriodo: string; filterComprador: string; filterCentroCusto: string; filterDataIni: string; filterDataFim: string; }>("cotacao_compras_filters_v1");
+  const [search, setSearch] = useState(_cotSavedFilters?.search ?? "");
+  const [filterStatus, setFilterStatus] = useState(_cotSavedFilters?.filterStatus ?? "Todos");
+  const [filterPeriodo, setFilterPeriodo] = useState(_cotSavedFilters?.filterPeriodo ?? "Todos");
+  const [filterComprador, setFilterComprador] = useState(_cotSavedFilters?.filterComprador ?? "Todos");
+  const [filterCentroCusto, setFilterCentroCusto] = useState(_cotSavedFilters?.filterCentroCusto ?? "Todos");
+  const [filterDataIni, setFilterDataIni] = useState(_cotSavedFilters?.filterDataIni ?? "");
+  const [filterDataFim, setFilterDataFim] = useState(_cotSavedFilters?.filterDataFim ?? "");
+  usePersistFilters("cotacao_compras_filters_v1", { search, filterStatus, filterPeriodo, filterComprador, filterCentroCusto, filterDataIni, filterDataFim });
   const [pageCot, setPageCot] = useState(1);
   const [pageSizeCot, setPageSizeCot] = useState(7);
 
