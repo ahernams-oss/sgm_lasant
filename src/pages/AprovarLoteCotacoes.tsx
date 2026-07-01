@@ -73,7 +73,7 @@ export default function AprovarLoteCotacoesPage() {
   const previews: Preview[] = useMemo(() => {
     return elegiveis.map(c => {
       const req = requisicoes.find(r => r.id === c.requisicaoId);
-      if (!req) return { cotacao: c, reqNumero: c.requisicaoNumero, itens: [], porFornecedor: [], totalCotacao: 0, possivel: false, motivo: "RCS não encontrada" };
+      if (!req) return { cotacao: c, reqNumero: c.requisicaoNumero, centroCusto: "", centroCustoNome: "", itens: [], porFornecedor: [], totalCotacao: 0, possivel: false, motivo: "RCS não encontrada" };
       const itens = req.itens.map(item => {
         // Menor preço por item entre todas as propostas que ofertaram esse item
         let melhor: { fornecedorId: string; fornecedorNome: string; precoUnitario: number } | null = null;
