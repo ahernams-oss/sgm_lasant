@@ -55,6 +55,7 @@ export default function AprovarLoteCotacoesPage() {
   const [search, setSearch] = useState("");
   const [fCompradorId, setFCompradorId] = useState<string>("__all__");
   const [fFornecedorId, setFFornecedorId] = useState<string>("__all__");
+  const [fCentroCustoId, setFCentroCustoId] = useState<string>("__all__");
   const [fStatus, setFStatus] = useState<string>("__all__");
   const [fValorMin, setFValorMin] = useState<string>("");
   const [fValorMax, setFValorMax] = useState<string>("");
