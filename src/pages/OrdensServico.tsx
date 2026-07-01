@@ -787,6 +787,53 @@ export default function OrdensServicoPage() {
     }, 0);
   }, [ordensFiltradas]);
 
+  // Saldo VTM (Mensal / Anual) para o cliente selecionado
+  const parseBRLNum = (s?: string) => {
+    if (!s) return 0;
+    const cleaned = String(s).replace(/[R$\s]/g, "").replace(/\./g, "").replace(",", ".");
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? 0 : n;
+  };
+  const vtmInfo = useMemo(() => {
+    if (filtroCliente === "Todos") return null;
+    const cli = clientes.find(c => c.id === filtroCliente);
+    if (!cli) return null;
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = hoje.getMonth();
+    // contrato vigente
+    const contratoVigente = (cli.contratos || []).find(ct => {
+      if (!ct.dataInicio) return false;
+      const di = new Date(ct.dataInicio + "T00:00:00");
+      const df = ct.dataFim ? new Date(ct.dataFim + "T23:59:59") : null;
+      return di <= hoje && (!df || df >= hoje);
+    }) || (cli.contratos || [])[0];
+    if (!contratoVigente) return null;
+    const vtmMensal = parseBRLNum(contratoVigente.valorBase);
+    const vtmAnual = parseBRLNum(contratoVigente.valorBase2);
+    if (vtmMensal <= 0 && vtmAnual <= 0) return null;
+
+    const osCliente = ordens.filter(o => o.clienteId === filtroCliente);
+    const statusOk = (s: string) => s === "Serviço Confirmado" || s === "Validada";
+    const gastoMes = osCliente.reduce((acc, os) => {
+      const ref = os.createdAt ? new Date(os.createdAt) : null;
+      if (!ref || ref.getFullYear() !== ano || ref.getMonth() !== mes) return acc;
+      if (!statusOk(os.situacao)) return acc;
+      return acc + calcTotalComBDI(os.materiais || [], os.materiaisEstoque || [], os.bdi || 0);
+    }, 0);
+    const gastoAno = osCliente.reduce((acc, os) => {
+      const ref = os.createdAt ? new Date(os.createdAt) : null;
+      if (!ref || ref.getFullYear() !== ano) return acc;
+      if (os.situacao !== "Validada") return acc;
+      return acc + calcTotalComBDI(os.materiais || [], os.materiaisEstoque || [], os.bdi || 0);
+    }, 0);
+    return {
+      vtmMensal, gastoMes, saldoMes: vtmMensal - gastoMes,
+      vtmAnual, gastoAno, saldoAno: vtmAnual - gastoAno,
+      clienteNome: cli.nome,
+    };
+  }, [filtroCliente, clientes, ordens]);
+
   const { paginated: ordensPage, totalPages, safePage } = paginate(ordensFiltradas, page, pageSize);
 
   const colDefs: Record<string, { label: string; className?: string }> = {
@@ -1140,6 +1187,46 @@ export default function OrdensServicoPage() {
           </CardContent>
         </Card>
       )}
+
+      {vtmInfo && (
+        <Card className="border-primary/30">
+          <CardContent className="py-4 px-6 space-y-4">
+            <div className="text-sm font-semibold text-muted-foreground">
+              Saldo VTM — {vtmInfo.clienteNome}
+            </div>
+            {(() => {
+              const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+              const rows = [
+                { label: "Saldo VTM Mensal", vtm: vtmInfo.vtmMensal, gasto: vtmInfo.gastoMes, saldo: vtmInfo.saldoMes, hint: "Mês corrente • OS Serviço Confirmado / Validada" },
+                { label: "Saldo VTM Anual", vtm: vtmInfo.vtmAnual, gasto: vtmInfo.gastoAno, saldo: vtmInfo.saldoAno, hint: "Ano corrente • OS Validadas" },
+              ];
+              return rows.map((r, i) => {
+                const pct = r.vtm > 0 ? Math.min(100, Math.max(0, (r.gasto / r.vtm) * 100)) : 0;
+                const negativo = r.saldo < 0;
+                const barColor = negativo ? "bg-destructive" : pct >= 80 ? "bg-orange-500" : "bg-primary";
+                return (
+                  <div key={i} className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="font-medium">{r.label}</span>
+                      <span className={negativo ? "text-destructive font-semibold" : "font-semibold text-primary"}>
+                        {fmt(r.saldo)}
+                      </span>
+                    </div>
+                    <div className="h-3 w-full rounded bg-muted overflow-hidden">
+                      <div className={`h-full ${barColor} transition-all`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="flex justify-between text-[11px] text-muted-foreground">
+                      <span>{r.hint}</span>
+                      <span>Consumido {fmt(r.gasto)} de {fmt(r.vtm)} ({pct.toFixed(1)}%)</span>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </CardContent>
+        </Card>
+      )}
+
 
       {/* Form Dialog */}
       <Dialog open={formOpen} onOpenChange={o => { if (!o) { resetForm(); } setFormOpen(o); }}>
