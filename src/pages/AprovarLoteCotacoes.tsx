@@ -21,8 +21,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { matchNumero } from "@/lib/matchNumero";
-import { CheckCircle2, Search, Trophy, AlertTriangle, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Search, Trophy, AlertTriangle, ShieldCheck, MessageCircle, Loader2 } from "lucide-react";
 import { notificarCompras, formatarPrioridade, formatarDataHora, formatarData, formatarPedido } from "@/lib/notificacoesCompras";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { supabase } from "@/integrations/supabase/client";
 
 type Preview = {
   cotacao: CotacaoCompras;
@@ -64,6 +66,10 @@ export default function AprovarLoteCotacoesPage() {
   const [pageSize, setPageSize] = useState(10);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [otpStep, setOtpStep] = useState<"idle" | "sending" | "await" | "verifying">("idle");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpTelefone, setOtpTelefone] = useState("");
+  const [otpError, setOtpError] = useState("");
 
   const elegiveis = useMemo(() => {
     return cotacoes
@@ -206,11 +212,63 @@ export default function AprovarLoteCotacoesPage() {
     });
   };
 
+  const enviarOtp = async () => {
+    if (!usuarioLogado?.id) { toast({ title: "Usuário não identificado.", variant: "destructive" }); return; }
+    setOtpError("");
+    setOtpStep("sending");
+    try {
+      const { data, error } = await supabase.functions.invoke("mfa-send-otp", {
+        body: { usuario_id: usuarioLogado.id, purpose: "aprovacao_lote_cotacoes" },
+      });
+      if (error || !data?.success) {
+        setOtpStep("idle");
+        setOtpError(data?.error || error?.message || "Falha ao enviar código.");
+        return;
+      }
+      setOtpTelefone(data.telefone_mascarado || "");
+      setOtpCode("");
+      setOtpStep("await");
+      toast({ title: "Código enviado por WhatsApp." });
+    } catch (e: unknown) {
+      setOtpStep("idle");
+      setOtpError(e instanceof Error ? e.message : "Falha ao enviar código.");
+    }
+  };
+
+  const abrirConfirmacao = async () => {
+    if (!podeAprovarCot) { toast({ title: "Você não possui permissão para aprovar cotações.", variant: "destructive" }); return; }
+    if (selecionados.length === 0) return;
+    if (!podeAprovar(totalSelecionado, "compras")) return;
+    setConfirmOpen(true);
+    setOtpStep("idle");
+    setOtpCode("");
+    setOtpError("");
+    await enviarOtp();
+  };
+
   const executar = async () => {
     if (!podeAprovarCot) { toast({ title: "Você não possui permissão para aprovar cotações.", variant: "destructive" }); return; }
     if (selecionados.length === 0) return;
-    // Valida limite de aprovação com o TOTAL do lote
     if (!podeAprovar(totalSelecionado, "compras")) { setConfirmOpen(false); return; }
+    if (!usuarioLogado?.id) return;
+
+    // Verifica OTP
+    setOtpStep("verifying");
+    setOtpError("");
+    try {
+      const { data, error } = await supabase.functions.invoke("mfa-verify-otp", {
+        body: { usuario_id: usuarioLogado.id, purpose: "aprovacao_lote_cotacoes", code: otpCode },
+      });
+      if (error || !data?.success) {
+        setOtpStep("await");
+        setOtpError(data?.error || error?.message || "Código inválido.");
+        return;
+      }
+    } catch (e: unknown) {
+      setOtpStep("await");
+      setOtpError(e instanceof Error ? e.message : "Falha ao validar código.");
+      return;
+    }
 
     setProcessing(true);
     let okCount = 0;
@@ -279,7 +337,7 @@ export default function AprovarLoteCotacoesPage() {
         </div>
         <Button
           disabled={selecionados.length === 0 || processing}
-          onClick={() => setConfirmOpen(true)}
+          onClick={abrirConfirmacao}
           className="gap-2"
         >
           <CheckCircle2 className="h-4 w-4" />
@@ -418,11 +476,47 @@ export default function AprovarLoteCotacoesPage() {
             ))}
           </div>
           <div className="text-right font-semibold border-t pt-2">Valor total do lote: {brl(totalSelecionado)}</div>
+
+          <div className="border-t pt-3 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <MessageCircle className="h-4 w-4 text-green-600" />
+              Confirmação em duas etapas (WhatsApp)
+            </div>
+            {otpStep === "sending" && (
+              <div className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Enviando código para seu WhatsApp…</div>
+            )}
+            {(otpStep === "await" || otpStep === "verifying") && (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  Enviamos um código de 6 dígitos para o WhatsApp <b>{otpTelefone || "cadastrado"}</b>. Digite abaixo para confirmar.
+                </p>
+                <div className="flex items-center gap-3">
+                  <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} disabled={otpStep === "verifying" || processing}>
+                    <InputOTPGroup>
+                      {[0,1,2,3,4,5].map(i => <InputOTPSlot key={i} index={i} />)}
+                    </InputOTPGroup>
+                  </InputOTP>
+                  <Button variant="ghost" size="sm" onClick={enviarOtp} disabled={otpStep === "verifying" || processing}>
+                    Reenviar código
+                  </Button>
+                </div>
+              </>
+            )}
+            {otpStep === "idle" && (
+              <Button variant="outline" size="sm" onClick={enviarOtp}>Enviar código de confirmação</Button>
+            )}
+            {otpError && <div className="text-xs text-destructive">{otpError}</div>}
+          </div>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={processing}>Cancelar</Button>
-            <Button onClick={executar} disabled={processing} className="gap-2">
+            <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={processing || otpStep === "verifying"}>Cancelar</Button>
+            <Button
+              onClick={executar}
+              disabled={processing || otpStep !== "await" || otpCode.length !== 6}
+              className="gap-2"
+            >
               <CheckCircle2 className="h-4 w-4" />
-              {processing ? "Processando..." : "Confirmar Aprovação"}
+              {processing ? "Processando..." : otpStep === "verifying" ? "Validando código…" : "Confirmar Aprovação"}
             </Button>
           </DialogFooter>
         </DialogContent>
