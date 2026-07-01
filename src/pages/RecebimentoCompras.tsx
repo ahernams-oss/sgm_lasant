@@ -45,8 +45,10 @@ export default function RecebimentoComprasPage() {
   const podeRegistrar = tem("recebimento.registrar");
   const { toast } = useToast();
 
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("Pendentes");
+  const _recSavedFilters = loadPersistedFilters<{ search: string; filterStatus: string; }>("recebimento_compras_filters_v1");
+  const [search, setSearch] = useState(_recSavedFilters?.search ?? "");
+  const [filterStatus, setFilterStatus] = useState(_recSavedFilters?.filterStatus ?? "Pendentes");
+  usePersistFilters("recebimento_compras_filters_v1", { search, filterStatus });
   const [pageRec, setPageRec] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
