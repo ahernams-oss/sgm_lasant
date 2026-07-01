@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, type ReactNode } from "react";
+import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import { useSearchParams } from "react-router-dom";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
