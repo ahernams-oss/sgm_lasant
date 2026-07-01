@@ -21,8 +21,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { matchNumero } from "@/lib/matchNumero";
-import { CheckCircle2, Search, Trophy, AlertTriangle, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Search, Trophy, AlertTriangle, ShieldCheck, MessageCircle, Loader2 } from "lucide-react";
 import { notificarCompras, formatarPrioridade, formatarDataHora, formatarData, formatarPedido } from "@/lib/notificacoesCompras";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { supabase } from "@/integrations/supabase/client";
 
 type Preview = {
   cotacao: CotacaoCompras;
