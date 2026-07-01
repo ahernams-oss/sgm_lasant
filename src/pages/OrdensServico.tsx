@@ -990,6 +990,22 @@ export default function OrdensServicoPage() {
               <Label>Data Fim</Label>
               <Input type="date" value={filtroDataFim} onChange={e => { setFiltroDataFim(e.target.value); setPage(1); }} />
             </div>
+            <div className="w-[150px]">
+              <Label className="text-xs">Serv. Confirmado (de)</Label>
+              <Input type="date" value={filtroConfirmadoIni} onChange={e => { setFiltroConfirmadoIni(e.target.value); setPage(1); }} />
+            </div>
+            <div className="w-[150px]">
+              <Label className="text-xs">Serv. Confirmado (até)</Label>
+              <Input type="date" value={filtroConfirmadoFim} onChange={e => { setFiltroConfirmadoFim(e.target.value); setPage(1); }} />
+            </div>
+            <div className="w-[150px]">
+              <Label className="text-xs">Validação (de)</Label>
+              <Input type="date" value={filtroValidadaIni} onChange={e => { setFiltroValidadaIni(e.target.value); setPage(1); }} />
+            </div>
+            <div className="w-[150px]">
+              <Label className="text-xs">Validação (até)</Label>
+              <Input type="date" value={filtroValidadaFim} onChange={e => { setFiltroValidadaFim(e.target.value); setPage(1); }} />
+            </div>
             {temFiltrosAtivos && (
               <Button variant="ghost" size="sm" onClick={limparFiltros} className="text-muted-foreground">
                 <XCircle className="mr-1 h-4 w-4" /> Limpar
