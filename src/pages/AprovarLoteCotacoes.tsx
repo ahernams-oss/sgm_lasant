@@ -344,6 +344,7 @@ export default function AprovarLoteCotacoesPage() {
               </TableHead>
               <TableHead className="text-center">Nº Cotação</TableHead>
               <TableHead className="text-center">RCS</TableHead>
+              <TableHead>Centro de Custo</TableHead>
               <TableHead>Comprador</TableHead>
               <TableHead className="text-center">Itens</TableHead>
               <TableHead>Fornecedores Vencedores (menor preço)</TableHead>
@@ -353,7 +354,7 @@ export default function AprovarLoteCotacoesPage() {
           </TableHeader>
           <TableBody>
             {paginated.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma cotação elegível.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma cotação elegível.</TableCell></TableRow>
             ) : paginated.map(p => (
               <TableRow key={p.cotacao.id} className={!p.possivel ? "opacity-60" : ""}>
                 <TableCell>
@@ -361,6 +362,13 @@ export default function AprovarLoteCotacoesPage() {
                 </TableCell>
                 <TableCell className="text-center font-medium">#{p.cotacao.numero}</TableCell>
                 <TableCell className="text-center">#{p.reqNumero}</TableCell>
+                <TableCell>
+                  {p.centroCustoNome ? (
+                    <Badge variant="outline" className="text-xs whitespace-nowrap">{p.centroCustoNome}</Badge>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </TableCell>
                 <TableCell>{p.cotacao.comprador}</TableCell>
                 <TableCell className="text-center">{p.itens.length}</TableCell>
                 <TableCell>
@@ -400,7 +408,7 @@ export default function AprovarLoteCotacoesPage() {
           <div className="max-h-[50vh] overflow-y-auto space-y-3">
             {selecionados.map(p => (
               <div key={p.cotacao.id} className="border rounded p-2 text-sm">
-                <div className="font-medium">Cotação #{p.cotacao.numero} · RCS #{p.reqNumero} — Total {brl(p.totalCotacao)}</div>
+                <div className="font-medium">Cotação #{p.cotacao.numero} · RCS #{p.reqNumero}{p.centroCustoNome ? ` · ${p.centroCustoNome}` : ""} — Total {brl(p.totalCotacao)}</div>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {p.porFornecedor.map(f => (
                     <Badge key={f.fornecedorId} variant="outline" className="text-xs">{f.fornecedorNome} · {f.qtdItens} it. · {brl(f.total)}</Badge>
