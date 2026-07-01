@@ -70,7 +70,8 @@ export default function InteligenciaComprasPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   // ===== Tab 2 state =====
-  const [searchRC, setSearchRC] = useState("");
+  const [searchRC, setSearchRC] = useState(_icSavedFilters?.searchRC ?? "");
+  usePersistFilters("inteligencia_compras_filters_v1", { search, searchRC });
   const [selectedRCs, setSelectedRCs] = useState<Record<string, boolean>>({});
   const [expandedRC, setExpandedRC] = useState<Record<string, boolean>>({});
   const [activeGroupKey, setActiveGroupKey] = useState<string | null>(null);
