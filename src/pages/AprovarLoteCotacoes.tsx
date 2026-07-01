@@ -408,7 +408,7 @@ export default function AprovarLoteCotacoesPage() {
           <div className="max-h-[50vh] overflow-y-auto space-y-3">
             {selecionados.map(p => (
               <div key={p.cotacao.id} className="border rounded p-2 text-sm">
-                <div className="font-medium">Cotação #{p.cotacao.numero} · RCS #{p.reqNumero} — Total {brl(p.totalCotacao)}</div>
+                <div className="font-medium">Cotação #{p.cotacao.numero} · RCS #{p.reqNumero}{p.centroCustoNome ? ` · ${p.centroCustoNome}` : ""} — Total {brl(p.totalCotacao)}</div>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {p.porFornecedor.map(f => (
                     <Badge key={f.fornecedorId} variant="outline" className="text-xs">{f.fornecedorNome} · {f.qtdItens} it. · {brl(f.total)}</Badge>
