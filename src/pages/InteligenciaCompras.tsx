@@ -63,7 +63,8 @@ export default function InteligenciaComprasPage() {
   const { tem } = usePermissao();
   const podeAglutinar = tem("inteligencia_compras.aglutinar");
 
-  const [search, setSearch] = useState("");
+  const _icSavedFilters = loadPersistedFilters<{ search: string; searchRC: string; }>("inteligencia_compras_filters_v1");
+  const [search, setSearch] = useState(_icSavedFilters?.search ?? "");
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [confirmOpen, setConfirmOpen] = useState(false);
