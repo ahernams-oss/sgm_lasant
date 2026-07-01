@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, type ReactNode } from "react";
+import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useCotacaoCompras, CotacaoCompras, PropostaFornecedor, ItemCotacaoFornecedor, ItemVencedor } from "@/contexts/CotacaoComprasContext";
 import { useRequisicaoCompras, RequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
