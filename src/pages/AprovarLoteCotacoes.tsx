@@ -293,8 +293,8 @@ export default function AprovarLoteCotacoesPage() {
           <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFCompradorId("__all__"); setFFornecedorId("__all__"); setFStatus("__all__"); setFValorMin(""); setFValorMax(""); setPage(1); }}>Limpar</Button>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            <Input className="lg:col-span-2" placeholder="Buscar nº cotação, RCS, comprador, fornecedor..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-3">
+            <Input className="lg:col-span-2" placeholder="Buscar nº cotação, RCS, comprador, fornecedor, centro de custo..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
             <Select value={fCompradorId} onValueChange={(v) => { setFCompradorId(v); setPage(1); }}>
               <SelectTrigger><SelectValue placeholder="Comprador" /></SelectTrigger>
               <SelectContent>
@@ -307,6 +307,13 @@ export default function AprovarLoteCotacoesPage() {
               <SelectContent>
                 <SelectItem value="__all__">Todos fornecedores</SelectItem>
                 {fornecedoresOpts.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={fCentroCustoId} onValueChange={(v) => { setFCentroCustoId(v); setPage(1); }}>
+              <SelectTrigger><SelectValue placeholder="Centro de Custo" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">Todos centros de custo</SelectItem>
+                {centrosCustoOpts.map(cc => <SelectItem key={cc.id} value={cc.id}>{cc.nome}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={fStatus} onValueChange={(v) => { setFStatus(v); setPage(1); }}>
