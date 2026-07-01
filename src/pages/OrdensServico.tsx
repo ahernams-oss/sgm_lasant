@@ -1188,6 +1188,46 @@ export default function OrdensServicoPage() {
         </Card>
       )}
 
+      {vtmInfo && (
+        <Card className="border-primary/30">
+          <CardContent className="py-4 px-6 space-y-4">
+            <div className="text-sm font-semibold text-muted-foreground">
+              Saldo VTM — {vtmInfo.clienteNome}
+            </div>
+            {(() => {
+              const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+              const rows = [
+                { label: "Saldo VTM Mensal", vtm: vtmInfo.vtmMensal, gasto: vtmInfo.gastoMes, saldo: vtmInfo.saldoMes, hint: "Mês corrente • OS Serviço Confirmado / Validada" },
+                { label: "Saldo VTM Anual", vtm: vtmInfo.vtmAnual, gasto: vtmInfo.gastoAno, saldo: vtmInfo.saldoAno, hint: "Ano corrente • OS Validadas" },
+              ];
+              return rows.map((r, i) => {
+                const pct = r.vtm > 0 ? Math.min(100, Math.max(0, (r.gasto / r.vtm) * 100)) : 0;
+                const negativo = r.saldo < 0;
+                const barColor = negativo ? "bg-destructive" : pct >= 80 ? "bg-orange-500" : "bg-primary";
+                return (
+                  <div key={i} className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="font-medium">{r.label}</span>
+                      <span className={negativo ? "text-destructive font-semibold" : "font-semibold text-primary"}>
+                        {fmt(r.saldo)}
+                      </span>
+                    </div>
+                    <div className="h-3 w-full rounded bg-muted overflow-hidden">
+                      <div className={`h-full ${barColor} transition-all`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="flex justify-between text-[11px] text-muted-foreground">
+                      <span>{r.hint}</span>
+                      <span>Consumido {fmt(r.gasto)} de {fmt(r.vtm)} ({pct.toFixed(1)}%)</span>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </CardContent>
+        </Card>
+      )}
+
+
       {/* Form Dialog */}
       <Dialog open={formOpen} onOpenChange={o => { if (!o) { resetForm(); } setFormOpen(o); }}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
