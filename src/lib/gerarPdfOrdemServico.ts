@@ -603,7 +603,7 @@ export async function gerarPdfOrdemServico(opts: RenderOSOptions) {
   } else {
     await renderOS(doc, opts);
   }
-  addFooter(doc, opts.empresa, formatNumeroAno(opts.os.numero, opts.os.createdAt));
+  addContinuationHeaders(doc, formatNumeroAno(opts.os.numero, opts.os.createdAt), opts.os.clienteNome);
   doc.save(`OS_${formatNumeroAno(opts.os.numero, opts.os.createdAt)}_${(opts.os.clienteNome || "").replace(/\s+/g, "_")}.pdf`);
 }
 
@@ -619,7 +619,7 @@ export async function gerarPdfOrdemServicoLote(lista: RenderOSOptions[]) {
       await renderOS(doc, lista[i]);
     }
   }
-  addFooter(doc, lista[0].empresa);
+  addContinuationHeaders(doc);
   const nums = lista.map(l => formatNumeroAno(l.os.numero, l.os.createdAt)).join("_");
   doc.save(`OS_Lote_${nums}.pdf`);
 }
