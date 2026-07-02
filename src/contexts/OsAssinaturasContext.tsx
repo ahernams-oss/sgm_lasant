@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 
-export type PapelOsAssinatura = "fiscal" | "solicitante";
+export type PapelOsAssinatura = "fiscal" | "fiscal_2" | "fiscal_3" | "solicitante";
 
 export interface OsAssinatura {
   id: string; os_id: string; os_numero: number;
