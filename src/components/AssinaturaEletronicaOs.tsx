@@ -33,7 +33,13 @@ interface Props {
 }
 
 const labelPapel = (p: PapelOsAssinatura) =>
-  p === "fiscal" ? "Fiscal do Contrato" : "Solicitante";
+  p === "solicitante"
+    ? "Solicitante"
+    : p === "fiscal"
+    ? "Fiscal do Contrato 1"
+    : p === "fiscal_2"
+    ? "Fiscal do Contrato 2"
+    : "Fiscal do Contrato 3";
 
 
 const fmtDateTime = (d: string) =>
