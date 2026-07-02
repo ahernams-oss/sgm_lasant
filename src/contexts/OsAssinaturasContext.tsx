@@ -23,7 +23,13 @@ interface Ctx {
   refresh: () => Promise<void>;
 }
 
-const OsAssinaturasContext = createContext<Ctx>({} as Ctx);
+const OsAssinaturasContext = createContext<Ctx>({
+  assinaturas: [],
+  porOs: () => [],
+  registrar: async () => null,
+  buscarPorCodigo: async () => null,
+  refresh: async () => {},
+});
 export const useOsAssinaturas = () => useContext(OsAssinaturasContext);
 const QK = ["os_assinaturas"] as const;
 
