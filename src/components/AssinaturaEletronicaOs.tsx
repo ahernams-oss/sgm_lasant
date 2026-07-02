@@ -74,9 +74,9 @@ export function AssinaturaEletronicaOs({
     clientesPermitidosIds.includes(os.clienteId);
 
   const podeAssinar =
-    papel === "fiscal"
-      ? tem("os.assinar_fiscal")
-      : tem("os.assinar_solicitante") && temAcessoAoCliente;
+    papel === "solicitante"
+      ? tem("os.assinar_solicitante") && temAcessoAoCliente
+      : tem("os.assinar_fiscal");
 
   // ========== JÁ ASSINADO ==========
   if (assinaturaExistente) {
