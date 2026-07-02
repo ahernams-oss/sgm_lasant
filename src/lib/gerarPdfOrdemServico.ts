@@ -569,22 +569,29 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
   }
 }
 
-function addFooter(doc: jsPDF, empresa?: Empresa, osNumero?: number | string) {
+function addContinuationHeaders(doc: jsPDF, osNumero?: number | string, clienteNome?: string) {
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
   const pages = doc.getNumberOfPages();
-  const nome = empresa?.nomeFantasia || empresa?.razaoSocial || "SGM Lasant";
-  for (let i = 1; i <= pages; i++) {
+  // Cabeçalho de identificação apenas nas páginas subsequentes (2..N)
+  for (let i = 2; i <= pages; i++) {
     doc.setPage(i);
-    const ph = doc.internal.pageSize.getHeight();
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    doc.setFont("helvetica", "bold");
+    const left = osNumero ? `Ordem de Serviço Nº ${osNumero}` : "Ordem de Serviço";
+    doc.text(left, ml, 8);
+    if (clienteNome) {
+      doc.setFont("helvetica", "normal");
+      doc.text(clienteNome, pw - mr, 8, { align: "right" });
+    }
     doc.setDrawColor(200, 200, 200);
-    doc.line(ml, ph - 10, pw - mr, ph - 10);
+    doc.line(ml, 10, pw - mr, 10);
+    const total = pages;
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    doc.text(`Documento gerado automaticamente — Engenharia e Manutenção — ${nome}`, ml, ph - 5);
-    doc.text(`Página ${i} de ${pages}`, pw / 2, ph - 5, { align: "center" });
-    if (osNumero) doc.text(`OS Nº ${osNumero}`, pw - mr, ph - 5, { align: "right" });
+    doc.text(`Página ${i} de ${total}`, pw - mr, 13, { align: "right" });
   }
 }
 
