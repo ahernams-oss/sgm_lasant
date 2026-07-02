@@ -569,7 +569,7 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
   }
 }
 
-function addContinuationHeaders(doc: jsPDF, osNumero?: number | string, clienteNome?: string) {
+function addContinuationHeaders(doc: jsPDF, osNumero?: number | string, clienteRelLinha1?: string) {
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
   const pages = doc.getNumberOfPages();
@@ -581,9 +581,9 @@ function addContinuationHeaders(doc: jsPDF, osNumero?: number | string, clienteN
     doc.setFont("helvetica", "bold");
     const left = osNumero ? `Ordem de Serviço Nº ${osNumero}` : "Ordem de Serviço";
     doc.text(left, ml, 8);
-    if (clienteNome) {
+    if (clienteRelLinha1) {
       doc.setFont("helvetica", "normal");
-      doc.text(clienteNome, pw - mr, 8, { align: "right" });
+      doc.text(clienteRelLinha1, pw - mr, 8, { align: "right" });
     }
     doc.setDrawColor(200, 200, 200);
     doc.line(ml, 10, pw - mr, 10);
@@ -603,7 +603,8 @@ export async function gerarPdfOrdemServico(opts: RenderOSOptions) {
   } else {
     await renderOS(doc, opts);
   }
-  addContinuationHeaders(doc, formatNumeroAno(opts.os.numero, opts.os.createdAt), opts.os.clienteNome);
+  const relLinha1 = (opts.cliente as any)?.relLinha1 || "";
+  addContinuationHeaders(doc, formatNumeroAno(opts.os.numero, opts.os.createdAt), relLinha1);
   doc.save(`OS_${formatNumeroAno(opts.os.numero, opts.os.createdAt)}_${(opts.os.clienteNome || "").replace(/\s+/g, "_")}.pdf`);
 }
 
