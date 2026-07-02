@@ -1,0 +1,2 @@
+ALTER TABLE public.os_assinaturas DROP CONSTRAINT os_assinaturas_papel_check;
+ALTER TABLE public.os_assinaturas ADD CONSTRAINT os_assinaturas_papel_check CHECK (papel = ANY (ARRAY['fiscal'::text, 'fiscal_2'::text, 'fiscal_3'::text, 'solicitante'::text]));
