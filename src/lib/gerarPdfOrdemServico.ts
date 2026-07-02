@@ -569,29 +569,31 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
   }
 }
 
-function addContinuationHeaders(doc: jsPDF, osNumero?: number | string, clienteRelLinha1?: string) {
+function addContinuationHeaders(doc: jsPDF, osNumero?: number | string, clienteIdent?: string) {
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
   const pages = doc.getNumberOfPages();
-  // Cabeçalho de identificação apenas nas páginas subsequentes (2..N)
   for (let i = 2; i <= pages; i++) {
     doc.setPage(i);
-    doc.setFontSize(9);
     doc.setTextColor(80, 80, 80);
     doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
     const left = osNumero ? `Ordem de Serviço Nº ${osNumero}` : "Ordem de Serviço";
     doc.text(left, ml, 8);
-    if (clienteRelLinha1) {
+    if (clienteIdent) {
       doc.setFont("helvetica", "normal");
-      doc.text(clienteRelLinha1, pw - mr, 8, { align: "right" });
+      doc.setFontSize(8);
+      const leftWidth = doc.getTextWidth(left);
+      const maxRightW = Math.max(30, pw - mr - (ml + leftWidth + 4));
+      const truncated = (doc.splitTextToSize(clienteIdent, maxRightW)[0] as string) || clienteIdent;
+      doc.text(truncated, pw - mr, 8, { align: "right" });
     }
     doc.setDrawColor(200, 200, 200);
     doc.line(ml, 10, pw - mr, 10);
-    const total = pages;
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
-    doc.text(`Página ${i} de ${total}`, pw - mr, 13, { align: "right" });
+    doc.text(`Página ${i} de ${pages}`, pw - mr, 13, { align: "right" });
   }
 }
 
@@ -603,8 +605,12 @@ export async function gerarPdfOrdemServico(opts: RenderOSOptions) {
   } else {
     await renderOS(doc, opts);
   }
-  const relLinha1 = (opts.cliente as any)?.relLinha1 || "";
-  addContinuationHeaders(doc, formatNumeroAno(opts.os.numero, opts.os.createdAt), relLinha1);
+  const c: any = opts.cliente || {};
+  const ident = [c.relLinha1, c.relLinha2, c.relLinha3, c.relLinha4]
+    .map((s: any) => (s || "").toString().trim())
+    .filter(Boolean)
+    .join(" — ") || (opts.os.clienteNome || "");
+  addContinuationHeaders(doc, formatNumeroAno(opts.os.numero, opts.os.createdAt), ident);
   doc.save(`OS_${formatNumeroAno(opts.os.numero, opts.os.createdAt)}_${(opts.os.clienteNome || "").replace(/\s+/g, "_")}.pdf`);
 }
 
