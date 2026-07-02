@@ -176,7 +176,7 @@ function FotosUploader({ disabled, onUploaded, currentCount }: { disabled: boole
 
 export default function OrdensServicoPage() {
   const { ordens, addOrdem, updateOrdem, deleteOrdem } = useOrdensServico();
-  const { assinaturas: assinaturasOs } = useOsAssinaturas();
+  const { assinaturas: assinaturasOs = [] } = useOsAssinaturas();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
