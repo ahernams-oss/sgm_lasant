@@ -563,7 +563,7 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
     const espacoNecessario = 8 + assinaturasRestantes.length * 34;
     if (y + espacoNecessario > ph - 15) {
       doc.addPage();
-      y = 12;
+      y = 18;
     }
     y = await renderAssinaturas(doc, assinaturasRestantes, y, ml, mr, cw);
   }
