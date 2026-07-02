@@ -33,7 +33,13 @@ interface Props {
 }
 
 const labelPapel = (p: PapelOsAssinatura) =>
-  p === "fiscal" ? "Fiscal do Contrato" : "Solicitante";
+  p === "solicitante"
+    ? "Solicitante"
+    : p === "fiscal"
+    ? "Fiscal do Contrato 1"
+    : p === "fiscal_2"
+    ? "Fiscal do Contrato 2"
+    : "Fiscal do Contrato 3";
 
 
 const fmtDateTime = (d: string) =>
@@ -68,9 +74,9 @@ export function AssinaturaEletronicaOs({
     clientesPermitidosIds.includes(os.clienteId);
 
   const podeAssinar =
-    papel === "fiscal"
-      ? tem("os.assinar_fiscal")
-      : tem("os.assinar_solicitante") && temAcessoAoCliente;
+    papel === "solicitante"
+      ? tem("os.assinar_solicitante") && temAcessoAoCliente
+      : tem("os.assinar_fiscal");
 
   // ========== JÁ ASSINADO ==========
   if (assinaturaExistente) {
@@ -207,9 +213,9 @@ export function AssinaturaEletronicaOs({
           {!podeAssinar ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Lock className="h-4 w-4" />
-              {papel === "fiscal"
-                ? "Você não possui permissão para assinar como Fiscal do Contrato."
-                : "Você não possui acesso a este cliente para assinar como Solicitante."}
+              {papel === "solicitante"
+                ? "Você não possui acesso a este cliente para assinar como Solicitante."
+                : "Você não possui permissão para assinar como Fiscal do Contrato."}
             </div>
           ) : (
             <Button

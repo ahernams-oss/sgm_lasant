@@ -1105,7 +1105,7 @@ export default function OrdensServicoPage() {
                 </TableRow>
               ) : ordensPage.map((os, idx) => {
                 const ass = assinaturasOs.filter(a => a.os_id === os.id);
-                const tooltip = ass.map(a => `${a.papel === "fiscal" ? "Fiscal" : "Solicitante"}: ${a.signatario_nome}`).join(" | ");
+                const tooltip = ass.map(a => `${a.papel === "solicitante" ? "Solicitante" : a.papel === "fiscal" ? "Fiscal 1" : a.papel === "fiscal_2" ? "Fiscal 2" : "Fiscal 3"}: ${a.signatario_nome}`).join(" | ");
                 const totalBDI = calcTotalComBDI(os.materiais || [], os.materiaisEstoque || [], os.bdi || 0);
                 const cellMap: Record<string, { node: ReactNode; className?: string }> = {
                   numero: {
@@ -2177,13 +2177,23 @@ export default function OrdensServicoPage() {
               {viewOS.situacao === "Validada" && (
                 <div className="border rounded-lg p-4 bg-muted/20 space-y-3">
                   <h4 className="text-sm font-semibold flex items-center gap-2">
-                    <FileSignature className="h-4 w-4" /> Assinaturas Eletrônicas (até 2)
+                    <FileSignature className="h-4 w-4" /> Assinaturas Eletrônicas (até 4)
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <AssinaturaEletronicaOs
                       os={viewOS}
                       papel="fiscal"
                       assinaturaExistente={assinaturasOs.find(a => a.os_id === viewOS.id && a.papel === "fiscal")}
+                    />
+                    <AssinaturaEletronicaOs
+                      os={viewOS}
+                      papel="fiscal_2"
+                      assinaturaExistente={assinaturasOs.find(a => a.os_id === viewOS.id && a.papel === "fiscal_2")}
+                    />
+                    <AssinaturaEletronicaOs
+                      os={viewOS}
+                      papel="fiscal_3"
+                      assinaturaExistente={assinaturasOs.find(a => a.os_id === viewOS.id && a.papel === "fiscal_3")}
                     />
                     <AssinaturaEletronicaOs
                       os={viewOS}
