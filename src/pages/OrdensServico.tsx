@@ -1105,7 +1105,7 @@ export default function OrdensServicoPage() {
                 </TableRow>
               ) : ordensPage.map((os, idx) => {
                 const ass = assinaturasOs.filter(a => a.os_id === os.id);
-                const tooltip = ass.map(a => `${a.papel === "fiscal" ? "Fiscal" : "Solicitante"}: ${a.signatario_nome}`).join(" | ");
+                const tooltip = ass.map(a => `${a.papel === "solicitante" ? "Solicitante" : a.papel === "fiscal" ? "Fiscal 1" : a.papel === "fiscal_2" ? "Fiscal 2" : "Fiscal 3"}: ${a.signatario_nome}`).join(" | ");
                 const totalBDI = calcTotalComBDI(os.materiais || [], os.materiaisEstoque || [], os.bdi || 0);
                 const cellMap: Record<string, { node: ReactNode; className?: string }> = {
                   numero: {
