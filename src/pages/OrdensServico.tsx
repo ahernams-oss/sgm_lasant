@@ -863,6 +863,7 @@ export default function OrdensServicoPage() {
     numero: { label: "Nº OS", className: "w-[110px] whitespace-nowrap" },
     cliente: { label: "Cliente" },
     descricao: { label: "Descrição" },
+    setor: { label: "Setor" },
     prioridade: { label: "Prioridade" },
     situacao: { label: "Situação" },
     dataAbertura: { label: "Data Abertura" },
@@ -871,7 +872,7 @@ export default function OrdensServicoPage() {
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "ordens_servico.lista",
-    ["numero", "cliente", "descricao", "prioridade", "situacao", "dataAbertura", "dataInicio", "valor"]
+    ["numero", "cliente", "descricao", "setor", "prioridade", "situacao", "dataAbertura", "dataInicio", "valor"]
   );
 
   const abertasNaPagina = ordensPage.filter(o => o.situacao === "Aberta");
@@ -1099,7 +1100,7 @@ export default function OrdensServicoPage() {
             <TableBody>
               {ordensPage.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
                     Nenhuma Ordem de Serviço encontrada.
                   </TableCell>
                 </TableRow>
@@ -1137,6 +1138,7 @@ export default function OrdensServicoPage() {
                   },
                   cliente: { node: os.clienteNome },
                   descricao: { node: os.descricaoServicos, className: "max-w-[250px] truncate" },
+                  setor: { node: os.setorDescricao || "—", className: "text-sm" },
                   prioridade: { node: prioridadeBadge(os.prioridade) },
                   situacao: { node: situacaoBadge(os.situacao) },
                   dataAbertura: {
@@ -1150,21 +1152,34 @@ export default function OrdensServicoPage() {
                   },
                 };
                 return (
-                <TableRow key={os.id} className={selectedIds.has(os.id) ? "bg-accent" : (idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60")}>
-                  <TableCell>
-                    {os.situacao === "Aberta" ? (
-                      <Checkbox
-                        checked={selectedIds.has(os.id)}
-                        onCheckedChange={() => toggleSelect(os.id)}
-                        aria-label={`Selecionar OS ${os.numero}`}
-                      />
-                    ) : null}
-                  </TableCell>
-                  {colOrder.map((key) => {
-                    const c = cellMap[key];
-                    return <TableCell key={key} className={c?.className}>{c?.node}</TableCell>;
-                  })}
-                  <TableCell>
+                  <TableRow
+                    key={os.id}
+                    className={
+                      selectedIds.has(os.id)
+                        ? "bg-accent"
+                        : idx % 2 === 1
+                          ? "bg-gray-200/60 hover:bg-gray-200/80"
+                          : "bg-white hover:bg-gray-100/60"
+                    }
+                  >
+                    <TableCell>
+                      {os.situacao === "Aberta" ? (
+                        <Checkbox
+                          checked={selectedIds.has(os.id)}
+                          onCheckedChange={() => toggleSelect(os.id)}
+                          aria-label={`Selecionar OS ${os.numero}`}
+                        />
+                      ) : null}
+                    </TableCell>
+                    {colOrder.map((key) => {
+                      const c = cellMap[key];
+                      return (
+                        <TableCell key={key} className={c?.className}>
+                          {c?.node}
+                        </TableCell>
+                      );
+                    })}
+                    <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
