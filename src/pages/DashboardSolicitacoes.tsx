@@ -507,13 +507,39 @@ export default function DashboardSolicitacoes() {
             {ssStatusData.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-10">Nenhuma solicitação no período.</p>
             ) : (
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={320}>
                 <PieChart>
-                  <Pie data={ssStatusData} cx="50%" cy="50%" innerRadius={50} outerRadius={95} dataKey="value" nameKey="name" label={({ name, value }) => `${name}: ${value}`} labelLine>
-                    {ssStatusData.map((_, i) => (<Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />))}
+                  <Pie
+                    data={ssStatusData}
+                    cx="40%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={90}
+                    dataKey="value"
+                    nameKey="name"
+                    labelLine={{ stroke: "hsl(var(--muted-foreground))", strokeWidth: 1 }}
+                    label={({ name, value, percent }) => {
+                      const pct = (percent * 100).toFixed(0);
+                      const short = name.length > 14 ? `${name.slice(0, 12)}…` : name;
+                      return `${short}: ${value} (${pct}%)`;
+                    }}
+                  >
+                    {ssStatusData.map((_, i) => (<Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} stroke="hsl(var(--background))" strokeWidth={2} />))}
                   </Pie>
-                  <Tooltip />
-                  <Legend />
+                  <Tooltip
+                    formatter={(value: number, name: string, props: any) => {
+                      const total = ssStatusData.reduce((s, d) => s + d.value, 0);
+                      const pct = total > 0 ? ((value / total) * 100).toFixed(1) : "0.0";
+                      return [`${value} (${pct}%)`, name];
+                    }}
+                    contentStyle={{ borderRadius: "0.5rem", border: "1px solid hsl(var(--border))" }}
+                  />
+                  <Legend
+                    layout="vertical"
+                    verticalAlign="middle"
+                    align="right"
+                    wrapperStyle={{ paddingLeft: "1rem", fontSize: "12px" }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             )}
