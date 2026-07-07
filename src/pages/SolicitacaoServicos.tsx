@@ -905,10 +905,17 @@ export default function SolicitacaoServicosPage() {
                   <Button variant="outline" onClick={() => { setFormOpen(false); setForm({ ...emptyForm }); setImagens([]); setEditingId(null); }}>
                     Cancelar
                   </Button>
-                  <Button onClick={handleSave} disabled={uploading}>
+                  {!editingId && (
+                    <Button variant="secondary" onClick={() => handleSave(true)} disabled={uploading}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      {uploading ? "Salvando..." : "Adicionar e continuar"}
+                    </Button>
+                  )}
+                  <Button onClick={() => handleSave(false)} disabled={uploading}>
                     <Plus className="mr-2 h-4 w-4" />
-                    {uploading ? "Salvando..." : editingId ? "Atualizar" : "Adicionar"}
+                    {uploading ? "Salvando..." : editingId ? "Atualizar" : "Adicionar e fechar"}
                   </Button>
+
                 </div>
               </CardContent>
             </CollapsibleContent>
