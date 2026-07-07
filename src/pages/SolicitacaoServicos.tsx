@@ -236,7 +236,7 @@ export default function SolicitacaoServicosPage() {
     });
   };
 
-  const handleSave = async () => {
+  const handleSave = async (keepOpen = false) => {
     if (!form.cliente_id) { toast({ title: "Selecione um cliente", variant: "destructive" }); return; }
     if (!form.descricao_servicos.trim()) { toast({ title: "Descrição dos serviços obrigatória", variant: "destructive" }); return; }
     if (form.tipo === "Equipamentos" && !form.equipamento_id) { toast({ title: "Selecione um equipamento", variant: "destructive" }); return; }
@@ -247,10 +247,10 @@ export default function SolicitacaoServicosPage() {
       setDuplicateDialogOpen(true);
       return;
     }
-    await persistSave();
+    await persistSave(keepOpen);
   };
 
-  const persistSave = async () => {
+  const persistSave = async (keepOpen = false) => {
     setUploading(true);
     const imagensUrls = await uploadImagens();
 
@@ -291,12 +291,27 @@ export default function SolicitacaoServicosPage() {
       await addSolicitacao(payload);
       toast({ title: "Solicitação cadastrada" });
     }
+
+    if (keepOpen && !editingId) {
+      // Mantém cliente/local/pavimento/setor/tipo; limpa apenas descrição, equipamento e imagens
+      setForm(f => ({
+        ...f,
+        descricao_servicos: "",
+        equipamento_id: "",
+      }));
+      setImagens([]);
+      setEditingId(null);
+      setUploading(false);
+      return;
+    }
+
     setForm({ ...emptyForm });
     setImagens([]);
     setEditingId(null);
     setFormOpen(false);
     setUploading(false);
   };
+
 
   const handleEdit = (s: any) => {
     setForm({
@@ -890,10 +905,17 @@ export default function SolicitacaoServicosPage() {
                   <Button variant="outline" onClick={() => { setFormOpen(false); setForm({ ...emptyForm }); setImagens([]); setEditingId(null); }}>
                     Cancelar
                   </Button>
-                  <Button onClick={handleSave} disabled={uploading}>
+                  {!editingId && (
+                    <Button variant="secondary" onClick={() => handleSave(true)} disabled={uploading}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      {uploading ? "Salvando..." : "Adicionar e continuar"}
+                    </Button>
+                  )}
+                  <Button onClick={() => handleSave(false)} disabled={uploading}>
                     <Plus className="mr-2 h-4 w-4" />
-                    {uploading ? "Salvando..." : editingId ? "Atualizar" : "Adicionar"}
+                    {uploading ? "Salvando..." : editingId ? "Atualizar" : "Adicionar e fechar"}
                   </Button>
+
                 </div>
               </CardContent>
             </CollapsibleContent>
