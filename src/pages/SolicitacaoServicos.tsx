@@ -640,7 +640,9 @@ export default function SolicitacaoServicosPage() {
         s.situacao.toLowerCase().includes(q) ||
         s.tipo.toLowerCase().includes(q) ||
         String(s.numero).includes(q) ||
-        formatNumeroAno(s.numero, s.createdAt).toLowerCase().includes(q)
+        formatNumeroAno(s.numero, s.createdAt).toLowerCase().includes(q) ||
+        (s.setorDescricao || "").toLowerCase().includes(q) ||
+        (s.pavimentoDescricao || "").toLowerCase().includes(q)
       );
     }
     if (filterCliente !== "all") result = result.filter(s => s.clienteId === filterCliente);
