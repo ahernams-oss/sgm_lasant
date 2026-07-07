@@ -771,6 +771,7 @@ export default function OrdensServicoPage() {
         o.descricaoServicos.toLowerCase().includes(q) ||
         o.solicitante.toLowerCase().includes(q) ||
         o.localDescricao.toLowerCase().includes(q) ||
+        o.setorDescricao.toLowerCase().includes(q) ||
         o.categoria.toLowerCase().includes(q);
       const matchSituacao = filtroSituacao === "Todas" || o.situacao === filtroSituacao;
       const matchCliente = filtroCliente === "Todos" || o.clienteId === filtroCliente;
@@ -952,7 +953,7 @@ export default function OrdensServicoPage() {
               <Label>Buscar</Label>
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Nº, cliente, descrição, local..." value={busca} onChange={e => { setBusca(e.target.value); setPage(1); }} className="pl-8" />
+                <Input placeholder="Nº, cliente, descrição, local, setor..." value={busca} onChange={e => { setBusca(e.target.value); setPage(1); }} className="pl-8" />
               </div>
             </div>
             <div className="w-[200px]">
