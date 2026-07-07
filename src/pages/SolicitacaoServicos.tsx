@@ -689,6 +689,8 @@ export default function SolicitacaoServicosPage() {
     tipo: { label: "Tipo" },
     cliente: { label: "Cliente" },
     local: { label: "Local" },
+    pavimento: { label: "Pavimento" },
+    setor: { label: "Setor" },
     equipamento: { label: "Equipamento" },
     descricao: { label: "Descrição" },
     situacao: { label: "Situação" },
@@ -696,7 +698,7 @@ export default function SolicitacaoServicosPage() {
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "solicitacao_servicos.lista",
-    ["numero", "dataHora", "solicitante", "tipo", "cliente", "local", "equipamento", "descricao", "situacao", "visitado"]
+    ["numero", "dataHora", "solicitante", "tipo", "cliente", "local", "pavimento", "setor", "equipamento", "descricao", "situacao", "visitado"]
   );
 
   const allPageIds = paginated.map(s => s.id);
@@ -1008,7 +1010,7 @@ export default function SolicitacaoServicosPage() {
           <TableBody>
             {paginated.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={14} className="text-center text-muted-foreground py-8">
                   Nenhuma solicitação cadastrada
                 </TableCell>
               </TableRow>
@@ -1035,6 +1037,8 @@ export default function SolicitacaoServicosPage() {
                 tipo: { node: <Badge variant="outline">{s.tipo}</Badge> },
                 cliente: { node: s.clienteNome || "-" },
                 local: { node: s.localDescricao || "-" },
+                pavimento: { node: s.pavimentoDescricao || "-" },
+                setor: { node: s.setorDescricao || "-" },
                 equipamento: { node: s.tipo === "Equipamentos" ? (s.equipamentoNome || "-") : "-" },
                 descricao: { node: s.descricaoServicos || "-", className: "max-w-[200px] truncate" },
                 situacao: {
@@ -1176,7 +1180,7 @@ export default function SolicitacaoServicosPage() {
           {filterSituacao === "Orçamento Disponível" && filtered.length > 0 && (
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={12} className="text-right font-semibold">
+                <TableCell colSpan={14} className="text-right font-semibold">
                   Total Orçamento Disponível ({filtered.length}):{" "}
                   {filtered
                     .reduce((acc, s) => acc + Number(orcamentos.find(o => o.solicitacaoId === s.id)?.valorTotal ?? 0), 0)
