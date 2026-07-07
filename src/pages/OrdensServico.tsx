@@ -863,6 +863,7 @@ export default function OrdensServicoPage() {
     numero: { label: "Nº OS", className: "w-[110px] whitespace-nowrap" },
     cliente: { label: "Cliente" },
     descricao: { label: "Descrição" },
+    setor: { label: "Setor" },
     prioridade: { label: "Prioridade" },
     situacao: { label: "Situação" },
     dataAbertura: { label: "Data Abertura" },
@@ -871,7 +872,7 @@ export default function OrdensServicoPage() {
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "ordens_servico.lista",
-    ["numero", "cliente", "descricao", "prioridade", "situacao", "dataAbertura", "dataInicio", "valor"]
+    ["numero", "cliente", "descricao", "setor", "prioridade", "situacao", "dataAbertura", "dataInicio", "valor"]
   );
 
   const abertasNaPagina = ordensPage.filter(o => o.situacao === "Aberta");
