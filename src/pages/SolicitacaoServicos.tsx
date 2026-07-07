@@ -1037,6 +1037,8 @@ export default function SolicitacaoServicosPage() {
                 tipo: { node: <Badge variant="outline">{s.tipo}</Badge> },
                 cliente: { node: s.clienteNome || "-" },
                 local: { node: s.localDescricao || "-" },
+                pavimento: { node: s.pavimentoDescricao || "-" },
+                setor: { node: s.setorDescricao || "-" },
                 equipamento: { node: s.tipo === "Equipamentos" ? (s.equipamentoNome || "-") : "-" },
                 descricao: { node: s.descricaoServicos || "-", className: "max-w-[200px] truncate" },
                 situacao: {
