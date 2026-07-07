@@ -1180,7 +1180,7 @@ export default function SolicitacaoServicosPage() {
           {filterSituacao === "Orçamento Disponível" && filtered.length > 0 && (
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={12} className="text-right font-semibold">
+                <TableCell colSpan={14} className="text-right font-semibold">
                   Total Orçamento Disponível ({filtered.length}):{" "}
                   {filtered
                     .reduce((acc, s) => acc + Number(orcamentos.find(o => o.solicitacaoId === s.id)?.valorTotal ?? 0), 0)
