@@ -519,8 +519,9 @@ export default function DashboardSolicitacoes() {
                     nameKey="name"
                     labelLine={{ stroke: "hsl(var(--muted-foreground))", strokeWidth: 1 }}
                     label={({ name, value, percent }) => {
+                      if (percent < 0.05) return null;
                       const pct = (percent * 100).toFixed(0);
-                      const short = name.length > 14 ? `${name.slice(0, 12)}…` : name;
+                      const short = name.length > 12 ? `${name.slice(0, 10)}…` : name;
                       return `${short}: ${value} (${pct}%)`;
                     }}
                   >
