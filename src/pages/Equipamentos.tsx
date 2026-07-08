@@ -71,6 +71,7 @@ export default function Equipamentos() {
   const [novaCalib, setNovaCalib] = useState({ data_calibracao: "", validade_calibracao: "", laboratorio: "", numero_certificado: "", certificado_url: "", responsavel: "", resultado: "Aprovado", observacoes: "", custo: 0 });
   const [qrEquip, setQrEquip] = useState<Equipamento | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [laudoEquip, setLaudoEquip] = useState<Equipamento | null>(null);
 
   const openQr = async (eq: Equipamento) => {
     const url = `${window.location.origin}/equipamento/${eq.id}`;
