@@ -575,11 +575,12 @@ export default function DashboardSolicitacoes() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-2">
+        <Card className="lg:col-span-2" data-chart-card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Activity className="h-4 w-4 text-primary" /> Evolução Mensal — SS vs OS
             </CardTitle>
+            <ChartPngExportButton filename="evolucao-mensal-ss-os" />
           </CardHeader>
           <CardContent>
             {timelineData.length === 0 ? (
