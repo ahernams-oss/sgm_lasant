@@ -140,7 +140,8 @@ export function ClientesProvider({ children }: { children: ReactNode }) {
   };
 
   const updateCliente = async (id: string, data: Partial<Omit<Cliente, "id">>): Promise<boolean> => {
-    const current = clientes.find(c => c.id === id);
+    const latestClientes = qc.getQueryData<Cliente[]>(QK) ?? clientes;
+    const current = latestClientes.find(c => c.id === id);
     if (!current) return false;
     const merged = { ...current, ...data };
     const { id: _, ...rest } = merged;
