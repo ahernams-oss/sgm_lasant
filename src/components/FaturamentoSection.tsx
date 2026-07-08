@@ -260,9 +260,14 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
   };
 
   const formatCurrency = (val: string) => {
-    if (!val) return "—";
-    const num = parseFloat(val);
-    if (isNaN(num)) return val;
+    if (val === undefined || val === null || val === "") return "—";
+    // Aceita formato BR ("1.234,56") ou US ("1234.56")
+    const s = String(val).trim();
+    const normalized = s.includes(",")
+      ? s.replace(/\./g, "").replace(",", ".")
+      : s;
+    const num = parseFloat(normalized);
+    if (isNaN(num)) return s;
     return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   };
 
@@ -425,6 +430,7 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
                 </p>
                 <p className="text-muted-foreground">Bruto: {formatCurrency(f.valorBruto)}</p>
                 <p className="text-muted-foreground">Líquido: {formatCurrency(f.valorLiquido)}</p>
+                <p className="text-muted-foreground">Variável: {formatCurrency(f.valorVariavel)}</p>
                 {podeVerValorFolha && (
                   <p className="text-primary font-medium flex items-center gap-1">
                     <Lock className="h-3 w-3" /> Folha: {formatCurrency(f.valorFolha)}
@@ -433,7 +439,7 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
                 {podeVerValorFolha && (
                   <>
                     <p className="text-muted-foreground">VT: {formatCurrency(f.valeTransporte)}</p>
-                    <p className="text-muted-foreground">VA: {formatCurrency(f.valeAlimentacao)}</p>
+                    <p className="text-muted-foreground">Vale Alim.: {formatCurrency(f.valeAlimentacao)}</p>
                     <p className="text-muted-foreground">Custo Fixo: {formatCurrency(f.custoFixo)}</p>
                     <p className="text-muted-foreground">Fora Folha: {formatCurrency(f.foraFolha)}</p>
                     <p className="text-muted-foreground">Prov. Férias: {formatCurrency(f.provisaoFerias)}</p>
