@@ -70,6 +70,32 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
   const update = <K extends keyof Omit<Faturamento, "id">>(field: K, value: Omit<Faturamento, "id">[K]) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
+  // ── Valores monetários em formato BR ────────────────────────────────────────
+  // Aceita apenas dígitos, ponto e vírgula durante a digitação; normaliza no blur.
+  const parseMoney = (v: string): number | null => {
+    if (v === undefined || v === null) return null;
+    const s = String(v).trim();
+    if (!s) return null;
+    // BR: "1.234,56" | US: "1234.56" | "1234" | "1234,5"
+    const normalized = s.includes(",")
+      ? s.replace(/\./g, "").replace(",", ".")
+      : s;
+    const num = Number(normalized);
+    return isFinite(num) ? num : null;
+  };
+  const formatMoneyBR = (num: number) =>
+    num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const handleMoneyChange = (field: keyof Omit<Faturamento, "id">) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Mantém somente dígitos, vírgula e ponto durante a digitação (permite editar livremente)
+    const cleaned = e.target.value.replace(/[^\d.,-]/g, "");
+    update(field, cleaned as never);
+  };
+  const handleMoneyBlur = (field: keyof Omit<Faturamento, "id">) => (e: React.FocusEvent<HTMLInputElement>) => {
+    const num = parseMoney(e.target.value);
+    if (num === null) { update(field, "" as never); return; }
+    update(field, formatMoneyBR(num) as never);
+  };
+
   const handleImportXml = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
