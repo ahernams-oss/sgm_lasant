@@ -796,9 +796,10 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="lg:col-span-2">
-                <CardHeader className="pb-2">
+              <Card className="lg:col-span-2" data-chart-card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-sm font-semibold">Exames por Tipo</CardTitle>
+                  <ChartPngExportButton filename="exames-por-tipo" />
                 </CardHeader>
                 <CardContent>
                   {examesPorTipo.length === 0 ? (
