@@ -52,6 +52,7 @@ export interface PmocQualidadeArMedicao {
   co2: number | null; renovacaoAr: number | null; pressaoDiferencial: number | null;
   outrosParametros: any; conforme: boolean; observacoes: string;
   relatorioLaboratorialUrl: string; responsavel: string; planoAcao: string;
+  anexos: { nome: string; path: string; url: string; tamanho: number }[];
 }
 
 export interface PmocInconformidade {
