@@ -123,6 +123,7 @@ export default function AprovarLoteSS() {
     }
     // Valida limite de aprovação OS (lote sem orçamento = valor 0; basta limite > 0)
     if (!podeAprovar(0, "os")) return;
+    const ressalva = approvalRessalva.trim();
     setApproving(true);
     try {
       const toApprove = solicitacoes.filter(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação");
@@ -134,6 +135,7 @@ export default function AprovarLoteSS() {
         await updateSolicitacao(ss.id, {
           situacao: "Aprovada",
           prioridade: selectedPrioridade,
+          ressalva_aprovacao: ressalva,
           historico: buildHistoricoEntry("Aprovada", ss.historico || []),
         });
         await addOrdem({
@@ -153,6 +155,7 @@ export default function AprovarLoteSS() {
           ramal: usuarioLogado?.ramal || "",
           telefone: usuarioLogado?.telefone || "",
           prioridade: prioridadeOS,
+          ressalva_aprovacao: ressalva,
           situacao: "Aberta",
           historico: buildHistoricoEntry("Aberta"),
           operador_id: usuarioLogado?.id || "",
@@ -163,6 +166,7 @@ export default function AprovarLoteSS() {
       setSelectedIds(new Set());
       setApprovalOpen(false);
       setSelectedPrioridade("");
+      setApprovalRessalva("");
     } catch {
       toast({ title: "Erro ao aprovar em lote", variant: "destructive" });
     } finally {
