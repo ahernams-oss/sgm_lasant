@@ -219,7 +219,7 @@ export default function AprovarLoteSS() {
         <div className="flex items-center gap-3 p-3 bg-accent rounded-lg border border-border">
           <span className="text-sm font-medium">{selectedIds.size} solicitação(ões) selecionada(s)</span>
           {podeAprovarLote && (
-            <Button size="sm" onClick={() => { setSelectedPrioridade(""); setApprovalOpen(true); }}>
+            <Button size="sm" onClick={() => { setSelectedPrioridade(""); setApprovalRessalva(""); setApprovalOpen(true); }}>
               <CheckCircle2 className="mr-2 h-4 w-4" />Aprovar selecionadas
             </Button>
           )}
