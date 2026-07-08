@@ -513,6 +513,9 @@ const Clientes = () => {
                 <Input placeholder="VTM Mensal" value={contratoForm.valorBase} onChange={e => setContratoForm(p => ({ ...p, valorBase: e.target.value }))} />
                 <Input placeholder="VTM Anual" value={contratoForm.valorBase2} onChange={e => setContratoForm(p => ({ ...p, valorBase2: e.target.value }))} />
                 <Input placeholder="VTM Contratual" value={contratoForm.valorBase3} onChange={e => setContratoForm(p => ({ ...p, valorBase3: e.target.value }))} />
+                <Input placeholder="Mão de Obra Mensal" value={contratoForm.maoDeObraMensal} onChange={e => setContratoForm(p => ({ ...p, maoDeObraMensal: e.target.value }))} />
+                <Input placeholder="Mão de Obra Anual" value={contratoForm.maoDeObraAnual} onChange={e => setContratoForm(p => ({ ...p, maoDeObraAnual: e.target.value }))} />
+                <Input placeholder="Mão de Obra Contratual" value={contratoForm.maoDeObraContratual} onChange={e => setContratoForm(p => ({ ...p, maoDeObraContratual: e.target.value }))} />
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Mês SCO</label>
                   <Select value={contratoForm.mesSco} onValueChange={v => setContratoForm(p => ({ ...p, mesSco: v }))}>
