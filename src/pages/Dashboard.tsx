@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { downloadPdfDashboard, gerarTextoDashboard } from "@/lib/gerarPdfDashboard";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useToast } from "@/hooks/use-toast";
+import { ChartPngExportButton } from "@/components/ChartPngExportButton";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
