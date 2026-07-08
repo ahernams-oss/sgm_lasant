@@ -22,7 +22,7 @@ import { usePmoc } from "@/contexts/PmocContext";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissao } from "@/hooks/usePermissao";
 
-const SITUACOES = ["Ativo", "Inativo", "Em Manutenção", "Desativado"];
+const SITUACOES = ["Ativo", "Inativo", "Em Manutenção", "Desativado", "Condenado"];
 const NIVEIS_RISCO = ["Baixo", "Médio", "Alto", "Crítico"];
 const NIVEIS_MANUTENCAO = ["Preventiva", "Corretiva", "Preditiva"];
 
