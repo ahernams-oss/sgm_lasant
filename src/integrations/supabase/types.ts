@@ -5572,6 +5572,7 @@ export type Database = {
       }
       pmoc_qualidade_ar_medicoes: {
         Row: {
+          anexos: Json
           co2: number | null
           conforme: boolean | null
           created_at: string | null
@@ -5591,6 +5592,7 @@ export type Database = {
           umidade: number | null
         }
         Insert: {
+          anexos?: Json
           co2?: number | null
           conforme?: boolean | null
           created_at?: string | null
@@ -5610,6 +5612,7 @@ export type Database = {
           umidade?: number | null
         }
         Update: {
+          anexos?: Json
           co2?: number | null
           conforme?: boolean | null
           created_at?: string | null

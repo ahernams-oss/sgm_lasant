@@ -1,0 +1,1 @@
+ALTER TABLE public.pmoc_qualidade_ar_medicoes ADD COLUMN IF NOT EXISTS anexos jsonb NOT NULL DEFAULT '[]'::jsonb;
