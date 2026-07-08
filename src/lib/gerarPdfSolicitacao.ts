@@ -316,7 +316,6 @@ export async function gerarPdfSolicitacao(
 ) {
   const doc = new jsPDF();
   await renderSolicitacao(doc, ss, comImagens, empresa, equipamento);
-  addFooters(doc, empresa, formatNumeroAno(ss.numero, ss.createdAt));
   doc.save(`SS_${formatNumeroAno(ss.numero, ss.createdAt)}_${ss.clienteNome?.replace(/\s+/g, "_") || "sem_cliente"}.pdf`);
 }
 
@@ -336,12 +335,6 @@ export async function gerarPdfSolicitacaoLote(
     await renderSolicitacao(doc, ss, comImagens, empresa, equipamento);
   }
 
-  // Footers on all pages
-  const pw = doc.internal.pageSize.getWidth();
-  const ml = 14;
-  const mr = 14;
-  const pageCount = doc.getNumberOfPages();
-  const empresaNome = empresa?.nomeFantasia || empresa?.razaoSocial || "SGM Lasant";
 
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
