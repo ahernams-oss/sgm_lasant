@@ -48,14 +48,16 @@ export default function RelatorioSaldosContratoDialog({ open, onOpenChange }: Pr
 
   useEffect(() => {
     if (!contrato) return;
-    // Defaults from contract
-    const folha = parseBR(contrato.maoDeObraMensal) || parseBR(contrato.valorContrato) / 12;
+    const folha = parseBR(contrato.maoDeObraMensal);
+    const anual = parseBR(contrato.maoDeObraAnual);
+    const contratoV = parseBR(contrato.valorContrato);
+    const folhaFinal = folha || (anual ? anual / 12 : 0) || (contratoV ? contratoV / 12 : 0);
     const variavel = parseBR(contrato.meta1);
-    setPrevFolha(fmtBR(folha));
+    setPrevFolha(fmtBR(folhaFinal));
     setPrevVariavel(fmtBR(variavel));
     if (contrato.dataInicio) setPeriodoInicio(contrato.dataInicio.slice(0, 7) + "-01");
     if (contrato.dataFim) setPeriodoFim(contrato.dataFim.slice(0, 7) + "-01");
-  }, [contratoId]);
+  }, [contratoId, clienteId, clientes]);
 
   const podeGerar = !!cliente && !!contrato && !!periodoInicio && !!periodoFim;
 
