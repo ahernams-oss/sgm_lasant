@@ -25,6 +25,7 @@ import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { downloadPdfDashboardSSOS, downloadExcelDashboardSSOS } from "@/lib/gerarRelatorioDashboardSSOS";
+import { ChartPngExportButton } from "@/components/ChartPngExportButton";
 
 const CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
 
@@ -497,11 +498,12 @@ export default function DashboardSolicitacoes() {
 
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
+        <Card data-chart-card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-primary" /> SS por Situação
             </CardTitle>
+            <ChartPngExportButton filename="ss-por-situacao" />
           </CardHeader>
           <CardContent>
             {ssStatusData.length === 0 ? (
@@ -547,11 +549,12 @@ export default function DashboardSolicitacoes() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
+        <Card data-chart-card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-primary" /> OS por Situação
             </CardTitle>
+            <ChartPngExportButton filename="os-por-situacao" />
           </CardHeader>
           <CardContent>
             {osStatusData.length === 0 ? (
@@ -572,11 +575,12 @@ export default function DashboardSolicitacoes() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-2">
+        <Card className="lg:col-span-2" data-chart-card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Activity className="h-4 w-4 text-primary" /> Evolução Mensal — SS vs OS
             </CardTitle>
+            <ChartPngExportButton filename="evolucao-mensal-ss-os" />
           </CardHeader>
           <CardContent>
             {timelineData.length === 0 ? (
@@ -611,11 +615,12 @@ export default function DashboardSolicitacoes() {
       {/* Rankings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Ranking de Clientes */}
-        <Card>
-          <CardHeader className="pb-2">
+        <Card data-chart-card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Building2 className="h-4 w-4 text-primary" /> Ranking — Clientes (SS + OS)
             </CardTitle>
+            <ChartPngExportButton filename="ranking-clientes" />
           </CardHeader>
           <CardContent>
             {rankingClientes.length === 0 ? (
@@ -658,11 +663,12 @@ export default function DashboardSolicitacoes() {
 
 
         {/* Tipo de OS */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-2">
+        <Card className="lg:col-span-2" data-chart-card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Wrench className="h-4 w-4 text-primary" /> OS por Tipo de Manutenção
             </CardTitle>
+            <ChartPngExportButton filename="os-por-tipo-manutencao" />
           </CardHeader>
           <CardContent>
             {tipoOSData.length === 0 ? (
