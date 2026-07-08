@@ -115,7 +115,12 @@ export default function Faturamentos() {
             Acompanhamento consolidado de todos os faturamentos lançados por cliente e contrato.
           </p>
         </div>
+        <Button onClick={() => setOpenSaldos(true)} variant="default">
+          <BarChart3 className="h-4 w-4 mr-2" /> Relatório de Saldos
+        </Button>
       </div>
+
+      <RelatorioSaldosContratoDialog open={openSaldos} onOpenChange={setOpenSaldos} />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Valor Bruto</CardTitle></CardHeader><CardContent className="text-lg font-semibold">{fmtBRL(totais.bruto)}</CardContent></Card>
