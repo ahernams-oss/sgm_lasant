@@ -63,7 +63,7 @@ export default function RelatorioSaldosContratoDialog({ open, onOpenChange }: Pr
 
   const podeGerar = !!cliente && !!contrato && !!periodoInicio && !!periodoFim;
 
-  const doGerar = (tipo: "pdf" | "excel") => {
+  const doGerar = async (tipo: "pdf" | "excel") => {
     if (!cliente || !contrato) { toast.error("Selecione cliente e contrato."); return; }
     const input = {
       cliente,
@@ -73,7 +73,7 @@ export default function RelatorioSaldosContratoDialog({ open, onOpenChange }: Pr
       prevFolhaMensal: parseBR(prevFolha),
       prevVariavelMensal: parseBR(prevVariavel),
     };
-    if (tipo === "pdf") gerarPdfSaldosContrato(input);
+    if (tipo === "pdf") await gerarPdfSaldosContrato(input, empresa?.logoUrl);
     else gerarExcelSaldosContrato(input);
     toast.success(`Relatório ${tipo.toUpperCase()} gerado.`);
   };
