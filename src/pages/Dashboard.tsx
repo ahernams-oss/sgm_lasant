@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { downloadPdfDashboard, gerarTextoDashboard } from "@/lib/gerarPdfDashboard";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useToast } from "@/hooks/use-toast";
+import { ChartPngExportButton } from "@/components/ChartPngExportButton";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
@@ -461,9 +462,10 @@ const Dashboard = () => {
 
             {/* Gráficos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader className="pb-2">
+              <Card data-chart-card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-sm font-semibold">Requisições por Status</CardTitle>
+                  <ChartPngExportButton filename="requisicoes-por-status" />
                 </CardHeader>
                 <CardContent>
                   {statusData.length === 0 ? (
@@ -482,9 +484,10 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
+              <Card data-chart-card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-sm font-semibold">Candidatos por Etapa</CardTitle>
+                  <ChartPngExportButton filename="candidatos-por-etapa" />
                 </CardHeader>
                 <CardContent>
                   {psCandidatosPorEtapa.every(e => e.value === 0) ? (
@@ -505,9 +508,10 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
+              <Card data-chart-card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-sm font-semibold">Requisições por Cliente/Unidade</CardTitle>
+                  <ChartPngExportButton filename="requisicoes-por-cliente-unidade" />
                 </CardHeader>
                 <CardContent>
                   {clienteData.length === 0 ? (
@@ -528,9 +532,10 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
+              <Card data-chart-card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-sm font-semibold">Evolução Temporal das Requisições</CardTitle>
+                  <ChartPngExportButton filename="evolucao-temporal-requisicoes" />
                 </CardHeader>
                 <CardContent>
                   {timelineData.length === 0 ? (
@@ -556,9 +561,10 @@ const Dashboard = () => {
               </Card>
 
               {/* Requisições por Cargo */}
-              <Card className="lg:col-span-2">
-                <CardHeader className="pb-2">
+              <Card className="lg:col-span-2" data-chart-card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-sm font-semibold">Requisições por Cargo</CardTitle>
+                  <ChartPngExportButton filename="requisicoes-por-cargo" />
                 </CardHeader>
                 <CardContent>
                   {cargoPorReq.length === 0 ? (
@@ -744,9 +750,10 @@ const Dashboard = () => {
 
             {/* Gráficos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader className="pb-2">
+              <Card data-chart-card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-sm font-semibold">Funcionários por Status</CardTitle>
+                  <ChartPngExportButton filename="funcionarios-por-status" />
                 </CardHeader>
                 <CardContent>
                   {funcStatusData.length === 0 ? (
@@ -765,9 +772,10 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
+              <Card data-chart-card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-sm font-semibold">Funcionários Ativos por Unidade</CardTitle>
+                  <ChartPngExportButton filename="funcionarios-ativos-por-unidade" />
                 </CardHeader>
                 <CardContent>
                   {funcPorCliente.length === 0 ? (
@@ -788,9 +796,10 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="lg:col-span-2">
-                <CardHeader className="pb-2">
+              <Card className="lg:col-span-2" data-chart-card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-sm font-semibold">Exames por Tipo</CardTitle>
+                  <ChartPngExportButton filename="exames-por-tipo" />
                 </CardHeader>
                 <CardContent>
                   {examesPorTipo.length === 0 ? (
