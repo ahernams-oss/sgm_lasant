@@ -274,9 +274,9 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
     toast.success(editingId ? "Faturamento atualizado!" : "Faturamento adicionado!");
 
     // gera/atualiza Conta a Receber se houver NF e valor
-    if (savedId && (form.numeroNf || form.numeroMedicao) && (form.valorLiquido || form.valorBruto)) {
+    if (savedId && (normalizedForm.numeroNf || normalizedForm.numeroMedicao) && (normalizedForm.valorLiquido || normalizedForm.valorBruto)) {
       gerarContaReceberDeFaturamento(
-        { id: savedId, ...form },
+        { id: savedId, ...normalizedForm },
         { clienteId: cliente?.id, clienteNome: cliente?.nome || cliente?.nomeFantasia, contratoId: contrato?.id, contratoNumero: contratoNumero }
       );
     }
