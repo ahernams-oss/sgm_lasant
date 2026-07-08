@@ -351,51 +351,51 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
         </div>
         <div>
           <label className="field-label">Valor Bruto</label>
-          <Input placeholder="0,00" value={form.valorBruto} onChange={(e) => update("valorBruto", e.target.value)} />
+          <Input inputMode="decimal" placeholder="0,00" value={form.valorBruto} onChange={handleMoneyChange("valorBruto")} onBlur={handleMoneyBlur("valorBruto")} />
         </div>
         <div>
           <label className="field-label">Valor Líquido</label>
-          <Input placeholder="0,00" value={form.valorLiquido} onChange={(e) => update("valorLiquido", e.target.value)} />
+          <Input inputMode="decimal" placeholder="0,00" value={form.valorLiquido} onChange={handleMoneyChange("valorLiquido")} onBlur={handleMoneyBlur("valorLiquido")} />
         </div>
         {podeVerValorFolha && (
           <div>
             <label className="field-label flex items-center gap-1">
               <Lock className="h-3 w-3 text-primary" /> Valor Folha
             </label>
-            <Input placeholder="0,00" value={form.valorFolha} onChange={(e) => update("valorFolha", e.target.value)} />
+            <Input inputMode="decimal" placeholder="0,00" value={form.valorFolha} onChange={handleMoneyChange("valorFolha")} onBlur={handleMoneyBlur("valorFolha")} />
           </div>
         )}
         {podeVerValorFolha && (
           <div>
             <label className="field-label">Valor da Variável</label>
-            <Input placeholder="0,00" value={form.valorVariavel || ""} onChange={(e) => update("valorVariavel", e.target.value)} />
+            <Input inputMode="decimal" placeholder="0,00" value={form.valorVariavel || ""} onChange={handleMoneyChange("valorVariavel")} onBlur={handleMoneyBlur("valorVariavel")} />
           </div>
         )}
         {podeVerValorFolha && (
           <>
             <div>
               <label className="field-label">Vale Alimentação</label>
-              <Input placeholder="0,00" value={form.valeAlimentacao} onChange={(e) => update("valeAlimentacao", e.target.value)} />
+              <Input inputMode="decimal" placeholder="0,00" value={form.valeAlimentacao} onChange={handleMoneyChange("valeAlimentacao")} onBlur={handleMoneyBlur("valeAlimentacao")} />
             </div>
             <div>
               <label className="field-label">Custo Fixo</label>
-              <Input placeholder="0,00" value={form.custoFixo} onChange={(e) => update("custoFixo", e.target.value)} />
+              <Input inputMode="decimal" placeholder="0,00" value={form.custoFixo} onChange={handleMoneyChange("custoFixo")} onBlur={handleMoneyBlur("custoFixo")} />
             </div>
             <div>
               <label className="field-label">Fora Folha</label>
-              <Input placeholder="0,00" value={form.foraFolha} onChange={(e) => update("foraFolha", e.target.value)} />
+              <Input inputMode="decimal" placeholder="0,00" value={form.foraFolha} onChange={handleMoneyChange("foraFolha")} onBlur={handleMoneyBlur("foraFolha")} />
             </div>
             <div>
               <label className="field-label">Provisão de Férias</label>
-              <Input placeholder="0,00" value={form.provisaoFerias} onChange={(e) => update("provisaoFerias", e.target.value)} />
+              <Input inputMode="decimal" placeholder="0,00" value={form.provisaoFerias} onChange={handleMoneyChange("provisaoFerias")} onBlur={handleMoneyBlur("provisaoFerias")} />
             </div>
             <div>
               <label className="field-label">Provisão de 13º Salário</label>
-              <Input placeholder="0,00" value={form.provisao13} onChange={(e) => update("provisao13", e.target.value)} />
+              <Input inputMode="decimal" placeholder="0,00" value={form.provisao13} onChange={handleMoneyChange("provisao13")} onBlur={handleMoneyBlur("provisao13")} />
             </div>
             <div>
               <label className="field-label">Vale Transporte</label>
-              <Input placeholder="0,00" value={form.valeTransporte} onChange={(e) => update("valeTransporte", e.target.value)} />
+              <Input inputMode="decimal" placeholder="0,00" value={form.valeTransporte} onChange={handleMoneyChange("valeTransporte")} onBlur={handleMoneyBlur("valeTransporte")} />
             </div>
           </>
         )}
