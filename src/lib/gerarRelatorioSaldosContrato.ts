@@ -217,7 +217,7 @@ export function gerarExcelSaldosContrato(input: SaldoReportInput) {
   const wb = XLSX.utils.book_new();
 
   const aoa: (string | number)[][] = [];
-  aoa.push([`Relatório de Saldos por Contrato`]);
+  aoa.push([`Relatório de Saldos por Contrato${contrato.numero ? ` — Contrato ${contrato.numero}` : ""}`]);
   aoa.push([`Cliente: ${cliente.nome || cliente.nomeFantasia}`]);
   aoa.push([`Contrato: ${contrato.numero || "—"}${contrato.descricao ? " — " + contrato.descricao : ""}`]);
   aoa.push([`Período: ${input.periodoInicio.slice(0, 7)} a ${input.periodoFim.slice(0, 7)}`]);
