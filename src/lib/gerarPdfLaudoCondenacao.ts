@@ -45,21 +45,116 @@ async function loadImageWithMarcadores(foto: FotoLaudo): Promise<{ dataUrl: stri
   });
 }
 
-export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: { razaoSocial?: string; cnpj?: string }) {
+export interface EmpresaTimbrado {
+  razaoSocial?: string;
+  nomeFantasia?: string;
+  cnpj?: string;
+  logoUrl?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
+  cep?: string;
+  telefone?: string;
+  email?: string;
+  site?: string;
+}
+
+async function loadLogo(url?: string): Promise<{ data: string; w: number; h: number } | null> {
+  if (!url) return null;
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return resolve(null);
+      ctx.drawImage(img, 0, 0);
+      try {
+        resolve({ data: canvas.toDataURL("image/png"), w: img.naturalWidth, h: img.naturalHeight });
+      } catch { resolve(null); }
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
+function drawTimbrado(doc: jsPDF, pw: number, empresa: EmpresaTimbrado | undefined, logo: { data: string; w: number; h: number } | null) {
+  // Barra superior colorida
+  doc.setFillColor(30, 58, 107);
+  doc.rect(0, 0, pw, 30, "F");
+  if (logo) {
+    try {
+      const maxH = 20, maxW = 32;
+      const ratio = logo.w / logo.h;
+      let h = maxH, w = maxH * ratio;
+      if (w > maxW) { w = maxW; h = maxW / ratio; }
+      doc.addImage(logo.data, "PNG", 10, 5, w, h);
+    } catch { /* ignore */ }
+  }
+  doc.setTextColor(255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text(empresa?.razaoSocial || empresa?.nomeFantasia || "", pw / 2, 11, { align: "center" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  const endereco = [empresa?.logradouro, empresa?.numero, empresa?.complemento, empresa?.bairro]
+    .filter(Boolean).join(", ");
+  const cidadeUf = [empresa?.cidade, empresa?.uf].filter(Boolean).join("/");
+  const cep = empresa?.cep ? `CEP ${empresa.cep}` : "";
+  const linha2 = [endereco, cidadeUf, cep].filter(Boolean).join(" — ");
+  if (linha2) doc.text(linha2, pw / 2, 17, { align: "center" });
+  const contatos = [
+    empresa?.cnpj ? `CNPJ: ${empresa.cnpj}` : "",
+    empresa?.telefone ? `Tel: ${empresa.telefone}` : "",
+    empresa?.email || "",
+    empresa?.site || "",
+  ].filter(Boolean).join(" · ");
+  if (contatos) doc.text(contatos, pw / 2, 22, { align: "center" });
+  doc.setTextColor(0);
+}
+
+function drawRodape(doc: jsPDF, numeroFmt: string, empresa: EmpresaTimbrado | undefined) {
+  const total = doc.getNumberOfPages();
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+  for (let i = 1; i <= total; i++) {
+    doc.setPage(i);
+    doc.setDrawColor(200);
+    doc.line(10, ph - 12, pw - 10, ph - 12);
+    doc.setFontSize(7);
+    doc.setTextColor(120);
+    const rodEmp = empresa?.razaoSocial
+      ? `${empresa.razaoSocial}${empresa.cnpj ? ` — CNPJ ${empresa.cnpj}` : ""}`
+      : "";
+    doc.text(rodEmp, 10, ph - 7);
+    doc.text(`Laudo nº ${numeroFmt} · Página ${i} de ${total}`, pw - 10, ph - 7, { align: "right" });
+    doc.setTextColor(0);
+  }
+}
+
+export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: EmpresaTimbrado) {
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
-  let y = 15;
+  const logo = await loadLogo(empresa?.logoUrl);
 
-  // Header
-  doc.setFontSize(14);
+  drawTimbrado(doc, pw, empresa, logo);
+  let y = 38;
+
+  // Título
+  doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
   doc.text("LAUDO TÉCNICO DE CONDENAÇÃO DE EQUIPAMENTO", pw / 2, y, { align: "center" });
-  y += 6;
-  doc.setFontSize(9);
+  y += 5;
+  doc.setFontSize(8);
   doc.setFont("helvetica", "italic");
   doc.text("Documento de Avaliação Técnica para Baixa e Descontinuidade de Ativos", pw / 2, y, { align: "center" });
-  y += 8;
+  y += 7;
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
@@ -68,16 +163,12 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
   doc.text(`Documento nº: ${numeroFmt}`, 14, y);
   doc.text(`Data de emissão: ${fmtDate(laudo.data_emissao)}`, pw - 14, y, { align: "right" });
   y += 5;
-  if (empresa?.razaoSocial) {
-    doc.text(`Empresa: ${empresa.razaoSocial}${empresa.cnpj ? ` — CNPJ: ${empresa.cnpj}` : ""}`, 14, y);
-    y += 5;
-  }
   doc.text(`Responsável técnico: ${laudo.responsavel_tecnico || "-"}`, 14, y);
   doc.text(`Registro (CFT/CREA): ${laudo.registro_profissional || "-"}`, pw - 14, y, { align: "right" });
   y += 8;
 
   const sectionTitle = (t: string) => {
-    if (y > ph - 30) { doc.addPage(); y = 15; }
+    if (y > ph - 30) { doc.addPage(); drawTimbrado(doc, pw, empresa, logo); y = 38; }
     doc.setFillColor(30, 58, 107);
     doc.setTextColor(255);
     doc.setFont("helvetica", "bold");
@@ -111,7 +202,7 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     const lines = doc.splitTextToSize(text || "-", pw - 28);
-    if (y + lines.length * 4 > ph - 15) { doc.addPage(); y = 15; }
+    if (y + lines.length * 4 > ph - 15) { doc.addPage(); drawTimbrado(doc, pw, empresa, logo); y = 38; }
     doc.text(lines, 14, y);
     y += lines.length * 4 + 4;
   };
@@ -122,7 +213,7 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
   // 3. Inspeção Técnica
   sectionTitle("3. INSPEÇÃO TÉCNICA");
   const sub = (t: string, txt: string) => {
-    if (y > ph - 25) { doc.addPage(); y = 15; }
+    if (y > ph - 25) { doc.addPage(); drawTimbrado(doc, pw, empresa, logo); y = 38; }
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.text(t, 14, y);
@@ -145,7 +236,7 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
   y += 5;
   (laudo.motivos_condenacao || []).forEach((m, i) => {
     const lines = doc.splitTextToSize(`${i + 1}. ${m}`, pw - 32);
-    if (y + lines.length * 4 > ph - 15) { doc.addPage(); y = 15; }
+    if (y + lines.length * 4 > ph - 15) { doc.addPage(); drawTimbrado(doc, pw, empresa, logo); y = 38; }
     doc.text(lines, 18, y);
     y += lines.length * 4 + 1;
   });
@@ -187,7 +278,7 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
   y += 15;
 
   // Assinatura
-  if (y > ph - 30) { doc.addPage(); y = 15; }
+  if (y > ph - 30) { doc.addPage(); drawTimbrado(doc, pw, empresa, logo); y = 38; }
   doc.setDrawColor(0);
   doc.line(pw / 2 - 40, y, pw / 2 + 40, y);
   y += 4;
@@ -206,7 +297,8 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
   // Anexos - Fotos (4 por página)
   if (laudo.fotos && laudo.fotos.length > 0) {
     doc.addPage();
-    y = 15;
+    drawTimbrado(doc, pw, empresa, logo);
+    y = 38;
     sectionTitle("ANEXO I — FOTOGRAFIAS");
     let count = 0;
     const cellW = (pw - 28 - 6) / 2;
@@ -240,7 +332,8 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
       count++;
       if (count % 4 === 0 && count < laudo.fotos.length) {
         doc.addPage();
-        y = 15;
+        drawTimbrado(doc, pw, empresa, logo);
+        y = 38;
         sectionTitle("ANEXO I — FOTOGRAFIAS (cont.)");
       }
     }
@@ -249,7 +342,8 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
   // Anexos - Orçamentos e outros
   if ((laudo.anexos_orcamentos?.length || 0) + (laudo.outros_anexos?.length || 0) > 0) {
     doc.addPage();
-    y = 15;
+    drawTimbrado(doc, pw, empresa, logo);
+    y = 38;
     sectionTitle("ANEXO II — DOCUMENTOS ANEXOS");
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
@@ -276,14 +370,7 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
     }
   }
 
-  // Footer pagination
-  const total = doc.getNumberOfPages();
-  for (let i = 1; i <= total; i++) {
-    doc.setPage(i);
-    doc.setFontSize(7);
-    doc.setTextColor(120);
-    doc.text(`Laudo nº ${numeroFmt} · Página ${i} de ${total}`, pw - 14, ph - 6, { align: "right" });
-  }
+  drawRodape(doc, numeroFmt, empresa);
 
   doc.save(`Laudo_Condenacao_${numeroFmt.replace("/", "-")}_${(laudo.equipamento_tag || "equipamento").replace(/\s+/g, "_")}.pdf`);
 }
