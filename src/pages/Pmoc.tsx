@@ -1241,6 +1241,44 @@ function QualidadeArTab() {
               <div><Label>Responsável</Label><Input value={medicaoForm.responsavel} onChange={e => setMedicaoForm(f => ({ ...f, responsavel: e.target.value }))} /></div>
               <div className="col-span-2"><Label>Observações</Label><Textarea value={medicaoForm.observacoes} onChange={e => setMedicaoForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} /></div>
               {!medicaoForm.conforme && <div className="col-span-2"><Label>Plano de Ação Corretiva</Label><Textarea value={medicaoForm.plano_acao} onChange={e => setMedicaoForm(f => ({ ...f, plano_acao: e.target.value }))} rows={2} /></div>}
+              <div className="col-span-2">
+                <Label>Anexos (máx. 3)</Label>
+                <div className="space-y-2 mt-1">
+                  {medicaoForm.anexos.map((a, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-sm border rounded px-2 py-1">
+                      <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <a href={a.url} target="_blank" rel="noreferrer" className="flex-1 truncate hover:underline">{a.nome}</a>
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={async () => {
+                        await supabase.storage.from("documentos").remove([a.path]);
+                        setMedicaoForm(f => ({ ...f, anexos: f.anexos.filter((_, i) => i !== idx) }));
+                      }}><X className="h-4 w-4 text-destructive" /></Button>
+                    </div>
+                  ))}
+                  {medicaoForm.anexos.length < 3 && (
+                    <label className={`inline-flex items-center gap-2 cursor-pointer ${uploadingAnexo ? "opacity-50 pointer-events-none" : ""}`}>
+                      <Button type="button" variant="outline" size="sm" className="gap-2" asChild>
+                        <span><Upload className="h-4 w-4" />{uploadingAnexo ? "Enviando..." : "Anexar arquivo"}</span>
+                      </Button>
+                      <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]; e.target.value = "";
+                          if (!file) return;
+                          if (file.size > 10 * 1024 * 1024) { toast({ title: "Arquivo muito grande (máx. 10MB)", variant: "destructive" }); return; }
+                          setUploadingAnexo(true);
+                          try {
+                            const path = `pmoc-medicoes/${Date.now()}_${file.name}`;
+                            const { error } = await supabase.storage.from("documentos").upload(path, file);
+                            if (error) throw error;
+                            const { data: pub } = supabase.storage.from("documentos").getPublicUrl(path);
+                            setMedicaoForm(f => ({ ...f, anexos: [...f.anexos, { nome: file.name, path, url: pub.publicUrl, tamanho: file.size }] }));
+                          } catch (err) {
+                            console.error(err); toast({ title: "Erro ao enviar arquivo", variant: "destructive" });
+                          } finally { setUploadingAnexo(false); }
+                        }} />
+                    </label>
+                  )}
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter><Button onClick={handleSave}>Salvar</Button></DialogFooter>
