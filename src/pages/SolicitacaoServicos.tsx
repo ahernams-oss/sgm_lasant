@@ -154,6 +154,7 @@ export default function SolicitacaoServicosPage() {
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [approvalTargetId, setApprovalTargetId] = useState<string | null>(null);
   const [selectedPrioridade, setSelectedPrioridade] = useState<string>("");
+  const [approvalRessalva, setApprovalRessalva] = useState("");
   const [prioridadeOnly, setPrioridadeOnly] = useState(false);
   
   const [viewTarget, setViewTarget] = useState<SolicitacaoServico | null>(null);
