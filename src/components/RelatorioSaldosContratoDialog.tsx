@@ -52,7 +52,7 @@ export default function RelatorioSaldosContratoDialog({ open, onOpenChange }: Pr
     const anual = parseBR(contrato.maoDeObraAnual);
     const contratoV = parseBR(contrato.valorContrato);
     const folhaFinal = folha || (anual ? anual / 12 : 0) || (contratoV ? contratoV / 12 : 0);
-    const variavel = parseBR(contrato.meta1);
+    const variavel = parseBR(contrato.valorBase);
     setPrevFolha(fmtBR(folhaFinal));
     setPrevVariavel(fmtBR(variavel));
     if (contrato.dataInicio) setPeriodoInicio(contrato.dataInicio.slice(0, 7) + "-01");
