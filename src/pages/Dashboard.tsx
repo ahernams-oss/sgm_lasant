@@ -532,9 +532,10 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
+              <Card data-chart-card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-sm font-semibold">Evolução Temporal das Requisições</CardTitle>
+                  <ChartPngExportButton filename="evolucao-temporal-requisicoes" />
                 </CardHeader>
                 <CardContent>
                   {timelineData.length === 0 ? (
