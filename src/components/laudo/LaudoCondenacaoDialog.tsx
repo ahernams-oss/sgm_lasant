@@ -65,6 +65,7 @@ export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props
   const { porEquipamento, addLaudo, updateLaudo, deleteLaudo } = useLaudosCondenacao();
   const { updateEquipamento } = useEquipamentos();
   const { empresa } = useEmpresa();
+  const { responsaveis } = useResponsaveisTecnicos();
   const laudosExistentes = porEquipamento(equipamento.id);
   const [mode, setMode] = useState<"lista" | "form">("lista");
   const [editing, setEditing] = useState<LaudoCondenacao | null>(null);
