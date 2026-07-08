@@ -609,11 +609,12 @@ export default function DashboardSSOS() {
           </Card>
 
           {/* Ranking por Cliente */}
-          <Card>
-            <CardHeader className="pb-2">
+          <Card data-chart-card>
+            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-primary" /> Orçamentos por Cliente
               </CardTitle>
+              <ChartPngExportButton filename="orcamentos-por-cliente" />
             </CardHeader>
             <CardContent>
               {rankingOrcClientes.length === 0 ? (
