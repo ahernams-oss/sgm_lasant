@@ -218,6 +218,26 @@ export default function VerificarAssinatura() {
         </Card>
       );
     }
+    if (tipo === "laudo") {
+      return (
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Conteúdo do Laudo de Condenação</CardTitle></CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            <p><span className="font-semibold">Equipamento:</span> {documento.equipamento_nome || "-"} {documento.equipamento_tag ? `(${documento.equipamento_tag})` : ""}</p>
+            <p><span className="font-semibold">Marca/Modelo:</span> {documento.marca || "-"} / {documento.modelo || "-"}</p>
+            <p><span className="font-semibold">Nº de série:</span> {documento.serie || "-"}</p>
+            <p><span className="font-semibold">Localização:</span> {documento.localizacao || "-"}</p>
+            <p><span className="font-semibold">Responsável Técnico:</span> {documento.responsavel_tecnico || "-"}{documento.registro_profissional ? ` — ${documento.registro_profissional}` : ""}</p>
+            <p><span className="font-semibold">Data de emissão:</span> {documento.data_emissao ? new Date(documento.data_emissao + "T00:00:00").toLocaleDateString("pt-BR") : "-"}</p>
+            <p><span className="font-semibold">Parecer:</span>{" "}
+              <Badge variant="outline" className={documento.parecer === "APROVADO PARA CONDENAÇÃO" ? "bg-red-100 text-red-800 border-red-300" : "bg-muted"}>
+                {documento.parecer || "-"}
+              </Badge>
+            </p>
+          </CardContent>
+        </Card>
+      );
+    }
     // OS
     return (
       <Card>
@@ -246,6 +266,8 @@ export default function VerificarAssinatura() {
     ? `RDO Nº ${assinatura?.rdo_numero ?? ""}`
     : tipo === "pc"
     ? `Ordem de Compra PC-${String(assinatura?.pedido_numero ?? "").padStart(4, "0")}`
+    : tipo === "laudo"
+    ? `Laudo de Condenação Nº ${assinatura?.laudo_numero ?? ""}`
     : `OS Nº ${assinatura?.os_numero ?? ""}`;
 
   return (
