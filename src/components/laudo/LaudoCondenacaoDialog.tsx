@@ -151,7 +151,8 @@ export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props
   const salvarEGerarPdf = async () => {
     const saved = await salvar();
     if (saved) {
-      await gerarPdfLaudoCondenacao(saved, empresaTimbrado);
+      const ass = assinaturasPorLaudo(saved.id);
+      await gerarPdfLaudoCondenacao(saved, empresaTimbrado, ass[0]);
       setMode("lista");
     }
   };
@@ -162,7 +163,8 @@ export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props
   };
 
   const imprimir = async (l: LaudoCondenacao) => {
-    await gerarPdfLaudoCondenacao(l, empresaTimbrado);
+    const ass = assinaturasPorLaudo(l.id);
+    await gerarPdfLaudoCondenacao(l, empresaTimbrado, ass[0]);
   };
 
   const uploadAnexo = async (files: FileList, campo: "anexos_orcamentos" | "outros_anexos") => {
