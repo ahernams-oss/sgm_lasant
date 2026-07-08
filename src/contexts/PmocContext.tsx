@@ -148,6 +148,7 @@ const rowToMedicao = (r: any): PmocQualidadeArMedicao => ({
   conforme: r.conforme ?? true, observacoes: r.observacoes ?? "",
   relatorioLaboratorialUrl: r.relatorio_laboratorial_url ?? "",
   responsavel: r.responsavel ?? "", planoAcao: r.plano_acao ?? "",
+  anexos: Array.isArray(r.anexos) ? r.anexos : [],
 });
 
 const rowToInconformidade = (r: any): PmocInconformidade => ({
