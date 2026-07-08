@@ -439,7 +439,7 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
                 {podeVerValorFolha && (
                   <>
                     <p className="text-muted-foreground">VT: {formatCurrency(f.valeTransporte)}</p>
-                    <p className="text-muted-foreground">VA: {formatCurrency(f.valeAlimentacao)}</p>
+                    <p className="text-muted-foreground">Vale Alim.: {formatCurrency(f.valeAlimentacao)}</p>
                     <p className="text-muted-foreground">Custo Fixo: {formatCurrency(f.custoFixo)}</p>
                     <p className="text-muted-foreground">Fora Folha: {formatCurrency(f.foraFolha)}</p>
                     <p className="text-muted-foreground">Prov. Férias: {formatCurrency(f.provisaoFerias)}</p>
