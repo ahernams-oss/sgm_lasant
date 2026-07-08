@@ -421,6 +421,7 @@ export default function SolicitacaoServicosPage() {
     setApprovalDialogOpen(false);
     setApprovalTargetId(null);
     setSelectedPrioridade("");
+    setApprovalRessalva("");
     setPrioridadeOnly(false);
   };
 
