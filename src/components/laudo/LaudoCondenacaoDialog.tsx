@@ -13,10 +13,12 @@ import { Plus, X, FileDown, Printer, Eye, Trash2, Upload, FileText } from "lucid
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useLaudosCondenacao, type LaudoCondenacao, type AnexoLaudo } from "@/contexts/LaudosCondenacaoContext";
+import { useLaudosAssinaturas } from "@/contexts/LaudosAssinaturasContext";
 import { useResponsaveisTecnicos } from "@/contexts/ResponsaveisTecnicosContext";
 import { useEquipamentos, type Equipamento } from "@/contexts/EquipamentosContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { FotosLaudoEditor } from "./FotosLaudoEditor";
+import { AssinaturaEletronicaLaudo } from "@/components/AssinaturaEletronicaLaudo";
 import { gerarPdfLaudoCondenacao } from "@/lib/gerarPdfLaudoCondenacao";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 
@@ -63,6 +65,7 @@ const emptyLaudo = (eq: Equipamento): Partial<LaudoCondenacao> => ({
 
 export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props) {
   const { porEquipamento, addLaudo, updateLaudo, deleteLaudo } = useLaudosCondenacao();
+  const { porLaudo: assinaturasPorLaudo } = useLaudosAssinaturas();
   const { updateEquipamento } = useEquipamentos();
   const { empresa } = useEmpresa();
   const { responsaveis } = useResponsaveisTecnicos();
@@ -148,7 +151,8 @@ export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props
   const salvarEGerarPdf = async () => {
     const saved = await salvar();
     if (saved) {
-      await gerarPdfLaudoCondenacao(saved, empresaTimbrado);
+      const ass = assinaturasPorLaudo(saved.id);
+      await gerarPdfLaudoCondenacao(saved, empresaTimbrado, ass[0]);
       setMode("lista");
     }
   };
@@ -159,7 +163,8 @@ export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props
   };
 
   const imprimir = async (l: LaudoCondenacao) => {
-    await gerarPdfLaudoCondenacao(l, empresaTimbrado);
+    const ass = assinaturasPorLaudo(l.id);
+    await gerarPdfLaudoCondenacao(l, empresaTimbrado, ass[0]);
   };
 
   const uploadAnexo = async (files: FileList, campo: "anexos_orcamentos" | "outros_anexos") => {
@@ -238,13 +243,14 @@ export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props
         {mode === "form" && (
           <div className="space-y-4">
             <Tabs value={tab} onValueChange={setTab}>
-              <TabsList className="grid grid-cols-6 w-full">
+              <TabsList className="grid grid-cols-7 w-full">
                 <TabsTrigger value="id">1. Identificação</TabsTrigger>
                 <TabsTrigger value="hist">2. Histórico</TabsTrigger>
                 <TabsTrigger value="insp">3. Inspeção</TabsTrigger>
                 <TabsTrigger value="fund">4. Fundamentação</TabsTrigger>
                 <TabsTrigger value="concl">5. Conclusão</TabsTrigger>
                 <TabsTrigger value="anexos">6. Anexos</TabsTrigger>
+                <TabsTrigger value="assinatura">7. Assinatura</TabsTrigger>
               </TabsList>
 
               <TabsContent value="id" className="space-y-3 pt-3">
@@ -394,6 +400,19 @@ export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props
                   ))}
                   <Textarea rows={2} placeholder="Observações sobre outros anexos" value={form.observacoes_outros || ""} onChange={e => setField("observacoes_outros", e.target.value)} />
                 </div>
+              </TabsContent>
+
+              <TabsContent value="assinatura" className="space-y-3 pt-3">
+                {!editing?.id ? (
+                  <div className="text-sm text-muted-foreground border rounded p-4 text-center">
+                    Salve o laudo antes de assiná-lo eletronicamente.
+                  </div>
+                ) : (
+                  <AssinaturaEletronicaLaudo
+                    laudo={editing}
+                    assinaturaExistente={assinaturasPorLaudo(editing.id)[0]}
+                  />
+                )}
               </TabsContent>
             </Tabs>
           </div>

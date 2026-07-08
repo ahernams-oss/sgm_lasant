@@ -1719,6 +1719,77 @@ export type Database = {
         }
         Relationships: []
       }
+      equipamentos_laudos_assinaturas: {
+        Row: {
+          base_legal: string
+          codigo_verificador: string
+          created_at: string
+          hash_documento: string
+          id: string
+          ip_origem: string | null
+          laudo_id: string
+          laudo_numero: number
+          papel: string
+          responsavel_tecnico_nome: string | null
+          responsavel_tecnico_registro: string | null
+          signatario_cargo: string | null
+          signatario_email: string | null
+          signatario_matricula: string | null
+          signatario_nome: string
+          signatario_user_id: string
+          signed_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          base_legal?: string
+          codigo_verificador?: string
+          created_at?: string
+          hash_documento: string
+          id?: string
+          ip_origem?: string | null
+          laudo_id: string
+          laudo_numero: number
+          papel?: string
+          responsavel_tecnico_nome?: string | null
+          responsavel_tecnico_registro?: string | null
+          signatario_cargo?: string | null
+          signatario_email?: string | null
+          signatario_matricula?: string | null
+          signatario_nome: string
+          signatario_user_id: string
+          signed_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          base_legal?: string
+          codigo_verificador?: string
+          created_at?: string
+          hash_documento?: string
+          id?: string
+          ip_origem?: string | null
+          laudo_id?: string
+          laudo_numero?: number
+          papel?: string
+          responsavel_tecnico_nome?: string | null
+          responsavel_tecnico_registro?: string | null
+          signatario_cargo?: string | null
+          signatario_email?: string | null
+          signatario_matricula?: string | null
+          signatario_nome?: string
+          signatario_user_id?: string
+          signed_at?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipamentos_laudos_assinaturas_laudo_id_fkey"
+            columns: ["laudo_id"]
+            isOneToOne: false
+            referencedRelation: "equipamentos_laudos_condenacao"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipamentos_laudos_condenacao: {
         Row: {
           anexos_orcamentos: Json

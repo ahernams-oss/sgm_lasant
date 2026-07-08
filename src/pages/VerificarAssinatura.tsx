@@ -9,8 +9,9 @@ import { ShieldCheck, ShieldAlert, ArrowLeft, FileSignature } from "lucide-react
 import { gerarHashRdo } from "@/lib/assinaturaHash";
 import { gerarHashOs } from "@/lib/assinaturaHashOs";
 import { gerarHashPc } from "@/lib/assinaturaHashPc";
+import { gerarHashLaudo } from "@/lib/assinaturaHashLaudo";
 
-type Tipo = "rdo" | "os" | "pc";
+type Tipo = "rdo" | "os" | "pc" | "laudo";
 
 const fmtDateTime = (d: string) =>
   new Date(d).toLocaleString("pt-BR", {
@@ -21,6 +22,7 @@ const fmtDateTime = (d: string) =>
 const labelPapel = (tipo: Tipo, p: string) => {
   if (tipo === "rdo") return p === "responsavel" ? "Responsável Técnico" : "Fiscalização";
   if (tipo === "pc") return "Aprovador";
+  if (tipo === "laudo") return "Responsável Técnico";
   return p === "fiscal" ? "Fiscal do Contrato" : "Solicitante";
 };
 
@@ -120,6 +122,50 @@ export default function VerificarAssinatura() {
         return;
       }
 
+      // 4. Tenta Laudo de Condenação
+      const { data: assLaudo } = await (supabase as any)
+        .from("equipamentos_laudos_assinaturas")
+        .select("*")
+        .eq("codigo_verificador", codTrim)
+        .maybeSingle();
+
+      if (assLaudo) {
+        setTipo("laudo");
+        setAssinatura(assLaudo);
+        const { data: l } = await (supabase as any)
+          .from("equipamentos_laudos_condenacao")
+          .select("*").eq("id", assLaudo.laudo_id).maybeSingle();
+        setDocumento(l);
+        const { data: outras } = await (supabase as any)
+          .from("equipamentos_laudos_assinaturas")
+          .select("*").eq("laudo_id", assLaudo.laudo_id).order("signed_at");
+        setTodasAssinaturas(outras || []);
+        if (l) {
+          try {
+            const laudoMapped: any = {
+              numero: l.numero, equipamento_id: l.equipamento_id, equipamento_tag: l.equipamento_tag,
+              equipamento_nome: l.equipamento_nome, tipo: l.tipo, marca: l.marca, modelo: l.modelo,
+              serie: l.serie, patrimonio: l.patrimonio, ano_fabricacao: l.ano_fabricacao,
+              data_aquisicao: l.data_aquisicao, localizacao: l.localizacao,
+              estado_conservacao: l.estado_conservacao, data_emissao: l.data_emissao,
+              data_inspecao: l.data_inspecao, local_inspecao: l.local_inspecao,
+              responsavel_tecnico: l.responsavel_tecnico, registro_profissional: l.registro_profissional,
+              historico: l.historico, insp_condicoes_fisicas: l.insp_condicoes_fisicas,
+              insp_condicoes_eletricas: l.insp_condicoes_eletricas,
+              insp_condicoes_mecanicas: l.insp_condicoes_mecanicas,
+              insp_funcionalidade: l.insp_funcionalidade,
+              motivos_condenacao: l.motivos_condenacao,
+              custo_reparo: Number(l.custo_reparo) || 0,
+              valor_residual: Number(l.valor_residual) || 0,
+              valor_novo_equivalente: Number(l.valor_novo_equivalente) || 0,
+              parecer: l.parecer, conclusao_condicoes: l.conclusao_condicoes,
+            };
+            setHashAtual(await gerarHashLaudo(laudoMapped));
+          } catch { /* ignore */ }
+        }
+        return;
+      }
+
       setNaoEncontrado(true);
     } finally {
       setLoading(false);
@@ -172,6 +218,26 @@ export default function VerificarAssinatura() {
         </Card>
       );
     }
+    if (tipo === "laudo") {
+      return (
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Conteúdo do Laudo de Condenação</CardTitle></CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            <p><span className="font-semibold">Equipamento:</span> {documento.equipamento_nome || "-"} {documento.equipamento_tag ? `(${documento.equipamento_tag})` : ""}</p>
+            <p><span className="font-semibold">Marca/Modelo:</span> {documento.marca || "-"} / {documento.modelo || "-"}</p>
+            <p><span className="font-semibold">Nº de série:</span> {documento.serie || "-"}</p>
+            <p><span className="font-semibold">Localização:</span> {documento.localizacao || "-"}</p>
+            <p><span className="font-semibold">Responsável Técnico:</span> {documento.responsavel_tecnico || "-"}{documento.registro_profissional ? ` — ${documento.registro_profissional}` : ""}</p>
+            <p><span className="font-semibold">Data de emissão:</span> {documento.data_emissao ? new Date(documento.data_emissao + "T00:00:00").toLocaleDateString("pt-BR") : "-"}</p>
+            <p><span className="font-semibold">Parecer:</span>{" "}
+              <Badge variant="outline" className={documento.parecer === "APROVADO PARA CONDENAÇÃO" ? "bg-red-100 text-red-800 border-red-300" : "bg-muted"}>
+                {documento.parecer || "-"}
+              </Badge>
+            </p>
+          </CardContent>
+        </Card>
+      );
+    }
     // OS
     return (
       <Card>
@@ -200,6 +266,8 @@ export default function VerificarAssinatura() {
     ? `RDO Nº ${assinatura?.rdo_numero ?? ""}`
     : tipo === "pc"
     ? `Ordem de Compra PC-${String(assinatura?.pedido_numero ?? "").padStart(4, "0")}`
+    : tipo === "laudo"
+    ? `Laudo de Condenação Nº ${assinatura?.laudo_numero ?? ""}`
     : `OS Nº ${assinatura?.os_numero ?? ""}`;
 
   return (

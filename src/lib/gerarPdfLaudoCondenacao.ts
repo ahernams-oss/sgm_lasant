@@ -1,6 +1,8 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import QRCode from "qrcode";
 import type { LaudoCondenacao, FotoLaudo } from "@/contexts/LaudosCondenacaoContext";
+import type { LaudoAssinatura } from "@/contexts/LaudosAssinaturasContext";
 
 const fmtDate = (d: string) => {
   if (!d) return "";
@@ -143,7 +145,15 @@ function drawRodape(doc: jsPDF, numeroFmt: string, empresa: EmpresaTimbrado | un
   }
 }
 
-export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: EmpresaTimbrado) {
+async function gerarQrDataUrl(text: string): Promise<string | null> {
+  try { return await QRCode.toDataURL(text, { margin: 1, width: 240 }); } catch { return null; }
+}
+
+export async function gerarPdfLaudoCondenacao(
+  laudo: LaudoCondenacao,
+  empresa?: EmpresaTimbrado,
+  assinatura?: LaudoAssinatura,
+) {
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
@@ -284,20 +294,91 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
   y += 15;
 
   // Assinatura
-  if (y > ph - 30) { doc.addPage(); drawTimbrado(doc, pw, empresa, logo); y = 38; }
-  doc.setDrawColor(0);
-  doc.line(pw / 2 - 40, y, pw / 2 + 40, y);
-  y += 4;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.text("Responsável Técnico", pw / 2, y, { align: "center" });
-  y += 4;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.text(laudo.responsavel_tecnico || "-", pw / 2, y, { align: "center" });
-  if (laudo.registro_profissional) {
+  if (assinatura) {
+    // Bloco de assinatura eletrônica com QR Code
+    if (y > ph - 55) { doc.addPage(); drawTimbrado(doc, pw, empresa, logo); y = 38; }
+    const verifyUrl = `${window.location.origin}/verificar-assinatura/${assinatura.codigo_verificador}`;
+    const qrDataUrl = await gerarQrDataUrl(verifyUrl);
+
+    const boxX = 14, boxW = pw - 28, boxH = 42;
+    doc.setDrawColor(30, 58, 107);
+    doc.setLineWidth(0.4);
+    doc.setFillColor(245, 248, 255);
+    doc.rect(boxX, y, boxW, boxH, "FD");
+
+    // QR Code à direita
+    const qrSize = 32;
+    const qrX = boxX + boxW - qrSize - 4;
+    const qrY = y + (boxH - qrSize) / 2;
+    if (qrDataUrl) {
+      try { doc.addImage(qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize); } catch { /* ignore */ }
+    }
+
+    // Texto à esquerda
+    const tx = boxX + 4;
+    let ty = y + 6;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(30, 58, 107);
+    doc.text("ASSINADO ELETRONICAMENTE", tx, ty);
+    doc.setTextColor(0);
+    ty += 5;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("Responsável Técnico", tx, ty);
+    ty += 4;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text(`${assinatura.signatario_nome}`, tx, ty);
+    if (assinatura.responsavel_tecnico_nome && assinatura.responsavel_tecnico_nome !== assinatura.signatario_nome) {
+      ty += 3.5;
+      doc.text(`RT: ${assinatura.responsavel_tecnico_nome}${assinatura.responsavel_tecnico_registro ? ` — ${assinatura.responsavel_tecnico_registro}` : ""}`, tx, ty);
+    } else if (assinatura.responsavel_tecnico_registro) {
+      ty += 3.5;
+      doc.text(`Registro: ${assinatura.responsavel_tecnico_registro}`, tx, ty);
+    }
+    if (assinatura.signatario_cargo) {
+      ty += 3.5;
+      doc.text(`Cargo: ${assinatura.signatario_cargo}`, tx, ty);
+    }
+    ty += 3.5;
+    const dh = new Date(assinatura.signed_at).toLocaleString("pt-BR");
+    doc.text(`Data/Hora: ${dh}${assinatura.ip_origem ? `  ·  IP: ${assinatura.ip_origem}` : ""}`, tx, ty);
+    ty += 3.5;
+    doc.setFontSize(6.5);
+    doc.setTextColor(80);
+    doc.text(assinatura.base_legal, tx, ty, { maxWidth: boxW - qrSize - 12 });
+    ty += 3;
+    doc.setFontSize(6.5);
+    doc.text(`Código: ${assinatura.codigo_verificador}`, tx, ty);
+    ty += 3;
+    doc.text(`Hash SHA-256: ${assinatura.hash_documento.substring(0, 48)}...`, tx, ty);
+    doc.setTextColor(0);
+
+    // Rótulo abaixo do QR
+    doc.setFontSize(6);
+    doc.setTextColor(80);
+    doc.text("Escaneie para verificar", qrX + qrSize / 2, qrY + qrSize + 2.5, { align: "center" });
+    doc.setTextColor(0);
+
+    y += boxH + 4;
+  } else {
+    // Assinatura manuscrita (não assinado eletronicamente ainda)
+    if (y > ph - 30) { doc.addPage(); drawTimbrado(doc, pw, empresa, logo); y = 38; }
+    doc.setDrawColor(0);
+    doc.line(pw / 2 - 40, y, pw / 2 + 40, y);
     y += 4;
-    doc.text(`Registro: ${laudo.registro_profissional}`, pw / 2, y, { align: "center" });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("Responsável Técnico", pw / 2, y, { align: "center" });
+    y += 4;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text(laudo.responsavel_tecnico || "-", pw / 2, y, { align: "center" });
+    if (laudo.registro_profissional) {
+      y += 4;
+      doc.text(`Registro: ${laudo.registro_profissional}`, pw / 2, y, { align: "center" });
+    }
   }
 
   // Anexos - Fotos (4 por página)
