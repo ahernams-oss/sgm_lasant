@@ -817,14 +817,17 @@ export default function DashboardSSOS() {
         </Card>
 
         {/* Ranking de Funcionários */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-amber-500" /> Ranking — Funcionários Mais Produtivos
-            </CardTitle>
-            <p className="text-[10px] text-muted-foreground mt-1">
-              Pontuação por complexidade da OS · Baixa = 1 pt · Média = 3 pts · Alta = 5 pts
-            </p>
+        <Card data-chart-card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+            <div className="space-y-1">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Trophy className="h-4 w-4 text-amber-500" /> Ranking — Funcionários Mais Produtivos
+              </CardTitle>
+              <p className="text-[10px] text-muted-foreground">
+                Pontuação por complexidade da OS · Baixa = 1 pt · Média = 3 pts · Alta = 5 pts
+              </p>
+            </div>
+            <ChartPngExportButton filename="ranking-funcionarios" />
           </CardHeader>
           <CardContent>
             {rankingFuncionarios.length === 0 ? (
