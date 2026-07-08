@@ -29,7 +29,7 @@ import { usePermissao } from "@/hooks/usePermissao";
 import {
   Plus, Pencil, Trash2, Search, FileText, ClipboardList, Settings, Users,
   Wind, AlertTriangle, BookOpen, BarChart3, CalendarClock, Wrench, ShieldCheck,
-  ThermometerSun, Activity, Download, FileSpreadsheet
+  ThermometerSun, Activity, Download, FileSpreadsheet, Upload, X
 } from "lucide-react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
