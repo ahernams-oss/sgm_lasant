@@ -145,7 +145,15 @@ function drawRodape(doc: jsPDF, numeroFmt: string, empresa: EmpresaTimbrado | un
   }
 }
 
-export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: EmpresaTimbrado) {
+async function gerarQrDataUrl(text: string): Promise<string | null> {
+  try { return await QRCode.toDataURL(text, { margin: 1, width: 240 }); } catch { return null; }
+}
+
+export async function gerarPdfLaudoCondenacao(
+  laudo: LaudoCondenacao,
+  empresa?: EmpresaTimbrado,
+  assinatura?: LaudoAssinatura,
+) {
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
