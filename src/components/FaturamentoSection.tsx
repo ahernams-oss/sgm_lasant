@@ -33,6 +33,7 @@ const emptyFaturamento: Omit<Faturamento, "id"> = {
   foraFolha: "",
   provisaoFerias: "",
   provisao13: "",
+  valorVariavel: "",
   anexoNfUrl: "",
   anexoNfNome: "",
   pago: false,
