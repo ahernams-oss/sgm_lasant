@@ -874,11 +874,12 @@ export default function DashboardSSOS() {
         </Card>
 
         {/* Tipo de OS */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-2">
+        <Card className="lg:col-span-2" data-chart-card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Wrench className="h-4 w-4 text-primary" /> OS por Tipo de Manutenção
             </CardTitle>
+            <ChartPngExportButton filename="os-por-tipo-manutencao" />
           </CardHeader>
           <CardContent>
             {tipoOSData.length === 0 ? (
