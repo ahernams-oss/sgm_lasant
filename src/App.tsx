@@ -95,6 +95,7 @@ import { EvidenciasProvider } from "@/contexts/EvidenciasContext";
 import { ChecklistsProvider } from "@/contexts/ChecklistsContext";
 import EquipamentosPage from "./pages/Equipamentos.tsx";
 import { EquipamentosProvider } from "@/contexts/EquipamentosContext";
+import { LaudosCondenacaoProvider } from "@/contexts/LaudosCondenacaoContext";
 import PmocPage from "./pages/Pmoc.tsx";
 import PmocGerenciarOperacaoPage from "./pages/PmocGerenciarOperacao.tsx";
 import { PmocProvider } from "@/contexts/PmocContext";
