@@ -92,7 +92,21 @@ const HEADERS = [
   "Saldo - Variável",
 ];
 
-export function gerarPdfSaldosContrato(input: SaldoReportInput) {
+async function fetchDataUrl(url: string): Promise<{ dataUrl: string; ext: string } | null> {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const dataUrl: string = await new Promise((resolve) => {
+      const r = new FileReader();
+      r.onloadend = () => resolve(r.result as string);
+      r.readAsDataURL(blob);
+    });
+    const ext = (dataUrl.match(/data:image\/(\w+);/)?.[1] || "PNG").toUpperCase();
+    return { dataUrl, ext };
+  } catch { return null; }
+}
+
+export async function gerarPdfSaldosContrato(input: SaldoReportInput, logoUrl?: string) {
   const { cliente, contrato } = input;
   const rows = montarLinhasSaldos(input);
   const doc = new jsPDF({ orientation: "landscape" });
@@ -100,17 +114,25 @@ export function gerarPdfSaldosContrato(input: SaldoReportInput) {
 
   doc.setFillColor(30, 58, 107);
   doc.rect(0, 0, pw, 30, "F");
+
+  const logo = logoUrl ? await fetchDataUrl(logoUrl) : null;
+  if (logo) {
+    try { doc.addImage(logo.dataUrl, logo.ext, 10, 5, 22, 20); } catch { /* ignore */ }
+  }
+  const tx = logo ? 38 : 14;
+
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text("Relatório de Saldos por Contrato", 14, 12);
+  doc.text("Relatório de Saldos por Contrato", tx, 12);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text(`Cliente: ${cliente.nome || cliente.nomeFantasia}`, 14, 19);
-  doc.text(`Contrato: ${contrato.numero || "—"}${contrato.descricao ? " — " + contrato.descricao : ""}`, 14, 25);
+  doc.text(`Cliente: ${cliente.nome || cliente.nomeFantasia}`, tx, 19);
+  doc.text(`Contrato: ${contrato.numero || "—"}${contrato.descricao ? " — " + contrato.descricao : ""}`, tx, 25);
   const dt = new Date();
   doc.text(`Gerado em: ${dt.toLocaleDateString("pt-BR")} ${dt.toLocaleTimeString("pt-BR")}`, pw - 14, 12, { align: "right" });
   doc.text(`Período: ${input.periodoInicio.slice(0, 7)} a ${input.periodoFim.slice(0, 7)}`, pw - 14, 19, { align: "right" });
+
 
   const totals = rows.reduce(
     (a, r) => {

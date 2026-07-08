@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, FileSpreadsheet } from "lucide-react";
 import { useClientes, type Cliente, type Contrato } from "@/contexts/ClientesContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfSaldosContrato, gerarExcelSaldosContrato } from "@/lib/gerarRelatorioSaldosContrato";
 import { toast } from "sonner";
 
@@ -27,6 +28,7 @@ const firstOfMonth = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1)
 
 export default function RelatorioSaldosContratoDialog({ open, onOpenChange }: Props) {
   const { clientes } = useClientes();
+  const { empresa } = useEmpresa();
   const clientesLista = useMemo(
     () => (clientes as Cliente[])
       .filter((c) => c.tipo === "Cliente" && (c.contratos || []).length > 0)
@@ -61,7 +63,7 @@ export default function RelatorioSaldosContratoDialog({ open, onOpenChange }: Pr
 
   const podeGerar = !!cliente && !!contrato && !!periodoInicio && !!periodoFim;
 
-  const doGerar = (tipo: "pdf" | "excel") => {
+  const doGerar = async (tipo: "pdf" | "excel") => {
     if (!cliente || !contrato) { toast.error("Selecione cliente e contrato."); return; }
     const input = {
       cliente,
@@ -71,7 +73,7 @@ export default function RelatorioSaldosContratoDialog({ open, onOpenChange }: Pr
       prevFolhaMensal: parseBR(prevFolha),
       prevVariavelMensal: parseBR(prevVariavel),
     };
-    if (tipo === "pdf") gerarPdfSaldosContrato(input);
+    if (tipo === "pdf") await gerarPdfSaldosContrato(input, empresa?.logoUrl);
     else gerarExcelSaldosContrato(input);
     toast.success(`Relatório ${tipo.toUpperCase()} gerado.`);
   };
