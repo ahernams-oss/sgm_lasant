@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, FileSpreadsheet } from "lucide-react";
 import { useClientes, type Cliente, type Contrato } from "@/contexts/ClientesContext";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfSaldosContrato, gerarExcelSaldosContrato } from "@/lib/gerarRelatorioSaldosContrato";
 import { toast } from "sonner";
 
