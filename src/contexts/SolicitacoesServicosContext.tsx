@@ -21,6 +21,7 @@ export interface SolicitacaoServico {
   createdAt: string; dataHoraSolicitacao: string;
   solicitanteId: string; solicitanteNome: string;
   historico: HistoricoEntry[];
+  ressalvaAprovacao: string;
 }
 
 interface SolicitacoesServicosContextType {
