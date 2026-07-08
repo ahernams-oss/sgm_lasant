@@ -1,54 +1,95 @@
-## Diagnóstico
+## Objetivo
+Implementar o Laudo Técnico de Condenação de Equipamentos, com persistência em banco, geração de PDF, editor de fotos com marcadores numerados e integração ao cadastro de Equipamentos.
 
-Hoje **Planos**, **Atividades** e **Biblioteca** são 3 abas separadas no mesmo nível, dando a impressão de serem coisas independentes. Na prática elas têm uma relação hierárquica:
+## 1. Banco de dados
 
-```
-Biblioteca de Rotinas  →  Plano de Manutenção  →  Equipamento
-   (modelos)              (agrupa atividades)     (recebe plano)
-```
+**Nova tabela** `public.equipamentos_laudos_condenacao`:
+- `equipamento_id` (FK)
+- `numero` (int, auto-incremento anual via trigger)
+- `data_emissao`, `data_inspecao`, `local_inspecao`
+- `responsavel_tecnico`, `registro_profissional` (CFT/CREA)
+- Snapshot do equipamento: tipo, marca, modelo, serie, patrimonio, ano_fabricacao, data_aquisicao, localizacao, estado_conservacao
+- `historico` (text)
+- `insp_condicoes_fisicas`, `insp_condicoes_eletricas`, `insp_condicoes_mecanicas`, `insp_funcionalidade` (text)
+- `motivos_condenacao` (jsonb - array de strings)
+- `custo_reparo`, `valor_residual`, `valor_novo_equivalente` (numeric)
+- `parecer` ("APROVADO PARA CONDENAÇÃO" | "REPROVADO")
+- `conclusao_condicoes` (text curto)
+- `fotos` (jsonb) — array com `{path, url, descricao, marcadores:[{n, x, y, tipo:"seta"|"circulo", legenda}]}`, máx 10
+- `anexos_orcamentos` (jsonb) — array `{nome,path,url,tamanho}`
+- `outros_anexos` (jsonb)
+- `created_at`, `updated_at`, `created_by`
+- GRANT SELECT/INSERT/UPDATE/DELETE authenticated + service_role
+- RLS enabled + policy `USING (true)` (padrão do projeto)
+- Trigger `set_next_laudo_condenacao_numero` (reset anual, igual RDO)
 
-O usuário precisa pular entre abas para montar um plano completo, o que confunde.
+Reusar bucket `documentos` com prefixo `laudos-condenacao/`.
 
-## Nova estrutura proposta
+## 2. Editor de fotos com marcadores
 
-### 1. Renomear e reorganizar as abas
-Grupo **Planejamento** passa a ter apenas 2 abas, em ordem de uso:
+Novo componente `FotosLaudoEditor.tsx`:
+- Upload de até 10 fotos (validação, máx 4MB cada)
+- Preview em grid, cada foto tem campo "Descrição"
+- Botão "Editar marcadores" abre dialog com `<canvas>` sobreposto à imagem
+- Clique no canvas adiciona marcador numerado (círculo com número) na posição clicada; coords normalizadas 0-1
+- Toggle tipo: círculo / seta
+- Lista lateral com nº, legenda editável e botão remover
+- Salva marcadores no state da foto; renderização final via canvas → dataURL para o PDF
 
-- **Biblioteca de Rotinas** *(opcional, modelos reutilizáveis)*
-- **Planos de Manutenção** *(onde tudo acontece)*
+## 3. Dialog do Laudo
 
-A aba **Atividades** deixa de existir como top-level — atividades passam a ser editadas **dentro** do plano ao qual pertencem.
+Novo componente `LaudoCondenacaoDialog.tsx` com abas:
+1. **Identificação** — auto-preenchida do equipamento (editável), + responsável técnico e registro
+2. **Histórico** — textarea grande
+3. **Inspeção** — 4 textareas (físicas, elétricas, mecânicas, funcionalidade)
+4. **Fundamentação** — lista dinâmica de motivos + campos de viabilidade econômica (custo reparo, valor residual, % calculado automaticamente, indicativo viável/inviável)
+5. **Conclusão** — parecer (select), data/local inspeção
+6. **Anexos** — editor de fotos + upload de orçamentos + outros anexos
 
-### 2. Editor de Plano com atividades embutidas
-Ao abrir/editar um Plano, a tela ganha 3 seções (acordeão ou abas internas):
+Rodapé: Salvar rascunho | Salvar e Gerar PDF | Cancelar.
 
-1. **Dados do plano** — cliente, contrato, título, período de vigência, RT
-2. **Atividades do plano** — lista as atividades já vinculadas + botão **"Adicionar atividade"** com duas opções:
-   - **Da Biblioteca** (escolher rotina pronta — copia título, descrição, periodicidade padrão)
-   - **Nova atividade** (criar do zero)
-   Cada atividade pode ser editada/removida inline, com campos: descrição, equipamento, periodicidade, responsável.
-3. **Equipamentos vinculados** — multi-select de equipamentos do cliente; ao salvar, o plano fica disponível para esses equipamentos (campo `plano_manutencao` em `equipamentos`).
+Se parecer = "APROVADO PARA CONDENAÇÃO" ao salvar → `updateEquipamento(id, { situacao: "Condenado" })` (nova situação adicionada ao array `SITUACOES`).
 
-### 3. Visibilidade no cadastro de Equipamento
-No formulário de Equipamento, o campo "Plano de Manutenção" passa a ser um Select que lista os planos do cliente selecionado, com link "Ver plano" abrindo o editor em modo leitura.
+## 4. Contexto
 
-### 4. Indicação visual do fluxo no PMOC
-No topo do grupo **Planejamento**, adicionar um mini-stepper informativo:
+Novo `LaudosCondenacaoContext.tsx` com `useQuery`, `add/update/delete/listByEquipamento`. Provider em App.tsx.
 
-```
-1. Biblioteca → 2. Planos (atividades + equipamentos) → 3. Disponível em Equipamentos
-```
+## 5. Integrações no módulo Equipamentos
 
-## Detalhes técnicos
+**Grid** (`Equipamentos.tsx`):
+- Novo item no menu de ações: "Laudo de Condenação" (abre dialog)
+- Card KPI "Condenados" (opcional)
 
-- Sem alteração de schema: `pmoc_planos`, `pmoc_atividades` (FK `plano_id`), `pmoc_biblioteca_rotinas` e `equipamentos.plano_manutencao` já suportam o fluxo.
-- `PlanosTab` ganha um modo "editor expandido" que substitui a aba `AtividadesTab` standalone.
-- `AtividadesTab` é removida da `TabsList`; a função interna fica reaproveitada como subcomponente do editor de plano (filtrada por `plano_id`).
-- "Adicionar da biblioteca" faz um `SELECT` em `pmoc_biblioteca_rotinas` e cria um `INSERT` em `pmoc_atividades` copiando os campos.
-- No `Equipamentos.tsx`, o campo `plano_manutencao` (hoje texto livre) vira `Select` com os planos do cliente atual.
+**Cadastro do equipamento** (dialog de view/edit): nova aba **"Laudos"** com histórico de laudos emitidos, botões Visualizar/Imprimir/Novo.
 
-## Fora do escopo
+## 6. Geração do PDF
 
-- Wizard cheio passo-a-passo (mantém edição livre, só guia visual).
-- Mudar Qualidade do Ar, Inconformidades, OS, RT — continuam como estão.
-- Migrar dados antigos do campo texto `plano_manutencao` em equipamentos.
+Novo `src/lib/gerarPdfLaudoCondenacao.ts` (jsPDF + autoTable), seguindo padrão dos outros PDFs do projeto:
+- Cabeçalho com logo empresa + "LAUDO TÉCNICO DE CONDENAÇÃO DE EQUIPAMENTOS"
+- Blocos: Identificação (tabela 2 colunas), Histórico, Inspeção (4 subseções), Fundamentação (lista + tabela viabilidade), Conclusão, Assinatura
+- Anexos: fotos renderizadas com marcadores desenhados sobre a imagem (via canvas → base64), 4 por página, com descrição
+- Rodapé com nº laudo, data, página X/Y
+
+## 7. Situação "Condenado"
+
+- Adicionar `"Condenado"` à const `SITUACOES`
+- Badge com variant destructive
+- KPI "Condenados" nos cards do topo
+
+## Arquivos a criar
+- `supabase/migrations/xxxxx_laudos_condenacao.sql`
+- `src/contexts/LaudosCondenacaoContext.tsx`
+- `src/components/laudo/FotosLaudoEditor.tsx`
+- `src/components/laudo/LaudoCondenacaoDialog.tsx`
+- `src/components/laudo/LaudosHistoricoTab.tsx`
+- `src/lib/gerarPdfLaudoCondenacao.ts`
+
+## Arquivos a editar
+- `src/App.tsx` (provider)
+- `src/pages/Equipamentos.tsx` (menu ação + aba Laudos + situação Condenado + KPI)
+- `src/contexts/EquipamentosContext.tsx` (sem mudança de schema)
+- `src/integrations/supabase/types.ts` (regenerado após migration)
+
+## Fora do escopo (para futura iteração)
+- Assinatura eletrônica com hash (pode ser adicionada como no padrão OS)
+- Numeração customizada por empresa/unidade

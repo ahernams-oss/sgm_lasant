@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
-import { Monitor, Trash2, Search, Plus, ChevronDown, ChevronUp, Pencil, Upload, Image, FileText, Award, History, AlertTriangle, QrCode, Printer, Download } from "lucide-react";
+import { Monitor, Trash2, Search, Plus, ChevronDown, ChevronUp, Pencil, Upload, Image, FileText, Award, History, AlertTriangle, QrCode, Printer, Download, ShieldAlert } from "lucide-react";
+import { LaudoCondenacaoDialog } from "@/components/laudo/LaudoCondenacaoDialog";
 import QRCode from "qrcode";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ import { usePmoc } from "@/contexts/PmocContext";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissao } from "@/hooks/usePermissao";
 
-const SITUACOES = ["Ativo", "Inativo", "Em Manutenção", "Desativado"];
+const SITUACOES = ["Ativo", "Inativo", "Em Manutenção", "Desativado", "Condenado"];
 const NIVEIS_RISCO = ["Baixo", "Médio", "Alto", "Crítico"];
 const NIVEIS_MANUTENCAO = ["Preventiva", "Corretiva", "Preditiva"];
 
@@ -70,6 +71,7 @@ export default function Equipamentos() {
   const [novaCalib, setNovaCalib] = useState({ data_calibracao: "", validade_calibracao: "", laboratorio: "", numero_certificado: "", certificado_url: "", responsavel: "", resultado: "Aprovado", observacoes: "", custo: 0 });
   const [qrEquip, setQrEquip] = useState<Equipamento | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [laudoEquip, setLaudoEquip] = useState<Equipamento | null>(null);
 
   const openQr = async (eq: Equipamento) => {
     const url = `${window.location.origin}/equipamento/${eq.id}`;
@@ -308,11 +310,12 @@ export default function Equipamentos() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-primary">{equipamentos.length}</p><p className="text-xs text-muted-foreground">Total</p></CardContent></Card>
         <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-primary">{equipamentos.filter(e => e.situacao === "Ativo").length}</p><p className="text-xs text-muted-foreground">Ativos</p></CardContent></Card>
         <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-secondary-foreground">{equipamentos.filter(e => e.situacao === "Em Manutenção").length}</p><p className="text-xs text-muted-foreground">Em Manutenção</p></CardContent></Card>
         <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-destructive">{equipamentos.filter(e => e.situacao === "Inativo" || e.situacao === "Desativado").length}</p><p className="text-xs text-muted-foreground">Inativos</p></CardContent></Card>
+        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-destructive">{equipamentos.filter(e => e.situacao === "Condenado").length}</p><p className="text-xs text-muted-foreground">Condenados</p></CardContent></Card>
       </div>
 
       {/* Form */}
@@ -605,6 +608,7 @@ export default function Equipamentos() {
                       <div className="flex gap-1">
                         <Button size="icon" variant="ghost" title="QR Code" onClick={() => openQr(eq)}><QrCode className="h-4 w-4 text-primary" /></Button>
                         {eq.requerCalibracao && <Button size="icon" variant="ghost" title="Histórico de Calibração" onClick={() => openHistorico(eq)}><History className="h-4 w-4 text-primary" /></Button>}
+                        <Button size="icon" variant="ghost" title="Laudo de Condenação" onClick={() => setLaudoEquip(eq)}><ShieldAlert className="h-4 w-4 text-destructive" /></Button>
                         {podeEditar && <Button size="icon" variant="ghost" onClick={() => handleEdit(eq)}><Pencil className="h-4 w-4" /></Button>}
                         {podeExcluir && <Button size="icon" variant="ghost" onClick={() => requestDelete(eq.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                       </div>
@@ -660,10 +664,23 @@ export default function Equipamentos() {
                 </div>
               )}
               {viewEquip.manualUrl && <div className="col-span-2"><span className="font-semibold">Manual:</span> <a href={viewEquip.manualUrl} target="_blank" rel="noreferrer" className="text-primary underline ml-1">Ver manual</a></div>}
+              <div className="col-span-2 pt-2 border-t">
+                <Button variant="outline" size="sm" onClick={() => { const eq = viewEquip; setViewEquip(null); setLaudoEquip(eq); }}>
+                  <ShieldAlert className="h-4 w-4 mr-1 text-destructive" />Laudos de Condenação
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {laudoEquip && (
+        <LaudoCondenacaoDialog
+          equipamento={laudoEquip}
+          open={!!laudoEquip}
+          onOpenChange={(o) => { if (!o) setLaudoEquip(null); }}
+        />
+      )}
 
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => { if (!open) cancelDelete(); }} onConfirm={() => { if (deleteId) handleDelete(deleteId); }} />
 
