@@ -9,8 +9,9 @@ import { ShieldCheck, ShieldAlert, ArrowLeft, FileSignature } from "lucide-react
 import { gerarHashRdo } from "@/lib/assinaturaHash";
 import { gerarHashOs } from "@/lib/assinaturaHashOs";
 import { gerarHashPc } from "@/lib/assinaturaHashPc";
+import { gerarHashLaudo } from "@/lib/assinaturaHashLaudo";
 
-type Tipo = "rdo" | "os" | "pc";
+type Tipo = "rdo" | "os" | "pc" | "laudo";
 
 const fmtDateTime = (d: string) =>
   new Date(d).toLocaleString("pt-BR", {
