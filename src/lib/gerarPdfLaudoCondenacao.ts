@@ -297,7 +297,8 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
   // Anexos - Fotos (4 por página)
   if (laudo.fotos && laudo.fotos.length > 0) {
     doc.addPage();
-    y = 15;
+    drawTimbrado(doc, pw, empresa, logo);
+    y = 38;
     sectionTitle("ANEXO I — FOTOGRAFIAS");
     let count = 0;
     const cellW = (pw - 28 - 6) / 2;
@@ -331,7 +332,8 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
       count++;
       if (count % 4 === 0 && count < laudo.fotos.length) {
         doc.addPage();
-        y = 15;
+        drawTimbrado(doc, pw, empresa, logo);
+        y = 38;
         sectionTitle("ANEXO I — FOTOGRAFIAS (cont.)");
       }
     }
@@ -340,7 +342,8 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
   // Anexos - Orçamentos e outros
   if ((laudo.anexos_orcamentos?.length || 0) + (laudo.outros_anexos?.length || 0) > 0) {
     doc.addPage();
-    y = 15;
+    drawTimbrado(doc, pw, empresa, logo);
+    y = 38;
     sectionTitle("ANEXO II — DOCUMENTOS ANEXOS");
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
