@@ -113,13 +113,17 @@ export async function gerarPdfSaldosContrato(input: SaldoReportInput, logoUrl?: 
   const pw = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(30, 58, 107);
-  doc.rect(0, 0, pw, 30, "F");
+  doc.rect(0, 0, pw, 32, "F");
 
   const logo = logoUrl ? await fetchDataUrl(logoUrl) : null;
   if (logo) {
-    try { doc.addImage(logo.dataUrl, logo.ext, 10, 5, 22, 20); } catch { /* ignore */ }
+    // Fundo branco arredondado para destacar a logo sobre a faixa azul
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(8, 4, 34, 24, 2, 2, "F");
+    try { doc.addImage(logo.dataUrl, logo.ext, 10, 6, 30, 20); } catch { /* ignore */ }
   }
-  const tx = logo ? 38 : 14;
+  const tx = logo ? 48 : 14;
+
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
