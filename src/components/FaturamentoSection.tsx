@@ -291,11 +291,13 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
           </div>
         )}
         {podeVerValorFolha && (
+          <div>
+            <label className="field-label">Valor da Variável</label>
+            <Input placeholder="0,00" value={form.valorVariavel || ""} onChange={(e) => update("valorVariavel", e.target.value)} />
+          </div>
+        )}
+        {podeVerValorFolha && (
           <>
-            <div>
-              <label className="field-label">Vale Transporte</label>
-              <Input placeholder="0,00" value={form.valeTransporte} onChange={(e) => update("valeTransporte", e.target.value)} />
-            </div>
             <div>
               <label className="field-label">Vale Alimentação</label>
               <Input placeholder="0,00" value={form.valeAlimentacao} onChange={(e) => update("valeAlimentacao", e.target.value)} />
@@ -317,8 +319,8 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
               <Input placeholder="0,00" value={form.provisao13} onChange={(e) => update("provisao13", e.target.value)} />
             </div>
             <div>
-              <label className="field-label">Valor da Variável</label>
-              <Input placeholder="0,00" value={form.valorVariavel || ""} onChange={(e) => update("valorVariavel", e.target.value)} />
+              <label className="field-label">Vale Transporte</label>
+              <Input placeholder="0,00" value={form.valeTransporte} onChange={(e) => update("valeTransporte", e.target.value)} />
             </div>
           </>
         )}
