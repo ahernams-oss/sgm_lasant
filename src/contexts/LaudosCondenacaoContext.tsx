@@ -120,17 +120,27 @@ export function LaudosCondenacaoProvider({ children }: { children: ReactNode }) 
   });
   const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
+  const sanitizeDates = (row: any) => {
+    ["data_aquisicao", "data_emissao", "data_inspecao"].forEach((k) => {
+      if (row[k] === "" || row[k] === undefined) row[k] = null;
+    });
+    return row;
+  };
+
   const addLaudo = async (l: Partial<LaudoCondenacao>) => {
     const row: any = { ...l };
     delete row.id;
     delete row.numero;
     delete row.created_at;
+    sanitizeDates(row);
     const data = await insertRow("equipamentos_laudos_condenacao", row);
     invalidate();
     return data ? rowToLaudo(data) : null;
   };
   const updateLaudo = async (id: string, l: Partial<LaudoCondenacao>) => {
-    const ok = await updateRow("equipamentos_laudos_condenacao", id, l);
+    const row: any = { ...l };
+    sanitizeDates(row);
+    const ok = await updateRow("equipamentos_laudos_condenacao", id, row);
     if (ok) invalidate();
     return ok;
   };
