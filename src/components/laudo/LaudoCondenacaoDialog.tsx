@@ -128,10 +128,27 @@ export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props
     }
   };
 
+  const empresaTimbrado = {
+    razaoSocial: empresa?.razaoSocial,
+    nomeFantasia: empresa?.nomeFantasia,
+    cnpj: empresa?.cnpj,
+    logoUrl: empresa?.logoUrl,
+    logradouro: empresa?.logradouro,
+    numero: empresa?.numero,
+    complemento: empresa?.complemento,
+    bairro: empresa?.bairro,
+    cidade: empresa?.cidade,
+    uf: empresa?.uf,
+    cep: empresa?.cep,
+    telefone: empresa?.telefone,
+    email: empresa?.email,
+    site: empresa?.site,
+  };
+
   const salvarEGerarPdf = async () => {
     const saved = await salvar();
     if (saved) {
-      await gerarPdfLaudoCondenacao(saved, { razaoSocial: empresa?.razaoSocial, cnpj: empresa?.cnpj });
+      await gerarPdfLaudoCondenacao(saved, empresaTimbrado);
       setMode("lista");
     }
   };
@@ -142,7 +159,7 @@ export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props
   };
 
   const imprimir = async (l: LaudoCondenacao) => {
-    await gerarPdfLaudoCondenacao(l, { razaoSocial: empresa?.razaoSocial, cnpj: empresa?.cnpj });
+    await gerarPdfLaudoCondenacao(l, empresaTimbrado);
   };
 
   const uploadAnexo = async (files: FileList, campo: "anexos_orcamentos" | "outros_anexos") => {
