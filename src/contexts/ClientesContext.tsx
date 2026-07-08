@@ -76,7 +76,7 @@ export interface Cliente {
 
 interface ClientesContextType {
   clientes: Cliente[]; addCliente: (c: Omit<Cliente, "id">) => void;
-  updateCliente: (id: string, c: Partial<Omit<Cliente, "id">>) => void;
+  updateCliente: (id: string, c: Partial<Omit<Cliente, "id">>) => Promise<boolean>;
   deleteCliente: (id: string) => void;
 }
 
@@ -139,13 +139,16 @@ export function ClientesProvider({ children }: { children: ReactNode }) {
     invalidate();
   };
 
-  const updateCliente = async (id: string, data: Partial<Omit<Cliente, "id">>) => {
+  const updateCliente = async (id: string, data: Partial<Omit<Cliente, "id">>): Promise<boolean> => {
     const current = clientes.find(c => c.id === id);
-    if (!current) return;
+    if (!current) return false;
     const merged = { ...current, ...data };
     const { id: _, ...rest } = merged;
-    await updateRow("clientes", id, clienteToRow(rest));
-    invalidate();
+    const ok = await updateRow("clientes", id, clienteToRow(rest));
+    if (!ok) return false;
+    qc.setQueryData<Cliente[]>(QK, (old = []) => old.map((c) => (c.id === id ? merged : c)));
+    await invalidate();
+    return true;
   };
 
   const deleteCliente = async (id: string) => { await deleteRow("clientes", id); invalidate(); };
