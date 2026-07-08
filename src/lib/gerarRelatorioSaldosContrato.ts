@@ -128,7 +128,7 @@ export async function gerarPdfSaldosContrato(input: SaldoReportInput, logoUrl?: 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text("Relatório de Saldos por Contrato", tx, 12);
+  doc.text("Relatório de Saldos por Contrato" + (contrato.numero ? ` — Contrato ${contrato.numero}` : ""), tx, 12);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.text(`Cliente: ${cliente.nome || cliente.nomeFantasia}`, tx, 19);
