@@ -28,6 +28,7 @@ const firstOfMonth = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1)
 
 export default function RelatorioSaldosContratoDialog({ open, onOpenChange }: Props) {
   const { clientes } = useClientes();
+  const { empresa } = useEmpresa();
   const clientesLista = useMemo(
     () => (clientes as Cliente[])
       .filter((c) => c.tipo === "Cliente" && (c.contratos || []).length > 0)
