@@ -462,9 +462,10 @@ const Dashboard = () => {
 
             {/* Gráficos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader className="pb-2">
+              <Card data-chart-card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-sm font-semibold">Requisições por Status</CardTitle>
+                  <ChartPngExportButton filename="requisicoes-por-status" />
                 </CardHeader>
                 <CardContent>
                   {statusData.length === 0 ? (
