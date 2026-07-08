@@ -508,9 +508,10 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
+              <Card data-chart-card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-sm font-semibold">Requisições por Cliente/Unidade</CardTitle>
+                  <ChartPngExportButton filename="requisicoes-por-cliente-unidade" />
                 </CardHeader>
                 <CardContent>
                   {clienteData.length === 0 ? (
