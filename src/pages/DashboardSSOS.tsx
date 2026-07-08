@@ -566,11 +566,12 @@ export default function DashboardSSOS() {
           </Card>
 
           {/* Ranking por Valor */}
-          <Card>
-            <CardHeader className="pb-2">
+          <Card data-chart-card>
+            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <DollarSign className="h-4 w-4 text-emerald-600" /> Top Orçamentistas — Valor
               </CardTitle>
+              <ChartPngExportButton filename="top-orcamentistas-valor" />
             </CardHeader>
             <CardContent>
               {rankingOrcUsuariosValor.length === 0 ? (
