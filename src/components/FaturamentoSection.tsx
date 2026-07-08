@@ -173,7 +173,7 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
           xmlNfConteudo: content.substring(0, 5000),
           ...(nNFFinal && !prev.numeroNf ? { numeroNf: nNFFinal } : {}),
           ...(chave && !prev.chaveNf ? { chaveNf: chave } : {}),
-          ...(nNFFinal && !prev.numeroMedicao ? { numeroMedicao: nNFFinal } : {}),
+          
           ...(vNFbr && (!prev.valorBruto || prev.valorBruto === "0,00") ? { valorBruto: vNFbr } : {}),
           ...(vLiqBr && (!prev.valorLiquido || prev.valorLiquido === "0,00") ? { valorLiquido: vLiqBr } : {}),
           ...(dataEmi && !prev.dataEmissaoNf ? { dataEmissaoNf: dataEmi } : {}),
