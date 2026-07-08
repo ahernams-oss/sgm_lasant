@@ -385,6 +385,7 @@ export default function SolicitacaoServicosPage() {
       await updateSolicitacao(approvalTargetId, {
         situacao: "Aprovada",
         prioridade: selectedPrioridade,
+        ressalva_aprovacao: ressalva,
         historico: buildHistoricoEntry("Aprovada", ss?.historico || []),
       });
       if (ss) {
@@ -408,6 +409,7 @@ export default function SolicitacaoServicosPage() {
           ramal: usuarioLogado?.ramal || "",
           telefone: usuarioLogado?.telefone || "",
           prioridade: prioridadeOS,
+          ressalva_aprovacao: ressalva,
           situacao: "Aberta",
           historico: buildHistoricoEntry("Aberta"),
           operador_id: usuarioLogado?.id || "",
