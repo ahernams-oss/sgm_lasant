@@ -60,9 +60,8 @@ export function montarLinhasSaldos(input: SaldoReportInput): SaldoRow[] {
     const fats = byMonth.get(key) || [];
     const fatFolha = fats.reduce((s, f) => s + parseBR(f.valorFolha), 0);
     const fatVariavel = fats.reduce((s, f) => s + parseBR(f.valorVariavel), 0);
-    const fatBrutoTotal = fats.reduce((s, f) => s + parseBR(f.valorBruto), 0);
-    // Prefer valorBruto; fallback to folha+variavel
-    const fatTotal = fatBrutoTotal > 0 ? fatBrutoTotal : fatFolha + fatVariavel;
+    // Valor Bruto da NF = Folha + Variável
+    const fatTotal = fatFolha + fatVariavel;
     const numeroNf = fats.map((f) => f.numeroNf).filter(Boolean).join(", ");
     rows.push({
       mesLabel: mesLabel(cursor),
