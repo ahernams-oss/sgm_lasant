@@ -85,18 +85,39 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(content, "text/xml");
         const getTag = (...names: string[]) => {
+          const all = xmlDoc.getElementsByTagName("*");
           for (const n of names) {
-            const els = xmlDoc.getElementsByTagName(n);
-            for (let i = 0; i < els.length; i++) {
-              const txt = els[i]?.textContent?.trim();
-              if (txt) return txt;
-            }
-            // try with namespace prefix wildcard
-            const all = xmlDoc.getElementsByTagName("*");
+            const nLower = n.toLowerCase();
             for (let i = 0; i < all.length; i++) {
-              if (all[i].localName === n) {
-                const txt = all[i].textContent?.trim();
+              const el = all[i];
+              const local = (el.localName || el.nodeName || "").toLowerCase();
+              if (local === nLower) {
+                const txt = el.textContent?.trim();
                 if (txt) return txt;
+              }
+            }
+          }
+          return "";
+        };
+        // Busca tag contida dentro de um pai específico (ex: Numero dentro de InfNfse)
+        const getTagInParent = (parentName: string, ...childNames: string[]) => {
+          const all = xmlDoc.getElementsByTagName("*");
+          const pLower = parentName.toLowerCase();
+          for (let i = 0; i < all.length; i++) {
+            const el = all[i];
+            const local = (el.localName || el.nodeName || "").toLowerCase();
+            if (local === pLower) {
+              const children = el.getElementsByTagName("*");
+              for (const cn of childNames) {
+                const cLower = cn.toLowerCase();
+                for (let j = 0; j < children.length; j++) {
+                  const c = children[j];
+                  const cLocal = (c.localName || c.nodeName || "").toLowerCase();
+                  if (cLocal === cLower) {
+                    const txt = c.textContent?.trim();
+                    if (txt) return txt;
+                  }
+                }
               }
             }
           }
@@ -104,7 +125,12 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
         };
 
         // NFe (nota fiscal eletrônica de produto) e NFSe (serviços - ABRASF / municipais)
-        const nNF = getTag("nNF", "Numero", "NumeroNfse", "numero_nfse", "numero");
+        // Prioriza Numero dentro de InfNfse/Nfse para não pegar o número do RPS
+        const nNF =
+          getTagInParent("InfNfse", "Numero", "NumeroNfse") ||
+          getTagInParent("Nfse", "Numero", "NumeroNfse") ||
+          getTag("NumeroNfse", "numero_nfse", "nNF") ||
+          getTag("Numero");
         // Valor Bruto = Valor dos Serviços (ValorServicos) na NFS-e
         const vServ = getTag("ValorServicos", "valor_servicos", "vServ", "ValorServico", "valor_servico");
         const vNF = vServ || getTag("vNF", "ValorTotal", "valor_total", "ValorBruto", "valor_bruto");
@@ -123,7 +149,7 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
         const vLiqBr = toBR(vLiq);
 
         // Chave: NFe (chNFe / infNFe@Id), NFSe (CodigoVerificacao) ou nome do arquivo (chave de 44+ dígitos)
-        let chave = getTag("chNFe", "ChaveAcesso", "chave_acesso", "CodigoVerificacao", "codigo_verificacao");
+        let chave = getTag("chNFe", "ChaveAcesso", "chave_acesso", "CodigoVerificacao", "codigo_verificacao", "codigoVerificacao");
         if (!chave) {
           const infNFe = xmlDoc.getElementsByTagName("infNFe")[0];
           const id = infNFe?.getAttribute("Id") || "";
@@ -134,17 +160,25 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
           if (m) chave = m[0];
         }
 
+        // Fallback: extrai número do nome do arquivo (ex: "NFSe.382_..." ou "NFS-e 382...")
+        let nNFFinal = nNF;
+        if (!nNFFinal) {
+          const m = file.name.match(/(?:NFS?-?e|NFe|nota)[^\d]*(\d{1,15})/i);
+          if (m) nNFFinal = m[1];
+        }
+
         setForm((prev) => ({
           ...prev,
           xmlNfNome: file.name,
           xmlNfConteudo: content.substring(0, 5000),
-          ...(nNF && !prev.numeroNf ? { numeroNf: nNF } : {}),
+          ...(nNFFinal && !prev.numeroNf ? { numeroNf: nNFFinal } : {}),
           ...(chave && !prev.chaveNf ? { chaveNf: chave } : {}),
-          ...(nNF && !prev.numeroMedicao ? { numeroMedicao: nNF } : {}),
+          ...(nNFFinal && !prev.numeroMedicao ? { numeroMedicao: nNFFinal } : {}),
           ...(vNFbr && (!prev.valorBruto || prev.valorBruto === "0,00") ? { valorBruto: vNFbr } : {}),
           ...(vLiqBr && (!prev.valorLiquido || prev.valorLiquido === "0,00") ? { valorLiquido: vLiqBr } : {}),
           ...(dataEmi && !prev.dataEmissaoNf ? { dataEmissaoNf: dataEmi } : {}),
         }));
+
 
         toast.success("XML importado! Dados extraídos automaticamente.");
       } catch {
