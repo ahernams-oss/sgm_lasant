@@ -286,6 +286,79 @@ export default function RelatoriosMultidimensional() {
           { key: "recebido", label: "Valor Recebido", get: (r) => Number(r.valor_recebido || 0), format: formatBRL },
         ],
       },
+      (() => {
+        const parseNum = (v: any) =>
+          Number(
+            String(v ?? "0")
+              .replace(/[^\d,.-]/g, "")
+              .replace(/\.(?=\d{3}(\D|$))/g, "")
+              .replace(",", "."),
+          ) || 0;
+        type FRow = {
+          clienteNome: string;
+          contratoNumero: string;
+          periodo: string;
+          mes: string;
+          ano: string;
+          numeroNf: string;
+          valorFolha: number;
+          valorVariavel: number;
+          valorNota: number;
+          moMensal: number;
+          verbaVarMensal: number;
+          saldoMO: number;
+          saldoVar: number;
+        };
+        const rows: FRow[] = [];
+        clientes.forEach((c) => {
+          (c.contratos || []).forEach((ct: any) => {
+            const moMensal = parseNum(ct.maoDeObraMensal);
+            const verbaVarMensal = parseNum(ct.maoDeObraAnual) / 12;
+            (ct.faturamentos || []).forEach((f: any) => {
+              const valorFolha = parseNum(f.valorFolha);
+              const valorVariavel = parseNum(f.valorVariavel);
+              const periodo = f.periodoInicio || f.dataEmissaoNf || "";
+              rows.push({
+                clienteNome: c.nome || "—",
+                contratoNumero: ct.numero || "—",
+                periodo,
+                mes: monthOf(periodo),
+                ano: yearOf(periodo),
+                numeroNf: f.numeroNf || "—",
+                valorFolha,
+                valorVariavel,
+                valorNota: valorFolha + valorVariavel,
+                moMensal,
+                verbaVarMensal,
+                saldoMO: moMensal - valorFolha,
+                saldoVar: verbaVarMensal - valorVariavel,
+              });
+            });
+          });
+        });
+        return {
+          key: "saldos_fat",
+          label: "Saldos de Faturamento (M.O. Fixa e Variável)",
+          rows,
+          dateField: (r: FRow) => r.periodo,
+          dimensions: [
+            { key: "cliente", label: "Cliente", get: (r: FRow) => r.clienteNome },
+            { key: "contrato", label: "Contrato", get: (r: FRow) => r.contratoNumero },
+            { key: "mes", label: "Mês", get: (r: FRow) => r.mes },
+            { key: "ano", label: "Ano", get: (r: FRow) => r.ano },
+            { key: "nf", label: "Nº Nota Fiscal", get: (r: FRow) => r.numeroNf },
+          ],
+          values: [
+            { key: "valorFolha", label: "V. Fat. - M.O. Fixa", get: (r: FRow) => r.valorFolha, format: formatBRL },
+            { key: "valorVariavel", label: "V. Fat. - Variável", get: (r: FRow) => r.valorVariavel, format: formatBRL },
+            { key: "valorNota", label: "V. Total - Nota Fiscal", get: (r: FRow) => r.valorNota, format: formatBRL },
+            { key: "moMensal", label: "V. Prev. - M.O. Fixa", get: (r: FRow) => r.moMensal, format: formatBRL },
+            { key: "verbaVarMensal", label: "V. Prev. - Variável", get: (r: FRow) => r.verbaVarMensal, format: formatBRL },
+            { key: "saldoMO", label: "Saldo - M.O. Fixa", get: (r: FRow) => r.saldoMO, format: formatBRL },
+            { key: "saldoVar", label: "Saldo - Variável", get: (r: FRow) => r.saldoVar, format: formatBRL },
+          ],
+        } as Dataset;
+      })(),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [ordens, solicitacoes, pedidos, requisicoes, funcionarios, fin, clientes, cargos],
