@@ -52,6 +52,7 @@ export interface PmocQualidadeArMedicao {
   co2: number | null; renovacaoAr: number | null; pressaoDiferencial: number | null;
   outrosParametros: any; conforme: boolean; observacoes: string;
   relatorioLaboratorialUrl: string; responsavel: string; planoAcao: string;
+  anexos: { nome: string; path: string; url: string; tamanho: number }[];
 }
 
 export interface PmocInconformidade {
@@ -147,6 +148,7 @@ const rowToMedicao = (r: any): PmocQualidadeArMedicao => ({
   conforme: r.conforme ?? true, observacoes: r.observacoes ?? "",
   relatorioLaboratorialUrl: r.relatorio_laboratorial_url ?? "",
   responsavel: r.responsavel ?? "", planoAcao: r.plano_acao ?? "",
+  anexos: Array.isArray(r.anexos) ? r.anexos : [],
 });
 
 const rowToInconformidade = (r: any): PmocInconformidade => ({
