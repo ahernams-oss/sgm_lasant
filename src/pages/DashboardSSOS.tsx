@@ -771,11 +771,12 @@ export default function DashboardSSOS() {
       {/* Rankings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Ranking de Clientes */}
-        <Card>
-          <CardHeader className="pb-2">
+        <Card data-chart-card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Building2 className="h-4 w-4 text-primary" /> Ranking — Clientes (SS + OS)
             </CardTitle>
+            <ChartPngExportButton filename="ranking-clientes" />
           </CardHeader>
           <CardContent>
             {rankingClientes.length === 0 ? (
