@@ -561,9 +561,10 @@ const Dashboard = () => {
               </Card>
 
               {/* Requisições por Cargo */}
-              <Card className="lg:col-span-2">
-                <CardHeader className="pb-2">
+              <Card className="lg:col-span-2" data-chart-card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-sm font-semibold">Requisições por Cargo</CardTitle>
+                  <ChartPngExportButton filename="requisicoes-por-cargo" />
                 </CardHeader>
                 <CardContent>
                   {cargoPorReq.length === 0 ? (
