@@ -1054,7 +1054,9 @@ function QualidadeArTab() {
     ponto_id: "", ponto_descricao: "", data_medicao: new Date().toISOString().slice(0, 10),
     hora_medicao: "", temperatura: "", umidade: "", co2: "", renovacao_ar: "",
     pressao_diferencial: "", conforme: true, observacoes: "", responsavel: "", plano_acao: "",
+    anexos: [] as { nome: string; path: string; url: string; tamanho: number }[],
   });
+  const [uploadingAnexo, setUploadingAnexo] = useState(false);
 
   const openNewPonto = () => { setPontoForm({ descricao: "", cliente_id: "", local_id: "", pavimento_id: "", setor_id: "", tipo_ambiente: "", periodicidade_coleta: "Mensal" }); setEditingId(null); setDialogType("ponto"); setDialogOpen(true); };
   const openEditPonto = (p: any) => { setPontoForm({ descricao: p.descricao, cliente_id: p.clienteId || "", local_id: p.ambiente || "", pavimento_id: p.pavimento || "", setor_id: p.edificio || "", tipo_ambiente: p.tipoAmbiente, periodicidade_coleta: p.periodicidadeColeta }); setEditingId(p.id); setDialogType("ponto"); setDialogOpen(true); };
