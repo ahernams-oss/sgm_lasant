@@ -523,11 +523,12 @@ export default function DashboardSSOS() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
           {/* Ranking por Quantidade */}
-          <Card>
-            <CardHeader className="pb-2">
+          <Card data-chart-card>
+            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <UserCheck className="h-4 w-4 text-primary" /> Top Orçamentistas — Quantidade
               </CardTitle>
+              <ChartPngExportButton filename="top-orcamentistas-quantidade" />
             </CardHeader>
             <CardContent>
               {rankingOrcUsuariosQtd.length === 0 ? (
