@@ -70,6 +70,32 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
   const update = <K extends keyof Omit<Faturamento, "id">>(field: K, value: Omit<Faturamento, "id">[K]) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
+  // ── Valores monetários em formato BR ────────────────────────────────────────
+  // Aceita apenas dígitos, ponto e vírgula durante a digitação; normaliza no blur.
+  const parseMoney = (v: string): number | null => {
+    if (v === undefined || v === null) return null;
+    const s = String(v).trim();
+    if (!s) return null;
+    // BR: "1.234,56" | US: "1234.56" | "1234" | "1234,5"
+    const normalized = s.includes(",")
+      ? s.replace(/\./g, "").replace(",", ".")
+      : s;
+    const num = Number(normalized);
+    return isFinite(num) ? num : null;
+  };
+  const formatMoneyBR = (num: number) =>
+    num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const handleMoneyChange = (field: keyof Omit<Faturamento, "id">) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Mantém somente dígitos, vírgula e ponto durante a digitação (permite editar livremente)
+    const cleaned = e.target.value.replace(/[^\d.,-]/g, "");
+    update(field, cleaned as never);
+  };
+  const handleMoneyBlur = (field: keyof Omit<Faturamento, "id">) => (e: React.FocusEvent<HTMLInputElement>) => {
+    const num = parseMoney(e.target.value);
+    if (num === null) { update(field, "" as never); return; }
+    update(field, formatMoneyBR(num) as never);
+  };
+
   const handleImportXml = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -212,12 +238,30 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
       toast.error("Informe o período do faturamento.");
       return;
     }
+    // Normaliza todos os campos monetários para formato BR e valida
+    const moneyFields: (keyof Omit<Faturamento, "id">)[] = [
+      "valorBruto", "valorLiquido", "valorFolha", "valorVariavel",
+      "valeAlimentacao", "valeTransporte", "custoFixo", "foraFolha",
+      "provisaoFerias", "provisao13",
+    ];
+    const normalizedForm = { ...form };
+    for (const field of moneyFields) {
+      const raw = (form as any)[field];
+      if (raw === "" || raw === undefined || raw === null) continue;
+      const num = parseMoney(String(raw));
+      if (num === null) {
+        toast.error(`Valor inválido no campo monetário.`);
+        return;
+      }
+      (normalizedForm as any)[field] = formatMoneyBR(num);
+    }
+
     let savedId = editingId;
     let nextFaturamentos: Faturamento[];
     if (editingId) {
-      nextFaturamentos = faturamentos.map((f) => (f.id === editingId ? { ...f, ...form } : f));
+      nextFaturamentos = faturamentos.map((f) => (f.id === editingId ? { ...f, ...normalizedForm } : f));
     } else {
-      const novo: Faturamento = { id: crypto.randomUUID(), ...form };
+      const novo: Faturamento = { id: crypto.randomUUID(), ...normalizedForm };
       savedId = novo.id;
       nextFaturamentos = [...faturamentos, novo];
     }
@@ -230,9 +274,9 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
     toast.success(editingId ? "Faturamento atualizado!" : "Faturamento adicionado!");
 
     // gera/atualiza Conta a Receber se houver NF e valor
-    if (savedId && (form.numeroNf || form.numeroMedicao) && (form.valorLiquido || form.valorBruto)) {
+    if (savedId && (normalizedForm.numeroNf || normalizedForm.numeroMedicao) && (normalizedForm.valorLiquido || normalizedForm.valorBruto)) {
       gerarContaReceberDeFaturamento(
-        { id: savedId, ...form },
+        { id: savedId, ...normalizedForm },
         { clienteId: cliente?.id, clienteNome: cliente?.nome || cliente?.nomeFantasia, contratoId: contrato?.id, contratoNumero: contratoNumero }
       );
     }
@@ -325,51 +369,51 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
         </div>
         <div>
           <label className="field-label">Valor Bruto</label>
-          <Input placeholder="0,00" value={form.valorBruto} onChange={(e) => update("valorBruto", e.target.value)} />
+          <Input inputMode="decimal" placeholder="0,00" value={form.valorBruto} onChange={handleMoneyChange("valorBruto")} onBlur={handleMoneyBlur("valorBruto")} />
         </div>
         <div>
           <label className="field-label">Valor Líquido</label>
-          <Input placeholder="0,00" value={form.valorLiquido} onChange={(e) => update("valorLiquido", e.target.value)} />
+          <Input inputMode="decimal" placeholder="0,00" value={form.valorLiquido} onChange={handleMoneyChange("valorLiquido")} onBlur={handleMoneyBlur("valorLiquido")} />
         </div>
         {podeVerValorFolha && (
           <div>
             <label className="field-label flex items-center gap-1">
               <Lock className="h-3 w-3 text-primary" /> Valor Folha
             </label>
-            <Input placeholder="0,00" value={form.valorFolha} onChange={(e) => update("valorFolha", e.target.value)} />
+            <Input inputMode="decimal" placeholder="0,00" value={form.valorFolha} onChange={handleMoneyChange("valorFolha")} onBlur={handleMoneyBlur("valorFolha")} />
           </div>
         )}
         {podeVerValorFolha && (
           <div>
             <label className="field-label">Valor da Variável</label>
-            <Input placeholder="0,00" value={form.valorVariavel || ""} onChange={(e) => update("valorVariavel", e.target.value)} />
+            <Input inputMode="decimal" placeholder="0,00" value={form.valorVariavel || ""} onChange={handleMoneyChange("valorVariavel")} onBlur={handleMoneyBlur("valorVariavel")} />
           </div>
         )}
         {podeVerValorFolha && (
           <>
             <div>
               <label className="field-label">Vale Alimentação</label>
-              <Input placeholder="0,00" value={form.valeAlimentacao} onChange={(e) => update("valeAlimentacao", e.target.value)} />
+              <Input inputMode="decimal" placeholder="0,00" value={form.valeAlimentacao} onChange={handleMoneyChange("valeAlimentacao")} onBlur={handleMoneyBlur("valeAlimentacao")} />
             </div>
             <div>
               <label className="field-label">Custo Fixo</label>
-              <Input placeholder="0,00" value={form.custoFixo} onChange={(e) => update("custoFixo", e.target.value)} />
+              <Input inputMode="decimal" placeholder="0,00" value={form.custoFixo} onChange={handleMoneyChange("custoFixo")} onBlur={handleMoneyBlur("custoFixo")} />
             </div>
             <div>
               <label className="field-label">Fora Folha</label>
-              <Input placeholder="0,00" value={form.foraFolha} onChange={(e) => update("foraFolha", e.target.value)} />
+              <Input inputMode="decimal" placeholder="0,00" value={form.foraFolha} onChange={handleMoneyChange("foraFolha")} onBlur={handleMoneyBlur("foraFolha")} />
             </div>
             <div>
               <label className="field-label">Provisão de Férias</label>
-              <Input placeholder="0,00" value={form.provisaoFerias} onChange={(e) => update("provisaoFerias", e.target.value)} />
+              <Input inputMode="decimal" placeholder="0,00" value={form.provisaoFerias} onChange={handleMoneyChange("provisaoFerias")} onBlur={handleMoneyBlur("provisaoFerias")} />
             </div>
             <div>
               <label className="field-label">Provisão de 13º Salário</label>
-              <Input placeholder="0,00" value={form.provisao13} onChange={(e) => update("provisao13", e.target.value)} />
+              <Input inputMode="decimal" placeholder="0,00" value={form.provisao13} onChange={handleMoneyChange("provisao13")} onBlur={handleMoneyBlur("provisao13")} />
             </div>
             <div>
               <label className="field-label">Vale Transporte</label>
-              <Input placeholder="0,00" value={form.valeTransporte} onChange={(e) => update("valeTransporte", e.target.value)} />
+              <Input inputMode="decimal" placeholder="0,00" value={form.valeTransporte} onChange={handleMoneyChange("valeTransporte")} onBlur={handleMoneyBlur("valeTransporte")} />
             </div>
           </>
         )}
