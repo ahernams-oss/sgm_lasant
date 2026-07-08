@@ -22,6 +22,7 @@ const fmtDateTime = (d: string) =>
 const labelPapel = (tipo: Tipo, p: string) => {
   if (tipo === "rdo") return p === "responsavel" ? "Responsável Técnico" : "Fiscalização";
   if (tipo === "pc") return "Aprovador";
+  if (tipo === "laudo") return "Responsável Técnico";
   return p === "fiscal" ? "Fiscal do Contrato" : "Solicitante";
 };
 
