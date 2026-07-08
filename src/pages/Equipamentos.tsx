@@ -664,10 +664,23 @@ export default function Equipamentos() {
                 </div>
               )}
               {viewEquip.manualUrl && <div className="col-span-2"><span className="font-semibold">Manual:</span> <a href={viewEquip.manualUrl} target="_blank" rel="noreferrer" className="text-primary underline ml-1">Ver manual</a></div>}
+              <div className="col-span-2 pt-2 border-t">
+                <Button variant="outline" size="sm" onClick={() => { const eq = viewEquip; setViewEquip(null); setLaudoEquip(eq); }}>
+                  <ShieldAlert className="h-4 w-4 mr-1 text-destructive" />Laudos de Condenação
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {laudoEquip && (
+        <LaudoCondenacaoDialog
+          equipamento={laudoEquip}
+          open={!!laudoEquip}
+          onOpenChange={(o) => { if (!o) setLaudoEquip(null); }}
+        />
+      )}
 
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => { if (!open) cancelDelete(); }} onConfirm={() => { if (deleteId) handleDelete(deleteId); }} />
 
