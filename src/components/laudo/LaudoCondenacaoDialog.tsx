@@ -401,6 +401,19 @@ export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props
                   <Textarea rows={2} placeholder="Observações sobre outros anexos" value={form.observacoes_outros || ""} onChange={e => setField("observacoes_outros", e.target.value)} />
                 </div>
               </TabsContent>
+
+              <TabsContent value="assinatura" className="space-y-3 pt-3">
+                {!editing?.id ? (
+                  <div className="text-sm text-muted-foreground border rounded p-4 text-center">
+                    Salve o laudo antes de assiná-lo eletronicamente.
+                  </div>
+                ) : (
+                  <AssinaturaEletronicaLaudo
+                    laudo={editing}
+                    assinaturaExistente={assinaturasPorLaudo(editing.id)[0]}
+                  />
+                )}
+              </TabsContent>
             </Tabs>
           </div>
         )}
