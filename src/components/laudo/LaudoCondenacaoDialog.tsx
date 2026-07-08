@@ -13,6 +13,7 @@ import { Plus, X, FileDown, Printer, Eye, Trash2, Upload, FileText } from "lucid
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useLaudosCondenacao, type LaudoCondenacao, type AnexoLaudo } from "@/contexts/LaudosCondenacaoContext";
+import { useResponsaveisTecnicos } from "@/contexts/ResponsaveisTecnicosContext";
 import { useEquipamentos, type Equipamento } from "@/contexts/EquipamentosContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { FotosLaudoEditor } from "./FotosLaudoEditor";
@@ -64,6 +65,7 @@ export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props
   const { porEquipamento, addLaudo, updateLaudo, deleteLaudo } = useLaudosCondenacao();
   const { updateEquipamento } = useEquipamentos();
   const { empresa } = useEmpresa();
+  const { responsaveis } = useResponsaveisTecnicos();
   const laudosExistentes = porEquipamento(equipamento.id);
   const [mode, setMode] = useState<"lista" | "form">("lista");
   const [editing, setEditing] = useState<LaudoCondenacao | null>(null);
@@ -242,8 +244,25 @@ export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props
                 </div>
                 <div className="grid grid-cols-3 gap-3 pt-2 border-t">
                   <div><Label>Data de emissão *</Label><Input type="date" value={form.data_emissao || ""} onChange={e => setField("data_emissao", e.target.value)} /></div>
-                  <div><Label>Responsável técnico *</Label><Input value={form.responsavel_tecnico || ""} onChange={e => setField("responsavel_tecnico", e.target.value)} /></div>
-                  <div><Label>Registro (CFT/CREA)</Label><Input value={form.registro_profissional || ""} onChange={e => setField("registro_profissional", e.target.value)} /></div>
+                  <div>
+                    <Label>Responsável técnico *</Label>
+                    <Select
+                      value={form.responsavel_tecnico || ""}
+                      onValueChange={(v) => {
+                        const rt = responsaveis.find(r => r.nome === v);
+                        setField("responsavel_tecnico", v);
+                        setField("registro_profissional", rt?.crea || "");
+                      }}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                      <SelectContent>
+                        {responsaveis.map(r => (
+                          <SelectItem key={r.id} value={r.nome}>{r.nome}{r.titulo ? ` — ${r.titulo}` : ""}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div><Label>Registro (CFT/CREA)</Label><Input value={form.registro_profissional || ""} onChange={e => setField("registro_profissional", e.target.value)} readOnly /></div>
                 </div>
               </TabsContent>
 
