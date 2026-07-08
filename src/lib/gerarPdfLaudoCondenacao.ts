@@ -89,11 +89,17 @@ function drawTimbrado(doc: jsPDF, pw: number, empresa: EmpresaTimbrado | undefin
   doc.rect(0, 0, pw, 30, "F");
   if (logo) {
     try {
-      const maxH = 20, maxW = 32;
+      const maxH = 22, maxW = 38;
       const ratio = logo.w / logo.h;
       let h = maxH, w = maxH * ratio;
       if (w > maxW) { w = maxW; h = maxW / ratio; }
-      doc.addImage(logo.data, "PNG", 10, 5, w, h);
+      // Cartão branco atrás do logo para não ser ofuscado pela tarja azul
+      const pad = 2;
+      const bx = 8, by = 4;
+      const bw = w + pad * 2, bh = h + pad * 2;
+      doc.setFillColor(255, 255, 255);
+      (doc as any).roundedRect ? doc.roundedRect(bx, by, bw, bh, 1.5, 1.5, "F") : doc.rect(bx, by, bw, bh, "F");
+      doc.addImage(logo.data, "PNG", bx + pad, by + pad, w, h);
     } catch { /* ignore */ }
   }
   doc.setTextColor(255);
