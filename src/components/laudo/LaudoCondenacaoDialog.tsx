@@ -243,13 +243,14 @@ export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props
         {mode === "form" && (
           <div className="space-y-4">
             <Tabs value={tab} onValueChange={setTab}>
-              <TabsList className="grid grid-cols-6 w-full">
+              <TabsList className="grid grid-cols-7 w-full">
                 <TabsTrigger value="id">1. Identificação</TabsTrigger>
                 <TabsTrigger value="hist">2. Histórico</TabsTrigger>
                 <TabsTrigger value="insp">3. Inspeção</TabsTrigger>
                 <TabsTrigger value="fund">4. Fundamentação</TabsTrigger>
                 <TabsTrigger value="concl">5. Conclusão</TabsTrigger>
                 <TabsTrigger value="anexos">6. Anexos</TabsTrigger>
+                <TabsTrigger value="assinatura">7. Assinatura</TabsTrigger>
               </TabsList>
 
               <TabsContent value="id" className="space-y-3 pt-3">
