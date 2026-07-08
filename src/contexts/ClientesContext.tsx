@@ -39,6 +39,7 @@ export interface Faturamento {
   foraFolha?: string;
   provisaoFerias?: string;
   provisao13?: string;
+  valorVariavel?: string;
   anexoNfUrl: string;
   anexoNfNome: string;
   pago: boolean;
