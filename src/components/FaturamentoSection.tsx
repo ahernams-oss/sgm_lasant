@@ -316,6 +316,10 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
               <label className="field-label">Provisão de 13º Salário</label>
               <Input placeholder="0,00" value={form.provisao13} onChange={(e) => update("provisao13", e.target.value)} />
             </div>
+            <div>
+              <label className="field-label">Valor da Variável</label>
+              <Input placeholder="0,00" value={form.valorVariavel || ""} onChange={(e) => update("valorVariavel", e.target.value)} />
+            </div>
           </>
         )}
         <div>
