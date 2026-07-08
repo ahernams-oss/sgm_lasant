@@ -1,0 +1,241 @@
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import type { Cliente, Contrato, Faturamento } from "@/contexts/ClientesContext";
+
+const parseBR = (v?: string | number | null): number => {
+  if (v == null || v === "") return 0;
+  if (typeof v === "number") return v;
+  const s = String(v).trim().replace(/[R$\s]/g, "");
+  const n = Number(s.replace(/\./g, "").replace(",", "."));
+  return isFinite(n) ? n : 0;
+};
+
+const fmtBRL = (n: number) =>
+  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
+
+const MESES_PT = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+const mesLabel = (d: Date) => `${MESES_PT[d.getMonth()]}/${String(d.getFullYear()).slice(-2)}`;
+
+export interface SaldoRow {
+  mesLabel: string;
+  mesKey: string; // YYYY-MM
+  numeroNf: string;
+  fatFolha: number;
+  fatVariavel: number;
+  fatTotal: number;
+  prevFolha: number;
+  prevVariavel: number;
+  saldoFolha: number;
+  saldoVariavel: number;
+}
+
+export interface SaldoReportInput {
+  cliente: Cliente;
+  contrato: Contrato;
+  periodoInicio: string; // YYYY-MM-01
+  periodoFim: string; // YYYY-MM-01
+  prevFolhaMensal: number;
+  prevVariavelMensal: number;
+}
+
+export function montarLinhasSaldos(input: SaldoReportInput): SaldoRow[] {
+  const { contrato, periodoInicio, periodoFim, prevFolhaMensal, prevVariavelMensal } = input;
+  const start = new Date(periodoInicio + "T00:00:00");
+  const end = new Date(periodoFim + "T00:00:00");
+  const rows: SaldoRow[] = [];
+
+  // Group faturamentos by mês (periodoInicio)
+  const byMonth = new Map<string, Faturamento[]>();
+  (contrato.faturamentos || []).forEach((f) => {
+    if (!f.periodoInicio) return;
+    const key = f.periodoInicio.slice(0, 7); // YYYY-MM
+    if (!byMonth.has(key)) byMonth.set(key, []);
+    byMonth.get(key)!.push(f);
+  });
+
+  const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+  while (cursor <= end) {
+    const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
+    const fats = byMonth.get(key) || [];
+    const fatFolha = fats.reduce((s, f) => s + parseBR(f.valorFolha), 0);
+    const fatVariavel = fats.reduce((s, f) => s + parseBR(f.valorVariavel), 0);
+    const fatBrutoTotal = fats.reduce((s, f) => s + parseBR(f.valorBruto), 0);
+    // Prefer valorBruto; fallback to folha+variavel
+    const fatTotal = fatBrutoTotal > 0 ? fatBrutoTotal : fatFolha + fatVariavel;
+    const numeroNf = fats.map((f) => f.numeroNf).filter(Boolean).join(", ");
+    rows.push({
+      mesLabel: mesLabel(cursor),
+      mesKey: key,
+      numeroNf,
+      fatFolha,
+      fatVariavel,
+      fatTotal,
+      prevFolha: prevFolhaMensal,
+      prevVariavel: prevVariavelMensal,
+      saldoFolha: prevFolhaMensal - fatFolha,
+      saldoVariavel: prevVariavelMensal - fatVariavel,
+    });
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+  return rows;
+}
+
+const HEADERS = [
+  "MÊS",
+  "Nº Nota Fiscal",
+  "V. Fat. - M.O. Fixa",
+  "V. Fat. - Variável",
+  "V. Total - Nota Fiscal",
+  "V. Prev. - M.O. Fixa",
+  "V. Prev. - Variável",
+  "Saldo - M.O. Fixa",
+  "Saldo - Variável",
+];
+
+export function gerarPdfSaldosContrato(input: SaldoReportInput) {
+  const { cliente, contrato } = input;
+  const rows = montarLinhasSaldos(input);
+  const doc = new jsPDF({ orientation: "landscape" });
+  const pw = doc.internal.pageSize.getWidth();
+
+  doc.setFillColor(30, 58, 107);
+  doc.rect(0, 0, pw, 30, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("Relatório de Saldos por Contrato", 14, 12);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.text(`Cliente: ${cliente.nome || cliente.nomeFantasia}`, 14, 19);
+  doc.text(`Contrato: ${contrato.numero || "—"}${contrato.descricao ? " — " + contrato.descricao : ""}`, 14, 25);
+  const dt = new Date();
+  doc.text(`Gerado em: ${dt.toLocaleDateString("pt-BR")} ${dt.toLocaleTimeString("pt-BR")}`, pw - 14, 12, { align: "right" });
+  doc.text(`Período: ${input.periodoInicio.slice(0, 7)} a ${input.periodoFim.slice(0, 7)}`, pw - 14, 19, { align: "right" });
+
+  const totals = rows.reduce(
+    (a, r) => {
+      a.fatFolha += r.fatFolha;
+      a.fatVariavel += r.fatVariavel;
+      a.fatTotal += r.fatTotal;
+      a.prevFolha += r.prevFolha;
+      a.prevVariavel += r.prevVariavel;
+      a.saldoFolha += r.saldoFolha;
+      a.saldoVariavel += r.saldoVariavel;
+      return a;
+    },
+    { fatFolha: 0, fatVariavel: 0, fatTotal: 0, prevFolha: 0, prevVariavel: 0, saldoFolha: 0, saldoVariavel: 0 }
+  );
+
+  const body = rows.map((r) => [
+    r.mesLabel,
+    r.numeroNf || "—",
+    fmtBRL(r.fatFolha),
+    fmtBRL(r.fatVariavel),
+    fmtBRL(r.fatTotal),
+    fmtBRL(r.prevFolha),
+    fmtBRL(r.prevVariavel),
+    fmtBRL(r.saldoFolha),
+    fmtBRL(r.saldoVariavel),
+  ]);
+
+  autoTable(doc, {
+    startY: 36,
+    head: [HEADERS],
+    body,
+    foot: [[
+      "TOTAL",
+      "",
+      fmtBRL(totals.fatFolha),
+      fmtBRL(totals.fatVariavel),
+      fmtBRL(totals.fatTotal),
+      fmtBRL(totals.prevFolha),
+      fmtBRL(totals.prevVariavel),
+      fmtBRL(totals.saldoFolha),
+      fmtBRL(totals.saldoVariavel),
+    ]],
+    styles: { fontSize: 8, cellPadding: 2, halign: "right" },
+    columnStyles: {
+      0: { halign: "center" },
+      1: { halign: "center" },
+    },
+    headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold", halign: "center" },
+    footStyles: { fillColor: [230, 236, 245], textColor: 20, fontStyle: "bold" },
+    alternateRowStyles: { fillColor: [245, 247, 250] },
+    didParseCell: (data) => {
+      if (data.section === "body" && (data.column.index === 7 || data.column.index === 8)) {
+        const raw = data.column.index === 7 ? rows[data.row.index].saldoFolha : rows[data.row.index].saldoVariavel;
+        if (raw < 0) {
+          data.cell.styles.textColor = [200, 30, 30];
+          data.cell.styles.fontStyle = "bold";
+        }
+      }
+    },
+  });
+
+  const pages = doc.getNumberOfPages();
+  const ph = doc.internal.pageSize.getHeight();
+  for (let i = 1; i <= pages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text(`Página ${i} de ${pages}`, pw / 2, ph - 8, { align: "center" });
+    doc.text("SGM Lasant - Saldos por Contrato", 14, ph - 8);
+  }
+  const fname = `saldos_${(cliente.nome || "cliente").replace(/\s+/g, "_").toLowerCase()}_${contrato.numero || "contrato"}.pdf`;
+  doc.save(fname);
+}
+
+export function gerarExcelSaldosContrato(input: SaldoReportInput) {
+  const { cliente, contrato } = input;
+  const rows = montarLinhasSaldos(input);
+  const wb = XLSX.utils.book_new();
+
+  const aoa: (string | number)[][] = [];
+  aoa.push([`Relatório de Saldos por Contrato`]);
+  aoa.push([`Cliente: ${cliente.nome || cliente.nomeFantasia}`]);
+  aoa.push([`Contrato: ${contrato.numero || "—"}${contrato.descricao ? " — " + contrato.descricao : ""}`]);
+  aoa.push([`Período: ${input.periodoInicio.slice(0, 7)} a ${input.periodoFim.slice(0, 7)}`]);
+  aoa.push([]);
+  aoa.push(HEADERS);
+  rows.forEach((r) => {
+    aoa.push([
+      r.mesLabel,
+      r.numeroNf || "",
+      r.fatFolha,
+      r.fatVariavel,
+      r.fatTotal,
+      r.prevFolha,
+      r.prevVariavel,
+      r.saldoFolha,
+      r.saldoVariavel,
+    ]);
+  });
+  const totals = rows.reduce(
+    (a, r) => {
+      a[0] += r.fatFolha; a[1] += r.fatVariavel; a[2] += r.fatTotal;
+      a[3] += r.prevFolha; a[4] += r.prevVariavel; a[5] += r.saldoFolha; a[6] += r.saldoVariavel;
+      return a;
+    },
+    [0, 0, 0, 0, 0, 0, 0]
+  );
+  aoa.push(["TOTAL", "", ...totals]);
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws["!cols"] = [{ wch: 10 }, { wch: 16 }, { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }];
+
+  // Format numeric cells as currency
+  const startDataRow = 7; // 1-indexed row where data starts
+  const totalRows = rows.length + 1; // + total
+  for (let i = 0; i < totalRows; i++) {
+    const rowIdx = startDataRow + i;
+    for (let col = 2; col <= 8; col++) {
+      const addr = XLSX.utils.encode_cell({ r: rowIdx - 1, c: col });
+      if (ws[addr]) ws[addr].z = 'R$ #,##0.00;[Red]-R$ #,##0.00';
+    }
+  }
+
+  XLSX.utils.book_append_sheet(wb, ws, "Saldos");
+  const fname = `saldos_${(cliente.nome || "cliente").replace(/\s+/g, "_").toLowerCase()}_${contrato.numero || "contrato"}.xlsx`;
+  XLSX.writeFile(wb, fname);
+}

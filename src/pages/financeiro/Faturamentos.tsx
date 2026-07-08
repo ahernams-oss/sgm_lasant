@@ -5,11 +5,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, ExternalLink } from "lucide-react";
+import { FileText, ExternalLink, BarChart3 } from "lucide-react";
 import { useClientes, type Faturamento, type Contrato, type Cliente } from "@/contexts/ClientesContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useNavigate } from "react-router-dom";
+import RelatorioSaldosContratoDialog from "@/components/RelatorioSaldosContratoDialog";
 
 interface Row {
   clienteId: string;
@@ -40,6 +41,7 @@ export default function Faturamentos() {
   const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [openSaldos, setOpenSaldos] = useState(false);
 
   const rows = useMemo<Row[]>(() => {
     const all: Row[] = [];
@@ -113,7 +115,12 @@ export default function Faturamentos() {
             Acompanhamento consolidado de todos os faturamentos lançados por cliente e contrato.
           </p>
         </div>
+        <Button onClick={() => setOpenSaldos(true)} variant="default">
+          <BarChart3 className="h-4 w-4 mr-2" /> Relatório de Saldos
+        </Button>
       </div>
+
+      <RelatorioSaldosContratoDialog open={openSaldos} onOpenChange={setOpenSaldos} />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Valor Bruto</CardTitle></CardHeader><CardContent className="text-lg font-semibold">{fmtBRL(totais.bruto)}</CardContent></Card>
