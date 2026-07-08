@@ -578,6 +578,9 @@ const Clientes = () => {
                           <p className="text-muted-foreground">VTM Mensal: {ct.valorBase || "—"}</p>
                           <p className="text-muted-foreground">VTM Anual: {ct.valorBase2 || "—"}</p>
                           <p className="text-muted-foreground">VTM Contratual: {ct.valorBase3 || "—"}</p>
+                          <p className="text-muted-foreground">Mão de Obra Mensal: {ct.maoDeObraMensal || "—"}</p>
+                          <p className="text-muted-foreground">Mão de Obra Anual: {ct.maoDeObraAnual || "—"}</p>
+                          <p className="text-muted-foreground">Mão de Obra Contratual: {ct.maoDeObraContratual || "—"}</p>
                           <p className="text-muted-foreground">Mês SCO: {ct.mesSco || "—"}</p>
                           <p className="text-muted-foreground">Ano SCO: {ct.anoSco || "—"}</p>
                           <p className="text-muted-foreground">Valor Contrato: {ct.valorContrato || "—"}</p>
