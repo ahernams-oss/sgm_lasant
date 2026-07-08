@@ -164,18 +164,18 @@ export default function Faturamentos() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Contrato</TableHead>
-                <TableHead>Período</TableHead>
-                <TableHead>Nº Medição</TableHead>
-                <TableHead>Nº NF</TableHead>
-                <TableHead>Emissão</TableHead>
-                <TableHead className="text-right">Bruto</TableHead>
-                <TableHead className="text-right">Líquido</TableHead>
-                {podeVerFolha && <TableHead className="text-right">Folha</TableHead>}
-                {podeVerFolha && <TableHead className="text-right">Variável</TableHead>}
-                <TableHead>Status</TableHead>
-                <TableHead className="w-10"></TableHead>
+                <TableHead className="px-6 whitespace-nowrap">Cliente</TableHead>
+                <TableHead className="px-6 whitespace-nowrap">Contrato</TableHead>
+                <TableHead className="px-6 whitespace-nowrap">Período</TableHead>
+                <TableHead className="px-6 whitespace-nowrap">Nº Medição</TableHead>
+                <TableHead className="px-6 whitespace-nowrap">Nº NF</TableHead>
+                <TableHead className="px-6 whitespace-nowrap">Emissão</TableHead>
+                <TableHead className="px-6 text-right whitespace-nowrap">Bruto</TableHead>
+                <TableHead className="px-6 text-right whitespace-nowrap">Líquido</TableHead>
+                {podeVerFolha && <TableHead className="px-6 text-right whitespace-nowrap">Folha</TableHead>}
+                {podeVerFolha && <TableHead className="px-6 text-right whitespace-nowrap">Variável</TableHead>}
+                <TableHead className="px-6 whitespace-nowrap">Status</TableHead>
+                <TableHead className="w-12 px-4"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -188,24 +188,24 @@ export default function Faturamentos() {
               ) : (
                 pageRows.map((r) => (
                   <TableRow key={r.clienteId + r.contratoNumero + r.faturamento.id}>
-                    <TableCell className="font-medium">{r.clienteNome}</TableCell>
-                    <TableCell>{r.contratoNumero}</TableCell>
-                    <TableCell className="tabular-nums text-xs">{formatDate(r.faturamento.periodoInicio)} a {formatDate(r.faturamento.periodoFim)}</TableCell>
-                    <TableCell>{r.faturamento.numeroMedicao || "—"}</TableCell>
-                    <TableCell>{r.faturamento.numeroNf || "—"}</TableCell>
-                    <TableCell>{formatDate(r.faturamento.dataEmissaoNf)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{formatCurrency(r.faturamento.valorBruto)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{formatCurrency(r.faturamento.valorLiquido)}</TableCell>
-                    {podeVerFolha && <TableCell className="text-right tabular-nums">{formatCurrency(r.faturamento.valorFolha)}</TableCell>}
-                    {podeVerFolha && <TableCell className="text-right tabular-nums">{formatCurrency(r.faturamento.valorVariavel)}</TableCell>}
-                    <TableCell>
+                    <TableCell className="px-6 py-3 whitespace-nowrap font-medium">{r.clienteNome}</TableCell>
+                    <TableCell className="px-6 py-3 whitespace-nowrap">{r.contratoNumero}</TableCell>
+                    <TableCell className="px-6 py-3 whitespace-nowrap tabular-nums">{formatDate(r.faturamento.periodoInicio)} a {formatDate(r.faturamento.periodoFim)}</TableCell>
+                    <TableCell className="px-6 py-3 whitespace-nowrap">{r.faturamento.numeroMedicao || "—"}</TableCell>
+                    <TableCell className="px-6 py-3 whitespace-nowrap">{r.faturamento.numeroNf || "—"}</TableCell>
+                    <TableCell className="px-6 py-3 whitespace-nowrap">{formatDate(r.faturamento.dataEmissaoNf)}</TableCell>
+                    <TableCell className="px-6 py-3 text-right tabular-nums whitespace-nowrap">{formatCurrency(r.faturamento.valorBruto)}</TableCell>
+                    <TableCell className="px-6 py-3 text-right tabular-nums whitespace-nowrap">{formatCurrency(r.faturamento.valorLiquido)}</TableCell>
+                    {podeVerFolha && <TableCell className="px-6 py-3 text-right tabular-nums whitespace-nowrap">{formatCurrency(r.faturamento.valorFolha)}</TableCell>}
+                    {podeVerFolha && <TableCell className="px-6 py-3 text-right tabular-nums whitespace-nowrap">{formatCurrency(r.faturamento.valorVariavel)}</TableCell>}
+                    <TableCell className="px-6 py-3 whitespace-nowrap">
                       {r.faturamento.pago ? (
                         <Badge className="bg-emerald-600 hover:bg-emerald-700">Pago</Badge>
                       ) : (
                         <Badge variant="outline" className="text-amber-600 border-amber-600">Pendente</Badge>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-4 py-3 text-center">
                       <Button variant="ghost" size="icon" title="Abrir no cadastro" onClick={() => navigate(`/clientes?tab=faturamento&clienteId=${r.clienteId}`)}>
                         <ExternalLink className="h-4 w-4" />
                       </Button>
