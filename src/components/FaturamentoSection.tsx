@@ -42,7 +42,7 @@ const emptyFaturamento: Omit<Faturamento, "id"> = {
 
 interface Props {
   faturamentos: Faturamento[];
-  onChange: (faturamentos: Faturamento[]) => void;
+  onChange: (faturamentos: Faturamento[]) => void | Promise<boolean | void>;
   contratoNumero: string;
   cliente?: Cliente;
   contrato?: Contrato;
@@ -207,22 +207,28 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
     e.target.value = "";
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.periodoInicio || !form.periodoFim) {
       toast.error("Informe o período do faturamento.");
       return;
     }
     let savedId = editingId;
+    let nextFaturamentos: Faturamento[];
     if (editingId) {
-      const updated = faturamentos.map((f) => (f.id === editingId ? { ...f, ...form } : f));
-      onChange(updated);
-      toast.success("Faturamento atualizado!");
+      nextFaturamentos = faturamentos.map((f) => (f.id === editingId ? { ...f, ...form } : f));
     } else {
       const novo: Faturamento = { id: crypto.randomUUID(), ...form };
       savedId = novo.id;
-      onChange([...faturamentos, novo]);
-      toast.success("Faturamento adicionado!");
+      nextFaturamentos = [...faturamentos, novo];
     }
+
+    const ok = await onChange(nextFaturamentos);
+    if (ok === false) {
+      toast.error("Não foi possível gravar o faturamento.");
+      return;
+    }
+    toast.success(editingId ? "Faturamento atualizado!" : "Faturamento adicionado!");
+
     // gera/atualiza Conta a Receber se houver NF e valor
     if (savedId && (form.numeroNf || form.numeroMedicao) && (form.valorLiquido || form.valorBruto)) {
       gerarContaReceberDeFaturamento(
@@ -240,8 +246,12 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
     setForm(rest);
   };
 
-  const handleDelete = (id: string) => {
-    onChange(faturamentos.filter((f) => f.id !== id));
+  const handleDelete = async (id: string) => {
+    const ok = await onChange(faturamentos.filter((f) => f.id !== id));
+    if (ok === false) {
+      toast.error("Não foi possível remover o faturamento.");
+      return;
+    }
     toast.success("Faturamento removido.");
     if (editingId === id) {
       setForm(emptyFaturamento);
