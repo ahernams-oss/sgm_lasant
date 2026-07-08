@@ -122,6 +122,50 @@ export default function VerificarAssinatura() {
         return;
       }
 
+      // 4. Tenta Laudo de Condenação
+      const { data: assLaudo } = await (supabase as any)
+        .from("equipamentos_laudos_assinaturas")
+        .select("*")
+        .eq("codigo_verificador", codTrim)
+        .maybeSingle();
+
+      if (assLaudo) {
+        setTipo("laudo");
+        setAssinatura(assLaudo);
+        const { data: l } = await (supabase as any)
+          .from("equipamentos_laudos_condenacao")
+          .select("*").eq("id", assLaudo.laudo_id).maybeSingle();
+        setDocumento(l);
+        const { data: outras } = await (supabase as any)
+          .from("equipamentos_laudos_assinaturas")
+          .select("*").eq("laudo_id", assLaudo.laudo_id).order("signed_at");
+        setTodasAssinaturas(outras || []);
+        if (l) {
+          try {
+            const laudoMapped: any = {
+              numero: l.numero, equipamento_id: l.equipamento_id, equipamento_tag: l.equipamento_tag,
+              equipamento_nome: l.equipamento_nome, tipo: l.tipo, marca: l.marca, modelo: l.modelo,
+              serie: l.serie, patrimonio: l.patrimonio, ano_fabricacao: l.ano_fabricacao,
+              data_aquisicao: l.data_aquisicao, localizacao: l.localizacao,
+              estado_conservacao: l.estado_conservacao, data_emissao: l.data_emissao,
+              data_inspecao: l.data_inspecao, local_inspecao: l.local_inspecao,
+              responsavel_tecnico: l.responsavel_tecnico, registro_profissional: l.registro_profissional,
+              historico: l.historico, insp_condicoes_fisicas: l.insp_condicoes_fisicas,
+              insp_condicoes_eletricas: l.insp_condicoes_eletricas,
+              insp_condicoes_mecanicas: l.insp_condicoes_mecanicas,
+              insp_funcionalidade: l.insp_funcionalidade,
+              motivos_condenacao: l.motivos_condenacao,
+              custo_reparo: Number(l.custo_reparo) || 0,
+              valor_residual: Number(l.valor_residual) || 0,
+              valor_novo_equivalente: Number(l.valor_novo_equivalente) || 0,
+              parecer: l.parecer, conclusao_condicoes: l.conclusao_condicoes,
+            };
+            setHashAtual(await gerarHashLaudo(laudoMapped));
+          } catch { /* ignore */ }
+        }
+        return;
+      }
+
       setNaoEncontrado(true);
     } finally {
       setLoading(false);
