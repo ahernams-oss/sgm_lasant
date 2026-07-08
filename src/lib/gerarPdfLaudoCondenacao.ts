@@ -370,14 +370,7 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
     }
   }
 
-  // Footer pagination
-  const total = doc.getNumberOfPages();
-  for (let i = 1; i <= total; i++) {
-    doc.setPage(i);
-    doc.setFontSize(7);
-    doc.setTextColor(120);
-    doc.text(`Laudo nº ${numeroFmt} · Página ${i} de ${total}`, pw - 14, ph - 6, { align: "right" });
-  }
+  drawRodape(doc, numeroFmt, empresa);
 
   doc.save(`Laudo_Condenacao_${numeroFmt.replace("/", "-")}_${(laudo.equipamento_tag || "equipamento").replace(/\s+/g, "_")}.pdf`);
 }
