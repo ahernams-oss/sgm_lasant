@@ -1719,6 +1719,126 @@ export type Database = {
         }
         Relationships: []
       }
+      equipamentos_laudos_condenacao: {
+        Row: {
+          anexos_orcamentos: Json
+          ano_fabricacao: string | null
+          conclusao_condicoes: string | null
+          created_at: string
+          created_by: string | null
+          custo_reparo: number | null
+          data_aquisicao: string | null
+          data_emissao: string
+          data_inspecao: string | null
+          equipamento_id: string | null
+          equipamento_nome: string | null
+          equipamento_tag: string | null
+          estado_conservacao: string | null
+          fotos: Json
+          historico: string | null
+          id: string
+          insp_condicoes_eletricas: string | null
+          insp_condicoes_fisicas: string | null
+          insp_condicoes_mecanicas: string | null
+          insp_funcionalidade: string | null
+          local_inspecao: string | null
+          localizacao: string | null
+          marca: string | null
+          modelo: string | null
+          motivos_condenacao: Json
+          numero: number
+          observacoes_outros: string | null
+          outros_anexos: Json
+          parecer: string | null
+          patrimonio: string | null
+          registro_profissional: string | null
+          responsavel_tecnico: string | null
+          serie: string | null
+          tipo: string | null
+          updated_at: string
+          valor_novo_equivalente: number | null
+          valor_residual: number | null
+        }
+        Insert: {
+          anexos_orcamentos?: Json
+          ano_fabricacao?: string | null
+          conclusao_condicoes?: string | null
+          created_at?: string
+          created_by?: string | null
+          custo_reparo?: number | null
+          data_aquisicao?: string | null
+          data_emissao?: string
+          data_inspecao?: string | null
+          equipamento_id?: string | null
+          equipamento_nome?: string | null
+          equipamento_tag?: string | null
+          estado_conservacao?: string | null
+          fotos?: Json
+          historico?: string | null
+          id?: string
+          insp_condicoes_eletricas?: string | null
+          insp_condicoes_fisicas?: string | null
+          insp_condicoes_mecanicas?: string | null
+          insp_funcionalidade?: string | null
+          local_inspecao?: string | null
+          localizacao?: string | null
+          marca?: string | null
+          modelo?: string | null
+          motivos_condenacao?: Json
+          numero?: number
+          observacoes_outros?: string | null
+          outros_anexos?: Json
+          parecer?: string | null
+          patrimonio?: string | null
+          registro_profissional?: string | null
+          responsavel_tecnico?: string | null
+          serie?: string | null
+          tipo?: string | null
+          updated_at?: string
+          valor_novo_equivalente?: number | null
+          valor_residual?: number | null
+        }
+        Update: {
+          anexos_orcamentos?: Json
+          ano_fabricacao?: string | null
+          conclusao_condicoes?: string | null
+          created_at?: string
+          created_by?: string | null
+          custo_reparo?: number | null
+          data_aquisicao?: string | null
+          data_emissao?: string
+          data_inspecao?: string | null
+          equipamento_id?: string | null
+          equipamento_nome?: string | null
+          equipamento_tag?: string | null
+          estado_conservacao?: string | null
+          fotos?: Json
+          historico?: string | null
+          id?: string
+          insp_condicoes_eletricas?: string | null
+          insp_condicoes_fisicas?: string | null
+          insp_condicoes_mecanicas?: string | null
+          insp_funcionalidade?: string | null
+          local_inspecao?: string | null
+          localizacao?: string | null
+          marca?: string | null
+          modelo?: string | null
+          motivos_condenacao?: Json
+          numero?: number
+          observacoes_outros?: string | null
+          outros_anexos?: Json
+          parecer?: string | null
+          patrimonio?: string | null
+          registro_profissional?: string | null
+          responsavel_tecnico?: string | null
+          serie?: string | null
+          tipo?: string | null
+          updated_at?: string
+          valor_novo_equivalente?: number | null
+          valor_residual?: number | null
+        }
+        Relationships: []
+      }
       estoque_inventarios: {
         Row: {
           created_at: string | null
