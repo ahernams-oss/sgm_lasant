@@ -92,7 +92,7 @@ export default function Faturamentos() {
     );
   }, [filtradas]);
 
-  const pageRows = paginate(filtradas, page, pageSize);
+  const { paginated: pageRows } = paginate(filtradas, page, pageSize);
   const clientesLista = useMemo(
     () => (clientes as Cliente[]).filter((c) => c.tipo === "Cliente").sort((a, b) => (a.nome || "").localeCompare(b.nome || "")),
     [clientes]
@@ -212,7 +212,7 @@ export default function Faturamentos() {
       </Card>
 
       <PaginationControls
-        page={page} pageSize={pageSize} total={filtradas.length}
+        currentPage={page} pageSize={pageSize} totalItems={filtradas.length}
         onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
       />
     </div>
