@@ -166,6 +166,7 @@ import RelatoriosFinanceiros from "./pages/financeiro/RelatoriosFinanceiros.tsx"
 import CondicoesPagamento from "./pages/financeiro/CondicoesPagamento.tsx";
 import NfesRecebidas from "./pages/financeiro/NfesRecebidas.tsx";
 import NfseEmitir from "./pages/financeiro/NfseEmitir.tsx";
+import Faturamentos from "./pages/financeiro/Faturamentos.tsx";
 import { NfsesProvider } from "@/contexts/NfsesContext";
 import RelatoriosGerenciais from "./pages/gerencial/RelatoriosGerenciais.tsx";
 import RelatoriosMultidimensional from "./pages/gerencial/RelatoriosMultidimensional.tsx";
@@ -392,6 +393,7 @@ function ProtectedAppRoutes() {
         <Route path="/financeiro/condicoes-pagamento" element={<RotaProtegida perm="financeiro.condicoes_pagamento"><CondicoesPagamento /></RotaProtegida>} />
         <Route path="/financeiro/nfes-recebidas" element={<RotaProtegida perm="financeiro.nfes_recebidas"><NfesRecebidas /></RotaProtegida>} />
         <Route path="/financeiro/nfse" element={<RotaProtegida perm="financeiro.nfes_recebidas"><NfseEmitir /></RotaProtegida>} />
+        <Route path="/financeiro/faturamentos" element={<RotaProtegida perm="clientes"><Faturamentos /></RotaProtegida>} />
         <Route
           path="/gerencial/relatorios"
           element={

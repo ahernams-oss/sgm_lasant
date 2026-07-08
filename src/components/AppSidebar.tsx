@@ -209,7 +209,8 @@ const menuItems = [
   {
     group: "Faturamento",
     items: [
-      { title: "Faturamento", url: "/clientes?tab=faturamento", icon: DollarSign, perm: "clientes" },
+      { title: "Faturamento (por Contrato)", url: "/clientes?tab=faturamento", icon: DollarSign, perm: "clientes" },
+      { title: "Acompanhamento de Faturamentos", url: "/financeiro/faturamentos", icon: FileBarChart, perm: "clientes" },
       { title: "NFS-e Emitidas", url: "/financeiro/nfse", icon: FileText, perm: "financeiro.nfes_recebidas" },
     ],
   },
