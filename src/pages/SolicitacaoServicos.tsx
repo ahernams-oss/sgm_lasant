@@ -1241,6 +1241,18 @@ export default function SolicitacaoServicosPage() {
                 </button>
               ))}
             </div>
+            {!prioridadeOnly && (
+              <div className="space-y-2">
+                <Label htmlFor="ressalva-aprovacao">Ressalva de aprovação</Label>
+                <Textarea
+                  id="ressalva-aprovacao"
+                  rows={3}
+                  value={approvalRessalva}
+                  onChange={e => setApprovalRessalva(e.target.value)}
+                  placeholder="Informe observações ou ressalvas sobre a aprovação (opcional)"
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setApprovalDialogOpen(false)}>Cancelar</Button>
