@@ -65,6 +65,7 @@ const emptyLaudo = (eq: Equipamento): Partial<LaudoCondenacao> => ({
 
 export function LaudoCondenacaoDialog({ equipamento, open, onOpenChange }: Props) {
   const { porEquipamento, addLaudo, updateLaudo, deleteLaudo } = useLaudosCondenacao();
+  const { porLaudo: assinaturasPorLaudo } = useLaudosAssinaturas();
   const { updateEquipamento } = useEquipamentos();
   const { empresa } = useEmpresa();
   const { responsaveis } = useResponsaveisTecnicos();
