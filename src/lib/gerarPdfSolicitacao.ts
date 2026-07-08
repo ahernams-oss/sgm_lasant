@@ -302,28 +302,9 @@ async function renderSolicitacao(
   }
 }
 
-/** Adds footers to all pages of the doc. */
-function addFooters(doc: jsPDF, empresa?: Empresa, ssNumero?: string) {
-  const pw = doc.internal.pageSize.getWidth();
-  const ml = 14;
-  const mr = 14;
-  const pageCount = doc.getNumberOfPages();
-  const empresaNome = empresa?.nomeFantasia || empresa?.razaoSocial || "SGM Lasant";
-
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    const pageH = doc.internal.pageSize.getHeight();
-    doc.setDrawColor(200, 200, 200);
-    doc.line(ml, pageH - 20, pw - mr, pageH - 20);
-    doc.setFontSize(7);
-    doc.setTextColor(150, 150, 150);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Documento gerado automaticamente — Engenharia e Manutenção — ${empresaNome}`, ml, pageH - 14);
-    doc.text(`Página ${i} de ${pageCount}`, pw / 2, pageH - 14, { align: "center" });
-    if (ssNumero) {
-      doc.text(`SS Nº ${ssNumero}`, pw - mr, pageH - 14, { align: "right" });
-    }
-  }
+/** Footer removido a pedido do usuário. */
+function addFooters(_doc: jsPDF, _empresa?: Empresa, _ssNumero?: string) {
+  // no-op
 }
 
 /** Generates a single PDF for one SS. */
