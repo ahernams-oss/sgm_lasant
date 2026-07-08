@@ -319,6 +319,16 @@ export default function AprovarLoteSS() {
                 </button>
               ))}
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="ressalva-aprovacao-lote">Ressalva de aprovação</Label>
+              <Textarea
+                id="ressalva-aprovacao-lote"
+                rows={3}
+                value={approvalRessalva}
+                onChange={e => setApprovalRessalva(e.target.value)}
+                placeholder="Informe observações ou ressalvas sobre a aprovação em lote (opcional)"
+              />
+            </div>
             <p className="text-sm text-muted-foreground">
               Todas as solicitações selecionadas serão aprovadas com a mesma prioridade e uma Ordem de Serviço será criada para cada uma.
             </p>
