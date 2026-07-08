@@ -41,6 +41,7 @@ export default function Faturamentos() {
   const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [openSaldos, setOpenSaldos] = useState(false);
 
   const rows = useMemo<Row[]>(() => {
     const all: Row[] = [];
