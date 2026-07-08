@@ -375,6 +375,7 @@ export default function SolicitacaoServicosPage() {
       }
       toast({ title: `Prioridade alterada para ${selectedPrioridade}` });
     } else {
+      const ressalva = approvalRessalva.trim();
       // Valida limite de aprovação (valor da SS, geralmente sem orçamento ainda = 0)
       const ssAux = solicitacoes.find(s => s.id === approvalTargetId);
       const orcVinc = orcamentos.find(o => o.solicitacaoId === approvalTargetId);
