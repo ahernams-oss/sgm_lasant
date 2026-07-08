@@ -608,6 +608,7 @@ export default function Equipamentos() {
                       <div className="flex gap-1">
                         <Button size="icon" variant="ghost" title="QR Code" onClick={() => openQr(eq)}><QrCode className="h-4 w-4 text-primary" /></Button>
                         {eq.requerCalibracao && <Button size="icon" variant="ghost" title="Histórico de Calibração" onClick={() => openHistorico(eq)}><History className="h-4 w-4 text-primary" /></Button>}
+                        <Button size="icon" variant="ghost" title="Laudo de Condenação" onClick={() => setLaudoEquip(eq)}><ShieldAlert className="h-4 w-4 text-destructive" /></Button>
                         {podeEditar && <Button size="icon" variant="ghost" onClick={() => handleEdit(eq)}><Pencil className="h-4 w-4" /></Button>}
                         {podeExcluir && <Button size="icon" variant="ghost" onClick={() => requestDelete(eq.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                       </div>
