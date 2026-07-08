@@ -549,11 +549,12 @@ export default function DashboardSolicitacoes() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
+        <Card data-chart-card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-primary" /> OS por Situação
             </CardTitle>
+            <ChartPngExportButton filename="os-por-situacao" />
           </CardHeader>
           <CardContent>
             {osStatusData.length === 0 ? (
