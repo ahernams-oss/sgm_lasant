@@ -168,7 +168,7 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
   y += 8;
 
   const sectionTitle = (t: string) => {
-    if (y > ph - 30) { doc.addPage(); y = 15; }
+    if (y > ph - 30) { doc.addPage(); drawTimbrado(doc, pw, empresa, logo); y = 38; }
     doc.setFillColor(30, 58, 107);
     doc.setTextColor(255);
     doc.setFont("helvetica", "bold");
@@ -202,7 +202,7 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     const lines = doc.splitTextToSize(text || "-", pw - 28);
-    if (y + lines.length * 4 > ph - 15) { doc.addPage(); y = 15; }
+    if (y + lines.length * 4 > ph - 15) { doc.addPage(); drawTimbrado(doc, pw, empresa, logo); y = 38; }
     doc.text(lines, 14, y);
     y += lines.length * 4 + 4;
   };
@@ -213,7 +213,7 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
   // 3. Inspeção Técnica
   sectionTitle("3. INSPEÇÃO TÉCNICA");
   const sub = (t: string, txt: string) => {
-    if (y > ph - 25) { doc.addPage(); y = 15; }
+    if (y > ph - 25) { doc.addPage(); drawTimbrado(doc, pw, empresa, logo); y = 38; }
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.text(t, 14, y);
@@ -236,7 +236,7 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
   y += 5;
   (laudo.motivos_condenacao || []).forEach((m, i) => {
     const lines = doc.splitTextToSize(`${i + 1}. ${m}`, pw - 32);
-    if (y + lines.length * 4 > ph - 15) { doc.addPage(); y = 15; }
+    if (y + lines.length * 4 > ph - 15) { doc.addPage(); drawTimbrado(doc, pw, empresa, logo); y = 38; }
     doc.text(lines, 18, y);
     y += lines.length * 4 + 1;
   });
@@ -278,7 +278,7 @@ export async function gerarPdfLaudoCondenacao(laudo: LaudoCondenacao, empresa?: 
   y += 15;
 
   // Assinatura
-  if (y > ph - 30) { doc.addPage(); y = 15; }
+  if (y > ph - 30) { doc.addPage(); drawTimbrado(doc, pw, empresa, logo); y = 38; }
   doc.setDrawColor(0);
   doc.line(pw / 2 - 40, y, pw / 2 + 40, y);
   y += 4;
