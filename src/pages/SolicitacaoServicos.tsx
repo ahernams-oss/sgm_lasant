@@ -1366,6 +1366,14 @@ export default function SolicitacaoServicosPage() {
                   <p className="text-sm whitespace-pre-wrap bg-muted/50 rounded-md p-3">{viewTarget.descricaoServicos || "-"}</p>
                 </div>
 
+                {/* Ressalva de aprovação */}
+                {viewTarget.ressalvaAprovacao && (
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Ressalva de Aprovação</h4>
+                    <p className="text-sm whitespace-pre-wrap bg-muted/50 rounded-md p-3">{viewTarget.ressalvaAprovacao}</p>
+                  </div>
+                )}
+
                 {/* Imagens */}
                 {viewTarget.imagens && viewTarget.imagens.length > 0 && (
                   <div className="border-t pt-4">
