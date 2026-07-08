@@ -5,11 +5,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, ExternalLink } from "lucide-react";
+import { FileText, ExternalLink, BarChart3 } from "lucide-react";
 import { useClientes, type Faturamento, type Contrato, type Cliente } from "@/contexts/ClientesContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useNavigate } from "react-router-dom";
+import RelatorioSaldosContratoDialog from "@/components/RelatorioSaldosContratoDialog";
 
 interface Row {
   clienteId: string;
