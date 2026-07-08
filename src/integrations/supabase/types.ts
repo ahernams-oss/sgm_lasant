@@ -7396,6 +7396,7 @@ export type Database = {
           pavimento_descricao: string | null
           pavimento_id: string | null
           prioridade: string | null
+          ressalva_aprovacao: string | null
           setor_descricao: string | null
           setor_id: string | null
           situacao: string | null
@@ -7422,6 +7423,7 @@ export type Database = {
           pavimento_descricao?: string | null
           pavimento_id?: string | null
           prioridade?: string | null
+          ressalva_aprovacao?: string | null
           setor_descricao?: string | null
           setor_id?: string | null
           situacao?: string | null
@@ -7448,6 +7450,7 @@ export type Database = {
           pavimento_descricao?: string | null
           pavimento_id?: string | null
           prioridade?: string | null
+          ressalva_aprovacao?: string | null
           setor_descricao?: string | null
           setor_id?: string | null
           situacao?: string | null

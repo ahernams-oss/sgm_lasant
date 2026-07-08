@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -45,6 +46,7 @@ export default function AprovarLoteSS() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [approvalOpen, setApprovalOpen] = useState(false);
   const [selectedPrioridade, setSelectedPrioridade] = useState("");
+  const [approvalRessalva, setApprovalRessalva] = useState("");
   const [approving, setApproving] = useState(false);
 
   const buildHistoricoEntry = (situacao: string, existingHistorico: HistoricoEntry[] = []): HistoricoEntry[] => [
@@ -121,6 +123,7 @@ export default function AprovarLoteSS() {
     }
     // Valida limite de aprovação OS (lote sem orçamento = valor 0; basta limite > 0)
     if (!podeAprovar(0, "os")) return;
+    const ressalva = approvalRessalva.trim();
     setApproving(true);
     try {
       const toApprove = solicitacoes.filter(s => selectedIds.has(s.id) && s.situacao === "Aguardando aprovação");
@@ -132,6 +135,7 @@ export default function AprovarLoteSS() {
         await updateSolicitacao(ss.id, {
           situacao: "Aprovada",
           prioridade: selectedPrioridade,
+          ressalva_aprovacao: ressalva,
           historico: buildHistoricoEntry("Aprovada", ss.historico || []),
         });
         await addOrdem({
@@ -151,6 +155,7 @@ export default function AprovarLoteSS() {
           ramal: usuarioLogado?.ramal || "",
           telefone: usuarioLogado?.telefone || "",
           prioridade: prioridadeOS,
+          ressalva_aprovacao: ressalva,
           situacao: "Aberta",
           historico: buildHistoricoEntry("Aberta"),
           operador_id: usuarioLogado?.id || "",
@@ -161,6 +166,7 @@ export default function AprovarLoteSS() {
       setSelectedIds(new Set());
       setApprovalOpen(false);
       setSelectedPrioridade("");
+      setApprovalRessalva("");
     } catch {
       toast({ title: "Erro ao aprovar em lote", variant: "destructive" });
     } finally {
@@ -217,7 +223,7 @@ export default function AprovarLoteSS() {
         <div className="flex items-center gap-3 p-3 bg-accent rounded-lg border border-border">
           <span className="text-sm font-medium">{selectedIds.size} solicitação(ões) selecionada(s)</span>
           {podeAprovarLote && (
-            <Button size="sm" onClick={() => { setSelectedPrioridade(""); setApprovalOpen(true); }}>
+            <Button size="sm" onClick={() => { setSelectedPrioridade(""); setApprovalRessalva(""); setApprovalOpen(true); }}>
               <CheckCircle2 className="mr-2 h-4 w-4" />Aprovar selecionadas
             </Button>
           )}
@@ -312,6 +318,16 @@ export default function AprovarLoteSS() {
                   <span className="font-medium">{p.value}</span>
                 </button>
               ))}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ressalva-aprovacao-lote">Ressalva de aprovação</Label>
+              <Textarea
+                id="ressalva-aprovacao-lote"
+                rows={3}
+                value={approvalRessalva}
+                onChange={e => setApprovalRessalva(e.target.value)}
+                placeholder="Informe observações ou ressalvas sobre a aprovação em lote (opcional)"
+              />
             </div>
             <p className="text-sm text-muted-foreground">
               Todas as solicitações selecionadas serão aprovadas com a mesma prioridade e uma Ordem de Serviço será criada para cada uma.

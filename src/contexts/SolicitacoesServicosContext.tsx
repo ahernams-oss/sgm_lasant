@@ -21,6 +21,7 @@ export interface SolicitacaoServico {
   createdAt: string; dataHoraSolicitacao: string;
   solicitanteId: string; solicitanteNome: string;
   historico: HistoricoEntry[];
+  ressalvaAprovacao: string;
 }
 
 interface SolicitacoesServicosContextType {
@@ -50,6 +51,7 @@ const rowToSolicitacao = (r: any): SolicitacaoServico => ({
   solicitanteId: r.solicitante_id ?? "",
   solicitanteNome: r.solicitante_nome ?? "",
   historico: Array.isArray(r.historico) ? r.historico : [],
+  ressalvaAprovacao: r.ressalva_aprovacao ?? "",
 });
 
 export function SolicitacoesServicosProvider({ children }: { children: ReactNode }) {

@@ -154,6 +154,7 @@ export default function SolicitacaoServicosPage() {
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [approvalTargetId, setApprovalTargetId] = useState<string | null>(null);
   const [selectedPrioridade, setSelectedPrioridade] = useState<string>("");
+  const [approvalRessalva, setApprovalRessalva] = useState("");
   const [prioridadeOnly, setPrioridadeOnly] = useState(false);
   
   const [viewTarget, setViewTarget] = useState<SolicitacaoServico | null>(null);
@@ -346,6 +347,7 @@ export default function SolicitacaoServicosPage() {
   const handleOpenApproval = (id: string, onlyPriority = false) => {
     setApprovalTargetId(id);
     setSelectedPrioridade("");
+    setApprovalRessalva("");
     setPrioridadeOnly(onlyPriority);
     setApprovalDialogOpen(true);
   };
@@ -373,6 +375,7 @@ export default function SolicitacaoServicosPage() {
       }
       toast({ title: `Prioridade alterada para ${selectedPrioridade}` });
     } else {
+      const ressalva = approvalRessalva.trim();
       // Valida limite de aprovação (valor da SS, geralmente sem orçamento ainda = 0)
       const ssAux = solicitacoes.find(s => s.id === approvalTargetId);
       const orcVinc = orcamentos.find(o => o.solicitacaoId === approvalTargetId);
@@ -382,6 +385,7 @@ export default function SolicitacaoServicosPage() {
       await updateSolicitacao(approvalTargetId, {
         situacao: "Aprovada",
         prioridade: selectedPrioridade,
+        ressalva_aprovacao: ressalva,
         historico: buildHistoricoEntry("Aprovada", ss?.historico || []),
       });
       if (ss) {
@@ -405,6 +409,7 @@ export default function SolicitacaoServicosPage() {
           ramal: usuarioLogado?.ramal || "",
           telefone: usuarioLogado?.telefone || "",
           prioridade: prioridadeOS,
+          ressalva_aprovacao: ressalva,
           situacao: "Aberta",
           historico: buildHistoricoEntry("Aberta"),
           operador_id: usuarioLogado?.id || "",
@@ -416,6 +421,7 @@ export default function SolicitacaoServicosPage() {
     setApprovalDialogOpen(false);
     setApprovalTargetId(null);
     setSelectedPrioridade("");
+    setApprovalRessalva("");
     setPrioridadeOnly(false);
   };
 
@@ -1235,6 +1241,18 @@ export default function SolicitacaoServicosPage() {
                 </button>
               ))}
             </div>
+            {!prioridadeOnly && (
+              <div className="space-y-2">
+                <Label htmlFor="ressalva-aprovacao">Ressalva de aprovação</Label>
+                <Textarea
+                  id="ressalva-aprovacao"
+                  rows={3}
+                  value={approvalRessalva}
+                  onChange={e => setApprovalRessalva(e.target.value)}
+                  placeholder="Informe observações ou ressalvas sobre a aprovação (opcional)"
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setApprovalDialogOpen(false)}>Cancelar</Button>
@@ -1347,6 +1365,14 @@ export default function SolicitacaoServicosPage() {
                   <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Descrição dos Serviços</h4>
                   <p className="text-sm whitespace-pre-wrap bg-muted/50 rounded-md p-3">{viewTarget.descricaoServicos || "-"}</p>
                 </div>
+
+                {/* Ressalva de aprovação */}
+                {viewTarget.ressalvaAprovacao && (
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Ressalva de Aprovação</h4>
+                    <p className="text-sm whitespace-pre-wrap bg-muted/50 rounded-md p-3">{viewTarget.ressalvaAprovacao}</p>
+                  </div>
+                )}
 
                 {/* Imagens */}
                 {viewTarget.imagens && viewTarget.imagens.length > 0 && (

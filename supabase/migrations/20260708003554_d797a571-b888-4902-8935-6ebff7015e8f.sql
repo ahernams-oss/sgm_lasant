@@ -1,0 +1,1 @@
+ALTER TABLE public.solicitacoes_servicos ADD COLUMN IF NOT EXISTS ressalva_aprovacao text DEFAULT '';
