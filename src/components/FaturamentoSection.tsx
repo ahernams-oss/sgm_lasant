@@ -238,12 +238,30 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
       toast.error("Informe o período do faturamento.");
       return;
     }
+    // Normaliza todos os campos monetários para formato BR e valida
+    const moneyFields: (keyof Omit<Faturamento, "id">)[] = [
+      "valorBruto", "valorLiquido", "valorFolha", "valorVariavel",
+      "valeAlimentacao", "valeTransporte", "custoFixo", "foraFolha",
+      "provisaoFerias", "provisao13",
+    ];
+    const normalizedForm = { ...form };
+    for (const field of moneyFields) {
+      const raw = (form as any)[field];
+      if (raw === "" || raw === undefined || raw === null) continue;
+      const num = parseMoney(String(raw));
+      if (num === null) {
+        toast.error(`Valor inválido no campo monetário.`);
+        return;
+      }
+      (normalizedForm as any)[field] = formatMoneyBR(num);
+    }
+
     let savedId = editingId;
     let nextFaturamentos: Faturamento[];
     if (editingId) {
-      nextFaturamentos = faturamentos.map((f) => (f.id === editingId ? { ...f, ...form } : f));
+      nextFaturamentos = faturamentos.map((f) => (f.id === editingId ? { ...f, ...normalizedForm } : f));
     } else {
-      const novo: Faturamento = { id: crypto.randomUUID(), ...form };
+      const novo: Faturamento = { id: crypto.randomUUID(), ...normalizedForm };
       savedId = novo.id;
       nextFaturamentos = [...faturamentos, novo];
     }
