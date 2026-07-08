@@ -1,6 +1,8 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import QRCode from "qrcode";
 import type { LaudoCondenacao, FotoLaudo } from "@/contexts/LaudosCondenacaoContext";
+import type { LaudoAssinatura } from "@/contexts/LaudosAssinaturasContext";
 
 const fmtDate = (d: string) => {
   if (!d) return "";
