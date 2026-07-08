@@ -260,9 +260,14 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
   };
 
   const formatCurrency = (val: string) => {
-    if (!val) return "—";
-    const num = parseFloat(val);
-    if (isNaN(num)) return val;
+    if (val === undefined || val === null || val === "") return "—";
+    // Aceita formato BR ("1.234,56") ou US ("1234.56")
+    const s = String(val).trim();
+    const normalized = s.includes(",")
+      ? s.replace(/\./g, "").replace(",", ".")
+      : s;
+    const num = parseFloat(normalized);
+    if (isNaN(num)) return s;
     return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   };
 
