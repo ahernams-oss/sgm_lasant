@@ -430,6 +430,7 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
                 </p>
                 <p className="text-muted-foreground">Bruto: {formatCurrency(f.valorBruto)}</p>
                 <p className="text-muted-foreground">Líquido: {formatCurrency(f.valorLiquido)}</p>
+                <p className="text-muted-foreground">Variável: {formatCurrency(f.valorVariavel)}</p>
                 {podeVerValorFolha && (
                   <p className="text-primary font-medium flex items-center gap-1">
                     <Lock className="h-3 w-3" /> Folha: {formatCurrency(f.valorFolha)}
