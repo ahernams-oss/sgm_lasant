@@ -336,17 +336,6 @@ export async function gerarPdfSolicitacaoLote(
   }
 
 
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    const pageH = doc.internal.pageSize.getHeight();
-    doc.setDrawColor(200, 200, 200);
-    doc.line(ml, pageH - 20, pw - mr, pageH - 20);
-    doc.setFontSize(7);
-    doc.setTextColor(150, 150, 150);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Documento gerado automaticamente — Engenharia e Manutenção — ${empresaNome}`, ml, pageH - 14);
-    doc.text(`Página ${i} de ${pageCount}`, pw / 2, pageH - 14, { align: "center" });
-  }
 
   const numeros = lista.map(l => formatNumeroAno(l.ss.numero, l.ss.createdAt)).join("_");
   doc.save(`SS_Lote_${numeros}.pdf`);
