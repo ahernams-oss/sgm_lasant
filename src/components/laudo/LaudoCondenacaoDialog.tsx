@@ -13,10 +13,12 @@ import { Plus, X, FileDown, Printer, Eye, Trash2, Upload, FileText } from "lucid
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useLaudosCondenacao, type LaudoCondenacao, type AnexoLaudo } from "@/contexts/LaudosCondenacaoContext";
+import { useLaudosAssinaturas } from "@/contexts/LaudosAssinaturasContext";
 import { useResponsaveisTecnicos } from "@/contexts/ResponsaveisTecnicosContext";
 import { useEquipamentos, type Equipamento } from "@/contexts/EquipamentosContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { FotosLaudoEditor } from "./FotosLaudoEditor";
+import { AssinaturaEletronicaLaudo } from "@/components/AssinaturaEletronicaLaudo";
 import { gerarPdfLaudoCondenacao } from "@/lib/gerarPdfLaudoCondenacao";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 
