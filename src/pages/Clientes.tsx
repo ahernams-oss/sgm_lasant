@@ -112,7 +112,7 @@ const FaturamentoView = () => {
                                 faturamentos={ct.faturamentos || []}
                                 onChange={(faturamentos) => {
                                   const contratos = (cliente.contratos || []).map(c => c.id === ct.id ? { ...c, faturamentos } : c);
-                                  updateCliente(cliente.id, { contratos });
+                                  return updateCliente(cliente.id, { contratos });
                                 }}
                                 contratoNumero={ct.numero}
                                 cliente={cliente}
@@ -609,7 +609,7 @@ const Clientes = () => {
                           faturamentos={ct.faturamentos || []}
                           onChange={(faturamentos) => {
                             const updated = contratos.map(c => c.id === ct.id ? { ...c, faturamentos } : c);
-                            updateCliente(contratosClienteId!, { contratos: updated });
+                            return updateCliente(contratosClienteId!, { contratos: updated });
                           }}
                           contratoNumero={ct.numero}
                           cliente={cliente}
