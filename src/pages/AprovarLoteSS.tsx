@@ -46,6 +46,7 @@ export default function AprovarLoteSS() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [approvalOpen, setApprovalOpen] = useState(false);
   const [selectedPrioridade, setSelectedPrioridade] = useState("");
+  const [approvalRessalva, setApprovalRessalva] = useState("");
   const [approving, setApproving] = useState(false);
 
   const buildHistoricoEntry = (situacao: string, existingHistorico: HistoricoEntry[] = []): HistoricoEntry[] => [
