@@ -171,20 +171,7 @@ export default function PropostaFornecedorPage() {
   }
 
   if (submitted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/30">
-        <Card className="max-w-md w-full mx-4">
-          <CardContent className="pt-6 text-center space-y-3">
-            <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
-            <h2 className="text-lg font-semibold text-foreground">Proposta Enviada!</h2>
-            <p className="text-muted-foreground">
-              Sua proposta para a cotação COT-{String(convite?.cotacao_numero).padStart(4, "0")} foi recebida com sucesso.
-              O comprador será notificado automaticamente.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <SubmittedScreen numero={convite?.cotacao_numero} onDone={() => navigate("/portal-fornecedor")} />;
   }
 
   return (
