@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeftRight, Plus, Trash2 } from "lucide-react";
-import DoubleConfirmDelete from "@/components/DoubleConfirmDelete";
+import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 
 type TipoSaldo = "maoDeObraMensal" | "maoDeObraAnual" | "maoDeObraContratual" | "valorVariavel";
 
