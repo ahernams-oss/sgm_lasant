@@ -168,6 +168,7 @@ const menuItems = [
       { title: "Avisos e Comunicados", url: "/comunicacao/avisos", icon: Megaphone, perm: "comunicacao_avisos" },
       { title: "Notificações de Tarefas", url: "/comunicacao/notificacoes", icon: Bell, perm: "comunicacao_notificacoes" },
       { title: "Notificação WhatsApp", url: "/comunicacao/whatsapp", icon: MessageSquare, perm: "comunicacao_whatsapp" },
+      { title: "Grupos WhatsApp", url: "/comunicacao/grupos-whatsapp", icon: Users, perm: "comunicacao_whatsapp" },
     ],
   },
   {
