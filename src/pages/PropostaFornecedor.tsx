@@ -41,6 +41,8 @@ export default function PropostaFornecedorPage() {
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [redirectSecs, setRedirectSecs] = useState(3);
+  const navigate = useNavigate();
 
   // Form state
   const [itens, setItens] = useState<ItemProposta[]>([]);
