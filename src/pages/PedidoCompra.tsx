@@ -25,7 +25,7 @@ import { gerarContasPagarDePC } from "@/lib/financeiroFromPC";
 import { matchNumero } from "@/lib/matchNumero";
 import { format } from "date-fns";
 import { downloadPdfOrdemCompra, uploadPdfOrdemCompra } from "@/lib/gerarPdfOrdemCompra";
-import { enviarWhatsApp, enviarWhatsAppComDocumento } from "@/lib/whatsapp";
+import { enviarPlugSend as enviarWhatsApp, enviarPlugSendComDocumento as enviarWhatsAppComDocumento } from "@/lib/plugsend";
 import { notificarCompras, formatarPrioridade, formatarDataHora, formatarData, formatarPedido } from "@/lib/notificacoesCompras";
 import { supabase } from "@/integrations/supabase/client";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
