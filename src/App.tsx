@@ -10,6 +10,7 @@ import Home from "./pages/Home.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Clientes from "./pages/Clientes.tsx";
+import TransferenciasSaldoContrato from "./pages/TransferenciasSaldoContrato.tsx";
 import Fornecedores from "./pages/Fornecedores.tsx";
 import Cargos from "./pages/Cargos.tsx";
 import Funcionarios from "./pages/Funcionarios.tsx";
