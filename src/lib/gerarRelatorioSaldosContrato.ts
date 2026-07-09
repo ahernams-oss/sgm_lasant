@@ -37,7 +37,77 @@ export interface SaldoReportInput {
   periodoFim: string; // YYYY-MM-01
   prevFolhaMensal: number;
   prevVariavelMensal: number;
+  transferencias?: SaldoTransferenciaContrato[];
 }
+
+type TipoSaldoTransferencia = "maoDeObraMensal" | "maoDeObraAnual" | "maoDeObraContratual" | "valorVariavel";
+
+export interface SaldoTransferenciaContrato {
+  data: string;
+  created_at?: string | null;
+  tipo_saldo: TipoSaldoTransferencia;
+  contrato_origem_id?: string | null;
+  contrato_destino_id?: string | null;
+  saldo_origem_antes?: number | null;
+  saldo_origem_depois?: number | null;
+  saldo_destino_antes?: number | null;
+  saldo_destino_depois?: number | null;
+}
+
+const transferenciaTime = (t: SaldoTransferenciaContrato) => {
+  const dataTime = new Date((t.data || "1900-01-01") + "T00:00:00").getTime();
+  const createdTime = t.created_at ? new Date(t.created_at).getTime() : 0;
+  return dataTime + createdTime / 100000000;
+};
+
+const fimDoMes = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+
+const saldoTransferencia = (t: SaldoTransferenciaContrato, contratoId: string, momento: "antes" | "depois") => {
+  if (t.contrato_origem_id === contratoId) {
+    return Number(momento === "antes" ? t.saldo_origem_antes : t.saldo_origem_depois);
+  }
+  if (t.contrato_destino_id === contratoId) {
+    return Number(momento === "antes" ? t.saldo_destino_antes : t.saldo_destino_depois);
+  }
+  return NaN;
+};
+
+const valorPrevistoNaData = (
+  transferencias: SaldoTransferenciaContrato[] | undefined,
+  contratoId: string,
+  tipo: TipoSaldoTransferencia,
+  fallback: number,
+  dataLimite: Date,
+  normalizar: (n: number) => number = (n) => n
+) => {
+  const relevantes = (transferencias || [])
+    .filter((t) => t.tipo_saldo === tipo && (t.contrato_origem_id === contratoId || t.contrato_destino_id === contratoId))
+    .sort((a, b) => transferenciaTime(a) - transferenciaTime(b));
+  if (relevantes.length === 0) return fallback;
+
+  const limite = dataLimite.getTime();
+  const ateData = relevantes.filter((t) => new Date((t.data || "1900-01-01") + "T00:00:00").getTime() <= limite);
+  const ref = ateData[ateData.length - 1];
+  if (ref) {
+    const valor = saldoTransferencia(ref, contratoId, "depois");
+    return isFinite(valor) ? normalizar(valor) : fallback;
+  }
+
+  const primeiraFutura = relevantes[0];
+  const valorAntes = saldoTransferencia(primeiraFutura, contratoId, "antes");
+  return isFinite(valorAntes) ? normalizar(valorAntes) : fallback;
+};
+
+const valorFolhaPrevistoNaData = (input: SaldoReportInput, dataLimite: Date) => {
+  const { contrato, prevFolhaMensal, transferencias } = input;
+  const temTipo = (tipo: TipoSaldoTransferencia) => (transferencias || []).some(
+    (t) => t.tipo_saldo === tipo && (t.contrato_origem_id === contrato.id || t.contrato_destino_id === contrato.id)
+  );
+  if (temTipo("maoDeObraMensal")) return valorPrevistoNaData(transferencias, contrato.id, "maoDeObraMensal", prevFolhaMensal, dataLimite);
+  if (temTipo("maoDeObraAnual")) return valorPrevistoNaData(transferencias, contrato.id, "maoDeObraAnual", prevFolhaMensal, dataLimite, (n) => n / 12);
+  if (temTipo("maoDeObraContratual")) return valorPrevistoNaData(transferencias, contrato.id, "maoDeObraContratual", prevFolhaMensal, dataLimite, (n) => n / 12);
+  return prevFolhaMensal;
+};
 
 export function montarLinhasSaldos(input: SaldoReportInput): SaldoRow[] {
   const { contrato, periodoInicio, periodoFim, prevFolhaMensal, prevVariavelMensal } = input;
@@ -63,6 +133,10 @@ export function montarLinhasSaldos(input: SaldoReportInput): SaldoRow[] {
     // Valor Bruto da NF = Folha + Variável
     const fatTotal = fatFolha + fatVariavel;
     const numeroNf = fats.map((f) => f.numeroNf).filter(Boolean).join(", ");
+    const dataLimiteMes = fimDoMes(cursor);
+    const prevFolhaMes = valorFolhaPrevistoNaData(input, dataLimiteMes);
+    const prevVariavelMes = valorPrevistoNaData(input.transferencias, contrato.id, "valorVariavel", prevVariavelMensal, dataLimiteMes);
+
     rows.push({
       mesLabel: mesLabel(cursor),
       mesKey: key,
@@ -70,10 +144,10 @@ export function montarLinhasSaldos(input: SaldoReportInput): SaldoRow[] {
       fatFolha,
       fatVariavel,
       fatTotal,
-      prevFolha: prevFolhaMensal,
-      prevVariavel: prevVariavelMensal,
-      saldoFolha: prevFolhaMensal - fatFolha,
-      saldoVariavel: prevVariavelMensal - fatVariavel,
+      prevFolha: prevFolhaMes,
+      prevVariavel: prevVariavelMes,
+      saldoFolha: prevFolhaMes - fatFolha,
+      saldoVariavel: prevVariavelMes - fatVariavel,
     });
     cursor.setMonth(cursor.getMonth() + 1);
   }

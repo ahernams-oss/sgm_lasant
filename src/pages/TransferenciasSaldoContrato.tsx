@@ -118,11 +118,8 @@ export default function TransferenciasSaldoContrato() {
     }
     const v = parseBR(valor);
     if (!v || v <= 0) { toast.error("Valor inválido."); return; }
-    if (v > saldoOrigem + 0.001) { toast.error(`Saldo insuficiente. Disponível na origem: ${fmtBRL(saldoOrigem)}`); return; }
 
     const campo = CAMPO_CONTRATO[tipoSaldo];
-    const novoOrigem = saldoOrigem - v;
-    const novoDestino = saldoDestino + v;
 
     // Grava direto no Supabase para evitar race de cache do react-query entre os dois updates.
     // Releitura fresca de ambos os clientes antes de aplicar as alterações.
@@ -133,8 +130,20 @@ export default function TransferenciasSaldoContrato() {
     const rowDest = freshRows.find(r => r.id === clienteDestino.id) ?? rowOrig;
     if (!rowOrig || !rowDest) { toast.error("Cliente não encontrado no banco."); return; }
 
-    const backupOrigem = rowOrig.contratos;
-    const contratosOrigemNovo = (rowOrig.contratos as any[]).map((k: any) => k.id === contratoOrigem.id ? { ...k, [campo]: fmtBR(novoOrigem) } : k);
+    const contratosOrigemAtuais = Array.isArray(rowOrig.contratos) ? (rowOrig.contratos as any[]) : [];
+    const contratosDestinoAtuais = Array.isArray(rowDest.contratos) ? (rowDest.contratos as any[]) : [];
+    const contratoOrigemAtual = contratosOrigemAtuais.find((k: any) => k.id === contratoOrigem.id);
+    const contratoDestinoAtual = contratosDestinoAtuais.find((k: any) => k.id === contratoDestino.id);
+    if (!contratoOrigemAtual || !contratoDestinoAtual) { toast.error("Contrato não encontrado no banco."); return; }
+
+    const saldoOrigemAtual = parseBR(contratoOrigemAtual[campo]);
+    const saldoDestinoAtual = parseBR(contratoDestinoAtual[campo]);
+    if (v > saldoOrigemAtual + 0.001) { toast.error(`Saldo insuficiente. Disponível na origem: ${fmtBRL(saldoOrigemAtual)}`); return; }
+
+    const novoOrigem = saldoOrigemAtual - v;
+    const novoDestino = saldoDestinoAtual + v;
+    const backupOrigem = contratosOrigemAtuais;
+    const contratosOrigemNovo = contratosOrigemAtuais.map((k: any) => k.id === contratoOrigem.id ? { ...k, [campo]: fmtBR(novoOrigem) } : k);
 
     const { error: errO } = await supabase.from("clientes").update({ contratos: contratosOrigemNovo }).eq("id", clienteOrigem.id);
     if (errO) { toast.error("Falha ao debitar origem: " + errO.message); return; }
@@ -153,16 +162,12 @@ export default function TransferenciasSaldoContrato() {
 
     // Atualiza cache local de clientes imediatamente (evita leitura stale ao consultar contratos)
     qc.setQueryData<any[]>(["clientes"], (old = []) => old.map((c: any) => {
-      if (c.id === clienteOrigem.id) {
-        const contratosAtualizados = (c.contratos || []).map((k: any) =>
-          k.id === contratoOrigem.id ? { ...k, [campo]: fmtBR(novoOrigem) } : k
-        );
-        return { ...c, contratos: contratosAtualizados };
-      }
-      if (c.id === clienteDestino.id) {
-        const contratosAtualizados = (c.contratos || []).map((k: any) =>
-          k.id === contratoDestino.id ? { ...k, [campo]: fmtBR(novoDestino) } : k
-        );
+      if (c.id === clienteOrigem.id || c.id === clienteDestino.id) {
+        const contratosAtualizados = (c.contratos || []).map((k: any) => {
+          if (c.id === clienteOrigem.id && k.id === contratoOrigem.id) return { ...k, [campo]: fmtBR(novoOrigem) };
+          if (c.id === clienteDestino.id && k.id === contratoDestino.id) return { ...k, [campo]: fmtBR(novoDestino) };
+          return k;
+        });
         return { ...c, contratos: contratosAtualizados };
       }
       return c;
@@ -183,13 +188,13 @@ export default function TransferenciasSaldoContrato() {
       cliente_origem_nome: clienteOrigem.nome,
       contrato_origem_id: contratoOrigem.id,
       contrato_origem_numero: contratoOrigem.numero,
-      saldo_origem_antes: saldoOrigem,
+      saldo_origem_antes: saldoOrigemAtual,
       saldo_origem_depois: novoOrigem,
       cliente_destino_id: clienteDestino.id,
       cliente_destino_nome: clienteDestino.nome,
       contrato_destino_id: contratoDestino.id,
       contrato_destino_numero: contratoDestino.numero,
-      saldo_destino_antes: saldoDestino,
+      saldo_destino_antes: saldoDestinoAtual,
       saldo_destino_depois: novoDestino,
       motivo,
       usuario_id: usuarioLogado?.id ?? null,

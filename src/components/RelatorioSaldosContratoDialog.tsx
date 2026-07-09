@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FileText, FileSpreadsheet } from "lucide-react";
 import { useClientes, type Cliente, type Contrato } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
-import { gerarPdfSaldosContrato, gerarExcelSaldosContrato } from "@/lib/gerarRelatorioSaldosContrato";
+import { supabase } from "@/integrations/supabase/client";
+import { gerarPdfSaldosContrato, gerarExcelSaldosContrato, type SaldoTransferenciaContrato } from "@/lib/gerarRelatorioSaldosContrato";
 import { toast } from "sonner";
 
 interface Props {
@@ -47,6 +48,7 @@ export default function RelatorioSaldosContratoDialog({ open, onOpenChange }: Pr
   const [periodoFim, setPeriodoFim] = useState<string>(firstOfMonth(new Date(hoje.getFullYear(), 11, 1)));
   const [prevFolha, setPrevFolha] = useState<string>("");
   const [prevVariavel, setPrevVariavel] = useState<string>("");
+  const [transferencias, setTransferencias] = useState<SaldoTransferenciaContrato[]>([]);
 
   useEffect(() => {
     if (!contrato) return;
@@ -61,6 +63,27 @@ export default function RelatorioSaldosContratoDialog({ open, onOpenChange }: Pr
     if (contrato.dataFim) setPeriodoFim(contrato.dataFim.slice(0, 7) + "-01");
   }, [contratoId, clienteId, clientes]);
 
+  useEffect(() => {
+    let active = true;
+    if (!contratoId) { setTransferencias([]); return; }
+    const carregarTransferencias = async () => {
+      const { data, error } = await supabase
+        .from("contrato_transferencias_saldo")
+        .select("data, created_at, tipo_saldo, contrato_origem_id, contrato_destino_id, saldo_origem_antes, saldo_origem_depois, saldo_destino_antes, saldo_destino_depois")
+        .or(`contrato_origem_id.eq.${contratoId},contrato_destino_id.eq.${contratoId}`)
+        .order("data", { ascending: true });
+      if (!active) return;
+      if (error) {
+        setTransferencias([]);
+        toast.error("Não foi possível carregar transferências do contrato.");
+        return;
+      }
+      setTransferencias((data as SaldoTransferenciaContrato[]) ?? []);
+    };
+    carregarTransferencias();
+    return () => { active = false; };
+  }, [contratoId]);
+
   const podeGerar = !!cliente && !!contrato && !!periodoInicio && !!periodoFim;
 
   const doGerar = async (tipo: "pdf" | "excel") => {
@@ -72,6 +95,7 @@ export default function RelatorioSaldosContratoDialog({ open, onOpenChange }: Pr
       periodoFim,
       prevFolhaMensal: parseBR(prevFolha),
       prevVariavelMensal: parseBR(prevVariavel),
+        transferencias,
     };
     if (tipo === "pdf") await gerarPdfSaldosContrato(input, empresa?.logoUrl);
     else gerarExcelSaldosContrato(input);
