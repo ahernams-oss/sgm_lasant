@@ -93,7 +93,6 @@ export default function ComunicacaoGruposWhatsappPage() {
     });
   }, [grupos, search]);
 
-  const totalPages = Math.max(1, Math.ceil(filtrados.length / pageSize));
   const pageItems = filtrados.slice((page - 1) * pageSize, page * pageSize);
   useEffect(() => { setPage(1); }, [search, pageSize]);
 
