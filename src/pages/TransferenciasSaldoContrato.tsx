@@ -59,7 +59,8 @@ interface HistoricoRow {
 }
 
 export default function TransferenciasSaldoContrato() {
-  const { clientes, updateCliente } = useClientes();
+  const { clientes } = useClientes();
+  const qc = useQueryClient();
   const { usuarioLogado, temAcessoTotal } = useAuth();
   const [historico, setHistorico] = useState<HistoricoRow[]>([]);
   const [loading, setLoading] = useState(false);
