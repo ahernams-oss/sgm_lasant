@@ -11,8 +11,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeftRight, Eye, Plus, Trash2 } from "lucide-react";
+import { ArrowLeftRight, Eye, Plus, Trash2, FileSpreadsheet, FileText } from "lucide-react";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 type TipoSaldo = "maoDeObraMensal" | "maoDeObraAnual" | "maoDeObraContratual" | "valorVariavel";
 
