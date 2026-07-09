@@ -351,6 +351,98 @@ export default function TransferenciasSaldoContrato() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!detalheId} onOpenChange={(o) => { if (!o) setDetalheId(null); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Transferência</DialogTitle>
+          </DialogHeader>
+          {detalhe && (
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Data da transferência</span>
+                  <div className="font-medium">{new Date(detalhe.data + "T00:00:00").toLocaleDateString("pt-BR")}</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Tipo de saldo</span>
+                  <div className="font-medium">{TIPO_LABEL[detalhe.tipo_saldo]}</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Valor transferido</span>
+                  <div className="font-medium text-lg">{fmtBRL(Number(detalhe.valor))}</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Registrado em</span>
+                  <div className="font-medium">{new Date(detalhe.created_at).toLocaleString("pt-BR")}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border rounded-md p-4 space-y-3">
+                  <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Origem</div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Cliente</div>
+                    <div className="font-medium">{detalhe.cliente_origem_nome || "—"}</div>
+                  </div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Contrato</div>
+                    <div className="font-medium">{detalhe.contrato_origem_numero || "—"}</div>
+                  </div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Saldo antes → depois</div>
+                    <div className="font-medium">
+                      {fmtBRL(Number(detalhe.saldo_origem_antes ?? 0))} → {fmtBRL(Number(detalhe.saldo_origem_depois ?? 0))}
+                    </div>
+                  </div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Variação</div>
+                    <div className="font-medium text-destructive">
+                      − {fmtBRL(Number(detalhe.saldo_origem_antes ?? 0) - Number(detalhe.saldo_origem_depois ?? 0))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border rounded-md p-4 space-y-3">
+                  <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Destino</div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Cliente</div>
+                    <div className="font-medium">{detalhe.cliente_destino_nome || "—"}</div>
+                  </div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Contrato</div>
+                    <div className="font-medium">{detalhe.contrato_destino_numero || "—"}</div>
+                  </div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Saldo antes → depois</div>
+                    <div className="font-medium">
+                      {fmtBRL(Number(detalhe.saldo_destino_antes ?? 0))} → {fmtBRL(Number(detalhe.saldo_destino_depois ?? 0))}
+                    </div>
+                  </div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Variação</div>
+                    <div className="font-medium text-emerald-600">
+                      + {fmtBRL(Number(detalhe.saldo_destino_depois ?? 0) - Number(detalhe.saldo_destino_antes ?? 0))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border rounded-md p-4 space-y-2">
+                <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Motivo / Observação</div>
+                <div className="text-sm whitespace-pre-wrap">{detalhe.motivo || "Nenhum motivo registrado."}</div>
+              </div>
+
+              <div className="text-sm text-muted-foreground">
+                Registrado por <span className="font-medium text-foreground">{detalhe.usuario_nome || "—"}</span>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetalheId(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <DoubleConfirmDelete
         open={!!confirmDeleteId}
         onOpenChange={(o) => { if (!o) setConfirmDeleteId(null); }}
