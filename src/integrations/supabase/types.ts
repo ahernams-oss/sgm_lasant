@@ -918,6 +918,75 @@ export type Database = {
           },
         ]
       }
+      contrato_transferencias_saldo: {
+        Row: {
+          cliente_destino_id: string
+          cliente_destino_nome: string | null
+          cliente_origem_id: string
+          cliente_origem_nome: string | null
+          contrato_destino_id: string
+          contrato_destino_numero: string | null
+          contrato_origem_id: string
+          contrato_origem_numero: string | null
+          created_at: string
+          data: string
+          id: string
+          motivo: string | null
+          saldo_destino_antes: number | null
+          saldo_destino_depois: number | null
+          saldo_origem_antes: number | null
+          saldo_origem_depois: number | null
+          tipo_saldo: string
+          usuario_id: string | null
+          usuario_nome: string | null
+          valor: number
+        }
+        Insert: {
+          cliente_destino_id: string
+          cliente_destino_nome?: string | null
+          cliente_origem_id: string
+          cliente_origem_nome?: string | null
+          contrato_destino_id: string
+          contrato_destino_numero?: string | null
+          contrato_origem_id: string
+          contrato_origem_numero?: string | null
+          created_at?: string
+          data?: string
+          id?: string
+          motivo?: string | null
+          saldo_destino_antes?: number | null
+          saldo_destino_depois?: number | null
+          saldo_origem_antes?: number | null
+          saldo_origem_depois?: number | null
+          tipo_saldo: string
+          usuario_id?: string | null
+          usuario_nome?: string | null
+          valor: number
+        }
+        Update: {
+          cliente_destino_id?: string
+          cliente_destino_nome?: string | null
+          cliente_origem_id?: string
+          cliente_origem_nome?: string | null
+          contrato_destino_id?: string
+          contrato_destino_numero?: string | null
+          contrato_origem_id?: string
+          contrato_origem_numero?: string | null
+          created_at?: string
+          data?: string
+          id?: string
+          motivo?: string | null
+          saldo_destino_antes?: number | null
+          saldo_destino_depois?: number | null
+          saldo_origem_antes?: number | null
+          saldo_origem_depois?: number | null
+          tipo_saldo?: string
+          usuario_id?: string | null
+          usuario_nome?: string | null
+          valor?: number
+        }
+        Relationships: []
+      }
       contratos_terceiros: {
         Row: {
           aditivos: Json
