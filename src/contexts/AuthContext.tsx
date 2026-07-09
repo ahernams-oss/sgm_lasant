@@ -4,7 +4,7 @@ import { useCargos } from "./CargosContext";
 import { supabase } from "@/integrations/supabase/client";
 
 // Cargos com acesso total ao sistema
-const CARGOS_ACESSO_TOTAL = ["Diretor", "Gerente Executivo", "Coordenador de Departamento"];
+const CARGOS_ACESSO_TOTAL = ["diretor", "gerente executivo", "coordenador de departamento"];
 
 const STORAGE_KEY = "usuarioLogado";
 
