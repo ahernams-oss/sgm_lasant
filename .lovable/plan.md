@@ -1,95 +1,61 @@
+# Mecanismo de Criação de Grupos WhatsApp (JID @g.us)
+
 ## Objetivo
-Implementar o Laudo Técnico de Condenação de Equipamentos, com persistência em banco, geração de PDF, editor de fotos com marcadores numerados e integração ao cadastro de Equipamentos.
 
-## 1. Banco de dados
+Permitir criar e gerenciar grupos WhatsApp diretamente do sistema, obtendo o JID (`123456789-1234567890@g.us`) para usar nos disparos automáticos (mudança de status de PC, alertas de RP, licitações, etc.), sem precisar copiar manualmente do celular.
 
-**Nova tabela** `public.equipamentos_laudos_condenacao`:
-- `equipamento_id` (FK)
-- `numero` (int, auto-incremento anual via trigger)
-- `data_emissao`, `data_inspecao`, `local_inspecao`
-- `responsavel_tecnico`, `registro_profissional` (CFT/CREA)
-- Snapshot do equipamento: tipo, marca, modelo, serie, patrimonio, ano_fabricacao, data_aquisicao, localizacao, estado_conservacao
-- `historico` (text)
-- `insp_condicoes_fisicas`, `insp_condicoes_eletricas`, `insp_condicoes_mecanicas`, `insp_funcionalidade` (text)
-- `motivos_condenacao` (jsonb - array de strings)
-- `custo_reparo`, `valor_residual`, `valor_novo_equivalente` (numeric)
-- `parecer` ("APROVADO PARA CONDENAÇÃO" | "REPROVADO")
-- `conclusao_condicoes` (text curto)
-- `fotos` (jsonb) — array com `{path, url, descricao, marcadores:[{n, x, y, tipo:"seta"|"circulo", legenda}]}`, máx 10
-- `anexos_orcamentos` (jsonb) — array `{nome,path,url,tamanho}`
-- `outros_anexos` (jsonb)
-- `created_at`, `updated_at`, `created_by`
-- GRANT SELECT/INSERT/UPDATE/DELETE authenticated + service_role
-- RLS enabled + policy `USING (true)` (padrão do projeto)
-- Trigger `set_next_laudo_condenacao_numero` (reset anual, igual RDO)
+## O que será entregue
 
-Reusar bucket `documentos` com prefixo `laudos-condenacao/`.
+### 1. Edge Function `plugsend-groups`
 
-## 2. Editor de fotos com marcadores
+Nova função que expõe as operações de grupo da API uazapi (via mesmo token PlugSend já cadastrado). Recebe um `action` no body e roteia:
 
-Novo componente `FotosLaudoEditor.tsx`:
-- Upload de até 10 fotos (validação, máx 4MB cada)
-- Preview em grid, cada foto tem campo "Descrição"
-- Botão "Editar marcadores" abre dialog com `<canvas>` sobreposto à imagem
-- Clique no canvas adiciona marcador numerado (círculo com número) na posição clicada; coords normalizadas 0-1
-- Toggle tipo: círculo / seta
-- Lista lateral com nº, legenda editável e botão remover
-- Salva marcadores no state da foto; renderização final via canvas → dataURL para o PDF
+| Action | Endpoint uazapi | Uso |
+|---|---|---|
+| `create` | POST /group/create | Cria grupo com nome + participantes iniciais |
+| `list` | GET /group/list | Lista todos os grupos da instância |
+| `info` | POST /group/info | Detalhes de um grupo específico |
+| `addParticipants` | POST /group/updateParticipants (action: add) | Adiciona membros |
+| `removeParticipants` | POST /group/updateParticipants (action: remove) | Remove membros |
+| `updateName` | POST /group/updateName | Renomeia o grupo |
+| `leave` | POST /group/leave | Sai do grupo |
 
-## 3. Dialog do Laudo
+Sempre relaya status e corpo de erro do provider (padrão já usado na `send-plugsend`).
 
-Novo componente `LaudoCondenacaoDialog.tsx` com abas:
-1. **Identificação** — auto-preenchida do equipamento (editável), + responsável técnico e registro
-2. **Histórico** — textarea grande
-3. **Inspeção** — 4 textareas (físicas, elétricas, mecânicas, funcionalidade)
-4. **Fundamentação** — lista dinâmica de motivos + campos de viabilidade econômica (custo reparo, valor residual, % calculado automaticamente, indicativo viável/inviável)
-5. **Conclusão** — parecer (select), data/local inspeção
-6. **Anexos** — editor de fotos + upload de orçamentos + outros anexos
+### 2. Página "Grupos WhatsApp" — `src/pages/ComunicacaoGruposWhatsapp.tsx`
 
-Rodapé: Salvar rascunho | Salvar e Gerar PDF | Cancelar.
+Nova página em **Comunicação → Grupos WhatsApp**, seguindo o padrão visual Berry (rounded, primary #673ab7, filtros persistidos, paginação 10/20/50).
 
-Se parecer = "APROVADO PARA CONDENAÇÃO" ao salvar → `updateEquipamento(id, { situacao: "Condenado" })` (nova situação adicionada ao array `SITUACOES`).
+Componentes:
 
-## 4. Contexto
+- **Grid principal** listando grupos existentes: nome, JID (com botão copiar), qtd. participantes, ações (ver/editar/sair)
+- Botão **"Atualizar cache"** (chama list com `force=true`)
+- Botão **"Novo Grupo"** abre dialog:
+  - Nome (1–100 chars)
+  - Participantes: campo multi-tag com máscara BR (aceita `(11) 99999-9999` e limpa para `5511999999999`); mínimo 1, máximo 50
+  - Botão auxiliar "Adicionar de Clientes/Fornecedores/Funcionários" — busca via Combobox e injeta os telefones cadastrados
+  - Ao criar com sucesso, mostra o JID gerado com botão **"Copiar JID"** e **"Usar como grupo padrão de cliente…"** (Combobox de clientes → grava em `clientes.grupoWhatsapp` — campo já existente)
+- **Dialog Detalhes/Editar**: renomear, adicionar/remover participantes, mostrar todos os membros
 
-Novo `LaudosCondenacaoContext.tsx` com `useQuery`, `add/update/delete/listByEquipamento`. Provider em App.tsx.
+### 3. Rota + Sidebar
 
-## 5. Integrações no módulo Equipamentos
+- Adiciona rota `/comunicacao/grupos-whatsapp` em `App.tsx`
+- Adiciona item no `AppSidebar.tsx` no grupo **Comunicação**, com controle de permissão via `perfil.permissoes.comunicacao_grupos_whatsapp`
 
-**Grid** (`Equipamentos.tsx`):
-- Novo item no menu de ações: "Laudo de Condenação" (abre dialog)
-- Card KPI "Condenados" (opcional)
+### 4. Helper cliente `src/lib/plugsendGroups.ts`
 
-**Cadastro do equipamento** (dialog de view/edit): nova aba **"Laudos"** com histórico de laudos emitidos, botões Visualizar/Imprimir/Novo.
+Wrapper tipado para invocar a edge function do frontend, com as mesmas ações acima.
 
-## 6. Geração do PDF
+## Detalhes técnicos
 
-Novo `src/lib/gerarPdfLaudoCondenacao.ts` (jsPDF + autoTable), seguindo padrão dos outros PDFs do projeto:
-- Cabeçalho com logo empresa + "LAUDO TÉCNICO DE CONDENAÇÃO DE EQUIPAMENTOS"
-- Blocos: Identificação (tabela 2 colunas), Histórico, Inspeção (4 subseções), Fundamentação (lista + tabela viabilidade), Conclusão, Assinatura
-- Anexos: fotos renderizadas com marcadores desenhados sobre a imagem (via canvas → base64), 4 por página, com descrição
-- Rodapé com nº laudo, data, página X/Y
+- **Autenticação PlugSend**: já usa `PLUGSEND_TOKEN` cadastrado; a instância uazapi é a mesma dos disparos atuais
+- **Formato de telefone**: sanitiza para dígitos internacionais antes de enviar (mesma regra `replace(/\D/g, "")` que já usamos)
+- **Persistência**: os grupos vivem no WhatsApp — não precisamos de tabela nova. O JID retornado é apenas colado no campo `grupoWhatsapp` já existente em `clientes` quando o usuário quiser vincular
+- **Feedback**: toasts de sucesso/erro relayando o corpo de erro do provider (missing participants, número inválido, etc.)
+- **Segurança**: função com `verify_jwt = false` (padrão do projeto — auth custom), CORS liberado, validação Zod-lite dos inputs
 
-## 7. Situação "Condenado"
+## Fora do escopo
 
-- Adicionar `"Condenado"` à const `SITUACOES`
-- Badge com variant destructive
-- KPI "Condenados" nos cards do topo
-
-## Arquivos a criar
-- `supabase/migrations/xxxxx_laudos_condenacao.sql`
-- `src/contexts/LaudosCondenacaoContext.tsx`
-- `src/components/laudo/FotosLaudoEditor.tsx`
-- `src/components/laudo/LaudoCondenacaoDialog.tsx`
-- `src/components/laudo/LaudosHistoricoTab.tsx`
-- `src/lib/gerarPdfLaudoCondenacao.ts`
-
-## Arquivos a editar
-- `src/App.tsx` (provider)
-- `src/pages/Equipamentos.tsx` (menu ação + aba Laudos + situação Condenado + KPI)
-- `src/contexts/EquipamentosContext.tsx` (sem mudança de schema)
-- `src/integrations/supabase/types.ts` (regenerado após migration)
-
-## Fora do escopo (para futura iteração)
-- Assinatura eletrônica com hash (pode ser adicionada como no padrão OS)
-- Numeração customizada por empresa/unidade
+- Envio de mensagens para o grupo pela nova tela (já disponível: basta usar o JID no campo `grupoWhatsapp` do cliente; o disparo automático em mudança de status de PC já respeita esse campo)
+- Sincronização periódica automática dos grupos (usuário aciona "Atualizar cache" manualmente)
+- Aprovações de entrada, comunidades, tópicos

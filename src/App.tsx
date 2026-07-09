@@ -118,6 +118,7 @@ import ComunicacaoMensagensPage from "./pages/ComunicacaoMensagens";
 import ComunicacaoAvisosPage from "./pages/ComunicacaoAvisos";
 import ComunicacaoNotificacoesPage from "./pages/ComunicacaoNotificacoes";
 import ComunicacaoWhatsappPage from "./pages/ComunicacaoWhatsapp";
+import ComunicacaoGruposWhatsappPage from "./pages/ComunicacaoGruposWhatsapp";
 import JuridicoPage from "./pages/Juridico";
 import { ProcessosTrabalhalistasProvider } from "@/contexts/ProcessosTrabalhistas";
 import ChatDudaPage from "./pages/ChatDuda";
@@ -374,6 +375,7 @@ function ProtectedAppRoutes() {
         <Route path="/comunicacao/avisos" element={<RotaProtegida perm="comunicacao_avisos"><ComunicacaoAvisosPage /></RotaProtegida>} />
         <Route path="/comunicacao/notificacoes" element={<RotaProtegida perm="comunicacao_notificacoes"><ComunicacaoNotificacoesPage /></RotaProtegida>} />
         <Route path="/comunicacao/whatsapp" element={<RotaProtegida perm="comunicacao_whatsapp"><ComunicacaoWhatsappPage /></RotaProtegida>} />
+        <Route path="/comunicacao/grupos-whatsapp" element={<RotaProtegida perm="comunicacao_whatsapp"><ComunicacaoGruposWhatsappPage /></RotaProtegida>} />
         <Route path="/juridico" element={<RotaProtegida perm="juridico"><JuridicoPage /></RotaProtegida>} />
         <Route path="/chat-duda" element={<RotaProtegida perm="chat_duda"><ChatDudaPage /></RotaProtegida>} />
         <Route path="/orcamentos" element={<RotaProtegida perm="orcamentos_sco"><OrcamentosSco /></RotaProtegida>} />
