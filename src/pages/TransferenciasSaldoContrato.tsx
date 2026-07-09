@@ -116,26 +116,37 @@ export default function TransferenciasSaldoContrato() {
     const novoOrigem = saldoOrigem - v;
     const novoDestino = saldoDestino + v;
 
-    // Atualiza contratos
-    const contratosOrigem = clienteOrigem.contratos.map(k => k.id === contratoOrigem.id ? { ...k, [campo]: fmtBR(novoOrigem) } : k);
-    const okO = await updateCliente(clienteOrigem.id, { contratos: contratosOrigem });
-    if (!okO) { toast.error("Falha ao debitar origem."); return; }
+    // Grava direto no Supabase para evitar race de cache do react-query entre os dois updates.
+    // Releitura fresca de ambos os clientes antes de aplicar as alterações.
+    const ids = clienteOrigem.id === clienteDestino.id ? [clienteOrigem.id] : [clienteOrigem.id, clienteDestino.id];
+    const { data: freshRows, error: errFetch } = await supabase.from("clientes").select("id, contratos").in("id", ids);
+    if (errFetch || !freshRows) { toast.error("Falha ao ler clientes: " + (errFetch?.message ?? "sem dados")); return; }
+    const rowOrig = freshRows.find(r => r.id === clienteOrigem.id);
+    const rowDest = freshRows.find(r => r.id === clienteDestino.id) ?? rowOrig;
+    if (!rowOrig || !rowDest) { toast.error("Cliente não encontrado no banco."); return; }
 
-    // Se mesmo cliente, precisa recarregar a partir do array já atualizado
-    if (clienteDestino.id === clienteOrigem.id) {
-      const contratosDestino = contratosOrigem.map(k => k.id === contratoDestino.id ? { ...k, [campo]: fmtBR(novoDestino) } : k);
-      const okD = await updateCliente(clienteDestino.id, { contratos: contratosDestino });
-      if (!okD) { toast.error("Falha ao creditar destino."); return; }
-    } else {
-      const contratosDestino = clienteDestino.contratos.map(k => k.id === contratoDestino.id ? { ...k, [campo]: fmtBR(novoDestino) } : k);
-      const okD = await updateCliente(clienteDestino.id, { contratos: contratosDestino });
-      if (!okD) {
-        // rollback origem
-        await updateCliente(clienteOrigem.id, { contratos: clienteOrigem.contratos });
-        toast.error("Falha ao creditar destino. Origem revertida.");
-        return;
-      }
+    const backupOrigem = rowOrig.contratos;
+    const contratosOrigemNovo = (rowOrig.contratos as any[]).map((k: any) => k.id === contratoOrigem.id ? { ...k, [campo]: fmtBR(novoOrigem) } : k);
+
+    const { error: errO } = await supabase.from("clientes").update({ contratos: contratosOrigemNovo }).eq("id", clienteOrigem.id);
+    if (errO) { toast.error("Falha ao debitar origem: " + errO.message); return; }
+
+    // Base para o destino: se mesmo cliente, usa o array já debitado; senão o array atual do destino.
+    const baseDestino = clienteDestino.id === clienteOrigem.id ? contratosOrigemNovo : (rowDest.contratos as any[]);
+    const contratosDestinoNovo = baseDestino.map((k: any) => k.id === contratoDestino.id ? { ...k, [campo]: fmtBR(novoDestino) } : k);
+
+    const { error: errD } = await supabase.from("clientes").update({ contratos: contratosDestinoNovo }).eq("id", clienteDestino.id);
+    if (errD) {
+      // rollback origem
+      await supabase.from("clientes").update({ contratos: backupOrigem }).eq("id", clienteOrigem.id);
+      toast.error("Falha ao creditar destino. Origem revertida. " + errD.message);
+      return;
     }
+
+    // Invalida cache local dos clientes
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).__lovable_refetch_clientes?.();
+
 
     // Registra histórico
     const { error: errHist } = await supabase.from("contrato_transferencias_saldo").insert({
