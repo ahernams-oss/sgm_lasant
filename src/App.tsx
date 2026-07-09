@@ -10,6 +10,7 @@ import Home from "./pages/Home.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Clientes from "./pages/Clientes.tsx";
+import TransferenciasSaldoContrato from "./pages/TransferenciasSaldoContrato.tsx";
 import Fornecedores from "./pages/Fornecedores.tsx";
 import Cargos from "./pages/Cargos.tsx";
 import Funcionarios from "./pages/Funcionarios.tsx";
@@ -199,6 +200,7 @@ function ProtectedAppRoutes() {
 
         <Route path="/dashboard" element={<RotaProtegida perm="dashboard_gp"><Dashboard /></RotaProtegida>} />
         <Route path="/clientes" element={<RotaProtegida perm="clientes"><OrdensServicoProvider><Clientes /></OrdensServicoProvider></RotaProtegida>} />
+        <Route path="/clientes/transferencias-saldo" element={<RotaProtegida perm="clientes"><TransferenciasSaldoContrato /></RotaProtegida>} />
         <Route path="/fornecedores" element={<RotaProtegida perm="fornecedores"><Fornecedores /></RotaProtegida>} />
         <Route path="/cargos" element={<RotaProtegida perm="cargos"><Cargos /></RotaProtegida>} />
         <Route path="/funcionarios" element={<RotaProtegida perm="funcionarios"><Funcionarios /></RotaProtegida>} />
