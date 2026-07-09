@@ -4,7 +4,7 @@ import { useCargos } from "./CargosContext";
 import { supabase } from "@/integrations/supabase/client";
 
 // Cargos com acesso total ao sistema
-const CARGOS_ACESSO_TOTAL = ["Diretor", "Gerente Executivo", "Coordenador de Departamento"];
+const CARGOS_ACESSO_TOTAL = ["diretor", "gerente executivo", "coordenador de departamento"];
 
 const STORAGE_KEY = "usuarioLogado";
 
@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const temAcessoTotal = useMemo(() => {
     if (!usuarioLogado) return false;
     const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
-    return cargo ? CARGOS_ACESSO_TOTAL.includes(cargo.nome) : false;
+    return cargo ? CARGOS_ACESSO_TOTAL.includes((cargo.nome || "").trim().toLowerCase()) : false;
   }, [usuarioLogado, cargos]);
 
   const clientesPermitidosIds = useMemo(() => {

@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePerfisAcesso } from "@/contexts/PerfisAcessoContext";
 import { useCargos } from "@/contexts/CargosContext";
 
-const CARGOS_ACESSO_TOTAL = ["Diretor", "Gerente Executivo", "Coordenador de Departamento"];
+const CARGOS_ACESSO_TOTAL = ["diretor", "gerente executivo", "coordenador de departamento"];
 
 export function usePermissao() {
   const { usuarioLogado } = useAuth();
@@ -10,8 +10,9 @@ export function usePermissao() {
   const { cargos } = useCargos();
 
   const cargo = cargos.find(c => c.id === usuarioLogado?.cargoId);
-  const acessoTotal = cargo ? CARGOS_ACESSO_TOTAL.includes(cargo.nome) : false;
-  const isDiretor = cargo?.nome === "Diretor";
+  const cargoNome = (cargo?.nome || "").trim().toLowerCase();
+  const acessoTotal = cargo ? CARGOS_ACESSO_TOTAL.includes(cargoNome) : false;
+  const isDiretor = cargoNome === "diretor";
 
   const perfil = perfis.find(p => p.id === usuarioLogado?.perfilAcessoId);
 
