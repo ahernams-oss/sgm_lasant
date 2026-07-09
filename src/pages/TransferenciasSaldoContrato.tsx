@@ -151,8 +151,26 @@ export default function TransferenciasSaldoContrato() {
       return;
     }
 
-    // Atualiza cache local de clientes para refletir novos saldos
+    // Atualiza cache local de clientes imediatamente (evita leitura stale ao consultar contratos)
+    qc.setQueryData<any[]>(["clientes"], (old = []) => old.map((c: any) => {
+      if (c.id === clienteOrigem.id) {
+        const contratosAtualizados = (c.contratos || []).map((k: any) =>
+          k.id === contratoOrigem.id ? { ...k, [campo]: fmtBR(novoOrigem) } : k
+        );
+        return { ...c, contratos: contratosAtualizados };
+      }
+      if (c.id === clienteDestino.id) {
+        const contratosAtualizados = (c.contratos || []).map((k: any) =>
+          k.id === contratoDestino.id ? { ...k, [campo]: fmtBR(novoDestino) } : k
+        );
+        return { ...c, contratos: contratosAtualizados };
+      }
+      return c;
+    }));
     await qc.invalidateQueries({ queryKey: ["clientes"] });
+    await qc.refetchQueries({ queryKey: ["clientes"] });
+
+
 
 
 
