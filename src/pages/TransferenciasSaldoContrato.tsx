@@ -63,6 +63,7 @@ export default function TransferenciasSaldoContrato() {
   const [historico, setHistorico] = useState<HistoricoRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [openNova, setOpenNova] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const loadHistorico = async () => {
     setLoading(true);
