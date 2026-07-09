@@ -312,7 +312,7 @@ export default function ComunicacaoGruposWhatsappPage() {
               </TableBody>
             </Table>
           </div>
-          <PaginationControls page={page} totalPages={totalPages} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize} />
+          <PaginationControls currentPage={page} totalItems={filtrados.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize} />
         </CardContent>
       </Card>
 
@@ -517,9 +517,7 @@ export default function ComunicacaoGruposWhatsappPage() {
       <DoubleConfirmDelete
         open={!!confirmSair}
         onOpenChange={(v) => !v && setConfirmSair(null)}
-        title="Sair do grupo"
-        description="Você tem certeza que deseja sair deste grupo? Esta ação não pode ser desfeita pelo sistema."
-        onConfirm={() => confirmSair && handleSair(confirmSair)}
+        onConfirm={() => { if (confirmSair) handleSair(confirmSair); }}
       />
     </div>
   );
