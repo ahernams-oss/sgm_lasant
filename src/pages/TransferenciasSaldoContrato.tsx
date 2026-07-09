@@ -271,9 +271,17 @@ export default function TransferenciasSaldoContrato() {
           </h1>
           <p className="text-sm text-muted-foreground">Débito/crédito imediato entre contratos, com histórico completo.</p>
         </div>
-        <Button onClick={() => setOpenNova(true)} disabled={!temAcessoTotal}>
-          <Plus className="h-4 w-4 mr-2" /> Nova Transferência
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={exportarExcel} disabled={historico.length === 0}>
+            <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel
+          </Button>
+          <Button variant="outline" onClick={exportarPDF} disabled={historico.length === 0}>
+            <FileText className="h-4 w-4 mr-2" /> PDF
+          </Button>
+          <Button onClick={() => setOpenNova(true)} disabled={!temAcessoTotal}>
+            <Plus className="h-4 w-4 mr-2" /> Nova Transferência
+          </Button>
+        </div>
       </div>
 
       {!temAcessoTotal && (
