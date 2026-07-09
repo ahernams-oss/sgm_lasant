@@ -572,7 +572,7 @@ export default function RequisicaoComprasPage() {
               const semCotacaoIniciada = !cotacaoExist && !["Rascunho", "Cancelada", "Recusada", "Concluída"].includes(r.status);
               const alertaUrgente = (r.urgencia === "Urgente" || r.urgencia === "Alta") && horasDesdeCriacao > 12 && (semCotacao || cotacaoPendente);
               const alertaAtrasoCotacao = semCotacaoIniciada && (
-                (r.urgencia === "Normal" && diasDesdeCriacao > 4) ||
+                (r.urgencia === "Normal" && diasDesdeCriacao > 5) ||
                 (r.urgencia === "Baixa" && diasDesdeCriacao > 6)
               );
               const alertaTitle = alertaUrgente
