@@ -193,6 +193,75 @@ export default function TransferenciasSaldoContrato() {
     loadHistorico();
   };
 
+  const exportarExcel = () => {
+    if (historico.length === 0) { toast.error("Nenhum registro para exportar."); return; }
+    const rows = historico.map(h => ({
+      Data: new Date(h.data + "T00:00:00").toLocaleDateString("pt-BR"),
+      Tipo: TIPO_LABEL[h.tipo_saldo],
+      "Cliente Origem": h.cliente_origem_nome ?? "",
+      "Contrato Origem": h.contrato_origem_numero ?? "",
+      "Saldo Origem Antes": Number(h.saldo_origem_antes ?? 0),
+      "Saldo Origem Depois": Number(h.saldo_origem_depois ?? 0),
+      "Cliente Destino": h.cliente_destino_nome ?? "",
+      "Contrato Destino": h.contrato_destino_numero ?? "",
+      "Saldo Destino Antes": Number(h.saldo_destino_antes ?? 0),
+      "Saldo Destino Depois": Number(h.saldo_destino_depois ?? 0),
+      Valor: Number(h.valor),
+      Motivo: h.motivo ?? "",
+      Usuário: h.usuario_nome ?? "",
+      "Registrado em": new Date(h.created_at).toLocaleString("pt-BR"),
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws["!cols"] = Object.keys(rows[0]).map(k => ({ wch: Math.max(k.length + 2, 16) }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Transferências");
+    XLSX.writeFile(wb, `transferencias-saldo-${new Date().toISOString().slice(0,10)}.xlsx`);
+    toast.success("Excel gerado.");
+  };
+
+  const exportarPDF = () => {
+    if (historico.length === 0) { toast.error("Nenhum registro para exportar."); return; }
+    const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+    doc.setFontSize(14);
+    doc.text("Transferências de Saldo entre Contratos", 40, 40);
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")} — ${historico.length} registro(s)`, 40, 56);
+    doc.setTextColor(0);
+    const totalValor = historico.reduce((s, h) => s + Number(h.valor || 0), 0);
+    autoTable(doc, {
+      startY: 72,
+      head: [["Data", "Tipo", "Origem", "Destino", "Valor", "Saldo Origem (a→d)", "Saldo Destino (a→d)", "Motivo", "Usuário"]],
+      body: historico.map(h => [
+        new Date(h.data + "T00:00:00").toLocaleDateString("pt-BR"),
+        TIPO_LABEL[h.tipo_saldo],
+        `${h.cliente_origem_nome ?? ""}\nContrato ${h.contrato_origem_numero ?? "—"}`,
+        `${h.cliente_destino_nome ?? ""}\nContrato ${h.contrato_destino_numero ?? "—"}`,
+        fmtBRL(Number(h.valor)),
+        `${fmtBRL(Number(h.saldo_origem_antes ?? 0))} →\n${fmtBRL(Number(h.saldo_origem_depois ?? 0))}`,
+        `${fmtBRL(Number(h.saldo_destino_antes ?? 0))} →\n${fmtBRL(Number(h.saldo_destino_depois ?? 0))}`,
+        h.motivo ?? "—",
+        h.usuario_nome ?? "—",
+      ]),
+      foot: [[
+        { content: "Total", colSpan: 4, styles: { halign: "right", fontStyle: "bold" } },
+        { content: fmtBRL(totalValor), styles: { fontStyle: "bold" } },
+        "", "", "", "",
+      ]],
+      styles: { fontSize: 8, cellPadding: 4, valign: "middle" },
+      headStyles: { fillColor: [103, 58, 183], textColor: 255 },
+      footStyles: { fillColor: [240, 240, 240], textColor: 0 },
+      columnStyles: {
+        4: { halign: "right" },
+        5: { halign: "right" },
+        6: { halign: "right" },
+      },
+      margin: { left: 40, right: 40 },
+    });
+    doc.save(`transferencias-saldo-${new Date().toISOString().slice(0,10)}.pdf`);
+    toast.success("PDF gerado.");
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
