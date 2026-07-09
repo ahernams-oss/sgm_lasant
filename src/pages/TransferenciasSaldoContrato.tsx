@@ -325,6 +325,12 @@ export default function TransferenciasSaldoContrato() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DoubleConfirmDelete
+        open={!!confirmDeleteId}
+        onOpenChange={(o) => { if (!o) setConfirmDeleteId(null); }}
+        onConfirm={() => { if (confirmDeleteId) excluir(confirmDeleteId); setConfirmDeleteId(null); }}
+      />
     </div>
   );
 }
