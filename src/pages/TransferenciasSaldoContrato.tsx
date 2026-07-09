@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeftRight, Plus, Trash2 } from "lucide-react";
+import { ArrowLeftRight, Eye, Plus, Trash2 } from "lucide-react";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 
 type TipoSaldo = "maoDeObraMensal" | "maoDeObraAnual" | "maoDeObraContratual" | "valorVariavel";
@@ -66,6 +66,9 @@ export default function TransferenciasSaldoContrato() {
   const [loading, setLoading] = useState(false);
   const [openNova, setOpenNova] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [detalheId, setDetalheId] = useState<string | null>(null);
+
+  const detalhe = useMemo(() => historico.find(h => h.id === detalheId), [historico, detalheId]);
 
   const loadHistorico = async () => {
     setLoading(true);
@@ -236,7 +239,11 @@ export default function TransferenciasSaldoContrato() {
                   <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-6">Nenhuma transferência registrada.</TableCell></TableRow>
                 )}
                 {historico.map((h) => (
-                  <TableRow key={h.id}>
+                  <TableRow
+                    key={h.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => setDetalheId(h.id)}
+                  >
                     <TableCell className="px-4 py-3 whitespace-nowrap">{new Date(h.data + "T00:00:00").toLocaleDateString("pt-BR")}</TableCell>
                     <TableCell className="px-4 py-3 whitespace-nowrap">{TIPO_LABEL[h.tipo_saldo]}</TableCell>
                     <TableCell className="px-4 py-3">{h.cliente_origem_nome} <span className="text-muted-foreground">— Contrato {h.contrato_origem_numero || "—"}</span></TableCell>
@@ -247,11 +254,16 @@ export default function TransferenciasSaldoContrato() {
                     <TableCell className="px-4 py-3 max-w-[240px] truncate" title={h.motivo ?? ""}>{h.motivo || "—"}</TableCell>
                     <TableCell className="px-4 py-3 whitespace-nowrap">{h.usuario_nome || "—"}</TableCell>
                     <TableCell className="px-4 py-3 text-center">
-                      {temAcessoTotal && (
-                        <Button variant="ghost" size="icon" onClick={() => setConfirmDeleteId(h.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                      <div className="flex items-center justify-center gap-1">
+                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setDetalheId(h.id); }} title="Ver detalhes">
+                          <Eye className="h-4 w-4" />
                         </Button>
-                      )}
+                        {temAcessoTotal && (
+                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(h.id); }}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -335,6 +347,98 @@ export default function TransferenciasSaldoContrato() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpenNova(false)}>Cancelar</Button>
             <Button onClick={efetivar}>Efetivar Transferência</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!detalheId} onOpenChange={(o) => { if (!o) setDetalheId(null); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Transferência</DialogTitle>
+          </DialogHeader>
+          {detalhe && (
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Data da transferência</span>
+                  <div className="font-medium">{new Date(detalhe.data + "T00:00:00").toLocaleDateString("pt-BR")}</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Tipo de saldo</span>
+                  <div className="font-medium">{TIPO_LABEL[detalhe.tipo_saldo]}</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Valor transferido</span>
+                  <div className="font-medium text-lg">{fmtBRL(Number(detalhe.valor))}</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Registrado em</span>
+                  <div className="font-medium">{new Date(detalhe.created_at).toLocaleString("pt-BR")}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border rounded-md p-4 space-y-3">
+                  <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Origem</div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Cliente</div>
+                    <div className="font-medium">{detalhe.cliente_origem_nome || "—"}</div>
+                  </div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Contrato</div>
+                    <div className="font-medium">{detalhe.contrato_origem_numero || "—"}</div>
+                  </div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Saldo antes → depois</div>
+                    <div className="font-medium">
+                      {fmtBRL(Number(detalhe.saldo_origem_antes ?? 0))} → {fmtBRL(Number(detalhe.saldo_origem_depois ?? 0))}
+                    </div>
+                  </div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Variação</div>
+                    <div className="font-medium text-destructive">
+                      − {fmtBRL(Number(detalhe.saldo_origem_antes ?? 0) - Number(detalhe.saldo_origem_depois ?? 0))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border rounded-md p-4 space-y-3">
+                  <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Destino</div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Cliente</div>
+                    <div className="font-medium">{detalhe.cliente_destino_nome || "—"}</div>
+                  </div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Contrato</div>
+                    <div className="font-medium">{detalhe.contrato_destino_numero || "—"}</div>
+                  </div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Saldo antes → depois</div>
+                    <div className="font-medium">
+                      {fmtBRL(Number(detalhe.saldo_destino_antes ?? 0))} → {fmtBRL(Number(detalhe.saldo_destino_depois ?? 0))}
+                    </div>
+                  </div>
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Variação</div>
+                    <div className="font-medium text-success">
+                      + {fmtBRL(Number(detalhe.saldo_destino_depois ?? 0) - Number(detalhe.saldo_destino_antes ?? 0))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border rounded-md p-4 space-y-2">
+                <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Motivo / Observação</div>
+                <div className="text-sm whitespace-pre-wrap">{detalhe.motivo || "Nenhum motivo registrado."}</div>
+              </div>
+
+              <div className="text-sm text-muted-foreground">
+                Registrado por <span className="font-medium text-foreground">{detalhe.usuario_nome || "—"}</span>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetalheId(null)}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
