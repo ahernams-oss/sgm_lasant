@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const temAcessoTotal = useMemo(() => {
     if (!usuarioLogado) return false;
     const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
-    return cargo ? CARGOS_ACESSO_TOTAL.includes(cargo.nome) : false;
+    return cargo ? CARGOS_ACESSO_TOTAL.includes((cargo.nome || "").trim().toLowerCase()) : false;
   }, [usuarioLogado, cargos]);
 
   const clientesPermitidosIds = useMemo(() => {
