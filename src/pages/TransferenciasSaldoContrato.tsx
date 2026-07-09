@@ -145,9 +145,9 @@ export default function TransferenciasSaldoContrato() {
       return;
     }
 
-    // Invalida cache local dos clientes
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).__lovable_refetch_clientes?.();
+    // Atualiza cache local de clientes para refletir novos saldos
+    await qc.invalidateQueries({ queryKey: ["clientes"] });
+
 
 
     // Registra histórico
