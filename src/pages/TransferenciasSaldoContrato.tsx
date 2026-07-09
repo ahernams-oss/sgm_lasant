@@ -420,7 +420,7 @@ export default function TransferenciasSaldoContrato() {
                   </div>
                   <div className="text-sm">
                     <div className="text-muted-foreground">Variação</div>
-                    <div className="font-medium text-emerald-600">
+                    <div className="font-medium text-success">
                       + {fmtBRL(Number(detalhe.saldo_destino_depois ?? 0) - Number(detalhe.saldo_destino_antes ?? 0))}
                     </div>
                   </div>
