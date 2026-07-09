@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +41,8 @@ export default function PropostaFornecedorPage() {
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [redirectSecs, setRedirectSecs] = useState(3);
+  const navigate = useNavigate();
 
   // Form state
   const [itens, setItens] = useState<ItemProposta[]>([]);
@@ -169,20 +171,7 @@ export default function PropostaFornecedorPage() {
   }
 
   if (submitted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/30">
-        <Card className="max-w-md w-full mx-4">
-          <CardContent className="pt-6 text-center space-y-3">
-            <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
-            <h2 className="text-lg font-semibold text-foreground">Proposta Enviada!</h2>
-            <p className="text-muted-foreground">
-              Sua proposta para a cotação COT-{String(convite?.cotacao_numero).padStart(4, "0")} foi recebida com sucesso.
-              O comprador será notificado automaticamente.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <SubmittedScreen numero={convite?.cotacao_numero} onDone={() => navigate("/portal-fornecedor")} />;
   }
 
   return (
@@ -341,6 +330,31 @@ export default function PropostaFornecedorPage() {
           </Button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SubmittedScreen({ numero, onDone }: { numero?: number; onDone: () => void }) {
+  const [secs, setSecs] = useState(3);
+  useEffect(() => {
+    if (secs <= 0) { onDone(); return; }
+    const t = setTimeout(() => setSecs(s => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [secs, onDone]);
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-muted/30">
+      <Card className="max-w-md w-full mx-4">
+        <CardContent className="pt-6 text-center space-y-3">
+          <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
+          <h2 className="text-lg font-semibold text-foreground">Proposta Enviada!</h2>
+          <p className="text-muted-foreground">
+            Sua proposta para a cotação COT-{String(numero).padStart(4, "0")} foi recebida com sucesso.
+            O comprador será notificado automaticamente.
+          </p>
+          <p className="text-xs text-muted-foreground">Retornando ao Portal do Fornecedor em {secs}s...</p>
+          <Button size="sm" onClick={onDone}>Voltar agora</Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }
