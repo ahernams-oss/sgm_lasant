@@ -333,3 +333,28 @@ export default function PropostaFornecedorPage() {
     </div>
   );
 }
+
+function SubmittedScreen({ numero, onDone }: { numero?: number; onDone: () => void }) {
+  const [secs, setSecs] = useState(3);
+  useEffect(() => {
+    if (secs <= 0) { onDone(); return; }
+    const t = setTimeout(() => setSecs(s => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [secs, onDone]);
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-muted/30">
+      <Card className="max-w-md w-full mx-4">
+        <CardContent className="pt-6 text-center space-y-3">
+          <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
+          <h2 className="text-lg font-semibold text-foreground">Proposta Enviada!</h2>
+          <p className="text-muted-foreground">
+            Sua proposta para a cotação COT-{String(numero).padStart(4, "0")} foi recebida com sucesso.
+            O comprador será notificado automaticamente.
+          </p>
+          <p className="text-xs text-muted-foreground">Retornando ao Portal do Fornecedor em {secs}s...</p>
+          <Button size="sm" onClick={onDone}>Voltar agora</Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
