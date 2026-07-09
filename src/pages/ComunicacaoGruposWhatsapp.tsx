@@ -138,7 +138,7 @@ export default function ComunicacaoGruposWhatsappPage() {
     if (!novoCriadoJID || !novoCriadoClienteId) return;
     const cli = clientes.find((c) => c.id === novoCriadoClienteId);
     if (!cli) return;
-    await updateCliente(novoCriadoClienteId, { ...cli, grupoWhatsapp: novoCriadoJID } as any);
+    await updateCliente(novoCriadoClienteId, { grupoWhatsapp: novoCriadoJID } as any);
     toast.success(`JID vinculado ao cliente ${cli.nome}`);
     setNovoCriadoClienteId("");
   }
