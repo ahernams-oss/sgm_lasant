@@ -235,13 +235,9 @@ export default function TransferenciasSaldoContrato() {
                     <TableCell className="px-4 py-3 whitespace-nowrap">{h.usuario_nome || "—"}</TableCell>
                     <TableCell className="px-4 py-3 text-center">
                       {temAcessoTotal && (
-                        <DoubleConfirmDelete
-                          onConfirm={() => excluir(h.id)}
-                          title="Excluir registro do histórico?"
-                          description="Isto NÃO reverte os saldos dos contratos, apenas remove o registro do histórico. Deseja continuar?"
-                        >
-                          <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                        </DoubleConfirmDelete>
+                        <Button variant="ghost" size="icon" onClick={() => setConfirmDeleteId(h.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
                       )}
                     </TableCell>
                   </TableRow>
