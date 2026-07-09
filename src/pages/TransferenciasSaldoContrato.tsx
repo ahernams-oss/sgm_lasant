@@ -239,7 +239,11 @@ export default function TransferenciasSaldoContrato() {
                   <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-6">Nenhuma transferência registrada.</TableCell></TableRow>
                 )}
                 {historico.map((h) => (
-                  <TableRow key={h.id}>
+                  <TableRow
+                    key={h.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => setDetalheId(h.id)}
+                  >
                     <TableCell className="px-4 py-3 whitespace-nowrap">{new Date(h.data + "T00:00:00").toLocaleDateString("pt-BR")}</TableCell>
                     <TableCell className="px-4 py-3 whitespace-nowrap">{TIPO_LABEL[h.tipo_saldo]}</TableCell>
                     <TableCell className="px-4 py-3">{h.cliente_origem_nome} <span className="text-muted-foreground">— Contrato {h.contrato_origem_numero || "—"}</span></TableCell>
@@ -250,11 +254,16 @@ export default function TransferenciasSaldoContrato() {
                     <TableCell className="px-4 py-3 max-w-[240px] truncate" title={h.motivo ?? ""}>{h.motivo || "—"}</TableCell>
                     <TableCell className="px-4 py-3 whitespace-nowrap">{h.usuario_nome || "—"}</TableCell>
                     <TableCell className="px-4 py-3 text-center">
-                      {temAcessoTotal && (
-                        <Button variant="ghost" size="icon" onClick={() => setConfirmDeleteId(h.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                      <div className="flex items-center justify-center gap-1">
+                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setDetalheId(h.id); }} title="Ver detalhes">
+                          <Eye className="h-4 w-4" />
                         </Button>
-                      )}
+                        {temAcessoTotal && (
+                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(h.id); }}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
