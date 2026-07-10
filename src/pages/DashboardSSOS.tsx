@@ -1305,13 +1305,21 @@ export default function DashboardSSOS() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-24">Número</TableHead>
-                    <TableHead>Cliente</TableHead>
+                    <TableHead className="w-24 cursor-pointer select-none" onClick={() => cycleSort("numero")}>
+                      <span className="flex items-center gap-1">Número <SortIcon field="numero" /></span>
+                    </TableHead>
+                    <TableHead className="cursor-pointer select-none" onClick={() => cycleSort("cliente")}>
+                      <span className="flex items-center gap-1">Cliente <SortIcon field="cliente" /></span>
+                    </TableHead>
                     <TableHead>Serviço</TableHead>
                     <TableHead className="w-32">Situação</TableHead>
                     <TableHead className="w-24">Complexidade</TableHead>
-                    <TableHead className="w-32">Início</TableHead>
-                    <TableHead className="w-32">Término</TableHead>
+                    <TableHead className="w-32 cursor-pointer select-none" onClick={() => cycleSort("dataInicio")}>
+                      <span className="flex items-center gap-1">Início <SortIcon field="dataInicio" /></span>
+                    </TableHead>
+                    <TableHead className="w-32 cursor-pointer select-none" onClick={() => cycleSort("dataTermino")}>
+                      <span className="flex items-center gap-1">Término <SortIcon field="dataTermino" /></span>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
