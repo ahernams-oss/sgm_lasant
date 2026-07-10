@@ -506,6 +506,7 @@ const Clientes = () => {
             setEditingContratoId(ct.id);
             const { id, ...rest } = ct;
             setContratoForm({ ...emptyContrato, ...rest, numeroProcesso: rest.numeroProcesso || "" });
+            setContratoErrors({});
           };
 
           const handleDeleteContrato = (ctId: string) => {
