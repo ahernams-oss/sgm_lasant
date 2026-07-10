@@ -157,6 +157,15 @@ const Clientes = () => {
   const [contratoErrors, setContratoErrors] = useState<{ cbs?: string; ibs?: string }>({});
   const [editingContratoId, setEditingContratoId] = useState<string | null>(null);
   const [faturamentoContratoId, setFaturamentoContratoId] = useState<string | null>(null);
+
+  const validarPercentual = (valor: string, nome: string): string | undefined => {
+    if (!valor.trim()) return undefined;
+    const num = Number(valor.replace(",", "."));
+    if (Number.isNaN(num)) return `${nome} deve ser um número.`;
+    if (num < 0 || num > 100) return `${nome} deve estar entre 0 e 100.`;
+    return undefined;
+  };
+
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { deleteId: deleteContratoId, requestDelete: requestDeleteContrato, cancelDelete: cancelDeleteContrato } = useDoubleConfirmDelete();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
