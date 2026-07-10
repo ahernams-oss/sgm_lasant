@@ -843,57 +843,113 @@ export default function DashboardSSOS() {
 
         {/* Ranking de Funcionários */}
         <Card data-chart-card>
-          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+          <CardHeader className="pb-2 flex flex-row items-start justify-between space-y-0">
             <div className="space-y-1">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-amber-500" /> Ranking — Funcionários Mais Produtivos
+                <Trophy className="h-4 w-4 text-amber-500" /> Ranking — Funcionários
               </CardTitle>
-              <p className="text-[10px] text-muted-foreground">
-                Pontuação por complexidade da OS · Baixa = 1 pt · Média = 3 pts · Alta = 5 pts
-              </p>
+              <Tabs value={funcionarioRankingTab} onValueChange={(v) => setFuncionarioRankingTab(v as any)} className="w-full">
+                <TabsList className="h-7 p-0.5 bg-muted/70">
+                  <TabsTrigger value="pontos" className="text-[10px] px-2.5 py-1 h-6">Por Pontos</TabsTrigger>
+                  <TabsTrigger value="quantidade" className="text-[10px] px-2.5 py-1 h-6">Por Qtd. de OS</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
-            <ChartPngExportButton filename="ranking-funcionarios" />
+            <ChartPngExportButton filename={`ranking-funcionarios-${funcionarioRankingTab}`} />
           </CardHeader>
           <CardContent>
-            {rankingFuncionarios.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-10">
-                Nenhum funcionário vinculado a OS no período.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {rankingFuncionarios.map((f: any, idx) => {
-                  const max = rankingFuncionarios[0]?.pontos || 1;
-                  const pct = (f.pontos / max) * 100;
-                  return (
-                    <div key={f.nome + idx} className="space-y-1">
-                      <div className="flex items-center justify-between text-xs gap-2">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <span className={cn(
-                            "shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold",
-                            idx === 0 && "bg-amber-100 text-amber-700",
-                            idx === 1 && "bg-slate-200 text-slate-700",
-                            idx === 2 && "bg-orange-100 text-orange-700",
-                            idx > 2 && "bg-muted text-muted-foreground",
-                          )}>{idx + 1}</span>
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium truncate">{f.nome}</p>
-                            <p className="text-[10px] text-muted-foreground truncate">{f.cargo}</p>
+            {funcionarioRankingTab === "pontos" && (
+              <>
+                <p className="text-[10px] text-muted-foreground mb-3">
+                  Pontuação por complexidade da OS · Baixa = 1 pt · Média = 3 pts · Alta = 5 pts
+                </p>
+                {rankingFuncionarios.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-10">
+                    Nenhum funcionário vinculado a OS no período.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {rankingFuncionarios.map((f: any, idx) => {
+                      const max = rankingFuncionarios[0]?.pontos || 1;
+                      const pct = (f.pontos / max) * 100;
+                      return (
+                        <div key={f.nome + idx} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs gap-2">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <span className={cn(
+                                "shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold",
+                                idx === 0 && "bg-amber-100 text-amber-700",
+                                idx === 1 && "bg-slate-200 text-slate-700",
+                                idx === 2 && "bg-orange-100 text-orange-700",
+                                idx > 2 && "bg-muted text-muted-foreground",
+                              )}>{idx + 1}</span>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-medium truncate">{f.nome}</p>
+                                <p className="text-[10px] text-muted-foreground truncate">{f.cargo}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <Badge variant="outline" className="text-[10px] h-5 bg-green-50 text-green-700 border-green-200" title="Baixa (1pt)">B {f.baixa}</Badge>
+                              <Badge variant="outline" className="text-[10px] h-5 bg-amber-50 text-amber-700 border-amber-200" title="Média (3pts)">M {f.media}</Badge>
+                              <Badge variant="outline" className="text-[10px] h-5 bg-rose-50 text-rose-700 border-rose-200" title="Alta (5pts)">A {f.alta}</Badge>
+                              <span className="font-bold text-foreground w-12 text-right tabular-nums">{f.pontos} pts</span>
+                            </div>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full" style={{ width: `${pct}%` }} />
                           </div>
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <Badge variant="outline" className="text-[10px] h-5 bg-green-50 text-green-700 border-green-200" title="Baixa (1pt)">B {f.baixa}</Badge>
-                          <Badge variant="outline" className="text-[10px] h-5 bg-amber-50 text-amber-700 border-amber-200" title="Média (3pts)">M {f.media}</Badge>
-                          <Badge variant="outline" className="text-[10px] h-5 bg-rose-50 text-rose-700 border-rose-200" title="Alta (5pts)">A {f.alta}</Badge>
-                          <span className="font-bold text-foreground w-12 text-right tabular-nums">{f.pontos} pts</span>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+            {funcionarioRankingTab === "quantidade" && (
+              <>
+                <p className="text-[10px] text-muted-foreground mb-3">
+                  Total de Ordens de Serviço vinculadas a cada funcionário no período.
+                </p>
+                {rankingFuncionariosQtd.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-10">
+                    Nenhum funcionário vinculado a OS no período.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {rankingFuncionariosQtd.map((f: any, idx) => {
+                      const max = rankingFuncionariosQtd[0]?.total || 1;
+                      const pct = (f.total / max) * 100;
+                      return (
+                        <div key={f.nome + idx} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs gap-2">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <span className={cn(
+                                "shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold",
+                                idx === 0 && "bg-amber-100 text-amber-700",
+                                idx === 1 && "bg-slate-200 text-slate-700",
+                                idx === 2 && "bg-orange-100 text-orange-700",
+                                idx > 2 && "bg-muted text-muted-foreground",
+                              )}>{idx + 1}</span>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-medium truncate">{f.nome}</p>
+                                <p className="text-[10px] text-muted-foreground truncate">{f.cargo}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <Badge variant="outline" className="text-[10px] h-5 bg-blue-50 text-blue-700 border-blue-200" title="Concluídas">C {f.concluidas}</Badge>
+                              <Badge variant="outline" className="text-[10px] h-5 bg-slate-50 text-slate-700 border-slate-200" title="Abertas/Em andamento">A {f.abertas}</Badge>
+                              <span className="font-bold text-foreground w-10 text-right tabular-nums">{f.total}</span>
+                            </div>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full" style={{ width: `${pct}%` }} />
+                          </div>
                         </div>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full" style={{ width: `${pct}%` }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
