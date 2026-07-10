@@ -229,6 +229,27 @@ export default function DashboardSolicitacoes() {
     return Object.values(map).sort((a, b) => b.pontos - a.pontos || b.concluidas - a.concluidas).slice(0, 10);
   }, [osFiltradas]);
 
+  const rankingFuncionariosQtd = useMemo(() => {
+    const map: Record<string, {
+      nome: string; cargo: string; total: number; concluidas: number; abertas: number;
+    }> = {};
+    osFiltradas.forEach(o => {
+      const profs = o.profissionais || [];
+      profs.forEach((p: any) => {
+        const id = p.funcionarioId || p.id || p.nome;
+        if (!id) return;
+        if (!map[id]) map[id] = { nome: p.nome || "Sem nome", cargo: p.cargo || "-", total: 0, concluidas: 0, abertas: 0 };
+        map[id].total += 1;
+        if (o.situacao === "Validada" || o.situacao === "Executada" || o.situacao === "Serviço Confirmado") {
+          map[id].concluidas += 1;
+        } else {
+          map[id].abertas += 1;
+        }
+      });
+    });
+    return Object.values(map).sort((a, b) => b.total - a.total || b.concluidas - a.concluidas).slice(0, 10);
+  }, [osFiltradas]);
+
   // === Tipo de OS distribution ===
   const tipoOSData = useMemo(() => {
     const counts: Record<string, number> = {};
