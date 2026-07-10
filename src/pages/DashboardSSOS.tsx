@@ -329,7 +329,7 @@ export default function DashboardSSOS() {
 
   useEffect(() => {
     setOsDetalhePage(1);
-  }, [osDetalheSearch]);
+  }, [osDetalheSearch, osDetalheSort]);
 
   // === Tipo de OS distribution ===
   const tipoOSData = useMemo(() => {
