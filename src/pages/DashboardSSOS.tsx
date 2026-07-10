@@ -1172,6 +1172,60 @@ export default function DashboardSSOS() {
           })()}
         </TabsContent>
       </Tabs>
+
+      {/* Modal: OS do funcionário no período */}
+      <Dialog open={!!osDetalheFuncionario} onOpenChange={(o) => !o && setOsDetalheFuncionario(null)}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" />
+              OS de {osDetalheFuncionario?.nome}
+            </DialogTitle>
+            <DialogDescription>
+              {osDetalheFuncionario?.cargo} · {osDoFuncionarioSelecionado.length} OS no período
+              {dateFrom || dateTo ? (
+                <> ({dateFrom ? format(dateFrom, "dd/MM/yyyy") : "—"} a {dateTo ? format(dateTo, "dd/MM/yyyy") : "—"})</>
+              ) : " (todos os períodos)"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-auto flex-1">
+            {osDoFuncionarioSelecionado.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-10">Nenhuma OS encontrada.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-24">Número</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Serviço</TableHead>
+                    <TableHead className="w-32">Situação</TableHead>
+                    <TableHead className="w-24">Complexidade</TableHead>
+                    <TableHead className="w-32">Início</TableHead>
+                    <TableHead className="w-32">Término</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {osDoFuncionarioSelecionado.map((o: any) => (
+                    <TableRow key={o.id}>
+                      <TableCell className="font-medium">{formatNumeroAno(o.numero, o.createdAt || o.dataInicio)}</TableCell>
+                      <TableCell className="truncate max-w-[220px]">{o.clienteNome}</TableCell>
+                      <TableCell className="truncate max-w-[280px]">{o.servico || o.descricaoServicos || "-"}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[10px]">{o.situacao}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[10px]">{o.complexidade || "-"}</Badge>
+                      </TableCell>
+                      <TableCell className="text-xs">{o.dataInicio ? format(parseISO(o.dataInicio), "dd/MM/yyyy") : "-"}</TableCell>
+                      <TableCell className="text-xs">{o.dataTermino ? format(parseISO(o.dataTermino), "dd/MM/yyyy") : "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
 
   );
