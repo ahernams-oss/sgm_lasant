@@ -21,6 +21,7 @@ const emptyFaturamento: Omit<Faturamento, "id"> = {
   xmlNfNome: "",
   xmlNfConteudo: "",
   numeroNf: "",
+  processoNf: "",
   chaveNf: "",
   numeroMedicao: "",
   descricao: "",
@@ -359,6 +360,10 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
           <label className="field-label">Nº Nota Fiscal</label>
           <Input placeholder="Nº da NF" value={form.numeroNf} onChange={(e) => update("numeroNf", e.target.value)} />
         </div>
+        <div>
+          <label className="field-label">Processo da NF</label>
+          <Input placeholder="Nº do processo" value={form.processoNf || ""} onChange={(e) => update("processoNf", e.target.value)} />
+        </div>
         <div className="sm:col-span-2 md:col-span-3">
           <label className="field-label">Chave da Nota Fiscal</label>
           <Input placeholder="Chave de acesso (44 dígitos)" maxLength={44} value={form.chaveNf} onChange={(e) => update("chaveNf", e.target.value.replace(/\D/g, ""))} />
@@ -471,6 +476,9 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
                 <p className="text-muted-foreground tabular-nums">
                   {f.periodoInicio ? new Date(f.periodoInicio + "T00:00:00").toLocaleDateString("pt-BR") : "—"} a{" "}
                   {f.periodoFim ? new Date(f.periodoFim + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
+                </p>
+                <p className="text-muted-foreground">
+                  NF: {f.numeroNf || "—"} {f.processoNf ? `| Processo: ${f.processoNf}` : ""}
                 </p>
                 <p className="text-muted-foreground">Bruto: {formatCurrency(f.valorBruto)}</p>
                 <p className="text-muted-foreground">Líquido: {formatCurrency(f.valorLiquido)}</p>
