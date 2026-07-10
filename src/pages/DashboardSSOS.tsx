@@ -232,14 +232,14 @@ export default function DashboardSSOS() {
   // === Ranking de Funcionários por Quantidade de OS ===
   const rankingFuncionariosQtd = useMemo(() => {
     const map: Record<string, {
-      nome: string; cargo: string; total: number; concluidas: number; abertas: number;
+      id: string; nome: string; cargo: string; total: number; concluidas: number; abertas: number;
     }> = {};
     osFiltradas.forEach(o => {
       const profs = o.profissionais || [];
       profs.forEach((p: any) => {
         const id = p.funcionarioId || p.id || p.nome;
         if (!id) return;
-        if (!map[id]) map[id] = { nome: p.nome || "Sem nome", cargo: p.cargo || "-", total: 0, concluidas: 0, abertas: 0 };
+        if (!map[id]) map[id] = { id, nome: p.nome || "Sem nome", cargo: p.cargo || "-", total: 0, concluidas: 0, abertas: 0 };
         map[id].total += 1;
         if (o.situacao === "Validada" || o.situacao === "Executada" || o.situacao === "Serviço Confirmado") {
           map[id].concluidas += 1;
@@ -252,6 +252,13 @@ export default function DashboardSSOS() {
   }, [osFiltradas]);
 
   const [funcionarioRankingTab, setFuncionarioRankingTab] = useState<"pontos" | "quantidade">("pontos");
+  const [osDetalheFuncionario, setOsDetalheFuncionario] = useState<{ id: string; nome: string; cargo: string } | null>(null);
+
+  const osDoFuncionarioSelecionado = useMemo(() => {
+    if (!osDetalheFuncionario) return [];
+    const targetId = osDetalheFuncionario.id;
+    return osFiltradas.filter(o => (o.profissionais || []).some((p: any) => (p.funcionarioId || p.id || p.nome) === targetId));
+  }, [osFiltradas, osDetalheFuncionario]);
 
   // === Tipo de OS distribution ===
   const tipoOSData = useMemo(() => {
