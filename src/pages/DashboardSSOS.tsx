@@ -1233,9 +1233,27 @@ export default function DashboardSSOS() {
               className="h-9"
             />
           </div>
+          <div className="flex items-center justify-between pb-2">
+            <Badge variant="secondary" className="text-xs">
+              {osDoFuncionarioFiltradas.length} OS encontrada{osDoFuncionarioFiltradas.length === 1 ? "" : "s"}
+            </Badge>
+            {osDetalheSearch.trim() && (
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setOsDetalheSearch("")}>
+                Limpar busca
+              </Button>
+            )}
+          </div>
           <div className="overflow-auto flex-1">
             {osDoFuncionarioFiltradas.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-10">Nenhuma OS encontrada.</p>
+              <div className="flex flex-col items-center justify-center text-center py-12 text-muted-foreground">
+                <ClipboardList className="h-10 w-10 mb-3 opacity-40" />
+                <p className="text-sm font-medium">Nenhum resultado</p>
+                <p className="text-xs mt-1 max-w-sm">
+                  {osDetalheSearch.trim()
+                    ? "A busca não retornou nenhuma OS para os termos informados."
+                    : "Nenhuma OS vinculada a este funcionário no período selecionado."}
+                </p>
+              </div>
             ) : (
               <Table>
                 <TableHeader>
