@@ -268,6 +268,7 @@ export default function DashboardSSOS() {
   const [osDetalheSearch, setOsDetalheSearch] = useState("");
   const [osDetalhePage, setOsDetalhePage] = useState(1);
   const osDetalhePageSize = 10;
+  const [osDetalheSort, setOsDetalheSort] = useState<{ field: "numero" | "cliente" | "dataInicio" | "dataTermino"; direction: "asc" | "desc" } | null>(null);
 
   useEffect(() => {
     setOsDetalheSearch("");
