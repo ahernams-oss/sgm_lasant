@@ -270,6 +270,21 @@ export default function DashboardSSOS() {
   const osDetalhePageSize = 10;
   const [osDetalheSort, setOsDetalheSort] = useState<{ field: "numero" | "cliente" | "dataInicio" | "dataTermino"; direction: "asc" | "desc" } | null>(null);
 
+  const cycleSort = (field: "numero" | "cliente" | "dataInicio" | "dataTermino") => {
+    setOsDetalheSort((prev) => {
+      if (!prev || prev.field !== field) return { field, direction: "asc" };
+      if (prev.direction === "asc") return { field, direction: "desc" };
+      return null;
+    });
+  };
+
+  const SortIcon = ({ field }: { field: "numero" | "cliente" | "dataInicio" | "dataTermino" }) => {
+    if (!osDetalheSort || osDetalheSort.field !== field) return <ArrowUpDown className="h-3 w-3 text-muted-foreground/60" />;
+    return osDetalheSort.direction === "asc"
+      ? <ArrowUp className="h-3 w-3 text-primary" />
+      : <ArrowDown className="h-3 w-3 text-primary" />;
+  };
+
   useEffect(() => {
     setOsDetalheSearch("");
     setOsDetalhePage(1);
