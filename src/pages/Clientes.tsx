@@ -484,6 +484,10 @@ const Clientes = () => {
 
           const handleSaveContrato = () => {
             if (!contratoForm.numero.trim()) { toast.error("Informe o número do contrato."); return; }
+            const cbsError = validarPercentual(contratoForm.cbs, "CBS");
+            const ibsError = validarPercentual(contratoForm.ibs, "IBS");
+            setContratoErrors({ cbs: cbsError, ibs: ibsError });
+            if (cbsError || ibsError) { toast.error("Corrija os campos de porcentagem antes de salvar."); return; }
             if (editingContratoId) {
               const updated = contratos.map(ct => ct.id === editingContratoId ? { ...ct, ...contratoForm } : ct);
               updateCliente(contratosClienteId, { contratos: updated });
@@ -494,6 +498,7 @@ const Clientes = () => {
               toast.success("Contrato adicionado!");
             }
             setContratoForm(emptyContrato);
+            setContratoErrors({});
             setEditingContratoId(null);
           };
 
