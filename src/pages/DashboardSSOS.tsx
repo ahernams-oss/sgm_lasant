@@ -361,6 +361,7 @@ export default function DashboardSSOS() {
       tipoOS: tipoOSData,
       rankingClientes,
       rankingFuncionarios: rankingFuncionarios as any,
+      rankingFuncionariosQtd: rankingFuncionariosQtd as any,
     };
   };
 
