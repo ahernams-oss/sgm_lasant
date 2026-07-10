@@ -154,8 +154,18 @@ const Clientes = () => {
    const [contratosClienteId, setContratosClienteId] = useState<string | null>(null);
   const emptyContrato = { numero: "", numeroProcesso: "", descricao: "", dataInicio: "", dataFim: "", bdi: "", valorBase: "", valorBase2: "", valorBase3: "", maoDeObraMensal: "", maoDeObraAnual: "", maoDeObraContratual: "", mesSco: "", anoSco: "", valorContrato: "", inss: "", pis: "", cofins: "", csll: "", irrf: "", iss: "", cbs: "", ibs: "", meta1: "", meta2: "", meta3: "" };
   const [contratoForm, setContratoForm] = useState(emptyContrato);
+  const [contratoErrors, setContratoErrors] = useState<{ cbs?: string; ibs?: string }>({});
   const [editingContratoId, setEditingContratoId] = useState<string | null>(null);
   const [faturamentoContratoId, setFaturamentoContratoId] = useState<string | null>(null);
+
+  const validarPercentual = (valor: string, nome: string): string | undefined => {
+    if (!valor.trim()) return undefined;
+    const num = Number(valor.replace(",", "."));
+    if (Number.isNaN(num)) return `${nome} deve ser um número.`;
+    if (num < 0 || num > 100) return `${nome} deve estar entre 0 e 100.`;
+    return undefined;
+  };
+
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { deleteId: deleteContratoId, requestDelete: requestDeleteContrato, cancelDelete: cancelDeleteContrato } = useDoubleConfirmDelete();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -474,6 +484,10 @@ const Clientes = () => {
 
           const handleSaveContrato = () => {
             if (!contratoForm.numero.trim()) { toast.error("Informe o número do contrato."); return; }
+            const cbsError = validarPercentual(contratoForm.cbs, "CBS");
+            const ibsError = validarPercentual(contratoForm.ibs, "IBS");
+            setContratoErrors({ cbs: cbsError, ibs: ibsError });
+            if (cbsError || ibsError) { toast.error("Corrija os campos de porcentagem antes de salvar."); return; }
             if (editingContratoId) {
               const updated = contratos.map(ct => ct.id === editingContratoId ? { ...ct, ...contratoForm } : ct);
               updateCliente(contratosClienteId, { contratos: updated });
@@ -484,6 +498,7 @@ const Clientes = () => {
               toast.success("Contrato adicionado!");
             }
             setContratoForm(emptyContrato);
+            setContratoErrors({});
             setEditingContratoId(null);
           };
 
@@ -491,6 +506,7 @@ const Clientes = () => {
             setEditingContratoId(ct.id);
             const { id, ...rest } = ct;
             setContratoForm({ ...emptyContrato, ...rest, numeroProcesso: rest.numeroProcesso || "" });
+            setContratoErrors({});
           };
 
           const handleDeleteContrato = (ctId: string) => {
@@ -541,8 +557,14 @@ const Clientes = () => {
                 <Input type="number" step="0.01" placeholder="CSLL (%)" value={contratoForm.csll} onChange={e => setContratoForm(p => ({ ...p, csll: e.target.value }))} />
                 <Input type="number" step="0.01" placeholder="IRRF (%)" value={contratoForm.irrf} onChange={e => setContratoForm(p => ({ ...p, irrf: e.target.value }))} />
                 <Input type="number" step="0.01" placeholder="ISS (%)" value={contratoForm.iss} onChange={e => setContratoForm(p => ({ ...p, iss: e.target.value }))} />
-                <Input type="number" step="0.01" placeholder="CBS (%)" value={contratoForm.cbs} onChange={e => setContratoForm(p => ({ ...p, cbs: e.target.value }))} />
-                <Input type="number" step="0.01" placeholder="IBS (%)" value={contratoForm.ibs} onChange={e => setContratoForm(p => ({ ...p, ibs: e.target.value }))} />
+                <div>
+                  <Input type="number" step="0.01" placeholder="CBS (%)" value={contratoForm.cbs} onChange={e => { setContratoForm(p => ({ ...p, cbs: e.target.value })); setContratoErrors(prev => ({ ...prev, cbs: validarPercentual(e.target.value, "CBS") })); }} />
+                  {contratoErrors.cbs && <p className="text-xs text-destructive mt-1">{contratoErrors.cbs}</p>}
+                </div>
+                <div>
+                  <Input type="number" step="0.01" placeholder="IBS (%)" value={contratoForm.ibs} onChange={e => { setContratoForm(p => ({ ...p, ibs: e.target.value })); setContratoErrors(prev => ({ ...prev, ibs: validarPercentual(e.target.value, "IBS") })); }} />
+                  {contratoErrors.ibs && <p className="text-xs text-destructive mt-1">{contratoErrors.ibs}</p>}
+                </div>
                 <Input type="number" step="0.01" placeholder="Meta 1 (R$)" value={contratoForm.meta1} onChange={e => setContratoForm(p => ({ ...p, meta1: e.target.value }))} />
                 <Input type="number" step="0.01" placeholder="Meta 2 (R$)" value={contratoForm.meta2} onChange={e => setContratoForm(p => ({ ...p, meta2: e.target.value }))} />
                 <Input type="number" step="0.01" placeholder="Meta 3 (R$)" value={contratoForm.meta3} onChange={e => setContratoForm(p => ({ ...p, meta3: e.target.value }))} />
