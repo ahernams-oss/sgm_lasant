@@ -22,6 +22,7 @@ import {
   ClipboardList, Wrench, Filter, X, CalendarIcon, TrendingUp, Trophy, Users,
   CheckCircle2, Clock, AlertTriangle, Sparkles, Building2, BarChart3, Activity,
   FileDown, FileSpreadsheet, DollarSign, Calculator, UserCheck, ArrowRight, GitBranch,
+  ArrowUpDown, ArrowUp, ArrowDown,
 } from "lucide-react";
 import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
@@ -267,26 +268,72 @@ export default function DashboardSSOS() {
   const [osDetalheSearch, setOsDetalheSearch] = useState("");
   const [osDetalhePage, setOsDetalhePage] = useState(1);
   const osDetalhePageSize = 10;
+  const [osDetalheSort, setOsDetalheSort] = useState<{ field: "numero" | "cliente" | "dataInicio" | "dataTermino"; direction: "asc" | "desc" } | null>(null);
+
+  const cycleSort = (field: "numero" | "cliente" | "dataInicio" | "dataTermino") => {
+    setOsDetalheSort((prev) => {
+      if (!prev || prev.field !== field) return { field, direction: "asc" };
+      if (prev.direction === "asc") return { field, direction: "desc" };
+      return null;
+    });
+  };
+
+  const SortIcon = ({ field }: { field: "numero" | "cliente" | "dataInicio" | "dataTermino" }) => {
+    if (!osDetalheSort || osDetalheSort.field !== field) return <ArrowUpDown className="h-3 w-3 text-muted-foreground/60" />;
+    return osDetalheSort.direction === "asc"
+      ? <ArrowUp className="h-3 w-3 text-primary" />
+      : <ArrowDown className="h-3 w-3 text-primary" />;
+  };
 
   useEffect(() => {
     setOsDetalheSearch("");
     setOsDetalhePage(1);
+    setOsDetalheSort(null);
   }, [osDetalheFuncionario]);
 
   const osDoFuncionarioFiltradas = useMemo(() => {
     const q = osDetalheSearch.trim().toLowerCase();
-    if (!q) return osDoFuncionarioSelecionado;
-    return osDoFuncionarioSelecionado.filter((o: any) => {
-      const numero = formatNumeroAno(o.numero, o.createdAt || o.dataInicio).toLowerCase();
-      return (
-        numero.includes(q) ||
-        (o.clienteNome || "").toLowerCase().includes(q) ||
-        (o.servico || o.descricaoServicos || "").toLowerCase().includes(q) ||
-        (o.situacao || "").toLowerCase().includes(q) ||
-        (o.complexidade || "").toLowerCase().includes(q)
-      );
-    });
-  }, [osDoFuncionarioSelecionado, osDetalheSearch]);
+    const base = !q
+      ? [...osDoFuncionarioSelecionado]
+      : osDoFuncionarioSelecionado.filter((o: any) => {
+          const numero = formatNumeroAno(o.numero, o.createdAt || o.dataInicio).toLowerCase();
+          return (
+            numero.includes(q) ||
+            (o.clienteNome || "").toLowerCase().includes(q) ||
+            (o.servico || o.descricaoServicos || "").toLowerCase().includes(q) ||
+            (o.situacao || "").toLowerCase().includes(q) ||
+            (o.complexidade || "").toLowerCase().includes(q)
+          );
+        });
+
+    if (osDetalheSort) {
+      const { field, direction } = osDetalheSort;
+      const mult = direction === "asc" ? 1 : -1;
+      base.sort((a: any, b: any) => {
+        if (field === "numero") {
+          const na = formatNumeroAno(a.numero, a.createdAt || a.dataInicio);
+          const nb = formatNumeroAno(b.numero, b.createdAt || b.dataInicio);
+          return na.localeCompare(nb) * mult;
+        }
+        if (field === "cliente") {
+          const ca = (a.clienteNome || "").toLowerCase();
+          const cb = (b.clienteNome || "").toLowerCase();
+          return ca.localeCompare(cb) * mult;
+        }
+        if (field === "dataInicio" || field === "dataTermino") {
+          const da = parseDate(a[field]);
+          const db = parseDate(b[field]);
+          if (!da && !db) return 0;
+          if (!da) return 1 * mult;
+          if (!db) return -1 * mult;
+          return (da.getTime() - db.getTime()) * mult;
+        }
+        return 0;
+      });
+    }
+
+    return base;
+  }, [osDoFuncionarioSelecionado, osDetalheSearch, osDetalheSort]);
 
   const osDetalheTotalPages = Math.max(1, Math.ceil(osDoFuncionarioFiltradas.length / osDetalhePageSize));
   const osDetalhePageSafe = Math.min(osDetalhePage, osDetalheTotalPages);
@@ -297,7 +344,7 @@ export default function DashboardSSOS() {
 
   useEffect(() => {
     setOsDetalhePage(1);
-  }, [osDetalheSearch]);
+  }, [osDetalheSearch, osDetalheSort]);
 
   // === Tipo de OS distribution ===
   const tipoOSData = useMemo(() => {
@@ -1258,13 +1305,21 @@ export default function DashboardSSOS() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-24">Número</TableHead>
-                    <TableHead>Cliente</TableHead>
+                    <TableHead className="w-24 cursor-pointer select-none" onClick={() => cycleSort("numero")}>
+                      <span className="flex items-center gap-1">Número <SortIcon field="numero" /></span>
+                    </TableHead>
+                    <TableHead className="cursor-pointer select-none" onClick={() => cycleSort("cliente")}>
+                      <span className="flex items-center gap-1">Cliente <SortIcon field="cliente" /></span>
+                    </TableHead>
                     <TableHead>Serviço</TableHead>
                     <TableHead className="w-32">Situação</TableHead>
                     <TableHead className="w-24">Complexidade</TableHead>
-                    <TableHead className="w-32">Início</TableHead>
-                    <TableHead className="w-32">Término</TableHead>
+                    <TableHead className="w-32 cursor-pointer select-none" onClick={() => cycleSort("dataInicio")}>
+                      <span className="flex items-center gap-1">Início <SortIcon field="dataInicio" /></span>
+                    </TableHead>
+                    <TableHead className="w-32 cursor-pointer select-none" onClick={() => cycleSort("dataTermino")}>
+                      <span className="flex items-center gap-1">Término <SortIcon field="dataTermino" /></span>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
