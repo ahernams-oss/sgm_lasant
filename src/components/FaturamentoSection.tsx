@@ -21,6 +21,7 @@ const emptyFaturamento: Omit<Faturamento, "id"> = {
   xmlNfNome: "",
   xmlNfConteudo: "",
   numeroNf: "",
+  processoNf: "",
   chaveNf: "",
   numeroMedicao: "",
   descricao: "",
@@ -358,6 +359,10 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
         <div>
           <label className="field-label">Nº Nota Fiscal</label>
           <Input placeholder="Nº da NF" value={form.numeroNf} onChange={(e) => update("numeroNf", e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Processo da NF</label>
+          <Input placeholder="Nº do processo" value={form.processoNf || ""} onChange={(e) => update("processoNf", e.target.value)} />
         </div>
         <div className="sm:col-span-2 md:col-span-3">
           <label className="field-label">Chave da Nota Fiscal</label>
