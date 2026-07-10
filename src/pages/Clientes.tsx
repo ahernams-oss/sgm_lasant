@@ -541,6 +541,8 @@ const Clientes = () => {
                 <Input type="number" step="0.01" placeholder="CSLL (%)" value={contratoForm.csll} onChange={e => setContratoForm(p => ({ ...p, csll: e.target.value }))} />
                 <Input type="number" step="0.01" placeholder="IRRF (%)" value={contratoForm.irrf} onChange={e => setContratoForm(p => ({ ...p, irrf: e.target.value }))} />
                 <Input type="number" step="0.01" placeholder="ISS (%)" value={contratoForm.iss} onChange={e => setContratoForm(p => ({ ...p, iss: e.target.value }))} />
+                <Input type="number" step="0.01" placeholder="CBS (%)" value={contratoForm.cbs} onChange={e => setContratoForm(p => ({ ...p, cbs: e.target.value }))} />
+                <Input type="number" step="0.01" placeholder="IBS (%)" value={contratoForm.ibs} onChange={e => setContratoForm(p => ({ ...p, ibs: e.target.value }))} />
                 <Input type="number" step="0.01" placeholder="Meta 1 (R$)" value={contratoForm.meta1} onChange={e => setContratoForm(p => ({ ...p, meta1: e.target.value }))} />
                 <Input type="number" step="0.01" placeholder="Meta 2 (R$)" value={contratoForm.meta2} onChange={e => setContratoForm(p => ({ ...p, meta2: e.target.value }))} />
                 <Input type="number" step="0.01" placeholder="Meta 3 (R$)" value={contratoForm.meta3} onChange={e => setContratoForm(p => ({ ...p, meta3: e.target.value }))} />
