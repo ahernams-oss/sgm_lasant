@@ -358,6 +358,7 @@ export default function DashboardSolicitacoes() {
       tipoOS: tipoOSData,
       rankingClientes,
       rankingFuncionarios: rankingFuncionarios as any,
+      rankingFuncionariosQtd: rankingFuncionariosQtd as any,
     };
   };
 
