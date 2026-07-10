@@ -929,7 +929,15 @@ export default function DashboardSSOS() {
                       const max = rankingFuncionariosQtd[0]?.total || 1;
                       const pct = (f.total / max) * 100;
                       return (
-                        <div key={f.nome + idx} className="space-y-1">
+                        <div
+                          key={f.nome + idx}
+                          className="space-y-1 cursor-pointer rounded-md px-1 py-0.5 hover:bg-muted/60 transition-colors"
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setOsDetalheFuncionario({ id: f.id, nome: f.nome, cargo: f.cargo })}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setOsDetalheFuncionario({ id: f.id, nome: f.nome, cargo: f.cargo }); }}
+                          title="Clique para ver as OS deste funcionário no período"
+                        >
                           <div className="flex items-center justify-between text-xs gap-2">
                             <div className="flex items-center gap-2 min-w-0 flex-1">
                               <span className={cn(
