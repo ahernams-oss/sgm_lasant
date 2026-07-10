@@ -592,6 +592,8 @@ const Clientes = () => {
                           <p className="text-muted-foreground">CSLL: {ct.csll ? `${ct.csll}%` : "—"}</p>
                           <p className="text-muted-foreground">IRRF: {ct.irrf ? `${ct.irrf}%` : "—"}</p>
                           <p className="text-muted-foreground">ISS: {ct.iss ? `${ct.iss}%` : "—"}</p>
+                          <p className="text-muted-foreground">CBS: {(ct as any).cbs ? `${(ct as any).cbs}%` : "—"}</p>
+                          <p className="text-muted-foreground">IBS: {(ct as any).ibs ? `${(ct as any).ibs}%` : "—"}</p>
                           <p className="text-muted-foreground">Meta 1: {ct.meta1 ? `R$ ${ct.meta1}` : "—"}</p>
                           <p className="text-muted-foreground">Meta 2: {ct.meta2 ? `R$ ${ct.meta2}` : "—"}</p>
                           <p className="text-muted-foreground">Meta 3: {ct.meta3 ? `R$ ${ct.meta3}` : "—"}</p>
