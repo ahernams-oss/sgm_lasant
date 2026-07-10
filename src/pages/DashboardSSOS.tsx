@@ -277,18 +277,47 @@ export default function DashboardSSOS() {
 
   const osDoFuncionarioFiltradas = useMemo(() => {
     const q = osDetalheSearch.trim().toLowerCase();
-    if (!q) return osDoFuncionarioSelecionado;
-    return osDoFuncionarioSelecionado.filter((o: any) => {
-      const numero = formatNumeroAno(o.numero, o.createdAt || o.dataInicio).toLowerCase();
-      return (
-        numero.includes(q) ||
-        (o.clienteNome || "").toLowerCase().includes(q) ||
-        (o.servico || o.descricaoServicos || "").toLowerCase().includes(q) ||
-        (o.situacao || "").toLowerCase().includes(q) ||
-        (o.complexidade || "").toLowerCase().includes(q)
-      );
-    });
-  }, [osDoFuncionarioSelecionado, osDetalheSearch]);
+    const base = !q
+      ? [...osDoFuncionarioSelecionado]
+      : osDoFuncionarioSelecionado.filter((o: any) => {
+          const numero = formatNumeroAno(o.numero, o.createdAt || o.dataInicio).toLowerCase();
+          return (
+            numero.includes(q) ||
+            (o.clienteNome || "").toLowerCase().includes(q) ||
+            (o.servico || o.descricaoServicos || "").toLowerCase().includes(q) ||
+            (o.situacao || "").toLowerCase().includes(q) ||
+            (o.complexidade || "").toLowerCase().includes(q)
+          );
+        });
+
+    if (osDetalheSort) {
+      const { field, direction } = osDetalheSort;
+      const mult = direction === "asc" ? 1 : -1;
+      base.sort((a: any, b: any) => {
+        if (field === "numero") {
+          const na = formatNumeroAno(a.numero, a.createdAt || a.dataInicio);
+          const nb = formatNumeroAno(b.numero, b.createdAt || b.dataInicio);
+          return na.localeCompare(nb) * mult;
+        }
+        if (field === "cliente") {
+          const ca = (a.clienteNome || "").toLowerCase();
+          const cb = (b.clienteNome || "").toLowerCase();
+          return ca.localeCompare(cb) * mult;
+        }
+        if (field === "dataInicio" || field === "dataTermino") {
+          const da = parseDate(a[field]);
+          const db = parseDate(b[field]);
+          if (!da && !db) return 0;
+          if (!da) return 1 * mult;
+          if (!db) return -1 * mult;
+          return (da.getTime() - db.getTime()) * mult;
+        }
+        return 0;
+      });
+    }
+
+    return base;
+  }, [osDoFuncionarioSelecionado, osDetalheSearch, osDetalheSort]);
 
   const osDetalheTotalPages = Math.max(1, Math.ceil(osDoFuncionarioFiltradas.length / osDetalhePageSize));
   const osDetalhePageSafe = Math.min(osDetalhePage, osDetalheTotalPages);
