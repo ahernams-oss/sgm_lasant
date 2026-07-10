@@ -273,6 +273,7 @@ export default function DashboardSSOS() {
   useEffect(() => {
     setOsDetalheSearch("");
     setOsDetalhePage(1);
+    setOsDetalheSort(null);
   }, [osDetalheFuncionario]);
 
   const osDoFuncionarioFiltradas = useMemo(() => {
