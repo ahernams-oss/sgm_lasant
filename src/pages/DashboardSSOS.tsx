@@ -1225,8 +1225,16 @@ export default function DashboardSSOS() {
               ) : " (todos os períodos)"}
             </DialogDescription>
           </DialogHeader>
+          <div className="flex items-center gap-2 pb-2">
+            <Input
+              placeholder="Buscar por número, cliente, serviço, situação..."
+              value={osDetalheSearch}
+              onChange={(e) => setOsDetalheSearch(e.target.value)}
+              className="h-9"
+            />
+          </div>
           <div className="overflow-auto flex-1">
-            {osDoFuncionarioSelecionado.length === 0 ? (
+            {osDoFuncionarioFiltradas.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-10">Nenhuma OS encontrada.</p>
             ) : (
               <Table>
@@ -1242,7 +1250,7 @@ export default function DashboardSSOS() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {osDoFuncionarioSelecionado.map((o: any) => (
+                  {osDoFuncionarioPagina.map((o: any) => (
                     <TableRow key={o.id}>
                       <TableCell className="font-medium">{formatNumeroAno(o.numero, o.createdAt || o.dataInicio)}</TableCell>
                       <TableCell className="truncate max-w-[220px]">{o.clienteNome}</TableCell>
@@ -1261,6 +1269,36 @@ export default function DashboardSSOS() {
               </Table>
             )}
           </div>
+          {osDoFuncionarioFiltradas.length > 0 && (
+            <div className="flex items-center justify-between pt-2 border-t text-xs text-muted-foreground">
+              <span>
+                Mostrando {(osDetalhePageSafe - 1) * osDetalhePageSize + 1}
+                {"–"}
+                {Math.min(osDetalhePageSafe * osDetalhePageSize, osDoFuncionarioFiltradas.length)} de {osDoFuncionarioFiltradas.length}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={osDetalhePageSafe <= 1}
+                  onClick={() => setOsDetalhePage((p) => Math.max(1, p - 1))}
+                >
+                  Anterior
+                </Button>
+                <span>
+                  Página {osDetalhePageSafe} de {osDetalheTotalPages}
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={osDetalhePageSafe >= osDetalheTotalPages}
+                  onClick={() => setOsDetalhePage((p) => Math.min(osDetalheTotalPages, p + 1))}
+                >
+                  Próxima
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
