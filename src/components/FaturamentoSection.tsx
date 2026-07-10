@@ -477,6 +477,9 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
                   {f.periodoInicio ? new Date(f.periodoInicio + "T00:00:00").toLocaleDateString("pt-BR") : "—"} a{" "}
                   {f.periodoFim ? new Date(f.periodoFim + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
                 </p>
+                <p className="text-muted-foreground">
+                  NF: {f.numeroNf || "—"} {f.processoNf ? `| Processo: ${f.processoNf}` : ""}
+                </p>
                 <p className="text-muted-foreground">Bruto: {formatCurrency(f.valorBruto)}</p>
                 <p className="text-muted-foreground">Líquido: {formatCurrency(f.valorLiquido)}</p>
                 <p className="text-muted-foreground">Variável: {formatCurrency(f.valorVariavel)}</p>
