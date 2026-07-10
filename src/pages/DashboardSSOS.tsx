@@ -9,6 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatNumeroAno } from "@/lib/formatNumero";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -232,14 +234,14 @@ export default function DashboardSSOS() {
   // === Ranking de Funcionários por Quantidade de OS ===
   const rankingFuncionariosQtd = useMemo(() => {
     const map: Record<string, {
-      nome: string; cargo: string; total: number; concluidas: number; abertas: number;
+      id: string; nome: string; cargo: string; total: number; concluidas: number; abertas: number;
     }> = {};
     osFiltradas.forEach(o => {
       const profs = o.profissionais || [];
       profs.forEach((p: any) => {
         const id = p.funcionarioId || p.id || p.nome;
         if (!id) return;
-        if (!map[id]) map[id] = { nome: p.nome || "Sem nome", cargo: p.cargo || "-", total: 0, concluidas: 0, abertas: 0 };
+        if (!map[id]) map[id] = { id, nome: p.nome || "Sem nome", cargo: p.cargo || "-", total: 0, concluidas: 0, abertas: 0 };
         map[id].total += 1;
         if (o.situacao === "Validada" || o.situacao === "Executada" || o.situacao === "Serviço Confirmado") {
           map[id].concluidas += 1;
@@ -252,6 +254,13 @@ export default function DashboardSSOS() {
   }, [osFiltradas]);
 
   const [funcionarioRankingTab, setFuncionarioRankingTab] = useState<"pontos" | "quantidade">("pontos");
+  const [osDetalheFuncionario, setOsDetalheFuncionario] = useState<{ id: string; nome: string; cargo: string } | null>(null);
+
+  const osDoFuncionarioSelecionado = useMemo(() => {
+    if (!osDetalheFuncionario) return [];
+    const targetId = osDetalheFuncionario.id;
+    return osFiltradas.filter(o => (o.profissionais || []).some((p: any) => (p.funcionarioId || p.id || p.nome) === targetId));
+  }, [osFiltradas, osDetalheFuncionario]);
 
   // === Tipo de OS distribution ===
   const tipoOSData = useMemo(() => {
@@ -920,7 +929,15 @@ export default function DashboardSSOS() {
                       const max = rankingFuncionariosQtd[0]?.total || 1;
                       const pct = (f.total / max) * 100;
                       return (
-                        <div key={f.nome + idx} className="space-y-1">
+                        <div
+                          key={f.nome + idx}
+                          className="space-y-1 cursor-pointer rounded-md px-1 py-0.5 hover:bg-muted/60 transition-colors"
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setOsDetalheFuncionario({ id: f.id, nome: f.nome, cargo: f.cargo })}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setOsDetalheFuncionario({ id: f.id, nome: f.nome, cargo: f.cargo }); }}
+                          title="Clique para ver as OS deste funcionário no período"
+                        >
                           <div className="flex items-center justify-between text-xs gap-2">
                             <div className="flex items-center gap-2 min-w-0 flex-1">
                               <span className={cn(
@@ -1155,6 +1172,60 @@ export default function DashboardSSOS() {
           })()}
         </TabsContent>
       </Tabs>
+
+      {/* Modal: OS do funcionário no período */}
+      <Dialog open={!!osDetalheFuncionario} onOpenChange={(o) => !o && setOsDetalheFuncionario(null)}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" />
+              OS de {osDetalheFuncionario?.nome}
+            </DialogTitle>
+            <DialogDescription>
+              {osDetalheFuncionario?.cargo} · {osDoFuncionarioSelecionado.length} OS no período
+              {dateFrom || dateTo ? (
+                <> ({dateFrom ? format(dateFrom, "dd/MM/yyyy") : "—"} a {dateTo ? format(dateTo, "dd/MM/yyyy") : "—"})</>
+              ) : " (todos os períodos)"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-auto flex-1">
+            {osDoFuncionarioSelecionado.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-10">Nenhuma OS encontrada.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-24">Número</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Serviço</TableHead>
+                    <TableHead className="w-32">Situação</TableHead>
+                    <TableHead className="w-24">Complexidade</TableHead>
+                    <TableHead className="w-32">Início</TableHead>
+                    <TableHead className="w-32">Término</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {osDoFuncionarioSelecionado.map((o: any) => (
+                    <TableRow key={o.id}>
+                      <TableCell className="font-medium">{formatNumeroAno(o.numero, o.createdAt || o.dataInicio)}</TableCell>
+                      <TableCell className="truncate max-w-[220px]">{o.clienteNome}</TableCell>
+                      <TableCell className="truncate max-w-[280px]">{o.servico || o.descricaoServicos || "-"}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[10px]">{o.situacao}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[10px]">{o.complexidade || "-"}</Badge>
+                      </TableCell>
+                      <TableCell className="text-xs">{o.dataInicio ? format(parseISO(o.dataInicio), "dd/MM/yyyy") : "-"}</TableCell>
+                      <TableCell className="text-xs">{o.dataTermino ? format(parseISO(o.dataTermino), "dd/MM/yyyy") : "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
 
   );
