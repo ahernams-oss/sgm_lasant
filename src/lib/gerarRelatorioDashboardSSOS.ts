@@ -314,6 +314,17 @@ export function gerarExcelDashboardSSOS(data: DashboardSSOSReport): XLSX.WorkBoo
   wsFunc["!cols"] = [{ wch: 5 }, { wch: 30 }, { wch: 22 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 10 }, { wch: 10 }];
   XLSX.utils.book_append_sheet(wb, wsFunc, "Ranking Funcionários");
 
+  // Ranking Funcionários por Quantidade de OS
+  const funcQtdRows: any[][] = [
+    ["#", "Funcionário", "Cargo", "OS Concluídas", "OS Abertas", "Total OS"],
+    ...data.rankingFuncionariosQtd.map((f, i) => [
+      i + 1, f.nome, f.cargo, f.concluidas, f.abertas, f.total,
+    ]),
+  ];
+  const wsFuncQtd = XLSX.utils.aoa_to_sheet(funcQtdRows);
+  wsFuncQtd["!cols"] = [{ wch: 5 }, { wch: 30 }, { wch: 22 }, { wch: 14 }, { wch: 12 }, { wch: 10 }];
+  XLSX.utils.book_append_sheet(wb, wsFuncQtd, "Ranking Qtd. OS");
+
   return wb;
 }
 
