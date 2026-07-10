@@ -152,7 +152,7 @@ const Clientes = () => {
   const [locaisClienteId, setLocaisClienteId] = useState<string | null>(null);
    const [locaisEntregaClienteId, setLocaisEntregaClienteId] = useState<string | null>(null);
    const [contratosClienteId, setContratosClienteId] = useState<string | null>(null);
-  const emptyContrato = { numero: "", numeroProcesso: "", descricao: "", dataInicio: "", dataFim: "", bdi: "", valorBase: "", valorBase2: "", valorBase3: "", maoDeObraMensal: "", maoDeObraAnual: "", maoDeObraContratual: "", mesSco: "", anoSco: "", valorContrato: "", inss: "", pis: "", cofins: "", csll: "", irrf: "", iss: "", meta1: "", meta2: "", meta3: "" };
+  const emptyContrato = { numero: "", numeroProcesso: "", descricao: "", dataInicio: "", dataFim: "", bdi: "", valorBase: "", valorBase2: "", valorBase3: "", maoDeObraMensal: "", maoDeObraAnual: "", maoDeObraContratual: "", mesSco: "", anoSco: "", valorContrato: "", inss: "", pis: "", cofins: "", csll: "", irrf: "", iss: "", cbs: "", ibs: "", meta1: "", meta2: "", meta3: "" };
   const [contratoForm, setContratoForm] = useState(emptyContrato);
   const [editingContratoId, setEditingContratoId] = useState<string | null>(null);
   const [faturamentoContratoId, setFaturamentoContratoId] = useState<string | null>(null);
@@ -541,6 +541,8 @@ const Clientes = () => {
                 <Input type="number" step="0.01" placeholder="CSLL (%)" value={contratoForm.csll} onChange={e => setContratoForm(p => ({ ...p, csll: e.target.value }))} />
                 <Input type="number" step="0.01" placeholder="IRRF (%)" value={contratoForm.irrf} onChange={e => setContratoForm(p => ({ ...p, irrf: e.target.value }))} />
                 <Input type="number" step="0.01" placeholder="ISS (%)" value={contratoForm.iss} onChange={e => setContratoForm(p => ({ ...p, iss: e.target.value }))} />
+                <Input type="number" step="0.01" placeholder="CBS (%)" value={contratoForm.cbs} onChange={e => setContratoForm(p => ({ ...p, cbs: e.target.value }))} />
+                <Input type="number" step="0.01" placeholder="IBS (%)" value={contratoForm.ibs} onChange={e => setContratoForm(p => ({ ...p, ibs: e.target.value }))} />
                 <Input type="number" step="0.01" placeholder="Meta 1 (R$)" value={contratoForm.meta1} onChange={e => setContratoForm(p => ({ ...p, meta1: e.target.value }))} />
                 <Input type="number" step="0.01" placeholder="Meta 2 (R$)" value={contratoForm.meta2} onChange={e => setContratoForm(p => ({ ...p, meta2: e.target.value }))} />
                 <Input type="number" step="0.01" placeholder="Meta 3 (R$)" value={contratoForm.meta3} onChange={e => setContratoForm(p => ({ ...p, meta3: e.target.value }))} />
@@ -590,6 +592,8 @@ const Clientes = () => {
                           <p className="text-muted-foreground">CSLL: {ct.csll ? `${ct.csll}%` : "—"}</p>
                           <p className="text-muted-foreground">IRRF: {ct.irrf ? `${ct.irrf}%` : "—"}</p>
                           <p className="text-muted-foreground">ISS: {ct.iss ? `${ct.iss}%` : "—"}</p>
+                          <p className="text-muted-foreground">CBS: {(ct as any).cbs ? `${(ct as any).cbs}%` : "—"}</p>
+                          <p className="text-muted-foreground">IBS: {(ct as any).ibs ? `${(ct as any).ibs}%` : "—"}</p>
                           <p className="text-muted-foreground">Meta 1: {ct.meta1 ? `R$ ${ct.meta1}` : "—"}</p>
                           <p className="text-muted-foreground">Meta 2: {ct.meta2 ? `R$ ${ct.meta2}` : "—"}</p>
                           <p className="text-muted-foreground">Meta 3: {ct.meta3 ? `R$ ${ct.meta3}` : "—"}</p>
