@@ -20,6 +20,9 @@ export interface DashboardSSOSReport {
     nome: string; cargo: string; total: number; concluidas: number; abertas: number;
     pontos: number; baixa: number; media: number; alta: number;
   }[];
+  rankingFuncionariosQtd: {
+    nome: string; cargo: string; total: number; concluidas: number; abertas: number;
+  }[];
 }
 
 // =================== PDF ===================
