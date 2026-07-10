@@ -213,6 +213,30 @@ export function gerarPdfDashboardSSOS(data: DashboardSSOSReport): jsPDF {
       },
       margin: { left: 14, right: 14 },
     });
+    y = (doc as any).lastAutoTable.finalY + 8;
+  }
+
+  // Ranking Funcionários por Quantidade de OS
+  if (data.rankingFuncionariosQtd.length) {
+    y = checkBreak(doc, y, data.rankingFuncionariosQtd.length * 8 + 20);
+    y = sectionTitle(doc, "Ranking de Funcionários por Quantidade de OS", y);
+    autoTable(doc, {
+      startY: y,
+      head: [["#", "Funcionário", "Cargo", "OS Concluídas", "OS Abertas", "Total OS"]],
+      body: data.rankingFuncionariosQtd.map((f, i) => [
+        String(i + 1), f.nome, f.cargo,
+        String(f.concluidas), String(f.abertas), String(f.total),
+      ]),
+      theme: "striped",
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: DARK_BLUE, textColor: WHITE, fontStyle: "bold", halign: "center" },
+      columnStyles: {
+        0: { cellWidth: 10, halign: "center" },
+        3: { halign: "center" }, 4: { halign: "center" },
+        5: { halign: "center", fontStyle: "bold", textColor: DARK_BLUE },
+      },
+      margin: { left: 14, right: 14 },
+    });
   }
 
   addFooter(doc, data.empresa);
