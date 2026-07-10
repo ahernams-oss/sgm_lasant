@@ -264,6 +264,41 @@ export default function DashboardSSOS() {
     return osFiltradas.filter(o => (o.profissionais || []).some((p: any) => (p.funcionarioId || p.id || p.nome) === targetId));
   }, [osFiltradas, osDetalheFuncionario]);
 
+  const [osDetalheSearch, setOsDetalheSearch] = useState("");
+  const [osDetalhePage, setOsDetalhePage] = useState(1);
+  const osDetalhePageSize = 10;
+
+  useEffect(() => {
+    setOsDetalheSearch("");
+    setOsDetalhePage(1);
+  }, [osDetalheFuncionario]);
+
+  const osDoFuncionarioFiltradas = useMemo(() => {
+    const q = osDetalheSearch.trim().toLowerCase();
+    if (!q) return osDoFuncionarioSelecionado;
+    return osDoFuncionarioSelecionado.filter((o: any) => {
+      const numero = formatNumeroAno(o.numero, o.createdAt || o.dataInicio).toLowerCase();
+      return (
+        numero.includes(q) ||
+        (o.clienteNome || "").toLowerCase().includes(q) ||
+        (o.servico || o.descricaoServicos || "").toLowerCase().includes(q) ||
+        (o.situacao || "").toLowerCase().includes(q) ||
+        (o.complexidade || "").toLowerCase().includes(q)
+      );
+    });
+  }, [osDoFuncionarioSelecionado, osDetalheSearch]);
+
+  const osDetalheTotalPages = Math.max(1, Math.ceil(osDoFuncionarioFiltradas.length / osDetalhePageSize));
+  const osDetalhePageSafe = Math.min(osDetalhePage, osDetalheTotalPages);
+  const osDoFuncionarioPagina = useMemo(() => {
+    const start = (osDetalhePageSafe - 1) * osDetalhePageSize;
+    return osDoFuncionarioFiltradas.slice(start, start + osDetalhePageSize);
+  }, [osDoFuncionarioFiltradas, osDetalhePageSafe]);
+
+  useEffect(() => {
+    setOsDetalhePage(1);
+  }, [osDetalheSearch]);
+
   // === Tipo de OS distribution ===
   const tipoOSData = useMemo(() => {
     const counts: Record<string, number> = {};
