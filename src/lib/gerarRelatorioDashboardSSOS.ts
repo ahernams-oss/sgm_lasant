@@ -20,6 +20,9 @@ export interface DashboardSSOSReport {
     nome: string; cargo: string; total: number; concluidas: number; abertas: number;
     pontos: number; baixa: number; media: number; alta: number;
   }[];
+  rankingFuncionariosQtd: {
+    nome: string; cargo: string; total: number; concluidas: number; abertas: number;
+  }[];
 }
 
 // =================== PDF ===================
@@ -210,6 +213,30 @@ export function gerarPdfDashboardSSOS(data: DashboardSSOSReport): jsPDF {
       },
       margin: { left: 14, right: 14 },
     });
+    y = (doc as any).lastAutoTable.finalY + 8;
+  }
+
+  // Ranking Funcionários por Quantidade de OS
+  if (data.rankingFuncionariosQtd.length) {
+    y = checkBreak(doc, y, data.rankingFuncionariosQtd.length * 8 + 20);
+    y = sectionTitle(doc, "Ranking de Funcionários por Quantidade de OS", y);
+    autoTable(doc, {
+      startY: y,
+      head: [["#", "Funcionário", "Cargo", "OS Concluídas", "OS Abertas", "Total OS"]],
+      body: data.rankingFuncionariosQtd.map((f, i) => [
+        String(i + 1), f.nome, f.cargo,
+        String(f.concluidas), String(f.abertas), String(f.total),
+      ]),
+      theme: "striped",
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: DARK_BLUE, textColor: WHITE, fontStyle: "bold", halign: "center" },
+      columnStyles: {
+        0: { cellWidth: 10, halign: "center" },
+        3: { halign: "center" }, 4: { halign: "center" },
+        5: { halign: "center", fontStyle: "bold", textColor: DARK_BLUE },
+      },
+      margin: { left: 14, right: 14 },
+    });
   }
 
   addFooter(doc, data.empresa);
@@ -286,6 +313,17 @@ export function gerarExcelDashboardSSOS(data: DashboardSSOSReport): XLSX.WorkBoo
   const wsFunc = XLSX.utils.aoa_to_sheet(funcRows);
   wsFunc["!cols"] = [{ wch: 5 }, { wch: 30 }, { wch: 22 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 10 }, { wch: 10 }];
   XLSX.utils.book_append_sheet(wb, wsFunc, "Ranking Funcionários");
+
+  // Ranking Funcionários por Quantidade de OS
+  const funcQtdRows: any[][] = [
+    ["#", "Funcionário", "Cargo", "OS Concluídas", "OS Abertas", "Total OS"],
+    ...data.rankingFuncionariosQtd.map((f, i) => [
+      i + 1, f.nome, f.cargo, f.concluidas, f.abertas, f.total,
+    ]),
+  ];
+  const wsFuncQtd = XLSX.utils.aoa_to_sheet(funcQtdRows);
+  wsFuncQtd["!cols"] = [{ wch: 5 }, { wch: 30 }, { wch: 22 }, { wch: 14 }, { wch: 12 }, { wch: 10 }];
+  XLSX.utils.book_append_sheet(wb, wsFuncQtd, "Ranking Qtd. OS");
 
   return wb;
 }
