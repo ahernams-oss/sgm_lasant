@@ -71,7 +71,7 @@ export default function Faturamentos() {
       if (q) {
         const hay = [
           r.clienteNome, r.contratoNumero,
-          r.faturamento.numeroNf, r.faturamento.numeroMedicao,
+          r.faturamento.numeroNf, r.faturamento.processoNf, r.faturamento.numeroMedicao,
           r.faturamento.descricao, r.faturamento.chaveNf,
         ].join(" ").toLowerCase();
         if (!hay.includes(q)) return false;
@@ -138,7 +138,7 @@ export default function Faturamentos() {
           <CardTitle className="text-base">Filtros</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-          <Input placeholder="Buscar (NF, medição, descrição...)" value={busca} onChange={(e) => { setBusca(e.target.value); setPage(1); }} />
+          <Input placeholder="Buscar (NF, processo, medição, descrição...)" value={busca} onChange={(e) => { setBusca(e.target.value); setPage(1); }} />
           <Select value={filtroCliente} onValueChange={(v) => { setFiltroCliente(v); setPage(1); }}>
             <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
             <SelectContent>
@@ -169,6 +169,7 @@ export default function Faturamentos() {
                 <TableHead className="px-6 whitespace-nowrap">Período</TableHead>
                 <TableHead className="px-6 whitespace-nowrap">Nº Medição</TableHead>
                 <TableHead className="px-6 whitespace-nowrap">Nº NF</TableHead>
+                <TableHead className="px-6 whitespace-nowrap">Processo da NF</TableHead>
                 <TableHead className="px-6 whitespace-nowrap">Emissão</TableHead>
                 <TableHead className="px-6 text-right whitespace-nowrap">Bruto</TableHead>
                 <TableHead className="px-6 text-right whitespace-nowrap">Líquido</TableHead>
@@ -181,7 +182,7 @@ export default function Faturamentos() {
             <TableBody>
               {pageRows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={podeVerFolha ? 12 : 10} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={podeVerFolha ? 13 : 11} className="text-center text-muted-foreground py-8">
                     Nenhum faturamento encontrado.
                   </TableCell>
                 </TableRow>
@@ -193,6 +194,7 @@ export default function Faturamentos() {
                     <TableCell className="px-6 py-3 whitespace-nowrap tabular-nums">{formatDate(r.faturamento.periodoInicio)} a {formatDate(r.faturamento.periodoFim)}</TableCell>
                     <TableCell className="px-6 py-3 whitespace-nowrap">{r.faturamento.numeroMedicao || "—"}</TableCell>
                     <TableCell className="px-6 py-3 whitespace-nowrap">{r.faturamento.numeroNf || "—"}</TableCell>
+                    <TableCell className="px-6 py-3 whitespace-nowrap">{r.faturamento.processoNf || "—"}</TableCell>
                     <TableCell className="px-6 py-3 whitespace-nowrap">{formatDate(r.faturamento.dataEmissaoNf)}</TableCell>
                     <TableCell className="px-6 py-3 text-right tabular-nums whitespace-nowrap">{formatCurrency(r.faturamento.valorBruto)}</TableCell>
                     <TableCell className="px-6 py-3 text-right tabular-nums whitespace-nowrap">{formatCurrency(r.faturamento.valorLiquido)}</TableCell>
