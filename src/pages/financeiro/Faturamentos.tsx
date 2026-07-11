@@ -182,7 +182,7 @@ export default function Faturamentos() {
             <TableBody>
               {pageRows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={podeVerFolha ? 12 : 10} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={podeVerFolha ? 13 : 11} className="text-center text-muted-foreground py-8">
                     Nenhum faturamento encontrado.
                   </TableCell>
                 </TableRow>
@@ -194,6 +194,7 @@ export default function Faturamentos() {
                     <TableCell className="px-6 py-3 whitespace-nowrap tabular-nums">{formatDate(r.faturamento.periodoInicio)} a {formatDate(r.faturamento.periodoFim)}</TableCell>
                     <TableCell className="px-6 py-3 whitespace-nowrap">{r.faturamento.numeroMedicao || "—"}</TableCell>
                     <TableCell className="px-6 py-3 whitespace-nowrap">{r.faturamento.numeroNf || "—"}</TableCell>
+                    <TableCell className="px-6 py-3 whitespace-nowrap">{r.faturamento.processoNf || "—"}</TableCell>
                     <TableCell className="px-6 py-3 whitespace-nowrap">{formatDate(r.faturamento.dataEmissaoNf)}</TableCell>
                     <TableCell className="px-6 py-3 text-right tabular-nums whitespace-nowrap">{formatCurrency(r.faturamento.valorBruto)}</TableCell>
                     <TableCell className="px-6 py-3 text-right tabular-nums whitespace-nowrap">{formatCurrency(r.faturamento.valorLiquido)}</TableCell>
