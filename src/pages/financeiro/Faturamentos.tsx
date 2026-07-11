@@ -138,7 +138,7 @@ export default function Faturamentos() {
           <CardTitle className="text-base">Filtros</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-          <Input placeholder="Buscar (NF, medição, descrição...)" value={busca} onChange={(e) => { setBusca(e.target.value); setPage(1); }} />
+          <Input placeholder="Buscar (NF, processo, medição, descrição...)" value={busca} onChange={(e) => { setBusca(e.target.value); setPage(1); }} />
           <Select value={filtroCliente} onValueChange={(v) => { setFiltroCliente(v); setPage(1); }}>
             <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
             <SelectContent>
