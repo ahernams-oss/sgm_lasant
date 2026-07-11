@@ -1335,7 +1335,7 @@ export default function JuridicoPage() {
                     <Label>Processo *</Label>
                     <Select value={decisaoForm.processo_id} onValueChange={v => {
                       const proc = processos.find(p => p.id === v);
-                      setDecisaoForm({ ...decisaoForm, processo_id: v, processo_numero: proc?.numero_processo || "", patrono_nome: decisaoForm.patrono_nome || proc?.advogado_autor || "" });
+                      setDecisaoForm({ ...decisaoForm, processo_id: v, processo_numero: proc?.numero_processo || "", patrono_nome: proc?.advogado_autor || "", patrono_oab: (proc as any)?.advogado_autor_oab || "" });
                     }}>
                       <SelectTrigger><SelectValue placeholder="Selecione o processo" /></SelectTrigger>
                       <SelectContent>
