@@ -169,6 +169,7 @@ export default function Faturamentos() {
                 <TableHead className="px-6 whitespace-nowrap">Período</TableHead>
                 <TableHead className="px-6 whitespace-nowrap">Nº Medição</TableHead>
                 <TableHead className="px-6 whitespace-nowrap">Nº NF</TableHead>
+                <TableHead className="px-6 whitespace-nowrap">Processo da NF</TableHead>
                 <TableHead className="px-6 whitespace-nowrap">Emissão</TableHead>
                 <TableHead className="px-6 text-right whitespace-nowrap">Bruto</TableHead>
                 <TableHead className="px-6 text-right whitespace-nowrap">Líquido</TableHead>
