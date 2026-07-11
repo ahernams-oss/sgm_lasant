@@ -508,13 +508,38 @@ export default function JuridicoPage() {
     const ativos = processos.filter(p => p.status === "Ativo").length;
     const emRecurso = processos.filter(p => p.status === "Recurso").length;
     const encerrados = processos.filter(p => ["Encerrado", "Arquivado", "Acordo"].includes(p.status)).length;
-    const totalProvisao = processos.reduce((s, p) => s + p.provisao_contabil, 0);
-    const totalValorCausa = processos.reduce((s, p) => s + p.valor_causa, 0);
+    const totalProvisao = processos.reduce((s, p) => s + (p.provisao_contabil || 0), 0);
+    const totalValorCausa = processos.reduce((s, p) => s + (p.valor_causa || 0), 0);
+    const totalAcordos = processos.reduce((s, p) => s + (p.valor_acordo || 0), 0);
+    const totalCondenacoes = processos.reduce((s, p) => s + (p.valor_condenacao || 0), 0);
+    const totalHonorarios = processos.reduce((s, p) => s + (p.honorarios || 0), 0);
+    const exposicaoTotal = totalProvisao + totalAcordos + totalCondenacoes;
+    const mediaProvisao = processos.length ? totalProvisao / processos.length : 0;
     const riscoAlto = processos.filter(p => p.risco === "Alto" && p.status === "Ativo").length;
     const porStatus = STATUS_OPTIONS.map(st => ({ status: st, count: processos.filter(p => p.status === st).length }));
     const porRisco = RISCO_OPTIONS.map(r => ({ risco: r, count: processos.filter(p => p.risco === r && p.status === "Ativo").length }));
     const proximasAudiencias = audiencias.filter(a => a.status === "Agendada" && new Date(a.data_audiencia + "T23:59:59") >= new Date()).slice(0, 5);
-    return { ativos, emRecurso, encerrados, totalProvisao, totalValorCausa, riscoAlto, porStatus, porRisco, proximasAudiencias };
+    // Por fase
+    const fasesMap = new Map<string, number>();
+    processos.forEach(p => { if (p.fase_processual) fasesMap.set(p.fase_processual, (fasesMap.get(p.fase_processual) || 0) + 1); });
+    const porFase = Array.from(fasesMap.entries()).map(([fase, count]) => ({ fase, count })).sort((a, b) => b.count - a.count);
+    // Distribuição por ano
+    const anoMap = new Map<string, number>();
+    processos.forEach(p => {
+      if (p.data_distribuicao) {
+        const ano = new Date(p.data_distribuicao).getFullYear().toString();
+        anoMap.set(ano, (anoMap.get(ano) || 0) + 1);
+      }
+    });
+    const porAno = Array.from(anoMap.entries()).map(([ano, count]) => ({ ano, count })).sort((a, b) => a.ano.localeCompare(b.ano));
+    // Top clientes
+    const cliMap = new Map<string, number>();
+    processos.forEach(p => { if (p.cliente_nome) cliMap.set(p.cliente_nome, (cliMap.get(p.cliente_nome) || 0) + 1); });
+    const topClientes = Array.from(cliMap.entries()).map(([nome, count]) => ({ nome, count })).sort((a, b) => b.count - a.count).slice(0, 5);
+    // Audiências próximos 30 dias
+    const hoje = new Date(); const em30 = new Date(); em30.setDate(em30.getDate() + 30);
+    const audiencias30d = audiencias.filter(a => a.status === "Agendada" && new Date(a.data_audiencia + "T12:00:00") >= hoje && new Date(a.data_audiencia + "T12:00:00") <= em30).length;
+    return { ativos, emRecurso, encerrados, totalProvisao, totalValorCausa, totalAcordos, totalCondenacoes, totalHonorarios, exposicaoTotal, mediaProvisao, riscoAlto, porStatus, porRisco, porFase, porAno, topClientes, audiencias30d, proximasAudiencias };
   }, [processos, audiencias]);
 
   const filtered = useMemo(() => {
