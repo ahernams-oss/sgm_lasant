@@ -37,7 +37,7 @@ const RISCO_OPTIONS = ["Baixo", "Médio", "Alto"];
 const FASE_OPTIONS = ["Inicial", "Instrução", "Julgamento", "Recursal", "Execução", "Encerrado"];
 const TIPO_ANDAMENTO = ["Audiência", "Petição", "Decisão", "Prazo", "Outros"];
 const TIPO_AUDIENCIA = ["Audiência Inicial", "Audiência de Instrução", "Audiência de Julgamento", "Audiência de Conciliação", "Audiência UNA", "Outros"];
-const TIPO_CONTATO = ["Advogado", "Contador"];
+const TIPO_CONTATO = ["Advogado", "Contador", "Preposto"];
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
