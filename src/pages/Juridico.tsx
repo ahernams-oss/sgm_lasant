@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, Users, Phone, Send, Upload, X, Download, FileSpreadsheet, Printer, Banknote, CheckCircle2, CalendarCheck, CreditCard, MessageCircle, Lock as LockIcon } from "lucide-react";
+import { Scale, Plus, Eye, Edit, Trash2, FileText, Calendar, AlertTriangle, DollarSign, BarChart3, Users, Phone, Send, Upload, X, Download, FileSpreadsheet, Printer, Banknote, CheckCircle2, CalendarCheck, CreditCard, MessageCircle, Lock as LockIcon, TrendingUp, Gavel, Percent, Landmark } from "lucide-react";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line } from "recharts";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   gerarPdfProcessos, gerarExcelProcessos,
@@ -507,13 +508,38 @@ export default function JuridicoPage() {
     const ativos = processos.filter(p => p.status === "Ativo").length;
     const emRecurso = processos.filter(p => p.status === "Recurso").length;
     const encerrados = processos.filter(p => ["Encerrado", "Arquivado", "Acordo"].includes(p.status)).length;
-    const totalProvisao = processos.reduce((s, p) => s + p.provisao_contabil, 0);
-    const totalValorCausa = processos.reduce((s, p) => s + p.valor_causa, 0);
+    const totalProvisao = processos.reduce((s, p) => s + (p.provisao_contabil || 0), 0);
+    const totalValorCausa = processos.reduce((s, p) => s + (p.valor_causa || 0), 0);
+    const totalAcordos = processos.reduce((s, p) => s + (p.valor_acordo || 0), 0);
+    const totalCondenacoes = processos.reduce((s, p) => s + (p.valor_condenacao || 0), 0);
+    const totalHonorarios = processos.reduce((s, p) => s + (p.honorarios || 0), 0);
+    const exposicaoTotal = totalProvisao + totalAcordos + totalCondenacoes;
+    const mediaProvisao = processos.length ? totalProvisao / processos.length : 0;
     const riscoAlto = processos.filter(p => p.risco === "Alto" && p.status === "Ativo").length;
     const porStatus = STATUS_OPTIONS.map(st => ({ status: st, count: processos.filter(p => p.status === st).length }));
     const porRisco = RISCO_OPTIONS.map(r => ({ risco: r, count: processos.filter(p => p.risco === r && p.status === "Ativo").length }));
     const proximasAudiencias = audiencias.filter(a => a.status === "Agendada" && new Date(a.data_audiencia + "T23:59:59") >= new Date()).slice(0, 5);
-    return { ativos, emRecurso, encerrados, totalProvisao, totalValorCausa, riscoAlto, porStatus, porRisco, proximasAudiencias };
+    // Por fase
+    const fasesMap = new Map<string, number>();
+    processos.forEach(p => { if (p.fase_processual) fasesMap.set(p.fase_processual, (fasesMap.get(p.fase_processual) || 0) + 1); });
+    const porFase = Array.from(fasesMap.entries()).map(([fase, count]) => ({ fase, count })).sort((a, b) => b.count - a.count);
+    // Distribuição por ano
+    const anoMap = new Map<string, number>();
+    processos.forEach(p => {
+      if (p.data_distribuicao) {
+        const ano = new Date(p.data_distribuicao).getFullYear().toString();
+        anoMap.set(ano, (anoMap.get(ano) || 0) + 1);
+      }
+    });
+    const porAno = Array.from(anoMap.entries()).map(([ano, count]) => ({ ano, count })).sort((a, b) => a.ano.localeCompare(b.ano));
+    // Top clientes
+    const cliMap = new Map<string, number>();
+    processos.forEach(p => { if (p.cliente_nome) cliMap.set(p.cliente_nome, (cliMap.get(p.cliente_nome) || 0) + 1); });
+    const topClientes = Array.from(cliMap.entries()).map(([nome, count]) => ({ nome, count })).sort((a, b) => b.count - a.count).slice(0, 5);
+    // Audiências próximos 30 dias
+    const hoje = new Date(); const em30 = new Date(); em30.setDate(em30.getDate() + 30);
+    const audiencias30d = audiencias.filter(a => a.status === "Agendada" && new Date(a.data_audiencia + "T12:00:00") >= hoje && new Date(a.data_audiencia + "T12:00:00") <= em30).length;
+    return { ativos, emRecurso, encerrados, totalProvisao, totalValorCausa, totalAcordos, totalCondenacoes, totalHonorarios, exposicaoTotal, mediaProvisao, riscoAlto, porStatus, porRisco, porFase, porAno, topClientes, audiencias30d, proximasAudiencias };
   }, [processos, audiencias]);
 
   const filtered = useMemo(() => {
@@ -683,85 +709,212 @@ export default function JuridicoPage() {
           </TabsList>
 
           {/* ============ DASHBOARD ============ */}
-          <TabsContent value="dashboard">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-              <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Total Processos</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold">{processos.length}</p></CardContent></Card>
-              <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Ativos</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-primary">{stats.ativos}</p></CardContent></Card>
-              <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Em Recurso</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-yellow-600">{stats.emRecurso}</p></CardContent></Card>
-              <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Encerrados</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-muted-foreground">{stats.encerrados}</p></CardContent></Card>
-              <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><AlertTriangle className="h-3 w-3 text-destructive" /> Risco Alto</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-destructive">{stats.riscoAlto}</p></CardContent></Card>
-              <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><DollarSign className="h-3 w-3" /> Provisão Total</CardTitle></CardHeader><CardContent><p className="text-lg font-bold">{fmt(stats.totalProvisao)}</p></CardContent></Card>
+          <TabsContent value="dashboard" className="space-y-4">
+            {/* KPIs principais */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              <Card className="border-l-4 border-l-primary">
+                <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><Scale className="h-3 w-3" /> Total Processos</CardTitle></CardHeader>
+                <CardContent><p className="text-2xl font-bold">{processos.length}</p></CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-blue-500">
+                <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><Gavel className="h-3 w-3" /> Ativos</CardTitle></CardHeader>
+                <CardContent><p className="text-2xl font-bold text-blue-600">{stats.ativos}</p></CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-yellow-500">
+                <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Em Recurso</CardTitle></CardHeader>
+                <CardContent><p className="text-2xl font-bold text-yellow-600">{stats.emRecurso}</p></CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-muted-foreground/40">
+                <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Encerrados</CardTitle></CardHeader>
+                <CardContent><p className="text-2xl font-bold text-muted-foreground">{stats.encerrados}</p></CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-destructive">
+                <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><AlertTriangle className="h-3 w-3 text-destructive" /> Risco Alto</CardTitle></CardHeader>
+                <CardContent><p className="text-2xl font-bold text-destructive">{stats.riscoAlto}</p></CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-emerald-500">
+                <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><CalendarCheck className="h-3 w-3" /> Audiências 30d</CardTitle></CardHeader>
+                <CardContent><p className="text-2xl font-bold text-emerald-600">{stats.audiencias30d}</p></CardContent>
+              </Card>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            {/* KPIs Financeiros */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              <Card className="bg-gradient-to-br from-primary/5 to-transparent">
+                <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><DollarSign className="h-3 w-3" /> Valor da Causa</CardTitle></CardHeader>
+                <CardContent><p className="text-base font-bold">{fmt(stats.totalValorCausa)}</p></CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-blue-500/5 to-transparent">
+                <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><Landmark className="h-3 w-3" /> Provisão Total</CardTitle></CardHeader>
+                <CardContent><p className="text-base font-bold text-blue-600">{fmt(stats.totalProvisao)}</p></CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-yellow-500/5 to-transparent">
+                <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><Banknote className="h-3 w-3" /> Acordos</CardTitle></CardHeader>
+                <CardContent><p className="text-base font-bold text-yellow-700">{fmt(stats.totalAcordos)}</p></CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-destructive/5 to-transparent">
+                <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><Gavel className="h-3 w-3" /> Condenações</CardTitle></CardHeader>
+                <CardContent><p className="text-base font-bold text-destructive">{fmt(stats.totalCondenacoes)}</p></CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-purple-500/5 to-transparent">
+                <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><Percent className="h-3 w-3" /> Honorários</CardTitle></CardHeader>
+                <CardContent><p className="text-base font-bold text-purple-600">{fmt(stats.totalHonorarios)}</p></CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-orange-500/10 to-transparent border-orange-500/30">
+                <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><TrendingUp className="h-3 w-3" /> Exposição Total</CardTitle></CardHeader>
+                <CardContent><p className="text-base font-bold text-orange-600">{fmt(stats.exposicaoTotal)}</p></CardContent>
+              </Card>
+            </div>
+
+            {/* Gráficos */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Card>
-                <CardHeader><CardTitle className="text-sm">Por Status</CardTitle></CardHeader>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Distribuição por Status</CardTitle></CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    {stats.porStatus.map(s => (
-                      <div key={s.status} className="flex justify-between items-center">
-                        <span className="text-sm">{s.status}</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
-                            <div className="h-full bg-primary rounded-full" style={{ width: `${processos.length ? (s.count / processos.length) * 100 : 0}%` }} />
+                  {processos.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8">Sem dados</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <PieChart>
+                        <Pie data={stats.porStatus.filter(s => s.count > 0)} dataKey="count" nameKey="status" outerRadius={80} label={(e: any) => `${e.count}`}>
+                          {stats.porStatus.filter(s => s.count > 0).map((_, i) => {
+                            const cores = ["#3b82f6", "#eab308", "#10b981", "#6b7280", "#94a3b8"];
+                            return <Cell key={i} fill={cores[i % cores.length]} />;
+                          })}
+                        </Pie>
+                        <Tooltip />
+                        <Legend wrapperStyle={{ fontSize: 12 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Ativos por Risco</CardTitle></CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={stats.porRisco}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                      <XAxis dataKey="risco" fontSize={12} />
+                      <YAxis allowDecimals={false} fontSize={12} />
+                      <Tooltip />
+                      <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                        {stats.porRisco.map((r, i) => (
+                          <Cell key={i} fill={r.risco === "Alto" ? "#dc2626" : r.risco === "Médio" ? "#eab308" : "#10b981"} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Processos por Ano de Distribuição</CardTitle></CardHeader>
+                <CardContent>
+                  {stats.porAno.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8">Sem dados de distribuição</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <LineChart data={stats.porAno}>
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                        <XAxis dataKey="ano" fontSize={12} />
+                        <YAxis allowDecimals={false} fontSize={12} />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="count" stroke="#673ab7" strokeWidth={2} dot={{ r: 4 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Fase, Top clientes, Próximas audiências */}
+            <div className="grid md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Por Fase Processual</CardTitle></CardHeader>
+                <CardContent>
+                  {stats.porFase.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">Sem dados</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {stats.porFase.map(f => {
+                        const pct = processos.length ? (f.count / processos.length) * 100 : 0;
+                        return (
+                          <div key={f.fase}>
+                            <div className="flex justify-between text-xs mb-1">
+                              <span className="font-medium">{f.fase}</span>
+                              <span className="text-muted-foreground">{f.count} ({pct.toFixed(0)}%)</span>
+                            </div>
+                            <div className="h-2 bg-muted rounded-full overflow-hidden">
+                              <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
+                            </div>
                           </div>
-                          <span className="text-sm font-medium w-6 text-right">{s.count}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
+
               <Card>
-                <CardHeader><CardTitle className="text-sm">Ativos por Risco</CardTitle></CardHeader>
+                <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-1"><Users className="h-4 w-4" /> Top Centros de Custo</CardTitle></CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    {stats.porRisco.map(r => (
-                      <div key={r.risco} className="flex justify-between items-center">
-                        <span className="text-sm">{riscoBadge(r.risco)}</span>
-                        <span className="text-2xl font-bold">{r.count}</span>
-                      </div>
-                    ))}
-                  </div>
+                  {stats.topClientes.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">Sem dados</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {stats.topClientes.map((c, i) => (
+                        <div key={c.nome} className="flex items-center justify-between p-2 rounded bg-muted/40">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Badge variant="outline" className="shrink-0">{i + 1}º</Badge>
+                            <span className="text-sm truncate">{c.nome}</span>
+                          </div>
+                          <span className="text-sm font-bold">{c.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="border-primary/30">
+                <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-1"><Calendar className="h-4 w-4 text-primary" /> Próximas Audiências</CardTitle></CardHeader>
+                <CardContent>
+                  {stats.proximasAudiencias.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">Nenhuma audiência agendada</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {stats.proximasAudiencias.map(a => (
+                        <div key={a.id} className="flex justify-between items-center p-2 rounded bg-primary/5">
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate">{a.processo_numero}</p>
+                            <p className="text-xs text-muted-foreground">{a.tipo}</p>
+                          </div>
+                          <div className="text-right shrink-0 ml-2">
+                            <p className="text-sm font-medium">{new Date(a.data_audiencia + "T12:00:00").toLocaleDateString("pt-BR")}</p>
+                            {a.hora && <p className="text-xs text-muted-foreground">{a.hora}</p>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
-
-            {/* Próximas audiências */}
-            {stats.proximasAudiencias.length > 0 && (
-              <Card className="mt-4 border-primary/30">
-                <CardHeader><CardTitle className="text-sm flex items-center gap-1"><Calendar className="h-4 w-4 text-primary" /> Próximas Audiências</CardTitle></CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {stats.proximasAudiencias.map(a => (
-                      <div key={a.id} className="flex justify-between items-center p-2 rounded bg-primary/5">
-                        <div>
-                          <span className="font-medium text-sm">{a.processo_numero}</span>
-                          <span className="text-xs text-muted-foreground ml-2">{a.tipo}</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-sm font-medium">{new Date(a.data_audiencia + "T12:00:00").toLocaleDateString("pt-BR")}</span>
-                          {a.hora && <span className="text-xs text-muted-foreground ml-1">{a.hora}</span>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {stats.riscoAlto > 0 && (
-              <Card className="mt-4 border-destructive/30">
-                <CardHeader><CardTitle className="text-sm text-destructive flex items-center gap-1"><AlertTriangle className="h-4 w-4" /> Processos com Risco Alto</CardTitle></CardHeader>
+              <Card className="border-destructive/30">
+                <CardHeader className="pb-2"><CardTitle className="text-sm text-destructive flex items-center gap-1"><AlertTriangle className="h-4 w-4" /> Processos com Risco Alto</CardTitle></CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
+                  <div className="grid md:grid-cols-2 gap-2">
                     {processos.filter(p => p.risco === "Alto" && p.status === "Ativo").map(p => (
                       <div key={p.id} className="flex justify-between items-center p-2 rounded bg-destructive/5">
-                        <div>
-                          <span className="font-medium text-sm">{p.numero_processo}</span>
-                          <span className="text-xs text-muted-foreground ml-2">{p.autor_nome}</span>
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{p.numero_processo}</p>
+                          <p className="text-xs text-muted-foreground truncate">{p.autor_nome}</p>
                         </div>
-                        <span className="text-sm font-medium">{fmt(p.valor_causa)}</span>
+                        <span className="text-sm font-bold text-destructive shrink-0 ml-2">{fmt(p.valor_causa)}</span>
                       </div>
                     ))}
                   </div>
