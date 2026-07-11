@@ -932,7 +932,7 @@ export default function JuridicoPage() {
                       <TableCell><Badge variant="outline">{c.tipo}</Badge></TableCell>
                       <TableCell><span className="flex items-center gap-1"><Phone className="h-3 w-3" />{c.telefone_whatsapp}</span></TableCell>
                       <TableCell>{c.email || "-"}</TableCell>
-                      <TableCell>{c.tipo === "Advogado" ? c.oab || "-" : c.crc || "-"}</TableCell>
+                      <TableCell>{c.tipo === "Advogado" ? c.oab || "-" : c.tipo === "Contador" ? c.crc || "-" : c.cpf || "-"}</TableCell>
                       <TableCell>
                         <Badge className={c.ativo ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"}>{c.ativo ? "Sim" : "Não"}</Badge>
                       </TableCell>
