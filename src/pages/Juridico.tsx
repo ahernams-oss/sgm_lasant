@@ -86,7 +86,7 @@ const emptyAudiencia: Omit<Audiencia, "id"> = {
 };
 
 const emptyContato: Omit<ContatoNotificacao, "id"> = {
-  nome: "", tipo: "Advogado", telefone_whatsapp: "", email: "", oab: "", crc: "", ativo: true, observacoes: "",
+  nome: "", tipo: "Advogado", telefone_whatsapp: "", email: "", oab: "", crc: "", cpf: "", ativo: true, observacoes: "",
 };
 
 const TIPO_DECISAO = ["Acordo", "Decisão", "Sentença", "Homologação"];
