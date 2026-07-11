@@ -6841,6 +6841,7 @@ export type Database = {
       processos_trabalhistas: {
         Row: {
           advogado_autor: string | null
+          advogado_autor_oab: string | null
           advogado_empresa: string | null
           anexos: Json | null
           autor_cpf: string | null
@@ -6867,6 +6868,7 @@ export type Database = {
         }
         Insert: {
           advogado_autor?: string | null
+          advogado_autor_oab?: string | null
           advogado_empresa?: string | null
           anexos?: Json | null
           autor_cpf?: string | null
@@ -6893,6 +6895,7 @@ export type Database = {
         }
         Update: {
           advogado_autor?: string | null
+          advogado_autor_oab?: string | null
           advogado_empresa?: string | null
           anexos?: Json | null
           autor_cpf?: string | null

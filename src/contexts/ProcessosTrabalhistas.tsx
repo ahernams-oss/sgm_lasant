@@ -13,6 +13,7 @@ export interface ProcessoTrabalhista {
   autor_nome: string;
   autor_cpf: string;
   advogado_autor: string;
+  advogado_autor_oab: string;
   advogado_empresa: string;
   data_distribuicao: string | null;
   objeto_acao: string;
@@ -75,6 +76,7 @@ export function ProcessosTrabalhalistasProvider({ children }: { children: ReactN
         autor_nome: r.autor_nome ?? "",
         autor_cpf: r.autor_cpf ?? "",
         advogado_autor: r.advogado_autor ?? "",
+        advogado_autor_oab: r.advogado_autor_oab ?? "",
         advogado_empresa: r.advogado_empresa ?? "",
         data_distribuicao: r.data_distribuicao ?? null,
         objeto_acao: r.objeto_acao ?? "",

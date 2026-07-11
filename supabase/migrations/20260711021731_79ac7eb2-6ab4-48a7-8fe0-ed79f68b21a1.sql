@@ -1,0 +1,1 @@
+ALTER TABLE public.processos_trabalhistas ADD COLUMN IF NOT EXISTS advogado_autor_oab TEXT;

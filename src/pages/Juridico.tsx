@@ -73,7 +73,7 @@ interface ContatoNotificacao {
 
 const emptyProcesso: Omit<ProcessoTrabalhista, "id"> = {
   numero_processo: "", vara: "", comarca: "", estado: "", autor_nome: "", autor_cpf: "",
-  advogado_autor: "", advogado_empresa: "", data_distribuicao: null, objeto_acao: "",
+  advogado_autor: "", advogado_autor_oab: "", advogado_empresa: "", data_distribuicao: null, objeto_acao: "",
   valor_causa: 0, provisao_contabil: 0, valor_acordo: 0, valor_condenacao: 0, honorarios: 0,
   risco: "Médio", status: "Ativo", fase_processual: "Inicial", observacoes: "", anexos: [],
   cliente_id: "", cliente_nome: "",
@@ -1579,17 +1579,10 @@ export default function JuridicoPage() {
                   <SelectContent>{clientes.filter(c => c.tipo === "Cliente").map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Advogado do Autor</Label>
-                <Select value={form.advogado_autor || ""} onValueChange={v => setForm({ ...form, advogado_autor: v })}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    {contatos.filter(c => c.tipo === "Advogado" && c.ativo).map(c => (
-                      <SelectItem key={c.id} value={c.nome}>{c.nome}{c.oab ? ` (OAB ${c.oab})` : ""}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <div><Label>Advogado do Autor</Label><Input value={form.advogado_autor} onChange={e => setForm({ ...form, advogado_autor: e.target.value })} /></div>
+              {form.advogado_autor?.trim() && (
+                <div><Label>OAB do Advogado do Autor</Label><Input value={(form as any).advogado_autor_oab || ""} onChange={e => setForm({ ...form, advogado_autor_oab: e.target.value } as any)} placeholder="Ex: RJ-123456" /></div>
+              )}
               <div>
                 <Label>Advogado da Empresa</Label>
                 <Select value={form.advogado_empresa || ""} onValueChange={v => setForm({ ...form, advogado_empresa: v })}>
