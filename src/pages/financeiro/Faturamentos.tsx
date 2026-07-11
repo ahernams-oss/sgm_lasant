@@ -71,7 +71,7 @@ export default function Faturamentos() {
       if (q) {
         const hay = [
           r.clienteNome, r.contratoNumero,
-          r.faturamento.numeroNf, r.faturamento.numeroMedicao,
+          r.faturamento.numeroNf, r.faturamento.processoNf, r.faturamento.numeroMedicao,
           r.faturamento.descricao, r.faturamento.chaveNf,
         ].join(" ").toLowerCase();
         if (!hay.includes(q)) return false;
