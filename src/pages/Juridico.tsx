@@ -917,7 +917,7 @@ export default function JuridicoPage() {
                     <TableHead>Tipo</TableHead>
                     <TableHead>WhatsApp</TableHead>
                     <TableHead>E-mail</TableHead>
-                    <TableHead>OAB/CRC</TableHead>
+                    <TableHead>OAB/CRC/CPF</TableHead>
                     <TableHead>Ativo</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
