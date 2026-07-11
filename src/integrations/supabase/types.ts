@@ -3454,6 +3454,7 @@ export type Database = {
       juridico_contatos_notificacao: {
         Row: {
           ativo: boolean
+          cpf: string | null
           crc: string | null
           created_at: string | null
           email: string | null
@@ -3466,6 +3467,7 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean
+          cpf?: string | null
           crc?: string | null
           created_at?: string | null
           email?: string | null
@@ -3478,6 +3480,7 @@ export type Database = {
         }
         Update: {
           ativo?: boolean
+          cpf?: string | null
           crc?: string | null
           created_at?: string | null
           email?: string | null

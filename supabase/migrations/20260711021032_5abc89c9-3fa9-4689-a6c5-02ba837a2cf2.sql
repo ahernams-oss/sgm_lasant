@@ -1,0 +1,1 @@
+ALTER TABLE public.juridico_contatos_notificacao ADD COLUMN IF NOT EXISTS cpf text;
