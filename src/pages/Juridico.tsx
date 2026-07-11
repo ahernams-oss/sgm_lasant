@@ -37,7 +37,7 @@ const RISCO_OPTIONS = ["Baixo", "Médio", "Alto"];
 const FASE_OPTIONS = ["Inicial", "Instrução", "Julgamento", "Recursal", "Execução", "Encerrado"];
 const TIPO_ANDAMENTO = ["Audiência", "Petição", "Decisão", "Prazo", "Outros"];
 const TIPO_AUDIENCIA = ["Audiência Inicial", "Audiência de Instrução", "Audiência de Julgamento", "Audiência de Conciliação", "Audiência UNA", "Outros"];
-const TIPO_CONTATO = ["Advogado", "Contador"];
+const TIPO_CONTATO = ["Advogado", "Contador", "Preposto"];
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -66,6 +66,7 @@ interface ContatoNotificacao {
   email: string;
   oab: string;
   crc: string;
+  cpf: string;
   ativo: boolean;
   observacoes: string;
 }
@@ -85,7 +86,7 @@ const emptyAudiencia: Omit<Audiencia, "id"> = {
 };
 
 const emptyContato: Omit<ContatoNotificacao, "id"> = {
-  nome: "", tipo: "Advogado", telefone_whatsapp: "", email: "", oab: "", crc: "", ativo: true, observacoes: "",
+  nome: "", tipo: "Advogado", telefone_whatsapp: "", email: "", oab: "", crc: "", cpf: "", ativo: true, observacoes: "",
 };
 
 const TIPO_DECISAO = ["Acordo", "Decisão", "Sentença", "Homologação"];
@@ -247,7 +248,7 @@ export default function JuridicoPage() {
     setContatos((data || []).map((r: any) => ({
       id: r.id, nome: r.nome ?? "", tipo: r.tipo ?? "Advogado",
       telefone_whatsapp: r.telefone_whatsapp ?? "", email: r.email ?? "",
-      oab: r.oab ?? "", crc: r.crc ?? "", ativo: r.ativo ?? true, observacoes: r.observacoes ?? "",
+      oab: r.oab ?? "", crc: r.crc ?? "", cpf: r.cpf ?? "", ativo: r.ativo ?? true, observacoes: r.observacoes ?? "",
     })));
   }, []);
 
@@ -916,7 +917,7 @@ export default function JuridicoPage() {
                     <TableHead>Tipo</TableHead>
                     <TableHead>WhatsApp</TableHead>
                     <TableHead>E-mail</TableHead>
-                    <TableHead>OAB/CRC</TableHead>
+                    <TableHead>OAB/CRC/CPF</TableHead>
                     <TableHead>Ativo</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
@@ -931,7 +932,7 @@ export default function JuridicoPage() {
                       <TableCell><Badge variant="outline">{c.tipo}</Badge></TableCell>
                       <TableCell><span className="flex items-center gap-1"><Phone className="h-3 w-3" />{c.telefone_whatsapp}</span></TableCell>
                       <TableCell>{c.email || "-"}</TableCell>
-                      <TableCell>{c.tipo === "Advogado" ? c.oab || "-" : c.crc || "-"}</TableCell>
+                      <TableCell>{c.tipo === "Advogado" ? c.oab || "-" : c.tipo === "Contador" ? c.crc || "-" : c.cpf || "-"}</TableCell>
                       <TableCell>
                         <Badge className={c.ativo ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"}>{c.ativo ? "Sim" : "Não"}</Badge>
                       </TableCell>
@@ -1727,6 +1728,9 @@ export default function JuridicoPage() {
               )}
               {contatoForm.tipo === "Contador" && (
                 <div><Label>CRC</Label><Input value={contatoForm.crc} onChange={e => setContatoForm({ ...contatoForm, crc: e.target.value })} /></div>
+              )}
+              {contatoForm.tipo === "Preposto" && (
+                <div><Label>CPF *</Label><Input value={contatoForm.cpf} onChange={e => setContatoForm({ ...contatoForm, cpf: e.target.value })} placeholder="000.000.000-00" /></div>
               )}
               <div className="flex items-center gap-2">
                 <Switch checked={contatoForm.ativo} onCheckedChange={v => setContatoForm({ ...contatoForm, ativo: v })} />
