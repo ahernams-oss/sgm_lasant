@@ -248,7 +248,7 @@ export default function JuridicoPage() {
     setContatos((data || []).map((r: any) => ({
       id: r.id, nome: r.nome ?? "", tipo: r.tipo ?? "Advogado",
       telefone_whatsapp: r.telefone_whatsapp ?? "", email: r.email ?? "",
-      oab: r.oab ?? "", crc: r.crc ?? "", ativo: r.ativo ?? true, observacoes: r.observacoes ?? "",
+      oab: r.oab ?? "", crc: r.crc ?? "", cpf: r.cpf ?? "", ativo: r.ativo ?? true, observacoes: r.observacoes ?? "",
     })));
   }, []);
 
