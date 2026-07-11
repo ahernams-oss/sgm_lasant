@@ -13,6 +13,7 @@ export interface ProcessoTrabalhista {
   autor_nome: string;
   autor_cpf: string;
   advogado_autor: string;
+  advogado_autor_oab: string;
   advogado_empresa: string;
   data_distribuicao: string | null;
   objeto_acao: string;
