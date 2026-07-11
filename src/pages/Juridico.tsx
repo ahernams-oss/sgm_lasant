@@ -1729,6 +1729,9 @@ export default function JuridicoPage() {
               {contatoForm.tipo === "Contador" && (
                 <div><Label>CRC</Label><Input value={contatoForm.crc} onChange={e => setContatoForm({ ...contatoForm, crc: e.target.value })} /></div>
               )}
+              {contatoForm.tipo === "Preposto" && (
+                <div><Label>CPF *</Label><Input value={contatoForm.cpf} onChange={e => setContatoForm({ ...contatoForm, cpf: e.target.value })} placeholder="000.000.000-00" /></div>
+              )}
               <div className="flex items-center gap-2">
                 <Switch checked={contatoForm.ativo} onCheckedChange={v => setContatoForm({ ...contatoForm, ativo: v })} />
                 <Label>Ativo (receber notificações)</Label>
