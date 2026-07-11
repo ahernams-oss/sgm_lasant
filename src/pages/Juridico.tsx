@@ -66,6 +66,7 @@ interface ContatoNotificacao {
   email: string;
   oab: string;
   crc: string;
+  cpf: string;
   ativo: boolean;
   observacoes: string;
 }
