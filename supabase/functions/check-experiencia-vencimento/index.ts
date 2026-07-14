@@ -90,19 +90,18 @@ serve(async (req) => {
   }
 });
 
-async function sendWhatsApp(token: string | undefined, instance: string | undefined, telefone: string | null, mensagem: string) {
-  if (!token || !instance || !telefone) return;
+async function sendWhatsApp(token: string | undefined, telefone: string | null, mensagem: string) {
+  if (!token || !telefone) return;
   const telefoneLimpo = telefone.replace(/\D/g, '');
   if (telefoneLimpo.length < 10) return;
   try {
-    const url = `https://v5.chatpro.com.br/${instance}/api/v1/send_message`;
-    await fetch(url, {
+    await fetch('https://plugsend.uazapi.com/send/text', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': token,
+        token,
       },
-      body: JSON.stringify({ number: telefoneLimpo, message: mensagem }),
+      body: JSON.stringify({ number: telefoneLimpo, text: mensagem, linkPreview: true }),
     });
   } catch (err) {
     console.error('WhatsApp error:', err);
