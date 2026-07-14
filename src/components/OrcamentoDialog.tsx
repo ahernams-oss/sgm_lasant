@@ -207,6 +207,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       solicitacao_numero: solicitacao?.numero || 0,
       cliente_id: solicitacao?.clienteId || "",
       cliente_nome: solicitacao?.clienteNome || "",
+      categoria,
       itens_sco: itensSco,
       itens_materiais: itensMateriais,
       anexos: anexosUrls,
