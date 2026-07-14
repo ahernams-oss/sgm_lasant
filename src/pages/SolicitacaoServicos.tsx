@@ -1268,18 +1268,24 @@ export default function SolicitacaoServicosPage() {
       {/* View Dialog */}
       <Dialog open={!!viewTarget} onOpenChange={(o) => { if (!o) setViewTarget(null); }}>
         <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 pr-8">
+          <DialogHeader className="relative">
+            <DialogTitle className="flex items-center gap-2 pr-16">
               <Eye className="h-5 w-5" />
               Solicitação de Serviço nº {viewTarget ? formatNumeroAno(viewTarget.numero, viewTarget.createdAt) : ""}
-              {viewTarget && (() => {
-                const hasOrc = orcamentos.some(o => o.solicitacaoId === viewTarget.id);
-                const fromOrc = hasOrc || (viewTarget.historico || []).some(h => (h.situacao || "").toLowerCase().includes("orçamento"));
-                return fromOrc ? (
-                  <ReceiptText className="h-6 w-6 text-emerald-600 ml-auto" aria-label="Proveniente de Orçamento" />
-                ) : null;
-              })()}
             </DialogTitle>
+            {viewTarget && (() => {
+              const hasOrc = orcamentos.some(o => o.solicitacaoId === viewTarget.id);
+              const fromOrc = hasOrc || (viewTarget.historico || []).some(h => (h.situacao || "").toLowerCase().includes("orçamento"));
+              return fromOrc ? (
+                <div
+                  className="absolute right-10 top-0 flex h-11 w-9 items-center justify-center rounded-md border-2 border-foreground bg-background"
+                  title="Proveniente de Orçamento"
+                  aria-label="Proveniente de Orçamento"
+                >
+                  <ReceiptText className="h-6 w-6 text-foreground" strokeWidth={2.2} />
+                </div>
+              ) : null;
+            })()}
           </DialogHeader>
           {viewTarget && (() => {
             const orc = orcamentos.find(o => o.solicitacaoId === viewTarget.id);
