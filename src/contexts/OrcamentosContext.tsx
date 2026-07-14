@@ -17,6 +17,7 @@ export interface RevisaoEntry { motivo: string; data: string; usuario: string; }
 export interface Orcamento {
   id: string; numero: number; solicitacaoId: string; solicitacaoNumero: number;
   clienteId: string; clienteNome: string;
+  categoria: string;
   itensSco: ItemScoOrcamento[]; itensMateriais: ItemMaterialOrcamento[];
   anexos: string[]; valorTotal: number; status: string; observacoes: string;
   revisaoMotivo: string; revisoes: RevisaoEntry[];
