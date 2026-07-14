@@ -46,7 +46,7 @@ serve(async (req) => {
           const vencFormatado = func.experiencia_primeira_etapa.split('-').reverse().join('/');
           const mensagem = `⚠️ AVISO - Período de Experiência\n\nO 1º período de experiência (45 dias) do funcionário ${func.nome} vence em ${diff1} dias (${vencFormatado}).\n\nProvidenciar avaliação e decisão sobre renovação.`;
 
-          await sendWhatsApp(CHATPRO_TOKEN, CHATPRO_INSTANCE, func.telefone, mensagem);
+          await sendWhatsApp(PLUGSEND_TOKEN, func.telefone, mensagem);
 
           await supabase
             .from('funcionarios')
@@ -65,7 +65,7 @@ serve(async (req) => {
           const vencFormatado = func.experiencia_fim.split('-').reverse().join('/');
           const mensagem = `⚠️ AVISO - Período de Experiência\n\nO 2º período de experiência (90 dias) do funcionário ${func.nome} vence em ${diffFinal} dias (${vencFormatado}).\n\nProvidenciar efetivação ou desligamento.`;
 
-          await sendWhatsApp(CHATPRO_TOKEN, CHATPRO_INSTANCE, func.telefone, mensagem);
+          await sendWhatsApp(PLUGSEND_TOKEN, func.telefone, mensagem);
 
           await supabase
             .from('funcionarios')
