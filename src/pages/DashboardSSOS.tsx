@@ -1331,7 +1331,7 @@ export default function DashboardSSOS() {
             // Grid
             const t = orcSearch.trim().toLowerCase();
             const gridRows = orcFiltrados
-              .filter(o => orcOrcamentistaFilter === "todos" || (o.criadoPor || "") === orcOrcamentistaFilter)
+              .filter(o => orcOrcamentistaFilter.length === 0 || orcOrcamentistaFilter.includes(o.criadoPor || ""))
               .filter(o => {
                 if (!t) return true;
                 const ss = ssById[o.solicitacaoId];
