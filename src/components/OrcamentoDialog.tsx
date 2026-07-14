@@ -192,6 +192,10 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
   };
 
   const handleSave = async () => {
+    if (!categoria) {
+      toast({ title: "Selecione a Categoria do orçamento", variant: "destructive" });
+      return;
+    }
     if (itensSco.length === 0 && itensMateriais.length === 0) {
       toast({ title: "Adicione pelo menos um item ao orçamento", variant: "destructive" });
       return;
