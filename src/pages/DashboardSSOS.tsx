@@ -1747,8 +1747,9 @@ export default function DashboardSSOS() {
                           )}
                           {pageRows.map(o => {
                             const ss = ssById[o.solicitacaoId];
-                            const cat = (ss?.tipo || "—").toUpperCase();
+                            const cat = ((o as any).categoria || "").toString().trim().toUpperCase() || "—";
                             const d = parseDate(o.createdAt || o.dataCriacao);
+
                             return (
                               <TableRow key={o.id} className="text-xs">
                                 <TableCell className="font-mono font-semibold">{o.numero}</TableCell>
