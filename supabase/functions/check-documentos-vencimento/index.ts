@@ -65,8 +65,7 @@ serve(async (req) => {
     }
 
     const results: any[] = [];
-    const baseUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}`;
-    const chatproUrl = `${baseUrl}/api/v1/send_message`;
+    const plugsendUrl = 'https://plugsend.uazapi.com/send/text';
 
     for (const doc of documentos) {
       const vencimento = new Date(doc.data_validade);
@@ -79,13 +78,13 @@ serve(async (req) => {
         const telefoneLimpo = numero.replace(/\D/g, '');
         if (telefoneLimpo.length >= 10) {
           try {
-            await fetch(chatproUrl, {
+            await fetch(plugsendUrl, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': CHATPRO_TOKEN,
+                token: PLUGSEND_TOKEN,
               },
-              body: JSON.stringify({ number: telefoneLimpo, message: mensagem }),
+              body: JSON.stringify({ number: telefoneLimpo, text: mensagem, linkPreview: true }),
             });
           } catch (whatsErr) {
             console.error('WhatsApp error:', whatsErr);
