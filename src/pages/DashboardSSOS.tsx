@@ -1292,11 +1292,11 @@ export default function DashboardSSOS() {
               }, {})
             ).map(([name, value]) => ({ name, value }));
 
-            // Chart: Categoria (tipo da SS vinculada)
+            // Chart: Categoria (usa categoria do orçamento; fallback para tipo da SS)
             const catData: { name: string; qtd: number; valor: number }[] = Object.values(
               orcFiltrados.reduce<Record<string, { name: string; qtd: number; valor: number }>>((acc, o) => {
                 const ss = ssById[o.solicitacaoId];
-                const cat = (ss?.tipo || "SEM CATEGORIA").toUpperCase();
+                const cat = ((o as any).categoria || ss?.tipo || "SEM CATEGORIA").toUpperCase();
                 if (!acc[cat]) acc[cat] = { name: cat, qtd: 0, valor: 0 };
                 acc[cat].qtd += 1;
                 acc[cat].valor += Number(o.valorTotal) || 0;
