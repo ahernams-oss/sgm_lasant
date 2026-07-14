@@ -585,6 +585,9 @@ export default function DashboardSSOS() {
           <TabsTrigger value="workflow" className="gap-2">
             <GitBranch className="h-4 w-4" /> Workflow das Solicitações
           </TabsTrigger>
+          <TabsTrigger value="orcamentos" className="gap-2">
+            <Calculator className="h-4 w-4" /> Orçamentos
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="visao" className="space-y-6 mt-4">
