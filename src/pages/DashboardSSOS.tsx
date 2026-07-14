@@ -88,7 +88,9 @@ export default function DashboardSSOS() {
   const [orcPeriodo, setOrcPeriodo] = useState<"dia" | "semana" | "quinzena" | "mes" | "todos">("mes");
   const [orcSearch, setOrcSearch] = useState("");
   const [orcOrcamentistaFilter, setOrcOrcamentistaFilter] = useState<string[]>([]);
+  const [orcUnitFilter, setOrcUnitFilter] = useState<string[]>([]);
   const [orcPage, setOrcPage] = useState(1);
+
   const ORC_PAGE_SIZE = 15;
 
   const clearFilters = () => {
@@ -1270,12 +1272,20 @@ export default function DashboardSSOS() {
             const fmtBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
             const ssById: Record<string, SolicitacaoServico> = {};
             solicitacoes.forEach(s => { ssById[s.id] = s; });
-            const orcFiltrados = orcamentos.filter(o => {
+            const orcFiltradosBase = orcamentos.filter(o => {
               const d = parseDate(o.createdAt || o.dataCriacao);
               if (!inRange(d)) return false;
               if (clienteFilter !== "todos" && o.clienteId !== clienteFilter) return false;
               return true;
             });
+
+            const orcFiltrados = orcFiltradosBase.filter(o => {
+              const unit = (ssById[o.solicitacaoId]?.localDescricao || "Sem unidade").toUpperCase();
+              const unitOk = orcUnitFilter.length === 0 || orcUnitFilter.includes(unit);
+              const orcOk = orcOrcamentistaFilter.length === 0 || orcOrcamentistaFilter.includes(o.criadoPor || "");
+              return unitOk && orcOk;
+            });
+
             const totalValor = orcFiltrados.reduce((s, o) => s + (Number(o.valorTotal) || 0), 0);
             const aprovadosArr = orcFiltrados.filter(o => (o.status || "").toLowerCase().includes("aprov"));
             const pendentesArr = orcFiltrados.filter(o => (o.status || "").toLowerCase().includes("pend"));
@@ -1345,11 +1355,10 @@ export default function DashboardSSOS() {
             // Grid
             const t = orcSearch.trim().toLowerCase();
             const gridRows = orcFiltrados
-              .filter(o => orcOrcamentistaFilter.length === 0 || orcOrcamentistaFilter.includes(o.criadoPor || ""))
               .filter(o => {
                 if (!t) return true;
                 const ss = ssById[o.solicitacaoId];
-                const cat = (ss?.tipo || "").toLowerCase();
+                const cat = ((o as any).categoria || "").toString().trim().toLowerCase();
                 const unidade = (ss?.localDescricao || "").toLowerCase();
                 return String(o.numero).includes(t)
                   || (o.clienteNome || "").toLowerCase().includes(t)
@@ -1357,13 +1366,16 @@ export default function DashboardSSOS() {
                   || cat.includes(t)
                   || (o.criadoPor || "").toLowerCase().includes(t)
                   || (o.status || "").toLowerCase().includes(t);
-
               })
               .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
             const totalPages = Math.max(1, Math.ceil(gridRows.length / ORC_PAGE_SIZE));
             const pageSafe = Math.min(orcPage, totalPages);
             const pageRows = gridRows.slice((pageSafe - 1) * ORC_PAGE_SIZE, pageSafe * ORC_PAGE_SIZE);
-            const orcamentistaOptions = Array.from(new Set(orcFiltrados.map(o => o.criadoPor).filter(Boolean))).sort();
+            const orcamentistaOptions = Array.from(new Set(orcFiltradosBase.map(o => o.criadoPor).filter(Boolean))).sort();
+            const unidadeOptions = Array.from(
+              new Set(orcFiltradosBase.map(o => (ssById[o.solicitacaoId]?.localDescricao || "Sem unidade").toUpperCase()))
+            ).sort();
+
 
             const handleExportOrcPDF = () => {
               downloadRelatorioOrcamentosPDF({
@@ -1664,7 +1676,55 @@ export default function DashboardSSOS() {
                             </div>
                           </PopoverContent>
                         </Popover>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-8 text-xs justify-between min-w-56">
+                              <span className="truncate">
+                                {orcUnitFilter.length === 0
+                                  ? "Todas as unidades"
+                                  : orcUnitFilter.length === 1
+                                    ? orcUnitFilter[0]
+                                    : `${orcUnitFilter.length} selecionadas`}
+                              </span>
+                              <Filter className="h-3 w-3 opacity-60 ml-2" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-72 p-2" align="end">
+                            <div className="flex items-center justify-between px-2 pb-2 border-b mb-2">
+                              <span className="text-xs font-semibold">Unidades</span>
+                              <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2"
+                                onClick={() => { setOrcUnitFilter([]); setOrcPage(1); }}>
+                                Limpar
+                              </Button>
+                            </div>
+                            <div className="max-h-64 overflow-y-auto space-y-1">
+                              {unidadeOptions.length === 0 && (
+                                <p className="text-xs text-muted-foreground p-2 text-center">Nenhuma unidade.</p>
+                              )}
+                              {unidadeOptions.map(u => {
+                                const checked = orcUnitFilter.includes(u);
+                                return (
+                                  <label key={u} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={(e) => {
+                                        setOrcUnitFilter(prev =>
+                                          e.target.checked ? [...prev, u] : prev.filter(x => x !== u)
+                                        );
+                                        setOrcPage(1);
+                                      }}
+                                      className="h-3.5 w-3.5"
+                                    />
+                                    <span className="uppercase">{u}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       </div>
+
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -1687,8 +1747,9 @@ export default function DashboardSSOS() {
                           )}
                           {pageRows.map(o => {
                             const ss = ssById[o.solicitacaoId];
-                            const cat = (ss?.tipo || "—").toUpperCase();
+                            const cat = ((o as any).categoria || "").toString().trim().toUpperCase() || "—";
                             const d = parseDate(o.createdAt || o.dataCriacao);
+
                             return (
                               <TableRow key={o.id} className="text-xs">
                                 <TableCell className="font-mono font-semibold">{o.numero}</TableCell>
