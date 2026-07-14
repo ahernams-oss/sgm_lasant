@@ -350,12 +350,44 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
           </div>
         )}
 
-        <Tabs defaultValue="sco" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="categoria" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="categoria">
+              Categoria {categoria ? "✓" : <span className="text-destructive ml-1">*</span>}
+            </TabsTrigger>
             <TabsTrigger value="sco">Itens SCO ({itensSco.length})</TabsTrigger>
             <TabsTrigger value="materiais">Materiais ({itensMateriais.length})</TabsTrigger>
             <TabsTrigger value="anexos">Anexos ({anexos.length}/3)</TabsTrigger>
           </TabsList>
+
+          {/* Categoria Tab */}
+          <TabsContent value="categoria" className="space-y-3">
+            <div>
+              <Label className="font-bold">
+                Categoria do Orçamento <span className="text-destructive">*</span>
+              </Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Selecione a categoria à qual este orçamento pertence. Campo obrigatório para envio.
+              </p>
+              <Select value={categoria} onValueChange={setCategoria} disabled={isReadOnly}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a categoria..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIAS_ORCAMENTO.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {categoria && (
+                <div className="mt-3 p-3 rounded-md bg-primary/10 border border-primary/30 text-sm">
+                  <span className="text-muted-foreground">Categoria selecionada: </span>
+                  <span className="font-semibold text-primary">{categoria}</span>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
 
           {/* SCO Tab */}
           <TabsContent value="sco" className="space-y-3">
