@@ -87,7 +87,7 @@ export default function DashboardSSOS() {
   const [statusOSFilter, setStatusOSFilter] = useState("todos");
   const [orcPeriodo, setOrcPeriodo] = useState<"dia" | "semana" | "quinzena" | "mes" | "todos">("mes");
   const [orcSearch, setOrcSearch] = useState("");
-  const [orcStatusFilter, setOrcStatusFilter] = useState("todos");
+  const [orcOrcamentistaFilter, setOrcOrcamentistaFilter] = useState("todos");
   const [orcPage, setOrcPage] = useState(1);
   const ORC_PAGE_SIZE = 15;
 
