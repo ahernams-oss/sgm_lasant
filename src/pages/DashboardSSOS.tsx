@@ -24,7 +24,7 @@ import {
   FileDown, FileSpreadsheet, DollarSign, Calculator, UserCheck, ArrowRight, GitBranch,
   ArrowUpDown, ArrowUp, ArrowDown,
 } from "lucide-react";
-import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
+import { useSolicitacoesServicos, SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -85,6 +85,10 @@ export default function DashboardSSOS() {
   const [statusSSFilter, setStatusSSFilter] = useState("todos");
   const [statusOSFilter, setStatusOSFilter] = useState("todos");
   const [orcPeriodo, setOrcPeriodo] = useState<"dia" | "semana" | "quinzena" | "mes" | "todos">("mes");
+  const [orcSearch, setOrcSearch] = useState("");
+  const [orcStatusFilter, setOrcStatusFilter] = useState("todos");
+  const [orcPage, setOrcPage] = useState(1);
+  const ORC_PAGE_SIZE = 15;
 
   const clearFilters = () => {
     setDateFrom(undefined); setDateTo(undefined);
@@ -580,6 +584,9 @@ export default function DashboardSSOS() {
           </TabsTrigger>
           <TabsTrigger value="workflow" className="gap-2">
             <GitBranch className="h-4 w-4" /> Workflow das Solicitações
+          </TabsTrigger>
+          <TabsTrigger value="orcamentos" className="gap-2">
+            <Calculator className="h-4 w-4" /> Orçamentos
           </TabsTrigger>
         </TabsList>
 
@@ -1251,6 +1258,265 @@ export default function DashboardSSOS() {
                     );
                   })}
                 </div>
+              </>
+            );
+          })()}
+        </TabsContent>
+
+        {/* ============ Aba Orçamentos ============ */}
+        <TabsContent value="orcamentos" className="space-y-6 mt-4">
+          {(() => {
+            const fmtBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            const ssById: Record<string, SolicitacaoServico> = {};
+            solicitacoes.forEach(s => { ssById[s.id] = s; });
+            const orcFiltrados = orcamentos.filter(o => {
+              const d = parseDate(o.createdAt || o.dataCriacao);
+              if (!inRange(d)) return false;
+              if (clienteFilter !== "todos" && o.clienteId !== clienteFilter) return false;
+              return true;
+            });
+            const totalValor = orcFiltrados.reduce((s, o) => s + (Number(o.valorTotal) || 0), 0);
+            const aprovadosArr = orcFiltrados.filter(o => (o.status || "").toLowerCase().includes("aprov"));
+            const pendentesArr = orcFiltrados.filter(o => (o.status || "").toLowerCase().includes("pend"));
+            const canceladosArr = orcFiltrados.filter(o => (o.status || "").toLowerCase().includes("cancel"));
+            const dispArr = orcFiltrados.filter(o => (o.status || "").toLowerCase().includes("dispon"));
+            const devArr = orcFiltrados.filter(o => (o.status || "").toLowerCase().includes("devolv"));
+            const concArr = orcFiltrados.filter(o => (o.status || "").toLowerCase().includes("conclu"));
+            const ticket = orcFiltrados.length ? totalValor / orcFiltrados.length : 0;
+
+            // Chart: Status
+            const statusData: { name: string; value: number }[] = Object.entries(
+              orcFiltrados.reduce<Record<string, number>>((acc, o) => {
+                const k = o.status || "Sem status"; acc[k] = (acc[k] || 0) + 1; return acc;
+              }, {})
+            ).map(([name, value]) => ({ name, value }));
+
+            // Chart: Categoria (tipo da SS vinculada)
+            const catData: { name: string; qtd: number; valor: number }[] = Object.values(
+              orcFiltrados.reduce<Record<string, { name: string; qtd: number; valor: number }>>((acc, o) => {
+                const ss = ssById[o.solicitacaoId];
+                const cat = (ss?.tipo || "SEM CATEGORIA").toUpperCase();
+                if (!acc[cat]) acc[cat] = { name: cat, qtd: 0, valor: 0 };
+                acc[cat].qtd += 1;
+                acc[cat].valor += Number(o.valorTotal) || 0;
+                return acc;
+              }, {})
+            ).sort((a, b) => b.valor - a.valor);
+
+            // Chart: Orçamentista
+            const orcamentistaData: { name: string; qtd: number; valor: number }[] = Object.values(
+              orcFiltrados.reduce<Record<string, { name: string; qtd: number; valor: number }>>((acc, o) => {
+                const k = (o.criadoPor || "—").toUpperCase();
+                if (!acc[k]) acc[k] = { name: k, qtd: 0, valor: 0 };
+                acc[k].qtd += 1;
+                acc[k].valor += Number(o.valorTotal) || 0;
+                return acc;
+              }, {})
+            ).sort((a, b) => b.qtd - a.qtd).slice(0, 10);
+
+            // Chart: Timeline mensal
+            const orcTimeline = Object.values(
+              orcFiltrados.reduce<Record<string, { mes: string; qtd: number; valor: number }>>((acc, o) => {
+                const d = parseDate(o.createdAt || o.dataCriacao);
+                if (!d) return acc;
+                const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                if (!acc[k]) acc[k] = { mes: k, qtd: 0, valor: 0 };
+                acc[k].qtd += 1;
+                acc[k].valor += Number(o.valorTotal) || 0;
+                return acc;
+              }, {})
+            ).sort((a, b) => a.mes.localeCompare(b.mes));
+
+            // Grid
+            const t = orcSearch.trim().toLowerCase();
+            const gridRows = orcFiltrados
+              .filter(o => orcStatusFilter === "todos" || o.status === orcStatusFilter)
+              .filter(o => {
+                if (!t) return true;
+                const ss = ssById[o.solicitacaoId];
+                const cat = (ss?.tipo || "").toLowerCase();
+                return String(o.numero).includes(t)
+                  || (o.clienteNome || "").toLowerCase().includes(t)
+                  || cat.includes(t)
+                  || (o.criadoPor || "").toLowerCase().includes(t)
+                  || (o.status || "").toLowerCase().includes(t);
+              })
+              .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+            const totalPages = Math.max(1, Math.ceil(gridRows.length / ORC_PAGE_SIZE));
+            const pageSafe = Math.min(orcPage, totalPages);
+            const pageRows = gridRows.slice((pageSafe - 1) * ORC_PAGE_SIZE, pageSafe * ORC_PAGE_SIZE);
+            const statusOptions = Array.from(new Set(orcFiltrados.map(o => o.status).filter(Boolean)));
+
+            return (
+              <>
+                {/* KPIs */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+                  <KpiCard icon={Calculator} label="Total Orçamentos" value={orcFiltrados.length} gradientIdx={0} />
+                  <KpiCard icon={DollarSign} label="Valor Total" value={fmtBRL(totalValor)} gradientIdx={1} />
+                  <KpiCard icon={TrendingUp} label="Ticket Médio" value={fmtBRL(ticket)} gradientIdx={5} />
+                  <KpiCard icon={CheckCircle2} label="Aprovados" value={aprovadosArr.length} subtitle={fmtBRL(aprovadosArr.reduce((s, o) => s + (Number(o.valorTotal) || 0), 0))} gradientIdx={1} />
+                  <KpiCard icon={DollarSign} label="Disponíveis" value={dispArr.length} gradientIdx={4} />
+                  <KpiCard icon={Clock} label="Pendentes" value={pendentesArr.length} gradientIdx={2} />
+                  <KpiCard icon={ArrowRight} label="Devolvidos" value={devArr.length} gradientIdx={2} />
+                  <KpiCard icon={X} label="Cancelados" value={canceladosArr.length} gradientIdx={3} />
+                </div>
+
+                {/* Gráficos */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-primary" /> Orçamentos por Categoria
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={280}>
+                        <BarChart data={catData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={60} />
+                          <YAxis tick={{ fontSize: 10 }} />
+                          <Tooltip formatter={(v: any, n: any) => n === "valor" ? fmtBRL(Number(v)) : v} />
+                          <Legend wrapperStyle={{ fontSize: 11 }} />
+                          <Bar dataKey="qtd" name="Qtd" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="valor" name="Valor" fill="#10b981" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <PieChart className="h-4 w-4 text-primary" /> Distribuição por Status
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={280}>
+                        <PieChart>
+                          <Pie data={statusData} dataKey="value" nameKey="name" outerRadius={90} label={(e: any) => `${e.value}`}>
+                            {statusData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                          </Pie>
+                          <Tooltip />
+                          <Legend wrapperStyle={{ fontSize: 10 }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <UserCheck className="h-4 w-4 text-primary" /> Top Orçamentistas
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={280}>
+                        <BarChart data={orcamentistaData} layout="vertical">
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis type="number" tick={{ fontSize: 10 }} />
+                          <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={100} />
+                          <Tooltip formatter={(v: any, n: any) => n === "valor" ? fmtBRL(Number(v)) : v} />
+                          <Legend wrapperStyle={{ fontSize: 11 }} />
+                          <Bar dataKey="qtd" name="Qtd" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-primary" /> Evolução Mensal
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={280}>
+                        <AreaChart data={orcTimeline}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis dataKey="mes" tick={{ fontSize: 10 }} />
+                          <YAxis tick={{ fontSize: 10 }} />
+                          <Tooltip formatter={(v: any, n: any) => n === "valor" ? fmtBRL(Number(v)) : v} />
+                          <Legend wrapperStyle={{ fontSize: 11 }} />
+                          <Area type="monotone" dataKey="qtd" name="Qtd" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.25} />
+                          <Area type="monotone" dataKey="valor" name="Valor" stroke="#10b981" fill="#10b981" fillOpacity={0.2} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Grid Detalhado */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <ClipboardList className="h-4 w-4 text-primary" /> Lista de Orçamentos
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          placeholder="Buscar por nº, unidade, categoria, orçamentista..."
+                          value={orcSearch}
+                          onChange={(e) => { setOrcSearch(e.target.value); setOrcPage(1); }}
+                          className="h-8 w-72 text-xs"
+                        />
+                        <Select value={orcStatusFilter} onValueChange={(v) => { setOrcStatusFilter(v); setOrcPage(1); }}>
+                          <SelectTrigger className="h-8 w-48 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="todos">Todos os status</SelectItem>
+                            {statusOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="rounded-lg border overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="text-xs font-bold">N° ORÇAMENTO</TableHead>
+                            <TableHead className="text-xs font-bold">UNIDADE</TableHead>
+                            <TableHead className="text-xs font-bold">DATA</TableHead>
+                            <TableHead className="text-xs font-bold">CATEGORIA</TableHead>
+                            <TableHead className="text-xs font-bold text-right">VALOR</TableHead>
+                            <TableHead className="text-xs font-bold">ORÇAMENTISTA</TableHead>
+                            <TableHead className="text-xs font-bold">STATUS</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {pageRows.length === 0 && (
+                            <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8 text-xs">Nenhum orçamento encontrado.</TableCell></TableRow>
+                          )}
+                          {pageRows.map(o => {
+                            const ss = ssById[o.solicitacaoId];
+                            const cat = (ss?.tipo || "—").toUpperCase();
+                            const d = parseDate(o.createdAt || o.dataCriacao);
+                            return (
+                              <TableRow key={o.id} className="text-xs">
+                                <TableCell className="font-mono font-semibold">{o.numero}</TableCell>
+                                <TableCell className="uppercase">{o.clienteNome || "—"}</TableCell>
+                                <TableCell className="tabular-nums">{d ? format(d, "dd/MM/yyyy") : "—"}</TableCell>
+                                <TableCell className="uppercase">{cat}</TableCell>
+                                <TableCell className="text-right tabular-nums font-medium">{fmtBRL(Number(o.valorTotal) || 0)}</TableCell>
+                                <TableCell className="uppercase">{o.criadoPor || "—"}</TableCell>
+                                <TableCell><Badge variant="outline" className="uppercase text-[10px]">{o.status}</Badge></TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+                        <span>{gridRows.length} orçamentos • Página {pageSafe} de {totalPages}</span>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="outline" className="h-7 text-xs" disabled={pageSafe <= 1} onClick={() => setOrcPage(p => Math.max(1, p - 1))}>Anterior</Button>
+                          <Button size="sm" variant="outline" className="h-7 text-xs" disabled={pageSafe >= totalPages} onClick={() => setOrcPage(p => Math.min(totalPages, p + 1))}>Próxima</Button>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </>
             );
           })()}
