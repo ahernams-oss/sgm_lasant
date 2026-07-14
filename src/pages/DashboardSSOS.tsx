@@ -87,7 +87,7 @@ export default function DashboardSSOS() {
   const [statusOSFilter, setStatusOSFilter] = useState("todos");
   const [orcPeriodo, setOrcPeriodo] = useState<"dia" | "semana" | "quinzena" | "mes" | "todos">("mes");
   const [orcSearch, setOrcSearch] = useState("");
-  const [orcStatusFilter, setOrcStatusFilter] = useState("todos");
+  const [orcOrcamentistaFilter, setOrcOrcamentistaFilter] = useState("todos");
   const [orcPage, setOrcPage] = useState(1);
   const ORC_PAGE_SIZE = 15;
 
@@ -1331,7 +1331,7 @@ export default function DashboardSSOS() {
             // Grid
             const t = orcSearch.trim().toLowerCase();
             const gridRows = orcFiltrados
-              .filter(o => orcStatusFilter === "todos" || o.status === orcStatusFilter)
+              .filter(o => orcOrcamentistaFilter === "todos" || (o.criadoPor || "") === orcOrcamentistaFilter)
               .filter(o => {
                 if (!t) return true;
                 const ss = ssById[o.solicitacaoId];
@@ -1346,7 +1346,7 @@ export default function DashboardSSOS() {
             const totalPages = Math.max(1, Math.ceil(gridRows.length / ORC_PAGE_SIZE));
             const pageSafe = Math.min(orcPage, totalPages);
             const pageRows = gridRows.slice((pageSafe - 1) * ORC_PAGE_SIZE, pageSafe * ORC_PAGE_SIZE);
-            const statusOptions = Array.from(new Set(orcFiltrados.map(o => o.status).filter(Boolean)));
+            const orcamentistaOptions = Array.from(new Set(orcFiltrados.map(o => o.criadoPor).filter(Boolean))).sort();
 
             const handleExportOrcPDF = () => {
               downloadRelatorioOrcamentosPDF({
@@ -1503,11 +1503,11 @@ export default function DashboardSSOS() {
                           onChange={(e) => { setOrcSearch(e.target.value); setOrcPage(1); }}
                           className="h-8 w-72 text-xs"
                         />
-                        <Select value={orcStatusFilter} onValueChange={(v) => { setOrcStatusFilter(v); setOrcPage(1); }}>
-                          <SelectTrigger className="h-8 w-48 text-xs"><SelectValue /></SelectTrigger>
+                        <Select value={orcOrcamentistaFilter} onValueChange={(v) => { setOrcOrcamentistaFilter(v); setOrcPage(1); }}>
+                          <SelectTrigger className="h-8 w-56 text-xs"><SelectValue placeholder="Orçamentista" /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="todos">Todos os status</SelectItem>
-                            {statusOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                            <SelectItem value="todos">Todos os orçamentistas</SelectItem>
+                            {orcamentistaOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
