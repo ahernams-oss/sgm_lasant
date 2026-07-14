@@ -1367,9 +1367,9 @@ export default function DashboardSSOS() {
                   || (o.status || "").toLowerCase().includes(t);
               })
               .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
-            const totalPages = Math.max(1, Math.ceil(gridRows.length / ORC_PAGE_SIZE));
+            const totalPages = Math.max(1, Math.ceil(gridRows.length / orcPageSize));
             const pageSafe = Math.min(orcPage, totalPages);
-            const pageRows = gridRows.slice((pageSafe - 1) * ORC_PAGE_SIZE, pageSafe * ORC_PAGE_SIZE);
+            const pageRows = gridRows.slice((pageSafe - 1) * orcPageSize, pageSafe * orcPageSize);
             const orcamentistaOptions = Array.from(new Set(orcFiltradosBase.map(o => o.criadoPor).filter(Boolean))).sort();
             const unidadeOptions = Array.from(
               new Set(orcFiltradosBase.map(o => (ssById[o.solicitacaoId]?.localDescricao || "Sem unidade").toUpperCase()))
