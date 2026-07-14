@@ -87,7 +87,7 @@ export default function DashboardSSOS() {
   const [statusOSFilter, setStatusOSFilter] = useState("todos");
   const [orcPeriodo, setOrcPeriodo] = useState<"dia" | "semana" | "quinzena" | "mes" | "todos">("mes");
   const [orcSearch, setOrcSearch] = useState("");
-  const [orcOrcamentistaFilter, setOrcOrcamentistaFilter] = useState("todos");
+  const [orcOrcamentistaFilter, setOrcOrcamentistaFilter] = useState<string[]>([]);
   const [orcPage, setOrcPage] = useState(1);
   const ORC_PAGE_SIZE = 15;
 
@@ -1331,7 +1331,7 @@ export default function DashboardSSOS() {
             // Grid
             const t = orcSearch.trim().toLowerCase();
             const gridRows = orcFiltrados
-              .filter(o => orcOrcamentistaFilter === "todos" || (o.criadoPor || "") === orcOrcamentistaFilter)
+              .filter(o => orcOrcamentistaFilter.length === 0 || orcOrcamentistaFilter.includes(o.criadoPor || ""))
               .filter(o => {
                 if (!t) return true;
                 const ss = ssById[o.solicitacaoId];
@@ -1503,13 +1503,53 @@ export default function DashboardSSOS() {
                           onChange={(e) => { setOrcSearch(e.target.value); setOrcPage(1); }}
                           className="h-8 w-72 text-xs"
                         />
-                        <Select value={orcOrcamentistaFilter} onValueChange={(v) => { setOrcOrcamentistaFilter(v); setOrcPage(1); }}>
-                          <SelectTrigger className="h-8 w-56 text-xs"><SelectValue placeholder="Orçamentista" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="todos">Todos os orçamentistas</SelectItem>
-                            {orcamentistaOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-8 text-xs justify-between min-w-56">
+                              <span className="truncate">
+                                {orcOrcamentistaFilter.length === 0
+                                  ? "Todos os orçamentistas"
+                                  : orcOrcamentistaFilter.length === 1
+                                    ? orcOrcamentistaFilter[0]
+                                    : `${orcOrcamentistaFilter.length} selecionados`}
+                              </span>
+                              <Filter className="h-3 w-3 opacity-60 ml-2" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-72 p-2" align="end">
+                            <div className="flex items-center justify-between px-2 pb-2 border-b mb-2">
+                              <span className="text-xs font-semibold">Orçamentistas</span>
+                              <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2"
+                                onClick={() => { setOrcOrcamentistaFilter([]); setOrcPage(1); }}>
+                                Limpar
+                              </Button>
+                            </div>
+                            <div className="max-h-64 overflow-y-auto space-y-1">
+                              {orcamentistaOptions.length === 0 && (
+                                <p className="text-xs text-muted-foreground p-2 text-center">Nenhum orçamentista.</p>
+                              )}
+                              {orcamentistaOptions.map(s => {
+                                const checked = orcOrcamentistaFilter.includes(s);
+                                return (
+                                  <label key={s} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={(e) => {
+                                        setOrcOrcamentistaFilter(prev =>
+                                          e.target.checked ? [...prev, s] : prev.filter(x => x !== s)
+                                        );
+                                        setOrcPage(1);
+                                      }}
+                                      className="h-3.5 w-3.5"
+                                    />
+                                    <span className="uppercase">{s}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
                   </CardHeader>
