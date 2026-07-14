@@ -1348,8 +1348,50 @@ export default function DashboardSSOS() {
             const pageRows = gridRows.slice((pageSafe - 1) * ORC_PAGE_SIZE, pageSafe * ORC_PAGE_SIZE);
             const statusOptions = Array.from(new Set(orcFiltrados.map(o => o.status).filter(Boolean)));
 
+            const handleExportOrcPDF = () => {
+              downloadRelatorioOrcamentosPDF({
+                empresa,
+                periodoLabel: `${dateFrom ? format(dateFrom, "dd/MM/yyyy") : "—"} até ${dateTo ? format(dateTo, "dd/MM/yyyy") : "—"}`,
+                filtroLabel: clienteFilter === "todos" ? "Todos os clientes" : (clientes.find(c => c.id === clienteFilter)?.nome || "—"),
+                kpis: {
+                  total: orcFiltrados.length,
+                  valorTotal: totalValor,
+                  ticket,
+                  aprovados: aprovadosArr.length,
+                  pendentes: pendentesArr.length,
+                  disponiveis: dispArr.length,
+                  devolvidos: devArr.length,
+                  cancelados: canceladosArr.length,
+                },
+                porCategoria: catData,
+                porOrcamentista: orcamentistaData,
+                porStatus: statusData,
+                lista: gridRows.map(o => {
+                  const ss = ssById[o.solicitacaoId];
+                  const cat = ((o as any).categoria || ss?.tipo || "—").toUpperCase();
+                  const d = parseDate(o.createdAt || o.dataCriacao);
+                  return {
+                    numero: o.numero,
+                    cliente: (o.clienteNome || "—").toUpperCase(),
+                    data: d ? format(d, "dd/MM/yyyy") : "—",
+                    categoria: cat,
+                    valor: Number(o.valorTotal) || 0,
+                    orcamentista: (o.criadoPor || "—").toUpperCase(),
+                    status: o.status || "—",
+                  };
+                }),
+              }, `relatorio-orcamentos-${format(new Date(), "yyyyMMdd-HHmm")}.pdf`);
+            };
+
             return (
               <>
+                {/* Ações */}
+                <div className="flex justify-end">
+                  <Button size="sm" variant="outline" onClick={handleExportOrcPDF} className="gap-2">
+                    <FileDown className="h-4 w-4" /> Exportar Relatório PDF
+                  </Button>
+                </div>
+
                 {/* KPIs */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
                   <KpiCard icon={Calculator} label="Total Orçamentos" value={orcFiltrados.length} gradientIdx={0} />
