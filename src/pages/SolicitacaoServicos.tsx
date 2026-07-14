@@ -1267,7 +1267,7 @@ export default function SolicitacaoServicosPage() {
 
       {/* View Dialog */}
       <Dialog open={!!viewTarget} onOpenChange={(o) => { if (!o) setViewTarget(null); }}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto">
           <DialogHeader className="relative">
             <DialogTitle className="flex items-center gap-2 pr-16">
               <Eye className="h-5 w-5" />
