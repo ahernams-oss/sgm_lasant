@@ -1572,7 +1572,33 @@ export default function DashboardSSOS() {
                       </ResponsiveContainer>
                     </CardContent>
                   </Card>
+
+                  <Card className="lg:col-span-2">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-primary" /> Orçamentos por Unidade
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {unidadeData.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-10">Sem dados.</p>
+                      ) : (
+                        <ResponsiveContainer width="100%" height={280}>
+                          <BarChart data={unidadeData} layout="vertical">
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                            <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => fmtBRL(Number(v))} />
+                            <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={160} />
+                            <Tooltip formatter={(v: any, n: any) => n === "valor" ? fmtBRL(Number(v)) : v} />
+                            <Legend wrapperStyle={{ fontSize: 11 }} />
+                            <Bar dataKey="valor" name="Valor" fill="#f59e0b" radius={[0, 4, 4, 0]} />
+                            <Bar dataKey="qtd" name="Qtd" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
+
 
                 {/* Grid Detalhado */}
                 <Card>
