@@ -16,11 +16,9 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const CHATPRO_TOKEN = Deno.env.get('CHATPRO_TOKEN');
-    const CHATPRO_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
-
-    if (!CHATPRO_TOKEN || !CHATPRO_INSTANCE) {
-      throw new Error('CHATPRO_TOKEN ou CHATPRO_INSTANCE não configurados');
+    const PLUGSEND_TOKEN = Deno.env.get('PLUGSEND_TOKEN');
+    if (!PLUGSEND_TOKEN) {
+      throw new Error('PLUGSEND_TOKEN não configurado');
     }
 
     const today = new Date();
@@ -67,8 +65,7 @@ serve(async (req) => {
     }
 
     const results: any[] = [];
-    const baseUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}`;
-    const chatproUrl = `${baseUrl}/api/v1/send_message`;
+    const plugsendUrl = 'https://plugsend.uazapi.com/send/text';
 
     for (const doc of documentos) {
       const vencimento = new Date(doc.data_validade);
@@ -81,13 +78,13 @@ serve(async (req) => {
         const telefoneLimpo = numero.replace(/\D/g, '');
         if (telefoneLimpo.length >= 10) {
           try {
-            await fetch(chatproUrl, {
+            await fetch(plugsendUrl, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': CHATPRO_TOKEN,
+                token: PLUGSEND_TOKEN,
               },
-              body: JSON.stringify({ number: telefoneLimpo, message: mensagem }),
+              body: JSON.stringify({ number: telefoneLimpo, text: mensagem, linkPreview: true }),
             });
           } catch (whatsErr) {
             console.error('WhatsApp error:', whatsErr);

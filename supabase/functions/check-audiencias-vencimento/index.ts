@@ -21,11 +21,10 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const chatproToken = Deno.env.get('CHATPRO_TOKEN');
-    const chatproInstance = Deno.env.get('CHATPRO_INSTANCE');
+    const plugsendToken = Deno.env.get('PLUGSEND_TOKEN');
 
-    if (!chatproToken || !chatproInstance) {
-      throw new Error('CHATPRO_TOKEN ou CHATPRO_INSTANCE não configurados');
+    if (!plugsendToken) {
+      throw new Error('PLUGSEND_TOKEN não configurado');
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -47,16 +46,15 @@ serve(async (req) => {
     const fmt = (d: Date) => d.toISOString().split('T')[0];
 
     let enviados = 0;
-    const baseUrl = `https://v5.chatpro.com.br/${chatproInstance}`;
     const detalhes: Record<string, number> = {};
 
     const enviarWhatsApp = async (telefone: string, mensagem: string) => {
       const telefoneLimpo = telefone.replace(/\D/g, '');
       if (!telefoneLimpo) return;
-      await fetch(`${baseUrl}/api/v1/send_message`, {
+      await fetch('https://plugsend.uazapi.com/send/text', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': chatproToken },
-        body: JSON.stringify({ number: telefoneLimpo, message: mensagem }),
+        headers: { 'Content-Type': 'application/json', token: plugsendToken },
+        body: JSON.stringify({ number: telefoneLimpo, text: mensagem, linkPreview: true }),
       });
       enviados++;
     };

@@ -16,8 +16,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const CHATPRO_TOKEN = Deno.env.get('CHATPRO_TOKEN');
-    const CHATPRO_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
+    const PLUGSEND_TOKEN = Deno.env.get('PLUGSEND_TOKEN');
 
     const today = new Date();
     const d10 = new Date(today);
@@ -47,7 +46,7 @@ serve(async (req) => {
           const vencFormatado = func.experiencia_primeira_etapa.split('-').reverse().join('/');
           const mensagem = `⚠️ AVISO - Período de Experiência\n\nO 1º período de experiência (45 dias) do funcionário ${func.nome} vence em ${diff1} dias (${vencFormatado}).\n\nProvidenciar avaliação e decisão sobre renovação.`;
 
-          await sendWhatsApp(CHATPRO_TOKEN, CHATPRO_INSTANCE, func.telefone, mensagem);
+          await sendWhatsApp(PLUGSEND_TOKEN, func.telefone, mensagem);
 
           await supabase
             .from('funcionarios')
@@ -66,7 +65,7 @@ serve(async (req) => {
           const vencFormatado = func.experiencia_fim.split('-').reverse().join('/');
           const mensagem = `⚠️ AVISO - Período de Experiência\n\nO 2º período de experiência (90 dias) do funcionário ${func.nome} vence em ${diffFinal} dias (${vencFormatado}).\n\nProvidenciar efetivação ou desligamento.`;
 
-          await sendWhatsApp(CHATPRO_TOKEN, CHATPRO_INSTANCE, func.telefone, mensagem);
+          await sendWhatsApp(PLUGSEND_TOKEN, func.telefone, mensagem);
 
           await supabase
             .from('funcionarios')
@@ -91,19 +90,18 @@ serve(async (req) => {
   }
 });
 
-async function sendWhatsApp(token: string | undefined, instance: string | undefined, telefone: string | null, mensagem: string) {
-  if (!token || !instance || !telefone) return;
+async function sendWhatsApp(token: string | undefined, telefone: string | null, mensagem: string) {
+  if (!token || !telefone) return;
   const telefoneLimpo = telefone.replace(/\D/g, '');
   if (telefoneLimpo.length < 10) return;
   try {
-    const url = `https://v5.chatpro.com.br/${instance}/api/v1/send_message`;
-    await fetch(url, {
+    await fetch('https://plugsend.uazapi.com/send/text', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': token,
+        token,
       },
-      body: JSON.stringify({ number: telefoneLimpo, message: mensagem }),
+      body: JSON.stringify({ number: telefoneLimpo, text: mensagem, linkPreview: true }),
     });
   } catch (err) {
     console.error('WhatsApp error:', err);

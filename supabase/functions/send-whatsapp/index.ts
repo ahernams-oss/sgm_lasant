@@ -1,125 +1,77 @@
+// Proxy compatível com a antiga API do send-whatsapp — encaminha para PlugSend (uazapi).
+// Mantido para não quebrar chamadas existentes de módulos que ainda invocam "send-whatsapp".
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const CHATPRO_TOKEN = Deno.env.get('CHATPRO_TOKEN');
-    if (!CHATPRO_TOKEN) {
-      throw new Error('CHATPRO_TOKEN is not configured');
-    }
-
-    const CHATPRO_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
-    if (!CHATPRO_INSTANCE) {
-      throw new Error('CHATPRO_INSTANCE is not configured');
-    }
+    const token = Deno.env.get("PLUGSEND_TOKEN");
+    if (!token) throw new Error("PLUGSEND_TOKEN não configurado");
 
     const { telefone, mensagem, documentUrl, documentFilename } = await req.json();
 
     if (!telefone || (!mensagem && !documentUrl)) {
       return new Response(
-        JSON.stringify({ success: false, error: 'telefone e (mensagem ou documentUrl) são obrigatórios' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: "telefone e (mensagem ou documentUrl) são obrigatórios" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // Detecta se é ID de grupo (contém @g.us, hífen, ou número muito longo > 15 dígitos)
+    // Detecta grupo (JID @g.us) vs número
     const telefoneStr = String(telefone).trim();
-    const apenasDigitos = telefoneStr.replace(/\D/g, '');
-    const isGrupo = telefoneStr.includes('@g.us')
-      || telefoneStr.includes('-')
-      || apenasDigitos.length > 15;
+    const apenasDigitos = telefoneStr.replace(/\D/g, "");
+    const isGrupo =
+      telefoneStr.includes("@g.us") || telefoneStr.includes("-") || apenasDigitos.length > 15;
+    const destino = isGrupo
+      ? (telefoneStr.includes("@g.us") ? telefoneStr : `${apenasDigitos}@g.us`)
+      : apenasDigitos;
 
-    let destino: string;
-    if (isGrupo) {
-      // Para grupos, ChatPro espera o JID completo com @g.us
-      destino = telefoneStr.includes('@g.us')
-        ? telefoneStr
-        : `${apenasDigitos || telefoneStr.replace('@g.us', '')}@g.us`;
-    } else {
-      destino = apenasDigitos;
+    const results: unknown[] = [];
+
+    if (mensagem && mensagem.toString().trim()) {
+      const r = await fetch("https://plugsend.uazapi.com/send/text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", token },
+        body: JSON.stringify({ number: destino, text: mensagem, linkPreview: true }),
+      });
+      const t = await r.text();
+      if (!r.ok) throw new Error(`PlugSend text [${r.status}]: ${t}`);
+      try { results.push(JSON.parse(t)); } catch { results.push({ raw: t }); }
     }
-    const baseUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}`;
 
-    // Envio de documento: enviamos o link como texto (instância atual não suporta upload de arquivo)
     if (documentUrl) {
-      const chatproUrl = `${baseUrl}/api/v1/send_message`;
-      const textoComLink = `${mensagem ? mensagem + '\n\n' : ''}📎 ${documentFilename || 'Documento'}: ${documentUrl}`;
-
-      const response = await fetch(chatproUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': CHATPRO_TOKEN,
-        },
+      const r = await fetch("https://plugsend.uazapi.com/send/media", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", token },
         body: JSON.stringify({
           number: destino,
-          message: textoComLink,
+          type: "document",
+          file: documentUrl,
+          docName: documentFilename || "documento.pdf",
         }),
       });
-
-      const responseText = await response.text();
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch {
-        throw new Error(`ChatPro retornou resposta inválida [${response.status}]: ${responseText.substring(0, 200)}`);
-      }
-
-      if (!response.ok) {
-        throw new Error(`ChatPro error [${response.status}]: ${JSON.stringify(data)}`);
-      }
-
-      return new Response(
-        JSON.stringify({ success: true, data }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Envio de mensagem de texto normal
-    const chatproUrl = `${baseUrl}/api/v1/send_message`;
-
-    const response = await fetch(chatproUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': CHATPRO_TOKEN,
-      },
-      body: JSON.stringify({
-        number: destino,
-        message: mensagem,
-      }),
-    });
-
-    const responseText = await response.text();
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch {
-      throw new Error(`ChatPro retornou resposta inválida [${response.status}]: ${responseText.substring(0, 200)}`);
-    }
-
-    if (!response.ok) {
-      throw new Error(`ChatPro error [${response.status}]: ${JSON.stringify(data)}`);
+      const t = await r.text();
+      if (!r.ok) throw new Error(`PlugSend media [${r.status}]: ${t}`);
+      try { results.push(JSON.parse(t)); } catch { results.push({ raw: t }); }
     }
 
     return new Response(
-      JSON.stringify({ success: true, data }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ success: true, data: results }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error: unknown) {
-    console.error('Error sending WhatsApp message:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error("send-whatsapp (PlugSend proxy) error:", error);
+    const msg = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ success: false, error: errorMessage }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ success: false, error: msg }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
