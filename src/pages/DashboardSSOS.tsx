@@ -1407,17 +1407,18 @@ export default function DashboardSSOS() {
                   <Card>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm flex items-center gap-2">
-                        <UserCheck className="h-4 w-4 text-primary" /> Top Orçamentistas
+                        <UserCheck className="h-4 w-4 text-primary" /> Top Orçamentistas — Valor (R$)
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <ResponsiveContainer width="100%" height={280}>
                         <BarChart data={orcamentistaData} layout="vertical">
                           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                          <XAxis type="number" tick={{ fontSize: 10 }} />
-                          <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={100} />
+                          <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => fmtBRL(Number(v))} />
+                          <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={120} />
                           <Tooltip formatter={(v: any, n: any) => n === "valor" ? fmtBRL(Number(v)) : v} />
                           <Legend wrapperStyle={{ fontSize: 11 }} />
+                          <Bar dataKey="valor" name="Valor" fill="#10b981" radius={[0, 4, 4, 0]} />
                           <Bar dataKey="qtd" name="Qtd" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
