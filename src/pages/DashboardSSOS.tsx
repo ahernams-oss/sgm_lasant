@@ -1676,7 +1676,55 @@ export default function DashboardSSOS() {
                             </div>
                           </PopoverContent>
                         </Popover>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-8 text-xs justify-between min-w-56">
+                              <span className="truncate">
+                                {orcUnitFilter.length === 0
+                                  ? "Todas as unidades"
+                                  : orcUnitFilter.length === 1
+                                    ? orcUnitFilter[0]
+                                    : `${orcUnitFilter.length} selecionadas`}
+                              </span>
+                              <Filter className="h-3 w-3 opacity-60 ml-2" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-72 p-2" align="end">
+                            <div className="flex items-center justify-between px-2 pb-2 border-b mb-2">
+                              <span className="text-xs font-semibold">Unidades</span>
+                              <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2"
+                                onClick={() => { setOrcUnitFilter([]); setOrcPage(1); }}>
+                                Limpar
+                              </Button>
+                            </div>
+                            <div className="max-h-64 overflow-y-auto space-y-1">
+                              {unidadeOptions.length === 0 && (
+                                <p className="text-xs text-muted-foreground p-2 text-center">Nenhuma unidade.</p>
+                              )}
+                              {unidadeOptions.map(u => {
+                                const checked = orcUnitFilter.includes(u);
+                                return (
+                                  <label key={u} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={(e) => {
+                                        setOrcUnitFilter(prev =>
+                                          e.target.checked ? [...prev, u] : prev.filter(x => x !== u)
+                                        );
+                                        setOrcPage(1);
+                                      }}
+                                      className="h-3.5 w-3.5"
+                                    />
+                                    <span className="uppercase">{u}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       </div>
+
                     </div>
                   </CardHeader>
                   <CardContent>
