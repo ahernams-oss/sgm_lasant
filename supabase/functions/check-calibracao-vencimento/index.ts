@@ -46,14 +46,14 @@ serve(async (req) => {
       const mensagem = `⚠️ AVISO - Calibração de Equipamento\n\nO equipamento "${eq.equipamento}"${eq.tag ? ` (TAG: ${eq.tag})` : ''} — Cliente ${eq.cliente_nome} — vence a calibração em ${label} (${vencFmt}).\n\n${eq.laboratorio_calibracao ? `Laboratório: ${eq.laboratorio_calibracao}\n` : ''}Providenciar agendamento.`;
 
       // WhatsApp
-      if (CHATPRO_TOKEN && CHATPRO_INSTANCE && eq.telefone_responsavel_calibracao) {
+      if (PLUGSEND_TOKEN && eq.telefone_responsavel_calibracao) {
         const tel = String(eq.telefone_responsavel_calibracao).replace(/\D/g, '');
         if (tel.length >= 10) {
           try {
-            await fetch(`https://v5.chatpro.com.br/${CHATPRO_INSTANCE}/api/v1/send_message`, {
+            await fetch('https://plugsend.uazapi.com/send/text', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': CHATPRO_TOKEN },
-              body: JSON.stringify({ number: tel, message: mensagem }),
+              headers: { 'Content-Type': 'application/json', token: PLUGSEND_TOKEN },
+              body: JSON.stringify({ number: tel, text: mensagem, linkPreview: true }),
             });
           } catch (e) { console.error('WhatsApp:', e); }
         }
