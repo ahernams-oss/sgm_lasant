@@ -11,8 +11,7 @@ serve(async (req) => {
 
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    const CHATPRO_TOKEN = Deno.env.get('CHATPRO_TOKEN');
-    const CHATPRO_INSTANCE = Deno.env.get('CHATPRO_INSTANCE');
+    const PLUGSEND_TOKEN = Deno.env.get('PLUGSEND_TOKEN');
 
     const today = new Date();
     const d30 = new Date(today); d30.setDate(d30.getDate() + 30);
