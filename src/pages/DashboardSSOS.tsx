@@ -90,8 +90,7 @@ export default function DashboardSSOS() {
   const [orcOrcamentistaFilter, setOrcOrcamentistaFilter] = useState<string[]>([]);
   const [orcUnitFilter, setOrcUnitFilter] = useState<string[]>([]);
   const [orcPage, setOrcPage] = useState(1);
-
-  const ORC_PAGE_SIZE = 15;
+  const [orcPageSize, setOrcPageSize] = useState(10);
 
   const clearFilters = () => {
     setDateFrom(undefined); setDateTo(undefined);
