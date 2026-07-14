@@ -4732,6 +4732,7 @@ export type Database = {
         Row: {
           anexos: Json
           aprovado_por: string | null
+          categoria: string | null
           cliente_id: string
           cliente_nome: string
           created_at: string | null
@@ -4753,6 +4754,7 @@ export type Database = {
         Insert: {
           anexos?: Json
           aprovado_por?: string | null
+          categoria?: string | null
           cliente_id?: string
           cliente_nome?: string
           created_at?: string | null
@@ -4774,6 +4776,7 @@ export type Database = {
         Update: {
           anexos?: Json
           aprovado_por?: string | null
+          categoria?: string | null
           cliente_id?: string
           cliente_nome?: string
           created_at?: string | null

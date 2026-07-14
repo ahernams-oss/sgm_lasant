@@ -17,6 +17,7 @@ export interface RevisaoEntry { motivo: string; data: string; usuario: string; }
 export interface Orcamento {
   id: string; numero: number; solicitacaoId: string; solicitacaoNumero: number;
   clienteId: string; clienteNome: string;
+  categoria: string;
   itensSco: ItemScoOrcamento[]; itensMateriais: ItemMaterialOrcamento[];
   anexos: string[]; valorTotal: number; status: string; observacoes: string;
   revisaoMotivo: string; revisoes: RevisaoEntry[];
@@ -39,6 +40,7 @@ const rowToOrcamento = (r: any): Orcamento => ({
   id: r.id, numero: r.numero ?? 0,
   solicitacaoId: r.solicitacao_id ?? "", solicitacaoNumero: r.solicitacao_numero ?? 0,
   clienteId: r.cliente_id ?? "", clienteNome: r.cliente_nome ?? "",
+  categoria: r.categoria ?? "",
   itensSco: Array.isArray(r.itens_sco) ? r.itens_sco : [],
   itensMateriais: Array.isArray(r.itens_materiais) ? r.itens_materiais : [],
   anexos: Array.isArray(r.anexos) ? r.anexos : [],

@@ -39,6 +39,19 @@ interface ItemMaterial {
   quantidade: number; valorUnitario: number; valorTotal: number;
 }
 
+const CATEGORIAS_ORCAMENTO = [
+  "01 - ELETRICA",
+  "02 - HIDRAULICA",
+  "03 - CIVIL",
+  "04 - REFRIGERACAO / AR CONDICIONADO",
+  "05 - AUTOMACAO",
+  "06 - MARCENARIA",
+  "07 - PINTURA",
+  "08 - SERRALHERIA",
+  "09 - GESSO / DRYWALL",
+  "10 - OUTROS",
+];
+
 export default function OrcamentoDialog({ open, onOpenChange, solicitacao, existingOrcamento, onApproved, onSent, onRevisaoSolicitada }: OrcamentoDialogProps) {
   const { scos } = useSco();
   const { items: i0Items } = useI0();
@@ -53,6 +66,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     (existingOrcamento?.anexos || []).map((url: string) => ({ url, nome: url.split("/").pop() || "arquivo" }))
   );
   const [observacoes, setObservacoes] = useState(existingOrcamento?.observacoes || "");
+  const [categoria, setCategoria] = useState(existingOrcamento?.categoria || "");
   const [revisaoMotivo, setRevisaoMotivo] = useState("");
   const [uploading, setUploading] = useState(false);
   const [scoSearch, setScoSearch] = useState("");
@@ -178,6 +192,10 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
   };
 
   const handleSave = async () => {
+    if (!categoria) {
+      toast({ title: "Selecione a Categoria do orçamento", variant: "destructive" });
+      return;
+    }
     if (itensSco.length === 0 && itensMateriais.length === 0) {
       toast({ title: "Adicione pelo menos um item ao orçamento", variant: "destructive" });
       return;
@@ -189,6 +207,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       solicitacao_numero: solicitacao?.numero || 0,
       cliente_id: solicitacao?.clienteId || "",
       cliente_nome: solicitacao?.clienteNome || "",
+      categoria,
       itens_sco: itensSco,
       itens_materiais: itensMateriais,
       anexos: anexosUrls,
@@ -211,6 +230,10 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
   };
 
   const handleEnviar = async () => {
+    if (!categoria) {
+      toast({ title: "Selecione a Categoria do orçamento", variant: "destructive" });
+      return;
+    }
     if (itensSco.length === 0 && itensMateriais.length === 0) {
       toast({ title: "Adicione pelo menos um item ao orçamento", variant: "destructive" });
       return;
@@ -222,6 +245,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       solicitacao_numero: solicitacao?.numero || 0,
       cliente_id: solicitacao?.clienteId || "",
       cliente_nome: solicitacao?.clienteNome || "",
+      categoria,
       itens_sco: itensSco,
       itens_materiais: itensMateriais,
       anexos: anexosUrls,
@@ -326,12 +350,44 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
           </div>
         )}
 
-        <Tabs defaultValue="sco" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="categoria" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="categoria">
+              Categoria {categoria ? "✓" : <span className="text-destructive ml-1">*</span>}
+            </TabsTrigger>
             <TabsTrigger value="sco">Itens SCO ({itensSco.length})</TabsTrigger>
             <TabsTrigger value="materiais">Materiais ({itensMateriais.length})</TabsTrigger>
             <TabsTrigger value="anexos">Anexos ({anexos.length}/3)</TabsTrigger>
           </TabsList>
+
+          {/* Categoria Tab */}
+          <TabsContent value="categoria" className="space-y-3">
+            <div>
+              <Label className="font-bold">
+                Categoria do Orçamento <span className="text-destructive">*</span>
+              </Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Selecione a categoria à qual este orçamento pertence. Campo obrigatório para envio.
+              </p>
+              <Select value={categoria} onValueChange={setCategoria} disabled={isReadOnly}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a categoria..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIAS_ORCAMENTO.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {categoria && (
+                <div className="mt-3 p-3 rounded-md bg-primary/10 border border-primary/30 text-sm">
+                  <span className="text-muted-foreground">Categoria selecionada: </span>
+                  <span className="font-semibold text-primary">{categoria}</span>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
 
           {/* SCO Tab */}
           <TabsContent value="sco" className="space-y-3">
