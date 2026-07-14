@@ -1316,6 +1316,19 @@ export default function DashboardSSOS() {
               }, {})
             ).sort((a, b) => b.valor - a.valor).slice(0, 10);
 
+            // Chart: Unidade — usa localDescricao da SS vinculada ao orçamento
+            const unidadeData: { name: string; qtd: number; valor: number }[] = Object.values(
+              orcFiltrados.reduce<Record<string, { name: string; qtd: number; valor: number }>>((acc, o) => {
+                const ss = ssById[o.solicitacaoId];
+                const k = (ss?.localDescricao || "Sem unidade").toUpperCase();
+                if (!acc[k]) acc[k] = { name: k, qtd: 0, valor: 0 };
+                acc[k].qtd += 1;
+                acc[k].valor += Number(o.valorTotal) || 0;
+                return acc;
+              }, {})
+            ).sort((a, b) => b.valor - a.valor).slice(0, 10);
+
+
             // Chart: Timeline mensal
             const orcTimeline = Object.values(
               orcFiltrados.reduce<Record<string, { mes: string; qtd: number; valor: number }>>((acc, o) => {
@@ -1337,11 +1350,14 @@ export default function DashboardSSOS() {
                 if (!t) return true;
                 const ss = ssById[o.solicitacaoId];
                 const cat = (ss?.tipo || "").toLowerCase();
+                const unidade = (ss?.localDescricao || "").toLowerCase();
                 return String(o.numero).includes(t)
                   || (o.clienteNome || "").toLowerCase().includes(t)
+                  || unidade.includes(t)
                   || cat.includes(t)
                   || (o.criadoPor || "").toLowerCase().includes(t)
                   || (o.status || "").toLowerCase().includes(t);
+
               })
               .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
             const totalPages = Math.max(1, Math.ceil(gridRows.length / ORC_PAGE_SIZE));
@@ -1559,7 +1575,33 @@ export default function DashboardSSOS() {
                       </ResponsiveContainer>
                     </CardContent>
                   </Card>
+
+                  <Card className="lg:col-span-2">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-primary" /> Orçamentos por Unidade
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {unidadeData.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-10">Sem dados.</p>
+                      ) : (
+                        <ResponsiveContainer width="100%" height={280}>
+                          <BarChart data={unidadeData} layout="vertical">
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                            <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => fmtBRL(Number(v))} />
+                            <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={160} />
+                            <Tooltip formatter={(v: any, n: any) => n === "valor" ? fmtBRL(Number(v)) : v} />
+                            <Legend wrapperStyle={{ fontSize: 11 }} />
+                            <Bar dataKey="valor" name="Valor" fill="#f59e0b" radius={[0, 4, 4, 0]} />
+                            <Bar dataKey="qtd" name="Qtd" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
+
 
                 {/* Grid Detalhado */}
                 <Card>
@@ -1650,7 +1692,7 @@ export default function DashboardSSOS() {
                             return (
                               <TableRow key={o.id} className="text-xs">
                                 <TableCell className="font-mono font-semibold">{o.numero}</TableCell>
-                                <TableCell className="uppercase">{o.clienteNome || "—"}</TableCell>
+                                <TableCell className="uppercase">{ss?.localDescricao || "—"}</TableCell>
                                 <TableCell className="tabular-nums">{d ? format(d, "dd/MM/yyyy") : "—"}</TableCell>
                                 <TableCell className="uppercase">{cat}</TableCell>
                                 <TableCell className="text-right tabular-nums font-medium">{fmtBRL(Number(o.valorTotal) || 0)}</TableCell>
