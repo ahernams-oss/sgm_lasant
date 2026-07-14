@@ -32,6 +32,7 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { downloadPdfDashboardSSOS, downloadExcelDashboardSSOS } from "@/lib/gerarRelatorioDashboardSSOS";
 import { downloadRelatorioOrcamentosPDF } from "@/lib/gerarRelatorioOrcamentos";
 import { ChartPngExportButton } from "@/components/ChartPngExportButton";
+import PaginationControls from "@/components/PaginationControls";
 
 const CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
 
