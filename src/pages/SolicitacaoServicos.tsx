@@ -1025,6 +1025,7 @@ export default function SolicitacaoServicosPage() {
             ) : paginated.map((s, idx) => {
               const orcSS = orcamentos.find(o => o.solicitacaoId === s.id);
               const qtdRev = orcSS?.revisoes?.length ?? 0;
+              const fromOrcamento = !!orcSS || (s.historico || []).some(h => (h.situacao || "").toLowerCase().includes("orçamento"));
               const cellMap: Record<string, { node: ReactNode; className?: string }> = {
                 numero: {
                   node: (
@@ -1033,6 +1034,9 @@ export default function SolicitacaoServicosPage() {
                         <span className={`inline-block w-3 h-3 rounded-full ${getPrioridadeColor(s.prioridade)}`} title={s.prioridade} />
                       )}
                       {formatNumeroAno(s.numero, s.createdAt)}
+                      {fromOrcamento && (
+                        <ReceiptText className="h-4 w-4 text-emerald-600" aria-label="Proveniente de Orçamento" />
+                      )}
                     </div>
                   ),
                   className: "font-medium",
