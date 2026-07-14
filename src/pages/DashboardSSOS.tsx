@@ -1355,11 +1355,10 @@ export default function DashboardSSOS() {
             // Grid
             const t = orcSearch.trim().toLowerCase();
             const gridRows = orcFiltrados
-              .filter(o => orcOrcamentistaFilter.length === 0 || orcOrcamentistaFilter.includes(o.criadoPor || ""))
               .filter(o => {
                 if (!t) return true;
                 const ss = ssById[o.solicitacaoId];
-                const cat = (ss?.tipo || "").toLowerCase();
+                const cat = ((o as any).categoria || "").toString().trim().toLowerCase();
                 const unidade = (ss?.localDescricao || "").toLowerCase();
                 return String(o.numero).includes(t)
                   || (o.clienteNome || "").toLowerCase().includes(t)
@@ -1367,13 +1366,16 @@ export default function DashboardSSOS() {
                   || cat.includes(t)
                   || (o.criadoPor || "").toLowerCase().includes(t)
                   || (o.status || "").toLowerCase().includes(t);
-
               })
               .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
             const totalPages = Math.max(1, Math.ceil(gridRows.length / ORC_PAGE_SIZE));
             const pageSafe = Math.min(orcPage, totalPages);
             const pageRows = gridRows.slice((pageSafe - 1) * ORC_PAGE_SIZE, pageSafe * ORC_PAGE_SIZE);
-            const orcamentistaOptions = Array.from(new Set(orcFiltrados.map(o => o.criadoPor).filter(Boolean))).sort();
+            const orcamentistaOptions = Array.from(new Set(orcFiltradosBase.map(o => o.criadoPor).filter(Boolean))).sort();
+            const unidadeOptions = Array.from(
+              new Set(orcFiltradosBase.map(o => (ssById[o.solicitacaoId]?.localDescricao || "Sem unidade").toUpperCase()))
+            ).sort();
+
 
             const handleExportOrcPDF = () => {
               downloadRelatorioOrcamentosPDF({
