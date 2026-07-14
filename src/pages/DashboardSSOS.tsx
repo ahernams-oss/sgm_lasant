@@ -1275,10 +1275,10 @@ export default function DashboardSSOS() {
             const orcFiltradosBase = orcamentos.filter(o => {
               const d = parseDate(o.createdAt || o.dataCriacao);
               if (!inRange(d)) return false;
-              if (orcStartDate && d && d < orcStartDate) return false;
               if (clienteFilter !== "todos" && o.clienteId !== clienteFilter) return false;
               return true;
             });
+
             const orcFiltrados = orcFiltradosBase.filter(o => {
               const unit = (ssById[o.solicitacaoId]?.localDescricao || "Sem unidade").toUpperCase();
               const unitOk = orcUnitFilter.length === 0 || orcUnitFilter.includes(unit);
