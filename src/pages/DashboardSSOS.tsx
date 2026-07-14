@@ -1503,11 +1503,11 @@ export default function DashboardSSOS() {
                           onChange={(e) => { setOrcSearch(e.target.value); setOrcPage(1); }}
                           className="h-8 w-72 text-xs"
                         />
-                        <Select value={orcStatusFilter} onValueChange={(v) => { setOrcStatusFilter(v); setOrcPage(1); }}>
-                          <SelectTrigger className="h-8 w-48 text-xs"><SelectValue /></SelectTrigger>
+                        <Select value={orcOrcamentistaFilter} onValueChange={(v) => { setOrcOrcamentistaFilter(v); setOrcPage(1); }}>
+                          <SelectTrigger className="h-8 w-56 text-xs"><SelectValue placeholder="Orçamentista" /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="todos">Todos os status</SelectItem>
-                            {statusOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                            <SelectItem value="todos">Todos os orçamentistas</SelectItem>
+                            {orcamentistaOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
