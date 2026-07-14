@@ -1350,11 +1350,14 @@ export default function DashboardSSOS() {
                 if (!t) return true;
                 const ss = ssById[o.solicitacaoId];
                 const cat = (ss?.tipo || "").toLowerCase();
+                const unidade = (ss?.localDescricao || "").toLowerCase();
                 return String(o.numero).includes(t)
                   || (o.clienteNome || "").toLowerCase().includes(t)
+                  || unidade.includes(t)
                   || cat.includes(t)
                   || (o.criadoPor || "").toLowerCase().includes(t)
                   || (o.status || "").toLowerCase().includes(t);
+
               })
               .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
             const totalPages = Math.max(1, Math.ceil(gridRows.length / ORC_PAGE_SIZE));
