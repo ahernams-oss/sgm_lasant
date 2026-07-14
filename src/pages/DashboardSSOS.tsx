@@ -24,7 +24,7 @@ import {
   FileDown, FileSpreadsheet, DollarSign, Calculator, UserCheck, ArrowRight, GitBranch,
   ArrowUpDown, ArrowUp, ArrowDown,
 } from "lucide-react";
-import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
+import { useSolicitacoesServicos, SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { useClientes } from "@/contexts/ClientesContext";
