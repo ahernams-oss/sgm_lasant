@@ -1368,8 +1368,7 @@ export default function DashboardSSOS() {
                 porOrcamentista: orcamentistaData,
                 porStatus: statusData,
                 lista: gridRows.map(o => {
-                  const ss = ssById[o.solicitacaoId];
-                  const cat = ((o as any).categoria || ss?.tipo || "—").toUpperCase();
+                  const cat = (((o as any).categoria || "").toString().trim() || "—").toUpperCase();
                   const d = parseDate(o.createdAt || o.dataCriacao);
                   return {
                     numero: o.numero,
