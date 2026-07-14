@@ -1752,7 +1752,7 @@ export default function DashboardSSOS() {
 
                             return (
                               <TableRow key={o.id} className="text-xs">
-                                <TableCell className="font-mono font-semibold">{o.numero}</TableCell>
+                                <TableCell className="font-mono font-semibold">{formatNumeroAno(o.numero, o.createdAt || o.dataCriacao)}</TableCell>
                                 <TableCell className="uppercase">{ss?.localDescricao || "—"}</TableCell>
                                 <TableCell className="tabular-nums">{d ? format(d, "dd/MM/yyyy") : "—"}</TableCell>
                                 <TableCell className="uppercase">{cat}</TableCell>
