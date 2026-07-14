@@ -36,7 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList, Download, Eye, History, Clock, ArrowUpDown, ArrowUp, ArrowDown, Camera } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList, Download, Eye, History, Clock, ArrowUpDown, ArrowUp, ArrowDown, Camera, ReceiptText } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import WorkflowTimeline from "@/components/WorkflowTimeline";
 import WorkflowHistorico from "@/components/WorkflowHistorico";
@@ -1025,6 +1025,7 @@ export default function SolicitacaoServicosPage() {
             ) : paginated.map((s, idx) => {
               const orcSS = orcamentos.find(o => o.solicitacaoId === s.id);
               const qtdRev = orcSS?.revisoes?.length ?? 0;
+              const fromOrcamento = !!orcSS || (s.historico || []).some(h => (h.situacao || "").toLowerCase().includes("orçamento"));
               const cellMap: Record<string, { node: ReactNode; className?: string }> = {
                 numero: {
                   node: (
@@ -1033,6 +1034,9 @@ export default function SolicitacaoServicosPage() {
                         <span className={`inline-block w-3 h-3 rounded-full ${getPrioridadeColor(s.prioridade)}`} title={s.prioridade} />
                       )}
                       {formatNumeroAno(s.numero, s.createdAt)}
+                      {fromOrcamento && (
+                        <ReceiptText className="h-4 w-4 text-emerald-600" aria-label="Proveniente de Orçamento" />
+                      )}
                     </div>
                   ),
                   className: "font-medium",
@@ -1265,9 +1269,16 @@ export default function SolicitacaoServicosPage() {
       <Dialog open={!!viewTarget} onOpenChange={(o) => { if (!o) setViewTarget(null); }}>
         <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 pr-8">
               <Eye className="h-5 w-5" />
               Solicitação de Serviço nº {viewTarget ? formatNumeroAno(viewTarget.numero, viewTarget.createdAt) : ""}
+              {viewTarget && (() => {
+                const hasOrc = orcamentos.some(o => o.solicitacaoId === viewTarget.id);
+                const fromOrc = hasOrc || (viewTarget.historico || []).some(h => (h.situacao || "").toLowerCase().includes("orçamento"));
+                return fromOrc ? (
+                  <ReceiptText className="h-6 w-6 text-emerald-600 ml-auto" aria-label="Proveniente de Orçamento" />
+                ) : null;
+              })()}
             </DialogTitle>
           </DialogHeader>
           {viewTarget && (() => {
