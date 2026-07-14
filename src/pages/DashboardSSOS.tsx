@@ -1316,6 +1316,19 @@ export default function DashboardSSOS() {
               }, {})
             ).sort((a, b) => b.valor - a.valor).slice(0, 10);
 
+            // Chart: Unidade — usa localDescricao da SS vinculada ao orçamento
+            const unidadeData: { name: string; qtd: number; valor: number }[] = Object.values(
+              orcFiltrados.reduce<Record<string, { name: string; qtd: number; valor: number }>>((acc, o) => {
+                const ss = ssById[o.solicitacaoId];
+                const k = (ss?.localDescricao || "Sem unidade").toUpperCase();
+                if (!acc[k]) acc[k] = { name: k, qtd: 0, valor: 0 };
+                acc[k].qtd += 1;
+                acc[k].valor += Number(o.valorTotal) || 0;
+                return acc;
+              }, {})
+            ).sort((a, b) => b.valor - a.valor).slice(0, 10);
+
+
             // Chart: Timeline mensal
             const orcTimeline = Object.values(
               orcFiltrados.reduce<Record<string, { mes: string; qtd: number; valor: number }>>((acc, o) => {
