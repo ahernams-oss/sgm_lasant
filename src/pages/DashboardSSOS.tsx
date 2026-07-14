@@ -1272,12 +1272,20 @@ export default function DashboardSSOS() {
             const fmtBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
             const ssById: Record<string, SolicitacaoServico> = {};
             solicitacoes.forEach(s => { ssById[s.id] = s; });
-            const orcFiltrados = orcamentos.filter(o => {
+            const orcFiltradosBase = orcamentos.filter(o => {
               const d = parseDate(o.createdAt || o.dataCriacao);
               if (!inRange(d)) return false;
+              if (orcStartDate && d && d < orcStartDate) return false;
               if (clienteFilter !== "todos" && o.clienteId !== clienteFilter) return false;
               return true;
             });
+            const orcFiltrados = orcFiltradosBase.filter(o => {
+              const unit = (ssById[o.solicitacaoId]?.localDescricao || "Sem unidade").toUpperCase();
+              const unitOk = orcUnitFilter.length === 0 || orcUnitFilter.includes(unit);
+              const orcOk = orcOrcamentistaFilter.length === 0 || orcOrcamentistaFilter.includes(o.criadoPor || "");
+              return unitOk && orcOk;
+            });
+
             const totalValor = orcFiltrados.reduce((s, o) => s + (Number(o.valorTotal) || 0), 0);
             const aprovadosArr = orcFiltrados.filter(o => (o.status || "").toLowerCase().includes("aprov"));
             const pendentesArr = orcFiltrados.filter(o => (o.status || "").toLowerCase().includes("pend"));
