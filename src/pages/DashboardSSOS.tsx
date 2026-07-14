@@ -1292,11 +1292,12 @@ export default function DashboardSSOS() {
               }, {})
             ).map(([name, value]) => ({ name, value }));
 
-            // Chart: Categoria (usa categoria do orçamento; fallback para tipo da SS)
+            // Chart: Categoria — usa exclusivamente a categoria escolhida no orçamento respondido
             const catData: { name: string; qtd: number; valor: number }[] = Object.values(
               orcFiltrados.reduce<Record<string, { name: string; qtd: number; valor: number }>>((acc, o) => {
-                const ss = ssById[o.solicitacaoId];
-                const cat = ((o as any).categoria || ss?.tipo || "SEM CATEGORIA").toUpperCase();
+                const raw = ((o as any).categoria || "").toString().trim();
+                if (!raw) return acc; // ignora orçamentos sem categoria respondida
+                const cat = raw.toUpperCase();
                 if (!acc[cat]) acc[cat] = { name: cat, qtd: 0, valor: 0 };
                 acc[cat].qtd += 1;
                 acc[cat].valor += Number(o.valorTotal) || 0;
@@ -1367,8 +1368,7 @@ export default function DashboardSSOS() {
                 porOrcamentista: orcamentistaData,
                 porStatus: statusData,
                 lista: gridRows.map(o => {
-                  const ss = ssById[o.solicitacaoId];
-                  const cat = ((o as any).categoria || ss?.tipo || "—").toUpperCase();
+                  const cat = (((o as any).categoria || "").toString().trim() || "—").toUpperCase();
                   const d = parseDate(o.createdAt || o.dataCriacao);
                   return {
                     numero: o.numero,
