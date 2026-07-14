@@ -30,6 +30,7 @@ import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { downloadPdfDashboardSSOS, downloadExcelDashboardSSOS } from "@/lib/gerarRelatorioDashboardSSOS";
+import { downloadRelatorioOrcamentosPDF } from "@/lib/gerarRelatorioOrcamentos";
 import { ChartPngExportButton } from "@/components/ChartPngExportButton";
 
 const CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
@@ -1291,11 +1292,11 @@ export default function DashboardSSOS() {
               }, {})
             ).map(([name, value]) => ({ name, value }));
 
-            // Chart: Categoria (tipo da SS vinculada)
+            // Chart: Categoria (usa categoria do orçamento; fallback para tipo da SS)
             const catData: { name: string; qtd: number; valor: number }[] = Object.values(
               orcFiltrados.reduce<Record<string, { name: string; qtd: number; valor: number }>>((acc, o) => {
                 const ss = ssById[o.solicitacaoId];
-                const cat = (ss?.tipo || "SEM CATEGORIA").toUpperCase();
+                const cat = ((o as any).categoria || ss?.tipo || "SEM CATEGORIA").toUpperCase();
                 if (!acc[cat]) acc[cat] = { name: cat, qtd: 0, valor: 0 };
                 acc[cat].qtd += 1;
                 acc[cat].valor += Number(o.valorTotal) || 0;
@@ -1312,7 +1313,7 @@ export default function DashboardSSOS() {
                 acc[k].valor += Number(o.valorTotal) || 0;
                 return acc;
               }, {})
-            ).sort((a, b) => b.qtd - a.qtd).slice(0, 10);
+            ).sort((a, b) => b.valor - a.valor).slice(0, 10);
 
             // Chart: Timeline mensal
             const orcTimeline = Object.values(
@@ -1347,8 +1348,50 @@ export default function DashboardSSOS() {
             const pageRows = gridRows.slice((pageSafe - 1) * ORC_PAGE_SIZE, pageSafe * ORC_PAGE_SIZE);
             const statusOptions = Array.from(new Set(orcFiltrados.map(o => o.status).filter(Boolean)));
 
+            const handleExportOrcPDF = () => {
+              downloadRelatorioOrcamentosPDF({
+                empresa,
+                periodoLabel: `${dateFrom ? format(dateFrom, "dd/MM/yyyy") : "—"} até ${dateTo ? format(dateTo, "dd/MM/yyyy") : "—"}`,
+                filtroLabel: clienteFilter === "todos" ? "Todos os clientes" : (clientes.find(c => c.id === clienteFilter)?.nome || "—"),
+                kpis: {
+                  total: orcFiltrados.length,
+                  valorTotal: totalValor,
+                  ticket,
+                  aprovados: aprovadosArr.length,
+                  pendentes: pendentesArr.length,
+                  disponiveis: dispArr.length,
+                  devolvidos: devArr.length,
+                  cancelados: canceladosArr.length,
+                },
+                porCategoria: catData,
+                porOrcamentista: orcamentistaData,
+                porStatus: statusData,
+                lista: gridRows.map(o => {
+                  const ss = ssById[o.solicitacaoId];
+                  const cat = ((o as any).categoria || ss?.tipo || "—").toUpperCase();
+                  const d = parseDate(o.createdAt || o.dataCriacao);
+                  return {
+                    numero: o.numero,
+                    cliente: (o.clienteNome || "—").toUpperCase(),
+                    data: d ? format(d, "dd/MM/yyyy") : "—",
+                    categoria: cat,
+                    valor: Number(o.valorTotal) || 0,
+                    orcamentista: (o.criadoPor || "—").toUpperCase(),
+                    status: o.status || "—",
+                  };
+                }),
+              }, `relatorio-orcamentos-${format(new Date(), "yyyyMMdd-HHmm")}.pdf`);
+            };
+
             return (
               <>
+                {/* Ações */}
+                <div className="flex justify-end">
+                  <Button size="sm" variant="outline" onClick={handleExportOrcPDF} className="gap-2">
+                    <FileDown className="h-4 w-4" /> Exportar Relatório PDF
+                  </Button>
+                </div>
+
                 {/* KPIs */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
                   <KpiCard icon={Calculator} label="Total Orçamentos" value={orcFiltrados.length} gradientIdx={0} />
@@ -1406,17 +1449,18 @@ export default function DashboardSSOS() {
                   <Card>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm flex items-center gap-2">
-                        <UserCheck className="h-4 w-4 text-primary" /> Top Orçamentistas
+                        <UserCheck className="h-4 w-4 text-primary" /> Top Orçamentistas — Valor (R$)
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <ResponsiveContainer width="100%" height={280}>
                         <BarChart data={orcamentistaData} layout="vertical">
                           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                          <XAxis type="number" tick={{ fontSize: 10 }} />
-                          <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={100} />
+                          <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => fmtBRL(Number(v))} />
+                          <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={120} />
                           <Tooltip formatter={(v: any, n: any) => n === "valor" ? fmtBRL(Number(v)) : v} />
                           <Legend wrapperStyle={{ fontSize: 11 }} />
+                          <Bar dataKey="valor" name="Valor" fill="#10b981" radius={[0, 4, 4, 0]} />
                           <Bar dataKey="qtd" name="Qtd" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
