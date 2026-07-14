@@ -67,18 +67,17 @@ serve(async (req) => {
       const vencFormatado = exame.data_vencimento.split('-').reverse().join('/');
       const mensagem = `⚠️ AVISO - Exame Periódico\n\nO exame "${exame.tipo_exame}" do funcionário ${exame.funcionario_nome} vence em ${diasLabel} (${vencFormatado}).\n\nProvidenciar agendamento com urgência.`;
 
-      if (CHATPRO_TOKEN && CHATPRO_INSTANCE && exame.funcionario_telefone) {
+      if (PLUGSEND_TOKEN && exame.funcionario_telefone) {
         const telefoneLimpo = exame.funcionario_telefone.replace(/\D/g, '');
         if (telefoneLimpo.length >= 10) {
           try {
-            const chatproUrl = `https://v5.chatpro.com.br/${CHATPRO_INSTANCE}/api/v1/send_message`;
-            await fetch(chatproUrl, {
+            await fetch('https://plugsend.uazapi.com/send/text', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': CHATPRO_TOKEN,
+                token: PLUGSEND_TOKEN,
               },
-              body: JSON.stringify({ number: telefoneLimpo, message: mensagem }),
+              body: JSON.stringify({ number: telefoneLimpo, text: mensagem, linkPreview: true }),
             });
           } catch (whatsErr) {
             console.error('WhatsApp error:', whatsErr);
