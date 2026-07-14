@@ -88,7 +88,9 @@ export default function DashboardSSOS() {
   const [orcPeriodo, setOrcPeriodo] = useState<"dia" | "semana" | "quinzena" | "mes" | "todos">("mes");
   const [orcSearch, setOrcSearch] = useState("");
   const [orcOrcamentistaFilter, setOrcOrcamentistaFilter] = useState<string[]>([]);
+  const [orcUnitFilter, setOrcUnitFilter] = useState<string[]>([]);
   const [orcPage, setOrcPage] = useState(1);
+
   const ORC_PAGE_SIZE = 15;
 
   const clearFilters = () => {
