@@ -1404,6 +1404,78 @@ export default function DashboardSSOS() {
                   <KpiCard icon={X} label="Cancelados" value={canceladosArr.length} gradientIdx={3} />
                 </div>
 
+                {/* Comparação por Orçamentista (quando 2+ selecionados no filtro) */}
+                {orcOrcamentistaFilter.length >= 2 && (() => {
+                  const stats = orcOrcamentistaFilter.map(nome => {
+                    const arr = orcFiltrados.filter(o => (o.criadoPor || "") === nome);
+                    const valor = arr.reduce((s, o) => s + (Number(o.valorTotal) || 0), 0);
+                    const qtd = arr.length;
+                    return { nome, qtd, valor, ticket: qtd ? valor / qtd : 0 };
+                  }).sort((a, b) => b.valor - a.valor);
+                  const maxValor = Math.max(1, ...stats.map(s => s.valor));
+                  const maxQtd = Math.max(1, ...stats.map(s => s.qtd));
+                  const maxTicket = Math.max(1, ...stats.map(s => s.ticket));
+                  return (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <UserCheck className="h-4 w-4 text-primary" />
+                          Comparação entre Orçamentistas ({stats.length})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {stats.map((s, i) => {
+                            const v = KPI_VARIANTS[i % KPI_VARIANTS.length];
+                            return (
+                              <div key={s.nome} className="rounded-lg border bg-card p-3 space-y-3">
+                                <div className="flex items-center gap-2 pb-2 border-b">
+                                  <div className={cn("h-8 w-8 rounded-md grid place-items-center", v.bg)}>
+                                    <UserCheck className={cn("h-4 w-4", v.icon)} />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Orçamentista</p>
+                                    <p className="text-xs font-semibold uppercase truncate">{s.nome}</p>
+                                  </div>
+                                </div>
+                                <div className="space-y-2">
+                                  <div>
+                                    <div className="flex items-center justify-between text-[10px] mb-0.5">
+                                      <span className="text-muted-foreground uppercase">Valor Total</span>
+                                      <span className="font-semibold tabular-nums">{fmtBRL(s.valor)}</span>
+                                    </div>
+                                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(s.valor / maxValor) * 100}%` }} />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center justify-between text-[10px] mb-0.5">
+                                      <span className="text-muted-foreground uppercase">Qtd Orçamentos</span>
+                                      <span className="font-semibold tabular-nums">{s.qtd}</span>
+                                    </div>
+                                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                                      <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(s.qtd / maxQtd) * 100}%` }} />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center justify-between text-[10px] mb-0.5">
+                                      <span className="text-muted-foreground uppercase">Ticket Médio</span>
+                                      <span className="font-semibold tabular-nums">{fmtBRL(s.ticket)}</span>
+                                    </div>
+                                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                                      <div className="h-full bg-purple-500 rounded-full" style={{ width: `${(s.ticket / maxTicket) * 100}%` }} />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })()}
+
                 {/* Gráficos */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <Card>
