@@ -1689,7 +1689,7 @@ export default function DashboardSSOS() {
                             return (
                               <TableRow key={o.id} className="text-xs">
                                 <TableCell className="font-mono font-semibold">{o.numero}</TableCell>
-                                <TableCell className="uppercase">{o.clienteNome || "—"}</TableCell>
+                                <TableCell className="uppercase">{ss?.localDescricao || "—"}</TableCell>
                                 <TableCell className="tabular-nums">{d ? format(d, "dd/MM/yyyy") : "—"}</TableCell>
                                 <TableCell className="uppercase">{cat}</TableCell>
                                 <TableCell className="text-right tabular-nums font-medium">{fmtBRL(Number(o.valorTotal) || 0)}</TableCell>
