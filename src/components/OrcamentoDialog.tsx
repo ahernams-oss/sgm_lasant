@@ -46,6 +46,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
   const { items: i0Items } = useI0();
   const { materiais } = useMateriaisServicos();
   const { addOrcamento, updateOrcamento } = useOrcamentos();
+  const { categorias: categoriasCadastradas } = useCategoriasServicos();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
 
