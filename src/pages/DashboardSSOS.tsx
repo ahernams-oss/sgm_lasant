@@ -1313,7 +1313,7 @@ export default function DashboardSSOS() {
                 acc[k].valor += Number(o.valorTotal) || 0;
                 return acc;
               }, {})
-            ).sort((a, b) => b.qtd - a.qtd).slice(0, 10);
+            ).sort((a, b) => b.valor - a.valor).slice(0, 10);
 
             // Chart: Timeline mensal
             const orcTimeline = Object.values(
