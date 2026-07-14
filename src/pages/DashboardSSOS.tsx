@@ -1346,7 +1346,7 @@ export default function DashboardSSOS() {
             const totalPages = Math.max(1, Math.ceil(gridRows.length / ORC_PAGE_SIZE));
             const pageSafe = Math.min(orcPage, totalPages);
             const pageRows = gridRows.slice((pageSafe - 1) * ORC_PAGE_SIZE, pageSafe * ORC_PAGE_SIZE);
-            const statusOptions = Array.from(new Set(orcFiltrados.map(o => o.status).filter(Boolean)));
+            const orcamentistaOptions = Array.from(new Set(orcFiltrados.map(o => o.criadoPor).filter(Boolean))).sort();
 
             const handleExportOrcPDF = () => {
               downloadRelatorioOrcamentosPDF({
