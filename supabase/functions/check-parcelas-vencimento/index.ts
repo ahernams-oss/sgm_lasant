@@ -20,11 +20,10 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const chatproToken = Deno.env.get("CHATPRO_TOKEN");
-    const chatproInstance = Deno.env.get("CHATPRO_INSTANCE");
+    const plugsendToken = Deno.env.get("PLUGSEND_TOKEN");
 
-    if (!chatproToken || !chatproInstance) {
-      throw new Error("CHATPRO_TOKEN ou CHATPRO_INSTANCE não configurados");
+    if (!plugsendToken) {
+      throw new Error("PLUGSEND_TOKEN não configurado");
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
