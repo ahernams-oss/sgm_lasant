@@ -364,8 +364,8 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                   <SelectValue placeholder="Selecione a categoria..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIAS_ORCAMENTO.map(c => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  {categoriasCadastradas.map(c => (
+                    <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
