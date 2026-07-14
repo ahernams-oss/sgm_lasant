@@ -14,6 +14,7 @@ import { useSco } from "@/contexts/ScoContext";
 import { useI0 } from "@/contexts/I0Context";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useOrcamentos, Orcamento } from "@/contexts/OrcamentosContext";
+import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -39,24 +40,13 @@ interface ItemMaterial {
   quantidade: number; valorUnitario: number; valorTotal: number;
 }
 
-const CATEGORIAS_ORCAMENTO = [
-  "01 - ELETRICA",
-  "02 - HIDRAULICA",
-  "03 - CIVIL",
-  "04 - REFRIGERACAO / AR CONDICIONADO",
-  "05 - AUTOMACAO",
-  "06 - MARCENARIA",
-  "07 - PINTURA",
-  "08 - SERRALHERIA",
-  "09 - GESSO / DRYWALL",
-  "10 - OUTROS",
-];
 
 export default function OrcamentoDialog({ open, onOpenChange, solicitacao, existingOrcamento, onApproved, onSent, onRevisaoSolicitada }: OrcamentoDialogProps) {
   const { scos } = useSco();
   const { items: i0Items } = useI0();
   const { materiais } = useMateriaisServicos();
   const { addOrcamento, updateOrcamento } = useOrcamentos();
+  const { categorias: categoriasCadastradas } = useCategoriasServicos();
   const { usuarioLogado } = useAuth();
   const { toast } = useToast();
 
@@ -374,8 +364,8 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                   <SelectValue placeholder="Selecione a categoria..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIAS_ORCAMENTO.map(c => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  {categoriasCadastradas.map(c => (
+                    <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
