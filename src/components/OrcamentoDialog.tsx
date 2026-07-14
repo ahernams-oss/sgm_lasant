@@ -40,18 +40,6 @@ interface ItemMaterial {
   quantidade: number; valorUnitario: number; valorTotal: number;
 }
 
-const CATEGORIAS_ORCAMENTO = [
-  "01 - ELETRICA",
-  "02 - HIDRAULICA",
-  "03 - CIVIL",
-  "04 - REFRIGERACAO / AR CONDICIONADO",
-  "05 - AUTOMACAO",
-  "06 - MARCENARIA",
-  "07 - PINTURA",
-  "08 - SERRALHERIA",
-  "09 - GESSO / DRYWALL",
-  "10 - OUTROS",
-];
 
 export default function OrcamentoDialog({ open, onOpenChange, solicitacao, existingOrcamento, onApproved, onSent, onRevisaoSolicitada }: OrcamentoDialogProps) {
   const { scos } = useSco();
