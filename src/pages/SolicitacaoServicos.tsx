@@ -1269,9 +1269,16 @@ export default function SolicitacaoServicosPage() {
       <Dialog open={!!viewTarget} onOpenChange={(o) => { if (!o) setViewTarget(null); }}>
         <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 pr-8">
               <Eye className="h-5 w-5" />
               Solicitação de Serviço nº {viewTarget ? formatNumeroAno(viewTarget.numero, viewTarget.createdAt) : ""}
+              {viewTarget && (() => {
+                const hasOrc = orcamentos.some(o => o.solicitacaoId === viewTarget.id);
+                const fromOrc = hasOrc || (viewTarget.historico || []).some(h => (h.situacao || "").toLowerCase().includes("orçamento"));
+                return fromOrc ? (
+                  <ReceiptText className="h-6 w-6 text-emerald-600 ml-auto" aria-label="Proveniente de Orçamento" />
+                ) : null;
+              })()}
             </DialogTitle>
           </DialogHeader>
           {viewTarget && (() => {
