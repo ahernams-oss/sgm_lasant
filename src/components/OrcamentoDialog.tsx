@@ -14,6 +14,7 @@ import { useSco } from "@/contexts/ScoContext";
 import { useI0 } from "@/contexts/I0Context";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useOrcamentos, Orcamento } from "@/contexts/OrcamentosContext";
+import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
