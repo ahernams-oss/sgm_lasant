@@ -32,6 +32,7 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { downloadPdfDashboardSSOS, downloadExcelDashboardSSOS } from "@/lib/gerarRelatorioDashboardSSOS";
 import { downloadRelatorioOrcamentosPDF } from "@/lib/gerarRelatorioOrcamentos";
 import { ChartPngExportButton } from "@/components/ChartPngExportButton";
+import PaginationControls from "@/components/PaginationControls";
 
 const CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
 
@@ -90,8 +91,7 @@ export default function DashboardSSOS() {
   const [orcOrcamentistaFilter, setOrcOrcamentistaFilter] = useState<string[]>([]);
   const [orcUnitFilter, setOrcUnitFilter] = useState<string[]>([]);
   const [orcPage, setOrcPage] = useState(1);
-
-  const ORC_PAGE_SIZE = 15;
+  const [orcPageSize, setOrcPageSize] = useState(10);
 
   const clearFilters = () => {
     setDateFrom(undefined); setDateTo(undefined);
@@ -1368,9 +1368,9 @@ export default function DashboardSSOS() {
                   || (o.status || "").toLowerCase().includes(t);
               })
               .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
-            const totalPages = Math.max(1, Math.ceil(gridRows.length / ORC_PAGE_SIZE));
+            const totalPages = Math.max(1, Math.ceil(gridRows.length / orcPageSize));
             const pageSafe = Math.min(orcPage, totalPages);
-            const pageRows = gridRows.slice((pageSafe - 1) * ORC_PAGE_SIZE, pageSafe * ORC_PAGE_SIZE);
+            const pageRows = gridRows.slice((pageSafe - 1) * orcPageSize, pageSafe * orcPageSize);
             const orcamentistaOptions = Array.from(new Set(orcFiltradosBase.map(o => o.criadoPor).filter(Boolean))).sort();
             const unidadeOptions = Array.from(
               new Set(orcFiltradosBase.map(o => (ssById[o.solicitacaoId]?.localDescricao || "Sem unidade").toUpperCase()))
@@ -1765,15 +1765,14 @@ export default function DashboardSSOS() {
                         </TableBody>
                       </Table>
                     </div>
-                    {totalPages > 1 && (
-                      <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                        <span>{gridRows.length} orçamentos • Página {pageSafe} de {totalPages}</span>
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="outline" className="h-7 text-xs" disabled={pageSafe <= 1} onClick={() => setOrcPage(p => Math.max(1, p - 1))}>Anterior</Button>
-                          <Button size="sm" variant="outline" className="h-7 text-xs" disabled={pageSafe >= totalPages} onClick={() => setOrcPage(p => Math.min(totalPages, p + 1))}>Próxima</Button>
-                        </div>
-                      </div>
-                    )}
+                    <PaginationControls
+                      currentPage={pageSafe}
+                      totalItems={gridRows.length}
+                      onPageChange={setOrcPage}
+                      pageSize={orcPageSize}
+                      onPageSizeChange={(s) => { setOrcPageSize(s); setOrcPage(1); }}
+                    />
+
                   </CardContent>
                 </Card>
               </>
