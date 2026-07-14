@@ -1764,15 +1764,14 @@ export default function DashboardSSOS() {
                         </TableBody>
                       </Table>
                     </div>
-                    {totalPages > 1 && (
-                      <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                        <span>{gridRows.length} orçamentos • Página {pageSafe} de {totalPages}</span>
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="outline" className="h-7 text-xs" disabled={pageSafe <= 1} onClick={() => setOrcPage(p => Math.max(1, p - 1))}>Anterior</Button>
-                          <Button size="sm" variant="outline" className="h-7 text-xs" disabled={pageSafe >= totalPages} onClick={() => setOrcPage(p => Math.min(totalPages, p + 1))}>Próxima</Button>
-                        </div>
-                      </div>
-                    )}
+                    <PaginationControls
+                      currentPage={pageSafe}
+                      totalItems={gridRows.length}
+                      onPageChange={setOrcPage}
+                      pageSize={orcPageSize}
+                      onPageSizeChange={(s) => { setOrcPageSize(s); setOrcPage(1); }}
+                    />
+
                   </CardContent>
                 </Card>
               </>
