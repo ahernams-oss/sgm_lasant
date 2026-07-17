@@ -152,9 +152,9 @@ const Clientes = () => {
   const [locaisClienteId, setLocaisClienteId] = useState<string | null>(null);
    const [locaisEntregaClienteId, setLocaisEntregaClienteId] = useState<string | null>(null);
    const [contratosClienteId, setContratosClienteId] = useState<string | null>(null);
-  const emptyContrato = { numero: "", numeroProcesso: "", descricao: "", dataInicio: "", dataFim: "", bdi: "", valorBase: "", valorBase2: "", valorBase3: "", maoDeObraMensal: "", maoDeObraAnual: "", maoDeObraContratual: "", mesSco: "", anoSco: "", valorContrato: "", inss: "", pis: "", cofins: "", csll: "", irrf: "", iss: "", cbs: "", ibs: "", meta1: "", meta2: "", meta3: "" };
+  const emptyContrato = { numero: "", numeroProcesso: "", descricao: "", dataInicio: "", dataFim: "", bdi: "", descontoLicitacao: "", valorBase: "", valorBase2: "", valorBase3: "", maoDeObraMensal: "", maoDeObraAnual: "", maoDeObraContratual: "", mesSco: "", anoSco: "", valorContrato: "", inss: "", pis: "", cofins: "", csll: "", irrf: "", iss: "", cbs: "", ibs: "", meta1: "", meta2: "", meta3: "" };
   const [contratoForm, setContratoForm] = useState(emptyContrato);
-  const [contratoErrors, setContratoErrors] = useState<{ cbs?: string; ibs?: string }>({});
+  const [contratoErrors, setContratoErrors] = useState<{ cbs?: string; ibs?: string; descontoLicitacao?: string }>({});
   const [editingContratoId, setEditingContratoId] = useState<string | null>(null);
   const [faturamentoContratoId, setFaturamentoContratoId] = useState<string | null>(null);
 
