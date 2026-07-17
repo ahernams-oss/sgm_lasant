@@ -604,6 +604,7 @@ const Clientes = () => {
                             {ct.dataInicio ? new Date(ct.dataInicio + "T00:00:00").toLocaleDateString("pt-BR") : "—"} a {ct.dataFim ? new Date(ct.dataFim + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
                           </p>
                           <p className="text-muted-foreground">BDI: {ct.bdi || "—"}</p>
+                          <p className="text-muted-foreground">Desconto Licitação: {ct.descontoLicitacao ? `${ct.descontoLicitacao}%` : "—"}</p>
                           <p className="text-muted-foreground">VTM Mensal: {ct.valorBase || "—"}</p>
                           <p className="text-muted-foreground">VTM Anual: {ct.valorBase2 || "—"}</p>
                           <p className="text-muted-foreground">VTM Contratual: {ct.valorBase3 || "—"}</p>
