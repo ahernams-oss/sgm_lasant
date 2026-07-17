@@ -48,7 +48,7 @@ export interface Faturamento {
 }
 export interface Contrato {
   id: string; numero: string; numeroProcesso?: string; descricao: string; dataInicio: string; dataFim: string;
-  bdi: string; valorBase: string; valorBase2: string; valorBase3: string;
+  bdi: string; descontoLicitacao?: string; valorBase: string; valorBase2: string; valorBase3: string;
   maoDeObraMensal?: string; maoDeObraAnual?: string; maoDeObraContratual?: string;
   mesSco: string; anoSco: string;
   valorContrato?: string;
