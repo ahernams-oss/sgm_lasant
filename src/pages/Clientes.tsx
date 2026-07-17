@@ -527,6 +527,10 @@ const Clientes = () => {
                 <Input type="date" placeholder="Data Início" value={contratoForm.dataInicio} onChange={e => setContratoForm(p => ({ ...p, dataInicio: e.target.value }))} />
                 <Input type="date" placeholder="Data Fim" value={contratoForm.dataFim} onChange={e => setContratoForm(p => ({ ...p, dataFim: e.target.value }))} />
                 <Input placeholder="BDI" value={contratoForm.bdi} onChange={e => setContratoForm(p => ({ ...p, bdi: e.target.value }))} />
+                <div>
+                  <Input type="number" step="0.01" placeholder="Desconto Licitação (%)" value={contratoForm.descontoLicitacao} onChange={e => { setContratoForm(p => ({ ...p, descontoLicitacao: e.target.value })); setContratoErrors(prev => ({ ...prev, descontoLicitacao: validarPercentual(e.target.value, "Desconto Licitação") })); }} />
+                  {contratoErrors.descontoLicitacao && <p className="text-xs text-destructive mt-1">{contratoErrors.descontoLicitacao}</p>}
+                </div>
                 <Input placeholder="VTM Mensal" value={contratoForm.valorBase} onChange={e => setContratoForm(p => ({ ...p, valorBase: e.target.value }))} />
                 <Input placeholder="VTM Anual" value={contratoForm.valorBase2} onChange={e => setContratoForm(p => ({ ...p, valorBase2: e.target.value }))} />
                 <Input placeholder="VTM Contratual" value={contratoForm.valorBase3} onChange={e => setContratoForm(p => ({ ...p, valorBase3: e.target.value }))} />
