@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, Pencil, Trash2, Wrench } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Pencil, Trash2, Wrench, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,8 @@ import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { toast } from "sonner";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { usePermissao } from "@/hooks/usePermissao";
+import { guardDuplicates, scanDuplicatesGrouped, type DuplicateMatch, type GroupedDuplicatePair } from "@/lib/duplicateDetection";
+import { DuplicateWarningDialog, DuplicateAnalysisDialog } from "@/components/DuplicateDialogs";
 
 const ServicosPage = () => {
   const { servicos, addServico, updateServico, deleteServico } = useServicos();
@@ -26,12 +28,12 @@ const ServicosPage = () => {
   const [search, setSearch] = useState("");
   const [filterCategoria, setFilterCategoria] = useState("all");
   const [deleteOpen, setDeleteOpen] = useState<string | null>(null);
+  const [dupWarn, setDupWarn] = useState<{ open: boolean; matches: DuplicateMatch<any>[]; onConfirm: () => void }>({ open: false, matches: [], onConfirm: () => {} });
+  const [analiseOpen, setAnaliseOpen] = useState(false);
 
   const resetForm = () => { setNome(""); setDescricao(""); setCategoriaId(""); setEditId(null); setShowForm(false); };
 
-  const handleSave = async () => {
-    if (editId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
-    if (!nome.trim()) { toast.error("Nome é obrigatório"); return; }
+  const persistSave = async () => {
     if (editId) {
       await updateServico(editId, { nome, descricao, categoriaId });
       toast.success("Serviço atualizado");
@@ -41,6 +43,30 @@ const ServicosPage = () => {
     }
     resetForm();
   };
+
+  const handleSave = () => {
+    if (editId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
+    if (!nome.trim()) { toast.error("Nome é obrigatório"); return; }
+    // Escopo por categoria (quando informada) para evitar falsos positivos entre categorias distintas
+    const escopo = categoriaId ? servicos.filter(s => s.categoriaId === categoriaId) : servicos;
+    guardDuplicates({
+      candidate: { nome }, list: escopo,
+      options: { nome: (s) => s.nome, ignoreId: (s) => s.id === editId },
+      onExact: (m) => toast.error(`Serviço já cadastrado: ${m.item.nome}`),
+      onSimilar: (matches) => setDupWarn({ open: true, matches, onConfirm: persistSave }),
+      onOk: persistSave,
+    });
+  };
+
+  const analiseResultados = useMemo<GroupedDuplicatePair<any>[]>(() => {
+    if (!analiseOpen) return [];
+    // Agrupa por categoria (inclui "sem categoria")
+    const grupos = [
+      ...categorias.map((c) => ({ contexto: c.nome, items: servicos.filter((s) => s.categoriaId === c.id) })),
+      { contexto: "Sem categoria", items: servicos.filter((s) => !s.categoriaId) },
+    ];
+    return scanDuplicatesGrouped(grupos, { nome: (s) => s.nome });
+  }, [analiseOpen, servicos, categorias]);
 
   const handleEdit = (s: any) => {
     setEditId(s.id); setNome(s.nome); setDescricao(s.descricao); setCategoriaId(s.categoriaId); setShowForm(true);
@@ -66,11 +92,16 @@ const ServicosPage = () => {
             <h1 className="text-xl font-bold text-foreground mb-1">Serviços</h1>
             <p className="text-sm text-muted-foreground">Gerencie os serviços vinculados às categorias.</p>
           </div>
-          {!showForm && podeCriar && (
-            <Button onClick={() => setShowForm(true)} className="gap-2">
-              <Plus className="h-4 w-4" /> Novo Serviço
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setAnaliseOpen(true)} className="gap-2">
+              <ShieldAlert className="h-4 w-4" /> Analisar Duplicidades
             </Button>
-          )}
+            {!showForm && podeCriar && (
+              <Button onClick={() => setShowForm(true)} className="gap-2">
+                <Plus className="h-4 w-4" /> Novo Serviço
+              </Button>
+            )}
+          </div>
         </div>
 
         {showForm && (
@@ -150,6 +181,23 @@ const ServicosPage = () => {
           </Table>
         </div>
       </div>
+
+      <DuplicateWarningDialog
+        open={dupWarn.open}
+        onOpenChange={(o) => setDupWarn((s) => ({ ...s, open: o }))}
+        matches={dupWarn.matches}
+        onConfirm={dupWarn.onConfirm}
+        getNome={(s: any) => s.nome}
+        entidade="serviço"
+      />
+      <DuplicateAnalysisDialog
+        open={analiseOpen}
+        onOpenChange={setAnaliseOpen}
+        title="Análise de Duplicidades — Serviços"
+        pairs={analiseResultados}
+        showContext
+        getNome={(s: any) => s.nome}
+      />
     </div>
   );
 };

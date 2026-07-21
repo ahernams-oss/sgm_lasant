@@ -19,7 +19,8 @@ import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
 import { usePermissao } from "@/hooks/usePermissao";
-import { findDuplicates, scanDuplicates, type DuplicateMatch } from "@/lib/duplicateDetection";
+import { guardDuplicates, scanDuplicatesGrouped, type DuplicateMatch, type GroupedDuplicatePair } from "@/lib/duplicateDetection";
+import { DuplicateWarningDialog, DuplicateAnalysisDialog } from "@/components/DuplicateDialogs";
 import { Badge } from "@/components/ui/badge";
 
 const UNIDADES = ["UN", "M", "M²", "M³", "KG", "L", "CX", "PCT", "SC", "GL", "HR", "VB", "JG", "PR", "RL", "TB", "FD", "BD", "CJ", "DZ"];
@@ -92,31 +93,24 @@ export default function MateriaisServicosPage() {
     if (editingId ? !podeEditar : !podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     // Duplicidade: escopo pelo mesmo tipo (Material vs Serviço)
     const escopo = materiais.filter(m => m.tipo === form.tipo);
-    const matches = findDuplicates({ nome: form.descricao }, escopo, {
-      nome: (m) => m.descricao,
-      ignoreId: (m) => m.id === editingId,
+    guardDuplicates({
+      candidate: { nome: form.descricao }, list: escopo,
+      options: { nome: (m) => m.descricao, ignoreId: (m) => m.id === editingId },
+      onExact: (m) => toast({ title: `Já existe ${form.tipo.toLowerCase()} com esta descrição: ${m.item.codigo} - ${m.item.descricao}`, variant: "destructive" }),
+      onSimilar: (matches) => setDupWarn({ open: true, matches, onConfirm: persistSave }),
+      onOk: persistSave,
     });
-    const exato = matches.find(m => m.kind === "exato");
-    if (exato) {
-      toast({ title: `Já existe ${form.tipo.toLowerCase()} com esta descrição: ${exato.item.codigo} - ${exato.item.descricao}`, variant: "destructive" });
-      return;
-    }
-    if (matches.length) {
-      setDupWarn({ open: true, matches, onConfirm: persistSave });
-      return;
-    }
-    persistSave();
   };
 
-  const analiseResultados = useMemo(() => {
-    if (!analiseOpen) return [] as Array<{ a: MaterialServico; b: MaterialServico; kind: "exato" | "similar"; campo: "nome" | "codigo"; score: number; contexto: string }>;
-    const out: any[] = [];
-    for (const tipo of ["Material", "Serviço"] as const) {
-      const escopo = materiais.filter(m => m.tipo === tipo);
-      const pares = scanDuplicates(escopo, { nome: (m) => m.descricao });
-      for (const p of pares) out.push({ ...p, contexto: tipo });
-    }
-    return out;
+  const analiseResultados = useMemo<GroupedDuplicatePair<MaterialServico>[]>(() => {
+    if (!analiseOpen) return [];
+    return scanDuplicatesGrouped(
+      (["Material", "Serviço"] as const).map((tipo) => ({
+        contexto: tipo,
+        items: materiais.filter((m) => m.tipo === tipo),
+      })),
+      { nome: (m) => m.descricao }
+    );
   }, [analiseOpen, materiais]);
 
   const handleImport = (file: File) => {
@@ -302,80 +296,25 @@ export default function MateriaisServicosPage() {
       </Dialog>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={() => { if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); cancelDelete(); return; } if (deleteId) { deleteMaterial(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
 
-      <Dialog open={dupWarn.open} onOpenChange={(o) => setDupWarn(s => ({ ...s, open: o }))}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-amber-600">
-              <AlertTriangle className="h-5 w-5" /> Possível cadastro duplicado
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Encontramos {dupWarn.matches.length} registro(s) parecido(s) com o que você está cadastrando. Confira antes de confirmar.
-            </p>
-            <div className="border rounded-md divide-y max-h-64 overflow-auto">
-              {dupWarn.matches.map((m, i) => (
-                <div key={i} className="p-2 flex items-center justify-between text-sm">
-                  <div>
-                    <Badge variant="outline" className="font-mono mr-2">{m.item.codigo}</Badge>
-                    <span className="font-medium">{m.item.descricao}</span>
-                  </div>
-                  <Badge variant={m.kind === "exato" ? "destructive" : "secondary"}>
-                    {m.kind === "exato" ? "Idêntico" : `${Math.round(m.score * 100)}% similar`}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDupWarn(s => ({ ...s, open: false }))}>Cancelar</Button>
-            <Button onClick={() => { const cb = dupWarn.onConfirm; setDupWarn(s => ({ ...s, open: false })); cb(); }}>Cadastrar mesmo assim</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DuplicateWarningDialog
+        open={dupWarn.open}
+        onOpenChange={(o) => setDupWarn((s) => ({ ...s, open: o }))}
+        matches={dupWarn.matches}
+        onConfirm={dupWarn.onConfirm}
+        getCodigo={(m) => m.codigo}
+        getNome={(m) => m.descricao}
+      />
 
-      <Dialog open={analiseOpen} onOpenChange={setAnaliseOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ShieldAlert className="h-5 w-5 text-primary" /> Análise de Duplicidades — Materiais e Serviços
-            </DialogTitle>
-          </DialogHeader>
-          {analiseResultados.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Nenhuma duplicidade detectada. ✅</p>
-          ) : (
-            <div className="border rounded-md max-h-[60vh] overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Registro A</TableHead>
-                    <TableHead>Registro B</TableHead>
-                    <TableHead className="w-32 text-center">Situação</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {analiseResultados.map((p, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="text-xs text-muted-foreground">{p.contexto}</TableCell>
-                      <TableCell><Badge variant="outline" className="font-mono mr-1">{p.a.codigo}</Badge>{p.a.descricao}</TableCell>
-                      <TableCell><Badge variant="outline" className="font-mono mr-1">{p.b.codigo}</Badge>{p.b.descricao}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant={p.kind === "exato" ? "destructive" : "secondary"}>
-                          {p.kind === "exato" ? "Idêntico" : `${Math.round(p.score * 100)}%`}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-          <DialogFooter>
-            <Button onClick={() => setAnaliseOpen(false)}>Fechar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DuplicateAnalysisDialog
+        open={analiseOpen}
+        onOpenChange={setAnaliseOpen}
+        title="Análise de Duplicidades — Materiais e Serviços"
+        pairs={analiseResultados}
+        showContext
+        getCodigo={(m) => m.codigo}
+        getNome={(m) => m.descricao}
+      />
+
     </div>
   );
 }

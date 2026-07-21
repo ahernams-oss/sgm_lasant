@@ -15,7 +15,8 @@ import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
 import { usePermissao } from "@/hooks/usePermissao";
-import { findDuplicates, scanDuplicates, type DuplicateMatch } from "@/lib/duplicateDetection";
+import { guardDuplicates, scanDuplicatesGrouped, type DuplicateMatch, type GroupedDuplicatePair } from "@/lib/duplicateDetection";
+import { DuplicateWarningDialog, DuplicateAnalysisDialog } from "@/components/DuplicateDialogs";
 
 export default function CategoriasCompras() {
   const {
@@ -121,17 +122,13 @@ export default function CategoriasCompras() {
   };
   const saveGrupo = () => {
     if (!grupoForm.codigo.trim() || !grupoForm.nome.trim()) { toast({ title: "Código e Nome são obrigatórios", variant: "destructive" }); return; }
-    const matches = findDuplicates(grupoForm, grupos, {
-      nome: (g) => g.nome, codigo: (g) => g.codigo,
-      ignoreId: (g) => g.id === editGrupoId,
+    guardDuplicates({
+      candidate: grupoForm, list: grupos,
+      options: { nome: (g) => g.nome, codigo: (g) => g.codigo, ignoreId: (g) => g.id === editGrupoId },
+      onExact: (m) => toast({ title: `Grupo já cadastrado (${m.campo}): ${m.item.codigo} - ${m.item.nome}`, variant: "destructive" }),
+      onSimilar: (matches) => askDuplicates("grupo", matches, persistGrupo),
+      onOk: persistGrupo,
     });
-    const exato = matches.find(m => m.kind === "exato");
-    if (exato) {
-      toast({ title: `Grupo já cadastrado (${exato.campo}): ${exato.item.codigo} - ${exato.item.nome}`, variant: "destructive" });
-      return;
-    }
-    if (matches.length) return askDuplicates("grupo", matches, persistGrupo);
-    persistGrupo();
   };
 
   // === SUBGRUPO ===
@@ -155,17 +152,13 @@ export default function CategoriasCompras() {
   const saveSub = () => {
     if (!subForm.grupoId || !subForm.codigo.trim() || !subForm.nome.trim()) { toast({ title: "Grupo, Código e Nome são obrigatórios", variant: "destructive" }); return; }
     const escopo = subGrupos.filter(s => s.grupoId === subForm.grupoId);
-    const matches = findDuplicates(subForm, escopo, {
-      nome: (s) => s.nome, codigo: (s) => s.codigo,
-      ignoreId: (s) => s.id === editSubId,
+    guardDuplicates({
+      candidate: subForm, list: escopo,
+      options: { nome: (s) => s.nome, codigo: (s) => s.codigo, ignoreId: (s) => s.id === editSubId },
+      onExact: (m) => toast({ title: `SubGrupo já cadastrado neste grupo (${m.campo}): ${m.item.codigo} - ${m.item.nome}`, variant: "destructive" }),
+      onSimilar: (matches) => askDuplicates("subgrupo", matches, persistSub),
+      onOk: persistSub,
     });
-    const exato = matches.find(m => m.kind === "exato");
-    if (exato) {
-      toast({ title: `SubGrupo já cadastrado neste grupo (${exato.campo}): ${exato.item.codigo} - ${exato.item.nome}`, variant: "destructive" });
-      return;
-    }
-    if (matches.length) return askDuplicates("subgrupo", matches, persistSub);
-    persistSub();
   };
 
   // === CLASSE ===
@@ -193,43 +186,43 @@ export default function CategoriasCompras() {
   const saveClasse = () => {
     if (!classeForm.subGrupoId || !classeForm.codigo.trim() || !classeForm.nome.trim()) { toast({ title: "SubGrupo, Código e Nome são obrigatórios", variant: "destructive" }); return; }
     const escopo = classes.filter(c => c.subGrupoId === classeForm.subGrupoId);
-    const matches = findDuplicates(classeForm, escopo, {
-      nome: (c) => c.nome, codigo: (c) => c.codigo,
-      ignoreId: (c) => c.id === editClasseId,
+    guardDuplicates({
+      candidate: classeForm, list: escopo,
+      options: { nome: (c) => c.nome, codigo: (c) => c.codigo, ignoreId: (c) => c.id === editClasseId },
+      onExact: (m) => toast({ title: `Classe já cadastrada neste subgrupo (${m.campo}): ${m.item.codigo} - ${m.item.nome}`, variant: "destructive" }),
+      onSimilar: (matches) => askDuplicates("classe", matches, persistClasse),
+      onOk: persistClasse,
     });
-    const exato = matches.find(m => m.kind === "exato");
-    if (exato) {
-      toast({ title: `Classe já cadastrada neste subgrupo (${exato.campo}): ${exato.item.codigo} - ${exato.item.nome}`, variant: "destructive" });
-      return;
-    }
-    if (matches.length) return askDuplicates("classe", matches, persistClasse);
-    persistClasse();
   };
 
   // === ANALISE COMPLETA ===
-  const analiseResultados = useMemo(() => {
-    if (!analiseDialog.open) return [] as any[];
+  const analiseResultados = useMemo<GroupedDuplicatePair<any>[]>(() => {
+    if (!analiseDialog.open) return [];
     if (analiseDialog.tipo === "grupo") {
-      return scanDuplicates(grupos, { nome: (g) => g.nome, codigo: (g) => g.codigo });
+      return scanDuplicatesGrouped(
+        [{ contexto: "", items: grupos }],
+        { nome: (g) => g.nome, codigo: (g) => g.codigo }
+      );
     }
     if (analiseDialog.tipo === "subgrupo") {
-      // agrupa por grupoId e scaneia dentro de cada grupo
-      const out: any[] = [];
-      for (const g of grupos) {
-        const subs = subGrupos.filter(s => s.grupoId === g.id);
-        const pares = scanDuplicates(subs, { nome: (s) => s.nome, codigo: (s) => s.codigo });
-        for (const p of pares) out.push({ ...p, contexto: `${g.codigo} - ${g.nome}` });
-      }
-      return out;
+      return scanDuplicatesGrouped(
+        grupos.map((g) => ({
+          contexto: `${g.codigo} - ${g.nome}`,
+          items: subGrupos.filter((s) => s.grupoId === g.id),
+        })),
+        { nome: (s) => s.nome, codigo: (s) => s.codigo }
+      );
     }
-    const out: any[] = [];
-    for (const s of subGrupos) {
-      const cls = classes.filter(c => c.subGrupoId === s.id);
-      const g = grupos.find(gr => gr.id === s.grupoId);
-      const pares = scanDuplicates(cls, { nome: (c) => c.nome, codigo: (c) => c.codigo });
-      for (const p of pares) out.push({ ...p, contexto: `${g?.codigo}.${s.codigo} - ${s.nome}` });
-    }
-    return out;
+    return scanDuplicatesGrouped(
+      subGrupos.map((s) => {
+        const g = grupos.find((gr) => gr.id === s.grupoId);
+        return {
+          contexto: `${g?.codigo}.${s.codigo} - ${s.nome}`,
+          items: classes.filter((c) => c.subGrupoId === s.id),
+        };
+      }),
+      { nome: (c) => c.nome, codigo: (c) => c.codigo }
+    );
   }, [analiseDialog, grupos, subGrupos, classes]);
 
 
@@ -517,86 +510,25 @@ export default function CategoriasCompras() {
         </DialogContent>
       </Dialog>
 
-      {/* Aviso de duplicidade (similar) */}
-      <Dialog open={dupWarn.open} onOpenChange={(o) => setDupWarn(s => ({ ...s, open: o }))}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-amber-600">
-              <AlertTriangle className="h-5 w-5" /> Possível cadastro duplicado
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Encontramos {dupWarn.matches.length} registro(s) parecido(s) com o que você está cadastrando.
-              Confira se não é a mesma coisa antes de confirmar.
-            </p>
-            <div className="border rounded-md divide-y max-h-64 overflow-auto">
-              {dupWarn.matches.map((m, i) => (
-                <div key={i} className="p-2 flex items-center justify-between text-sm">
-                  <div>
-                    <Badge variant="outline" className="font-mono mr-2">{(m.item as any).codigo}</Badge>
-                    <span className="font-medium">{(m.item as any).nome}</span>
-                  </div>
-                  <Badge variant={m.kind === "exato" ? "destructive" : "secondary"}>
-                    {m.kind === "exato" ? "Idêntico" : `${Math.round(m.score * 100)}% similar`}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDupWarn(s => ({ ...s, open: false }))}>Cancelar</Button>
-            <Button onClick={() => { const cb = dupWarn.onConfirm; setDupWarn(s => ({ ...s, open: false })); cb(); }}>
-              Cadastrar mesmo assim
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DuplicateWarningDialog
+        open={dupWarn.open}
+        onOpenChange={(o) => setDupWarn((s) => ({ ...s, open: o }))}
+        matches={dupWarn.matches}
+        onConfirm={dupWarn.onConfirm}
+        getCodigo={(item: any) => item.codigo}
+        getNome={(item: any) => item.nome}
+      />
 
-      {/* Análise geral de duplicidades */}
-      <Dialog open={analiseDialog.open} onOpenChange={(o) => setAnaliseDialog(s => ({ ...s, open: o }))}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ShieldAlert className="h-5 w-5 text-primary" />
-              Análise de Duplicidades — {analiseDialog.tipo === "grupo" ? "Grupos" : analiseDialog.tipo === "subgrupo" ? "SubGrupos" : "Classes"}
-            </DialogTitle>
-          </DialogHeader>
-          {analiseResultados.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Nenhuma duplicidade detectada. ✅</p>
-          ) : (
-            <div className="border rounded-md max-h-[60vh] overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {analiseDialog.tipo !== "grupo" && <TableHead>Contexto</TableHead>}
-                    <TableHead>Registro A</TableHead>
-                    <TableHead>Registro B</TableHead>
-                    <TableHead className="w-32 text-center">Situação</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {analiseResultados.map((p: any, i: number) => (
-                    <TableRow key={i}>
-                      {analiseDialog.tipo !== "grupo" && <TableCell className="text-xs text-muted-foreground">{p.contexto}</TableCell>}
-                      <TableCell><Badge variant="outline" className="font-mono mr-1">{p.a.codigo}</Badge>{p.a.nome}</TableCell>
-                      <TableCell><Badge variant="outline" className="font-mono mr-1">{p.b.codigo}</Badge>{p.b.nome}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant={p.kind === "exato" ? "destructive" : "secondary"}>
-                          {p.kind === "exato" ? `Idêntico (${p.campo})` : `${Math.round(p.score * 100)}%`}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-          <DialogFooter>
-            <Button onClick={() => setAnaliseDialog(s => ({ ...s, open: false }))}>Fechar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DuplicateAnalysisDialog
+        open={analiseDialog.open}
+        onOpenChange={(o) => setAnaliseDialog((s) => ({ ...s, open: o }))}
+        title={`Análise de Duplicidades — ${analiseDialog.tipo === "grupo" ? "Grupos" : analiseDialog.tipo === "subgrupo" ? "SubGrupos" : "Classes"}`}
+        pairs={analiseResultados}
+        showContext={analiseDialog.tipo !== "grupo"}
+        getCodigo={(item: any) => item.codigo}
+        getNome={(item: any) => item.nome}
+      />
+
     </div>
   );
 }
