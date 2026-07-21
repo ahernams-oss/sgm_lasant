@@ -98,13 +98,40 @@ export default function CategoriasCompras() {
     return grupos.filter(g => g.codigo.toLowerCase().includes(s) || g.nome.toLowerCase().includes(s));
   }, [grupos, search]);
 
+  // === DUPLICIDADE ===
+  type Tipo = "grupo" | "subgrupo" | "classe";
+  const [dupWarn, setDupWarn] = useState<{
+    open: boolean;
+    tipo: Tipo;
+    matches: DuplicateMatch<any>[];
+    onConfirm: () => void;
+  }>({ open: false, tipo: "grupo", matches: [], onConfirm: () => {} });
+  const [analiseDialog, setAnaliseDialog] = useState<{ open: boolean; tipo: Tipo }>({ open: false, tipo: "grupo" });
+
+  const askDuplicates = (tipo: Tipo, matches: DuplicateMatch<any>[], onConfirm: () => void) => {
+    setDupWarn({ open: true, tipo, matches, onConfirm });
+  };
+
   const openNewGrupo = () => { setGrupoForm({ codigo: "", nome: "" }); setEditGrupoId(null); setGrupoDialog(true); };
   const openEditGrupo = (g: typeof grupos[0]) => { setGrupoForm({ codigo: g.codigo, nome: g.nome }); setEditGrupoId(g.id); setGrupoDialog(true); };
-  const saveGrupo = () => {
-    if (!grupoForm.codigo.trim() || !grupoForm.nome.trim()) { toast({ title: "Código e Nome são obrigatórios", variant: "destructive" }); return; }
+  const persistGrupo = () => {
     if (editGrupoId) { if (!guard(podeEditar)) return; updateGrupo(editGrupoId, grupoForm); toast({ title: "Grupo atualizado" }); }
     else { if (!guard(podeCriar)) return; addGrupo(grupoForm); toast({ title: "Grupo criado" }); }
     setGrupoDialog(false);
+  };
+  const saveGrupo = () => {
+    if (!grupoForm.codigo.trim() || !grupoForm.nome.trim()) { toast({ title: "Código e Nome são obrigatórios", variant: "destructive" }); return; }
+    const matches = findDuplicates(grupoForm, grupos, {
+      nome: (g) => g.nome, codigo: (g) => g.codigo,
+      ignoreId: (g) => g.id === editGrupoId,
+    });
+    const exato = matches.find(m => m.kind === "exato");
+    if (exato) {
+      toast({ title: `Grupo já cadastrado (${exato.campo}): ${exato.item.codigo} - ${exato.item.nome}`, variant: "destructive" });
+      return;
+    }
+    if (matches.length) return askDuplicates("grupo", matches, persistGrupo);
+    persistGrupo();
   };
 
   // === SUBGRUPO ===
@@ -120,11 +147,25 @@ export default function CategoriasCompras() {
 
   const openNewSub = () => { setSubForm({ grupoId: grupos[0]?.id || "", codigo: "", nome: "" }); setEditSubId(null); setSubDialog(true); };
   const openEditSub = (s: typeof subGrupos[0]) => { setSubForm({ grupoId: s.grupoId, codigo: s.codigo, nome: s.nome }); setEditSubId(s.id); setSubDialog(true); };
-  const saveSub = () => {
-    if (!subForm.grupoId || !subForm.codigo.trim() || !subForm.nome.trim()) { toast({ title: "Grupo, Código e Nome são obrigatórios", variant: "destructive" }); return; }
+  const persistSub = () => {
     if (editSubId) { if (!guard(podeEditar)) return; updateSubGrupo(editSubId, subForm); toast({ title: "SubGrupo atualizado" }); }
     else { if (!guard(podeCriar)) return; addSubGrupo(subForm); toast({ title: "SubGrupo criado" }); }
     setSubDialog(false);
+  };
+  const saveSub = () => {
+    if (!subForm.grupoId || !subForm.codigo.trim() || !subForm.nome.trim()) { toast({ title: "Grupo, Código e Nome são obrigatórios", variant: "destructive" }); return; }
+    const escopo = subGrupos.filter(s => s.grupoId === subForm.grupoId);
+    const matches = findDuplicates(subForm, escopo, {
+      nome: (s) => s.nome, codigo: (s) => s.codigo,
+      ignoreId: (s) => s.id === editSubId,
+    });
+    const exato = matches.find(m => m.kind === "exato");
+    if (exato) {
+      toast({ title: `SubGrupo já cadastrado neste grupo (${exato.campo}): ${exato.item.codigo} - ${exato.item.nome}`, variant: "destructive" });
+      return;
+    }
+    if (matches.length) return askDuplicates("subgrupo", matches, persistSub);
+    persistSub();
   };
 
   // === CLASSE ===
@@ -144,12 +185,53 @@ export default function CategoriasCompras() {
 
   const openNewClasse = () => { setClasseForm({ subGrupoId: subGrupos[0]?.id || "", codigo: "", nome: "" }); setEditClasseId(null); setClasseDialog(true); };
   const openEditClasse = (c: typeof classes[0]) => { setClasseForm({ subGrupoId: c.subGrupoId, codigo: c.codigo, nome: c.nome }); setEditClasseId(c.id); setClasseDialog(true); };
-  const saveClasse = () => {
-    if (!classeForm.subGrupoId || !classeForm.codigo.trim() || !classeForm.nome.trim()) { toast({ title: "SubGrupo, Código e Nome são obrigatórios", variant: "destructive" }); return; }
+  const persistClasse = () => {
     if (editClasseId) { if (!guard(podeEditar)) return; updateClasse(editClasseId, classeForm); toast({ title: "Classe atualizada" }); }
     else { if (!guard(podeCriar)) return; addClasse(classeForm); toast({ title: "Classe criada" }); }
     setClasseDialog(false);
   };
+  const saveClasse = () => {
+    if (!classeForm.subGrupoId || !classeForm.codigo.trim() || !classeForm.nome.trim()) { toast({ title: "SubGrupo, Código e Nome são obrigatórios", variant: "destructive" }); return; }
+    const escopo = classes.filter(c => c.subGrupoId === classeForm.subGrupoId);
+    const matches = findDuplicates(classeForm, escopo, {
+      nome: (c) => c.nome, codigo: (c) => c.codigo,
+      ignoreId: (c) => c.id === editClasseId,
+    });
+    const exato = matches.find(m => m.kind === "exato");
+    if (exato) {
+      toast({ title: `Classe já cadastrada neste subgrupo (${exato.campo}): ${exato.item.codigo} - ${exato.item.nome}`, variant: "destructive" });
+      return;
+    }
+    if (matches.length) return askDuplicates("classe", matches, persistClasse);
+    persistClasse();
+  };
+
+  // === ANALISE COMPLETA ===
+  const analiseResultados = useMemo(() => {
+    if (!analiseDialog.open) return [] as any[];
+    if (analiseDialog.tipo === "grupo") {
+      return scanDuplicates(grupos, { nome: (g) => g.nome, codigo: (g) => g.codigo });
+    }
+    if (analiseDialog.tipo === "subgrupo") {
+      // agrupa por grupoId e scaneia dentro de cada grupo
+      const out: any[] = [];
+      for (const g of grupos) {
+        const subs = subGrupos.filter(s => s.grupoId === g.id);
+        const pares = scanDuplicates(subs, { nome: (s) => s.nome, codigo: (s) => s.codigo });
+        for (const p of pares) out.push({ ...p, contexto: `${g.codigo} - ${g.nome}` });
+      }
+      return out;
+    }
+    const out: any[] = [];
+    for (const s of subGrupos) {
+      const cls = classes.filter(c => c.subGrupoId === s.id);
+      const g = grupos.find(gr => gr.id === s.grupoId);
+      const pares = scanDuplicates(cls, { nome: (c) => c.nome, codigo: (c) => c.codigo });
+      for (const p of pares) out.push({ ...p, contexto: `${g?.codigo}.${s.codigo} - ${s.nome}` });
+    }
+    return out;
+  }, [analiseDialog, grupos, subGrupos, classes]);
+
 
   const getGrupoNome = (id: string) => grupos.find(g => g.id === id)?.nome || "-";
   const getGrupoCodigo = (id: string) => grupos.find(g => g.id === id)?.codigo || "";
