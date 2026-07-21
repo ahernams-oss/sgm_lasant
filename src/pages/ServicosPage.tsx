@@ -181,8 +181,28 @@ const ServicosPage = () => {
           </Table>
         </div>
       </div>
+
+      <DuplicateWarningDialog
+        open={dupWarn.open}
+        onOpenChange={(o) => setDupWarn((s) => ({ ...s, open: o }))}
+        matches={dupWarn.matches}
+        onConfirm={dupWarn.onConfirm}
+        getNome={(s: any) => s.nome}
+        entidade="serviço"
+      />
+      <DuplicateAnalysisDialog
+        open={analiseOpen}
+        onOpenChange={setAnaliseOpen}
+        title="Análise de Duplicidades — Serviços"
+        pairs={analiseResultados}
+        showContext
+        getNome={(s: any) => s.nome}
+      />
     </div>
   );
+};
+
+export default ServicosPage;
 };
 
 export default ServicosPage;
