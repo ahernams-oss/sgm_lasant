@@ -122,17 +122,13 @@ export default function CategoriasCompras() {
   };
   const saveGrupo = () => {
     if (!grupoForm.codigo.trim() || !grupoForm.nome.trim()) { toast({ title: "Código e Nome são obrigatórios", variant: "destructive" }); return; }
-    const matches = findDuplicates(grupoForm, grupos, {
-      nome: (g) => g.nome, codigo: (g) => g.codigo,
-      ignoreId: (g) => g.id === editGrupoId,
+    guardDuplicates({
+      candidate: grupoForm, list: grupos,
+      options: { nome: (g) => g.nome, codigo: (g) => g.codigo, ignoreId: (g) => g.id === editGrupoId },
+      onExact: (m) => toast({ title: `Grupo já cadastrado (${m.campo}): ${m.item.codigo} - ${m.item.nome}`, variant: "destructive" }),
+      onSimilar: (matches) => askDuplicates("grupo", matches, persistGrupo),
+      onOk: persistGrupo,
     });
-    const exato = matches.find(m => m.kind === "exato");
-    if (exato) {
-      toast({ title: `Grupo já cadastrado (${exato.campo}): ${exato.item.codigo} - ${exato.item.nome}`, variant: "destructive" });
-      return;
-    }
-    if (matches.length) return askDuplicates("grupo", matches, persistGrupo);
-    persistGrupo();
   };
 
   // === SUBGRUPO ===
@@ -156,17 +152,13 @@ export default function CategoriasCompras() {
   const saveSub = () => {
     if (!subForm.grupoId || !subForm.codigo.trim() || !subForm.nome.trim()) { toast({ title: "Grupo, Código e Nome são obrigatórios", variant: "destructive" }); return; }
     const escopo = subGrupos.filter(s => s.grupoId === subForm.grupoId);
-    const matches = findDuplicates(subForm, escopo, {
-      nome: (s) => s.nome, codigo: (s) => s.codigo,
-      ignoreId: (s) => s.id === editSubId,
+    guardDuplicates({
+      candidate: subForm, list: escopo,
+      options: { nome: (s) => s.nome, codigo: (s) => s.codigo, ignoreId: (s) => s.id === editSubId },
+      onExact: (m) => toast({ title: `SubGrupo já cadastrado neste grupo (${m.campo}): ${m.item.codigo} - ${m.item.nome}`, variant: "destructive" }),
+      onSimilar: (matches) => askDuplicates("subgrupo", matches, persistSub),
+      onOk: persistSub,
     });
-    const exato = matches.find(m => m.kind === "exato");
-    if (exato) {
-      toast({ title: `SubGrupo já cadastrado neste grupo (${exato.campo}): ${exato.item.codigo} - ${exato.item.nome}`, variant: "destructive" });
-      return;
-    }
-    if (matches.length) return askDuplicates("subgrupo", matches, persistSub);
-    persistSub();
   };
 
   // === CLASSE ===
@@ -194,17 +186,13 @@ export default function CategoriasCompras() {
   const saveClasse = () => {
     if (!classeForm.subGrupoId || !classeForm.codigo.trim() || !classeForm.nome.trim()) { toast({ title: "SubGrupo, Código e Nome são obrigatórios", variant: "destructive" }); return; }
     const escopo = classes.filter(c => c.subGrupoId === classeForm.subGrupoId);
-    const matches = findDuplicates(classeForm, escopo, {
-      nome: (c) => c.nome, codigo: (c) => c.codigo,
-      ignoreId: (c) => c.id === editClasseId,
+    guardDuplicates({
+      candidate: classeForm, list: escopo,
+      options: { nome: (c) => c.nome, codigo: (c) => c.codigo, ignoreId: (c) => c.id === editClasseId },
+      onExact: (m) => toast({ title: `Classe já cadastrada neste subgrupo (${m.campo}): ${m.item.codigo} - ${m.item.nome}`, variant: "destructive" }),
+      onSimilar: (matches) => askDuplicates("classe", matches, persistClasse),
+      onOk: persistClasse,
     });
-    const exato = matches.find(m => m.kind === "exato");
-    if (exato) {
-      toast({ title: `Classe já cadastrada neste subgrupo (${exato.campo}): ${exato.item.codigo} - ${exato.item.nome}`, variant: "destructive" });
-      return;
-    }
-    if (matches.length) return askDuplicates("classe", matches, persistClasse);
-    persistClasse();
   };
 
   // === ANALISE COMPLETA ===
