@@ -384,7 +384,12 @@ export default function CategoriasCompras() {
                 </SelectContent>
               </Select>
             </div>
-            {podeCriar && <Button onClick={openNewClasse}><Plus className="mr-2 h-4 w-4" />Nova Classe</Button>}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setAnaliseDialog({ open: true, tipo: "classe" })}>
+                <ShieldAlert className="mr-2 h-4 w-4" />Analisar Duplicidades
+              </Button>
+              {podeCriar && <Button onClick={openNewClasse}><Plus className="mr-2 h-4 w-4" />Nova Classe</Button>}
+            </div>
           </div>
           <div className="border rounded-lg">
             <SortableHeaderRow order={colOrderClasses} onReorder={setColOrderClasses}>
