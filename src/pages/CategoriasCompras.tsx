@@ -315,7 +315,12 @@ export default function CategoriasCompras() {
                 {grupos.map(g => <SelectItem key={g.id} value={g.id}>{g.codigo} - {g.nome}</SelectItem>)}
               </SelectContent>
             </Select>
-            {podeCriar && <Button onClick={openNewSub}><Plus className="mr-2 h-4 w-4" />Novo SubGrupo</Button>}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setAnaliseDialog({ open: true, tipo: "subgrupo" })}>
+                <ShieldAlert className="mr-2 h-4 w-4" />Analisar Duplicidades
+              </Button>
+              {podeCriar && <Button onClick={openNewSub}><Plus className="mr-2 h-4 w-4" />Novo SubGrupo</Button>}
+            </div>
           </div>
           <div className="border rounded-lg">
             <SortableHeaderRow order={colOrderSubs} onReorder={setColOrderSubs}>
