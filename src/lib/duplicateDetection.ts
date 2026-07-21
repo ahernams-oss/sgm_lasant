@@ -112,3 +112,80 @@ export function scanDuplicates<T extends { id: string }>(
   }
   return out.sort((x, y) => y.score - x.score);
 }
+
+// ============================================================
+// Higher-level helpers to unify usage across cadastros
+// ============================================================
+
+export type DuplicateEvaluation<T> =
+  | { status: "ok"; exact?: undefined; similar: DuplicateMatch<T>[] }
+  | { status: "exact"; exact: DuplicateMatch<T>; similar: DuplicateMatch<T>[] }
+  | { status: "similar"; exact?: undefined; similar: DuplicateMatch<T>[] };
+
+/**
+ * Avalia duplicidades de um candidato contra uma lista.
+ * Retorna status "exact" (bloquear), "similar" (confirmar) ou "ok".
+ */
+export function evaluateDuplicates<T>(
+  candidato: { nome: string; codigo?: string },
+  lista: T[],
+  opts: FindDuplicateOptions<T>
+): DuplicateEvaluation<T> {
+  const matches = findDuplicates(candidato, lista, opts);
+  const exact = matches.find((m) => m.kind === "exato");
+  if (exact) return { status: "exact", exact, similar: matches };
+  if (matches.length) return { status: "similar", similar: matches };
+  return { status: "ok", similar: [] };
+}
+
+export interface GuardDuplicatesArgs<T> {
+  candidate: { nome: string; codigo?: string };
+  list: T[];
+  options: FindDuplicateOptions<T>;
+  onExact: (match: DuplicateMatch<T>) => void;
+  onSimilar: (matches: DuplicateMatch<T>[]) => void;
+  onOk: () => void;
+}
+
+/**
+ * Fluxo padrão de "salvar com checagem de duplicidade":
+ *  - se houver exato → onExact (mostra erro/bloqueio)
+ *  - se houver similar → onSimilar (abre confirmação)
+ *  - caso contrário → onOk (persiste)
+ */
+export function guardDuplicates<T>(args: GuardDuplicatesArgs<T>): void {
+  const r = evaluateDuplicates(args.candidate, args.list, args.options);
+  if (r.status === "exact") return args.onExact(r.exact);
+  if (r.status === "similar") return args.onSimilar(r.similar);
+  return args.onOk();
+}
+
+export interface GroupedScanInput<T> {
+  contexto: string;
+  items: T[];
+}
+
+export interface GroupedDuplicatePair<T> {
+  a: T;
+  b: T;
+  kind: "exato" | "similar";
+  campo: "nome" | "codigo";
+  score: number;
+  contexto: string;
+}
+
+/**
+ * Executa scanDuplicates em múltiplos escopos e devolve pares
+ * anotados com o "contexto" de origem (ex.: nome do grupo pai).
+ */
+export function scanDuplicatesGrouped<T extends { id: string }>(
+  groups: GroupedScanInput<T>[],
+  opts: FindDuplicateOptions<T>
+): GroupedDuplicatePair<T>[] {
+  const out: GroupedDuplicatePair<T>[] = [];
+  for (const g of groups) {
+    const pares = scanDuplicates(g.items, opts);
+    for (const p of pares) out.push({ ...p, contexto: g.contexto });
+  }
+  return out;
+}
