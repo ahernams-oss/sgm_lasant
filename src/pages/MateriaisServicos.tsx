@@ -184,6 +184,7 @@ export default function MateriaisServicosPage() {
         <div className="flex gap-2">
           {podeExportar && <Button variant="outline" onClick={() => gerarPdfMateriaisServicos({ materiais: filtered, getCatNome: catNome })}><FileText className="mr-2 h-4 w-4" />PDF</Button>}
           {podeExportar && <Button variant="outline" onClick={() => gerarExcelMateriaisServicos({ materiais: filtered, getCatNome: catNome })}><FileSpreadsheet className="mr-2 h-4 w-4" />Excel</Button>}
+          <Button variant="outline" onClick={() => setAnaliseOpen(true)}><ShieldAlert className="mr-2 h-4 w-4" />Analisar Duplicidades</Button>
           {podeCriar && <Button variant="outline" onClick={() => document.getElementById("import-mat")?.click()}><Upload className="mr-2 h-4 w-4" />Importar</Button>}
           <input id="import-mat" type="file" accept=".xlsx,.xls,.csv,.txt" className="hidden" onChange={e => { if (e.target.files?.[0]) handleImport(e.target.files[0]); e.target.value = ""; }} />
           {podeCriar && <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo</Button>}
