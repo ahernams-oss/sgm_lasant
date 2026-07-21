@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, Pencil, Trash2, Wrench } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Pencil, Trash2, Wrench, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,8 @@ import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { toast } from "sonner";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { usePermissao } from "@/hooks/usePermissao";
+import { guardDuplicates, scanDuplicatesGrouped, type DuplicateMatch, type GroupedDuplicatePair } from "@/lib/duplicateDetection";
+import { DuplicateWarningDialog, DuplicateAnalysisDialog } from "@/components/DuplicateDialogs";
 
 const ServicosPage = () => {
   const { servicos, addServico, updateServico, deleteServico } = useServicos();
