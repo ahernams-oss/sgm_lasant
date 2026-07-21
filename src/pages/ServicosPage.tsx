@@ -203,6 +203,3 @@ const ServicosPage = () => {
 };
 
 export default ServicosPage;
-};
-
-export default ServicosPage;
