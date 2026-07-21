@@ -73,19 +73,51 @@ export default function MateriaisServicosPage() {
   const openNew = () => { setForm({ descricao: "", tipo: "Material", unidadeMedida: "UN", categoriaId: "", estoqueMinimo: 0, fotos: [] }); setEditingId(null); setDialogOpen(true); };
   const openEdit = (m: MaterialServico) => { setForm({ descricao: m.descricao, tipo: m.tipo, unidadeMedida: m.unidadeMedida, categoriaId: m.categoriaId, estoqueMinimo: m.estoqueMinimo, fotos: m.fotos || [] }); setEditingId(m.id); setDialogOpen(true); };
 
-  const handleSave = () => {
-    if (!form.descricao.trim()) { toast({ title: "Descrição é obrigatória", variant: "destructive" }); return; }
+  const [dupWarn, setDupWarn] = useState<{ open: boolean; matches: DuplicateMatch<MaterialServico>[]; onConfirm: () => void }>({ open: false, matches: [], onConfirm: () => {} });
+  const [analiseOpen, setAnaliseOpen] = useState(false);
+
+  const persistSave = () => {
     if (editingId) {
-      if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       updateMaterial(editingId, { ...form, fabricanteId: "" });
       toast({ title: "Material/Serviço atualizado" });
     } else {
-      if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       addMaterial({ ...form, fabricanteId: "" });
       toast({ title: "Material/Serviço criado" });
     }
     setDialogOpen(false);
   };
+
+  const handleSave = () => {
+    if (!form.descricao.trim()) { toast({ title: "Descrição é obrigatória", variant: "destructive" }); return; }
+    if (editingId ? !podeEditar : !podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
+    // Duplicidade: escopo pelo mesmo tipo (Material vs Serviço)
+    const escopo = materiais.filter(m => m.tipo === form.tipo);
+    const matches = findDuplicates({ nome: form.descricao }, escopo, {
+      nome: (m) => m.descricao,
+      ignoreId: (m) => m.id === editingId,
+    });
+    const exato = matches.find(m => m.kind === "exato");
+    if (exato) {
+      toast({ title: `Já existe ${form.tipo.toLowerCase()} com esta descrição: ${exato.item.codigo} - ${exato.item.descricao}`, variant: "destructive" });
+      return;
+    }
+    if (matches.length) {
+      setDupWarn({ open: true, matches, onConfirm: persistSave });
+      return;
+    }
+    persistSave();
+  };
+
+  const analiseResultados = useMemo(() => {
+    if (!analiseOpen) return [] as Array<{ a: MaterialServico; b: MaterialServico; kind: "exato" | "similar"; campo: "nome" | "codigo"; score: number; contexto: string }>;
+    const out: any[] = [];
+    for (const tipo of ["Material", "Serviço"] as const) {
+      const escopo = materiais.filter(m => m.tipo === tipo);
+      const pares = scanDuplicates(escopo, { nome: (m) => m.descricao });
+      for (const p of pares) out.push({ ...p, contexto: tipo });
+    }
+    return out;
+  }, [analiseOpen, materiais]);
 
   const handleImport = (file: File) => {
     if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
