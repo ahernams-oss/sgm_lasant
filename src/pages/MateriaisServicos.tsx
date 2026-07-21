@@ -12,13 +12,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Search, Upload, FileText, FileSpreadsheet, Camera, X, Image } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Upload, FileText, FileSpreadsheet, Camera, X, Image, ShieldAlert, AlertTriangle } from "lucide-react";
 import { gerarPdfMateriaisServicos, gerarExcelMateriaisServicos } from "@/lib/gerarRelatorioMateriaisServicos";
 import * as XLSX from "xlsx";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
 import { usePermissao } from "@/hooks/usePermissao";
+import { findDuplicates, scanDuplicates, type DuplicateMatch } from "@/lib/duplicateDetection";
+import { Badge } from "@/components/ui/badge";
 
 const UNIDADES = ["UN", "M", "M²", "M³", "KG", "L", "CX", "PCT", "SC", "GL", "HR", "VB", "JG", "PR", "RL", "TB", "FD", "BD", "CJ", "DZ"];
 
@@ -71,19 +73,51 @@ export default function MateriaisServicosPage() {
   const openNew = () => { setForm({ descricao: "", tipo: "Material", unidadeMedida: "UN", categoriaId: "", estoqueMinimo: 0, fotos: [] }); setEditingId(null); setDialogOpen(true); };
   const openEdit = (m: MaterialServico) => { setForm({ descricao: m.descricao, tipo: m.tipo, unidadeMedida: m.unidadeMedida, categoriaId: m.categoriaId, estoqueMinimo: m.estoqueMinimo, fotos: m.fotos || [] }); setEditingId(m.id); setDialogOpen(true); };
 
-  const handleSave = () => {
-    if (!form.descricao.trim()) { toast({ title: "Descrição é obrigatória", variant: "destructive" }); return; }
+  const [dupWarn, setDupWarn] = useState<{ open: boolean; matches: DuplicateMatch<MaterialServico>[]; onConfirm: () => void }>({ open: false, matches: [], onConfirm: () => {} });
+  const [analiseOpen, setAnaliseOpen] = useState(false);
+
+  const persistSave = () => {
     if (editingId) {
-      if (!podeEditar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       updateMaterial(editingId, { ...form, fabricanteId: "" });
       toast({ title: "Material/Serviço atualizado" });
     } else {
-      if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
       addMaterial({ ...form, fabricanteId: "" });
       toast({ title: "Material/Serviço criado" });
     }
     setDialogOpen(false);
   };
+
+  const handleSave = () => {
+    if (!form.descricao.trim()) { toast({ title: "Descrição é obrigatória", variant: "destructive" }); return; }
+    if (editingId ? !podeEditar : !podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
+    // Duplicidade: escopo pelo mesmo tipo (Material vs Serviço)
+    const escopo = materiais.filter(m => m.tipo === form.tipo);
+    const matches = findDuplicates({ nome: form.descricao }, escopo, {
+      nome: (m) => m.descricao,
+      ignoreId: (m) => m.id === editingId,
+    });
+    const exato = matches.find(m => m.kind === "exato");
+    if (exato) {
+      toast({ title: `Já existe ${form.tipo.toLowerCase()} com esta descrição: ${exato.item.codigo} - ${exato.item.descricao}`, variant: "destructive" });
+      return;
+    }
+    if (matches.length) {
+      setDupWarn({ open: true, matches, onConfirm: persistSave });
+      return;
+    }
+    persistSave();
+  };
+
+  const analiseResultados = useMemo(() => {
+    if (!analiseOpen) return [] as Array<{ a: MaterialServico; b: MaterialServico; kind: "exato" | "similar"; campo: "nome" | "codigo"; score: number; contexto: string }>;
+    const out: any[] = [];
+    for (const tipo of ["Material", "Serviço"] as const) {
+      const escopo = materiais.filter(m => m.tipo === tipo);
+      const pares = scanDuplicates(escopo, { nome: (m) => m.descricao });
+      for (const p of pares) out.push({ ...p, contexto: tipo });
+    }
+    return out;
+  }, [analiseOpen, materiais]);
 
   const handleImport = (file: File) => {
     if (!podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
@@ -150,6 +184,7 @@ export default function MateriaisServicosPage() {
         <div className="flex gap-2">
           {podeExportar && <Button variant="outline" onClick={() => gerarPdfMateriaisServicos({ materiais: filtered, getCatNome: catNome })}><FileText className="mr-2 h-4 w-4" />PDF</Button>}
           {podeExportar && <Button variant="outline" onClick={() => gerarExcelMateriaisServicos({ materiais: filtered, getCatNome: catNome })}><FileSpreadsheet className="mr-2 h-4 w-4" />Excel</Button>}
+          <Button variant="outline" onClick={() => setAnaliseOpen(true)}><ShieldAlert className="mr-2 h-4 w-4" />Analisar Duplicidades</Button>
           {podeCriar && <Button variant="outline" onClick={() => document.getElementById("import-mat")?.click()}><Upload className="mr-2 h-4 w-4" />Importar</Button>}
           <input id="import-mat" type="file" accept=".xlsx,.xls,.csv,.txt" className="hidden" onChange={e => { if (e.target.files?.[0]) handleImport(e.target.files[0]); e.target.value = ""; }} />
           {podeCriar && <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" />Novo</Button>}
@@ -266,6 +301,81 @@ export default function MateriaisServicosPage() {
         </DialogContent>
       </Dialog>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={() => { if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); cancelDelete(); return; } if (deleteId) { deleteMaterial(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+
+      <Dialog open={dupWarn.open} onOpenChange={(o) => setDupWarn(s => ({ ...s, open: o }))}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <AlertTriangle className="h-5 w-5" /> Possível cadastro duplicado
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Encontramos {dupWarn.matches.length} registro(s) parecido(s) com o que você está cadastrando. Confira antes de confirmar.
+            </p>
+            <div className="border rounded-md divide-y max-h-64 overflow-auto">
+              {dupWarn.matches.map((m, i) => (
+                <div key={i} className="p-2 flex items-center justify-between text-sm">
+                  <div>
+                    <Badge variant="outline" className="font-mono mr-2">{m.item.codigo}</Badge>
+                    <span className="font-medium">{m.item.descricao}</span>
+                  </div>
+                  <Badge variant={m.kind === "exato" ? "destructive" : "secondary"}>
+                    {m.kind === "exato" ? "Idêntico" : `${Math.round(m.score * 100)}% similar`}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDupWarn(s => ({ ...s, open: false }))}>Cancelar</Button>
+            <Button onClick={() => { const cb = dupWarn.onConfirm; setDupWarn(s => ({ ...s, open: false })); cb(); }}>Cadastrar mesmo assim</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={analiseOpen} onOpenChange={setAnaliseOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-primary" /> Análise de Duplicidades — Materiais e Serviços
+            </DialogTitle>
+          </DialogHeader>
+          {analiseResultados.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">Nenhuma duplicidade detectada. ✅</p>
+          ) : (
+            <div className="border rounded-md max-h-[60vh] overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Registro A</TableHead>
+                    <TableHead>Registro B</TableHead>
+                    <TableHead className="w-32 text-center">Situação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {analiseResultados.map((p, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="text-xs text-muted-foreground">{p.contexto}</TableCell>
+                      <TableCell><Badge variant="outline" className="font-mono mr-1">{p.a.codigo}</Badge>{p.a.descricao}</TableCell>
+                      <TableCell><Badge variant="outline" className="font-mono mr-1">{p.b.codigo}</Badge>{p.b.descricao}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant={p.kind === "exato" ? "destructive" : "secondary"}>
+                          {p.kind === "exato" ? "Idêntico" : `${Math.round(p.score * 100)}%`}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setAnaliseOpen(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
