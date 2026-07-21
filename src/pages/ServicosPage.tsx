@@ -92,11 +92,16 @@ const ServicosPage = () => {
             <h1 className="text-xl font-bold text-foreground mb-1">Serviços</h1>
             <p className="text-sm text-muted-foreground">Gerencie os serviços vinculados às categorias.</p>
           </div>
-          {!showForm && podeCriar && (
-            <Button onClick={() => setShowForm(true)} className="gap-2">
-              <Plus className="h-4 w-4" /> Novo Serviço
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setAnaliseOpen(true)} className="gap-2">
+              <ShieldAlert className="h-4 w-4" /> Analisar Duplicidades
             </Button>
-          )}
+            {!showForm && podeCriar && (
+              <Button onClick={() => setShowForm(true)} className="gap-2">
+                <Plus className="h-4 w-4" /> Novo Serviço
+              </Button>
+            )}
+          </div>
         </div>
 
         {showForm && (
