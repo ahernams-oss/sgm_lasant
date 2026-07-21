@@ -196,29 +196,33 @@ export default function CategoriasCompras() {
   };
 
   // === ANALISE COMPLETA ===
-  const analiseResultados = useMemo(() => {
-    if (!analiseDialog.open) return [] as any[];
+  const analiseResultados = useMemo<GroupedDuplicatePair<any>[]>(() => {
+    if (!analiseDialog.open) return [];
     if (analiseDialog.tipo === "grupo") {
-      return scanDuplicates(grupos, { nome: (g) => g.nome, codigo: (g) => g.codigo });
+      return scanDuplicatesGrouped(
+        [{ contexto: "", items: grupos }],
+        { nome: (g) => g.nome, codigo: (g) => g.codigo }
+      );
     }
     if (analiseDialog.tipo === "subgrupo") {
-      // agrupa por grupoId e scaneia dentro de cada grupo
-      const out: any[] = [];
-      for (const g of grupos) {
-        const subs = subGrupos.filter(s => s.grupoId === g.id);
-        const pares = scanDuplicates(subs, { nome: (s) => s.nome, codigo: (s) => s.codigo });
-        for (const p of pares) out.push({ ...p, contexto: `${g.codigo} - ${g.nome}` });
-      }
-      return out;
+      return scanDuplicatesGrouped(
+        grupos.map((g) => ({
+          contexto: `${g.codigo} - ${g.nome}`,
+          items: subGrupos.filter((s) => s.grupoId === g.id),
+        })),
+        { nome: (s) => s.nome, codigo: (s) => s.codigo }
+      );
     }
-    const out: any[] = [];
-    for (const s of subGrupos) {
-      const cls = classes.filter(c => c.subGrupoId === s.id);
-      const g = grupos.find(gr => gr.id === s.grupoId);
-      const pares = scanDuplicates(cls, { nome: (c) => c.nome, codigo: (c) => c.codigo });
-      for (const p of pares) out.push({ ...p, contexto: `${g?.codigo}.${s.codigo} - ${s.nome}` });
-    }
-    return out;
+    return scanDuplicatesGrouped(
+      subGrupos.map((s) => {
+        const g = grupos.find((gr) => gr.id === s.grupoId);
+        return {
+          contexto: `${g?.codigo}.${s.codigo} - ${s.nome}`,
+          items: classes.filter((c) => c.subGrupoId === s.id),
+        };
+      }),
+      { nome: (c) => c.nome, codigo: (c) => c.codigo }
+    );
   }, [analiseDialog, grupos, subGrupos, classes]);
 
 
