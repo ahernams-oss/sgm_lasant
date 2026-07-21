@@ -93,31 +93,24 @@ export default function MateriaisServicosPage() {
     if (editingId ? !podeEditar : !podeCriar) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); return; }
     // Duplicidade: escopo pelo mesmo tipo (Material vs Serviço)
     const escopo = materiais.filter(m => m.tipo === form.tipo);
-    const matches = findDuplicates({ nome: form.descricao }, escopo, {
-      nome: (m) => m.descricao,
-      ignoreId: (m) => m.id === editingId,
+    guardDuplicates({
+      candidate: { nome: form.descricao }, list: escopo,
+      options: { nome: (m) => m.descricao, ignoreId: (m) => m.id === editingId },
+      onExact: (m) => toast({ title: `Já existe ${form.tipo.toLowerCase()} com esta descrição: ${m.item.codigo} - ${m.item.descricao}`, variant: "destructive" }),
+      onSimilar: (matches) => setDupWarn({ open: true, matches, onConfirm: persistSave }),
+      onOk: persistSave,
     });
-    const exato = matches.find(m => m.kind === "exato");
-    if (exato) {
-      toast({ title: `Já existe ${form.tipo.toLowerCase()} com esta descrição: ${exato.item.codigo} - ${exato.item.descricao}`, variant: "destructive" });
-      return;
-    }
-    if (matches.length) {
-      setDupWarn({ open: true, matches, onConfirm: persistSave });
-      return;
-    }
-    persistSave();
   };
 
-  const analiseResultados = useMemo(() => {
-    if (!analiseOpen) return [] as Array<{ a: MaterialServico; b: MaterialServico; kind: "exato" | "similar"; campo: "nome" | "codigo"; score: number; contexto: string }>;
-    const out: any[] = [];
-    for (const tipo of ["Material", "Serviço"] as const) {
-      const escopo = materiais.filter(m => m.tipo === tipo);
-      const pares = scanDuplicates(escopo, { nome: (m) => m.descricao });
-      for (const p of pares) out.push({ ...p, contexto: tipo });
-    }
-    return out;
+  const analiseResultados = useMemo<GroupedDuplicatePair<MaterialServico>[]>(() => {
+    if (!analiseOpen) return [];
+    return scanDuplicatesGrouped(
+      (["Material", "Serviço"] as const).map((tipo) => ({
+        contexto: tipo,
+        items: materiais.filter((m) => m.tipo === tipo),
+      })),
+      { nome: (m) => m.descricao }
+    );
   }, [analiseOpen, materiais]);
 
   const handleImport = (file: File) => {
