@@ -28,12 +28,12 @@ const ServicosPage = () => {
   const [search, setSearch] = useState("");
   const [filterCategoria, setFilterCategoria] = useState("all");
   const [deleteOpen, setDeleteOpen] = useState<string | null>(null);
+  const [dupWarn, setDupWarn] = useState<{ open: boolean; matches: DuplicateMatch<any>[]; onConfirm: () => void }>({ open: false, matches: [], onConfirm: () => {} });
+  const [analiseOpen, setAnaliseOpen] = useState(false);
 
   const resetForm = () => { setNome(""); setDescricao(""); setCategoriaId(""); setEditId(null); setShowForm(false); };
 
-  const handleSave = async () => {
-    if (editId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
-    if (!nome.trim()) { toast.error("Nome é obrigatório"); return; }
+  const persistSave = async () => {
     if (editId) {
       await updateServico(editId, { nome, descricao, categoriaId });
       toast.success("Serviço atualizado");
@@ -43,6 +43,30 @@ const ServicosPage = () => {
     }
     resetForm();
   };
+
+  const handleSave = () => {
+    if (editId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
+    if (!nome.trim()) { toast.error("Nome é obrigatório"); return; }
+    // Escopo por categoria (quando informada) para evitar falsos positivos entre categorias distintas
+    const escopo = categoriaId ? servicos.filter(s => s.categoriaId === categoriaId) : servicos;
+    guardDuplicates({
+      candidate: { nome }, list: escopo,
+      options: { nome: (s) => s.nome, ignoreId: (s) => s.id === editId },
+      onExact: (m) => toast.error(`Serviço já cadastrado: ${m.item.nome}`),
+      onSimilar: (matches) => setDupWarn({ open: true, matches, onConfirm: persistSave }),
+      onOk: persistSave,
+    });
+  };
+
+  const analiseResultados = useMemo<GroupedDuplicatePair<any>[]>(() => {
+    if (!analiseOpen) return [];
+    // Agrupa por categoria (inclui "sem categoria")
+    const grupos = [
+      ...categorias.map((c) => ({ contexto: c.nome, items: servicos.filter((s) => s.categoriaId === c.id) })),
+      { contexto: "Sem categoria", items: servicos.filter((s) => !s.categoriaId) },
+    ];
+    return scanDuplicatesGrouped(grupos, { nome: (s) => s.nome });
+  }, [analiseOpen, servicos, categorias]);
 
   const handleEdit = (s: any) => {
     setEditId(s.id); setNome(s.nome); setDescricao(s.descricao); setCategoriaId(s.categoriaId); setShowForm(true);
