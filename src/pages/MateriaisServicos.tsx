@@ -301,6 +301,81 @@ export default function MateriaisServicosPage() {
         </DialogContent>
       </Dialog>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={(open) => !open && cancelDelete()} onConfirm={() => { if (!podeExcluir) { toast({ title: "Você não possui permissão para esta ação.", variant: "destructive" }); cancelDelete(); return; } if (deleteId) { deleteMaterial(deleteId); toast({ title: "Excluído" }); cancelDelete(); } }} />
+
+      <Dialog open={dupWarn.open} onOpenChange={(o) => setDupWarn(s => ({ ...s, open: o }))}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <AlertTriangle className="h-5 w-5" /> Possível cadastro duplicado
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Encontramos {dupWarn.matches.length} registro(s) parecido(s) com o que você está cadastrando. Confira antes de confirmar.
+            </p>
+            <div className="border rounded-md divide-y max-h-64 overflow-auto">
+              {dupWarn.matches.map((m, i) => (
+                <div key={i} className="p-2 flex items-center justify-between text-sm">
+                  <div>
+                    <Badge variant="outline" className="font-mono mr-2">{m.item.codigo}</Badge>
+                    <span className="font-medium">{m.item.descricao}</span>
+                  </div>
+                  <Badge variant={m.kind === "exato" ? "destructive" : "secondary"}>
+                    {m.kind === "exato" ? "Idêntico" : `${Math.round(m.score * 100)}% similar`}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDupWarn(s => ({ ...s, open: false }))}>Cancelar</Button>
+            <Button onClick={() => { const cb = dupWarn.onConfirm; setDupWarn(s => ({ ...s, open: false })); cb(); }}>Cadastrar mesmo assim</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={analiseOpen} onOpenChange={setAnaliseOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-primary" /> Análise de Duplicidades — Materiais e Serviços
+            </DialogTitle>
+          </DialogHeader>
+          {analiseResultados.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">Nenhuma duplicidade detectada. ✅</p>
+          ) : (
+            <div className="border rounded-md max-h-[60vh] overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Registro A</TableHead>
+                    <TableHead>Registro B</TableHead>
+                    <TableHead className="w-32 text-center">Situação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {analiseResultados.map((p, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="text-xs text-muted-foreground">{p.contexto}</TableCell>
+                      <TableCell><Badge variant="outline" className="font-mono mr-1">{p.a.codigo}</Badge>{p.a.descricao}</TableCell>
+                      <TableCell><Badge variant="outline" className="font-mono mr-1">{p.b.codigo}</Badge>{p.b.descricao}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant={p.kind === "exato" ? "destructive" : "secondary"}>
+                          {p.kind === "exato" ? "Idêntico" : `${Math.round(p.score * 100)}%`}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setAnaliseOpen(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
