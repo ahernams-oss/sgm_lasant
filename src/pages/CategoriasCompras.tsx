@@ -259,7 +259,10 @@ export default function CategoriasCompras() {
 
         {/* === GRUPOS === */}
         <TabsContent value="grupos" className="space-y-4">
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setAnaliseDialog({ open: true, tipo: "grupo" })}>
+              <ShieldAlert className="mr-2 h-4 w-4" />Analisar Duplicidades
+            </Button>
             {podeCriar && <Button onClick={openNewGrupo}><Plus className="mr-2 h-4 w-4" />Novo Grupo</Button>}
           </div>
           <div className="border rounded-lg">
