@@ -258,7 +258,7 @@ export function AppSidebar() {
   const visibleGroups = menuItems
     .map((g) => ({
       ...g,
-      items: g.items.filter((it: any) => !it.perm || temModulo(it.perm)),
+      items: g.items.filter((it: any) => (!it.perm || temModulo(it.perm)) && (!it.requiresAcessoTotal || acessoTotal)),
     }))
     .filter((g) => g.items.length > 0);
 
