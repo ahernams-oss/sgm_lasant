@@ -7,6 +7,8 @@ import { ACCESS_ROUTES } from "@/lib/accessRoutes";
 interface RotaProtegidaProps {
   /** Chave do módulo em MODULOS_SISTEMA (ex.: "ordem_servico"). Se vazia, libera acesso. */
   perm?: string;
+  /** Se true, exige cargo com acesso total (Diretor / Gerente Executivo / Coordenador). */
+  requireAcessoTotal?: boolean;
   children: ReactNode;
 }
 
@@ -16,15 +18,18 @@ interface RotaProtegidaProps {
  * exceto o módulo de Auditoria que é restrito apenas a Diretores.
  * Quando o acesso é negado, redireciona para a primeira página permitida do usuário.
  */
-export function RotaProtegida({ perm, children }: RotaProtegidaProps) {
+export function RotaProtegida({ perm, requireAcessoTotal, children }: RotaProtegidaProps) {
   const { temModulo, acessoTotal, isDiretor, usuarioLogado, perfil } = usePermissao();
   const location = useLocation();
 
   if (!usuarioLogado) return <>{children}</>;
-  if (!perm) return <>{children}</>;
 
-  // Auditoria: acesso restrito exclusivamente a Diretores
-  if (perm === "auditoria") {
+  // Restrição por privilégio qualificado (Diretor / Gerente Executivo / Coordenador)
+  if (requireAcessoTotal && !acessoTotal) {
+    // cai no bloco de acesso negado abaixo
+  } else if (!perm) {
+    return <>{children}</>;
+  } else if (perm === "auditoria") {
     if (isDiretor || temModulo(perm)) return <>{children}</>;
   } else if (acessoTotal || temModulo(perm)) {
     return <>{children}</>;

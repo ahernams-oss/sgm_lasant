@@ -212,7 +212,7 @@ const menuItems = [
     items: [
       { title: "Faturamento (por Contrato)", url: "/clientes?tab=faturamento", icon: DollarSign, perm: "clientes" },
       { title: "Acompanhamento de Faturamentos", url: "/financeiro/faturamentos", icon: FileBarChart, perm: "clientes" },
-      { title: "Transferência de Saldos (Contratos)", url: "/clientes/transferencias-saldo", icon: Users, perm: "clientes" },
+      { title: "Transferência de Saldos (Contratos)", url: "/clientes/transferencias-saldo", icon: Users, perm: "clientes", requiresAcessoTotal: true },
       { title: "NFS-e Emitidas", url: "/financeiro/nfse", icon: FileText, perm: "financeiro.nfes_recebidas" },
     ],
   },
@@ -258,7 +258,7 @@ export function AppSidebar() {
   const visibleGroups = menuItems
     .map((g) => ({
       ...g,
-      items: g.items.filter((it: any) => !it.perm || temModulo(it.perm)),
+      items: g.items.filter((it: any) => (!it.perm || temModulo(it.perm)) && (!it.requiresAcessoTotal || acessoTotal)),
     }))
     .filter((g) => g.items.length > 0);
 
