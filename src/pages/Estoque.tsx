@@ -743,6 +743,17 @@ export default function EstoquePage() {
                 </SelectContent>
               </Select>
             </div>
+            {movTipo === "entrada" && (
+              <div>
+                <Label>Valor Unitário (R$)</Label>
+                <Input
+                  inputMode="decimal"
+                  value={movValorUnit}
+                  onChange={e => setMovValorUnit(e.target.value.replace(/[^\d.,]/g, ""))}
+                  placeholder="0,00"
+                />
+              </div>
+            )}
             <div><Label>Documento Referência</Label><Input value={movDocRef} onChange={e => setMovDocRef(e.target.value)} placeholder="NF, OS, etc." /></div>
             <div><Label>Observação</Label><Input value={movObs} onChange={e => setMovObs(e.target.value)} /></div>
           </div>
