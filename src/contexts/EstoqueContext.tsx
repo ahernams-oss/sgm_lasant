@@ -74,6 +74,7 @@ interface EstoqueContextType {
   criarInventario: (data: Omit<Inventario, "id" | "dataInventario" | "status">) => Promise<void>;
   atualizarInventario: (id: string, itens: ItemInventario[], observacao: string) => Promise<void>;
   fecharInventario: (id: string, usuario: string) => Promise<void>;
+  atualizarValorMovimentacao: (id: string, valorUnitario: number) => Promise<void>;
   reload: () => Promise<void>;
 }
 
