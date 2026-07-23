@@ -439,14 +439,15 @@ export default function OrdensServicoPage() {
     const bdi = contrato?.bdi ? Number(String(contrato.bdi).replace(",", ".")) : 0;
     const safeBdi = isNaN(bdi) ? 0 : bdi;
 
-    const recalcMateriais = (mats: MaterialOS[]) =>
+    const recalcMateriais = (mats: MaterialOS[], useVenda = false) =>
       mats.map(m => {
-        const vt = (Number(m.valorUnitario) || 0) * (Number(m.quantidade) || 0);
+        const unit = useVenda ? (Number(m.valorVenda ?? m.valorUnitario) || 0) : (Number(m.valorUnitario) || 0);
+        const vt = unit * (Number(m.quantidade) || 0);
         return { ...m, valorTotal: isNaN(vt) ? 0 : vt };
       });
 
     const matSCO = recalcMateriais(os.materiais || []);
-    const matEstoque = recalcMateriais(os.materiaisEstoque || []);
+    const matEstoque = recalcMateriais(os.materiaisEstoque || [], true);
 
     return {
       bdi: safeBdi,
@@ -1677,14 +1678,16 @@ export default function OrdensServicoPage() {
                                       key={s.materialId + '__' + s.local}
                                       value={`${s.materialCodigo} ${s.materialDescricao} ${s.local}`.trim()}
                                       onSelect={() => {
+                                        const venda = s.valorUnitarioFIFO || 0;
                                         const newItem: MaterialOS = {
                                           id: `estoque:${s.materialId}__${s.local}`,
                                           codigo: s.materialCodigo,
                                           descricao: s.materialDescricao,
                                           unidade: "",
                                           valorUnitario: s.valorUnitarioFIFO || 0,
+                                          valorVenda: venda,
                                           quantidade: estoqueQtd,
-                                          valorTotal: (s.valorUnitarioFIFO || 0) * estoqueQtd,
+                                          valorTotal: venda * estoqueQtd,
                                         };
                                         const updated = [...materiaisEstoque, newItem];
                                         setMateriaisEstoque(updated);
@@ -1725,10 +1728,12 @@ export default function OrdensServicoPage() {
                   {materiaisEstoque.length > 0 && (
                     <Table>
                       <TableHeader><TableRow>
-                        <TableHead>Código</TableHead><TableHead>Descrição</TableHead><TableHead className="text-center">Qtd.</TableHead><TableHead className="text-right">Vlr. Unit.</TableHead><TableHead className="text-right">Vlr. Total</TableHead><TableHead className="w-[50px]"></TableHead>
+                        <TableHead>Código</TableHead><TableHead>Descrição</TableHead><TableHead className="text-center">Qtd.</TableHead><TableHead className="text-right">Vlr. Custo</TableHead><TableHead className="text-right">Vlr. Venda</TableHead><TableHead className="text-right">Vlr. Total</TableHead><TableHead className="w-[50px]"></TableHead>
                       </TableRow></TableHeader>
                       <TableBody>
-                        {materiaisEstoque.map((m, idx) => (
+                        {materiaisEstoque.map((m, idx) => {
+                          const venda = Number(m.valorVenda ?? m.valorUnitario) || 0;
+                          return (
                           <TableRow key={m.id}>
                             <TableCell className="text-xs">{m.codigo}</TableCell>
                             <TableCell className="text-xs">{m.descricao}</TableCell>
@@ -1737,19 +1742,28 @@ export default function OrdensServicoPage() {
                                 const val = e.target.value.slice(0, 7);
                                 const qtd = Number(val) || 1;
                                 const updated = [...materiaisEstoque];
-                                updated[idx] = { ...m, quantidade: qtd, valorTotal: m.valorUnitario * qtd };
+                                updated[idx] = { ...m, quantidade: qtd, valorTotal: venda * qtd };
                                 setMateriaisEstoque(updated);
                               }} onBlur={() => autoSaveMateriaisEstoque(materiaisEstoque)} />
                             </TableCell>
-                            <TableCell className="text-xs text-right">{m.valorUnitario.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
-                            <TableCell className="text-xs text-right font-semibold">{(m.valorUnitario * m.quantidade).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
+                            <TableCell className="text-xs text-right text-muted-foreground">{m.valorUnitario.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
+                            <TableCell className="w-[140px]">
+                              <Input type="number" step="0.01" min={0} className="h-8 text-xs text-right w-[130px]" value={venda} onChange={e => {
+                                const novoVenda = Number(e.target.value) || 0;
+                                const updated = [...materiaisEstoque];
+                                updated[idx] = { ...m, valorVenda: novoVenda, valorTotal: novoVenda * m.quantidade };
+                                setMateriaisEstoque(updated);
+                              }} onBlur={() => autoSaveMateriaisEstoque(materiaisEstoque)} />
+                            </TableCell>
+                            <TableCell className="text-xs text-right font-semibold">{(venda * m.quantidade).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
                             <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
                               const updated = materiaisEstoque.filter(x => x.id !== m.id);
                               setMateriaisEstoque(updated);
                               autoSaveMateriaisEstoque(updated);
                             }}><Trash2 className="h-3 w-3" /></Button></TableCell>
                           </TableRow>
-                        ))}
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   )}
