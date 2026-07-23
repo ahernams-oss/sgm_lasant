@@ -27,7 +27,7 @@ import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTable
 import type { ReactNode } from "react";
 
 export default function EstoquePage() {
-  const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, getSaldoPorLocal, transferirEntreLocais, criarInventario, atualizarInventario, fecharInventario } = useEstoque();
+  const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, getSaldoPorLocal, getLotesFIFO, transferirEntreLocais, criarInventario, atualizarInventario, fecharInventario, atualizarValorMovimentacao } = useEstoque();
   const { materiais } = useMateriaisServicos();
   const { usuarioLogado } = useAuth();
   const { tem } = usePermissao();
@@ -52,10 +52,11 @@ export default function EstoquePage() {
     quantidade: { label: "Quantidade", className: "text-center" },
     vlrUnit: { label: "Vlr Unit. (FIFO)", className: "text-center" },
     vlrTotal: { label: "Vlr Total", className: "text-center" },
+    acoes: { label: "Ações", className: "text-center" },
   };
   const { order: colOrderSaldos, setOrder: setColOrderSaldos } = useColumnOrder(
     "compras.estoque.saldos",
-    ["codigo", "material", "centroCusto", "local", "quantidade", "vlrUnit", "vlrTotal"]
+    ["codigo", "material", "centroCusto", "local", "quantidade", "vlrUnit", "vlrTotal", "acoes"]
   );
 
   const colDefsMov: Record<string, { label: string; className?: string }> = {
@@ -133,6 +134,41 @@ export default function EstoquePage() {
   const [transferObs, setTransferObs] = useState("");
   const [transferSenha, setTransferSenha] = useState("");
   const [transferLoading, setTransferLoading] = useState(false);
+
+  // Editar preços dialog
+  const [precoDialogOpen, setPrecoDialogOpen] = useState(false);
+  const [precoSaldo, setPrecoSaldo] = useState<SaldoEstoque | null>(null);
+  const [precoLotes, setPrecoLotes] = useState<{ id: string; data: string; documento: string; quantidade: number; valorUnitario: string }[]>([]);
+  const [precoSaving, setPrecoSaving] = useState(false);
+
+  const openPrecoDialog = (s: SaldoEstoque) => {
+    const lotes = getLotesFIFO(s.materialId, s.local);
+    setPrecoSaldo(s);
+    setPrecoLotes(lotes.map(l => ({
+      id: l.movimentacaoId,
+      data: l.dataMovimentacao,
+      documento: l.documentoRef,
+      quantidade: l.quantidade,
+      valorUnitario: (l.valorUnitario || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+    })));
+    setPrecoDialogOpen(true);
+  };
+
+  const handleSavePrecos = async () => {
+    setPrecoSaving(true);
+    try {
+      for (const l of precoLotes) {
+        const v = Number(String(l.valorUnitario).replace(/\./g, "").replace(",", ".")) || 0;
+        await atualizarValorMovimentacao(l.id, v);
+      }
+      toast({ title: "Preços atualizados com sucesso" });
+      setPrecoDialogOpen(false);
+    } catch (e: any) {
+      toast({ title: "Erro ao atualizar preços", description: e?.message, variant: "destructive" });
+    } finally {
+      setPrecoSaving(false);
+    }
+  };
 
   const locais = useMemo(() => {
     const locs = new Set<string>();
@@ -535,6 +571,11 @@ export default function EstoquePage() {
                     quantidade: <span className="font-semibold">{s.quantidade.toLocaleString("pt-BR")}</span>,
                     vlrUnit: s.valorUnitarioFIFO > 0 ? s.valorUnitarioFIFO.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-",
                     vlrTotal: <span className="font-semibold">{s.valorTotal > 0 ? s.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</span>,
+                    acoes: podeEntrada ? (
+                      <Button size="sm" variant="ghost" onClick={() => openPrecoDialog(s)} title="Editar preços">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    ) : null,
                   };
                   return (
                   <TableRow key={i}>
@@ -900,6 +941,63 @@ export default function EstoquePage() {
             </div>
           </div>
           <DialogFooter><Button onClick={handleTransferSave} disabled={transferLoading}>{transferLoading ? "Validando..." : "Autorizar e Transferir"}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Editar preços (lotes FIFO) */}
+      <Dialog open={precoDialogOpen} onOpenChange={setPrecoDialogOpen}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Editar preços do estoque</DialogTitle>
+          </DialogHeader>
+          {precoSaldo && (
+            <div className="space-y-3">
+              <div className="text-sm text-muted-foreground">
+                <div><strong>{precoSaldo.materialCodigo}</strong> — {precoSaldo.materialDescricao}</div>
+                <div>Local: {precoSaldo.local}</div>
+              </div>
+              {precoLotes.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">Nenhum lote com saldo disponível.</p>
+              ) : (
+                <div className="border rounded-lg max-h-[60vh] overflow-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-center">Data</TableHead>
+                        <TableHead>Documento</TableHead>
+                        <TableHead className="text-center">Qtd. disp.</TableHead>
+                        <TableHead className="text-center">Vlr Unit. (R$)</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {precoLotes.map((l, idx) => (
+                        <TableRow key={l.id}>
+                          <TableCell className="text-center text-xs">{l.data ? new Date(l.data).toLocaleDateString("pt-BR") : "-"}</TableCell>
+                          <TableCell className="text-xs">{l.documento || "-"}</TableCell>
+                          <TableCell className="text-center">{l.quantidade.toLocaleString("pt-BR")}</TableCell>
+                          <TableCell className="text-center">
+                            <Input
+                              className="text-right"
+                              value={l.valorUnitario}
+                              onChange={e => {
+                                const v = e.target.value;
+                                setPrecoLotes(prev => prev.map((p, i) => i === idx ? { ...p, valorUnitario: v } : p));
+                              }}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">A alteração ajusta o valor unitário de cada entrada (lote) e recalcula o custo FIFO.</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPrecoDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSavePrecos} disabled={precoSaving || precoLotes.length === 0}>{precoSaving ? "Salvando..." : "Salvar preços"}</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

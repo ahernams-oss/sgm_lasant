@@ -53,7 +53,9 @@ export interface SaldoEstoque {
 }
 
 export interface LoteFIFO {
+  movimentacaoId: string;
   quantidade: number;
+  quantidadeOriginal: number;
   valorUnitario: number;
   dataMovimentacao: string;
   documentoRef: string;
@@ -72,6 +74,7 @@ interface EstoqueContextType {
   criarInventario: (data: Omit<Inventario, "id" | "dataInventario" | "status">) => Promise<void>;
   atualizarInventario: (id: string, itens: ItemInventario[], observacao: string) => Promise<void>;
   fecharInventario: (id: string, usuario: string) => Promise<void>;
+  atualizarValorMovimentacao: (id: string, valorUnitario: number) => Promise<void>;
   reload: () => Promise<void>;
 }
 
@@ -161,7 +164,9 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
       if (m.tipo === "entrada" || m.tipo === "ajuste") {
         if (m.quantidade > 0) {
           lotes.push({
+            movimentacaoId: m.id,
             quantidade: m.quantidade,
+            quantidadeOriginal: m.quantidade,
             valorUnitario: m.valorUnitario,
             dataMovimentacao: m.dataMovimentacao,
             documentoRef: m.documentoRef,
@@ -300,10 +305,15 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
     invMov();
   };
 
+  const atualizarValorMovimentacao = async (id: string, valorUnitario: number) => {
+    await updateRow("estoque_movimentacoes", id, { valor_unitario: valorUnitario });
+    invMov();
+  };
+
   return (
     <EstoqueContext.Provider value={{
       movimentacoes, inventarios, registrarMovimentacao, registrarEntradaRecebimento,
-      getSaldos, getSaldoPorMaterial, getSaldoPorLocal, getLotesFIFO, transferirEntreLocais, criarInventario, atualizarInventario, fecharInventario, reload,
+      getSaldos, getSaldoPorMaterial, getSaldoPorLocal, getLotesFIFO, transferirEntreLocais, criarInventario, atualizarInventario, fecharInventario, atualizarValorMovimentacao, reload,
     }}>
       {children}
     </EstoqueContext.Provider>
