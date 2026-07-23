@@ -552,18 +552,29 @@ export default function OrdensServicoPage() {
       cancelCancelAction();
       return;
     }
+    if (!cancelMotivo.trim() || cancelMotivo.trim().length < 5) {
+      toast.error("Informe o motivo do cancelamento (mínimo 5 caracteres).");
+      return;
+    }
     if (cancelId) {
       const os = ordens.find(o => o.id === cancelId);
       const financeiro = os ? recalcFinanceiro(os) : {};
+      const motivo = cancelMotivo.trim();
+      const carimbo = `[CANCELAMENTO ${new Date().toLocaleString("pt-BR")} — ${usuarioLogado?.nome || "Sistema"}] ${motivo}`;
+      const descAtual = os?.descricaoConclusao || "";
+      const novaDesc = descAtual ? `${descAtual}\n${carimbo}` : carimbo;
       await updateOrdem(cancelId, {
         situacao: "Cancelada",
-        historico: buildOSHistorico("Cancelada", os?.historico || []),
+        historico: buildOSHistorico("Cancelada", os?.historico || [], motivo),
+        descricao_conclusao: novaDesc,
         ...financeiro,
       });
       toast.success("Ordem de Serviço cancelada!");
+      setCancelMotivo("");
       cancelCancelAction();
     }
   };
+
 
   // Get available workflow actions based on current situação
   const getWorkflowActions = (os: OrdemServico) => {
