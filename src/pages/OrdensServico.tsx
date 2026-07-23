@@ -1701,11 +1701,6 @@ export default function OrdensServicoPage() {
                                       <div className="flex justify-between w-full items-center">
                                         <span className="text-xs"><strong>{s.materialCodigo}</strong> — {s.materialDescricao}</span>
                                         <div className="flex gap-2 ml-2">
-                                          {s.valorUnitarioFIFO > 0 && (
-                                            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold text-foreground">
-                                              {s.valorUnitarioFIFO.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                                            </span>
-                                          )}
                                           <span className="inline-flex items-center rounded-full border-transparent bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
                                             Saldo: {s.quantidade}
                                           </span>
