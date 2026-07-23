@@ -143,7 +143,10 @@ export default function SolicitacaoServicosPage() {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
-  const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: abortCancel } = useDoubleConfirmDelete();
+  const [cancelId, setCancelId] = useState<string | null>(null);
+  const [cancelMotivo, setCancelMotivo] = useState("");
+  const requestCancel = (id: string) => { setCancelMotivo(""); setCancelId(id); };
+  const abortCancel = () => { setCancelId(null); setCancelMotivo(""); };
   const { orcamentos } = useOrcamentos();
 
   // Orcamento dialog state
