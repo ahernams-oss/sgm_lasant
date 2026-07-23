@@ -143,7 +143,10 @@ export default function SolicitacaoServicosPage() {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
-  const { deleteId: cancelId, requestDelete: requestCancel, cancelDelete: abortCancel } = useDoubleConfirmDelete();
+  const [cancelId, setCancelId] = useState<string | null>(null);
+  const [cancelMotivo, setCancelMotivo] = useState("");
+  const requestCancel = (id: string) => { setCancelMotivo(""); setCancelId(id); };
+  const abortCancel = () => { setCancelId(null); setCancelMotivo(""); };
   const { orcamentos } = useOrcamentos();
 
   // Orcamento dialog state
@@ -426,20 +429,33 @@ export default function SolicitacaoServicosPage() {
   };
 
   const handleCancelar = async () => {
-    if (cancelId) {
-      if (!podeStCancelada) {
-        toast({ title: "Você não possui permissão para cancelar esta SS.", variant: "destructive" });
-        abortCancel();
-        return;
-      }
-      const ss = solicitacoes.find(s => s.id === cancelId);
-      await updateSolicitacao(cancelId, {
-        situacao: "Cancelada",
-        historico: buildHistoricoEntry("Cancelada", ss?.historico || []),
-      });
-      toast({ title: "Solicitação cancelada" });
+    if (!cancelId) return;
+    if (!podeStCancelada) {
+      toast({ title: "Você não possui permissão para cancelar esta SS.", variant: "destructive" });
       abortCancel();
+      return;
     }
+    const motivo = cancelMotivo.trim();
+    if (!motivo) {
+      toast({ title: "Informe o motivo do cancelamento.", variant: "destructive" });
+      return;
+    }
+    if (motivo.length < 5) {
+      toast({ title: "O motivo deve ter pelo menos 5 caracteres.", variant: "destructive" });
+      return;
+    }
+    const ss = solicitacoes.find(s => s.id === cancelId);
+    const carimbo = `[CANCELAMENTO ${new Date().toLocaleString("pt-BR")} - ${usuarioLogado?.nome || "Sistema"}] ${motivo}`;
+    const novaObs = ss?.observacoes ? `${ss.observacoes}\n${carimbo}` : carimbo;
+    const histBase = buildHistoricoEntry("Cancelada", ss?.historico || []);
+    (histBase[histBase.length - 1] as any).motivo = motivo;
+    await updateSolicitacao(cancelId, {
+      situacao: "Cancelada",
+      observacoes: novaObs,
+      historico: histBase,
+    });
+    toast({ title: "Solicitação cancelada" });
+    abortCancel();
   };
 
   const handleSolicitarOrcamento = async (s: any) => {
@@ -1206,16 +1222,30 @@ export default function SolicitacaoServicosPage() {
 
       <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}/>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
-      <DoubleConfirmDelete
-        open={!!cancelId}
-        onOpenChange={o => !o && abortCancel()}
-        onConfirm={handleCancelar}
-        title="Confirmação de Cancelamento"
-        firstMessage="Deseja realmente cancelar essa Solicitação de Serviço?"
-        secondMessage="Ao confirmar, a solicitação será marcada como Cancelada. Deseja continuar?"
-        firstConfirmLabel="Sim, cancelar"
-        secondConfirmLabel="Confirmo o cancelamento"
-      />
+      <Dialog open={!!cancelId} onOpenChange={o => !o && abortCancel()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancelar Solicitação de Serviço</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Motivo do cancelamento *</label>
+            <Textarea
+              value={cancelMotivo}
+              onChange={(e) => setCancelMotivo(e.target.value)}
+              rows={4}
+              required
+              aria-required
+              placeholder="Descreva o motivo do cancelamento (mínimo 5 caracteres)"
+            />
+            <p className="text-xs text-muted-foreground">O motivo ficará registrado no histórico e nas observações da SS.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={abortCancel}>Voltar</Button>
+            <Button variant="destructive" onClick={handleCancelar}>Confirmar cancelamento</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Orcamento Dialog */}
       <OrcamentoDialog
