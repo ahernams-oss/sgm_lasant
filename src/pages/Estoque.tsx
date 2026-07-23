@@ -571,6 +571,11 @@ export default function EstoquePage() {
                     quantidade: <span className="font-semibold">{s.quantidade.toLocaleString("pt-BR")}</span>,
                     vlrUnit: s.valorUnitarioFIFO > 0 ? s.valorUnitarioFIFO.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-",
                     vlrTotal: <span className="font-semibold">{s.valorTotal > 0 ? s.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}</span>,
+                    acoes: podeEntrada ? (
+                      <Button size="sm" variant="ghost" onClick={() => openPrecoDialog(s)} title="Editar preços">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    ) : null,
                   };
                   return (
                   <TableRow key={i}>
