@@ -272,6 +272,7 @@ export default function EstoquePage() {
     setMovLocal("");
     setMovDocRef("");
     setMovObs("");
+    setMovValorUnit("");
     setMovDialogOpen(true);
   };
 
