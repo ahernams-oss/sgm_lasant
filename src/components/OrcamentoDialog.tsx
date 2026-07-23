@@ -341,6 +341,10 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
           </DialogTitle>
         </DialogHeader>
 
+        <datalist id="familias-orcamento">
+          {familiasUsadas.map(f => <option key={f} value={f} />)}
+        </datalist>
+
         {existingOrcamento && Array.isArray(existingOrcamento.revisoes) && existingOrcamento.revisoes.length > 0 && (
           <div className="bg-destructive/10 border border-destructive/30 rounded-md p-3 text-sm space-y-2">
             <strong>Histórico de pedidos de revisão ({existingOrcamento.revisoes.length}):</strong>
