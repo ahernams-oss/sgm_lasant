@@ -53,7 +53,9 @@ export interface SaldoEstoque {
 }
 
 export interface LoteFIFO {
+  movimentacaoId: string;
   quantidade: number;
+  quantidadeOriginal: number;
   valorUnitario: number;
   dataMovimentacao: string;
   documentoRef: string;
