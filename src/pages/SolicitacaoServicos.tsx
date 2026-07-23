@@ -429,20 +429,33 @@ export default function SolicitacaoServicosPage() {
   };
 
   const handleCancelar = async () => {
-    if (cancelId) {
-      if (!podeStCancelada) {
-        toast({ title: "Você não possui permissão para cancelar esta SS.", variant: "destructive" });
-        abortCancel();
-        return;
-      }
-      const ss = solicitacoes.find(s => s.id === cancelId);
-      await updateSolicitacao(cancelId, {
-        situacao: "Cancelada",
-        historico: buildHistoricoEntry("Cancelada", ss?.historico || []),
-      });
-      toast({ title: "Solicitação cancelada" });
+    if (!cancelId) return;
+    if (!podeStCancelada) {
+      toast({ title: "Você não possui permissão para cancelar esta SS.", variant: "destructive" });
       abortCancel();
+      return;
     }
+    const motivo = cancelMotivo.trim();
+    if (!motivo) {
+      toast({ title: "Informe o motivo do cancelamento.", variant: "destructive" });
+      return;
+    }
+    if (motivo.length < 5) {
+      toast({ title: "O motivo deve ter pelo menos 5 caracteres.", variant: "destructive" });
+      return;
+    }
+    const ss = solicitacoes.find(s => s.id === cancelId);
+    const carimbo = `[CANCELAMENTO ${new Date().toLocaleString("pt-BR")} - ${usuarioLogado?.nome || "Sistema"}] ${motivo}`;
+    const novaObs = ss?.observacoes ? `${ss.observacoes}\n${carimbo}` : carimbo;
+    const histBase = buildHistoricoEntry("Cancelada", ss?.historico || []);
+    (histBase[histBase.length - 1] as any).motivo = motivo;
+    await updateSolicitacao(cancelId, {
+      situacao: "Cancelada",
+      observacoes: novaObs,
+      historico: histBase,
+    });
+    toast({ title: "Solicitação cancelada" });
+    abortCancel();
   };
 
   const handleSolicitarOrcamento = async (s: any) => {
