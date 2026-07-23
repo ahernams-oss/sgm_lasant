@@ -1677,14 +1677,16 @@ export default function OrdensServicoPage() {
                                       key={s.materialId + '__' + s.local}
                                       value={`${s.materialCodigo} ${s.materialDescricao} ${s.local}`.trim()}
                                       onSelect={() => {
+                                        const venda = s.valorUnitarioFIFO || 0;
                                         const newItem: MaterialOS = {
                                           id: `estoque:${s.materialId}__${s.local}`,
                                           codigo: s.materialCodigo,
                                           descricao: s.materialDescricao,
                                           unidade: "",
                                           valorUnitario: s.valorUnitarioFIFO || 0,
+                                          valorVenda: venda,
                                           quantidade: estoqueQtd,
-                                          valorTotal: (s.valorUnitarioFIFO || 0) * estoqueQtd,
+                                          valorTotal: venda * estoqueQtd,
                                         };
                                         const updated = [...materiaisEstoque, newItem];
                                         setMateriaisEstoque(updated);
