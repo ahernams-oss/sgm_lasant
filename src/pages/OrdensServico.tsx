@@ -552,8 +552,13 @@ export default function OrdensServicoPage() {
       cancelCancelAction();
       return;
     }
-    if (!cancelMotivo.trim() || cancelMotivo.trim().length < 5) {
-      toast.error("Informe o motivo do cancelamento (mínimo 5 caracteres).");
+    const motivoLimpo = cancelMotivo.trim();
+    if (!motivoLimpo) {
+      toast.error("Informe o motivo do cancelamento.");
+      return;
+    }
+    if (motivoLimpo.length < 5) {
+      toast.error("O motivo do cancelamento deve ter pelo menos 5 caracteres.");
       return;
     }
     if (cancelId) {
@@ -2283,6 +2288,8 @@ export default function OrdensServicoPage() {
                 onChange={e => setCancelMotivo(e.target.value)}
                 placeholder="Descreva o motivo do cancelamento..."
                 rows={4}
+                required
+                aria-required="true"
               />
             </div>
           </div>
