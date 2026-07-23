@@ -150,7 +150,19 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     ));
   };
 
+  const handleMatFamilia = (id: string, f: string) => {
+    setItensMateriais(prev => prev.map(i => i.id === id ? { ...i, familia: f } : i));
+  };
+
   const handleRemoveMat = (id: string) => setItensMateriais(prev => prev.filter(i => i.id !== id));
+
+  // Coleta famílias já usadas (para sugestão via datalist)
+  const familiasUsadas = useMemo(() => {
+    const set = new Set<string>();
+    itensSco.forEach(i => { if (i.familia?.trim()) set.add(i.familia.trim()); });
+    itensMateriais.forEach(i => { if (i.familia?.trim()) set.add(i.familia.trim()); });
+    return Array.from(set).sort();
+  }, [itensSco, itensMateriais]);
 
   const totalSco = useMemo(() => itensSco.reduce((s, i) => s + i.valorTotal, 0), [itensSco]);
   const totalMat = useMemo(() => itensMateriais.reduce((s, i) => s + i.valorTotal, 0), [itensMateriais]);
