@@ -4,6 +4,42 @@ import { Orcamento } from "@/contexts/OrcamentosContext";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+type LinhaItem = {
+  origem: "SCO" | "MAT";
+  familia: string;
+  codigo: string;
+  descricao: string;
+  unidade: string;
+  quantidade: number;
+  valorUnitario: number;
+  valorTotal: number;
+};
+
+const SEM_FAMILIA = "SEM FAMÍLIA";
+
+function agruparPorFamilia(orc: Orcamento) {
+  const linhas: LinhaItem[] = [
+    ...orc.itensSco.map<LinhaItem>(i => ({
+      origem: "SCO",
+      familia: (i.familia || SEM_FAMILIA).trim().toUpperCase() || SEM_FAMILIA,
+      codigo: i.codSco, descricao: i.descricao, unidade: i.unidade,
+      quantidade: i.quantidade, valorUnitario: i.valorUnitario, valorTotal: i.valorTotal,
+    })),
+    ...orc.itensMateriais.map<LinhaItem>(i => ({
+      origem: "MAT",
+      familia: (i.familia || SEM_FAMILIA).trim().toUpperCase() || SEM_FAMILIA,
+      codigo: i.codigo, descricao: i.descricao, unidade: i.unidade,
+      quantidade: i.quantidade, valorUnitario: i.valorUnitario, valorTotal: i.valorTotal,
+    })),
+  ];
+  const grupos = new Map<string, LinhaItem[]>();
+  for (const l of linhas) {
+    if (!grupos.has(l.familia)) grupos.set(l.familia, []);
+    grupos.get(l.familia)!.push(l);
+  }
+  return Array.from(grupos.entries()).sort(([a], [b]) => a.localeCompare(b, "pt-BR"));
+}
+
 export function gerarPdfOrcamento(orc: Orcamento, empresaNome?: string) {
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
@@ -18,7 +54,7 @@ export function gerarPdfOrcamento(orc: Orcamento, empresaNome?: string) {
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text(`Orçamento Nº ${orc.numero}  —  SS Nº ${orc.solicitacaoNumero}`, 14, 22);
-  doc.text(`Status: ${orc.status}`, 14, 28);
+  doc.text(`Status: ${orc.status}${orc.categoria ? "  |  Categoria: " + orc.categoria : ""}`, 14, 28);
   doc.setFontSize(9);
   doc.text(empresaNome || "", pw - 14, 14, { align: "right" });
   doc.text(`Data: ${orc.createdAt ? new Date(orc.createdAt).toLocaleDateString("pt-BR") : ""}`, pw - 14, 22, { align: "right" });
@@ -37,81 +73,66 @@ export function gerarPdfOrcamento(orc: Orcamento, empresaNome?: string) {
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.text(`Cliente: ${orc.clienteNome}`, 14, y);
-  y += 12;
+  y += 8;
 
-  // SCO Items
-  if (orc.itensSco.length > 0) {
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("Itens SCO", 14, y);
-    y += 2;
+  // Tabela agrupada por Família (estilo planilha modelo)
+  const grupos = agruparPorFamilia(orc);
+
+  if (grupos.length > 0) {
+    const body: any[] = [];
+    for (const [familia, itens] of grupos) {
+      // Cabeçalho da família (linha destacada)
+      body.push([{
+        content: familia,
+        colSpan: 6,
+        styles: { fillColor: [220, 228, 240], textColor: 30, fontStyle: "bold", halign: "left" },
+      }]);
+      let subtotal = 0;
+      for (const it of itens) {
+        subtotal += it.valorTotal;
+        body.push([
+          it.codigo,
+          it.descricao,
+          it.unidade,
+          it.quantidade.toLocaleString("pt-BR", { maximumFractionDigits: 4 }),
+          fmt(it.valorUnitario),
+          fmt(it.valorTotal),
+        ]);
+      }
+      // Subtotal da família
+      body.push([
+        { content: `Subtotal ${familia}:`, colSpan: 5, styles: { halign: "right", fontStyle: "bold", fillColor: [245, 247, 252] } },
+        { content: fmt(subtotal), styles: { fontStyle: "bold", fillColor: [245, 247, 252] } },
+      ]);
+    }
+    // Total geral
+    body.push([
+      { content: "TOTAL GERAL:", colSpan: 5, styles: { halign: "right", fontStyle: "bold", fillColor: [30, 58, 107], textColor: 255 } },
+      { content: fmt(orc.valorTotal), styles: { fontStyle: "bold", fillColor: [30, 58, 107], textColor: 255 } },
+    ]);
 
     autoTable(doc, {
       startY: y,
-      head: [["Código", "Descrição", "Unidade", "Qtd", "Valor Unit.", "Total"]],
-      body: [
-        ...orc.itensSco.map(i => [
-          i.codSco,
-          i.descricao,
-          i.unidade,
-          String(i.quantidade),
-          fmt(i.valorUnitario),
-          fmt(i.valorTotal),
-        ]),
-        [{ content: "Subtotal SCO:", colSpan: 5, styles: { halign: "right", fontStyle: "bold" } }, { content: fmt(orc.itensSco.reduce((s, i) => s + i.valorTotal, 0)), styles: { fontStyle: "bold" } }],
-      ],
-      styles: { fontSize: 8, cellPadding: 3 },
+      head: [["Código", "Descrição", "Unid", "Quant", "Pr. Unit.", "Pr. Total"]],
+      body,
+      styles: { fontSize: 8, cellPadding: 2.5 },
       headStyles: { fillColor: [30, 58, 107], textColor: 255 },
+      columnStyles: {
+        0: { cellWidth: 28 },
+        2: { cellWidth: 14, halign: "center" },
+        3: { cellWidth: 18, halign: "right" },
+        4: { cellWidth: 24, halign: "right" },
+        5: { cellWidth: 26, halign: "right" },
+      },
       theme: "grid",
       margin: { left: 14, right: 14 },
     });
-
     y = (doc as any).lastAutoTable.finalY + 10;
   }
-
-  // Material Items
-  if (orc.itensMateriais.length > 0) {
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("Materiais", 14, y);
-    y += 2;
-
-    autoTable(doc, {
-      startY: y,
-      head: [["Código", "Descrição", "Unidade", "Qtd", "Valor Unit.", "Total"]],
-      body: [
-        ...orc.itensMateriais.map(i => [
-          i.codigo,
-          i.descricao,
-          i.unidade,
-          String(i.quantidade),
-          fmt(i.valorUnitario),
-          fmt(i.valorTotal),
-        ]),
-        [{ content: "Subtotal Materiais:", colSpan: 5, styles: { halign: "right", fontStyle: "bold" } }, { content: fmt(orc.itensMateriais.reduce((s, i) => s + i.valorTotal, 0)), styles: { fontStyle: "bold" } }],
-      ],
-      styles: { fontSize: 8, cellPadding: 3 },
-      headStyles: { fillColor: [30, 58, 107], textColor: 255 },
-      theme: "grid",
-      margin: { left: 14, right: 14 },
-    });
-
-    y = (doc as any).lastAutoTable.finalY + 10;
-  }
-
-  // Total
-  doc.setFillColor(240, 240, 245);
-  doc.roundedRect(14, y, pw - 28, 16, 3, 3, "F");
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(30, 58, 107);
-  doc.text("Valor Total do Orçamento:", 20, y + 10);
-  doc.text(fmt(orc.valorTotal), pw - 20, y + 10, { align: "right" });
-  y += 24;
 
   // Observations
-  doc.setTextColor(30, 30, 30);
   if (orc.observacoes) {
+    if (y > 250) { doc.addPage(); y = 20; }
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.text("Observações", 14, y);

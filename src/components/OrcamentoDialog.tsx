@@ -33,11 +33,13 @@ interface OrcamentoDialogProps {
 interface ItemSco {
   id: string; codSco: string; descricao: string; unidade: string;
   quantidade: number; valorUnitario: number; valorTotal: number;
+  familia?: string;
 }
 
 interface ItemMaterial {
   id: string; materialId: string; codigo: string; descricao: string; unidade: string;
   quantidade: number; valorUnitario: number; valorTotal: number;
+  familia?: string;
 }
 
 
@@ -110,6 +112,10 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     ));
   };
 
+  const handleScoFamilia = (id: string, f: string) => {
+    setItensSco(prev => prev.map(i => i.id === id ? { ...i, familia: f } : i));
+  };
+
   const handleRemoveSco = (id: string) => setItensSco(prev => prev.filter(i => i.id !== id));
 
   const handleAddMaterial = (mat: typeof materiais[0]) => {
@@ -144,7 +150,19 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     ));
   };
 
+  const handleMatFamilia = (id: string, f: string) => {
+    setItensMateriais(prev => prev.map(i => i.id === id ? { ...i, familia: f } : i));
+  };
+
   const handleRemoveMat = (id: string) => setItensMateriais(prev => prev.filter(i => i.id !== id));
+
+  // Coleta famílias já usadas (para sugestão via datalist)
+  const familiasUsadas = useMemo(() => {
+    const set = new Set<string>();
+    itensSco.forEach(i => { if (i.familia?.trim()) set.add(i.familia.trim()); });
+    itensMateriais.forEach(i => { if (i.familia?.trim()) set.add(i.familia.trim()); });
+    return Array.from(set).sort();
+  }, [itensSco, itensMateriais]);
 
   const totalSco = useMemo(() => itensSco.reduce((s, i) => s + i.valorTotal, 0), [itensSco]);
   const totalMat = useMemo(() => itensMateriais.reduce((s, i) => s + i.valorTotal, 0), [itensMateriais]);
@@ -323,6 +341,10 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
           </DialogTitle>
         </DialogHeader>
 
+        <datalist id="familias-orcamento">
+          {familiasUsadas.map(f => <option key={f} value={f} />)}
+        </datalist>
+
         {existingOrcamento && Array.isArray(existingOrcamento.revisoes) && existingOrcamento.revisoes.length > 0 && (
           <div className="bg-destructive/10 border border-destructive/30 rounded-md p-3 text-sm space-y-2">
             <strong>Histórico de pedidos de revisão ({existingOrcamento.revisoes.length}):</strong>
@@ -415,6 +437,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-40">Família</TableHead>
                       <TableHead>Código</TableHead>
                       <TableHead>Descrição</TableHead>
                       <TableHead>Unidade</TableHead>
@@ -427,6 +450,9 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                   <TableBody>
                     {itensSco.map(item => (
                       <TableRow key={item.id}>
+                        <TableCell>
+                          <Input list="familias-orcamento" placeholder="Ex.: DEMOLIÇÕES" value={item.familia || ""} onChange={e => handleScoFamilia(item.id, e.target.value)} disabled={isReadOnly} className="h-8 uppercase" />
+                        </TableCell>
                         <TableCell className="font-mono text-xs">{item.codSco}</TableCell>
                         <TableCell className="text-sm max-w-[200px] truncate">{item.descricao}</TableCell>
                         <TableCell className="text-xs">{item.unidade}</TableCell>
@@ -447,7 +473,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                       </TableRow>
                     ))}
                     <TableRow className="bg-muted/50">
-                      <TableCell colSpan={isReadOnly ? 5 : 5} className="text-right font-bold">Subtotal SCO:</TableCell>
+                      <TableCell colSpan={6} className="text-right font-bold">Subtotal SCO:</TableCell>
                       <TableCell className="font-bold">{fmt(totalSco)}</TableCell>
                       {!isReadOnly && <TableCell />}
                     </TableRow>
@@ -492,6 +518,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-40">Família</TableHead>
                       <TableHead>Código</TableHead>
                       <TableHead>Descrição</TableHead>
                       <TableHead>Unidade</TableHead>
@@ -504,6 +531,9 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                   <TableBody>
                     {itensMateriais.map(item => (
                       <TableRow key={item.id}>
+                        <TableCell>
+                          <Input list="familias-orcamento" placeholder="Ex.: INSTALAÇÕES ELÉTRICAS" value={item.familia || ""} onChange={e => handleMatFamilia(item.id, e.target.value)} disabled={isReadOnly} className="h-8 uppercase" />
+                        </TableCell>
                         <TableCell className="font-mono text-xs">{item.codigo}</TableCell>
                         <TableCell className="text-sm max-w-[200px] truncate">{item.descricao}</TableCell>
                         <TableCell className="text-xs">{item.unidade}</TableCell>
@@ -524,7 +554,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                       </TableRow>
                     ))}
                     <TableRow className="bg-muted/50">
-                      <TableCell colSpan={isReadOnly ? 5 : 5} className="text-right font-bold">Subtotal Materiais:</TableCell>
+                      <TableCell colSpan={6} className="text-right font-bold">Subtotal Materiais:</TableCell>
                       <TableCell className="font-bold">{fmt(totalMat)}</TableCell>
                       {!isReadOnly && <TableCell />}
                     </TableRow>

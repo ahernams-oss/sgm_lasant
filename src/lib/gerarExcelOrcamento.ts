@@ -1,56 +1,89 @@
 import * as XLSX from "xlsx";
 import { Orcamento } from "@/contexts/OrcamentosContext";
 
-const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const SEM_FAMILIA = "SEM FAMÍLIA";
+
+type Linha = {
+  familia: string; codigo: string; descricao: string; unidade: string;
+  quantidade: number; valorUnitario: number; valorTotal: number;
+};
+
+function coletar(orc: Orcamento): Map<string, Linha[]> {
+  const linhas: Linha[] = [
+    ...orc.itensSco.map<Linha>(i => ({
+      familia: (i.familia || SEM_FAMILIA).trim().toUpperCase() || SEM_FAMILIA,
+      codigo: i.codSco, descricao: i.descricao, unidade: i.unidade,
+      quantidade: i.quantidade, valorUnitario: i.valorUnitario, valorTotal: i.valorTotal,
+    })),
+    ...orc.itensMateriais.map<Linha>(i => ({
+      familia: (i.familia || SEM_FAMILIA).trim().toUpperCase() || SEM_FAMILIA,
+      codigo: i.codigo, descricao: i.descricao, unidade: i.unidade,
+      quantidade: i.quantidade, valorUnitario: i.valorUnitario, valorTotal: i.valorTotal,
+    })),
+  ];
+  const map = new Map<string, Linha[]>();
+  for (const l of linhas) {
+    if (!map.has(l.familia)) map.set(l.familia, []);
+    map.get(l.familia)!.push(l);
+  }
+  return map;
+}
 
 export function gerarExcelOrcamento(orc: Orcamento) {
   const wb = XLSX.utils.book_new();
 
-  // Summary sheet
-  const summaryData = [
+  // Cabeçalho geral
+  const dados: any[][] = [
     ["ORÇAMENTO DE SERVIÇO"],
     [],
-    ["Orçamento Nº", orc.numero],
-    ["SS Nº", orc.solicitacaoNumero],
-    ["Cliente", orc.clienteNome],
-    ["Status", orc.status],
-    ["Data", orc.createdAt ? new Date(orc.createdAt).toLocaleDateString("pt-BR") : ""],
-    ["Aprovado por", orc.aprovadoPor || "-"],
-    ["Data Aprovação", orc.dataAprovacao ? new Date(orc.dataAprovacao).toLocaleDateString("pt-BR") : "-"],
+    ["Orçamento Nº", orc.numero, "", "SS Nº", orc.solicitacaoNumero],
+    ["Cliente", orc.clienteNome, "", "Status", orc.status],
+    ["Categoria", orc.categoria || "-", "", "Data", orc.createdAt ? new Date(orc.createdAt).toLocaleDateString("pt-BR") : ""],
     [],
-    ["VALOR TOTAL", fmt(orc.valorTotal)],
-    [],
-    ["Observações", orc.observacoes || "-"],
+    ["Código", "Descrição", "Unid", "Quant", "Pr. Unit.", "Pr. Total"],
   ];
-  const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-  wsSummary["!cols"] = [{ wch: 20 }, { wch: 40 }];
-  XLSX.utils.book_append_sheet(wb, wsSummary, "Resumo");
 
-  // SCO sheet
-  if (orc.itensSco.length > 0) {
-    const scoData = [
-      ["Código", "Descrição", "Unidade", "Quantidade", "Valor Unitário", "Valor Total"],
-      ...orc.itensSco.map(i => [i.codSco, i.descricao, i.unidade, i.quantidade, i.valorUnitario, i.valorTotal]),
-      [],
-      ["", "", "", "", "Subtotal SCO:", orc.itensSco.reduce((s, i) => s + i.valorTotal, 0)],
-    ];
-    const wsSco = XLSX.utils.aoa_to_sheet(scoData);
-    wsSco["!cols"] = [{ wch: 12 }, { wch: 40 }, { wch: 10 }, { wch: 10 }, { wch: 15 }, { wch: 15 }];
-    XLSX.utils.book_append_sheet(wb, wsSco, "Itens SCO");
+  const grupos = coletar(orc);
+  const merges: any[] = [];
+  const familiaRows: number[] = [];
+  const subtotalRows: number[] = [];
+
+  for (const [familia, itens] of Array.from(grupos.entries()).sort(([a], [b]) => a.localeCompare(b, "pt-BR"))) {
+    dados.push([familia, "", "", "", "", ""]);
+    const rowIdx = dados.length - 1;
+    familiaRows.push(rowIdx);
+    merges.push({ s: { r: rowIdx, c: 0 }, e: { r: rowIdx, c: 5 } });
+
+    let sub = 0;
+    for (const it of itens) {
+      sub += it.valorTotal;
+      dados.push([it.codigo, it.descricao, it.unidade, it.quantidade, it.valorUnitario, it.valorTotal]);
+    }
+    dados.push(["", "", "", "", `Subtotal ${familia}:`, sub]);
+    subtotalRows.push(dados.length - 1);
+  }
+  dados.push([]);
+  dados.push(["", "", "", "", "TOTAL GERAL:", orc.valorTotal]);
+  const totalRow = dados.length - 1;
+
+  if (orc.observacoes) {
+    dados.push([]);
+    dados.push(["Observações:", orc.observacoes]);
   }
 
-  // Materials sheet
-  if (orc.itensMateriais.length > 0) {
-    const matData = [
-      ["Código", "Descrição", "Unidade", "Quantidade", "Valor Unitário", "Valor Total"],
-      ...orc.itensMateriais.map(i => [i.codigo, i.descricao, i.unidade, i.quantidade, i.valorUnitario, i.valorTotal]),
-      [],
-      ["", "", "", "", "Subtotal Materiais:", orc.itensMateriais.reduce((s, i) => s + i.valorTotal, 0)],
-    ];
-    const wsMat = XLSX.utils.aoa_to_sheet(matData);
-    wsMat["!cols"] = [{ wch: 12 }, { wch: 40 }, { wch: 10 }, { wch: 10 }, { wch: 15 }, { wch: 15 }];
-    XLSX.utils.book_append_sheet(wb, wsMat, "Materiais");
+  const ws = XLSX.utils.aoa_to_sheet(dados);
+  ws["!cols"] = [{ wch: 16 }, { wch: 60 }, { wch: 8 }, { wch: 10 }, { wch: 14 }, { wch: 14 }];
+  ws["!merges"] = merges;
+
+  // Formatar valores moeda
+  const money = "R$ #,##0.00";
+  for (let r = 7; r <= totalRow; r++) {
+    const eu = ws[XLSX.utils.encode_cell({ r, c: 4 })];
+    const et = ws[XLSX.utils.encode_cell({ r, c: 5 })];
+    if (eu && typeof eu.v === "number") eu.z = money;
+    if (et && typeof et.v === "number") et.z = money;
   }
 
+  XLSX.utils.book_append_sheet(wb, ws, "Orçamento");
   XLSX.writeFile(wb, `Orcamento_${orc.numero}_SS${orc.solicitacaoNumero}.xlsx`);
 }
