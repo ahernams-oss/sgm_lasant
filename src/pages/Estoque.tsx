@@ -135,6 +135,41 @@ export default function EstoquePage() {
   const [transferSenha, setTransferSenha] = useState("");
   const [transferLoading, setTransferLoading] = useState(false);
 
+  // Editar preços dialog
+  const [precoDialogOpen, setPrecoDialogOpen] = useState(false);
+  const [precoSaldo, setPrecoSaldo] = useState<SaldoEstoque | null>(null);
+  const [precoLotes, setPrecoLotes] = useState<{ id: string; data: string; documento: string; quantidade: number; valorUnitario: string }[]>([]);
+  const [precoSaving, setPrecoSaving] = useState(false);
+
+  const openPrecoDialog = (s: SaldoEstoque) => {
+    const lotes = getLotesFIFO(s.materialId, s.local);
+    setPrecoSaldo(s);
+    setPrecoLotes(lotes.map(l => ({
+      id: l.movimentacaoId,
+      data: l.dataMovimentacao,
+      documento: l.documentoRef,
+      quantidade: l.quantidade,
+      valorUnitario: (l.valorUnitario || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+    })));
+    setPrecoDialogOpen(true);
+  };
+
+  const handleSavePrecos = async () => {
+    setPrecoSaving(true);
+    try {
+      for (const l of precoLotes) {
+        const v = Number(String(l.valorUnitario).replace(/\./g, "").replace(",", ".")) || 0;
+        await atualizarValorMovimentacao(l.id, v);
+      }
+      toast({ title: "Preços atualizados com sucesso" });
+      setPrecoDialogOpen(false);
+    } catch (e: any) {
+      toast({ title: "Erro ao atualizar preços", description: e?.message, variant: "destructive" });
+    } finally {
+      setPrecoSaving(false);
+    }
+  };
+
   const locais = useMemo(() => {
     const locs = new Set<string>();
     clientes.filter(c => c.tipo !== "Fornecedor").forEach(c => {
