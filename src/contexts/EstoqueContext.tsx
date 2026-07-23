@@ -305,10 +305,15 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
     invMov();
   };
 
+  const atualizarValorMovimentacao = async (id: string, valorUnitario: number) => {
+    await updateRow("estoque_movimentacoes", id, { valor_unitario: valorUnitario });
+    invMov();
+  };
+
   return (
     <EstoqueContext.Provider value={{
       movimentacoes, inventarios, registrarMovimentacao, registrarEntradaRecebimento,
-      getSaldos, getSaldoPorMaterial, getSaldoPorLocal, getLotesFIFO, transferirEntreLocais, criarInventario, atualizarInventario, fecharInventario, reload,
+      getSaldos, getSaldoPorMaterial, getSaldoPorLocal, getLotesFIFO, transferirEntreLocais, criarInventario, atualizarInventario, fecharInventario, atualizarValorMovimentacao, reload,
     }}>
       {children}
     </EstoqueContext.Provider>
