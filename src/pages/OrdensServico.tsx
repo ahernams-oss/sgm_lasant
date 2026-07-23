@@ -2263,17 +2263,36 @@ export default function OrdensServicoPage() {
       {/* Double Confirm Delete */}
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
 
-      {/* Double Confirm Cancel OS */}
-      <DoubleConfirmDelete
-        open={!!cancelId}
-        onOpenChange={o => !o && cancelCancelAction()}
-        onConfirm={handleCancelOS}
-        title="Confirmação de Cancelamento"
-        firstMessage="Deseja realmente cancelar essa Ordem de Serviço?"
-        secondMessage="A Ordem de Serviço será mantida no sistema com status Cancelada. Confirma o cancelamento?"
-        firstConfirmLabel="Sim, cancelar"
-        secondConfirmLabel="Confirmo o cancelamento"
-      />
+      {/* Cancel OS with motivo */}
+      <Dialog open={!!cancelId} onOpenChange={o => { if (!o) { setCancelMotivo(""); cancelCancelAction(); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Ban className="h-5 w-5 text-destructive" />
+              Confirmação de Cancelamento
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              A Ordem de Serviço será mantida no sistema com status <b>Cancelada</b>. Informe o motivo do cancelamento — ele ficará registrado no histórico da OS.
+            </p>
+            <div>
+              <Label>Motivo do cancelamento *</Label>
+              <Textarea
+                value={cancelMotivo}
+                onChange={e => setCancelMotivo(e.target.value)}
+                placeholder="Descreva o motivo do cancelamento..."
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setCancelMotivo(""); cancelCancelAction(); }}>Voltar</Button>
+            <Button variant="destructive" onClick={handleCancelOS}>Confirmar Cancelamento</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Dialog: Justificativa para Não Aprovar */}
       <Dialog open={!!naoAprovarOS} onOpenChange={o => { if (!o) { setNaoAprovarOS(null); setNaoAprovarJustificativa(""); } }}>
