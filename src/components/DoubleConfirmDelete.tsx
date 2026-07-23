@@ -13,9 +13,23 @@ interface DoubleConfirmDeleteProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
+  title?: string;
+  firstMessage?: string;
+  secondMessage?: string;
+  firstConfirmLabel?: string;
+  secondConfirmLabel?: string;
 }
 
-export function DoubleConfirmDelete({ open, onOpenChange, onConfirm }: DoubleConfirmDeleteProps) {
+export function DoubleConfirmDelete({
+  open,
+  onOpenChange,
+  onConfirm,
+  title = "Confirmação de Exclusão",
+  firstMessage = "Deseja realmente excluir esse registro?",
+  secondMessage = "Caso confirme, não haverá como recuperar o registro, confirma a exclusão?",
+  firstConfirmLabel = "Sim, excluir",
+  secondConfirmLabel = "Confirmo a exclusão",
+}: DoubleConfirmDeleteProps) {
   const [step, setStep] = useState<1 | 2>(1);
 
   const handleOpenChange = (value: boolean) => {
@@ -37,11 +51,9 @@ export function DoubleConfirmDelete({ open, onOpenChange, onConfirm }: DoubleCon
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Confirmação de Exclusão</AlertDialogTitle>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>
-            {step === 1
-              ? "Deseja realmente excluir esse registro?"
-              : "Caso confirme, não haverá como recuperar o registro, confirma a exclusão?"}
+            {step === 1 ? firstMessage : secondMessage}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -50,11 +62,11 @@ export function DoubleConfirmDelete({ open, onOpenChange, onConfirm }: DoubleCon
           </Button>
           {step === 1 ? (
             <Button variant="destructive" onClick={handleFirstConfirm}>
-              Sim, excluir
+              {firstConfirmLabel}
             </Button>
           ) : (
             <Button variant="destructive" onClick={handleSecondConfirm}>
-              Confirmo a exclusão
+              {secondConfirmLabel}
             </Button>
           )}
         </AlertDialogFooter>
