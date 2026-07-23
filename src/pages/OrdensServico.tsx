@@ -203,10 +203,11 @@ export default function OrdensServicoPage() {
     return podeStEmExecOS;
   };
 
-  const buildOSHistorico = (situacao: string, existing: any[] = []) => [
+  const buildOSHistorico = (situacao: string, existing: any[] = [], motivo?: string) => [
     ...existing,
-    { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" },
+    { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema", ...(motivo ? { motivo } : {}) },
   ];
+  const [cancelMotivo, setCancelMotivo] = useState("");
   const { categorias: categoriasServicos } = useCategoriasServicos();
   const { servicos: servicosCadastrados } = useServicos();
   const { scos } = useSco();
