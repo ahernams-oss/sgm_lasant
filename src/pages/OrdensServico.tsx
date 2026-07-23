@@ -2252,7 +2252,16 @@ export default function OrdensServicoPage() {
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
 
       {/* Double Confirm Cancel OS */}
-      <DoubleConfirmDelete open={!!cancelId} onOpenChange={o => !o && cancelCancelAction()} onConfirm={handleCancelOS} />
+      <DoubleConfirmDelete
+        open={!!cancelId}
+        onOpenChange={o => !o && cancelCancelAction()}
+        onConfirm={handleCancelOS}
+        title="Confirmação de Cancelamento"
+        firstMessage="Deseja realmente cancelar essa Ordem de Serviço?"
+        secondMessage="A Ordem de Serviço será mantida no sistema com status Cancelada. Confirma o cancelamento?"
+        firstConfirmLabel="Sim, cancelar"
+        secondConfirmLabel="Confirmo o cancelamento"
+      />
 
       {/* Dialog: Justificativa para Não Aprovar */}
       <Dialog open={!!naoAprovarOS} onOpenChange={o => { if (!o) { setNaoAprovarOS(null); setNaoAprovarJustificativa(""); } }}>
