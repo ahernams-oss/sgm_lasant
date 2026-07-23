@@ -1701,11 +1701,6 @@ export default function OrdensServicoPage() {
                                       <div className="flex justify-between w-full items-center">
                                         <span className="text-xs"><strong>{s.materialCodigo}</strong> — {s.materialDescricao}</span>
                                         <div className="flex gap-2 ml-2">
-                                          {s.valorUnitarioFIFO > 0 && (
-                                            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold text-foreground">
-                                              {s.valorUnitarioFIFO.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                                            </span>
-                                          )}
                                           <span className="inline-flex items-center rounded-full border-transparent bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
                                             Saldo: {s.quantidade}
                                           </span>
@@ -1727,8 +1722,8 @@ export default function OrdensServicoPage() {
                   )}
                   {materiaisEstoque.length > 0 && (
                     <Table>
-                      <TableHeader><TableRow>
-                        <TableHead>Código</TableHead><TableHead>Descrição</TableHead><TableHead className="text-center">Qtd.</TableHead><TableHead className="text-right">Vlr. Custo</TableHead><TableHead className="text-right">Vlr. Venda</TableHead><TableHead className="text-right">Vlr. Total</TableHead><TableHead className="w-[50px]"></TableHead>
+                       <TableHeader><TableRow>
+                        <TableHead>Código</TableHead><TableHead>Descrição</TableHead><TableHead className="text-center">Qtd.</TableHead><TableHead className="text-right">Vlr. Item</TableHead><TableHead className="text-right">Vlr. Total</TableHead><TableHead className="w-[50px]"></TableHead>
                       </TableRow></TableHeader>
                       <TableBody>
                         {materiaisEstoque.map((m, idx) => {
@@ -1746,7 +1741,6 @@ export default function OrdensServicoPage() {
                                 setMateriaisEstoque(updated);
                               }} onBlur={() => autoSaveMateriaisEstoque(materiaisEstoque)} />
                             </TableCell>
-                            <TableCell className="text-xs text-right text-muted-foreground">{m.valorUnitario.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
                             <TableCell className="w-[140px]">
                               <Input type="number" step="0.01" min={0} className="h-8 text-xs text-right w-[130px]" value={venda} onChange={e => {
                                 const novoVenda = Number(e.target.value) || 0;
