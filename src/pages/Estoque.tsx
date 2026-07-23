@@ -291,12 +291,13 @@ export default function EstoquePage() {
       const saldo = getSaldoPorMaterial(mat.id);
       if (qty > saldo) { toast({ title: `Saldo insuficiente. Disponível: ${saldo}`, variant: "destructive" }); return; }
     }
+    const valorUnit = movTipo === "entrada" ? Number(String(movValorUnit).replace(/\./g, "").replace(",", ".")) || 0 : 0;
     await registrarMovimentacao({
       materialId: mat.id, materialCodigo: mat.codigo, materialDescricao: mat.descricao,
       tipo: movTipo, quantidade: qty, local: movLocal,
       documentoRef: movDocRef, observacao: movObs,
       usuario: usuarioLogado?.nome || "",
-      lote: "", validade: "", depositoOrigem: "", depositoDestino: "", fornecedorNome: "", valorUnitario: 0,
+      lote: "", validade: "", depositoOrigem: "", depositoDestino: "", fornecedorNome: "", valorUnitario: valorUnit,
     });
     toast({ title: `${movTipo === "entrada" ? "Entrada" : "Saída"} registrada com sucesso` });
     setMovDialogOpen(false);
