@@ -52,10 +52,11 @@ export default function EstoquePage() {
     quantidade: { label: "Quantidade", className: "text-center" },
     vlrUnit: { label: "Vlr Unit. (FIFO)", className: "text-center" },
     vlrTotal: { label: "Vlr Total", className: "text-center" },
+    acoes: { label: "Ações", className: "text-center" },
   };
   const { order: colOrderSaldos, setOrder: setColOrderSaldos } = useColumnOrder(
     "compras.estoque.saldos",
-    ["codigo", "material", "centroCusto", "local", "quantidade", "vlrUnit", "vlrTotal"]
+    ["codigo", "material", "centroCusto", "local", "quantidade", "vlrUnit", "vlrTotal", "acoes"]
   );
 
   const colDefsMov: Record<string, { label: string; className?: string }> = {
