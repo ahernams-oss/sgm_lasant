@@ -439,14 +439,15 @@ export default function OrdensServicoPage() {
     const bdi = contrato?.bdi ? Number(String(contrato.bdi).replace(",", ".")) : 0;
     const safeBdi = isNaN(bdi) ? 0 : bdi;
 
-    const recalcMateriais = (mats: MaterialOS[]) =>
+    const recalcMateriais = (mats: MaterialOS[], useVenda = false) =>
       mats.map(m => {
-        const vt = (Number(m.valorUnitario) || 0) * (Number(m.quantidade) || 0);
+        const unit = useVenda ? (Number(m.valorVenda ?? m.valorUnitario) || 0) : (Number(m.valorUnitario) || 0);
+        const vt = unit * (Number(m.quantidade) || 0);
         return { ...m, valorTotal: isNaN(vt) ? 0 : vt };
       });
 
     const matSCO = recalcMateriais(os.materiais || []);
-    const matEstoque = recalcMateriais(os.materiaisEstoque || []);
+    const matEstoque = recalcMateriais(os.materiaisEstoque || [], true);
 
     return {
       bdi: safeBdi,
