@@ -514,6 +514,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-40">Família</TableHead>
                       <TableHead>Código</TableHead>
                       <TableHead>Descrição</TableHead>
                       <TableHead>Unidade</TableHead>
@@ -526,6 +527,9 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                   <TableBody>
                     {itensMateriais.map(item => (
                       <TableRow key={item.id}>
+                        <TableCell>
+                          <Input list="familias-orcamento" placeholder="Ex.: INSTALAÇÕES ELÉTRICAS" value={item.familia || ""} onChange={e => handleMatFamilia(item.id, e.target.value)} disabled={isReadOnly} className="h-8 uppercase" />
+                        </TableCell>
                         <TableCell className="font-mono text-xs">{item.codigo}</TableCell>
                         <TableCell className="text-sm max-w-[200px] truncate">{item.descricao}</TableCell>
                         <TableCell className="text-xs">{item.unidade}</TableCell>
@@ -546,7 +550,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                       </TableRow>
                     ))}
                     <TableRow className="bg-muted/50">
-                      <TableCell colSpan={isReadOnly ? 5 : 5} className="text-right font-bold">Subtotal Materiais:</TableCell>
+                      <TableCell colSpan={6} className="text-right font-bold">Subtotal Materiais:</TableCell>
                       <TableCell className="font-bold">{fmt(totalMat)}</TableCell>
                       {!isReadOnly && <TableCell />}
                     </TableRow>
