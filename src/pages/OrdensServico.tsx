@@ -1727,10 +1727,12 @@ export default function OrdensServicoPage() {
                   {materiaisEstoque.length > 0 && (
                     <Table>
                       <TableHeader><TableRow>
-                        <TableHead>Código</TableHead><TableHead>Descrição</TableHead><TableHead className="text-center">Qtd.</TableHead><TableHead className="text-right">Vlr. Unit.</TableHead><TableHead className="text-right">Vlr. Total</TableHead><TableHead className="w-[50px]"></TableHead>
+                        <TableHead>Código</TableHead><TableHead>Descrição</TableHead><TableHead className="text-center">Qtd.</TableHead><TableHead className="text-right">Vlr. Custo</TableHead><TableHead className="text-right">Vlr. Venda</TableHead><TableHead className="text-right">Vlr. Total</TableHead><TableHead className="w-[50px]"></TableHead>
                       </TableRow></TableHeader>
                       <TableBody>
-                        {materiaisEstoque.map((m, idx) => (
+                        {materiaisEstoque.map((m, idx) => {
+                          const venda = Number(m.valorVenda ?? m.valorUnitario) || 0;
+                          return (
                           <TableRow key={m.id}>
                             <TableCell className="text-xs">{m.codigo}</TableCell>
                             <TableCell className="text-xs">{m.descricao}</TableCell>
@@ -1739,19 +1741,28 @@ export default function OrdensServicoPage() {
                                 const val = e.target.value.slice(0, 7);
                                 const qtd = Number(val) || 1;
                                 const updated = [...materiaisEstoque];
-                                updated[idx] = { ...m, quantidade: qtd, valorTotal: m.valorUnitario * qtd };
+                                updated[idx] = { ...m, quantidade: qtd, valorTotal: venda * qtd };
                                 setMateriaisEstoque(updated);
                               }} onBlur={() => autoSaveMateriaisEstoque(materiaisEstoque)} />
                             </TableCell>
-                            <TableCell className="text-xs text-right">{m.valorUnitario.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
-                            <TableCell className="text-xs text-right font-semibold">{(m.valorUnitario * m.quantidade).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
+                            <TableCell className="text-xs text-right text-muted-foreground">{m.valorUnitario.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
+                            <TableCell className="w-[140px]">
+                              <Input type="number" step="0.01" min={0} className="h-8 text-xs text-right w-[130px]" value={venda} onChange={e => {
+                                const novoVenda = Number(e.target.value) || 0;
+                                const updated = [...materiaisEstoque];
+                                updated[idx] = { ...m, valorVenda: novoVenda, valorTotal: novoVenda * m.quantidade };
+                                setMateriaisEstoque(updated);
+                              }} onBlur={() => autoSaveMateriaisEstoque(materiaisEstoque)} />
+                            </TableCell>
+                            <TableCell className="text-xs text-right font-semibold">{(venda * m.quantidade).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
                             <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
                               const updated = materiaisEstoque.filter(x => x.id !== m.id);
                               setMateriaisEstoque(updated);
                               autoSaveMateriaisEstoque(updated);
                             }}><Trash2 className="h-3 w-3" /></Button></TableCell>
                           </TableRow>
-                        ))}
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   )}
