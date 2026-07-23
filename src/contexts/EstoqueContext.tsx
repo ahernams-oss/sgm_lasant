@@ -164,7 +164,9 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
       if (m.tipo === "entrada" || m.tipo === "ajuste") {
         if (m.quantidade > 0) {
           lotes.push({
+            movimentacaoId: m.id,
             quantidade: m.quantidade,
+            quantidadeOriginal: m.quantidade,
             valorUnitario: m.valorUnitario,
             dataMovimentacao: m.dataMovimentacao,
             documentoRef: m.documentoRef,
