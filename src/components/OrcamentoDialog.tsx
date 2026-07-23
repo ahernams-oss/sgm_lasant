@@ -433,6 +433,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-40">Família</TableHead>
                       <TableHead>Código</TableHead>
                       <TableHead>Descrição</TableHead>
                       <TableHead>Unidade</TableHead>
@@ -445,6 +446,9 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                   <TableBody>
                     {itensSco.map(item => (
                       <TableRow key={item.id}>
+                        <TableCell>
+                          <Input list="familias-orcamento" placeholder="Ex.: DEMOLIÇÕES" value={item.familia || ""} onChange={e => handleScoFamilia(item.id, e.target.value)} disabled={isReadOnly} className="h-8 uppercase" />
+                        </TableCell>
                         <TableCell className="font-mono text-xs">{item.codSco}</TableCell>
                         <TableCell className="text-sm max-w-[200px] truncate">{item.descricao}</TableCell>
                         <TableCell className="text-xs">{item.unidade}</TableCell>
@@ -465,7 +469,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                       </TableRow>
                     ))}
                     <TableRow className="bg-muted/50">
-                      <TableCell colSpan={isReadOnly ? 5 : 5} className="text-right font-bold">Subtotal SCO:</TableCell>
+                      <TableCell colSpan={6} className="text-right font-bold">Subtotal SCO:</TableCell>
                       <TableCell className="font-bold">{fmt(totalSco)}</TableCell>
                       {!isReadOnly && <TableCell />}
                     </TableRow>
