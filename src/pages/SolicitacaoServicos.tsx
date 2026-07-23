@@ -1206,7 +1206,16 @@ export default function SolicitacaoServicosPage() {
 
       <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}/>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
-      <DoubleConfirmDelete open={!!cancelId} onOpenChange={o => !o && abortCancel()} onConfirm={handleCancelar} />
+      <DoubleConfirmDelete
+        open={!!cancelId}
+        onOpenChange={o => !o && abortCancel()}
+        onConfirm={handleCancelar}
+        title="Confirmação de Cancelamento"
+        firstMessage="Deseja realmente cancelar essa Solicitação de Serviço?"
+        secondMessage="Ao confirmar, a solicitação será marcada como Cancelada. Deseja continuar?"
+        firstConfirmLabel="Sim, cancelar"
+        secondConfirmLabel="Confirmo o cancelamento"
+      />
 
       {/* Orcamento Dialog */}
       <OrcamentoDialog
