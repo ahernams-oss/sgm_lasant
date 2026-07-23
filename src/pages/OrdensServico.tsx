@@ -203,10 +203,11 @@ export default function OrdensServicoPage() {
     return podeStEmExecOS;
   };
 
-  const buildOSHistorico = (situacao: string, existing: any[] = []) => [
+  const buildOSHistorico = (situacao: string, existing: any[] = [], motivo?: string) => [
     ...existing,
-    { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" },
+    { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema", ...(motivo ? { motivo } : {}) },
   ];
+  const [cancelMotivo, setCancelMotivo] = useState("");
   const { categorias: categoriasServicos } = useCategoriasServicos();
   const { servicos: servicosCadastrados } = useServicos();
   const { scos } = useSco();
@@ -551,18 +552,29 @@ export default function OrdensServicoPage() {
       cancelCancelAction();
       return;
     }
+    if (!cancelMotivo.trim() || cancelMotivo.trim().length < 5) {
+      toast.error("Informe o motivo do cancelamento (mínimo 5 caracteres).");
+      return;
+    }
     if (cancelId) {
       const os = ordens.find(o => o.id === cancelId);
       const financeiro = os ? recalcFinanceiro(os) : {};
+      const motivo = cancelMotivo.trim();
+      const carimbo = `[CANCELAMENTO ${new Date().toLocaleString("pt-BR")} — ${usuarioLogado?.nome || "Sistema"}] ${motivo}`;
+      const descAtual = os?.descricaoConclusao || "";
+      const novaDesc = descAtual ? `${descAtual}\n${carimbo}` : carimbo;
       await updateOrdem(cancelId, {
         situacao: "Cancelada",
-        historico: buildOSHistorico("Cancelada", os?.historico || []),
+        historico: buildOSHistorico("Cancelada", os?.historico || [], motivo),
+        descricao_conclusao: novaDesc,
         ...financeiro,
       });
       toast.success("Ordem de Serviço cancelada!");
+      setCancelMotivo("");
       cancelCancelAction();
     }
   };
+
 
   // Get available workflow actions based on current situação
   const getWorkflowActions = (os: OrdemServico) => {
@@ -2251,17 +2263,36 @@ export default function OrdensServicoPage() {
       {/* Double Confirm Delete */}
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
 
-      {/* Double Confirm Cancel OS */}
-      <DoubleConfirmDelete
-        open={!!cancelId}
-        onOpenChange={o => !o && cancelCancelAction()}
-        onConfirm={handleCancelOS}
-        title="Confirmação de Cancelamento"
-        firstMessage="Deseja realmente cancelar essa Ordem de Serviço?"
-        secondMessage="A Ordem de Serviço será mantida no sistema com status Cancelada. Confirma o cancelamento?"
-        firstConfirmLabel="Sim, cancelar"
-        secondConfirmLabel="Confirmo o cancelamento"
-      />
+      {/* Cancel OS with motivo */}
+      <Dialog open={!!cancelId} onOpenChange={o => { if (!o) { setCancelMotivo(""); cancelCancelAction(); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Ban className="h-5 w-5 text-destructive" />
+              Confirmação de Cancelamento
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              A Ordem de Serviço será mantida no sistema com status <b>Cancelada</b>. Informe o motivo do cancelamento — ele ficará registrado no histórico da OS.
+            </p>
+            <div>
+              <Label>Motivo do cancelamento *</Label>
+              <Textarea
+                value={cancelMotivo}
+                onChange={e => setCancelMotivo(e.target.value)}
+                placeholder="Descreva o motivo do cancelamento..."
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setCancelMotivo(""); cancelCancelAction(); }}>Voltar</Button>
+            <Button variant="destructive" onClick={handleCancelOS}>Confirmar Cancelamento</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Dialog: Justificativa para Não Aprovar */}
       <Dialog open={!!naoAprovarOS} onOpenChange={o => { if (!o) { setNaoAprovarOS(null); setNaoAprovarJustificativa(""); } }}>
