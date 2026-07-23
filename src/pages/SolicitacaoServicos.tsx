@@ -1222,16 +1222,30 @@ export default function SolicitacaoServicosPage() {
 
       <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}/>
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
-      <DoubleConfirmDelete
-        open={!!cancelId}
-        onOpenChange={o => !o && abortCancel()}
-        onConfirm={handleCancelar}
-        title="Confirmação de Cancelamento"
-        firstMessage="Deseja realmente cancelar essa Solicitação de Serviço?"
-        secondMessage="Ao confirmar, a solicitação será marcada como Cancelada. Deseja continuar?"
-        firstConfirmLabel="Sim, cancelar"
-        secondConfirmLabel="Confirmo o cancelamento"
-      />
+      <Dialog open={!!cancelId} onOpenChange={o => !o && abortCancel()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancelar Solicitação de Serviço</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Motivo do cancelamento *</label>
+            <Textarea
+              value={cancelMotivo}
+              onChange={(e) => setCancelMotivo(e.target.value)}
+              rows={4}
+              required
+              aria-required
+              placeholder="Descreva o motivo do cancelamento (mínimo 5 caracteres)"
+            />
+            <p className="text-xs text-muted-foreground">O motivo ficará registrado no histórico e nas observações da SS.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={abortCancel}>Voltar</Button>
+            <Button variant="destructive" onClick={handleCancelar}>Confirmar cancelamento</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Orcamento Dialog */}
       <OrcamentoDialog
