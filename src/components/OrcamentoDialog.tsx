@@ -112,6 +112,10 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     ));
   };
 
+  const handleScoFamilia = (id: string, f: string) => {
+    setItensSco(prev => prev.map(i => i.id === id ? { ...i, familia: f } : i));
+  };
+
   const handleRemoveSco = (id: string) => setItensSco(prev => prev.filter(i => i.id !== id));
 
   const handleAddMaterial = (mat: typeof materiais[0]) => {
