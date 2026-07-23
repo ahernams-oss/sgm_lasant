@@ -8,6 +8,7 @@ export interface MaterialOS {
   id: string; codigo: string; descricao: string;
   unidade: string; valorUnitario: number;
   quantidade: number; valorTotal: number;
+  valorVenda?: number;
 }
 
 export interface AnexoOS { id: string; titulo: string; url: string; }
