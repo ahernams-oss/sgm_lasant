@@ -5,11 +5,13 @@ import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper"
 export interface ItemScoOrcamento {
   id: string; codSco: string; descricao: string; unidade: string;
   quantidade: number; valorUnitario: number; valorTotal: number;
+  familia?: string;
 }
 
 export interface ItemMaterialOrcamento {
   id: string; materialId: string; codigo: string; descricao: string;
   unidade: string; quantidade: number; valorUnitario: number; valorTotal: number;
+  familia?: string;
 }
 
 export interface RevisaoEntry { motivo: string; data: string; usuario: string; }
