@@ -2288,6 +2288,8 @@ export default function OrdensServicoPage() {
                 onChange={e => setCancelMotivo(e.target.value)}
                 placeholder="Descreva o motivo do cancelamento..."
                 rows={4}
+                required
+                aria-required="true"
               />
             </div>
           </div>
