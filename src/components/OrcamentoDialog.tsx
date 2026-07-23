@@ -33,11 +33,13 @@ interface OrcamentoDialogProps {
 interface ItemSco {
   id: string; codSco: string; descricao: string; unidade: string;
   quantidade: number; valorUnitario: number; valorTotal: number;
+  familia?: string;
 }
 
 interface ItemMaterial {
   id: string; materialId: string; codigo: string; descricao: string; unidade: string;
   quantidade: number; valorUnitario: number; valorTotal: number;
+  familia?: string;
 }
 
 
