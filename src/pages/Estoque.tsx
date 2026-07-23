@@ -108,6 +108,7 @@ export default function EstoquePage() {
   const [movLocal, setMovLocal] = useState("");
   const [movDocRef, setMovDocRef] = useState("");
   const [movObs, setMovObs] = useState("");
+  const [movValorUnit, setMovValorUnit] = useState("");
 
   // Inventário dialog
   const [invDialogOpen, setInvDialogOpen] = useState(false);
