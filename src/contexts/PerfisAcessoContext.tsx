@@ -102,6 +102,14 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
         ],
       },
       {
+        key: "epi_recebimento_facial",
+        label: "Recebimento de EPIs (Facial)",
+        acoes: [
+          { key: "epi_recebimento_facial.visualizar", label: "Pode Visualizar Relatório de Recebimento Facial" },
+          { key: "epi_recebimento_facial.exportar", label: "Pode Exportar Relatório de Recebimento Facial" },
+        ],
+      },
+      {
         key: "mapa_funcionarios",
         label: "Mapa de Funcionários",
         acoes: [
