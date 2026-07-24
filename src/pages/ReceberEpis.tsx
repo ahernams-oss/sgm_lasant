@@ -37,13 +37,14 @@ export default function ReceberEpis() {
     if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
   }, []);
 
+  const addSelfie = (dataUrl: string) => setSelfies((prev) => (prev.length >= 2 ? prev : [...prev, dataUrl]));
+
   const onFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = String(reader.result || "");
-      // Redimensiona para no máx 800px para reduzir upload
       const img = new Image();
       img.onload = () => {
         const max = 800;
@@ -53,11 +54,12 @@ export default function ReceberEpis() {
         const canvas = document.createElement("canvas");
         canvas.width = w; canvas.height = h;
         canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
-        setSelfie(canvas.toDataURL("image/jpeg", 0.85));
+        addSelfie(canvas.toDataURL("image/jpeg", 0.85));
       };
       img.src = dataUrl;
     };
     reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   const invoke = async (action: "verify" | "confirm", body: Record<string, unknown>) => {
@@ -84,7 +86,6 @@ export default function ReceberEpis() {
 
   const iniciarCamera = async () => {
     if (isMobile) {
-      // Em celulares, aciona a câmera nativa via input file (mais confiável)
       fileInputRef.current?.click();
       return;
     }
@@ -109,18 +110,16 @@ export default function ReceberEpis() {
     canvas.width = v.videoWidth || 640;
     canvas.height = v.videoHeight || 480;
     canvas.getContext("2d")!.drawImage(v, 0, 0);
-    const b64 = canvas.toDataURL("image/jpeg", 0.85);
-    setSelfie(b64);
+    addSelfie(canvas.toDataURL("image/jpeg", 0.85));
     if (streamRef.current) { streamRef.current.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
     setCameraAtiva(false);
   };
 
-
   const confirmar = async () => {
-    if (!selfie) return;
+    if (selfies.length < 2) { toast.error("Capture as 2 selfies antes de confirmar."); return; }
     setLoading(true);
     try {
-      await invoke("confirm", { selfieBase64: selfie });
+      await invoke("confirm", { selfieBase64: selfies[0], selfieBase64_2: selfies[1] });
       toast.success("Registro de EPIs realizado com sucesso!");
       setEtapa("concluido");
       setTimeout(() => {
@@ -130,6 +129,7 @@ export default function ReceberEpis() {
     } catch (err: any) { toast.error(err.message); }
     finally { setLoading(false); }
   };
+
 
 
   return (
