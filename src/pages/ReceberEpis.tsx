@@ -83,15 +83,22 @@ export default function ReceberEpis() {
   };
 
   const iniciarCamera = async () => {
+    if (isMobile) {
+      // Em celulares, aciona a câmera nativa via input file (mais confiável)
+      fileInputRef.current?.click();
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 640, height: 480 } });
       streamRef.current = stream;
+      setCameraAtiva(true);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
     } catch {
-      toast.error("Não foi possível acessar a câmera.");
+      toast.error("Não foi possível acessar a câmera. Use o botão para enviar uma foto.");
+      fileInputRef.current?.click();
     }
   };
 
@@ -105,7 +112,9 @@ export default function ReceberEpis() {
     const b64 = canvas.toDataURL("image/jpeg", 0.85);
     setSelfie(b64);
     if (streamRef.current) { streamRef.current.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
+    setCameraAtiva(false);
   };
+
 
   const confirmar = async () => {
     if (!selfie) return;
