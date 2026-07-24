@@ -1,10 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 function onlyDigits(s: string) {
   return (s || "").replace(/\D/g, "");
@@ -27,17 +23,30 @@ function base64ToBytes(b64: string): Uint8Array {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "Método não permitido" }, 405);
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceRoleKey) {
+      return json({ error: "Configuração do serviço indisponível" }, 500);
+    }
+
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      supabaseUrl,
+      serviceRoleKey
     );
 
-    const body = await req.json();
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return json({ error: "Corpo da requisição inválido" }, 400);
+    }
     const action = body?.action as "verify" | "confirm";
     const token = String(body?.token || "");
     if (!token) return json({ error: "Token obrigatório" }, 400);
+    if (action !== "verify" && action !== "confirm") return json({ error: "Ação inválida" }, 400);
 
     const { data: rec, error: recErr } = await supabase
       .from("epis_recebimentos")
@@ -93,6 +102,9 @@ serve(async (req) => {
     }
 
     if (action === "confirm") {
+      if (body?.confirmacaoEnvio !== true) {
+        return json({ error: "Confirmação final obrigatória para registrar as fotos" }, 400);
+      }
       const selfie = String(body?.selfieBase64 || "");
       const selfie2 = String(body?.selfieBase64_2 || "");
       if (!selfie || !selfie2) return json({ error: "São necessárias 2 selfies" }, 400);
@@ -127,11 +139,12 @@ serve(async (req) => {
         .from("funcionarios")
         .update({ epis: episAtualizados })
         .eq("id", rec.funcionario_id);
+      if (funcErr) return json({ error: "Falha ao atualizar a data de entrega dos EPIs" }, 500);
 
       const ip = req.headers.get("x-forwarded-for") || req.headers.get("cf-connecting-ip") || "";
       const ua = req.headers.get("user-agent") || "";
 
-      await supabase
+      const { error: recUpdateErr } = await supabase
         .from("epis_recebimentos")
         .update({
           status: "confirmado",
@@ -145,6 +158,7 @@ serve(async (req) => {
           epis_snapshot: episAlvo,
         })
         .eq("id", rec.id);
+      if (recUpdateErr) return json({ error: "Falha ao registrar o recebimento facial" }, 500);
 
       return json({ ok: true });
     }
