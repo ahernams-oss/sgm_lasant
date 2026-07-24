@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Auth pode ler selfies epi" ON storage.objects;
+CREATE POLICY "Ler selfies epi" ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'epi-recebimentos-selfies');
