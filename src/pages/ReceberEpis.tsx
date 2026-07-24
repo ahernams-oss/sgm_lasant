@@ -5,6 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { HardHat, Camera, CheckCircle2, Loader2 } from "lucide-react";
 
@@ -30,18 +40,33 @@ export default function ReceberEpis() {
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [cameraAtiva, setCameraAtiva] = useState(false);
-
-  const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const [fotoProcessando, setFotoProcessando] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   useEffect(() => () => {
     if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
   }, []);
+
+  useEffect(() => {
+    if (!cameraAtiva || !videoRef.current || !streamRef.current) return;
+    const video = videoRef.current;
+    video.srcObject = streamRef.current;
+    video.play().catch(() => {
+      toast.error("Não foi possível iniciar a prévia da câmera. Use o botão para enviar uma foto.");
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      setCameraAtiva(false);
+      fileInputRef.current?.click();
+    });
+  }, [cameraAtiva]);
 
   const addSelfie = (dataUrl: string) => setSelfies((prev) => (prev.length >= 2 ? prev : [...prev, dataUrl]));
 
   const onFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (selfies.length >= 2 || fotoProcessando) return;
+    setFotoProcessando(true);
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = String(reader.result || "");
@@ -55,8 +80,17 @@ export default function ReceberEpis() {
         canvas.width = w; canvas.height = h;
         canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
         addSelfie(canvas.toDataURL("image/jpeg", 0.85));
+        setFotoProcessando(false);
+      };
+      img.onerror = () => {
+        setFotoProcessando(false);
+        toast.error("Não foi possível carregar a foto capturada.");
       };
       img.src = dataUrl;
+    };
+    reader.onerror = () => {
+      setFotoProcessando(false);
+      toast.error("Não foi possível ler a foto capturada.");
     };
     reader.readAsDataURL(file);
     e.target.value = "";
@@ -85,18 +119,11 @@ export default function ReceberEpis() {
   };
 
   const iniciarCamera = async () => {
-    if (isMobile) {
-      fileInputRef.current?.click();
-      return;
-    }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 640, height: 480 } });
+      if (!navigator.mediaDevices?.getUserMedia) throw new Error("camera_indisponivel");
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 960 } } });
       streamRef.current = stream;
       setCameraAtiva(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
     } catch {
       toast.error("Não foi possível acessar a câmera. Use o botão para enviar uma foto.");
       fileInputRef.current?.click();
@@ -105,7 +132,7 @@ export default function ReceberEpis() {
 
   const capturar = () => {
     const v = videoRef.current;
-    if (!v) return;
+    if (!v || selfies.length >= 2) return;
     const canvas = document.createElement("canvas");
     canvas.width = v.videoWidth || 640;
     canvas.height = v.videoHeight || 480;
@@ -117,12 +144,19 @@ export default function ReceberEpis() {
 
   const [confirmado, setConfirmado] = useState(false);
 
+  const irParaRevisao = () => {
+    setConfirmado(false);
+    setEtapa("revisar");
+  };
+
   const confirmar = async () => {
+    if (etapa !== "revisar") { toast.error("Revise as fotos antes de confirmar o envio."); return; }
     if (selfies.length < 2) { toast.error("Capture as 2 selfies antes de confirmar."); return; }
     if (!confirmado) { toast.error("Marque a confirmação antes de enviar."); return; }
+    setConfirmDialogOpen(false);
     setLoading(true);
     try {
-      await invoke("confirm", { selfieBase64: selfies[0], selfieBase64_2: selfies[1] });
+      await invoke("confirm", { confirmacaoEnvio: true, selfieBase64: selfies[0], selfieBase64_2: selfies[1] });
       toast.success("Registro de EPIs realizado com sucesso!");
       setEtapa("concluido");
       setTimeout(() => {
@@ -220,8 +254,9 @@ export default function ReceberEpis() {
 
               <div className="flex gap-2">
                 {selfies.length < 2 && !cameraAtiva && (
-                  <Button type="button" className="w-full" onClick={iniciarCamera}>
-                    <Camera className="h-4 w-4 mr-1" /> {isMobile ? `Tirar Foto ${selfies.length + 1}` : `Ligar Câmera (Foto ${selfies.length + 1})`}
+                  <Button type="button" className="w-full" onClick={iniciarCamera} disabled={fotoProcessando}>
+                    {fotoProcessando ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Camera className="h-4 w-4 mr-1" />}
+                    {fotoProcessando ? "Processando foto..." : `Abrir Câmera (Foto ${selfies.length + 1})`}
                   </Button>
                 )}
                 {cameraAtiva && (
@@ -232,12 +267,18 @@ export default function ReceberEpis() {
                 {selfies.length >= 2 && !cameraAtiva && (
                   <>
                     <Button type="button" variant="outline" className="flex-1" onClick={() => setSelfies([])}>Refazer</Button>
-                    <Button type="button" className="flex-1" onClick={() => setEtapa("revisar")}>
+                    <Button type="button" className="flex-1" onClick={irParaRevisao}>
                       Avançar para Revisão
                     </Button>
                   </>
                 )}
               </div>
+
+              {selfies.length >= 2 && !cameraAtiva && (
+                <p className="text-xs text-center text-muted-foreground">
+                  As fotos estão apenas nesta tela. Elas só serão registradas após a revisão e confirmação final.
+                </p>
+              )}
 
             </div>
           )}
@@ -266,8 +307,8 @@ export default function ReceberEpis() {
                 <Button type="button" variant="outline" className="flex-1" onClick={() => { setConfirmado(false); setEtapa("capturar"); }}>
                   Voltar
                 </Button>
-                <Button type="button" className="flex-1" onClick={confirmar} disabled={loading || !confirmado}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar Recebimento"}
+                <Button type="button" className="flex-1" onClick={() => setConfirmDialogOpen(true)} disabled={loading || !confirmado}>
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Enviar Confirmação"}
                 </Button>
               </div>
             </div>
@@ -282,6 +323,23 @@ export default function ReceberEpis() {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Enviar confirmação de recebimento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Somente após confirmar aqui as 2 fotos serão registradas e vinculadas ao recebimento dos EPIs.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>Voltar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmar} disabled={loading || !confirmado}>
+              {loading ? "Enviando..." : "Sim, enviar agora"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
