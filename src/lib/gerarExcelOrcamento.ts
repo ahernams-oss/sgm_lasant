@@ -1,5 +1,7 @@
 import ExcelJS from "exceljs";
 import { Orcamento } from "@/contexts/OrcamentosContext";
+import { Empresa } from "@/contexts/EmpresaContext";
+
 
 const SEM_FAMILIA = "SEM FAMÍLIA";
 
