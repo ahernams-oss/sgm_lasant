@@ -121,10 +121,16 @@ export default function ReceberEpis() {
     setLoading(true);
     try {
       await invoke("confirm", { selfieBase64: selfie });
+      toast.success("Registro de EPIs realizado com sucesso!");
       setEtapa("concluido");
+      setTimeout(() => {
+        try { window.close(); } catch {}
+        window.location.replace("about:blank");
+      }, 3500);
     } catch (err: any) { toast.error(err.message); }
     finally { setLoading(false); }
   };
+
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-start justify-center p-4">
