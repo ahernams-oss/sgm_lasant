@@ -534,6 +534,7 @@ const App = () => (
           <Route path="/unsubscribe" element={<UnsubscribePage />} />
           <Route path="/portal-candidato/:processoId/:candidatoId" element={<PortalCandidato />} />
           <Route path="/equipamento/:id" element={<EquipamentoPublico />} />
+          <Route path="/receber-epis/:token" element={<ReceberEpis />} />
           <Route path="/instalar" element={<Instalar />} />
           <Route path="/verificar-assinatura" element={<VerificarAssinaturaPage />} />
           <Route path="/verificar-assinatura/:codigo" element={<VerificarAssinaturaPage />} />
