@@ -23,10 +23,13 @@ interface Recebimento {
 
 export default function RelatorioRecebimentoEpis() {
   const { funcionarios } = useFuncionarios();
+  const { cargos } = useCargos();
+  const { clientes } = useClientes();
   const [rows, setRows] = useState<Recebimento[]>([]);
   const [filtro, setFiltro] = useState("");
   const [preview, setPreview] = useState<{ url: string; row: Recebimento } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [gerandoPdf, setGerandoPdf] = useState<string | null>(null);
 
   const carregar = async () => {
     setLoading(true);
@@ -49,6 +52,42 @@ export default function RelatorioRecebimentoEpis() {
       .createSignedUrl(r.selfie_path, 300);
     if (error || !data?.signedUrl) { toast.error("Falha ao carregar selfie."); return; }
     setPreview({ url: data.signedUrl, row: r });
+  };
+
+  const fetchImageAsDataUrl = async (url: string): Promise<string | null> => {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      return await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onloadend = () => resolve(r.result as string);
+        r.onerror = reject;
+        r.readAsDataURL(blob);
+      });
+    } catch { return null; }
+  };
+
+  const gerarPdf = async (r: Recebimento) => {
+    const func = funcionarios.find((f) => f.id === r.funcionario_id);
+    if (!func) { toast.error("Funcionário não encontrado."); return; }
+    setGerandoPdf(r.id);
+    try {
+      let selfieDataUrl: string | null = null;
+      if (r.selfie_path) {
+        const { data } = await (supabase as any).storage
+          .from("epi-recebimentos-selfies")
+          .createSignedUrl(r.selfie_path, 300);
+        if (data?.signedUrl) selfieDataUrl = await fetchImageAsDataUrl(data.signedUrl);
+      }
+      const cargoNome = cargos.find((c: any) => c.id === func.cargoId)?.nome || "";
+      const clienteNome = clientes.find((c: any) => c.id === func.clienteId)?.nomeFantasia || clientes.find((c: any) => c.id === func.clienteId)?.razaoSocial || "";
+      await gerarPdfEpiFacial(func, r, { cargoNome, clienteNome, selfieDataUrl });
+      toast.success("PDF gerado.");
+    } catch (e: any) {
+      toast.error("Falha ao gerar PDF: " + (e?.message || ""));
+    } finally {
+      setGerandoPdf(null);
+    }
   };
 
   const filtered = rows.filter((r) => {
