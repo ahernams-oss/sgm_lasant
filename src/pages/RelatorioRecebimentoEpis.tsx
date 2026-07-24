@@ -80,7 +80,7 @@ export default function RelatorioRecebimentoEpis() {
         if (data?.signedUrl) selfieDataUrl = await fetchImageAsDataUrl(data.signedUrl);
       }
       const cargoNome = cargos.find((c: any) => c.id === func.cargoId)?.nome || "";
-      const clienteNome = clientes.find((c: any) => c.id === func.clienteId)?.nomeFantasia || clientes.find((c: any) => c.id === func.clienteId)?.razaoSocial || "";
+      const clienteNome = clientes.find((c: any) => c.id === func.clienteId)?.nomeFantasia || clientes.find((c: any) => c.id === func.clienteId)?.nome || "";
       await gerarPdfEpiFacial(func, r, { cargoNome, clienteNome, selfieDataUrl });
       toast.success("PDF gerado.");
     } catch (e: any) {
