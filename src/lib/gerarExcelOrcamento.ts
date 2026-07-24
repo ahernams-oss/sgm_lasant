@@ -152,22 +152,25 @@ export async function gerarExcelOrcamento(orc: Orcamento, empresa?: Empresa) {
   }
 
 
-  // Total geral
+  // Total geral (linha em branco antes)
   cursor++;
-  ws.mergeCells(cursor, 1, cursor, 5);
   const totLabel = ws.getCell(cursor, 1);
   totLabel.value = "TOTAL GERAL:";
   totLabel.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 12 };
-  totLabel.alignment = { horizontal: "right", vertical: "middle" };
-  totLabel.fill = fill(COR_TOTAL);
+  totLabel.alignment = { horizontal: "left", vertical: "middle" };
   const totVal = ws.getCell(cursor, 6);
   totVal.value = orc.valorTotal;
   totVal.numFmt = money;
   totVal.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 12 };
-  totVal.fill = fill(COR_TOTAL);
-  for (let c = 1; c <= 6; c++) ws.getCell(cursor, c).border = thinBorder;
+  totVal.alignment = { horizontal: "right", vertical: "middle" };
+  for (let c = 1; c <= 6; c++) {
+    const cell = ws.getCell(cursor, c);
+    cell.fill = fill(COR_TOTAL);
+    cell.border = thinBorder;
+  }
   ws.getRow(cursor).height = 20;
   cursor += 2;
+
 
   if (orc.observacoes) {
     ws.getCell(cursor, 1).value = "Observações:";
