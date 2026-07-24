@@ -96,6 +96,7 @@ export default function Sco() {
             descricaoSco: String(cols[1] || ""),
             unidade: String(cols[2] || ""),
             tipo: tiposSco.includes(tipo) ? tipo : "SCO",
+            familia: "",
           });
           imported++;
         }
