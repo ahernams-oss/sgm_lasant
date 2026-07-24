@@ -28,7 +28,7 @@ export default function RelatorioRecebimentoEpis() {
   const { clientes } = useClientes();
   const [rows, setRows] = useState<Recebimento[]>([]);
   const [filtro, setFiltro] = useState("");
-  const [preview, setPreview] = useState<{ url: string; row: Recebimento } | null>(null);
+  const [preview, setPreview] = useState<{ urls: string[]; row: Recebimento } | null>(null);
   const [loading, setLoading] = useState(false);
   const [gerandoPdf, setGerandoPdf] = useState<string | null>(null);
 
@@ -46,13 +46,33 @@ export default function RelatorioRecebimentoEpis() {
 
   const nomeFunc = (id: string) => funcionarios.find((f) => f.id === id)?.nome || "—";
 
-  const abrirSelfie = async (r: Recebimento) => {
-    if (!r.selfie_path) { toast.error("Sem selfie."); return; }
-    const { data, error } = await (supabase as any).storage
+  const signedUrl = async (path: string): Promise<string | null> => {
+    const { data } = await (supabase as any).storage
       .from("epi-recebimentos-selfies")
-      .createSignedUrl(r.selfie_path, 300);
-    if (error || !data?.signedUrl) { toast.error("Falha ao carregar selfie."); return; }
-    setPreview({ url: data.signedUrl, row: r });
+      .createSignedUrl(path, 300);
+    return data?.signedUrl || null;
+  };
+
+  const abrirSelfie = async (r: Recebimento) => {
+    const paths = [r.selfie_path, r.selfie_path_2].filter(Boolean) as string[];
+    if (paths.length === 0) { toast.error("Sem selfie."); return; }
+    const urls = (await Promise.all(paths.map(signedUrl))).filter(Boolean) as string[];
+    if (urls.length === 0) { toast.error("Falha ao carregar selfie."); return; }
+    setPreview({ urls, row: r });
+  };
+
+  const baixarSelfie = async (path: string, nome: string) => {
+    const url = await signedUrl(path);
+    if (!url) { toast.error("Falha ao gerar link."); return; }
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = nome;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch { toast.error("Falha no download."); }
   };
 
   const fetchImageAsDataUrl = async (url: string): Promise<string | null> => {
