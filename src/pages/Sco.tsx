@@ -208,6 +208,7 @@ export default function Sco() {
             <TableRow>
               <TableHead>Código</TableHead>
               <TableHead>Descrição</TableHead>
+              <TableHead>Família</TableHead>
               <TableHead>Unidade</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead className="w-[100px]">Ações</TableHead>
@@ -216,7 +217,7 @@ export default function Sco() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   Nenhum item encontrado
                 </TableCell>
               </TableRow>
@@ -225,6 +226,7 @@ export default function Sco() {
                 <TableRow key={s.id}>
                   <TableCell className="font-mono">{s.codSco}</TableCell>
                   <TableCell>{s.descricaoSco}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{s.familia || "—"}</TableCell>
                   <TableCell>{s.unidade}</TableCell>
                   <TableCell>
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
