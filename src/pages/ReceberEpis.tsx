@@ -25,7 +25,7 @@ export default function ReceberEpis() {
   const [loading, setLoading] = useState(false);
   const [funcionarioNome, setFuncionarioNome] = useState("");
   const [epis, setEpis] = useState<EpiInfo[]>([]);
-  const [selfie, setSelfie] = useState<string | null>(null);
+  const [selfies, setSelfies] = useState<string[]>([]);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -37,13 +37,14 @@ export default function ReceberEpis() {
     if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
   }, []);
 
+  const addSelfie = (dataUrl: string) => setSelfies((prev) => (prev.length >= 2 ? prev : [...prev, dataUrl]));
+
   const onFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = String(reader.result || "");
-      // Redimensiona para no máx 800px para reduzir upload
       const img = new Image();
       img.onload = () => {
         const max = 800;
@@ -53,11 +54,12 @@ export default function ReceberEpis() {
         const canvas = document.createElement("canvas");
         canvas.width = w; canvas.height = h;
         canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
-        setSelfie(canvas.toDataURL("image/jpeg", 0.85));
+        addSelfie(canvas.toDataURL("image/jpeg", 0.85));
       };
       img.src = dataUrl;
     };
     reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   const invoke = async (action: "verify" | "confirm", body: Record<string, unknown>) => {
@@ -84,7 +86,6 @@ export default function ReceberEpis() {
 
   const iniciarCamera = async () => {
     if (isMobile) {
-      // Em celulares, aciona a câmera nativa via input file (mais confiável)
       fileInputRef.current?.click();
       return;
     }
@@ -109,18 +110,16 @@ export default function ReceberEpis() {
     canvas.width = v.videoWidth || 640;
     canvas.height = v.videoHeight || 480;
     canvas.getContext("2d")!.drawImage(v, 0, 0);
-    const b64 = canvas.toDataURL("image/jpeg", 0.85);
-    setSelfie(b64);
+    addSelfie(canvas.toDataURL("image/jpeg", 0.85));
     if (streamRef.current) { streamRef.current.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
     setCameraAtiva(false);
   };
 
-
   const confirmar = async () => {
-    if (!selfie) return;
+    if (selfies.length < 2) { toast.error("Capture as 2 selfies antes de confirmar."); return; }
     setLoading(true);
     try {
-      await invoke("confirm", { selfieBase64: selfie });
+      await invoke("confirm", { selfieBase64: selfies[0], selfieBase64_2: selfies[1] });
       toast.success("Registro de EPIs realizado com sucesso!");
       setEtapa("concluido");
       setTimeout(() => {
@@ -130,6 +129,7 @@ export default function ReceberEpis() {
     } catch (err: any) { toast.error(err.message); }
     finally { setLoading(false); }
   };
+
 
 
   return (
@@ -175,12 +175,36 @@ export default function ReceberEpis() {
               </div>
 
               <div className="rounded-md border overflow-hidden bg-black aspect-[4/3] flex items-center justify-center">
-                {selfie ? (
-                  <img src={selfie} alt="Selfie" className="w-full h-full object-contain" />
-                ) : (
+                {cameraAtiva ? (
                   <video ref={videoRef} className="w-full h-full object-contain" muted playsInline />
+                ) : selfies.length > 0 ? (
+                  <img src={selfies[selfies.length - 1]} alt="Selfie" className="w-full h-full object-contain" />
+                ) : (
+                  <div className="text-white/70 text-sm">Nenhuma foto capturada</div>
                 )}
               </div>
+
+              {selfies.length > 0 && (
+                <div className="flex gap-2 justify-center">
+                  {selfies.map((s, i) => (
+                    <div key={i} className="relative">
+                      <img src={s} alt={`Selfie ${i + 1}`} className="h-16 w-16 object-cover rounded border-2 border-green-500" />
+                      <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">{i + 1}</span>
+                    </div>
+                  ))}
+                  {Array.from({ length: 2 - selfies.length }).map((_, i) => (
+                    <div key={`p-${i}`} className="h-16 w-16 rounded border-2 border-dashed border-muted-foreground/40 flex items-center justify-center text-xs text-muted-foreground">
+                      {selfies.length + i + 1}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-xs text-center text-muted-foreground">
+                {selfies.length < 2
+                  ? `Capture ${2 - selfies.length} foto${selfies.length === 1 ? "" : "s"} para confirmar (${selfies.length}/2)`
+                  : "As 2 fotos foram capturadas. Confirme o recebimento."}
+              </p>
 
               <input
                 ref={fileInputRef}
@@ -192,17 +216,19 @@ export default function ReceberEpis() {
               />
 
               <div className="flex gap-2">
-                {!selfie && !cameraAtiva && (
+                {selfies.length < 2 && !cameraAtiva && (
                   <Button type="button" className="w-full" onClick={iniciarCamera}>
-                    <Camera className="h-4 w-4 mr-1" /> {isMobile ? "Abrir Câmera" : "Ligar Câmera"}
+                    <Camera className="h-4 w-4 mr-1" /> {isMobile ? `Tirar Foto ${selfies.length + 1}` : `Ligar Câmera (Foto ${selfies.length + 1})`}
                   </Button>
                 )}
-                {!selfie && cameraAtiva && (
-                  <Button type="button" className="w-full" onClick={capturar}>Capturar Selfie</Button>
+                {cameraAtiva && (
+                  <Button type="button" className="w-full" onClick={capturar}>
+                    Capturar Foto {selfies.length + 1}
+                  </Button>
                 )}
-                {selfie && (
+                {selfies.length >= 2 && (
                   <>
-                    <Button type="button" variant="outline" className="flex-1" onClick={() => { setSelfie(null); iniciarCamera(); }}>Refazer</Button>
+                    <Button type="button" variant="outline" className="flex-1" onClick={() => setSelfies([])}>Refazer</Button>
                     <Button type="button" className="flex-1" onClick={confirmar} disabled={loading}>
                       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar Recebimento"}
                     </Button>

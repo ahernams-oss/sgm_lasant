@@ -94,17 +94,28 @@ serve(async (req) => {
 
     if (action === "confirm") {
       const selfie = String(body?.selfieBase64 || "");
-      if (!selfie) return json({ error: "Selfie obrigatória" }, 400);
+      const selfie2 = String(body?.selfieBase64_2 || "");
+      if (!selfie || !selfie2) return json({ error: "São necessárias 2 selfies" }, 400);
 
-      const bytes = base64ToBytes(selfie);
-      if (bytes.length < 4000) return json({ error: "Imagem inválida" }, 400);
-      const hash = await sha256(bytes);
-      const path = `${rec.funcionario_id}/${rec.id}-${Date.now()}.jpg`;
+      const uploadOne = async (b64: string, suffix: string) => {
+        const bytes = base64ToBytes(b64);
+        if (bytes.length < 4000) throw new Error("Imagem inválida");
+        const hash = await sha256(bytes);
+        const path = `${rec.funcionario_id}/${rec.id}-${Date.now()}-${suffix}.jpg`;
+        const { error: upErr } = await supabase.storage
+          .from("epi-recebimentos-selfies")
+          .upload(path, bytes, { contentType: "image/jpeg", upsert: false });
+        if (upErr) throw new Error("Falha ao gravar selfie: " + upErr.message);
+        return { path, hash };
+      };
 
-      const { error: upErr } = await supabase.storage
-        .from("epi-recebimentos-selfies")
-        .upload(path, bytes, { contentType: "image/jpeg", upsert: false });
-      if (upErr) return json({ error: "Falha ao gravar selfie: " + upErr.message }, 500);
+      let f1, f2;
+      try {
+        f1 = await uploadOne(selfie, "1");
+        f2 = await uploadOne(selfie2, "2");
+      } catch (e) {
+        return json({ error: (e as Error).message }, 500);
+      }
 
       const nowIso = new Date().toISOString();
       const todayStr = nowIso.slice(0, 10);
@@ -125,8 +136,10 @@ serve(async (req) => {
         .update({
           status: "confirmado",
           confirmado_em: nowIso,
-          selfie_path: path,
-          selfie_hash: hash,
+          selfie_path: f1.path,
+          selfie_hash: f1.hash,
+          selfie_path_2: f2.path,
+          selfie_hash_2: f2.hash,
           ip,
           user_agent: ua,
           epis_snapshot: episAlvo,

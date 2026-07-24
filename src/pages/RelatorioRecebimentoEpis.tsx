@@ -10,12 +10,13 @@ import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
-import { Eye, Search, FileDown } from "lucide-react";
+import { Eye, Search, FileDown, Download } from "lucide-react";
 import { gerarPdfEpiFacial } from "@/lib/gerarPdfEpiFacial";
 
 interface Recebimento {
   id: string; funcionario_id: string; token: string; status: string;
   epis_snapshot: any[]; selfie_path: string | null; selfie_hash: string | null;
+  selfie_path_2: string | null; selfie_hash_2: string | null;
   ip: string | null; user_agent: string | null; telefone_envio: string | null;
   confirmado_em: string | null; created_at: string; expires_at: string;
   cpf_verificado: boolean; verificado_em: string | null;
@@ -27,7 +28,7 @@ export default function RelatorioRecebimentoEpis() {
   const { clientes } = useClientes();
   const [rows, setRows] = useState<Recebimento[]>([]);
   const [filtro, setFiltro] = useState("");
-  const [preview, setPreview] = useState<{ url: string; row: Recebimento } | null>(null);
+  const [preview, setPreview] = useState<{ urls: string[]; row: Recebimento } | null>(null);
   const [loading, setLoading] = useState(false);
   const [gerandoPdf, setGerandoPdf] = useState<string | null>(null);
 
@@ -45,13 +46,33 @@ export default function RelatorioRecebimentoEpis() {
 
   const nomeFunc = (id: string) => funcionarios.find((f) => f.id === id)?.nome || "—";
 
-  const abrirSelfie = async (r: Recebimento) => {
-    if (!r.selfie_path) { toast.error("Sem selfie."); return; }
-    const { data, error } = await (supabase as any).storage
+  const signedUrl = async (path: string): Promise<string | null> => {
+    const { data } = await (supabase as any).storage
       .from("epi-recebimentos-selfies")
-      .createSignedUrl(r.selfie_path, 300);
-    if (error || !data?.signedUrl) { toast.error("Falha ao carregar selfie."); return; }
-    setPreview({ url: data.signedUrl, row: r });
+      .createSignedUrl(path, 300);
+    return data?.signedUrl || null;
+  };
+
+  const abrirSelfie = async (r: Recebimento) => {
+    const paths = [r.selfie_path, r.selfie_path_2].filter(Boolean) as string[];
+    if (paths.length === 0) { toast.error("Sem selfie."); return; }
+    const urls = (await Promise.all(paths.map(signedUrl))).filter(Boolean) as string[];
+    if (urls.length === 0) { toast.error("Falha ao carregar selfie."); return; }
+    setPreview({ urls, row: r });
+  };
+
+  const baixarSelfie = async (path: string, nome: string) => {
+    const url = await signedUrl(path);
+    if (!url) { toast.error("Falha ao gerar link."); return; }
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = nome;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch { toast.error("Falha no download."); }
   };
 
   const fetchImageAsDataUrl = async (url: string): Promise<string | null> => {
@@ -175,11 +196,33 @@ export default function RelatorioRecebimentoEpis() {
           </DialogHeader>
           {preview && (
             <div className="space-y-3">
-              <img src={preview.url} alt="selfie" className="w-full rounded-md border" />
-              <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className={`grid gap-3 ${preview.urls.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                {preview.urls.map((u, i) => {
+                  const path = i === 0 ? preview.row.selfie_path : preview.row.selfie_path_2;
+                  const hash = i === 0 ? preview.row.selfie_hash : preview.row.selfie_hash_2;
+                  const nomeArq = `selfie-${nomeFunc(preview.row.funcionario_id).replace(/\s+/g, "_")}-${i + 1}.jpg`;
+                  return (
+                    <div key={i} className="space-y-2">
+                      <div className="relative">
+                        <img src={u} alt={`selfie ${i + 1}`} className="w-full rounded-md border" />
+                        <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">Foto {i + 1}</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => path && baixarSelfie(path, nomeArq)}
+                      >
+                        <Download className="h-4 w-4 mr-1" /> Baixar Foto {i + 1}
+                      </Button>
+                      {hash && <div className="text-[10px] break-all text-muted-foreground"><code>{hash}</code></div>}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-sm border-t pt-3">
                 <div><span className="text-muted-foreground">Funcionário:</span> {nomeFunc(preview.row.funcionario_id)}</div>
                 <div><span className="text-muted-foreground">Confirmado em:</span> {preview.row.confirmado_em ? new Date(preview.row.confirmado_em).toLocaleString("pt-BR") : "—"}</div>
-                <div className="col-span-2 break-all"><span className="text-muted-foreground">Hash SHA-256:</span> <code className="text-xs">{preview.row.selfie_hash}</code></div>
                 <div><span className="text-muted-foreground">IP:</span> {preview.row.ip || "—"}</div>
                 <div className="truncate" title={preview.row.user_agent || ""}><span className="text-muted-foreground">User Agent:</span> {preview.row.user_agent || "—"}</div>
                 <div className="col-span-2">
