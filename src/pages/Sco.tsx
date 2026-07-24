@@ -72,6 +72,7 @@ export default function Sco() {
             descricaoSco: cols[1] || "",
             unidade: cols[2] || "",
             tipo: tiposSco.includes(tipo) ? tipo : "SCO",
+            familia: "",
           });
           imported++;
         }
