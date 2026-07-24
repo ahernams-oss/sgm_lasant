@@ -121,7 +121,8 @@ export default function RelatorioRecebimentoEpis() {
                   <TableHead>CPF verif.</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>IP</TableHead>
-                  <TableHead className="w-24">Selfie</TableHead>
+                  <TableHead className="w-16">Selfie</TableHead>
+                  <TableHead className="w-16">PDF</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -143,11 +144,22 @@ export default function RelatorioRecebimentoEpis() {
                         </Button>
                       )}
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Gerar Ficha de EPI (PDF)"
+                        disabled={gerandoPdf === r.id}
+                        onClick={() => gerarPdf(r)}
+                      >
+                        <FileDown className={`h-4 w-4 ${gerandoPdf === r.id ? "animate-pulse" : ""}`} />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum registro.</TableCell>
+                    <TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhum registro.</TableCell>
                   </TableRow>
                 )}
               </TableBody>
