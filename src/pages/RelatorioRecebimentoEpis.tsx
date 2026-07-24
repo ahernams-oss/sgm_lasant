@@ -7,8 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
+import { useCargos } from "@/contexts/CargosContext";
+import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
-import { Eye, Search } from "lucide-react";
+import { Eye, Search, FileDown } from "lucide-react";
+import { gerarPdfEpiFacial } from "@/lib/gerarPdfEpiFacial";
 
 interface Recebimento {
   id: string; funcionario_id: string; token: string; status: string;
