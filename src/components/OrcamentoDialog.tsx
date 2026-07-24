@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Upload, X, FileText, Check, RotateCcw, ChevronsUpDown, Download, FileSpreadsheet } from "lucide-react";
 import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
 
 interface OrcamentoDialogProps {
@@ -52,6 +53,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
   const { addOrcamento, updateOrcamento } = useOrcamentos();
   const { categorias: categoriasCadastradas } = useCategoriasServicos();
   const { usuarioLogado } = useAuth();
+  const { empresa } = useEmpresa();
   const { toast } = useToast();
 
   const [itensSco, setItensSco] = useState<ItemSco[]>(existingOrcamento?.itensSco || []);
@@ -626,7 +628,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
           {/* Export options — available whenever an orçamento exists */}
           {existingOrcamento && (
             <>
-              <Button variant="outline" onClick={() => gerarPdfOrcamento(existingOrcamento)}>
+              <Button variant="outline" onClick={() => gerarPdfOrcamento(existingOrcamento, empresa)}>
                 <Download className="mr-2 h-4 w-4" /> PDF
               </Button>
               <Button variant="outline" onClick={() => gerarExcelOrcamento(existingOrcamento)}>
