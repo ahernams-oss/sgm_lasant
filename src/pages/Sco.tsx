@@ -123,7 +123,7 @@ export default function Sco() {
   };
 
   const openEdit = (s: typeof scos[0]) => {
-    setForm({ codSco: s.codSco, descricaoSco: s.descricaoSco, unidade: s.unidade, tipo: s.tipo });
+    setForm({ codSco: s.codSco, descricaoSco: s.descricaoSco, unidade: s.unidade, tipo: s.tipo, familia: s.familia });
     setEditId(s.id);
     setOpen(true);
   };
