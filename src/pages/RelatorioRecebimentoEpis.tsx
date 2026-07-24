@@ -7,8 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
+import { useCargos } from "@/contexts/CargosContext";
+import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
-import { Eye, Search } from "lucide-react";
+import { Eye, Search, FileDown } from "lucide-react";
+import { gerarPdfEpiFacial } from "@/lib/gerarPdfEpiFacial";
 
 interface Recebimento {
   id: string; funcionario_id: string; token: string; status: string;
@@ -20,10 +23,13 @@ interface Recebimento {
 
 export default function RelatorioRecebimentoEpis() {
   const { funcionarios } = useFuncionarios();
+  const { cargos } = useCargos();
+  const { clientes } = useClientes();
   const [rows, setRows] = useState<Recebimento[]>([]);
   const [filtro, setFiltro] = useState("");
   const [preview, setPreview] = useState<{ url: string; row: Recebimento } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [gerandoPdf, setGerandoPdf] = useState<string | null>(null);
 
   const carregar = async () => {
     setLoading(true);
@@ -46,6 +52,42 @@ export default function RelatorioRecebimentoEpis() {
       .createSignedUrl(r.selfie_path, 300);
     if (error || !data?.signedUrl) { toast.error("Falha ao carregar selfie."); return; }
     setPreview({ url: data.signedUrl, row: r });
+  };
+
+  const fetchImageAsDataUrl = async (url: string): Promise<string | null> => {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      return await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onloadend = () => resolve(r.result as string);
+        r.onerror = reject;
+        r.readAsDataURL(blob);
+      });
+    } catch { return null; }
+  };
+
+  const gerarPdf = async (r: Recebimento) => {
+    const func = funcionarios.find((f) => f.id === r.funcionario_id);
+    if (!func) { toast.error("Funcionário não encontrado."); return; }
+    setGerandoPdf(r.id);
+    try {
+      let selfieDataUrl: string | null = null;
+      if (r.selfie_path) {
+        const { data } = await (supabase as any).storage
+          .from("epi-recebimentos-selfies")
+          .createSignedUrl(r.selfie_path, 300);
+        if (data?.signedUrl) selfieDataUrl = await fetchImageAsDataUrl(data.signedUrl);
+      }
+      const cargoNome = cargos.find((c: any) => c.id === func.cargoId)?.nome || "";
+      const clienteNome = clientes.find((c: any) => c.id === func.clienteId)?.nomeFantasia || clientes.find((c: any) => c.id === func.clienteId)?.nome || "";
+      await gerarPdfEpiFacial(func, r, { cargoNome, clienteNome, selfieDataUrl });
+      toast.success("PDF gerado.");
+    } catch (e: any) {
+      toast.error("Falha ao gerar PDF: " + (e?.message || ""));
+    } finally {
+      setGerandoPdf(null);
+    }
   };
 
   const filtered = rows.filter((r) => {
@@ -79,7 +121,8 @@ export default function RelatorioRecebimentoEpis() {
                   <TableHead>CPF verif.</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>IP</TableHead>
-                  <TableHead className="w-24">Selfie</TableHead>
+                  <TableHead className="w-16">Selfie</TableHead>
+                  <TableHead className="w-16">PDF</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -101,11 +144,22 @@ export default function RelatorioRecebimentoEpis() {
                         </Button>
                       )}
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Gerar Ficha de EPI (PDF)"
+                        disabled={gerandoPdf === r.id}
+                        onClick={() => gerarPdf(r)}
+                      >
+                        <FileDown className={`h-4 w-4 ${gerandoPdf === r.id ? "animate-pulse" : ""}`} />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum registro.</TableCell>
+                    <TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhum registro.</TableCell>
                   </TableRow>
                 )}
               </TableBody>
