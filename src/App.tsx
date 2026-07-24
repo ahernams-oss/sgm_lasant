@@ -78,6 +78,8 @@ import PregaoResultadoPage from "./pages/pregao/PregaoResultado.tsx";
 import FabricantesPage from "./pages/Fabricantes.tsx";
 import EpisPage from "./pages/EpisPage.tsx";
 import EpisCatalogoPage from "./pages/EpisCatalogo.tsx";
+import ReceberEpis from "./pages/ReceberEpis.tsx";
+import RelatorioRecebimentoEpis from "./pages/RelatorioRecebimentoEpis.tsx";
 import { EpisCatalogoProvider } from "@/contexts/EpisCatalogoContext";
 import ExamesPage from "./pages/ExamesPage.tsx";
 import UnsubscribePage from "./pages/Unsubscribe.tsx";
