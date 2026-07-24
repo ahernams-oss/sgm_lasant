@@ -25,3 +25,6 @@ verify_jwt = false
 
 [functions.analisar-edital-licitacao]
 verify_jwt = false
+
+[functions.epi-recebimento-publico]
+verify_jwt = false
