@@ -364,9 +364,6 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
         <Field label="CA">
           <Input value={novo.ca} onChange={(e) => setNovo({ ...novo, ca: e.target.value })} placeholder="Nº do CA" />
         </Field>
-        <Field label="Data de Entrega">
-          <Input type="date" value={novo.dataEntrega} onChange={(e) => setNovo({ ...novo, dataEntrega: e.target.value })} />
-        </Field>
         <Field label="Data de Vencimento">
           <Input type="date" value={novo.dataVencimento} onChange={(e) => setNovo({ ...novo, dataVencimento: e.target.value })} />
         </Field>
@@ -448,9 +445,14 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
                     <Input value={epi.ca || ""} onChange={(e) => updateEpi(epi.id, { ca: e.target.value })}
                       placeholder="Nº do CA" className="h-8" />
                   </TableCell>
-                  <TableCell>
-                    <Input type="date" value={epi.dataEntrega || ""}
-                      onChange={(e) => updateEpi(epi.id, { dataEntrega: e.target.value })} className="h-8" />
+                  <TableCell className="text-center text-sm">
+                    {epi.dataEntrega ? (
+                      <span title="Confirmado por reconhecimento facial">
+                        {epi.dataEntrega.split("-").reverse().join("/")}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">— pendente —</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Input type="date" value={epi.dataVencimento || ""}
