@@ -18,7 +18,9 @@ import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Upload, X, FileText, Check, RotateCcw, ChevronsUpDown } from "lucide-react";
+import { Plus, Trash2, Upload, X, FileText, Check, RotateCcw, ChevronsUpDown, Download, FileSpreadsheet } from "lucide-react";
+import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
+import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
 
 interface OrcamentoDialogProps {
   open: boolean;
@@ -620,6 +622,19 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Fechar</Button>
+
+          {/* Export options — available whenever an orçamento exists */}
+          {existingOrcamento && (
+            <>
+              <Button variant="outline" onClick={() => gerarPdfOrcamento(existingOrcamento)}>
+                <Download className="mr-2 h-4 w-4" /> PDF
+              </Button>
+              <Button variant="outline" onClick={() => gerarExcelOrcamento(existingOrcamento)}>
+                <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
+              </Button>
+            </>
+          )}
+
 
           {/* Save as draft */}
           {isRascunho && (
