@@ -364,9 +364,6 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
         <Field label="CA">
           <Input value={novo.ca} onChange={(e) => setNovo({ ...novo, ca: e.target.value })} placeholder="Nº do CA" />
         </Field>
-        <Field label="Data de Entrega">
-          <Input type="date" value={novo.dataEntrega} onChange={(e) => setNovo({ ...novo, dataEntrega: e.target.value })} />
-        </Field>
         <Field label="Data de Vencimento">
           <Input type="date" value={novo.dataVencimento} onChange={(e) => setNovo({ ...novo, dataVencimento: e.target.value })} />
         </Field>
