@@ -229,16 +229,47 @@ export default function ReceberEpis() {
                     Capturar Foto {selfies.length + 1}
                   </Button>
                 )}
-                {selfies.length >= 2 && (
+                {selfies.length >= 2 && !cameraAtiva && (
                   <>
                     <Button type="button" variant="outline" className="flex-1" onClick={() => setSelfies([])}>Refazer</Button>
-                    <Button type="button" className="flex-1" onClick={confirmar} disabled={loading}>
-                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar Recebimento"}
+                    <Button type="button" className="flex-1" onClick={() => setEtapa("revisar")}>
+                      Avançar para Revisão
                     </Button>
                   </>
                 )}
               </div>
 
+            </div>
+          )}
+
+          {etapa === "revisar" && (
+            <div className="space-y-4">
+              <p className="text-sm">Confira as fotos capturadas antes de confirmar o recebimento.</p>
+              <div className="grid grid-cols-2 gap-2">
+                {selfies.map((s, i) => (
+                  <div key={i} className="border rounded overflow-hidden">
+                    <img src={s} alt={`Selfie ${i + 1}`} className="w-full h-40 object-cover" />
+                    <div className="text-center text-xs py-1 bg-muted">Foto {i + 1}</div>
+                  </div>
+                ))}
+              </div>
+              <label className="flex items-start gap-2 text-sm p-3 border rounded-md bg-muted/30">
+                <input
+                  type="checkbox"
+                  checked={confirmado}
+                  onChange={(e) => setConfirmado(e.target.checked)}
+                  className="mt-1"
+                />
+                <span>Declaro que recebi os EPIs listados e que as fotos acima são minhas.</span>
+              </label>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" className="flex-1" onClick={() => { setConfirmado(false); setEtapa("capturar"); }}>
+                  Voltar
+                </Button>
+                <Button type="button" className="flex-1" onClick={confirmar} disabled={loading || !confirmado}>
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar Recebimento"}
+                </Button>
+              </div>
             </div>
           )}
 
