@@ -45,22 +45,30 @@ const thinBorder = {
   right: { style: "thin" as const, color: { argb: "FFB4B4B4" } },
 };
 
-export async function gerarExcelOrcamento(orc: Orcamento) {
+export async function gerarExcelOrcamento(orc: Orcamento, empresa?: Empresa) {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Orçamento");
 
   ws.columns = [
-    { width: 18 }, { width: 60 }, { width: 10 },
+    { width: 22 }, { width: 60 }, { width: 10 },
     { width: 12 }, { width: 16 }, { width: 16 },
   ];
 
+  // Nome da empresa (padrão LASANT)
+  ws.mergeCells("A7:F7");
+  const emp = ws.getCell("A7");
+  emp.value = (empresa?.razaoSocial || empresa?.nomeFantasia || "LASANT CONSTRUÇÕES LTDA").toUpperCase();
+  emp.font = { bold: true, size: 12, color: { argb: "FF1E3A6B" } };
+  emp.alignment = { horizontal: "center", vertical: "middle" };
+  ws.getRow(7).height = 20;
+
   // Título
-  ws.mergeCells("A1:F1");
-  const title = ws.getCell("A1");
+  ws.mergeCells("A9:F9");
+  const title = ws.getCell("A9");
   title.value = "ORÇAMENTO DE SERVIÇO";
   title.font = { bold: true, size: 16, color: { argb: "FF1E3A6B" } };
   title.alignment = { horizontal: "center", vertical: "middle" };
-  ws.getRow(1).height = 24;
+  ws.getRow(9).height = 24;
 
   // Info do orçamento
   const info: Array<[string, any, string, any]> = [
@@ -69,7 +77,7 @@ export async function gerarExcelOrcamento(orc: Orcamento) {
     ["Categoria", orc.categoria || "-", "Data", orc.createdAt ? new Date(orc.createdAt).toLocaleDateString("pt-BR") : ""],
   ];
   info.forEach((row, idx) => {
-    const r = 3 + idx;
+    const r = 11 + idx;
     ws.getCell(`A${r}`).value = row[0];
     ws.getCell(`A${r}`).font = { bold: true };
     ws.getCell(`B${r}`).value = row[1];
@@ -79,7 +87,7 @@ export async function gerarExcelOrcamento(orc: Orcamento) {
   });
 
   // Cabeçalho da tabela
-  const headerRow = 7;
+  const headerRow = 15;
   const headers = ["Código", "Descrição", "Unid", "Quant", "Pr. Unit.", "Pr. Total"];
   headers.forEach((h, i) => {
     const cell = ws.getCell(headerRow, i + 1);
@@ -89,6 +97,8 @@ export async function gerarExcelOrcamento(orc: Orcamento) {
     cell.alignment = { horizontal: "center", vertical: "middle" };
     cell.border = thinBorder;
   });
+
+
 
   const money = 'R$ #,##0.00;[Red]-R$ #,##0.00';
   const grupos = coletar(orc);
