@@ -176,13 +176,22 @@ export default function ReceberEpis() {
                 )}
               </div>
 
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="user"
+                className="hidden"
+                onChange={onFileSelected}
+              />
+
               <div className="flex gap-2">
-                {!selfie && !streamRef.current && (
+                {!selfie && !cameraAtiva && (
                   <Button type="button" className="w-full" onClick={iniciarCamera}>
-                    <Camera className="h-4 w-4 mr-1" /> Ligar Câmera
+                    <Camera className="h-4 w-4 mr-1" /> {isMobile ? "Abrir Câmera" : "Ligar Câmera"}
                   </Button>
                 )}
-                {!selfie && streamRef.current && (
+                {!selfie && cameraAtiva && (
                   <Button type="button" className="w-full" onClick={capturar}>Capturar Selfie</Button>
                 )}
                 {selfie && (
@@ -194,6 +203,7 @@ export default function ReceberEpis() {
                   </>
                 )}
               </div>
+
             </div>
           )}
 
