@@ -25,7 +25,7 @@ export default function ReceberEpis() {
   const [loading, setLoading] = useState(false);
   const [funcionarioNome, setFuncionarioNome] = useState("");
   const [epis, setEpis] = useState<EpiInfo[]>([]);
-  const [selfie, setSelfie] = useState<string | null>(null);
+  const [selfies, setSelfies] = useState<string[]>([]);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
