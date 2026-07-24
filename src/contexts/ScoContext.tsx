@@ -5,9 +5,9 @@ import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper"
 export type TipoSco = "SCO" | "SINAPI" | "EMOP";
 export const tiposSco: TipoSco[] = ["SCO", "SINAPI", "EMOP"];
 
-export interface Sco { id: string; codSco: string; descricaoSco: string; unidade: string; tipo: TipoSco; }
+export interface Sco { id: string; codSco: string; descricaoSco: string; unidade: string; tipo: TipoSco; familia: string; }
 
-export const emptyScoForm: Omit<Sco, "id"> = { codSco: "", descricaoSco: "", unidade: "", tipo: "SCO" };
+export const emptyScoForm: Omit<Sco, "id"> = { codSco: "", descricaoSco: "", unidade: "", tipo: "SCO", familia: "" };
 
 interface ScoContextType {
   scos: Sco[]; addSco: (s: Omit<Sco, "id">) => void;
@@ -20,7 +20,7 @@ const QK = ["scos"] as const;
 
 const rowToSco = (r: any): Sco => ({
   id: r.id, codSco: r.cod_sco ?? "", descricaoSco: r.descricao_sco ?? "",
-  unidade: r.unidade ?? "", tipo: r.tipo ?? "SCO",
+  unidade: r.unidade ?? "", tipo: r.tipo ?? "SCO", familia: r.familia ?? "",
 });
 
 const scoToRow = (s: Omit<Sco, "id">) => ({

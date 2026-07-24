@@ -72,6 +72,7 @@ export default function Sco() {
             descricaoSco: cols[1] || "",
             unidade: cols[2] || "",
             tipo: tiposSco.includes(tipo) ? tipo : "SCO",
+            familia: "",
           });
           imported++;
         }
@@ -95,6 +96,7 @@ export default function Sco() {
             descricaoSco: String(cols[1] || ""),
             unidade: String(cols[2] || ""),
             tipo: tiposSco.includes(tipo) ? tipo : "SCO",
+            familia: "",
           });
           imported++;
         }
@@ -121,7 +123,7 @@ export default function Sco() {
   };
 
   const openEdit = (s: typeof scos[0]) => {
-    setForm({ codSco: s.codSco, descricaoSco: s.descricaoSco, unidade: s.unidade, tipo: s.tipo });
+    setForm({ codSco: s.codSco, descricaoSco: s.descricaoSco, unidade: s.unidade, tipo: s.tipo, familia: s.familia });
     setEditId(s.id);
     setOpen(true);
   };
@@ -206,6 +208,7 @@ export default function Sco() {
             <TableRow>
               <TableHead>Código</TableHead>
               <TableHead>Descrição</TableHead>
+              <TableHead>Família</TableHead>
               <TableHead>Unidade</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead className="w-[100px]">Ações</TableHead>
@@ -214,7 +217,7 @@ export default function Sco() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   Nenhum item encontrado
                 </TableCell>
               </TableRow>
@@ -223,6 +226,7 @@ export default function Sco() {
                 <TableRow key={s.id}>
                   <TableCell className="font-mono">{s.codSco}</TableCell>
                   <TableCell>{s.descricaoSco}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{s.familia || "—"}</TableCell>
                   <TableCell>{s.unidade}</TableCell>
                   <TableCell>
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -261,6 +265,10 @@ export default function Sco() {
             <div>
               <Label>Código SCO *</Label>
               <Input value={form.codSco} onChange={(e) => setForm({ ...form, codSco: e.target.value })} />
+            </div>
+            <div>
+              <Label>Família</Label>
+              <Input value={form.familia} readOnly placeholder="Preenchida automaticamente pelo prefixo do código" className="bg-muted" />
             </div>
             <div>
               <Label>Descrição *</Label>

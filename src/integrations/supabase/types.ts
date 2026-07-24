@@ -7619,6 +7619,7 @@ export type Database = {
           cod_sco: string | null
           created_at: string | null
           descricao_sco: string | null
+          familia: string | null
           id: string
           tipo: string | null
           unidade: string | null
@@ -7627,6 +7628,7 @@ export type Database = {
           cod_sco?: string | null
           created_at?: string | null
           descricao_sco?: string | null
+          familia?: string | null
           id?: string
           tipo?: string | null
           unidade?: string | null
@@ -7635,6 +7637,7 @@ export type Database = {
           cod_sco?: string | null
           created_at?: string | null
           descricao_sco?: string | null
+          familia?: string | null
           id?: string
           tipo?: string | null
           unidade?: string | null
