@@ -1,5 +1,7 @@
 import ExcelJS from "exceljs";
 import { Orcamento } from "@/contexts/OrcamentosContext";
+import { Empresa } from "@/contexts/EmpresaContext";
+
 
 const SEM_FAMILIA = "SEM FAMÍLIA";
 
@@ -43,22 +45,30 @@ const thinBorder = {
   right: { style: "thin" as const, color: { argb: "FFB4B4B4" } },
 };
 
-export async function gerarExcelOrcamento(orc: Orcamento) {
+export async function gerarExcelOrcamento(orc: Orcamento, empresa?: Empresa) {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Orçamento");
 
   ws.columns = [
-    { width: 18 }, { width: 60 }, { width: 10 },
+    { width: 22 }, { width: 60 }, { width: 10 },
     { width: 12 }, { width: 16 }, { width: 16 },
   ];
 
+  // Nome da empresa (padrão LASANT)
+  ws.mergeCells("A7:F7");
+  const emp = ws.getCell("A7");
+  emp.value = (empresa?.razaoSocial || empresa?.nomeFantasia || "LASANT CONSTRUÇÕES LTDA").toUpperCase();
+  emp.font = { bold: true, size: 12, color: { argb: "FF1E3A6B" } };
+  emp.alignment = { horizontal: "center", vertical: "middle" };
+  ws.getRow(7).height = 20;
+
   // Título
-  ws.mergeCells("A1:F1");
-  const title = ws.getCell("A1");
+  ws.mergeCells("A9:F9");
+  const title = ws.getCell("A9");
   title.value = "ORÇAMENTO DE SERVIÇO";
   title.font = { bold: true, size: 16, color: { argb: "FF1E3A6B" } };
   title.alignment = { horizontal: "center", vertical: "middle" };
-  ws.getRow(1).height = 24;
+  ws.getRow(9).height = 24;
 
   // Info do orçamento
   const info: Array<[string, any, string, any]> = [
@@ -67,7 +77,7 @@ export async function gerarExcelOrcamento(orc: Orcamento) {
     ["Categoria", orc.categoria || "-", "Data", orc.createdAt ? new Date(orc.createdAt).toLocaleDateString("pt-BR") : ""],
   ];
   info.forEach((row, idx) => {
-    const r = 3 + idx;
+    const r = 11 + idx;
     ws.getCell(`A${r}`).value = row[0];
     ws.getCell(`A${r}`).font = { bold: true };
     ws.getCell(`B${r}`).value = row[1];
@@ -77,7 +87,7 @@ export async function gerarExcelOrcamento(orc: Orcamento) {
   });
 
   // Cabeçalho da tabela
-  const headerRow = 7;
+  const headerRow = 15;
   const headers = ["Código", "Descrição", "Unid", "Quant", "Pr. Unit.", "Pr. Total"];
   headers.forEach((h, i) => {
     const cell = ws.getCell(headerRow, i + 1);
@@ -88,19 +98,23 @@ export async function gerarExcelOrcamento(orc: Orcamento) {
     cell.border = thinBorder;
   });
 
+
+
   const money = 'R$ #,##0.00;[Red]-R$ #,##0.00';
   const grupos = coletar(orc);
   let cursor = headerRow + 1;
 
   for (const [familia, itens] of Array.from(grupos.entries()).sort(([a], [b]) => a.localeCompare(b, "pt-BR"))) {
-    // Linha da Família
-    ws.mergeCells(cursor, 1, cursor, 6);
+    // Linha da Família (label em A, fill em toda a linha, sem merge)
     const famCell = ws.getCell(cursor, 1);
     famCell.value = familia;
     famCell.font = { bold: true, color: { argb: "FF1E3A6B" } };
-    famCell.fill = fill(COR_FAMILIA);
     famCell.alignment = { horizontal: "left", vertical: "middle" };
-    for (let c = 1; c <= 6; c++) ws.getCell(cursor, c).border = thinBorder;
+    for (let c = 1; c <= 6; c++) {
+      const cell = ws.getCell(cursor, c);
+      cell.fill = fill(COR_FAMILIA);
+      cell.border = thinBorder;
+    }
     cursor++;
 
     let sub = 0;
@@ -111,45 +125,52 @@ export async function gerarExcelOrcamento(orc: Orcamento) {
         const cell = ws.getCell(cursor, i + 1);
         cell.value = v;
         cell.border = thinBorder;
-        if (i >= 3) cell.alignment = { horizontal: "right" };
-        if (i === 2) cell.alignment = { horizontal: "center" };
+        cell.alignment = { vertical: "top", wrapText: i === 1 };
+        if (i >= 3) cell.alignment = { horizontal: "right", vertical: "top" };
+        if (i === 2) cell.alignment = { horizontal: "center", vertical: "top" };
         if (i === 4 || i === 5) cell.numFmt = money;
       });
       cursor++;
     }
 
-    // Subtotal
-    ws.mergeCells(cursor, 1, cursor, 5);
+    // Subtotal (label em A, valor em F, sem merge)
     const subLabel = ws.getCell(cursor, 1);
     subLabel.value = `Subtotal ${familia}:`;
     subLabel.font = { bold: true };
-    subLabel.alignment = { horizontal: "right", vertical: "middle" };
-    subLabel.fill = fill(COR_SUBTOTAL);
+    subLabel.alignment = { horizontal: "left", vertical: "middle" };
     const subVal = ws.getCell(cursor, 6);
     subVal.value = sub;
     subVal.numFmt = money;
     subVal.font = { bold: true };
-    subVal.fill = fill(COR_SUBTOTAL);
-    for (let c = 1; c <= 6; c++) ws.getCell(cursor, c).border = thinBorder;
+    subVal.alignment = { horizontal: "right", vertical: "middle" };
+    for (let c = 1; c <= 6; c++) {
+      const cell = ws.getCell(cursor, c);
+      cell.fill = fill(COR_SUBTOTAL);
+      cell.border = thinBorder;
+    }
     cursor++;
   }
 
-  // Total geral
+
+  // Total geral (linha em branco antes)
   cursor++;
-  ws.mergeCells(cursor, 1, cursor, 5);
   const totLabel = ws.getCell(cursor, 1);
   totLabel.value = "TOTAL GERAL:";
   totLabel.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 12 };
-  totLabel.alignment = { horizontal: "right", vertical: "middle" };
-  totLabel.fill = fill(COR_TOTAL);
+  totLabel.alignment = { horizontal: "left", vertical: "middle" };
   const totVal = ws.getCell(cursor, 6);
   totVal.value = orc.valorTotal;
   totVal.numFmt = money;
   totVal.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 12 };
-  totVal.fill = fill(COR_TOTAL);
-  for (let c = 1; c <= 6; c++) ws.getCell(cursor, c).border = thinBorder;
+  totVal.alignment = { horizontal: "right", vertical: "middle" };
+  for (let c = 1; c <= 6; c++) {
+    const cell = ws.getCell(cursor, c);
+    cell.fill = fill(COR_TOTAL);
+    cell.border = thinBorder;
+  }
   ws.getRow(cursor).height = 20;
   cursor += 2;
+
 
   if (orc.observacoes) {
     ws.getCell(cursor, 1).value = "Observações:";

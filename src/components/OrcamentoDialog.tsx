@@ -631,7 +631,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
               <Button variant="outline" onClick={() => gerarPdfOrcamento(existingOrcamento, empresa)}>
                 <Download className="mr-2 h-4 w-4" /> PDF
               </Button>
-              <Button variant="outline" onClick={() => gerarExcelOrcamento(existingOrcamento)}>
+              <Button variant="outline" onClick={() => gerarExcelOrcamento(existingOrcamento, empresa)}>
                 <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
               </Button>
             </>
