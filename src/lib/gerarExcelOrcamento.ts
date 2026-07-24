@@ -45,6 +45,16 @@ const thinBorder = {
   right: { style: "thin" as const, color: { argb: "FFB4B4B4" } },
 };
 
+async function fetchLogoBuffer(url: string): Promise<{ buffer: ArrayBuffer; ext: "png" | "jpeg" } | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const type = res.headers.get("content-type") || "";
+    const ext: "png" | "jpeg" = type.includes("jpeg") || type.includes("jpg") || /\.jpe?g($|\?)/i.test(url) ? "jpeg" : "png";
+    return { buffer: await res.arrayBuffer(), ext };
+  } catch { return null; }
+}
+
 export async function gerarExcelOrcamento(orc: Orcamento, empresa?: Empresa) {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Orçamento");
@@ -54,6 +64,16 @@ export async function gerarExcelOrcamento(orc: Orcamento, empresa?: Empresa) {
     { width: 12 }, { width: 16 }, { width: 16 },
   ];
 
+  // Logo da empresa (canto superior esquerdo)
+  if (empresa?.logoUrl) {
+    const logo = await fetchLogoBuffer(empresa.logoUrl);
+    if (logo) {
+      const imageId = wb.addImage({ buffer: logo.buffer as any, extension: logo.ext });
+      ws.addImage(imageId, { tl: { col: 0, row: 0 }, ext: { width: 140, height: 90 } });
+    }
+  }
+  for (let r = 1; r <= 6; r++) ws.getRow(r).height = 16;
+
   // Nome da empresa (padrão LASANT)
   ws.mergeCells("A7:F7");
   const emp = ws.getCell("A7");
@@ -61,6 +81,7 @@ export async function gerarExcelOrcamento(orc: Orcamento, empresa?: Empresa) {
   emp.font = { bold: true, size: 12, color: { argb: "FF1E3A6B" } };
   emp.alignment = { horizontal: "center", vertical: "middle" };
   ws.getRow(7).height = 20;
+
 
   // Título
   ws.mergeCells("A9:F9");
