@@ -53,6 +53,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
   const { addOrcamento, updateOrcamento } = useOrcamentos();
   const { categorias: categoriasCadastradas } = useCategoriasServicos();
   const { usuarioLogado } = useAuth();
+  const { empresa } = useEmpresa();
   const { toast } = useToast();
 
   const [itensSco, setItensSco] = useState<ItemSco[]>(existingOrcamento?.itensSco || []);
