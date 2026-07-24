@@ -1168,7 +1168,7 @@ const Funcionarios = () => {
 
               {/* EPIs */}
               <TabsContent value="epis">
-                <EpiTab epis={form.epis || []} onChange={(e) => update("epis", e as any)} cargoId={form.cargoId} />
+                <EpiTab epis={form.epis || []} onChange={(e) => update("epis", e as any)} cargoId={form.cargoId} funcionarioId={editingId || undefined} telefoneWhatsapp={form.telefoneWhatsapp} />
               </TabsContent>
 
               {/* NRs */}
