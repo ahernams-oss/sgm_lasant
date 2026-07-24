@@ -94,6 +94,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       quantidade: 1,
       valorUnitario: price,
       valorTotal: price,
+      familia: sco.familia || "",
     }]);
     setScoPopoverOpen(false);
     setScoSearch("");
