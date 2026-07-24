@@ -255,7 +255,7 @@ const DependentesTab = ({ dependentes, onChange }: { dependentes: Dependente[]; 
   );
 };
 
-const EpiTab = ({ epis, onChange, cargoId }: { epis: EpiItem[]; onChange: (e: EpiItem[]) => void; cargoId?: string }) => {
+const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { epis: EpiItem[]; onChange: (e: EpiItem[]) => void; cargoId?: string; funcionarioId?: string; telefoneWhatsapp?: string }) => {
   const [novo, setNovo] = useState({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "" });
   const [epiPopoverOpen, setEpiPopoverOpen] = useState(false);
   const { materiais } = useMateriaisServicos();
@@ -375,11 +375,51 @@ const EpiTab = ({ epis, onChange, cargoId }: { epis: EpiItem[]; onChange: (e: Ep
         </Button>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" size="sm" onClick={recarregarDoCargo} disabled={!cargoId}>
           <HardHat className="h-4 w-4 mr-1" /> Recarregar EPIs do Cargo
         </Button>
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          disabled={!funcionarioId}
+          onClick={async () => {
+            if (!funcionarioId) { toast.error("Salve o funcionário antes de enviar o link."); return; }
+            const pendentes = epis.filter((e) => !e.dataEntrega);
+            if (pendentes.length === 0) { toast.error("Não há EPIs pendentes de recebimento."); return; }
+            try {
+              const token = crypto.randomUUID().replace(/-/g, "") + Math.random().toString(36).slice(2, 8);
+              const { error } = await (supabase as any).from("epis_recebimentos").insert({
+                funcionario_id: funcionarioId,
+                token,
+                epis_ids: pendentes.map((e) => e.id),
+                epis_snapshot: pendentes,
+                telefone_envio: telefoneWhatsapp || null,
+              });
+              if (error) throw error;
+              const link = `${window.location.origin}/receber-epis/${token}`;
+              const msg = `Olá! Você tem ${pendentes.length} EPI(s) a confirmar. Acesse o link seguro (válido por 7 dias) para confirmar o recebimento com reconhecimento facial: ${link}`;
+              const fone = (telefoneWhatsapp || "").replace(/\D/g, "");
+              if (fone) {
+                const { enviarPlugSend } = await import("@/lib/plugsend");
+                const r = await enviarPlugSend(fone, msg);
+                if (r.success) toast.success("Link enviado por WhatsApp.");
+                else toast.warning("Link gerado mas WhatsApp falhou. Copie manualmente.");
+              } else {
+                toast.info("Sem WhatsApp cadastrado. Link copiado.");
+              }
+              try { await navigator.clipboard.writeText(link); } catch {}
+            } catch (e: any) {
+              console.error(e);
+              toast.error("Falha ao gerar link: " + (e?.message || ""));
+            }
+          }}
+        >
+          Enviar link de recebimento
+        </Button>
       </div>
+
 
       {epis.length > 0 && (
         <div className="rounded-lg border border-border overflow-hidden">
@@ -1168,7 +1208,7 @@ const Funcionarios = () => {
 
               {/* EPIs */}
               <TabsContent value="epis">
-                <EpiTab epis={form.epis || []} onChange={(e) => update("epis", e as any)} cargoId={form.cargoId} />
+                <EpiTab epis={form.epis || []} onChange={(e) => update("epis", e as any)} cargoId={form.cargoId} funcionarioId={editingId || undefined} telefoneWhatsapp={form.telefoneWhatsapp} />
               </TabsContent>
 
               {/* NRs */}

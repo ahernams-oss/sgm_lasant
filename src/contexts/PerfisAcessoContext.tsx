@@ -81,6 +81,7 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "funcionarios.excluir", label: "Pode Excluir Funcionário" },
           { key: "funcionarios.exportar_pdf", label: "Pode Exportar PDF de Funcionário" },
           { key: "funcionarios.gerenciar_epis", label: "Pode Gerenciar EPIs do Funcionário" },
+          { key: "funcionarios.enviar_link_recebimento_epi", label: "Pode Enviar Link de Recebimento de EPI (Facial)" },
           { key: "funcionarios.gerenciar_nrs", label: "Pode Gerenciar NRs do Funcionário" },
           { key: "funcionarios.gerenciar_lancamentos", label: "Pode Gerenciar Lançamentos (advertências, etc.)" },
           { key: "funcionarios.gerenciar_exames", label: "Pode Gerenciar Exames Periódicos" },
@@ -98,6 +99,14 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "funcionarios.flag.pcd", label: "Pode Gerenciar Funcionários PCD" },
           { key: "funcionarios.flag.dependentes", label: "Pode Gerenciar Dependentes" },
           { key: "funcionarios.flag.passagens", label: "Pode Gerenciar Passagens" },
+        ],
+      },
+      {
+        key: "epi_recebimento_facial",
+        label: "Recebimento de EPIs (Facial)",
+        acoes: [
+          { key: "epi_recebimento_facial.visualizar", label: "Pode Visualizar Relatório de Recebimento Facial" },
+          { key: "epi_recebimento_facial.exportar", label: "Pode Exportar Relatório de Recebimento Facial" },
         ],
       },
       {

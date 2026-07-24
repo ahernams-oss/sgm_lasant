@@ -1569,6 +1569,77 @@ export type Database = {
         }
         Relationships: []
       }
+      epis_recebimentos: {
+        Row: {
+          confirmado_em: string | null
+          cpf_verificado: boolean
+          created_at: string
+          enviado_por: string | null
+          epis_ids: string[]
+          epis_snapshot: Json
+          expires_at: string
+          funcionario_id: string
+          id: string
+          ip: string | null
+          selfie_hash: string | null
+          selfie_path: string | null
+          status: string
+          telefone_envio: string | null
+          token: string
+          updated_at: string
+          user_agent: string | null
+          verificado_em: string | null
+        }
+        Insert: {
+          confirmado_em?: string | null
+          cpf_verificado?: boolean
+          created_at?: string
+          enviado_por?: string | null
+          epis_ids?: string[]
+          epis_snapshot?: Json
+          expires_at?: string
+          funcionario_id: string
+          id?: string
+          ip?: string | null
+          selfie_hash?: string | null
+          selfie_path?: string | null
+          status?: string
+          telefone_envio?: string | null
+          token: string
+          updated_at?: string
+          user_agent?: string | null
+          verificado_em?: string | null
+        }
+        Update: {
+          confirmado_em?: string | null
+          cpf_verificado?: boolean
+          created_at?: string
+          enviado_por?: string | null
+          epis_ids?: string[]
+          epis_snapshot?: Json
+          expires_at?: string
+          funcionario_id?: string
+          id?: string
+          ip?: string | null
+          selfie_hash?: string | null
+          selfie_path?: string | null
+          status?: string
+          telefone_envio?: string | null
+          token?: string
+          updated_at?: string
+          user_agent?: string | null
+          verificado_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "epis_recebimentos_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipamentos: {
         Row: {
           calibracao_notificado_15d: boolean | null

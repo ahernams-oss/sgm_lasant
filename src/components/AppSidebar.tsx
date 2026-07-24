@@ -78,6 +78,7 @@ const menuItems = [
       { title: "Processos Seletivos", url: "/processos-seletivos", icon: ClipboardCheck, perm: "processos_seletivos" },
       { title: "Funcionários", url: "/funcionarios", icon: UserCheck, perm: "funcionarios" },
       { title: "EPIs", url: "/epis", icon: HardHat, perm: "funcionarios" },
+      { title: "Recebimento de EPIs (Facial)", url: "/epis/recebimentos", icon: HardHat, perm: "epi_recebimento_facial" },
       { title: "Exames Periódicos", url: "/exames", icon: Stethoscope, perm: "funcionarios" },
       { title: "Mapa de Funcionários", url: "/mapa-funcionarios", icon: CalendarClock, perm: "mapa_funcionarios" },
       { title: "Mapa de Plantões", url: "/mapa-plantoes", icon: CalendarClock, perm: "mapa_funcionarios" },
