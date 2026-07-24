@@ -622,7 +622,7 @@ export default function SolicitacaoServicosPage() {
       return;
     }
     if (tipo === "pdf") {
-      gerarPdfOrcamento(orc);
+      gerarPdfOrcamento(orc, empresa);
     } else {
       gerarExcelOrcamento(orc);
     }
