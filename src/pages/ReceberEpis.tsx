@@ -175,12 +175,36 @@ export default function ReceberEpis() {
               </div>
 
               <div className="rounded-md border overflow-hidden bg-black aspect-[4/3] flex items-center justify-center">
-                {selfie ? (
-                  <img src={selfie} alt="Selfie" className="w-full h-full object-contain" />
-                ) : (
+                {cameraAtiva ? (
                   <video ref={videoRef} className="w-full h-full object-contain" muted playsInline />
+                ) : selfies.length > 0 ? (
+                  <img src={selfies[selfies.length - 1]} alt="Selfie" className="w-full h-full object-contain" />
+                ) : (
+                  <div className="text-white/70 text-sm">Nenhuma foto capturada</div>
                 )}
               </div>
+
+              {selfies.length > 0 && (
+                <div className="flex gap-2 justify-center">
+                  {selfies.map((s, i) => (
+                    <div key={i} className="relative">
+                      <img src={s} alt={`Selfie ${i + 1}`} className="h-16 w-16 object-cover rounded border-2 border-green-500" />
+                      <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">{i + 1}</span>
+                    </div>
+                  ))}
+                  {Array.from({ length: 2 - selfies.length }).map((_, i) => (
+                    <div key={`p-${i}`} className="h-16 w-16 rounded border-2 border-dashed border-muted-foreground/40 flex items-center justify-center text-xs text-muted-foreground">
+                      {selfies.length + i + 1}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-xs text-center text-muted-foreground">
+                {selfies.length < 2
+                  ? `Capture ${2 - selfies.length} foto${selfies.length === 1 ? "" : "s"} para confirmar (${selfies.length}/2)`
+                  : "As 2 fotos foram capturadas. Confirme o recebimento."}
+              </p>
 
               <input
                 ref={fileInputRef}
@@ -192,17 +216,19 @@ export default function ReceberEpis() {
               />
 
               <div className="flex gap-2">
-                {!selfie && !cameraAtiva && (
+                {selfies.length < 2 && !cameraAtiva && (
                   <Button type="button" className="w-full" onClick={iniciarCamera}>
-                    <Camera className="h-4 w-4 mr-1" /> {isMobile ? "Abrir Câmera" : "Ligar Câmera"}
+                    <Camera className="h-4 w-4 mr-1" /> {isMobile ? `Tirar Foto ${selfies.length + 1}` : `Ligar Câmera (Foto ${selfies.length + 1})`}
                   </Button>
                 )}
-                {!selfie && cameraAtiva && (
-                  <Button type="button" className="w-full" onClick={capturar}>Capturar Selfie</Button>
+                {cameraAtiva && (
+                  <Button type="button" className="w-full" onClick={capturar}>
+                    Capturar Foto {selfies.length + 1}
+                  </Button>
                 )}
-                {selfie && (
+                {selfies.length >= 2 && (
                   <>
-                    <Button type="button" variant="outline" className="flex-1" onClick={() => { setSelfie(null); iniciarCamera(); }}>Refazer</Button>
+                    <Button type="button" variant="outline" className="flex-1" onClick={() => setSelfies([])}>Refazer</Button>
                     <Button type="button" className="flex-1" onClick={confirmar} disabled={loading}>
                       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar Recebimento"}
                     </Button>
