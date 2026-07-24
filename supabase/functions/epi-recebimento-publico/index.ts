@@ -135,7 +135,7 @@ serve(async (req) => {
         alvoIds.includes(e.id) && !e.dataEntrega ? { ...e, dataEntrega: todayStr } : e
       );
 
-      await supabase
+      const { error: funcErr } = await supabase
         .from("funcionarios")
         .update({ epis: episAtualizados })
         .eq("id", rec.funcionario_id);
