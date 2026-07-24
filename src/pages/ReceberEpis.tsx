@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { HardHat, Camera, CheckCircle2, Loader2 } from "lucide-react";
 
-type Etapa = "identificar" | "capturar" | "concluido";
+type Etapa = "identificar" | "capturar" | "revisar" | "concluido";
 
 interface EpiInfo {
   id: string;
