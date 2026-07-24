@@ -81,6 +81,7 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "funcionarios.excluir", label: "Pode Excluir Funcionário" },
           { key: "funcionarios.exportar_pdf", label: "Pode Exportar PDF de Funcionário" },
           { key: "funcionarios.gerenciar_epis", label: "Pode Gerenciar EPIs do Funcionário" },
+          { key: "funcionarios.enviar_link_recebimento_epi", label: "Pode Enviar Link de Recebimento de EPI (Facial)" },
           { key: "funcionarios.gerenciar_nrs", label: "Pode Gerenciar NRs do Funcionário" },
           { key: "funcionarios.gerenciar_lancamentos", label: "Pode Gerenciar Lançamentos (advertências, etc.)" },
           { key: "funcionarios.gerenciar_exames", label: "Pode Gerenciar Exames Periódicos" },
