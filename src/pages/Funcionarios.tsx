@@ -445,9 +445,14 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
                     <Input value={epi.ca || ""} onChange={(e) => updateEpi(epi.id, { ca: e.target.value })}
                       placeholder="Nº do CA" className="h-8" />
                   </TableCell>
-                  <TableCell>
-                    <Input type="date" value={epi.dataEntrega || ""}
-                      onChange={(e) => updateEpi(epi.id, { dataEntrega: e.target.value })} className="h-8" />
+                  <TableCell className="text-center text-sm">
+                    {epi.dataEntrega ? (
+                      <span title="Confirmado por reconhecimento facial">
+                        {epi.dataEntrega.split("-").reverse().join("/")}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">— pendente —</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Input type="date" value={epi.dataVencimento || ""}
