@@ -267,6 +267,10 @@ export default function Sco() {
               <Input value={form.codSco} onChange={(e) => setForm({ ...form, codSco: e.target.value })} />
             </div>
             <div>
+              <Label>Família</Label>
+              <Input value={form.familia} readOnly placeholder="Preenchida automaticamente pelo prefixo do código" className="bg-muted" />
+            </div>
+            <div>
               <Label>Descrição *</Label>
               <Input value={form.descricaoSco} onChange={(e) => setForm({ ...form, descricaoSco: e.target.value })} />
             </div>
