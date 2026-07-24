@@ -1,0 +1,151 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+function onlyDigits(s: string) {
+  return (s || "").replace(/\D/g, "");
+}
+
+async function sha256(bytes: Uint8Array): Promise<string> {
+  const h = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(h))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function base64ToBytes(b64: string): Uint8Array {
+  const clean = b64.includes(",") ? b64.split(",")[1] : b64;
+  const bin = atob(clean);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  try {
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const body = await req.json();
+    const action = body?.action as "verify" | "confirm";
+    const token = String(body?.token || "");
+    if (!token) return json({ error: "Token obrigatório" }, 400);
+
+    const { data: rec, error: recErr } = await supabase
+      .from("epis_recebimentos")
+      .select("*")
+      .eq("token", token)
+      .maybeSingle();
+    if (recErr || !rec) return json({ error: "Link inválido" }, 404);
+
+    if (new Date(rec.expires_at) < new Date()) {
+      return json({ error: "Link expirado" }, 410);
+    }
+    if (rec.status === "confirmado") {
+      return json({ error: "Recebimento já confirmado" }, 409);
+    }
+
+    const { data: func } = await supabase
+      .from("funcionarios")
+      .select("id, nome, cpf, data_nascimento, epis")
+      .eq("id", rec.funcionario_id)
+      .maybeSingle();
+    if (!func) return json({ error: "Funcionário não encontrado" }, 404);
+
+    const cpfInput = onlyDigits(String(body?.cpf || ""));
+    const dobInput = String(body?.dataNascimento || "").trim();
+    const cpfOk = cpfInput && cpfInput === onlyDigits(func.cpf || "");
+    const dobOk = dobInput && dobInput === (func.data_nascimento || "");
+
+    if (!cpfOk || !dobOk) {
+      return json({ error: "CPF ou data de nascimento não conferem" }, 401);
+    }
+
+    // Snapshot EPIs a confirmar (interseção pelos ids salvos)
+    const epis = (func.epis as any[]) || [];
+    const alvoIds: string[] = rec.epis_ids || [];
+    const episAlvo = epis.filter((e) => alvoIds.includes(e.id));
+
+    if (action === "verify") {
+      if (!rec.cpf_verificado) {
+        await supabase
+          .from("epis_recebimentos")
+          .update({ cpf_verificado: true, verificado_em: new Date().toISOString(), status: "verificado" })
+          .eq("id", rec.id);
+      }
+      return json({
+        funcionario: { nome: func.nome },
+        epis: episAlvo.map((e) => ({
+          id: e.id,
+          descricao: e.descricao,
+          ca: e.ca,
+          quantidade: e.quantidade,
+        })),
+      });
+    }
+
+    if (action === "confirm") {
+      const selfie = String(body?.selfieBase64 || "");
+      if (!selfie) return json({ error: "Selfie obrigatória" }, 400);
+
+      const bytes = base64ToBytes(selfie);
+      if (bytes.length < 4000) return json({ error: "Imagem inválida" }, 400);
+      const hash = await sha256(bytes);
+      const path = `${rec.funcionario_id}/${rec.id}-${Date.now()}.jpg`;
+
+      const { error: upErr } = await supabase.storage
+        .from("epi-recebimentos-selfies")
+        .upload(path, bytes, { contentType: "image/jpeg", upsert: false });
+      if (upErr) return json({ error: "Falha ao gravar selfie: " + upErr.message }, 500);
+
+      const nowIso = new Date().toISOString();
+      const todayStr = nowIso.slice(0, 10);
+      const episAtualizados = epis.map((e) =>
+        alvoIds.includes(e.id) && !e.dataEntrega ? { ...e, dataEntrega: todayStr } : e
+      );
+
+      await supabase
+        .from("funcionarios")
+        .update({ epis: episAtualizados })
+        .eq("id", rec.funcionario_id);
+
+      const ip = req.headers.get("x-forwarded-for") || req.headers.get("cf-connecting-ip") || "";
+      const ua = req.headers.get("user-agent") || "";
+
+      await supabase
+        .from("epis_recebimentos")
+        .update({
+          status: "confirmado",
+          confirmado_em: nowIso,
+          selfie_path: path,
+          selfie_hash: hash,
+          ip,
+          user_agent: ua,
+          epis_snapshot: episAlvo,
+        })
+        .eq("id", rec.id);
+
+      return json({ ok: true });
+    }
+
+    return json({ error: "Ação inválida" }, 400);
+  } catch (e) {
+    console.error(e);
+    return json({ error: (e as Error).message }, 500);
+  }
+});
+
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
