@@ -32,6 +32,7 @@ export default function Sco() {
   const [form, setForm] = useState(emptyScoForm);
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("todos");
+  const [filterFamilia, setFilterFamilia] = useState<string>("todas");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const fileInputRef = useRef<HTMLInputElement>(null);
