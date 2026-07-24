@@ -7470,6 +7470,30 @@ export type Database = {
         }
         Relationships: []
       }
+      sco_categorias: {
+        Row: {
+          codigo: string
+          created_at: string
+          descricao: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          descricao: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          descricao?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sco_composicoes: {
         Row: {
           created_at: string
