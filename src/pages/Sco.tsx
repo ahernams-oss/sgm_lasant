@@ -208,7 +208,19 @@ export default function Sco() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={filterFamilia} onValueChange={(v) => { setFilterFamilia(v); setPage(1); }}>
+          <SelectTrigger className="w-[280px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todas">Todas as famílias</SelectItem>
+            {familias.map((f) => (
+              <SelectItem key={f} value={f}>{f}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
+
 
       <div className="rounded-md border">
         <Table>
