@@ -10,12 +10,13 @@ import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
-import { Eye, Search, FileDown } from "lucide-react";
+import { Eye, Search, FileDown, Download } from "lucide-react";
 import { gerarPdfEpiFacial } from "@/lib/gerarPdfEpiFacial";
 
 interface Recebimento {
   id: string; funcionario_id: string; token: string; status: string;
   epis_snapshot: any[]; selfie_path: string | null; selfie_hash: string | null;
+  selfie_path_2: string | null; selfie_hash_2: string | null;
   ip: string | null; user_agent: string | null; telefone_envio: string | null;
   confirmado_em: string | null; created_at: string; expires_at: string;
   cpf_verificado: boolean; verificado_em: string | null;
