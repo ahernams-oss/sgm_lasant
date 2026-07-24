@@ -28,10 +28,37 @@ export default function ReceberEpis() {
   const [selfie, setSelfie] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [cameraAtiva, setCameraAtiva] = useState(false);
+
+  const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
   useEffect(() => () => {
     if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
   }, []);
+
+  const onFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || "");
+      // Redimensiona para no máx 800px para reduzir upload
+      const img = new Image();
+      img.onload = () => {
+        const max = 800;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+        setSelfie(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const invoke = async (action: "verify" | "confirm", body: Record<string, unknown>) => {
     const { data, error } = await supabase.functions.invoke("epi-recebimento-publico", {
@@ -56,15 +83,22 @@ export default function ReceberEpis() {
   };
 
   const iniciarCamera = async () => {
+    if (isMobile) {
+      // Em celulares, aciona a câmera nativa via input file (mais confiável)
+      fileInputRef.current?.click();
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 640, height: 480 } });
       streamRef.current = stream;
+      setCameraAtiva(true);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
     } catch {
-      toast.error("Não foi possível acessar a câmera.");
+      toast.error("Não foi possível acessar a câmera. Use o botão para enviar uma foto.");
+      fileInputRef.current?.click();
     }
   };
 
@@ -78,7 +112,9 @@ export default function ReceberEpis() {
     const b64 = canvas.toDataURL("image/jpeg", 0.85);
     setSelfie(b64);
     if (streamRef.current) { streamRef.current.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
+    setCameraAtiva(false);
   };
+
 
   const confirmar = async () => {
     if (!selfie) return;
@@ -140,13 +176,22 @@ export default function ReceberEpis() {
                 )}
               </div>
 
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="user"
+                className="hidden"
+                onChange={onFileSelected}
+              />
+
               <div className="flex gap-2">
-                {!selfie && !streamRef.current && (
+                {!selfie && !cameraAtiva && (
                   <Button type="button" className="w-full" onClick={iniciarCamera}>
-                    <Camera className="h-4 w-4 mr-1" /> Ligar Câmera
+                    <Camera className="h-4 w-4 mr-1" /> {isMobile ? "Abrir Câmera" : "Ligar Câmera"}
                   </Button>
                 )}
-                {!selfie && streamRef.current && (
+                {!selfie && cameraAtiva && (
                   <Button type="button" className="w-full" onClick={capturar}>Capturar Selfie</Button>
                 )}
                 {selfie && (
@@ -158,6 +203,7 @@ export default function ReceberEpis() {
                   </>
                 )}
               </div>
+
             </div>
           )}
 
