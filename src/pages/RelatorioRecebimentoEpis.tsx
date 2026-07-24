@@ -196,11 +196,33 @@ export default function RelatorioRecebimentoEpis() {
           </DialogHeader>
           {preview && (
             <div className="space-y-3">
-              <img src={preview.url} alt="selfie" className="w-full rounded-md border" />
-              <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className={`grid gap-3 ${preview.urls.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                {preview.urls.map((u, i) => {
+                  const path = i === 0 ? preview.row.selfie_path : preview.row.selfie_path_2;
+                  const hash = i === 0 ? preview.row.selfie_hash : preview.row.selfie_hash_2;
+                  const nomeArq = `selfie-${nomeFunc(preview.row.funcionario_id).replace(/\s+/g, "_")}-${i + 1}.jpg`;
+                  return (
+                    <div key={i} className="space-y-2">
+                      <div className="relative">
+                        <img src={u} alt={`selfie ${i + 1}`} className="w-full rounded-md border" />
+                        <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">Foto {i + 1}</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => path && baixarSelfie(path, nomeArq)}
+                      >
+                        <Download className="h-4 w-4 mr-1" /> Baixar Foto {i + 1}
+                      </Button>
+                      {hash && <div className="text-[10px] break-all text-muted-foreground"><code>{hash}</code></div>}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-sm border-t pt-3">
                 <div><span className="text-muted-foreground">Funcionário:</span> {nomeFunc(preview.row.funcionario_id)}</div>
                 <div><span className="text-muted-foreground">Confirmado em:</span> {preview.row.confirmado_em ? new Date(preview.row.confirmado_em).toLocaleString("pt-BR") : "—"}</div>
-                <div className="col-span-2 break-all"><span className="text-muted-foreground">Hash SHA-256:</span> <code className="text-xs">{preview.row.selfie_hash}</code></div>
                 <div><span className="text-muted-foreground">IP:</span> {preview.row.ip || "—"}</div>
                 <div className="truncate" title={preview.row.user_agent || ""}><span className="text-muted-foreground">User Agent:</span> {preview.row.user_agent || "—"}</div>
                 <div className="col-span-2">
