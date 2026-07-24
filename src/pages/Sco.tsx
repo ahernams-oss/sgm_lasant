@@ -32,6 +32,7 @@ export default function Sco() {
   const [form, setForm] = useState(emptyScoForm);
   const [search, setSearch] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("todos");
+  const [filterFamilia, setFilterFamilia] = useState<string>("todas");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -106,15 +107,22 @@ export default function Sco() {
     }
   };
 
+  const familias = useMemo(() => {
+    const set = new Set<string>();
+    scos.forEach((s) => { if (s.familia) set.add(s.familia); });
+    return Array.from(set).sort();
+  }, [scos]);
+
   const filtered = useMemo(() => {
     return scos.filter((s) => {
       const matchSearch =
         s.codSco.toLowerCase().includes(search.toLowerCase()) ||
         s.descricaoSco.toLowerCase().includes(search.toLowerCase());
       const matchTipo = filterTipo === "todos" || s.tipo === filterTipo;
-      return matchSearch && matchTipo;
+      const matchFamilia = filterFamilia === "todas" || s.familia === filterFamilia;
+      return matchSearch && matchTipo && matchFamilia;
     });
-  }, [scos, search, filterTipo]);
+  }, [scos, search, filterTipo, filterFamilia]);
 
   const openNew = () => {
     setForm(emptyScoForm);
@@ -200,7 +208,19 @@ export default function Sco() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={filterFamilia} onValueChange={(v) => { setFilterFamilia(v); setPage(1); }}>
+          <SelectTrigger className="w-[280px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todas">Todas as famílias</SelectItem>
+            {familias.map((f) => (
+              <SelectItem key={f} value={f}>{f}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
+
 
       <div className="rounded-md border">
         <Table>
@@ -226,7 +246,15 @@ export default function Sco() {
                 <TableRow key={s.id}>
                   <TableCell className="font-mono">{s.codSco}</TableCell>
                   <TableCell>{s.descricaoSco}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{s.familia || "—"}</TableCell>
+                  <TableCell>
+                    {s.familia ? (
+                      <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                        {s.familia}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell>{s.unidade}</TableCell>
                   <TableCell>
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
