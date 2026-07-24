@@ -107,15 +107,22 @@ export default function Sco() {
     }
   };
 
+  const familias = useMemo(() => {
+    const set = new Set<string>();
+    scos.forEach((s) => { if (s.familia) set.add(s.familia); });
+    return Array.from(set).sort();
+  }, [scos]);
+
   const filtered = useMemo(() => {
     return scos.filter((s) => {
       const matchSearch =
         s.codSco.toLowerCase().includes(search.toLowerCase()) ||
         s.descricaoSco.toLowerCase().includes(search.toLowerCase());
       const matchTipo = filterTipo === "todos" || s.tipo === filterTipo;
-      return matchSearch && matchTipo;
+      const matchFamilia = filterFamilia === "todas" || s.familia === filterFamilia;
+      return matchSearch && matchTipo && matchFamilia;
     });
-  }, [scos, search, filterTipo]);
+  }, [scos, search, filterTipo, filterFamilia]);
 
   const openNew = () => {
     setForm(emptyScoForm);
