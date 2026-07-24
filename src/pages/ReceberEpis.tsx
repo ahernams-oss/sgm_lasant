@@ -115,8 +115,11 @@ export default function ReceberEpis() {
     setCameraAtiva(false);
   };
 
+  const [confirmado, setConfirmado] = useState(false);
+
   const confirmar = async () => {
     if (selfies.length < 2) { toast.error("Capture as 2 selfies antes de confirmar."); return; }
+    if (!confirmado) { toast.error("Marque a confirmação antes de enviar."); return; }
     setLoading(true);
     try {
       await invoke("confirm", { selfieBase64: selfies[0], selfieBase64_2: selfies[1] });
