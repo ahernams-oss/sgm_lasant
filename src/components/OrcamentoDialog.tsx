@@ -623,6 +623,19 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
         <DialogFooter className="flex-col sm:flex-row gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Fechar</Button>
 
+          {/* Export options — available whenever an orçamento exists */}
+          {existingOrcamento && (
+            <>
+              <Button variant="outline" onClick={() => gerarPdfOrcamento(existingOrcamento)}>
+                <Download className="mr-2 h-4 w-4" /> PDF
+              </Button>
+              <Button variant="outline" onClick={() => gerarExcelOrcamento(existingOrcamento)}>
+                <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
+              </Button>
+            </>
+          )}
+
+
           {/* Save as draft */}
           {isRascunho && (
             <Button variant="outline" onClick={handleSave} disabled={uploading}>
