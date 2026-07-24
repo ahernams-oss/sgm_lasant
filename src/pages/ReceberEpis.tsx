@@ -78,7 +78,13 @@ export default function ReceberEpis() {
         const h = Math.round(img.height * scale);
         const canvas = document.createElement("canvas");
         canvas.width = w; canvas.height = h;
-        canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+        const context = canvas.getContext("2d");
+        if (!context) {
+          setFotoProcessando(false);
+          toast.error("Não foi possível processar a foto capturada.");
+          return;
+        }
+        context.drawImage(img, 0, 0, w, h);
         addSelfie(canvas.toDataURL("image/jpeg", 0.85));
         setFotoProcessando(false);
       };
@@ -136,7 +142,12 @@ export default function ReceberEpis() {
     const canvas = document.createElement("canvas");
     canvas.width = v.videoWidth || 640;
     canvas.height = v.videoHeight || 480;
-    canvas.getContext("2d")!.drawImage(v, 0, 0);
+    const context = canvas.getContext("2d");
+    if (!context) {
+      toast.error("Não foi possível processar a foto capturada.");
+      return;
+    }
+    context.drawImage(v, 0, 0);
     addSelfie(canvas.toDataURL("image/jpeg", 0.85));
     if (streamRef.current) { streamRef.current.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
     setCameraAtiva(false);
