@@ -628,7 +628,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
           {/* Export options — available whenever an orçamento exists */}
           {existingOrcamento && (
             <>
-              <Button variant="outline" onClick={() => gerarPdfOrcamento(existingOrcamento)}>
+              <Button variant="outline" onClick={() => gerarPdfOrcamento(existingOrcamento, empresa)}>
                 <Download className="mr-2 h-4 w-4" /> PDF
               </Button>
               <Button variant="outline" onClick={() => gerarExcelOrcamento(existingOrcamento)}>
