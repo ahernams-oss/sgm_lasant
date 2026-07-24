@@ -1582,7 +1582,9 @@ export type Database = {
           id: string
           ip: string | null
           selfie_hash: string | null
+          selfie_hash_2: string | null
           selfie_path: string | null
+          selfie_path_2: string | null
           status: string
           telefone_envio: string | null
           token: string
@@ -1602,7 +1604,9 @@ export type Database = {
           id?: string
           ip?: string | null
           selfie_hash?: string | null
+          selfie_hash_2?: string | null
           selfie_path?: string | null
+          selfie_path_2?: string | null
           status?: string
           telefone_envio?: string | null
           token: string
@@ -1622,7 +1626,9 @@ export type Database = {
           id?: string
           ip?: string | null
           selfie_hash?: string | null
+          selfie_hash_2?: string | null
           selfie_path?: string | null
+          selfie_path_2?: string | null
           status?: string
           telefone_envio?: string | null
           token?: string

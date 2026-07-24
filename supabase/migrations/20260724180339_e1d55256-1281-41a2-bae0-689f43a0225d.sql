@@ -1,0 +1,1 @@
+ALTER TABLE public.epis_recebimentos ADD COLUMN IF NOT EXISTS selfie_path_2 text; ALTER TABLE public.epis_recebimentos ADD COLUMN IF NOT EXISTS selfie_hash_2 text;
