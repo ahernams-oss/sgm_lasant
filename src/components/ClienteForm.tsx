@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
+import { isValidCPF, isValidCNPJ, maskCPF, maskCNPJ, onlyDigits } from "@/lib/validators";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus, X, Upload, Trash2 } from "lucide-react";
