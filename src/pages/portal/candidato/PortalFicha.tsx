@@ -218,7 +218,15 @@ export default function PortalFicha() {
                   </div>
                   <F l="RG - Número" v={docs.rgNumero} on={(v: string) => setDocs({ ...docs, rgNumero: v })} />
                   <F l="RG - Órgão emissor" v={docs.rgOrgao} on={(v: string) => setDocs({ ...docs, rgOrgao: v })} />
-                  <F l="RG - UF" v={docs.rgUf} on={(v: string) => setDocs({ ...docs, rgUf: v })} />
+                  <div>
+                    <Label className="text-xs">RG - UF</Label>
+                    <Select value={docs.rgUf || ""} onValueChange={(v) => setDocs({ ...docs, rgUf: v })}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {UF_OPTIONS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <F l="RG - Data de emissão" type="date" v={docs.rgEmissao} on={(v: string) => setDocs({ ...docs, rgEmissao: v })} />
                 </div>
               </div>
