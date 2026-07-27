@@ -163,7 +163,16 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
         </div>
         <div>
           <label className="field-label">CNPJ / CPF</label>
-          <Input placeholder="Ex: 12.345.678/0001-90" value={form.cnpj} onChange={(e) => update("cnpj", e.target.value)} />
+          <Input
+            placeholder="Ex: 12.345.678/0001-90"
+            value={form.cnpj}
+            onChange={(e) => {
+              const d = onlyDigits(e.target.value);
+              update("cnpj", d.length <= 11 ? maskCPF(d) : maskCNPJ(d));
+            }}
+            maxLength={18}
+            inputMode="numeric"
+          />
         </div>
         <div>
           <label className="field-label">Inscrição Estadual</label>
