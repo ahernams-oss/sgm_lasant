@@ -242,10 +242,21 @@ const ProcessoSeletivoPage = () => {
       toast.error("Informe o nome do candidato.");
       return;
     }
+    const cpfDigits = (editingCandidato.cpf || "").replace(/\D/g, "");
+    if (!isValidCPF(cpfDigits)) {
+      toast.error("CPF inválido. Verifique o número informado.");
+      return;
+    }
+    if (!editingCandidato.dataNascimento) {
+      toast.error("Informe a data de nascimento.");
+      return;
+    }
     updateCandidato(processo!.id, editingCandidato.id, {
       nome: editingCandidato.nome,
       email: editingCandidato.email,
       telefone: editingCandidato.telefone,
+      cpf: cpfDigits,
+      dataNascimento: editingCandidato.dataNascimento,
       anexos: editingCandidato.anexos,
     });
     setEditingCandidato(null);
@@ -1318,6 +1329,33 @@ const ProcessoSeletivoPage = () => {
                     onChange={(e) => setEditingCandidato((p) => p ? { ...p, telefone: e.target.value } : p)}
                     placeholder="+55 (00) 00000-0000"
                   />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground">CPF *</label>
+                    <Input
+                      value={editingCandidato.cpf || ""}
+                      onChange={(e) => {
+                        const d = e.target.value.replace(/\D/g, "").slice(0, 11);
+                        const masked = d
+                          .replace(/^(\d{3})(\d)/, "$1.$2")
+                          .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+                          .replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2");
+                        setEditingCandidato((p) => p ? { ...p, cpf: masked } : p);
+                      }}
+                      placeholder="000.000.000-00"
+                      maxLength={14}
+                      inputMode="numeric"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground">Data de Nascimento *</label>
+                    <Input
+                      type="date"
+                      value={editingCandidato.dataNascimento || ""}
+                      onChange={(e) => setEditingCandidato((p) => p ? { ...p, dataNascimento: e.target.value } : p)}
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-muted-foreground">Anexos</label>
