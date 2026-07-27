@@ -170,7 +170,7 @@ export default function PortalFicha() {
                 </div>
               </div>
               <div>
-                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Certidão / Escolaridade</h4>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Certidão</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <F l="Certidão - Tipo (Nasc./Casamento)" v={docs.certidaoTipo} on={(v: string) => setDocs({ ...docs, certidaoTipo: v })} />
                   <F l="Certidão - Número/Matrícula" v={docs.certidaoNumero} on={(v: string) => setDocs({ ...docs, certidaoNumero: v })} />
