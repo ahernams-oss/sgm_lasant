@@ -9,16 +9,8 @@ import { toast } from "sonner";
 
 const TERMOS = [
   {
-    tipo: "contrato", titulo: "Contrato de Experiência",
-    texto: "Declaro estar ciente das condições de trabalho, jornada, remuneração e período de experiência conforme apresentado pela LASANT Construções. Concordo com os termos do contrato de experiência e me comprometo a cumprir integralmente as obrigações estabelecidas.",
-  },
-  {
     tipo: "lgpd", titulo: "Termo LGPD - Consentimento",
     texto: "Autorizo a LASANT Construções a coletar, armazenar e tratar meus dados pessoais para fins de admissão, gestão de pessoas, cumprimento de obrigações legais trabalhistas e comunicação institucional, nos termos da Lei nº 13.709/2018 (LGPD).",
-  },
-  {
-    tipo: "conduta", titulo: "Código de Conduta e Ética",
-    texto: "Declaro ter lido e compreendido o Código de Conduta e Ética da LASANT Construções, comprometendo-me a cumpri-lo em todas as atividades profissionais, mantendo postura ética, respeitosa e íntegra no ambiente de trabalho.",
   },
 ];
 
