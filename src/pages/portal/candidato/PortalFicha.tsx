@@ -178,6 +178,20 @@ export default function PortalFicha() {
         <h1 className="text-2xl font-semibold">Ficha Cadastral</h1>
         <span className="text-xs px-2 py-1 rounded bg-muted">{status.toUpperCase()}</span>
       </div>
+      {!loading && (
+        <Card className="mb-4">
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Preenchimento da ficha</span>
+              <span className={`text-sm font-bold ${progresso === 100 ? "text-emerald-600" : "text-primary"}`}>{progresso}%</span>
+            </div>
+            <Progress value={progresso} className="h-3" />
+            <p className="text-xs text-muted-foreground mt-2">
+              {progresso === 100 ? "Todos os campos obrigatórios estão preenchidos." : "Complete os campos abaixo para aumentar o progresso."}
+            </p>
+          </CardContent>
+        </Card>
+      )}
       {loading ? <p className="text-sm text-muted-foreground">Carregando...</p> : (
         <div className="space-y-4">
           <Card>
