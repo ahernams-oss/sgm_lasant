@@ -168,8 +168,8 @@ const ProcessoSeletivoPage = () => {
       return;
     }
     const cpfDigits = newCandidato.cpf.replace(/\D/g, "");
-    if (cpfDigits.length !== 11) {
-      toast.error("Informe um CPF válido (11 dígitos).");
+    if (!isValidCPF(cpfDigits)) {
+      toast.error("CPF inválido. Verifique o número informado.");
       return;
     }
     if (!newCandidato.dataNascimento) {
