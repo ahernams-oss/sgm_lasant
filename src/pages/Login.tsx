@@ -147,14 +147,21 @@ const Login = () => {
               Para acesso, contate a empresa.
             </p>
 
-            <div className="flex justify-center pt-4">
+            <div className="flex flex-wrap justify-center gap-3 pt-4">
               <Link
                 to="/portal-fornecedor"
                 className="inline-flex items-center justify-center h-11 px-8 rounded-full bg-[#f5a623] hover:bg-[#e69612] text-[#3a1d6e] font-semibold text-sm shadow-md transition-colors"
               >
                 Portal do fornecedor
               </Link>
+              <Link
+                to="/portal"
+                className="inline-flex items-center justify-center h-11 px-8 rounded-full bg-[#3a1d6e] hover:bg-[#2e1757] text-white font-semibold text-sm shadow-md transition-colors"
+              >
+                Portal do funcionário
+              </Link>
             </div>
+
           </form>
         </div>
 
