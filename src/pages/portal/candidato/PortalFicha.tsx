@@ -12,6 +12,11 @@ import { toast } from "sonner";
 import { isValidCPF, maskCPF, onlyDigits } from "@/lib/validators";
 import RadioGroupCustom from "@/components/RadioGroupCustom";
 
+const UF_OPTIONS = [
+  "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT",
+  "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO",
+];
+
 interface Dep { nome: string; parentesco: string; nascimento: string; cpf?: string; }
 interface Contato { nome: string; parentesco: string; telefone: string; }
 
