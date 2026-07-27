@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { isValidCPF, maskCPF, onlyDigits } from "@/lib/validators";
 
 interface Dep { nome: string; parentesco: string; nascimento: string; cpf?: string; }
 interface Contato { nome: string; parentesco: string; telefone: string; }
@@ -48,7 +49,20 @@ export default function PortalFicha() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const cpfInvalido = docs.cpf && !isValidCPF(docs.cpf);
+  const depsCpfInvalidos = deps.some((d) => d.cpf && !isValidCPF(d.cpf));
+
   const salvar = async (enviar = false) => {
+    if (enviar) {
+      if (!docs.cpf || !isValidCPF(docs.cpf)) {
+        toast.error("Informe um CPF válido antes de enviar.");
+        return;
+      }
+      if (depsCpfInvalidos) {
+        toast.error("Há CPF de dependente inválido.");
+        return;
+      }
+    }
     setSaving(true);
     try {
       await portalCall("cand-ficha-save", { dados_pessoais: { ...dp, documentos: docs }, endereco: end, bancarios: bc, dependentes: deps, contatos_emergencia: ces, enviar });
@@ -93,7 +107,21 @@ export default function PortalFicha() {
               <div>
                 <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Identificação</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <F l="CPF" v={docs.cpf} on={(v: string) => setDocs({ ...docs, cpf: v })} />
+                  <div>
+                    <Label className="text-xs">CPF</Label>
+                    <Input
+                      value={docs.cpf ?? ""}
+                      onChange={(e) => setDocs({ ...docs, cpf: maskCPF(e.target.value) })}
+                      placeholder="000.000.000-00"
+                      inputMode="numeric"
+                      maxLength={14}
+                      className={cpfInvalido ? "border-destructive focus-visible:ring-destructive" : ""}
+                    />
+                    {cpfInvalido && <p className="text-[11px] text-destructive mt-1">CPF inválido</p>}
+                    {docs.cpf && !cpfInvalido && onlyDigits(docs.cpf).length === 11 && (
+                      <p className="text-[11px] text-emerald-600 mt-1">CPF válido</p>
+                    )}
+                  </div>
                   <F l="RG - Número" v={docs.rgNumero} on={(v: string) => setDocs({ ...docs, rgNumero: v })} />
                   <F l="RG - Órgão emissor" v={docs.rgOrgao} on={(v: string) => setDocs({ ...docs, rgOrgao: v })} />
                   <F l="RG - UF" v={docs.rgUf} on={(v: string) => setDocs({ ...docs, rgUf: v })} />
@@ -181,7 +209,17 @@ export default function PortalFicha() {
                   <div className="md:col-span-2"><Label className="text-xs">Nome</Label><Input value={d.nome} onChange={(e) => { const n = [...deps]; n[i].nome = e.target.value; setDeps(n); }} /></div>
                   <div><Label className="text-xs">Parentesco</Label><Input value={d.parentesco} onChange={(e) => { const n = [...deps]; n[i].parentesco = e.target.value; setDeps(n); }} /></div>
                   <div><Label className="text-xs">Nascimento</Label><Input type="date" value={d.nascimento} onChange={(e) => { const n = [...deps]; n[i].nascimento = e.target.value; setDeps(n); }} /></div>
-                  <div className="flex gap-2"><Input placeholder="CPF" value={d.cpf ?? ""} onChange={(e) => { const n = [...deps]; n[i].cpf = e.target.value; setDeps(n); }} /><Button size="icon" variant="ghost" onClick={() => setDeps(deps.filter((_, x) => x !== i))}><Trash2 className="w-4 h-4 text-destructive" /></Button></div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="CPF"
+                      value={d.cpf ?? ""}
+                      inputMode="numeric"
+                      maxLength={14}
+                      onChange={(e) => { const n = [...deps]; n[i].cpf = maskCPF(e.target.value); setDeps(n); }}
+                      className={d.cpf && !isValidCPF(d.cpf) ? "border-destructive focus-visible:ring-destructive" : ""}
+                    />
+                    <Button size="icon" variant="ghost" onClick={() => setDeps(deps.filter((_, x) => x !== i))}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                  </div>
                 </div>
               ))}
               {deps.length === 0 && <p className="text-xs text-muted-foreground">Nenhum dependente.</p>}
