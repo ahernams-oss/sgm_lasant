@@ -746,6 +746,8 @@ const Funcionarios = () => {
     if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome.trim()) { toast.error("Informe o nome."); return; }
     if (!form.cpf.trim()) { toast.error("Informe o CPF."); return; }
+    if (form.cpf.replace(/\D/g, "").length !== 11) { toast.error("CPF inválido. Informe 11 dígitos."); return; }
+    if (!form.dataNascimento) { toast.error("Informe a data de nascimento."); return; }
     if (!form.cargoId) { toast.error("Selecione o cargo."); return; }
 
     if (editingId) {
@@ -859,7 +861,20 @@ const Funcionarios = () => {
                     <Input value={form.nome} onChange={(e) => update("nome", e.target.value)} placeholder="Nome completo" />
                   </Field>
                   <Field label="CPF" required>
-                    <Input value={form.cpf} onChange={(e) => update("cpf", e.target.value)} placeholder="000.000.000-00" />
+                    <Input
+                      value={form.cpf}
+                      onChange={(e) => {
+                        const d = e.target.value.replace(/\D/g, "").slice(0, 11);
+                        const masked = d
+                          .replace(/^(\d{3})(\d)/, "$1.$2")
+                          .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+                          .replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2");
+                        update("cpf", masked);
+                      }}
+                      placeholder="000.000.000-00"
+                      maxLength={14}
+                      inputMode="numeric"
+                    />
                   </Field>
                   <Field label="RG">
                     <Input value={form.rg} onChange={(e) => update("rg", e.target.value)} placeholder="RG" />
@@ -867,7 +882,7 @@ const Funcionarios = () => {
                   <Field label="Órgão Emissor">
                     <Input value={form.orgaoEmissor} onChange={(e) => update("orgaoEmissor", e.target.value)} placeholder="SSP/RJ" />
                   </Field>
-                  <Field label="Data de Nascimento">
+                  <Field label="Data de Nascimento" required>
                     <Input type="date" value={form.dataNascimento} onChange={(e) => update("dataNascimento", e.target.value)} />
                   </Field>
                   <Field label="Sexo">
