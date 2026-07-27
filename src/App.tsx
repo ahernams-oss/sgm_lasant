@@ -571,6 +571,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </PortalAuthProvider>
     </AuthProvider>
     </NfsesProvider>
     </FinanceiroProvider>
