@@ -41,11 +41,15 @@ export default function PortalLogin() {
 
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center p-4 sm:p-8 bg-[#0a1a2f] bg-cover bg-center relative"
-      style={{ backgroundImage: `url(${bgArt.url})` }}
+      className="min-h-screen w-full flex items-center justify-center p-4 sm:p-8 relative bg-gradient-to-br from-[#b0b8c4] via-[#8e99a8] to-[#6b7686]"
+      style={{
+        backgroundImage:
+          "linear-gradient(135deg, #c5cbd4 0%, #9aa5b3 25%, #7d8898 50%, #9aa5b3 75%, #c5cbd4 100%), repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 1px, transparent 1px, transparent 4px)",
+      }}
     >
-      {/* Overlay para dar profundidade ao vidro */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#020617]/40 via-[#0a1a2f]/30 to-[#0b1e3a]/60" />
+      {/* Overlay metálico sutil para brilho e profundidade */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-transparent to-black/15" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.25),transparent_60%)]" />
 
       <div className="relative w-full max-w-md">
         {/* Card glassmorphism */}
