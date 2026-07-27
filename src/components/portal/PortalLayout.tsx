@@ -55,15 +55,15 @@ export default function PortalLayout({ children, requireTipo }: Props) {
           </div>
         </div>
         <nav className="max-w-5xl mx-auto px-4 flex gap-1 overflow-x-auto text-sm items-center">
-          <Link to="/portal" className="flex items-center px-2 py-1 rounded-t-md hover:bg-primary-foreground/10">
-            <img src={logoLasant} alt="Lasant" className="h-6 w-auto" />
-          </Link>
-          {menu.map((m) => {
+          {menu.map((m: any) => {
             const active = loc.pathname === m.to;
             return (
               <Link key={m.to} to={m.to}
-                className={`px-3 py-2 rounded-t-md whitespace-nowrap ${active ? "bg-background text-foreground" : "hover:bg-primary-foreground/10"}`}>
-                {m.label}
+                className={`flex items-center gap-2 px-3 py-2 rounded-t-md whitespace-nowrap ${active ? "bg-background text-foreground" : "hover:bg-primary-foreground/10"}`}>
+                {m.isLogo ? (
+                  <img src={logoLasant} alt="Lasant" className="h-5 w-auto" />
+                ) : null}
+                <span>{m.label}</span>
               </Link>
             );
           })}
