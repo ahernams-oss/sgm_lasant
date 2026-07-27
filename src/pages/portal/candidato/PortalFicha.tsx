@@ -15,6 +15,10 @@ import RadioGroupCustom from "@/components/RadioGroupCustom";
 interface Dep { nome: string; parentesco: string; nascimento: string; cpf?: string; }
 interface Contato { nome: string; parentesco: string; telefone: string; }
 
+const F = ({ l, v, on, type = "text" }: any) => (
+  <div><Label className="text-xs">{l}</Label><Input type={type} value={v ?? ""} onChange={(e) => on(e.target.value)} /></div>
+);
+
 export default function PortalFicha() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -88,9 +92,8 @@ export default function PortalFicha() {
     finally { setSaving(false); }
   };
 
-  const F = ({ l, v, on, type = "text" }: any) => (
-    <div><Label className="text-xs">{l}</Label><Input type={type} value={v ?? ""} onChange={(e) => on(e.target.value)} /></div>
-  );
+
+
 
   return (
     <PortalLayout requireTipo="candidato">
