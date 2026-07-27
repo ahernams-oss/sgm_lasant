@@ -31,10 +31,21 @@ export async function portalCall<T = any>(action: string, payload: Record<string
     body: { action, ...payload },
     headers: token ? { "x-portal-token": token } : undefined,
   });
-  if (error) {
-    const msg = (data as any)?.error || error.message || "Erro ao processar requisição.";
-    throw new Error(msg);
+  const errMsg = (data as any)?.error || error?.message;
+  const isSessionInvalid =
+    typeof errMsg === "string" &&
+    /sess[ãa]o inv[áa]lida|expirada|Edge function returned 401/i.test(errMsg);
+
+  if (isSessionInvalid && !["login", "signup", "reset-request"].includes(action)) {
+    portalStore.clear();
+    if (typeof window !== "undefined" && !window.location.pathname.startsWith("/portal")) {
+      window.location.href = "/portal";
+    } else if (typeof window !== "undefined" && window.location.pathname !== "/portal") {
+      window.location.href = "/portal";
+    }
+    throw new Error("Sua sessão expirou. Faça login novamente.");
   }
+  if (error) throw new Error(errMsg || "Erro ao processar requisição.");
   if ((data as any)?.error) throw new Error((data as any).error);
   return data as T;
 }
