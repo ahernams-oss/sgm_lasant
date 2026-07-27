@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { User, Lock, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import bgImage from "@/assets/Tela_Inicial_SGM-2.png.asset.json";
 import logo from "@/assets/Logo_Lasant-2.png.asset.json";
+
 
 const fmtCpf = (v: string) =>
   v.replace(/\D/g, "").slice(0, 11)
