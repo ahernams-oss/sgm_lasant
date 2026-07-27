@@ -75,6 +75,28 @@ export default function PortalFicha() {
 
 
   const cpfInvalido = docs.cpf && !isValidCPF(docs.cpf);
+
+  const maskCEP = (v: string) => {
+    const digits = v.replace(/\D/g, "").slice(0, 8);
+    return digits.length > 5 ? digits.replace(/^(\d{5})(\d)/, "$1-$2") : digits;
+  };
+
+  const buscarCep = async (raw: string) => {
+    const clean = raw.replace(/\D/g, "");
+    if (clean.length !== 8) return;
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+      const data = await res.json();
+      if (data.erro) { toast.error("CEP não encontrado."); return; }
+      setEnd((prev: any) => ({
+        ...prev,
+        logradouro: data.logradouro || prev.logradouro,
+        bairro: data.bairro || prev.bairro,
+        cidade: data.localidade || prev.cidade,
+        uf: data.uf || prev.uf,
+      }));
+    } catch { toast.error("Erro ao buscar CEP."); }
+  };
   const depsCpfInvalidos = deps.some((d) => d.cpf && !isValidCPF(d.cpf));
 
   const salvar = async (enviar = false) => {
