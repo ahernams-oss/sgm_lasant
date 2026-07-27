@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, Navigate } from "react-router-dom";
 import { usePortalAuth } from "@/contexts/PortalAuthContext";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
-import logoLasant from "@/assets/Logo_Lasant.png";
+import logoLasant from "@/assets/Logo_Lasant-2.png.asset.json";
 
 interface Props {
   children: ReactNode;
@@ -21,14 +21,14 @@ export default function PortalLayout({ children, requireTipo }: Props) {
   }
 
   const menuFunc = [
-    { to: "/portal/funcionario", label: "Início", isLogo: true },
+    { to: "/portal/funcionario", label: "Início" },
     { to: "/portal/funcionario/holerites", label: "Holerites" },
     { to: "/portal/funcionario/epis", label: "EPIs" },
     { to: "/portal/funcionario/documentos", label: "Documentos" },
     { to: "/portal/funcionario/perfil", label: "Perfil" },
   ];
   const menuCand = [
-    { to: "/portal/candidato", label: "Início", isLogo: true },
+    { to: "/portal/candidato", label: "Início" },
     { to: "/portal/candidato/ficha", label: "Ficha" },
     { to: "/portal/candidato/documentos", label: "Documentos" },
     { to: "/portal/candidato/termos", label: "Termos" },
@@ -52,14 +52,14 @@ export default function PortalLayout({ children, requireTipo }: Props) {
           </div>
         </div>
         <nav className="max-w-5xl mx-auto px-4 flex gap-1 overflow-x-auto text-sm items-center">
+          <Link to={user.tipo === "funcionario" ? "/portal/funcionario" : "/portal/candidato"} className="flex items-center">
+            <img src={logoLasant.url} alt="Lasant" className="h-5 w-auto mr-[3cm]" />
+          </Link>
           {menu.map((m: any) => {
             const active = loc.pathname === m.to;
             return (
               <Link key={m.to} to={m.to}
                 className={`flex items-center gap-2 px-3 py-2 rounded-t-md whitespace-nowrap ${active ? "bg-background text-foreground" : "hover:bg-primary-foreground/10"}`}>
-                {m.isLogo ? (
-                  <img src={logoLasant} alt="Lasant" className="h-5 w-auto ml-[-3cm]" />
-                ) : null}
                 <span>{m.label}</span>
               </Link>
             );
