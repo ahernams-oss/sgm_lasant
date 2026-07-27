@@ -6250,6 +6250,415 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_acessos_log: {
+        Row: {
+          acao: string
+          cpf: string | null
+          created_at: string
+          credencial_id: string | null
+          detalhes: Json | null
+          id: number
+          ip: string | null
+          sucesso: boolean
+          user_agent: string | null
+        }
+        Insert: {
+          acao: string
+          cpf?: string | null
+          created_at?: string
+          credencial_id?: string | null
+          detalhes?: Json | null
+          id?: number
+          ip?: string | null
+          sucesso: boolean
+          user_agent?: string | null
+        }
+        Update: {
+          acao?: string
+          cpf?: string | null
+          created_at?: string
+          credencial_id?: string | null
+          detalhes?: Json | null
+          id?: number
+          ip?: string | null
+          sucesso?: boolean
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_acessos_log_credencial_id_fkey"
+            columns: ["credencial_id"]
+            isOneToOne: false
+            referencedRelation: "portal_credenciais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_credenciais: {
+        Row: {
+          ativo: boolean
+          bloqueado_ate: string | null
+          candidato_ref: string | null
+          cpf: string
+          created_at: string
+          email: string | null
+          funcionario_id: string | null
+          id: string
+          processo_seletivo_id: string | null
+          reset_token: string | null
+          reset_token_expira: string | null
+          senha_hash: string | null
+          telefone: string | null
+          tentativas_falhas: number
+          tipo_acesso: string
+          ultimo_login: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          bloqueado_ate?: string | null
+          candidato_ref?: string | null
+          cpf: string
+          created_at?: string
+          email?: string | null
+          funcionario_id?: string | null
+          id?: string
+          processo_seletivo_id?: string | null
+          reset_token?: string | null
+          reset_token_expira?: string | null
+          senha_hash?: string | null
+          telefone?: string | null
+          tentativas_falhas?: number
+          tipo_acesso: string
+          ultimo_login?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          bloqueado_ate?: string | null
+          candidato_ref?: string | null
+          cpf?: string
+          created_at?: string
+          email?: string | null
+          funcionario_id?: string | null
+          id?: string
+          processo_seletivo_id?: string | null
+          reset_token?: string | null
+          reset_token_expira?: string | null
+          senha_hash?: string | null
+          telefone?: string | null
+          tentativas_falhas?: number
+          tipo_acesso?: string
+          ultimo_login?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_credenciais_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_credenciais_processo_seletivo_id_fkey"
+            columns: ["processo_seletivo_id"]
+            isOneToOne: false
+            referencedRelation: "processos_seletivos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_documentos_candidato: {
+        Row: {
+          cpf: string
+          created_at: string
+          enviado_em: string
+          id: string
+          nome_arquivo: string
+          observacao: string | null
+          processo_seletivo_id: string | null
+          revisado_em: string | null
+          revisor_id: string | null
+          status: string
+          storage_path: string
+          tamanho_bytes: number | null
+          tipo_documento: string
+          updated_at: string
+        }
+        Insert: {
+          cpf: string
+          created_at?: string
+          enviado_em?: string
+          id?: string
+          nome_arquivo: string
+          observacao?: string | null
+          processo_seletivo_id?: string | null
+          revisado_em?: string | null
+          revisor_id?: string | null
+          status?: string
+          storage_path: string
+          tamanho_bytes?: number | null
+          tipo_documento: string
+          updated_at?: string
+        }
+        Update: {
+          cpf?: string
+          created_at?: string
+          enviado_em?: string
+          id?: string
+          nome_arquivo?: string
+          observacao?: string | null
+          processo_seletivo_id?: string | null
+          revisado_em?: string | null
+          revisor_id?: string | null
+          status?: string
+          storage_path?: string
+          tamanho_bytes?: number | null
+          tipo_documento?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_documentos_candidato_processo_seletivo_id_fkey"
+            columns: ["processo_seletivo_id"]
+            isOneToOne: false
+            referencedRelation: "processos_seletivos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_ficha_admissao: {
+        Row: {
+          bancarios: Json
+          candidato_ref: string
+          contatos_emergencia: Json
+          cpf: string
+          created_at: string
+          dados_pessoais: Json
+          dependentes: Json
+          endereco: Json
+          enviado_em: string | null
+          id: string
+          observacoes_rh: string | null
+          processo_seletivo_id: string | null
+          revisado_em: string | null
+          revisor_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bancarios?: Json
+          candidato_ref: string
+          contatos_emergencia?: Json
+          cpf: string
+          created_at?: string
+          dados_pessoais?: Json
+          dependentes?: Json
+          endereco?: Json
+          enviado_em?: string | null
+          id?: string
+          observacoes_rh?: string | null
+          processo_seletivo_id?: string | null
+          revisado_em?: string | null
+          revisor_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bancarios?: Json
+          candidato_ref?: string
+          contatos_emergencia?: Json
+          cpf?: string
+          created_at?: string
+          dados_pessoais?: Json
+          dependentes?: Json
+          endereco?: Json
+          enviado_em?: string | null
+          id?: string
+          observacoes_rh?: string | null
+          processo_seletivo_id?: string | null
+          revisado_em?: string | null
+          revisor_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_ficha_admissao_processo_seletivo_id_fkey"
+            columns: ["processo_seletivo_id"]
+            isOneToOne: false
+            referencedRelation: "processos_seletivos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_holerites: {
+        Row: {
+          arquivo_path: string
+          competencia_ano: number
+          competencia_mes: number
+          created_at: string
+          descricao: string | null
+          disponibilizado_em: string
+          disponibilizado_por: string | null
+          funcionario_id: string
+          id: string
+          tipo: string
+          updated_at: string
+          visualizado_em: string | null
+        }
+        Insert: {
+          arquivo_path: string
+          competencia_ano: number
+          competencia_mes: number
+          created_at?: string
+          descricao?: string | null
+          disponibilizado_em?: string
+          disponibilizado_por?: string | null
+          funcionario_id: string
+          id?: string
+          tipo: string
+          updated_at?: string
+          visualizado_em?: string | null
+        }
+        Update: {
+          arquivo_path?: string
+          competencia_ano?: number
+          competencia_mes?: number
+          created_at?: string
+          descricao?: string | null
+          disponibilizado_em?: string
+          disponibilizado_por?: string | null
+          funcionario_id?: string
+          id?: string
+          tipo?: string
+          updated_at?: string
+          visualizado_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_holerites_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_termos_assinados: {
+        Row: {
+          assinado_em: string
+          cpf: string
+          created_at: string
+          funcionario_id: string | null
+          hash_sha256: string
+          id: string
+          ip: string | null
+          processo_seletivo_id: string | null
+          texto_aceite: string
+          tipo_acesso: string
+          tipo_termo: string
+          user_agent: string | null
+          versao_termo: string | null
+        }
+        Insert: {
+          assinado_em?: string
+          cpf: string
+          created_at?: string
+          funcionario_id?: string | null
+          hash_sha256: string
+          id?: string
+          ip?: string | null
+          processo_seletivo_id?: string | null
+          texto_aceite: string
+          tipo_acesso: string
+          tipo_termo: string
+          user_agent?: string | null
+          versao_termo?: string | null
+        }
+        Update: {
+          assinado_em?: string
+          cpf?: string
+          created_at?: string
+          funcionario_id?: string | null
+          hash_sha256?: string
+          id?: string
+          ip?: string | null
+          processo_seletivo_id?: string | null
+          texto_aceite?: string
+          tipo_acesso?: string
+          tipo_termo?: string
+          user_agent?: string | null
+          versao_termo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_termos_assinados_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_termos_assinados_processo_seletivo_id_fkey"
+            columns: ["processo_seletivo_id"]
+            isOneToOne: false
+            referencedRelation: "processos_seletivos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_treinamentos: {
+        Row: {
+          certificado_path: string | null
+          concluido_em: string | null
+          cpf: string
+          created_at: string
+          id: string
+          nota: number | null
+          processo_seletivo_id: string | null
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          certificado_path?: string | null
+          concluido_em?: string | null
+          cpf: string
+          created_at?: string
+          id?: string
+          nota?: number | null
+          processo_seletivo_id?: string | null
+          status?: string
+          tipo: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          certificado_path?: string | null
+          concluido_em?: string | null
+          cpf?: string
+          created_at?: string
+          id?: string
+          nota?: number | null
+          processo_seletivo_id?: string | null
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_treinamentos_processo_seletivo_id_fkey"
+            columns: ["processo_seletivo_id"]
+            isOneToOne: false
+            referencedRelation: "processos_seletivos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pregao_anexos_edital: {
         Row: {
           created_at: string
