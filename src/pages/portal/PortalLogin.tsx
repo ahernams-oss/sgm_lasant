@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { User, Lock, Eye, EyeOff, ShieldCheck } from "lucide-react";
-import logo from "@/assets/Logo_Lasant-2.png.asset.json";
+import bgImage from "@/assets/Tela_Inicial_SGM-2.png.asset.json";
+
+
 
 const fmtCpf = (v: string) =>
   v.replace(/\D/g, "").slice(0, 11)
@@ -40,15 +42,12 @@ export default function PortalLogin() {
 
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center p-4 sm:p-8 relative bg-gradient-to-br from-[#b0b8c4] via-[#8e99a8] to-[#6b7686]"
-      style={{
-        backgroundImage:
-          "linear-gradient(135deg, #c5cbd4 0%, #9aa5b3 25%, #7d8898 50%, #9aa5b3 75%, #c5cbd4 100%), repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 1px, transparent 1px, transparent 4px)",
-      }}
+      className="min-h-screen w-full flex items-center justify-center p-4 sm:p-8 relative bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: `url(${bgImage.url})` }}
     >
-      {/* Overlay metálico sutil para brilho e profundidade */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-transparent to-black/15" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.25),transparent_60%)]" />
+      {/* Overlay sutil para melhorar leitura do card */}
+      <div className="absolute inset-0 bg-white/10" />
+
 
       <div className="relative w-full max-w-md">
         {/* Card glassmorphism */}
@@ -59,13 +58,9 @@ export default function PortalLogin() {
               "linear-gradient(160deg, rgba(15,32,60,0.72) 0%, rgba(10,22,44,0.78) 100%)",
           }}
         >
-          {/* Logo */}
-          <div className="flex justify-center">
-            <img src={logo.url} alt="Lasant Construções" className="h-16 w-auto drop-shadow-lg" />
-          </div>
-
           {/* Títulos */}
-          <div className="text-center mt-6 mb-8">
+          <div className="text-center mb-8">
+
             <h1 className="text-4xl font-bold text-white tracking-tight">Portal LASANT</h1>
             <p className="text-sky-300/90 text-sm mt-2 font-medium">
               Colaboradores e Candidatos
