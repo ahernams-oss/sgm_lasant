@@ -102,6 +102,8 @@ export default function PortalFicha() {
               <F l="Nome do pai" v={dp.nomePai} on={(v: string) => setDp({ ...dp, nomePai: v })} />
               <F l="Telefone/WhatsApp" v={dp.telefone} on={(v: string) => setDp({ ...dp, telefone: v })} />
               <F l="E-mail" v={dp.email} on={(v: string) => setDp({ ...dp, email: v })} />
+              <F l="Escolaridade" v={dp.escolaridade} on={(v: string) => setDp({ ...dp, escolaridade: v })} />
+              <F l="Curso / Formação" v={dp.cursoFormacao} on={(v: string) => setDp({ ...dp, cursoFormacao: v })} />
             </CardContent>
           </Card>
           <Card>
