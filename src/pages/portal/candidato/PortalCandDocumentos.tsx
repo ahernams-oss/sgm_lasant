@@ -28,13 +28,18 @@ export default function PortalCandDocumentos() {
 
   const adicionarArquivos = (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    if (tipo === "Outros" && !tipoCustom.trim()) {
+      toast.error("Informe o nome do documento para o tipo \"Outros\".");
+      return;
+    }
+    const tipoFinal = tipo === "Outros" ? tipoCustom.trim() : tipo;
     const novos: FilaItem[] = [];
     for (const file of Array.from(files)) {
       if (file.size > 10 * 1024 * 1024) {
         toast.error(`"${file.name}" excede 10MB.`);
         continue;
       }
-      novos.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, tipo, file });
+      novos.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, tipo: tipoFinal, file });
     }
     if (novos.length) setFila((f) => [...f, ...novos]);
     if (fileRef.current) fileRef.current.value = "";
