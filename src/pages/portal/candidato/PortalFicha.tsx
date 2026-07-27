@@ -18,7 +18,7 @@ export default function PortalFicha() {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string>("rascunho");
 
-  const [dp, setDp] = useState<any>({ nome: "", rg: "", orgao: "", dataNasc: "", sexo: "", estadoCivil: "", nacionalidade: "Brasileira", naturalidade: "", nomeMae: "", nomePai: "", telefone: "", email: "" });
+  const [dp, setDp] = useState<any>({ nome: "", rg: "", orgao: "", dataNasc: "", sexo: "", estadoCivil: "", nacionalidade: "Brasileira", naturalidade: "", nomeMae: "", nomePai: "", telefone: "", email: "", escolaridade: "", cursoFormacao: "" });
   const [docs, setDocs] = useState<any>({
     cpf: "", rgNumero: "", rgOrgao: "", rgUf: "", rgEmissao: "",
     ctpsNumero: "", ctpsSerie: "", ctpsUf: "", ctpsEmissao: "",
@@ -27,7 +27,6 @@ export default function PortalFicha() {
     reservistaNumero: "", reservistaCategoria: "",
     passaporteNumero: "", passaporteValidade: "",
     certidaoNumero: "", certidaoTipo: "", certidaoEmissao: "",
-    escolaridade: "", cursoFormacao: "",
   });
   const [end, setEnd] = useState<any>({ cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "" });
   const [bc, setBc] = useState<any>({ banco: "", agencia: "", conta: "", tipoConta: "", chavePix: "" });
@@ -38,8 +37,12 @@ export default function PortalFicha() {
     portalCall<{ ficha: any }>("cand-ficha-get").then(({ ficha }) => {
       if (ficha) {
         const { documentos, ...rest } = (ficha.dados_pessoais || {});
-        setDp({ ...dp, ...rest });
-        if (documentos) setDocs({ ...docs, ...documentos });
+        const migrated = { escolaridade: documentos?.escolaridade ?? rest.escolaridade ?? "", cursoFormacao: documentos?.cursoFormacao ?? rest.cursoFormacao ?? "" };
+        setDp({ ...dp, ...rest, ...migrated });
+        if (documentos) {
+          const { escolaridade, cursoFormacao, ...restDocs } = documentos;
+          setDocs({ ...docs, ...restDocs });
+        }
         setEnd({ ...end, ...(ficha.endereco || {}) });
         setBc({ ...bc, ...(ficha.bancarios || {}) });
         setDeps(ficha.dependentes || []); setCes(ficha.contatos_emergencia || []);
@@ -99,6 +102,8 @@ export default function PortalFicha() {
               <F l="Nome do pai" v={dp.nomePai} on={(v: string) => setDp({ ...dp, nomePai: v })} />
               <F l="Telefone/WhatsApp" v={dp.telefone} on={(v: string) => setDp({ ...dp, telefone: v })} />
               <F l="E-mail" v={dp.email} on={(v: string) => setDp({ ...dp, email: v })} />
+              <F l="Escolaridade" v={dp.escolaridade} on={(v: string) => setDp({ ...dp, escolaridade: v })} />
+              <F l="Curso / Formação" v={dp.cursoFormacao} on={(v: string) => setDp({ ...dp, cursoFormacao: v })} />
             </CardContent>
           </Card>
           <Card>
@@ -165,13 +170,11 @@ export default function PortalFicha() {
                 </div>
               </div>
               <div>
-                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Certidão / Escolaridade</h4>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Certidão</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <F l="Certidão - Tipo (Nasc./Casamento)" v={docs.certidaoTipo} on={(v: string) => setDocs({ ...docs, certidaoTipo: v })} />
                   <F l="Certidão - Número/Matrícula" v={docs.certidaoNumero} on={(v: string) => setDocs({ ...docs, certidaoNumero: v })} />
                   <F l="Certidão - Data de emissão" type="date" v={docs.certidaoEmissao} on={(v: string) => setDocs({ ...docs, certidaoEmissao: v })} />
-                  <F l="Escolaridade" v={docs.escolaridade} on={(v: string) => setDocs({ ...docs, escolaridade: v })} />
-                  <F l="Curso / Formação" v={docs.cursoFormacao} on={(v: string) => setDocs({ ...docs, cursoFormacao: v })} />
                 </div>
               </div>
             </CardContent>
