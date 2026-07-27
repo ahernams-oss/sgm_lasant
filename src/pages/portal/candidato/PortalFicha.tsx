@@ -175,8 +175,6 @@ export default function PortalFicha() {
                   <F l="Certidão - Tipo (Nasc./Casamento)" v={docs.certidaoTipo} on={(v: string) => setDocs({ ...docs, certidaoTipo: v })} />
                   <F l="Certidão - Número/Matrícula" v={docs.certidaoNumero} on={(v: string) => setDocs({ ...docs, certidaoNumero: v })} />
                   <F l="Certidão - Data de emissão" type="date" v={docs.certidaoEmissao} on={(v: string) => setDocs({ ...docs, certidaoEmissao: v })} />
-                  <F l="Escolaridade" v={docs.escolaridade} on={(v: string) => setDocs({ ...docs, escolaridade: v })} />
-                  <F l="Curso / Formação" v={docs.cursoFormacao} on={(v: string) => setDocs({ ...docs, cursoFormacao: v })} />
                 </div>
               </div>
             </CardContent>
