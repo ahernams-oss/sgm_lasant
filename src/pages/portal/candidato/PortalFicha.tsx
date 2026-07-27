@@ -19,7 +19,7 @@ export default function PortalFicha() {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string>("rascunho");
 
-  const [dp, setDp] = useState<any>({ nome: "", rg: "", orgao: "", dataNasc: "", sexo: "", estadoCivil: "", nacionalidade: "Brasileira", naturalidade: "", nomeMae: "", nomePai: "", telefone: "", email: "", escolaridade: "", cursoFormacao: "", foto: "" });
+  const [dp, setDp] = useState<any>({ nome: "", dataNasc: "", sexo: "", estadoCivil: "", nacionalidade: "Brasileira", naturalidade: "", nomeMae: "", nomePai: "", telefone: "", email: "", escolaridade: "", cursoFormacao: "", foto: "" });
   const [docs, setDocs] = useState<any>({
     cpf: "", rgNumero: "", rgOrgao: "", rgUf: "", rgEmissao: "",
     ctpsNumero: "", ctpsSerie: "", ctpsUf: "", ctpsEmissao: "",
