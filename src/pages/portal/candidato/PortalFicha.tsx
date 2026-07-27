@@ -7,10 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { isValidCPF, maskCPF, onlyDigits } from "@/lib/validators";
 import RadioGroupCustom from "@/components/RadioGroupCustom";
+
+interface ProgressGroup { label: string; weight: number; items?: string[]; check?: boolean; }
 
 const UF_OPTIONS = [
   "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT",
