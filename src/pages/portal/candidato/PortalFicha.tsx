@@ -151,8 +151,6 @@ export default function PortalFicha() {
                 </div>
                 <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-3">
                   <F l="Nome completo" v={dp.nome} on={(v: string) => setDp({ ...dp, nome: v })} />
-                  <F l="RG" v={dp.rg} on={(v: string) => setDp({ ...dp, rg: v })} />
-                  <F l="Órgão emissor" v={dp.orgao} on={(v: string) => setDp({ ...dp, orgao: v })} />
                   <F l="Data de nascimento" type="date" v={dp.dataNasc} on={(v: string) => setDp({ ...dp, dataNasc: v })} />
                   <div className="flex flex-col gap-1.5">
                     <Label className="text-xs">Sexo</Label>
