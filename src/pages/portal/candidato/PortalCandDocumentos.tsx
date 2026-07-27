@@ -50,7 +50,7 @@ export default function PortalCandDocumentos() {
           </div>
           <div className="md:col-span-2 flex gap-2">
             <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={(e) => e.target.files && enviar(e.target.files[0])} />
-            <Button disabled={uploading} onClick={() => fileRef.current?.click()}><Upload className="w-4 h-4 mr-1" />{uploading ? "Enviando..." : "Selecionar"}</Button>
+            <Button disabled={uploading} onClick={() => fileRef.current?.click()}><Upload className="w-4 h-4 mr-1" />{uploading ? "Enviando..." : "Enviar"}</Button>
           </div>
           <p className="text-xs text-muted-foreground md:col-span-3">Formatos aceitos: PDF, JPG, PNG. Tamanho máximo 10MB.</p>
         </CardContent>
