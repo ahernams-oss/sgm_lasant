@@ -75,6 +75,28 @@ export default function PortalFicha() {
 
 
   const cpfInvalido = docs.cpf && !isValidCPF(docs.cpf);
+
+  const maskCEP = (v: string) => {
+    const digits = v.replace(/\D/g, "").slice(0, 8);
+    return digits.length > 5 ? digits.replace(/^(\d{5})(\d)/, "$1-$2") : digits;
+  };
+
+  const buscarCep = async (raw: string) => {
+    const clean = raw.replace(/\D/g, "");
+    if (clean.length !== 8) return;
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+      const data = await res.json();
+      if (data.erro) { toast.error("CEP não encontrado."); return; }
+      setEnd((prev: any) => ({
+        ...prev,
+        logradouro: data.logradouro || prev.logradouro,
+        bairro: data.bairro || prev.bairro,
+        cidade: data.localidade || prev.cidade,
+        uf: data.uf || prev.uf,
+      }));
+    } catch { toast.error("Erro ao buscar CEP."); }
+  };
   const depsCpfInvalidos = deps.some((d) => d.cpf && !isValidCPF(d.cpf));
 
   const salvar = async (enviar = false) => {
@@ -287,7 +309,17 @@ export default function PortalFicha() {
           <Card>
             <CardHeader><CardTitle>Endereço</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <F l="CEP" v={end.cep} on={(v: string) => setEnd({ ...end, cep: v })} />
+              <div>
+                <Label className="text-xs">CEP</Label>
+                <Input
+                  value={end.cep ?? ""}
+                  onChange={(e) => setEnd({ ...end, cep: maskCEP(e.target.value) })}
+                  onBlur={(e) => buscarCep(e.target.value)}
+                  placeholder="00000-000"
+                  inputMode="numeric"
+                  maxLength={9}
+                />
+              </div>
               <F l="Logradouro" v={end.logradouro} on={(v: string) => setEnd({ ...end, logradouro: v })} />
               <F l="Número" v={end.numero} on={(v: string) => setEnd({ ...end, numero: v })} />
               <F l="Complemento" v={end.complemento} on={(v: string) => setEnd({ ...end, complemento: v })} />
