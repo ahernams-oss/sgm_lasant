@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, Navigate } from "react-router-dom";
 import { usePortalAuth } from "@/contexts/PortalAuthContext";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
+import logoLasant from "@/assets/Logo_Lasant.png";
 
 interface Props {
   children: ReactNode;
