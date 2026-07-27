@@ -2,6 +2,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 const TOKEN_KEY = "portalToken";
 const USER_KEY = "portalUser";
+export const PORTAL_SESSION_EXPIRED_EVENT = "portal-session-expired";
+const SESSION_EXPIRED_MESSAGE = "Sessão expirada. Faça login novamente.";
 
 export interface PortalUser {
   tipo: "funcionario" | "candidato";
@@ -13,9 +15,32 @@ const PUBLIC_ACTIONS = ["login", "signup", "reset-request"];
 
 const isBrowser = () => typeof window !== "undefined";
 
-const redirectToPortalLogin = () => {
+const decodeTokenPayload = (token: string | null): { exp?: number } | null => {
+  if (!token) return null;
+  const parts = token.split(".");
+  const payload = parts[1];
+  if (!payload || !isBrowser()) return null;
+
+  try {
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    return JSON.parse(window.atob(padded));
+  } catch {
+    return null;
+  }
+};
+
+const isPortalTokenExpired = (token: string | null) => {
+  const payload = decodeTokenPayload(token);
+  if (typeof payload?.exp !== "number") return true;
+  return payload.exp <= Math.floor(Date.now() / 1000) + 30;
+};
+
+const expirePortalSession = () => {
+  portalStore.clear();
   if (!isBrowser()) return;
-  window.dispatchEvent(new Event("portal-session-expired"));
+
+  window.dispatchEvent(new CustomEvent(PORTAL_SESSION_EXPIRED_EVENT, { detail: { message: SESSION_EXPIRED_MESSAGE } }));
   if (window.location.pathname !== "/portal") {
     window.location.replace("/portal");
   }
@@ -24,7 +49,9 @@ const redirectToPortalLogin = () => {
 export const portalStore = {
   getToken: () => localStorage.getItem(TOKEN_KEY),
   getUser: (): PortalUser | null => {
-    if (!localStorage.getItem(TOKEN_KEY)) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token || isPortalTokenExpired(token)) {
+      localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
       return null;
     }
@@ -50,7 +77,7 @@ export const portalStore = {
 
 async function readFunctionError(error: unknown, data: unknown) {
   let bodyErr: string | undefined = (data as { error?: string } | null)?.error;
-  let status: number | undefined = (error as any)?.context?.status;
+  let status: number | undefined = (error as any)?.status ?? (error as any)?.context?.status ?? (error as any)?.context?.response?.status;
 
   if (error && !bodyErr) {
     try {
@@ -81,6 +108,13 @@ async function readFunctionError(error: unknown, data: unknown) {
 
 export async function portalCall<T = any>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
   const token = portalStore.getToken();
+  const isPublicAction = PUBLIC_ACTIONS.includes(action);
+
+  if (!isPublicAction && isPortalTokenExpired(token)) {
+    expirePortalSession();
+    throw new Error(SESSION_EXPIRED_MESSAGE);
+  }
+
   const { data, error } = await supabase.functions.invoke("portal-api", {
     body: { action, ...payload },
     headers: token ? { "x-portal-token": token } : undefined,
@@ -89,14 +123,14 @@ export async function portalCall<T = any>(action: string, payload: Record<string
   const { bodyErr, status, message } = await readFunctionError(error, data);
 
   const isSessionInvalid =
-    !PUBLIC_ACTIONS.includes(action) &&
-    ((typeof bodyErr === "string" && /sess[ãa]o inv[áa]lida|expirada/i.test(bodyErr)) ||
-      (status === 401 && typeof message === "string" && /non-2xx|401/i.test(message)));
+    !isPublicAction &&
+    (status === 401 ||
+      (typeof bodyErr === "string" && /sess[ãa]o inv[áa]lida|expirada/i.test(bodyErr)) ||
+      (typeof message === "string" && /sess[ãa]o inv[áa]lida|expirada|non-2xx|401/i.test(message)));
 
   if (isSessionInvalid) {
-    portalStore.clear();
-    redirectToPortalLogin();
-    return new Promise<T>(() => undefined);
+    expirePortalSession();
+    throw new Error(SESSION_EXPIRED_MESSAGE);
   }
 
   if (error) throw new Error(message || "Erro ao processar requisição.");

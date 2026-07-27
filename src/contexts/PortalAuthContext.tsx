@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
-import { portalCall, portalStore, PortalUser } from "@/lib/portalClient";
+import { PORTAL_SESSION_EXPIRED_EVENT, portalCall, portalStore, PortalUser } from "@/lib/portalClient";
 
 interface Ctx {
   user: PortalUser | null;
@@ -16,10 +16,15 @@ export function PortalAuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const syncUser = () => setUser(portalStore.getUser());
-    window.addEventListener("portal-session-expired", syncUser);
+    const handleExpired = () => {
+      portalStore.clear();
+      setUser(null);
+    };
+
+    window.addEventListener(PORTAL_SESSION_EXPIRED_EVENT, handleExpired);
     window.addEventListener("storage", syncUser);
     return () => {
-      window.removeEventListener("portal-session-expired", syncUser);
+      window.removeEventListener(PORTAL_SESSION_EXPIRED_EVENT, handleExpired);
       window.removeEventListener("storage", syncUser);
     };
   }, []);
