@@ -293,7 +293,15 @@ export default function PortalFicha() {
               <F l="Complemento" v={end.complemento} on={(v: string) => setEnd({ ...end, complemento: v })} />
               <F l="Bairro" v={end.bairro} on={(v: string) => setEnd({ ...end, bairro: v })} />
               <F l="Cidade" v={end.cidade} on={(v: string) => setEnd({ ...end, cidade: v })} />
-              <F l="UF" v={end.uf} on={(v: string) => setEnd({ ...end, uf: v })} />
+              <div>
+                <Label className="text-xs">UF</Label>
+                <Select value={end.uf || ""} onValueChange={(v) => setEnd({ ...end, uf: v })}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {UF_OPTIONS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
           <Card>
