@@ -861,7 +861,20 @@ const Funcionarios = () => {
                     <Input value={form.nome} onChange={(e) => update("nome", e.target.value)} placeholder="Nome completo" />
                   </Field>
                   <Field label="CPF" required>
-                    <Input value={form.cpf} onChange={(e) => update("cpf", e.target.value)} placeholder="000.000.000-00" />
+                    <Input
+                      value={form.cpf}
+                      onChange={(e) => {
+                        const d = e.target.value.replace(/\D/g, "").slice(0, 11);
+                        const masked = d
+                          .replace(/^(\d{3})(\d)/, "$1.$2")
+                          .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+                          .replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2");
+                        update("cpf", masked);
+                      }}
+                      placeholder="000.000.000-00"
+                      maxLength={14}
+                      inputMode="numeric"
+                    />
                   </Field>
                   <Field label="RG">
                     <Input value={form.rg} onChange={(e) => update("rg", e.target.value)} placeholder="RG" />
@@ -869,7 +882,7 @@ const Funcionarios = () => {
                   <Field label="Órgão Emissor">
                     <Input value={form.orgaoEmissor} onChange={(e) => update("orgaoEmissor", e.target.value)} placeholder="SSP/RJ" />
                   </Field>
-                  <Field label="Data de Nascimento">
+                  <Field label="Data de Nascimento" required>
                     <Input type="date" value={form.dataNascimento} onChange={(e) => update("dataNascimento", e.target.value)} />
                   </Field>
                   <Field label="Sexo">
