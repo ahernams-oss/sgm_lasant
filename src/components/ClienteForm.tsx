@@ -112,6 +112,14 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const doc = onlyDigits(form.cnpj);
+    if (doc.length > 0) {
+      const ok = doc.length === 11 ? isValidCPF(doc) : doc.length === 14 ? isValidCNPJ(doc) : false;
+      if (!ok) {
+        toast.error("CNPJ/CPF inválido. Verifique o número informado.");
+        return;
+      }
+    }
     onSubmit({ ...form, telefones: form.telefones.filter((t) => t.trim() !== "") }, editingId);
     if (!editingId) {
       setForm(tipoFixo ? { ...emptyForm, tipo: tipoFixo } : emptyForm);
