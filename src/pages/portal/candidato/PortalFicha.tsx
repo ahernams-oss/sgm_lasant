@@ -309,7 +309,17 @@ export default function PortalFicha() {
           <Card>
             <CardHeader><CardTitle>Endereço</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <F l="CEP" v={end.cep} on={(v: string) => setEnd({ ...end, cep: v })} />
+              <div>
+                <Label className="text-xs">CEP</Label>
+                <Input
+                  value={end.cep ?? ""}
+                  onChange={(e) => setEnd({ ...end, cep: maskCEP(e.target.value) })}
+                  onBlur={(e) => buscarCep(e.target.value)}
+                  placeholder="00000-000"
+                  inputMode="numeric"
+                  maxLength={9}
+                />
+              </div>
               <F l="Logradouro" v={end.logradouro} on={(v: string) => setEnd({ ...end, logradouro: v })} />
               <F l="Número" v={end.numero} on={(v: string) => setEnd({ ...end, numero: v })} />
               <F l="Complemento" v={end.complemento} on={(v: string) => setEnd({ ...end, complemento: v })} />
