@@ -235,7 +235,15 @@ export default function PortalFicha() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <F l="Número" v={docs.ctpsNumero} on={(v: string) => setDocs({ ...docs, ctpsNumero: v })} />
                   <F l="Série" v={docs.ctpsSerie} on={(v: string) => setDocs({ ...docs, ctpsSerie: v })} />
-                  <F l="UF" v={docs.ctpsUf} on={(v: string) => setDocs({ ...docs, ctpsUf: v })} />
+                  <div>
+                    <Label className="text-xs">UF</Label>
+                    <Select value={docs.ctpsUf || ""} onValueChange={(v) => setDocs({ ...docs, ctpsUf: v })}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {UF_OPTIONS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <F l="Data de emissão" type="date" v={docs.ctpsEmissao} on={(v: string) => setDocs({ ...docs, ctpsEmissao: v })} />
                 </div>
               </div>
