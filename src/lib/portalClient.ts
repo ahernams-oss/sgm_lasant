@@ -9,11 +9,34 @@ export interface PortalUser {
   cpf: string;
 }
 
+const PUBLIC_ACTIONS = ["login", "signup", "reset-request"];
+
+const isBrowser = () => typeof window !== "undefined";
+
+const redirectToPortalLogin = () => {
+  if (!isBrowser()) return;
+  window.dispatchEvent(new Event("portal-session-expired"));
+  if (window.location.pathname !== "/portal") {
+    window.location.replace("/portal");
+  }
+};
+
 export const portalStore = {
   getToken: () => localStorage.getItem(TOKEN_KEY),
   getUser: (): PortalUser | null => {
+    if (!localStorage.getItem(TOKEN_KEY)) {
+      localStorage.removeItem(USER_KEY);
+      return null;
+    }
     const raw = localStorage.getItem(USER_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as PortalUser;
+    } catch {
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+      return null;
+    }
   },
   set: (token: string, user: PortalUser) => {
     localStorage.setItem(TOKEN_KEY, token);
@@ -25,6 +48,37 @@ export const portalStore = {
   },
 };
 
+async function readFunctionError(error: unknown, data: unknown) {
+  let bodyErr: string | undefined = (data as { error?: string } | null)?.error;
+  let status: number | undefined = (error as any)?.context?.status;
+
+  if (error && !bodyErr) {
+    try {
+      const ctx = (error as any).context;
+      if (ctx && typeof ctx.clone === "function") {
+        const cloned = ctx.clone();
+        status = status ?? cloned.status;
+        const parsed = await cloned.json().catch(() => null);
+        bodyErr = parsed?.error;
+      } else if (ctx && typeof ctx.json === "function") {
+        const parsed = await ctx.json();
+        bodyErr = parsed?.error;
+      } else if (ctx && typeof ctx.text === "function") {
+        const txt = await ctx.text();
+        try {
+          bodyErr = JSON.parse(txt)?.error;
+        } catch {
+          bodyErr = txt;
+        }
+      }
+    } catch {
+      // mantém a mensagem padrão do supabase-js
+    }
+  }
+
+  return { bodyErr, status, message: bodyErr || (error as Error | null)?.message };
+}
+
 export async function portalCall<T = any>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
   const token = portalStore.getToken();
   const { data, error } = await supabase.functions.invoke("portal-api", {
@@ -32,36 +86,20 @@ export async function portalCall<T = any>(action: string, payload: Record<string
     headers: token ? { "x-portal-token": token } : undefined,
   });
 
-  // Try to extract body from FunctionsHttpError (supabase-js wraps non-2xx responses)
-  let bodyErr: string | undefined = (data as any)?.error;
-  let status: number | undefined = (error as any)?.context?.status;
-  if (error && !bodyErr) {
-    try {
-      const ctx = (error as any).context;
-      if (ctx && typeof ctx.json === "function") {
-        const parsed = await ctx.json();
-        bodyErr = parsed?.error;
-      } else if (ctx && typeof ctx.text === "function") {
-        const txt = await ctx.text();
-        try { bodyErr = JSON.parse(txt)?.error; } catch { bodyErr = txt; }
-      }
-    } catch { /* ignore */ }
-  }
+  const { bodyErr, status, message } = await readFunctionError(error, data);
 
-  const errMsg = bodyErr || error?.message;
   const isSessionInvalid =
-    status === 401 ||
-    (typeof errMsg === "string" &&
-      /sess[ãa]o inv[áa]lida|expirada|non-2xx|401/i.test(errMsg));
+    !PUBLIC_ACTIONS.includes(action) &&
+    ((typeof bodyErr === "string" && /sess[ãa]o inv[áa]lida|expirada/i.test(bodyErr)) ||
+      (status === 401 && typeof message === "string" && /non-2xx|401/i.test(message)));
 
-  if (isSessionInvalid && !["login", "signup", "reset-request"].includes(action)) {
+  if (isSessionInvalid) {
     portalStore.clear();
-    if (typeof window !== "undefined" && window.location.pathname !== "/portal") {
-      window.location.href = "/portal";
-    }
-    throw new Error("Sua sessão expirou. Faça login novamente.");
+    redirectToPortalLogin();
+    return new Promise<T>(() => undefined);
   }
-  if (error) throw new Error(errMsg || "Erro ao processar requisição.");
+
+  if (error) throw new Error(message || "Erro ao processar requisição.");
   if ((data as any)?.error) throw new Error((data as any).error);
   return data as T;
 }
