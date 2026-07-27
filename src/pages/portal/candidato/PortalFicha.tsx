@@ -12,6 +12,11 @@ import { toast } from "sonner";
 import { isValidCPF, maskCPF, onlyDigits } from "@/lib/validators";
 import RadioGroupCustom from "@/components/RadioGroupCustom";
 
+const UF_OPTIONS = [
+  "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT",
+  "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO",
+];
+
 interface Dep { nome: string; parentesco: string; nascimento: string; cpf?: string; }
 interface Contato { nome: string; parentesco: string; telefone: string; }
 
@@ -213,7 +218,15 @@ export default function PortalFicha() {
                   </div>
                   <F l="RG - Número" v={docs.rgNumero} on={(v: string) => setDocs({ ...docs, rgNumero: v })} />
                   <F l="RG - Órgão emissor" v={docs.rgOrgao} on={(v: string) => setDocs({ ...docs, rgOrgao: v })} />
-                  <F l="RG - UF" v={docs.rgUf} on={(v: string) => setDocs({ ...docs, rgUf: v })} />
+                  <div>
+                    <Label className="text-xs">RG - UF</Label>
+                    <Select value={docs.rgUf || ""} onValueChange={(v) => setDocs({ ...docs, rgUf: v })}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {UF_OPTIONS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <F l="RG - Data de emissão" type="date" v={docs.rgEmissao} on={(v: string) => setDocs({ ...docs, rgEmissao: v })} />
                 </div>
               </div>
@@ -222,7 +235,15 @@ export default function PortalFicha() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <F l="Número" v={docs.ctpsNumero} on={(v: string) => setDocs({ ...docs, ctpsNumero: v })} />
                   <F l="Série" v={docs.ctpsSerie} on={(v: string) => setDocs({ ...docs, ctpsSerie: v })} />
-                  <F l="UF" v={docs.ctpsUf} on={(v: string) => setDocs({ ...docs, ctpsUf: v })} />
+                  <div>
+                    <Label className="text-xs">UF</Label>
+                    <Select value={docs.ctpsUf || ""} onValueChange={(v) => setDocs({ ...docs, ctpsUf: v })}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {UF_OPTIONS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <F l="Data de emissão" type="date" v={docs.ctpsEmissao} on={(v: string) => setDocs({ ...docs, ctpsEmissao: v })} />
                 </div>
               </div>
@@ -272,7 +293,15 @@ export default function PortalFicha() {
               <F l="Complemento" v={end.complemento} on={(v: string) => setEnd({ ...end, complemento: v })} />
               <F l="Bairro" v={end.bairro} on={(v: string) => setEnd({ ...end, bairro: v })} />
               <F l="Cidade" v={end.cidade} on={(v: string) => setEnd({ ...end, cidade: v })} />
-              <F l="UF" v={end.uf} on={(v: string) => setEnd({ ...end, uf: v })} />
+              <div>
+                <Label className="text-xs">UF</Label>
+                <Select value={end.uf || ""} onValueChange={(v) => setEnd({ ...end, uf: v })}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {UF_OPTIONS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
           <Card>
