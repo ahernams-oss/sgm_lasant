@@ -746,6 +746,8 @@ const Funcionarios = () => {
     if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome.trim()) { toast.error("Informe o nome."); return; }
     if (!form.cpf.trim()) { toast.error("Informe o CPF."); return; }
+    if (form.cpf.replace(/\D/g, "").length !== 11) { toast.error("CPF inválido. Informe 11 dígitos."); return; }
+    if (!form.dataNascimento) { toast.error("Informe a data de nascimento."); return; }
     if (!form.cargoId) { toast.error("Selecione o cargo."); return; }
 
     if (editingId) {
