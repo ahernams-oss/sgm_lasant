@@ -32,6 +32,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { isValidCPF } from "@/lib/validators";
 import { gerarPdfFuncionario } from "@/lib/gerarPdfFuncionario";
 import { gerarPdfEpi } from "@/lib/gerarPdfEpi";
 import { gerarPdfUniforme } from "@/lib/gerarPdfUniforme";
@@ -746,7 +747,7 @@ const Funcionarios = () => {
     if (editingId ? !podeEditar : !podeCriar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!form.nome.trim()) { toast.error("Informe o nome."); return; }
     if (!form.cpf.trim()) { toast.error("Informe o CPF."); return; }
-    if (form.cpf.replace(/\D/g, "").length !== 11) { toast.error("CPF inválido. Informe 11 dígitos."); return; }
+    if (!isValidCPF(form.cpf)) { toast.error("CPF inválido. Verifique o número informado."); return; }
     if (!form.dataNascimento) { toast.error("Informe a data de nascimento."); return; }
     if (!form.cargoId) { toast.error("Selecione o cargo."); return; }
 

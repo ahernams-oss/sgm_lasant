@@ -10,6 +10,7 @@ import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
 import { Plus, Edit, Trash2, Search, Upload, FileText, X } from "lucide-react";
 import { toast } from "sonner";
+import { isValidCPF } from "@/lib/validators";
 import { usePermissao } from "@/hooks/usePermissao";
 
 const TITULOS = [
@@ -72,6 +73,7 @@ export default function ResponsaveisTecnicosPage() {
     if (!form.titulo) { toast.error("Selecione o título."); return; }
     if (!form.crea?.trim()) { toast.error("Informe o CREA."); return; }
     if (!form.cpf?.trim()) { toast.error("Informe o CPF."); return; }
+    if (!isValidCPF(form.cpf)) { toast.error("CPF inválido. Verifique o número informado."); return; }
     const ok = editing ? await update(editing.id, form) : await add(form);
     if (ok) { setOpen(false); setForm(empty()); setEditing(null); }
   };

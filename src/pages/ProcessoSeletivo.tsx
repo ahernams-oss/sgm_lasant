@@ -39,6 +39,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { toast } from "sonner";
+import { isValidCPF } from "@/lib/validators";
 
 // Debounced Input to avoid saving on every keystroke
 function DebouncedInput({ value: externalValue, onChange, delay = 800, ...props }: React.ComponentProps<"input"> & { delay?: number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
@@ -168,8 +169,8 @@ const ProcessoSeletivoPage = () => {
       return;
     }
     const cpfDigits = newCandidato.cpf.replace(/\D/g, "");
-    if (cpfDigits.length !== 11) {
-      toast.error("Informe um CPF válido (11 dígitos).");
+    if (!isValidCPF(cpfDigits)) {
+      toast.error("CPF inválido. Verifique o número informado.");
       return;
     }
     if (!newCandidato.dataNascimento) {

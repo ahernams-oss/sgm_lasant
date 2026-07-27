@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
+import { isValidCPF, isValidCNPJ, maskCPF, maskCNPJ, onlyDigits } from "@/lib/validators";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus, X, Upload, Trash2 } from "lucide-react";
@@ -111,6 +112,14 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const doc = onlyDigits(form.cnpj);
+    if (doc.length > 0) {
+      const ok = doc.length === 11 ? isValidCPF(doc) : doc.length === 14 ? isValidCNPJ(doc) : false;
+      if (!ok) {
+        toast.error("CNPJ/CPF inválido. Verifique o número informado.");
+        return;
+      }
+    }
     onSubmit({ ...form, telefones: form.telefones.filter((t) => t.trim() !== "") }, editingId);
     if (!editingId) {
       setForm(tipoFixo ? { ...emptyForm, tipo: tipoFixo } : emptyForm);
@@ -154,7 +163,16 @@ export default function ClienteForm({ editingId, initialData, onSubmit, onCancel
         </div>
         <div>
           <label className="field-label">CNPJ / CPF</label>
-          <Input placeholder="Ex: 12.345.678/0001-90" value={form.cnpj} onChange={(e) => update("cnpj", e.target.value)} />
+          <Input
+            placeholder="Ex: 12.345.678/0001-90"
+            value={form.cnpj}
+            onChange={(e) => {
+              const d = onlyDigits(e.target.value);
+              update("cnpj", d.length <= 11 ? maskCPF(d) : maskCNPJ(d));
+            }}
+            maxLength={18}
+            inputMode="numeric"
+          />
         </div>
         <div>
           <label className="field-label">Inscrição Estadual</label>
