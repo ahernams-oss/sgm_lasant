@@ -391,7 +391,16 @@ export default function PortalFicha() {
               <div>
                 <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Certidão</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <F l="Certidão - Tipo (Nasc./Casamento)" v={docs.certidaoTipo} on={(v: string) => setDocs({ ...docs, certidaoTipo: v })} />
+                  <div>
+                    <Label className="text-xs">Certidão - Tipo</Label>
+                    <Select value={docs.certidaoTipo || ""} onValueChange={(v) => setDocs({ ...docs, certidaoTipo: v })}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Certidão de Nascimento">Certidão de Nascimento</SelectItem>
+                        <SelectItem value="Certidão de Casamento">Certidão de Casamento</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <F l="Certidão - Número/Matrícula" v={docs.certidaoNumero} on={(v: string) => setDocs({ ...docs, certidaoNumero: v })} />
                   <F l="Certidão - Data de emissão" type="date" v={docs.certidaoEmissao} on={(v: string) => setDocs({ ...docs, certidaoEmissao: v })} />
                 </div>
