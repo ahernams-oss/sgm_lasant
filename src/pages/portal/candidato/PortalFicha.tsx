@@ -147,6 +147,7 @@ export default function PortalFicha() {
     } catch { toast.error("Erro ao buscar CEP."); }
   };
   const depsCpfInvalidos = deps.some((d) => d.cpf && !isValidCPF(d.cpf));
+  const progresso = calcProgresso(dp, docs, end, bc, deps, ces);
 
   const salvar = async (enviar = false) => {
     if (enviar) {
