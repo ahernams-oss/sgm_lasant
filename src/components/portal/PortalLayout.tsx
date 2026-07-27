@@ -58,7 +58,7 @@ export default function PortalLayout({ children, requireTipo }: Props) {
               <Link key={m.to} to={m.to}
                 className={`flex items-center gap-2 px-3 py-2 rounded-t-md whitespace-nowrap ${active ? "bg-background text-foreground" : "hover:bg-primary-foreground/10"}`}>
                 {m.isLogo ? (
-                  <img src={logoLasant} alt="Lasant" className="h-5 w-auto" />
+                  <img src={logoLasant} alt="Lasant" className="h-5 w-auto ml-[-3cm]" />
                 ) : null}
                 <span>{m.label}</span>
               </Link>
