@@ -39,6 +39,16 @@ const ESCOLARIDADE_OPTIONS = [
   "Pós-Doutorado",
 ];
 
+const PARENTESCO_OPTIONS = [
+  "Esposa(o)",
+  "Filho(a)",
+  "Enteado(a)",
+  "Pai",
+  "Mãe",
+  "Avô",
+  "Avó",
+];
+
 const F = ({ l, v, on, type = "text" }: any) => (
   <div><Label className="text-xs">{l}</Label><Input type={type} value={v ?? ""} onChange={(e) => on(e.target.value)} /></div>
 );
