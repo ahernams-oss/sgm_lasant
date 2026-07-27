@@ -54,7 +54,10 @@ export default function PortalLayout({ children, requireTipo }: Props) {
             </Button>
           </div>
         </div>
-        <nav className="max-w-5xl mx-auto px-4 flex gap-1 overflow-x-auto text-sm">
+        <nav className="max-w-5xl mx-auto px-4 flex gap-1 overflow-x-auto text-sm items-center">
+          <Link to="/portal" className="flex items-center px-2 py-1 rounded-t-md hover:bg-primary-foreground/10">
+            <img src={logoLasant} alt="Lasant" className="h-6 w-auto" />
+          </Link>
           {menu.map((m) => {
             const active = loc.pathname === m.to;
             return (
