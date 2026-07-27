@@ -107,7 +107,21 @@ export default function PortalFicha() {
               <div>
                 <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Identificação</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <F l="CPF" v={docs.cpf} on={(v: string) => setDocs({ ...docs, cpf: v })} />
+                  <div>
+                    <Label className="text-xs">CPF</Label>
+                    <Input
+                      value={docs.cpf ?? ""}
+                      onChange={(e) => setDocs({ ...docs, cpf: maskCPF(e.target.value) })}
+                      placeholder="000.000.000-00"
+                      inputMode="numeric"
+                      maxLength={14}
+                      className={cpfInvalido ? "border-destructive focus-visible:ring-destructive" : ""}
+                    />
+                    {cpfInvalido && <p className="text-[11px] text-destructive mt-1">CPF inválido</p>}
+                    {docs.cpf && !cpfInvalido && onlyDigits(docs.cpf).length === 11 && (
+                      <p className="text-[11px] text-emerald-600 mt-1">CPF válido</p>
+                    )}
+                  </div>
                   <F l="RG - Número" v={docs.rgNumero} on={(v: string) => setDocs({ ...docs, rgNumero: v })} />
                   <F l="RG - Órgão emissor" v={docs.rgOrgao} on={(v: string) => setDocs({ ...docs, rgOrgao: v })} />
                   <F l="RG - UF" v={docs.rgUf} on={(v: string) => setDocs({ ...docs, rgUf: v })} />
