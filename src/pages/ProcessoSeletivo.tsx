@@ -1210,6 +1210,31 @@ const ProcessoSeletivoPage = () => {
                   placeholder="+55 (00) 00000-0000"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">CPF *</label>
+                  <Input
+                    value={newCandidato.cpf}
+                    onChange={(e) => {
+                      const d = e.target.value.replace(/\D/g, "").slice(0, 11);
+                      const masked = d
+                        .replace(/(\d{3})(\d)/, "$1.$2")
+                        .replace(/(\d{3})(\d)/, "$1.$2")
+                        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+                      setNewCandidato((p) => ({ ...p, cpf: masked }));
+                    }}
+                    placeholder="000.000.000-00"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Data de Nascimento *</label>
+                  <Input
+                    type="date"
+                    value={newCandidato.dataNascimento}
+                    onChange={(e) => setNewCandidato((p) => ({ ...p, dataNascimento: e.target.value }))}
+                  />
+                </div>
+              </div>
               <div>
                 <label className="text-xs font-medium text-muted-foreground">Anexos (máx. 2MB cada)</label>
                 <input
