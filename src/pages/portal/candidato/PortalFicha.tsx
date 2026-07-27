@@ -438,7 +438,10 @@ export default function PortalFicha() {
             </CardContent>
           </Card>
           <Card>
-            <CardHeader><CardTitle>Dados Bancários</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle>Dados Bancários</CardTitle>
+              <p className="text-sm text-destructive font-medium">Preencha com muita atenção!</p>
+            </CardHeader>
             <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <F l="Banco" v={bc.banco} on={(v: string) => setBc({ ...bc, banco: v })} />
               <F l="Agência" v={bc.agencia} on={(v: string) => setBc({ ...bc, agencia: v })} />
