@@ -31,16 +31,32 @@ export async function portalCall<T = any>(action: string, payload: Record<string
     body: { action, ...payload },
     headers: token ? { "x-portal-token": token } : undefined,
   });
-  const errMsg = (data as any)?.error || error?.message;
+
+  // Try to extract body from FunctionsHttpError (supabase-js wraps non-2xx responses)
+  let bodyErr: string | undefined = (data as any)?.error;
+  let status: number | undefined = (error as any)?.context?.status;
+  if (error && !bodyErr) {
+    try {
+      const ctx = (error as any).context;
+      if (ctx && typeof ctx.json === "function") {
+        const parsed = await ctx.json();
+        bodyErr = parsed?.error;
+      } else if (ctx && typeof ctx.text === "function") {
+        const txt = await ctx.text();
+        try { bodyErr = JSON.parse(txt)?.error; } catch { bodyErr = txt; }
+      }
+    } catch { /* ignore */ }
+  }
+
+  const errMsg = bodyErr || error?.message;
   const isSessionInvalid =
-    typeof errMsg === "string" &&
-    /sess[ãa]o inv[áa]lida|expirada|Edge function returned 401/i.test(errMsg);
+    status === 401 ||
+    (typeof errMsg === "string" &&
+      /sess[ãa]o inv[áa]lida|expirada|non-2xx|401/i.test(errMsg));
 
   if (isSessionInvalid && !["login", "signup", "reset-request"].includes(action)) {
     portalStore.clear();
-    if (typeof window !== "undefined" && !window.location.pathname.startsWith("/portal")) {
-      window.location.href = "/portal";
-    } else if (typeof window !== "undefined" && window.location.pathname !== "/portal") {
+    if (typeof window !== "undefined" && window.location.pathname !== "/portal") {
       window.location.href = "/portal";
     }
     throw new Error("Sua sessão expirou. Faça login novamente.");
