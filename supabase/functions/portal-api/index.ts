@@ -292,7 +292,12 @@ Deno.serve(async (req) => {
       const b64 = String(body.arquivo_base64 || "");
       if (!tipo || !b64) return json({ error: "Documento inválido." }, 400);
       const bin = Uint8Array.from(atob(b64.split(",").pop() || b64), (c) => c.charCodeAt(0));
-      const path = `${cred.cpf}/${tipo}/${Date.now()}-${nome}`.replace(/\s+/g, "_");
+      const sanitize = (s: string) =>
+        s.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-zA-Z0-9._-]+/g, "_").replace(/_+/g, "_").replace(/^_+|_+$/g, "");
+      const safeTipo = sanitize(tipo) || "doc";
+      const safeNome = sanitize(nome) || "arquivo";
+      const path = `${cred.cpf}/${safeTipo}/${Date.now()}-${safeNome}`;
       const { error: upErr } = await sb.storage.from("portal-candidato-docs").upload(path, bin, {
         contentType: body.content_type || "application/octet-stream", upsert: false,
       });
