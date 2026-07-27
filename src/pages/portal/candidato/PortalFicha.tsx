@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { isValidCPF, maskCPF, onlyDigits } from "@/lib/validators";
+import RadioGroupCustom from "@/components/RadioGroupCustom";
 
 interface Dep { nome: string; parentesco: string; nascimento: string; cpf?: string; }
 interface Contato { nome: string; parentesco: string; telefone: string; }
