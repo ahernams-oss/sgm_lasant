@@ -252,7 +252,14 @@ Deno.serve(async (req) => {
     if (action === "cand-ficha-get") {
       if (cred.tipo_acesso !== "candidato") return json({ error: "Acesso negado." }, 403);
       const { data } = await sb.from("portal_ficha_admissao").select("*").eq("cpf", cred.cpf).maybeSingle();
-      return json({ ficha: data });
+      const cand = await findCandidato(cred.cpf);
+      const c = cand?.candidato ?? {};
+      const prefill = {
+        nome: c?.nome ?? "",
+        cpf: cred.cpf ?? "",
+        dataNascimento: c?.dataNascimento ?? c?.data_nascimento ?? "",
+      };
+      return json({ ficha: data, prefill });
     }
     if (action === "cand-ficha-save") {
       if (cred.tipo_acesso !== "candidato") return json({ error: "Acesso negado." }, 403);

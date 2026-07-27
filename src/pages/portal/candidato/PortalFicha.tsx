@@ -34,23 +34,34 @@ export default function PortalFicha() {
   const [ces, setCes] = useState<Contato[]>([]);
 
   useEffect(() => {
-    portalCall<{ ficha: any }>("cand-ficha-get").then(({ ficha }) => {
+    portalCall<{ ficha: any; prefill?: { nome?: string; cpf?: string; dataNascimento?: string } }>("cand-ficha-get").then(({ ficha, prefill }) => {
+      const pf = prefill || {};
+      const cpfMasked = pf.cpf ? maskCPF(pf.cpf) : "";
       if (ficha) {
         const { documentos, ...rest } = (ficha.dados_pessoais || {});
         const migrated = { escolaridade: documentos?.escolaridade ?? rest.escolaridade ?? "", cursoFormacao: documentos?.cursoFormacao ?? rest.cursoFormacao ?? "" };
-        setDp({ ...dp, ...rest, ...migrated });
-        if (documentos) {
-          const { escolaridade, cursoFormacao, ...restDocs } = documentos;
-          setDocs({ ...docs, ...restDocs });
-        }
+        setDp({
+          ...dp,
+          ...rest,
+          ...migrated,
+          nome: rest.nome || pf.nome || "",
+          dataNasc: rest.dataNasc || pf.dataNascimento || "",
+        });
+        const { escolaridade, cursoFormacao, ...restDocs } = documentos || {};
+        setDocs({ ...docs, ...restDocs, cpf: restDocs?.cpf || cpfMasked });
         setEnd({ ...end, ...(ficha.endereco || {}) });
         setBc({ ...bc, ...(ficha.bancarios || {}) });
         setDeps(ficha.dependentes || []); setCes(ficha.contatos_emergencia || []);
         setStatus(ficha.status || "rascunho");
+      } else {
+        // Primeiro acesso: pré-preenche a partir do cadastro do candidato
+        setDp({ ...dp, nome: pf.nome || "", dataNasc: pf.dataNascimento || "" });
+        setDocs({ ...docs, cpf: cpfMasked });
       }
     }).catch((e) => toast.error(e.message)).finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const cpfInvalido = docs.cpf && !isValidCPF(docs.cpf);
   const depsCpfInvalidos = deps.some((d) => d.cpf && !isValidCPF(d.cpf));
