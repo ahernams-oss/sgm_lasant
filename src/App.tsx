@@ -523,6 +523,7 @@ const App = () => (
     <FinanceiroProvider>
     <NfsesProvider>
     <AuthProvider> {/* auth wrapper */}
+    <PortalAuthProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -538,6 +539,22 @@ const App = () => (
           <Route path="/instalar" element={<Instalar />} />
           <Route path="/verificar-assinatura" element={<VerificarAssinaturaPage />} />
           <Route path="/verificar-assinatura/:codigo" element={<VerificarAssinaturaPage />} />
+
+          {/* Portal do Funcionário / Candidato */}
+          <Route path="/portal" element={<PortalLogin />} />
+          <Route path="/portal/cadastrar-senha" element={<PortalCadastrarSenha />} />
+          <Route path="/portal/esqueci-senha" element={<PortalEsqueciSenha />} />
+          <Route path="/portal/funcionario" element={<PortalFuncHome />} />
+          <Route path="/portal/funcionario/holerites" element={<PortalHolerites />} />
+          <Route path="/portal/funcionario/epis" element={<PortalFuncEpis />} />
+          <Route path="/portal/funcionario/documentos" element={<PortalFuncDocumentos />} />
+          <Route path="/portal/funcionario/perfil" element={<PortalPerfil />} />
+          <Route path="/portal/candidato" element={<PortalCandHome />} />
+          <Route path="/portal/candidato/ficha" element={<PortalFicha />} />
+          <Route path="/portal/candidato/documentos" element={<PortalCandDocumentos />} />
+          <Route path="/portal/candidato/termos" element={<PortalTermos />} />
+          <Route path="/portal/candidato/admissional" element={<PortalAdmissional />} />
+
           <Route
             path="/monitor-tv"
             element={
