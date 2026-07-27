@@ -18,6 +18,16 @@ export default function PortalFicha() {
   const [status, setStatus] = useState<string>("rascunho");
 
   const [dp, setDp] = useState<any>({ nome: "", rg: "", orgao: "", dataNasc: "", sexo: "", estadoCivil: "", nacionalidade: "Brasileira", naturalidade: "", nomeMae: "", nomePai: "", telefone: "", email: "" });
+  const [docs, setDocs] = useState<any>({
+    cpf: "", rgNumero: "", rgOrgao: "", rgUf: "", rgEmissao: "",
+    ctpsNumero: "", ctpsSerie: "", ctpsUf: "", ctpsEmissao: "",
+    pisPasep: "", tituloEleitor: "", tituloZona: "", tituloSecao: "",
+    cnhNumero: "", cnhCategoria: "", cnhValidade: "", cnhPrimeira: "",
+    reservistaNumero: "", reservistaCategoria: "",
+    passaporteNumero: "", passaporteValidade: "",
+    certidaoNumero: "", certidaoTipo: "", certidaoEmissao: "",
+    escolaridade: "", cursoFormacao: "",
+  });
   const [end, setEnd] = useState<any>({ cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "" });
   const [bc, setBc] = useState<any>({ banco: "", agencia: "", conta: "", tipoConta: "", chavePix: "" });
   const [deps, setDeps] = useState<Dep[]>([]);
