@@ -42,15 +42,12 @@ export default function PortalLogin() {
 
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center p-4 sm:p-8 relative bg-gradient-to-br from-[#b0b8c4] via-[#8e99a8] to-[#6b7686]"
-      style={{
-        backgroundImage:
-          "linear-gradient(135deg, #c5cbd4 0%, #9aa5b3 25%, #7d8898 50%, #9aa5b3 75%, #c5cbd4 100%), repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 1px, transparent 1px, transparent 4px)",
-      }}
+      className="min-h-screen w-full flex items-center justify-center p-4 sm:p-8 relative bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: `url(${bgImage.url})` }}
     >
-      {/* Overlay metálico sutil para brilho e profundidade */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-transparent to-black/15" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.25),transparent_60%)]" />
+      {/* Overlay sutil para melhorar leitura do card */}
+      <div className="absolute inset-0 bg-white/10" />
+
 
       <div className="relative w-full max-w-md">
         {/* Card glassmorphism */}
