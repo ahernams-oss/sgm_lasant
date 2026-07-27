@@ -21,14 +21,14 @@ export default function PortalLayout({ children, requireTipo }: Props) {
   }
 
   const menuFunc = [
-    { to: "/portal/funcionario", label: "Início" },
+    { to: "/portal/funcionario", label: "Início", isLogo: true },
     { to: "/portal/funcionario/holerites", label: "Holerites" },
     { to: "/portal/funcionario/epis", label: "EPIs" },
     { to: "/portal/funcionario/documentos", label: "Documentos" },
     { to: "/portal/funcionario/perfil", label: "Perfil" },
   ];
   const menuCand = [
-    { to: "/portal/candidato", label: "Início" },
+    { to: "/portal/candidato", label: "Início", isLogo: true },
     { to: "/portal/candidato/ficha", label: "Ficha" },
     { to: "/portal/candidato/documentos", label: "Documentos" },
     { to: "/portal/candidato/termos", label: "Termos" },
