@@ -44,6 +44,7 @@ export const DOCUMENTOS_OBRIGATORIOS = [
 
 export interface Candidato {
   id: string; nome: string; telefone: string; email: string;
+  cpf: string; dataNascimento: string;
   idade: string; estadoCivil: string; experienciasAnteriores: string;
   anexos: AnexoCandidato[]; etapaAtual: EtapaCandidato;
   dataEntrevistaPsicologica?: string; dataEntrevistaTecnica?: string;
