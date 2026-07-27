@@ -9,7 +9,8 @@ import { toast } from "sonner";
 
 const TIPOS = [
   "RG", "CPF", "CTPS", "CNH", "Título de Eleitor", "Reservista", "Comprovante de Residência",
-  "Comprovante Escolaridade", "Certidão de Nascimento/Casamento", "Outros",
+  "Comprovante Escolaridade", "Certidão de Nascimento/Casamento", "Certidão de Nascimento/Filho",
+  "Cartão de vacinação filhos", "Outros",
 ];
 
 type FilaItem = { id: string; tipo: string; file: File };
