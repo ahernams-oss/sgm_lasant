@@ -162,7 +162,19 @@ export default function PortalFicha() {
                       columns={2}
                     />
                   </div>
-                  <F l="Estado civil" v={dp.estadoCivil} on={(v: string) => setDp({ ...dp, estadoCivil: v })} />
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-xs">Estado civil</Label>
+                    <Select value={dp.estadoCivil || ""} onValueChange={(v) => setDp({ ...dp, estadoCivil: v })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["Solteiro(a)", "Casado(a)", "Separado(a) Judicialmente", "Divorciado(a)", "Viúvo(a)"].map((op) => (
+                          <SelectItem key={op} value={op}>{op}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <F l="Nacionalidade" v={dp.nacionalidade} on={(v: string) => setDp({ ...dp, nacionalidade: v })} />
                   <F l="Naturalidade" v={dp.naturalidade} on={(v: string) => setDp({ ...dp, naturalidade: v })} />
                   <F l="Nome da mãe" v={dp.nomeMae} on={(v: string) => setDp({ ...dp, nomeMae: v })} />
