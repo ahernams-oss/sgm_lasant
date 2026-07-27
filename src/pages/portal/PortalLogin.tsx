@@ -58,13 +58,9 @@ export default function PortalLogin() {
               "linear-gradient(160deg, rgba(15,32,60,0.72) 0%, rgba(10,22,44,0.78) 100%)",
           }}
         >
-          {/* Logo */}
-          <div className="flex justify-center">
-            <img src={logo.url} alt="Lasant Construções" className="h-16 w-auto drop-shadow-lg" />
-          </div>
-
           {/* Títulos */}
-          <div className="text-center mt-6 mb-8">
+          <div className="text-center mb-8">
+
             <h1 className="text-4xl font-bold text-white tracking-tight">Portal LASANT</h1>
             <p className="text-sky-300/90 text-sm mt-2 font-medium">
               Colaboradores e Candidatos
