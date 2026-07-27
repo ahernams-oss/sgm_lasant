@@ -49,7 +49,20 @@ export default function PortalFicha() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const cpfInvalido = docs.cpf && !isValidCPF(docs.cpf);
+  const depsCpfInvalidos = deps.some((d) => d.cpf && !isValidCPF(d.cpf));
+
   const salvar = async (enviar = false) => {
+    if (enviar) {
+      if (!docs.cpf || !isValidCPF(docs.cpf)) {
+        toast.error("Informe um CPF válido antes de enviar.");
+        return;
+      }
+      if (depsCpfInvalidos) {
+        toast.error("Há CPF de dependente inválido.");
+        return;
+      }
+    }
     setSaving(true);
     try {
       await portalCall("cand-ficha-save", { dados_pessoais: { ...dp, documentos: docs }, endereco: end, bancarios: bc, dependentes: deps, contatos_emergencia: ces, enviar });
