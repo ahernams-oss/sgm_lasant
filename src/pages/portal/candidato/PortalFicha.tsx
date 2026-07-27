@@ -89,21 +89,71 @@ export default function PortalFicha() {
         <div className="space-y-4">
           <Card>
             <CardHeader><CardTitle>Dados Pessoais</CardTitle></CardHeader>
-            <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <F l="Nome completo" v={dp.nome} on={(v: string) => setDp({ ...dp, nome: v })} />
-              <F l="RG" v={dp.rg} on={(v: string) => setDp({ ...dp, rg: v })} />
-              <F l="Órgão emissor" v={dp.orgao} on={(v: string) => setDp({ ...dp, orgao: v })} />
-              <F l="Data de nascimento" type="date" v={dp.dataNasc} on={(v: string) => setDp({ ...dp, dataNasc: v })} />
-              <F l="Sexo" v={dp.sexo} on={(v: string) => setDp({ ...dp, sexo: v })} />
-              <F l="Estado civil" v={dp.estadoCivil} on={(v: string) => setDp({ ...dp, estadoCivil: v })} />
-              <F l="Nacionalidade" v={dp.nacionalidade} on={(v: string) => setDp({ ...dp, nacionalidade: v })} />
-              <F l="Naturalidade" v={dp.naturalidade} on={(v: string) => setDp({ ...dp, naturalidade: v })} />
-              <F l="Nome da mãe" v={dp.nomeMae} on={(v: string) => setDp({ ...dp, nomeMae: v })} />
-              <F l="Nome do pai" v={dp.nomePai} on={(v: string) => setDp({ ...dp, nomePai: v })} />
-              <F l="Telefone/WhatsApp" v={dp.telefone} on={(v: string) => setDp({ ...dp, telefone: v })} />
-              <F l="E-mail" v={dp.email} on={(v: string) => setDp({ ...dp, email: v })} />
-              <F l="Escolaridade" v={dp.escolaridade} on={(v: string) => setDp({ ...dp, escolaridade: v })} />
-              <F l="Curso / Formação" v={dp.cursoFormacao} on={(v: string) => setDp({ ...dp, cursoFormacao: v })} />
+            <CardContent>
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="md:w-48 flex-shrink-0 flex flex-col items-center gap-2">
+                  <Label className="text-xs self-start">Foto</Label>
+                  <div className="w-40 h-52 border-2 border-dashed border-muted-foreground/30 rounded-lg overflow-hidden bg-muted/30 flex items-center justify-center">
+                    {dp.foto ? (
+                      <img src={dp.foto} alt="Foto do candidato" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xs text-muted-foreground text-center px-2">Sem foto</span>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1 w-full">
+                    <input
+                      id="foto-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        if (f.size > 3 * 1024 * 1024) { toast.error("Imagem deve ter até 3MB."); return; }
+                        const r = new FileReader();
+                        r.onload = () => setDp({ ...dp, foto: r.result as string });
+                        r.readAsDataURL(f);
+                      }}
+                    />
+                    <input
+                      id="foto-camera"
+                      type="file"
+                      accept="image/*"
+                      capture="user"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        if (f.size > 3 * 1024 * 1024) { toast.error("Imagem deve ter até 3MB."); return; }
+                        const r = new FileReader();
+                        r.onload = () => setDp({ ...dp, foto: r.result as string });
+                        r.readAsDataURL(f);
+                      }}
+                    />
+                    <Button type="button" size="sm" variant="outline" onClick={() => document.getElementById("foto-upload")?.click()}>Enviar arquivo</Button>
+                    <Button type="button" size="sm" variant="outline" onClick={() => document.getElementById("foto-camera")?.click()}>Tirar foto</Button>
+                    {dp.foto && (
+                      <Button type="button" size="sm" variant="ghost" className="text-destructive" onClick={() => setDp({ ...dp, foto: "" })}>Remover</Button>
+                    )}
+                  </div>
+                </div>
+                <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <F l="Nome completo" v={dp.nome} on={(v: string) => setDp({ ...dp, nome: v })} />
+                  <F l="RG" v={dp.rg} on={(v: string) => setDp({ ...dp, rg: v })} />
+                  <F l="Órgão emissor" v={dp.orgao} on={(v: string) => setDp({ ...dp, orgao: v })} />
+                  <F l="Data de nascimento" type="date" v={dp.dataNasc} on={(v: string) => setDp({ ...dp, dataNasc: v })} />
+                  <F l="Sexo" v={dp.sexo} on={(v: string) => setDp({ ...dp, sexo: v })} />
+                  <F l="Estado civil" v={dp.estadoCivil} on={(v: string) => setDp({ ...dp, estadoCivil: v })} />
+                  <F l="Nacionalidade" v={dp.nacionalidade} on={(v: string) => setDp({ ...dp, nacionalidade: v })} />
+                  <F l="Naturalidade" v={dp.naturalidade} on={(v: string) => setDp({ ...dp, naturalidade: v })} />
+                  <F l="Nome da mãe" v={dp.nomeMae} on={(v: string) => setDp({ ...dp, nomeMae: v })} />
+                  <F l="Nome do pai" v={dp.nomePai} on={(v: string) => setDp({ ...dp, nomePai: v })} />
+                  <F l="Telefone/WhatsApp" v={dp.telefone} on={(v: string) => setDp({ ...dp, telefone: v })} />
+                  <F l="E-mail" v={dp.email} on={(v: string) => setDp({ ...dp, email: v })} />
+                  <F l="Escolaridade" v={dp.escolaridade} on={(v: string) => setDp({ ...dp, escolaridade: v })} />
+                  <F l="Curso / Formação" v={dp.cursoFormacao} on={(v: string) => setDp({ ...dp, cursoFormacao: v })} />
+                </div>
+              </div>
             </CardContent>
           </Card>
           <Card>
