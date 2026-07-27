@@ -40,13 +40,10 @@ export default function PortalLayout({ children, requireTipo }: Props) {
     <div className="min-h-screen flex flex-col bg-muted/30">
       <header className="bg-primary text-primary-foreground">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between relative">
-          <div className="flex items-center gap-2">
-            <img src={logoLasant} alt="Lasant" className="h-8 w-auto" />
-          </div>
           <div className="absolute left-1/2 -translate-x-1/2">
             <span className="font-semibold tracking-tight text-lg">Portal de RH</span>
           </div>
-          <div className="flex items-center gap-3 text-sm">
+          <div className="flex items-center gap-3 text-sm ml-auto">
             <User className="w-4 h-4" />
             <span className="hidden sm:inline">{user.nome}</span>
             <Button size="sm" variant="secondary" onClick={() => { logout(); navigate("/portal"); }}>
