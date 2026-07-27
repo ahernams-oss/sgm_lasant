@@ -469,7 +469,15 @@ export default function PortalFicha() {
               {deps.map((d, i) => (
                 <div key={i} className="grid grid-cols-2 md:grid-cols-5 gap-2 items-end">
                   <div className="md:col-span-2"><Label className="text-xs">Nome</Label><Input value={d.nome} onChange={(e) => { const n = [...deps]; n[i].nome = e.target.value; setDeps(n); }} /></div>
-                  <div><Label className="text-xs">Parentesco</Label><Input value={d.parentesco} onChange={(e) => { const n = [...deps]; n[i].parentesco = e.target.value; setDeps(n); }} /></div>
+                  <div>
+                    <Label className="text-xs">Parentesco</Label>
+                    <Select value={d.parentesco || ""} onValueChange={(v) => { const n = [...deps]; n[i].parentesco = v; setDeps(n); }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {PARENTESCO_OPTIONS.map((op) => <SelectItem key={op} value={op}>{op}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div><Label className="text-xs">Nascimento</Label><Input type="date" value={d.nascimento} onChange={(e) => { const n = [...deps]; n[i].nascimento = e.target.value; setDeps(n); }} /></div>
                   <div className="flex gap-2">
                     <Input
