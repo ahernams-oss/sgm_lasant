@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { portalCall, portalStore, PortalUser } from "@/lib/portalClient";
 
 interface Ctx {
@@ -13,6 +13,16 @@ const PortalAuthCtx = createContext<Ctx | undefined>(undefined);
 
 export function PortalAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<PortalUser | null>(() => portalStore.getUser());
+
+  useEffect(() => {
+    const syncUser = () => setUser(portalStore.getUser());
+    window.addEventListener("portal-session-expired", syncUser);
+    window.addEventListener("storage", syncUser);
+    return () => {
+      window.removeEventListener("portal-session-expired", syncUser);
+      window.removeEventListener("storage", syncUser);
+    };
+  }, []);
 
   const login = useCallback(async (cpf: string, senha: string) => {
     const r = await portalCall<{ token: string; tipo: PortalUser["tipo"]; nome: string }>("login", { cpf, senha });

@@ -24,6 +24,10 @@ const redirectToPortalLogin = () => {
 export const portalStore = {
   getToken: () => localStorage.getItem(TOKEN_KEY),
   getUser: (): PortalUser | null => {
+    if (!localStorage.getItem(TOKEN_KEY)) {
+      localStorage.removeItem(USER_KEY);
+      return null;
+    }
     const raw = localStorage.getItem(USER_KEY);
     if (!raw) return null;
     try {
