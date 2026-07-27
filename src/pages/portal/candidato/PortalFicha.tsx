@@ -88,6 +88,67 @@ export default function PortalFicha() {
             </CardContent>
           </Card>
           <Card>
+            <CardHeader><CardTitle>Documentos</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Identificação</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <F l="CPF" v={docs.cpf} on={(v: string) => setDocs({ ...docs, cpf: v })} />
+                  <F l="RG - Número" v={docs.rgNumero} on={(v: string) => setDocs({ ...docs, rgNumero: v })} />
+                  <F l="RG - Órgão emissor" v={docs.rgOrgao} on={(v: string) => setDocs({ ...docs, rgOrgao: v })} />
+                  <F l="RG - UF" v={docs.rgUf} on={(v: string) => setDocs({ ...docs, rgUf: v })} />
+                  <F l="RG - Data de emissão" type="date" v={docs.rgEmissao} on={(v: string) => setDocs({ ...docs, rgEmissao: v })} />
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Carteira de Trabalho (CTPS)</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <F l="Número" v={docs.ctpsNumero} on={(v: string) => setDocs({ ...docs, ctpsNumero: v })} />
+                  <F l="Série" v={docs.ctpsSerie} on={(v: string) => setDocs({ ...docs, ctpsSerie: v })} />
+                  <F l="UF" v={docs.ctpsUf} on={(v: string) => setDocs({ ...docs, ctpsUf: v })} />
+                  <F l="Data de emissão" type="date" v={docs.ctpsEmissao} on={(v: string) => setDocs({ ...docs, ctpsEmissao: v })} />
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">PIS / Título de Eleitor</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <F l="PIS/PASEP" v={docs.pisPasep} on={(v: string) => setDocs({ ...docs, pisPasep: v })} />
+                  <F l="Título de Eleitor" v={docs.tituloEleitor} on={(v: string) => setDocs({ ...docs, tituloEleitor: v })} />
+                  <F l="Zona" v={docs.tituloZona} on={(v: string) => setDocs({ ...docs, tituloZona: v })} />
+                  <F l="Seção" v={docs.tituloSecao} on={(v: string) => setDocs({ ...docs, tituloSecao: v })} />
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">CNH</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <F l="Número" v={docs.cnhNumero} on={(v: string) => setDocs({ ...docs, cnhNumero: v })} />
+                  <F l="Categoria" v={docs.cnhCategoria} on={(v: string) => setDocs({ ...docs, cnhCategoria: v })} />
+                  <F l="Validade" type="date" v={docs.cnhValidade} on={(v: string) => setDocs({ ...docs, cnhValidade: v })} />
+                  <F l="1ª Habilitação" type="date" v={docs.cnhPrimeira} on={(v: string) => setDocs({ ...docs, cnhPrimeira: v })} />
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Reservista / Passaporte</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <F l="Reservista - Número" v={docs.reservistaNumero} on={(v: string) => setDocs({ ...docs, reservistaNumero: v })} />
+                  <F l="Reservista - Categoria" v={docs.reservistaCategoria} on={(v: string) => setDocs({ ...docs, reservistaCategoria: v })} />
+                  <F l="Passaporte - Número" v={docs.passaporteNumero} on={(v: string) => setDocs({ ...docs, passaporteNumero: v })} />
+                  <F l="Passaporte - Validade" type="date" v={docs.passaporteValidade} on={(v: string) => setDocs({ ...docs, passaporteValidade: v })} />
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Certidão / Escolaridade</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <F l="Certidão - Tipo (Nasc./Casamento)" v={docs.certidaoTipo} on={(v: string) => setDocs({ ...docs, certidaoTipo: v })} />
+                  <F l="Certidão - Número/Matrícula" v={docs.certidaoNumero} on={(v: string) => setDocs({ ...docs, certidaoNumero: v })} />
+                  <F l="Certidão - Data de emissão" type="date" v={docs.certidaoEmissao} on={(v: string) => setDocs({ ...docs, certidaoEmissao: v })} />
+                  <F l="Escolaridade" v={docs.escolaridade} on={(v: string) => setDocs({ ...docs, escolaridade: v })} />
+                  <F l="Curso / Formação" v={docs.cursoFormacao} on={(v: string) => setDocs({ ...docs, cursoFormacao: v })} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
             <CardHeader><CardTitle>Endereço</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <F l="CEP" v={end.cep} on={(v: string) => setEnd({ ...end, cep: v })} />
