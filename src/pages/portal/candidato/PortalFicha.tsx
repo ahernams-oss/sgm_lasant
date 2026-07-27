@@ -504,7 +504,15 @@ export default function PortalFicha() {
               {ces.map((c, i) => (
                 <div key={i} className="grid grid-cols-2 md:grid-cols-4 gap-2 items-end">
                   <div><Label className="text-xs">Nome</Label><Input value={c.nome} onChange={(e) => { const n = [...ces]; n[i].nome = e.target.value; setCes(n); }} /></div>
-                  <div><Label className="text-xs">Parentesco</Label><Input value={c.parentesco} onChange={(e) => { const n = [...ces]; n[i].parentesco = e.target.value; setCes(n); }} /></div>
+                  <div>
+                    <Label className="text-xs">Parentesco</Label>
+                    <Select value={c.parentesco || ""} onValueChange={(v) => { const n = [...ces]; n[i].parentesco = v; setCes(n); }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {PARENTESCO_OPTIONS.map((op) => <SelectItem key={op} value={op}>{op}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div><Label className="text-xs">Telefone</Label><Input value={c.telefone} onChange={(e) => { const n = [...ces]; n[i].telefone = e.target.value; setCes(n); }} /></div>
                   <div><Button size="icon" variant="ghost" onClick={() => setCes(ces.filter((_, x) => x !== i))}><Trash2 className="w-4 h-4 text-destructive" /></Button></div>
                 </div>
