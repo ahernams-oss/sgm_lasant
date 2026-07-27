@@ -84,11 +84,27 @@ export default function PortalCandDocumentos() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
             <div>
               <Label>Tipo</Label>
-              <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="w-full h-10 px-3 rounded-md border border-input bg-background">
+              <select
+                value={tipo}
+                onChange={(e) => { setTipo(e.target.value); setTipoCustom(""); }}
+                className="w-full h-10 px-3 rounded-md border border-input bg-background"
+              >
                 {TIPOS.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
-            <div className="md:col-span-2 flex gap-2">
+            {tipo === "Outros" && (
+              <div className="md:col-span-2">
+                <Label>Nome do documento</Label>
+                <input
+                  type="text"
+                  value={tipoCustom}
+                  onChange={(e) => setTipoCustom(e.target.value)}
+                  placeholder="Ex: Declaração de residência"
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                />
+              </div>
+            )}
+            <div className={`flex gap-2 ${tipo === "Outros" ? "md:col-span-3" : "md:col-span-2"}`}>
               <input
                 ref={fileRef}
                 type="file"
