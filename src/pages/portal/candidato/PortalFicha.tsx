@@ -37,8 +37,12 @@ export default function PortalFicha() {
     portalCall<{ ficha: any }>("cand-ficha-get").then(({ ficha }) => {
       if (ficha) {
         const { documentos, ...rest } = (ficha.dados_pessoais || {});
-        setDp({ ...dp, ...rest });
-        if (documentos) setDocs({ ...docs, ...documentos });
+        const migrated = { escolaridade: documentos?.escolaridade ?? rest.escolaridade ?? "", cursoFormacao: documentos?.cursoFormacao ?? rest.cursoFormacao ?? "" };
+        setDp({ ...dp, ...rest, ...migrated });
+        if (documentos) {
+          const { escolaridade, cursoFormacao, ...restDocs } = documentos;
+          setDocs({ ...docs, ...restDocs });
+        }
         setEnd({ ...end, ...(ficha.endereco || {}) });
         setBc({ ...bc, ...(ficha.bancarios || {}) });
         setDeps(ficha.dependentes || []); setCes(ficha.contatos_emergencia || []);
