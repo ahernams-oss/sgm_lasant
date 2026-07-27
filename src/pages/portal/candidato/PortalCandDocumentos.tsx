@@ -8,8 +8,8 @@ import { Upload } from "lucide-react";
 import { toast } from "sonner";
 
 const TIPOS = [
-  "RG", "CPF", "CTPS", "Título de Eleitor", "Reservista", "Comprovante de Residência",
-  "Comprovante Escolaridade", "Certidão de Nascimento/Casamento", "Foto 3x4", "Outros",
+  "RG", "CPF", "CTPS", "CNH", "Título de Eleitor", "Reservista", "Comprovante de Residência",
+  "Comprovante Escolaridade", "Certidão de Nascimento/Casamento", "Outros",
 ];
 
 export default function PortalCandDocumentos() {
