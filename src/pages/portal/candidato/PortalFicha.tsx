@@ -23,6 +23,22 @@ const UF_OPTIONS = [
 interface Dep { nome: string; parentesco: string; nascimento: string; cpf?: string; }
 interface Contato { nome: string; parentesco: string; telefone: string; }
 
+const ESCOLARIDADE_OPTIONS = [
+  "Ensino Fundamental Incompleto",
+  "Ensino Fundamental Completo",
+  "Ensino Médio Incompleto",
+  "Ensino Médio Completo",
+  "Superior Incompleto",
+  "Superior Completo",
+  "Pós-Graduação/MBA Incompleto",
+  "Pós-Graduação/MBA Completo",
+  "Mestrado Incompleto",
+  "Mestrado Completo",
+  "Doutorado Incompleto",
+  "Doutorado Completo",
+  "Pós-Doutorado",
+];
+
 const F = ({ l, v, on, type = "text" }: any) => (
   <div><Label className="text-xs">{l}</Label><Input type={type} value={v ?? ""} onChange={(e) => on(e.target.value)} /></div>
 );
