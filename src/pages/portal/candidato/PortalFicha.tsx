@@ -49,6 +49,12 @@ const PARENTESCO_OPTIONS = [
   "Avó",
 ];
 
+const TIPO_CONTA_OPTIONS = [
+  "Conta Salário",
+  "Conta Corrente",
+  "Conta Poupança",
+];
+
 const F = ({ l, v, on, type = "text" }: any) => (
   <div><Label className="text-xs">{l}</Label><Input type={type} value={v ?? ""} onChange={(e) => on(e.target.value)} /></div>
 );
