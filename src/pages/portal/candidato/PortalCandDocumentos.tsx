@@ -19,6 +19,7 @@ export default function PortalCandDocumentos() {
   const [docs, setDocs] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);
   const [tipo, setTipo] = useState("RG");
+  const [tipoCustom, setTipoCustom] = useState("");
   const [fila, setFila] = useState<FilaItem[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
