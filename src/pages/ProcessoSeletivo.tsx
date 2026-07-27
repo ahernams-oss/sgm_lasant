@@ -144,7 +144,7 @@ const ProcessoSeletivoPage = () => {
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingCandidato, setEditingCandidato] = useState<Candidato | null>(null);
-  const [newCandidato, setNewCandidato] = useState({ nome: "", telefone: "", email: "" });
+  const [newCandidato, setNewCandidato] = useState({ nome: "", telefone: "", email: "", cpf: "", dataNascimento: "" });
   const [anexos, setAnexos] = useState<AnexoCandidato[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
@@ -167,12 +167,21 @@ const ProcessoSeletivoPage = () => {
       toast.error("Informe o nome do candidato.");
       return;
     }
+    const cpfDigits = newCandidato.cpf.replace(/\D/g, "");
+    if (cpfDigits.length !== 11) {
+      toast.error("Informe um CPF válido (11 dígitos).");
+      return;
+    }
+    if (!newCandidato.dataNascimento) {
+      toast.error("Informe a data de nascimento.");
+      return;
+    }
     if (processo!.candidatos.length >= 5) {
       toast.error("Limite de 5 candidatos atingido.");
       return;
     }
-    addCandidato(processo!.id, { ...newCandidato, anexos });
-    setNewCandidato({ nome: "", telefone: "", email: "" });
+    addCandidato(processo!.id, { ...newCandidato, cpf: cpfDigits, anexos });
+    setNewCandidato({ nome: "", telefone: "", email: "", cpf: "", dataNascimento: "" });
     setAnexos([]);
     setShowAddDialog(false);
     toast.success("Candidato adicionado com sucesso.");
@@ -1200,6 +1209,31 @@ const ProcessoSeletivoPage = () => {
                   onChange={(e) => setNewCandidato((p) => ({ ...p, telefone: e.target.value }))}
                   placeholder="+55 (00) 00000-0000"
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">CPF *</label>
+                  <Input
+                    value={newCandidato.cpf}
+                    onChange={(e) => {
+                      const d = e.target.value.replace(/\D/g, "").slice(0, 11);
+                      const masked = d
+                        .replace(/(\d{3})(\d)/, "$1.$2")
+                        .replace(/(\d{3})(\d)/, "$1.$2")
+                        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+                      setNewCandidato((p) => ({ ...p, cpf: masked }));
+                    }}
+                    placeholder="000.000.000-00"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Data de Nascimento *</label>
+                  <Input
+                    type="date"
+                    value={newCandidato.dataNascimento}
+                    onChange={(e) => setNewCandidato((p) => ({ ...p, dataNascimento: e.target.value }))}
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-xs font-medium text-muted-foreground">Anexos (máx. 2MB cada)</label>
