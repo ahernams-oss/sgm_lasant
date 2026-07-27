@@ -154,7 +154,15 @@ export default function PortalFicha() {
                   <F l="RG" v={dp.rg} on={(v: string) => setDp({ ...dp, rg: v })} />
                   <F l="Órgão emissor" v={dp.orgao} on={(v: string) => setDp({ ...dp, orgao: v })} />
                   <F l="Data de nascimento" type="date" v={dp.dataNasc} on={(v: string) => setDp({ ...dp, dataNasc: v })} />
-                  <F l="Sexo" v={dp.sexo} on={(v: string) => setDp({ ...dp, sexo: v })} />
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-xs">Sexo</Label>
+                    <RadioGroupCustom
+                      options={["Feminino", "Masculino"]}
+                      selected={dp.sexo || ""}
+                      onChange={(v) => setDp({ ...dp, sexo: v })}
+                      columns={2}
+                    />
+                  </div>
                   <F l="Estado civil" v={dp.estadoCivil} on={(v: string) => setDp({ ...dp, estadoCivil: v })} />
                   <F l="Nacionalidade" v={dp.nacionalidade} on={(v: string) => setDp({ ...dp, nacionalidade: v })} />
                   <F l="Naturalidade" v={dp.naturalidade} on={(v: string) => setDp({ ...dp, naturalidade: v })} />
