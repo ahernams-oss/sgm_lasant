@@ -1,61 +1,94 @@
-# Mecanismo de Criação de Grupos WhatsApp (JID @g.us)
 
-## Objetivo
+# Portal do Funcionário e Candidato
 
-Permitir criar e gerenciar grupos WhatsApp diretamente do sistema, obtendo o JID (`123456789-1234567890@g.us`) para usar nos disparos automáticos (mudança de status de PC, alertas de RP, licitações, etc.), sem precisar copiar manualmente do celular.
+Portal público único (rota `/portal`) com login por CPF+senha que direciona para dois fluxos: funcionário contratado ou candidato em processo de contratação.
 
-## O que será entregue
+## Arquitetura
 
-### 1. Edge Function `plugsend-groups`
+```text
+/portal                    → Login (CPF + senha)
+/portal/cadastrar-senha    → 1º acesso (CPF + Data Nasc. + define senha)
+/portal/esqueci-senha      → Reset via WhatsApp/e-mail
+/portal/funcionario        → Home do funcionário contratado
+  ├─ /holerites            → Ver/baixar holerites e comprovantes
+  ├─ /epis                 → Confirmar recebimento facial (integra fluxo existente)
+  ├─ /documentos           → ASO, exames, advertências, dados cadastrais
+  └─ /perfil               → Alterar senha, dados de contato
+/portal/candidato          → Home do candidato em contratação
+  ├─ /ficha                → Ficha cadastral (pessoais/endereço/bancário/dependentes)
+  ├─ /documentos           → Upload de RG, CPF, CTPS, comprovantes
+  ├─ /termos               → Assinatura eletrônica de contrato, LGPD, código conduta
+  └─ /admissional          → Agendar exame admissional + treinamentos integração
+```
 
-Nova função que expõe as operações de grupo da API uazapi (via mesmo token PlugSend já cadastrado). Recebe um `action` no body e roteia:
+## Banco de dados
 
-| Action | Endpoint uazapi | Uso |
-|---|---|---|
-| `create` | POST /group/create | Cria grupo com nome + participantes iniciais |
-| `list` | GET /group/list | Lista todos os grupos da instância |
-| `info` | POST /group/info | Detalhes de um grupo específico |
-| `addParticipants` | POST /group/updateParticipants (action: add) | Adiciona membros |
-| `removeParticipants` | POST /group/updateParticipants (action: remove) | Remove membros |
-| `updateName` | POST /group/updateName | Renomeia o grupo |
-| `leave` | POST /group/leave | Sai do grupo |
+Nova tabela `portal_credenciais` (CPF único, senha bcrypt, vínculo a `funcionarios` ou `processos_seletivos`, tipo de acesso, flags de reset).
 
-Sempre relaya status e corpo de erro do provider (padrão já usado na `send-plugsend`).
+Nova tabela `portal_holerites` (funcionario_id, mês/ano, tipo — folha/13º/férias/rescisão, arquivo, disponibilizado_em).
 
-### 2. Página "Grupos WhatsApp" — `src/pages/ComunicacaoGruposWhatsapp.tsx`
+Nova tabela `portal_ficha_admissao` (candidato_id, dados_pessoais JSONB, endereço JSONB, bancário JSONB, dependentes JSONB, status).
 
-Nova página em **Comunicação → Grupos WhatsApp**, seguindo o padrão visual Berry (rounded, primary #673ab7, filtros persistidos, paginação 10/20/50).
+Nova tabela `portal_documentos_candidato` (candidato_id, tipo_documento, storage_path, status validação, revisor).
 
-Componentes:
+Nova tabela `portal_termos_assinados` (candidato_id/funcionario_id, tipo_termo, hash_sha256, ip, timestamp, aceite_texto).
 
-- **Grid principal** listando grupos existentes: nome, JID (com botão copiar), qtd. participantes, ações (ver/editar/sair)
-- Botão **"Atualizar cache"** (chama list com `force=true`)
-- Botão **"Novo Grupo"** abre dialog:
-  - Nome (1–100 chars)
-  - Participantes: campo multi-tag com máscara BR (aceita `(11) 99999-9999` e limpa para `5511999999999`); mínimo 1, máximo 50
-  - Botão auxiliar "Adicionar de Clientes/Fornecedores/Funcionários" — busca via Combobox e injeta os telefones cadastrados
-  - Ao criar com sucesso, mostra o JID gerado com botão **"Copiar JID"** e **"Usar como grupo padrão de cliente…"** (Combobox de clientes → grava em `clientes.grupoWhatsapp` — campo já existente)
-- **Dialog Detalhes/Editar**: renomear, adicionar/remover participantes, mostrar todos os membros
+Nova tabela `portal_treinamentos` (candidato_id, tipo, concluído_em, nota, certificado_path).
 
-### 3. Rota + Sidebar
+Nova tabela `portal_acessos_log` (auditoria de login e ações sensíveis).
 
-- Adiciona rota `/comunicacao/grupos-whatsapp` em `App.tsx`
-- Adiciona item no `AppSidebar.tsx` no grupo **Comunicação**, com controle de permissão via `perfil.permissoes.comunicacao_grupos_whatsapp`
+Novos buckets storage: `portal-holerites` (privado), `portal-candidato-docs` (privado), `portal-termos-assinados` (privado), `portal-treinamentos-cert` (privado).
 
-### 4. Helper cliente `src/lib/plugsendGroups.ts`
+## Edge Functions
 
-Wrapper tipado para invocar a edge function do frontend, com as mesmas ações acima.
+- `portal-auth-login` — valida CPF+senha, retorna token de sessão.
+- `portal-auth-signup` — 1º acesso: valida CPF+Data Nasc. contra `funcionarios`/`processos_seletivos`, cria credencial.
+- `portal-auth-reset` — envia link via WhatsApp (PlugSend) e e-mail.
+- `portal-holerite-download` — URL assinada com auditoria.
+- `portal-candidato-submit` — grava ficha, dispara notificação ao RH.
+- `portal-termo-assinar` — gera hash SHA-256, salva assinatura.
+
+## Frontend
+
+- Novo `PortalAuthContext` isolado do `AuthContext` interno.
+- Layout dedicado `PortalLayout` com branding LASANT, mobile-first.
+- Todas as rotas do portal ficam fora do `AppLayout` interno.
+- Reaproveitar componentes existentes: viewCEP, upload de imagem, captura facial de EPI.
+
+## Administração interna (dentro do SGM existente)
+
+- Nova página `/rh/portal` (permissão `portal_admin`) para:
+  - Upload em lote de holerites (por competência).
+  - Aprovar/reprovar documentos do candidato.
+  - Ver ficha preenchida e converter candidato em funcionário.
+  - Ver termos assinados com hash.
+  - Botão "Enviar link do portal" (WhatsApp) em Funcionários e em Processos Seletivos.
+- Nova permissão `portal_admin` em `PerfisAcessoContext`.
+
+## Segurança
+
+- Senha bcrypt (custo 10), política mínima (8 caracteres, 1 número, 1 letra).
+- Rate-limiting no login (5 tentativas / 15min por CPF+IP).
+- Logs completos em `portal_acessos_log`.
+- Buckets privados; downloads sempre via signed URL de curta duração emitida pelo edge function após validar sessão.
+- RLS bloqueia acesso direto do `anon`; toda leitura passa por edge function que valida o token de sessão.
+
+## Sequência de entrega (dentro desta entrega única)
+
+1. Migração completa do banco + buckets + RLS + grants.
+2. Edge functions de auth.
+3. `PortalAuthContext` + rotas + layout.
+4. Telas do funcionário (holerites, EPIs redirecionando p/ fluxo existente, documentos, perfil).
+5. Telas do candidato (ficha, documentos, termos com hash, treinamentos).
+6. Página admin `/rh/portal` + botões "Enviar link" nas telas existentes.
+7. Permissão `portal_admin` no perfil de acesso.
 
 ## Detalhes técnicos
 
-- **Autenticação PlugSend**: já usa `PLUGSEND_TOKEN` cadastrado; a instância uazapi é a mesma dos disparos atuais
-- **Formato de telefone**: sanitiza para dígitos internacionais antes de enviar (mesma regra `replace(/\D/g, "")` que já usamos)
-- **Persistência**: os grupos vivem no WhatsApp — não precisamos de tabela nova. O JID retornado é apenas colado no campo `grupoWhatsapp` já existente em `clientes` quando o usuário quiser vincular
-- **Feedback**: toasts de sucesso/erro relayando o corpo de erro do provider (missing participants, número inválido, etc.)
-- **Segurança**: função com `verify_jwt = false` (padrão do projeto — auth custom), CORS liberado, validação Zod-lite dos inputs
+- Token de sessão: JWT curto (1h) assinado com secret dedicado `PORTAL_JWT_SECRET`, refresh via cookie httpOnly opcionalmente (v1 = renovar via re-login).
+- WhatsApp: `plugsend-send` já existente para os links de acesso.
+- E-mail: `send-transactional-email` já existente com novos templates `portal-welcome`, `portal-reset`.
+- Assinatura eletrônica: reaproveitar `assinaturaHash.ts` (SHA-256 canônico do payload aceito).
+- Storage: signed URLs com TTL de 60s para download.
 
-## Fora do escopo
-
-- Envio de mensagens para o grupo pela nova tela (já disponível: basta usar o JID no campo `grupoWhatsapp` do cliente; o disparo automático em mudança de status de PC já respeita esse campo)
-- Sincronização periódica automática dos grupos (usuário aciona "Atualizar cache" manualmente)
-- Aprovações de entrada, comunidades, tópicos
+Nada nas telas internas atuais será removido — apenas adicionados botões "Enviar link do portal" e a nova página administrativa.
