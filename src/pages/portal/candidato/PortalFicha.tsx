@@ -7,10 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { isValidCPF, maskCPF, onlyDigits } from "@/lib/validators";
 import RadioGroupCustom from "@/components/RadioGroupCustom";
+
+interface ProgressGroup { label: string; weight: number; items?: string[]; check?: boolean; }
 
 const UF_OPTIONS = [
   "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT",
@@ -23,6 +26,52 @@ interface Contato { nome: string; parentesco: string; telefone: string; }
 const F = ({ l, v, on, type = "text" }: any) => (
   <div><Label className="text-xs">{l}</Label><Input type={type} value={v ?? ""} onChange={(e) => on(e.target.value)} /></div>
 );
+
+function calcProgresso(dp: any, docs: any, end: any, bc: any, deps: Dep[], ces: Contato[]) {
+  const groups: ProgressGroup[] = [
+    {
+      label: "Dados Pessoais",
+      weight: 35,
+      items: [dp.nome, dp.dataNasc, dp.sexo, dp.estadoCivil, dp.nacionalidade, dp.naturalidade, dp.nomeMae, dp.telefone, dp.email, dp.escolaridade, dp.cursoFormacao, dp.foto],
+    },
+    {
+      label: "Documentos",
+      weight: 20,
+      items: [docs.cpf, docs.rgNumero, docs.rgOrgao, docs.rgUf, docs.rgEmissao, docs.ctpsNumero, docs.ctpsSerie, docs.ctpsUf, docs.ctpsEmissao, docs.pisPasep, docs.tituloEleitor, docs.tituloZona, docs.tituloSecao, docs.cnhNumero, docs.cnhCategoria, docs.cnhValidade, docs.cnhPrimeira, docs.certidaoTipo, docs.certidaoNumero, docs.certidaoEmissao],
+    },
+    {
+      label: "Endereço",
+      weight: 15,
+      items: [end.cep, end.logradouro, end.numero, end.bairro, end.cidade, end.uf],
+    },
+    {
+      label: "Dados Bancários",
+      weight: 15,
+      items: [bc.banco, bc.agencia, bc.conta, bc.tipoConta, bc.chavePix],
+    },
+    {
+      label: "Dependentes",
+      weight: 7.5,
+      check: deps.length > 0 && deps.some((d) => d.nome && d.parentesco && d.nascimento),
+    },
+    {
+      label: "Contatos de Emergência",
+      weight: 7.5,
+      check: ces.length > 0 && ces.some((c) => c.nome && c.parentesco && c.telefone),
+    },
+  ];
+
+  let total = 0;
+  for (const g of groups) {
+    if (g.check !== undefined) {
+      total += g.weight * (g.check ? 1 : 0);
+    } else if (g.items && g.items.length > 0) {
+      const filled = g.items.filter((v) => v !== undefined && v !== "" && v !== null).length;
+      total += g.weight * (filled / g.items.length);
+    }
+  }
+  return Math.min(100, Math.round(total));
+}
 
 export default function PortalFicha() {
   const [loading, setLoading] = useState(true);
@@ -98,6 +147,7 @@ export default function PortalFicha() {
     } catch { toast.error("Erro ao buscar CEP."); }
   };
   const depsCpfInvalidos = deps.some((d) => d.cpf && !isValidCPF(d.cpf));
+  const progresso = calcProgresso(dp, docs, end, bc, deps, ces);
 
   const salvar = async (enviar = false) => {
     if (enviar) {
@@ -128,6 +178,20 @@ export default function PortalFicha() {
         <h1 className="text-2xl font-semibold">Ficha Cadastral</h1>
         <span className="text-xs px-2 py-1 rounded bg-muted">{status.toUpperCase()}</span>
       </div>
+      {!loading && (
+        <Card className="mb-4">
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Preenchimento da ficha</span>
+              <span className={`text-sm font-bold ${progresso === 100 ? "text-emerald-600" : "text-primary"}`}>{progresso}%</span>
+            </div>
+            <Progress value={progresso} className="h-3" />
+            <p className="text-xs text-muted-foreground mt-2">
+              {progresso === 100 ? "Todos os campos obrigatórios estão preenchidos." : "Complete os campos abaixo para aumentar o progresso."}
+            </p>
+          </CardContent>
+        </Card>
+      )}
       {loading ? <p className="text-sm text-muted-foreground">Carregando...</p> : (
         <div className="space-y-4">
           <Card>
