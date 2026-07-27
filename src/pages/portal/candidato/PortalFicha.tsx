@@ -49,6 +49,12 @@ const PARENTESCO_OPTIONS = [
   "Avó",
 ];
 
+const TIPO_CONTA_OPTIONS = [
+  "Conta Salário",
+  "Conta Corrente",
+  "Conta Poupança",
+];
+
 const F = ({ l, v, on, type = "text" }: any) => (
   <div><Label className="text-xs">{l}</Label><Input type={type} value={v ?? ""} onChange={(e) => on(e.target.value)} /></div>
 );
@@ -456,7 +462,15 @@ export default function PortalFicha() {
               <F l="Banco" v={bc.banco} on={(v: string) => setBc({ ...bc, banco: v })} />
               <F l="Agência" v={bc.agencia} on={(v: string) => setBc({ ...bc, agencia: v })} />
               <F l="Conta" v={bc.conta} on={(v: string) => setBc({ ...bc, conta: v })} />
-              <F l="Tipo de conta" v={bc.tipoConta} on={(v: string) => setBc({ ...bc, tipoConta: v })} />
+              <div>
+                <Label className="text-xs">Tipo de conta</Label>
+                <Select value={bc.tipoConta || ""} onValueChange={(v) => setBc({ ...bc, tipoConta: v })}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {TIPO_CONTA_OPTIONS.map((op) => <SelectItem key={op} value={op}>{op}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <F l="Chave PIX" v={bc.chavePix} on={(v: string) => setBc({ ...bc, chavePix: v })} />
             </CardContent>
           </Card>
