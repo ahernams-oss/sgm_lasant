@@ -10,6 +10,7 @@ import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
 import { Plus, Edit, Trash2, Search, Upload, FileText, X } from "lucide-react";
 import { toast } from "sonner";
+import { isValidCPF } from "@/lib/validators";
 import { usePermissao } from "@/hooks/usePermissao";
 
 const TITULOS = [
