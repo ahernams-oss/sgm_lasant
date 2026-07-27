@@ -94,10 +94,11 @@ Deno.serve(async (req) => {
       const { data: existente } = await sb.from("portal_credenciais").select("id").eq("cpf", cpf).maybeSingle();
       if (existente) return json({ error: "Este CPF já possui cadastro. Use 'Esqueci a senha' se necessário." }, 409);
 
-      // Tenta como funcionário
-      const { data: func } = await sb.from("funcionarios")
-        .select("id, nome, email, telefone_whatsapp, data_nascimento, status")
-        .eq("cpf", cpf).maybeSingle();
+      // Tenta como funcionário (busca tolerante a formato do CPF)
+      const { data: funcs } = await sb.from("funcionarios")
+        .select("id, nome, email, telefone_whatsapp, data_nascimento, status, cpf");
+      const func = (funcs ?? []).find((f: any) => normCpf(f.cpf) === cpf);
+
       if (func) {
         if (func.data_nascimento !== dataNasc)
           return json({ error: "Dados não conferem." }, 401);
