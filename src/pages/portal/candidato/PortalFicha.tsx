@@ -39,6 +39,16 @@ const ESCOLARIDADE_OPTIONS = [
   "Pós-Doutorado",
 ];
 
+const PARENTESCO_OPTIONS = [
+  "Esposa(o)",
+  "Filho(a)",
+  "Enteado(a)",
+  "Pai",
+  "Mãe",
+  "Avô",
+  "Avó",
+];
+
 const F = ({ l, v, on, type = "text" }: any) => (
   <div><Label className="text-xs">{l}</Label><Input type={type} value={v ?? ""} onChange={(e) => on(e.target.value)} /></div>
 );
@@ -459,7 +469,15 @@ export default function PortalFicha() {
               {deps.map((d, i) => (
                 <div key={i} className="grid grid-cols-2 md:grid-cols-5 gap-2 items-end">
                   <div className="md:col-span-2"><Label className="text-xs">Nome</Label><Input value={d.nome} onChange={(e) => { const n = [...deps]; n[i].nome = e.target.value; setDeps(n); }} /></div>
-                  <div><Label className="text-xs">Parentesco</Label><Input value={d.parentesco} onChange={(e) => { const n = [...deps]; n[i].parentesco = e.target.value; setDeps(n); }} /></div>
+                  <div>
+                    <Label className="text-xs">Parentesco</Label>
+                    <Select value={d.parentesco || ""} onValueChange={(v) => { const n = [...deps]; n[i].parentesco = v; setDeps(n); }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {PARENTESCO_OPTIONS.map((op) => <SelectItem key={op} value={op}>{op}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div><Label className="text-xs">Nascimento</Label><Input type="date" value={d.nascimento} onChange={(e) => { const n = [...deps]; n[i].nascimento = e.target.value; setDeps(n); }} /></div>
                   <div className="flex gap-2">
                     <Input
@@ -486,7 +504,15 @@ export default function PortalFicha() {
               {ces.map((c, i) => (
                 <div key={i} className="grid grid-cols-2 md:grid-cols-4 gap-2 items-end">
                   <div><Label className="text-xs">Nome</Label><Input value={c.nome} onChange={(e) => { const n = [...ces]; n[i].nome = e.target.value; setCes(n); }} /></div>
-                  <div><Label className="text-xs">Parentesco</Label><Input value={c.parentesco} onChange={(e) => { const n = [...ces]; n[i].parentesco = e.target.value; setCes(n); }} /></div>
+                  <div>
+                    <Label className="text-xs">Parentesco</Label>
+                    <Select value={c.parentesco || ""} onValueChange={(v) => { const n = [...ces]; n[i].parentesco = v; setCes(n); }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {PARENTESCO_OPTIONS.map((op) => <SelectItem key={op} value={op}>{op}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div><Label className="text-xs">Telefone</Label><Input value={c.telefone} onChange={(e) => { const n = [...ces]; n[i].telefone = e.target.value; setCes(n); }} /></div>
                   <div><Button size="icon" variant="ghost" onClick={() => setCes(ces.filter((_, x) => x !== i))}><Trash2 className="w-4 h-4 text-destructive" /></Button></div>
                 </div>
