@@ -167,12 +167,21 @@ const ProcessoSeletivoPage = () => {
       toast.error("Informe o nome do candidato.");
       return;
     }
+    const cpfDigits = newCandidato.cpf.replace(/\D/g, "");
+    if (cpfDigits.length !== 11) {
+      toast.error("Informe um CPF válido (11 dígitos).");
+      return;
+    }
+    if (!newCandidato.dataNascimento) {
+      toast.error("Informe a data de nascimento.");
+      return;
+    }
     if (processo!.candidatos.length >= 5) {
       toast.error("Limite de 5 candidatos atingido.");
       return;
     }
-    addCandidato(processo!.id, { ...newCandidato, anexos });
-    setNewCandidato({ nome: "", telefone: "", email: "" });
+    addCandidato(processo!.id, { ...newCandidato, cpf: cpfDigits, anexos });
+    setNewCandidato({ nome: "", telefone: "", email: "", cpf: "", dataNascimento: "" });
     setAnexos([]);
     setShowAddDialog(false);
     toast.success("Candidato adicionado com sucesso.");
