@@ -11,7 +11,7 @@ const fmtCpf = (v: string) => v.replace(/\D/g, "").slice(0, 11)
   .replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 
 export default function PortalCadastrarSenha() {
-  const { signup } = usePortalAuth();
+  const { signup, logout } = usePortalAuth();
   const [cpf, setCpf] = useState("");
   const [dataNasc, setDataNasc] = useState("");
   const [senha, setSenha] = useState("");
@@ -27,6 +27,8 @@ export default function PortalCadastrarSenha() {
     try {
       await signup(cpf, dataNasc, senha);
       toast.success("Cadastro realizado com sucesso.");
+      logout();
+      navigate("/portal");
     } catch (err: any) {
       toast.error(err.message);
     } finally { setLoading(false); }
