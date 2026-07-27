@@ -242,10 +242,21 @@ const ProcessoSeletivoPage = () => {
       toast.error("Informe o nome do candidato.");
       return;
     }
+    const cpfDigits = (editingCandidato.cpf || "").replace(/\D/g, "");
+    if (!isValidCPF(cpfDigits)) {
+      toast.error("CPF inválido. Verifique o número informado.");
+      return;
+    }
+    if (!editingCandidato.dataNascimento) {
+      toast.error("Informe a data de nascimento.");
+      return;
+    }
     updateCandidato(processo!.id, editingCandidato.id, {
       nome: editingCandidato.nome,
       email: editingCandidato.email,
       telefone: editingCandidato.telefone,
+      cpf: cpfDigits,
+      dataNascimento: editingCandidato.dataNascimento,
       anexos: editingCandidato.anexos,
     });
     setEditingCandidato(null);
