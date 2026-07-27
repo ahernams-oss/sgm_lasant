@@ -19,6 +19,7 @@ export default function PortalCandDocumentos() {
   const [docs, setDocs] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);
   const [tipo, setTipo] = useState("RG");
+  const [tipoCustom, setTipoCustom] = useState("");
   const [fila, setFila] = useState<FilaItem[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -27,13 +28,18 @@ export default function PortalCandDocumentos() {
 
   const adicionarArquivos = (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    if (tipo === "Outros" && !tipoCustom.trim()) {
+      toast.error("Informe o nome do documento para o tipo \"Outros\".");
+      return;
+    }
+    const tipoFinal = tipo === "Outros" ? tipoCustom.trim() : tipo;
     const novos: FilaItem[] = [];
     for (const file of Array.from(files)) {
       if (file.size > 10 * 1024 * 1024) {
         toast.error(`"${file.name}" excede 10MB.`);
         continue;
       }
-      novos.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, tipo, file });
+      novos.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, tipo: tipoFinal, file });
     }
     if (novos.length) setFila((f) => [...f, ...novos]);
     if (fileRef.current) fileRef.current.value = "";
@@ -78,11 +84,27 @@ export default function PortalCandDocumentos() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
             <div>
               <Label>Tipo</Label>
-              <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="w-full h-10 px-3 rounded-md border border-input bg-background">
+              <select
+                value={tipo}
+                onChange={(e) => { setTipo(e.target.value); setTipoCustom(""); }}
+                className="w-full h-10 px-3 rounded-md border border-input bg-background"
+              >
                 {TIPOS.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
-            <div className="md:col-span-2 flex gap-2">
+            {tipo === "Outros" && (
+              <div className="md:col-span-2">
+                <Label>Nome do documento</Label>
+                <input
+                  type="text"
+                  value={tipoCustom}
+                  onChange={(e) => setTipoCustom(e.target.value)}
+                  placeholder="Ex: Declaração de residência"
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                />
+              </div>
+            )}
+            <div className={`flex gap-2 ${tipo === "Outros" ? "md:col-span-3" : "md:col-span-2"}`}>
               <input
                 ref={fileRef}
                 type="file"
