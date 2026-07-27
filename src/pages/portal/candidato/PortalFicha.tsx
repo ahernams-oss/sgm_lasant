@@ -36,7 +36,9 @@ export default function PortalFicha() {
   useEffect(() => {
     portalCall<{ ficha: any }>("cand-ficha-get").then(({ ficha }) => {
       if (ficha) {
-        setDp({ ...dp, ...(ficha.dados_pessoais || {}) });
+        const { documentos, ...rest } = (ficha.dados_pessoais || {});
+        setDp({ ...dp, ...rest });
+        if (documentos) setDocs({ ...docs, ...documentos });
         setEnd({ ...end, ...(ficha.endereco || {}) });
         setBc({ ...bc, ...(ficha.bancarios || {}) });
         setDeps(ficha.dependentes || []); setCes(ficha.contatos_emergencia || []);
@@ -49,7 +51,7 @@ export default function PortalFicha() {
   const salvar = async (enviar = false) => {
     setSaving(true);
     try {
-      await portalCall("cand-ficha-save", { dados_pessoais: dp, endereco: end, bancarios: bc, dependentes: deps, contatos_emergencia: ces, enviar });
+      await portalCall("cand-ficha-save", { dados_pessoais: { ...dp, documentos: docs }, endereco: end, bancarios: bc, dependentes: deps, contatos_emergencia: ces, enviar });
       toast.success(enviar ? "Ficha enviada para análise do RH." : "Rascunho salvo.");
       if (enviar) setStatus("enviada");
     } catch (e: any) { toast.error(e.message); }
