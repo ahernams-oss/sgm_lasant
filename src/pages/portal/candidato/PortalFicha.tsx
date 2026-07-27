@@ -209,7 +209,17 @@ export default function PortalFicha() {
                   <div className="md:col-span-2"><Label className="text-xs">Nome</Label><Input value={d.nome} onChange={(e) => { const n = [...deps]; n[i].nome = e.target.value; setDeps(n); }} /></div>
                   <div><Label className="text-xs">Parentesco</Label><Input value={d.parentesco} onChange={(e) => { const n = [...deps]; n[i].parentesco = e.target.value; setDeps(n); }} /></div>
                   <div><Label className="text-xs">Nascimento</Label><Input type="date" value={d.nascimento} onChange={(e) => { const n = [...deps]; n[i].nascimento = e.target.value; setDeps(n); }} /></div>
-                  <div className="flex gap-2"><Input placeholder="CPF" value={d.cpf ?? ""} onChange={(e) => { const n = [...deps]; n[i].cpf = e.target.value; setDeps(n); }} /><Button size="icon" variant="ghost" onClick={() => setDeps(deps.filter((_, x) => x !== i))}><Trash2 className="w-4 h-4 text-destructive" /></Button></div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="CPF"
+                      value={d.cpf ?? ""}
+                      inputMode="numeric"
+                      maxLength={14}
+                      onChange={(e) => { const n = [...deps]; n[i].cpf = maskCPF(e.target.value); setDeps(n); }}
+                      className={d.cpf && !isValidCPF(d.cpf) ? "border-destructive focus-visible:ring-destructive" : ""}
+                    />
+                    <Button size="icon" variant="ghost" onClick={() => setDeps(deps.filter((_, x) => x !== i))}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                  </div>
                 </div>
               ))}
               {deps.length === 0 && <p className="text-xs text-muted-foreground">Nenhum dependente.</p>}
