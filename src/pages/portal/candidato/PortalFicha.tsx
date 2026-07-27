@@ -23,6 +23,22 @@ const UF_OPTIONS = [
 interface Dep { nome: string; parentesco: string; nascimento: string; cpf?: string; }
 interface Contato { nome: string; parentesco: string; telefone: string; }
 
+const ESCOLARIDADE_OPTIONS = [
+  "Ensino Fundamental Incompleto",
+  "Ensino Fundamental Completo",
+  "Ensino Médio Incompleto",
+  "Ensino Médio Completo",
+  "Superior Incompleto",
+  "Superior Completo",
+  "Pós-Graduação/MBA Incompleto",
+  "Pós-Graduação/MBA Completo",
+  "Mestrado Incompleto",
+  "Mestrado Completo",
+  "Doutorado Incompleto",
+  "Doutorado Completo",
+  "Pós-Doutorado",
+];
+
 const F = ({ l, v, on, type = "text" }: any) => (
   <div><Label className="text-xs">{l}</Label><Input type={type} value={v ?? ""} onChange={(e) => on(e.target.value)} /></div>
 );
@@ -275,7 +291,19 @@ export default function PortalFicha() {
                   <F l="Nome do pai" v={dp.nomePai} on={(v: string) => setDp({ ...dp, nomePai: v })} />
                   <F l="Telefone/WhatsApp" v={dp.telefone} on={(v: string) => setDp({ ...dp, telefone: v })} />
                   <F l="E-mail" v={dp.email} on={(v: string) => setDp({ ...dp, email: v })} />
-                  <F l="Escolaridade" v={dp.escolaridade} on={(v: string) => setDp({ ...dp, escolaridade: v })} />
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-xs">Escolaridade</Label>
+                    <Select value={dp.escolaridade || ""} onValueChange={(v) => setDp({ ...dp, escolaridade: v })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ESCOLARIDADE_OPTIONS.map((op) => (
+                          <SelectItem key={op} value={op}>{op}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <F l="Curso / Formação" v={dp.cursoFormacao} on={(v: string) => setDp({ ...dp, cursoFormacao: v })} />
                 </div>
               </div>
