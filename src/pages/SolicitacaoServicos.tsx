@@ -635,24 +635,31 @@ export default function SolicitacaoServicosPage() {
     return p?.color || "";
   };
 
-  const [sortField, setSortField] = useState<"numero" | "dataHora" | null>("numero");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
-  const handleSort = (field: "numero" | "dataHora") => {
+  const handleSort = (field: string) => {
     if (sortField === field) {
       setSortDir(prev => prev === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortDir("desc");
+      setSortDir("asc");
     }
   };
 
-  const SortIcon = ({ field }: { field: "numero" | "dataHora" }) => {
+  const SortIcon = ({ field }: { field: string }) => {
     if (sortField !== field) return <ArrowUpDown className="inline ml-1 h-3.5 w-3.5 opacity-40" />;
     return sortDir === "asc"
       ? <ArrowUp className="inline ml-1 h-3.5 w-3.5" />
       : <ArrowDown className="inline ml-1 h-3.5 w-3.5" />;
   };
+
+  const SortHeader = ({ field, children }: { field: string; children: ReactNode }) => (
+    <span className="cursor-pointer select-none flex items-center gap-1" onClick={() => handleSort(field)}>
+      {children}
+      <SortIcon field={field} />
+    </span>
+  );
 
   const filtered = useMemo(() => {
     let result = solicitacoes;
@@ -678,25 +685,64 @@ export default function SolicitacaoServicosPage() {
       result = result.filter(s => filterOrigem === "orcamento" ? idsComOrcamento.has(s.id) : !idsComOrcamento.has(s.id));
     }
 
-    // Ordenação primária SEMPRE por prioridade: Emergencial (vermelho) → Urgente (amarelo) → Normal (verde) → sem prioridade
-    const prioridadeRank = (p: string) => {
-      if (p === "Emergencial") return 1;
-      if (p === "Urgente") return 2;
-      if (p === "Normal") return 3;
-      return 4;
-    };
+    // Ordenação por coluna (padrão: prioridade → número decrescente)
     result = [...result].sort((a, b) => {
-      const rankCmp = prioridadeRank(a.prioridade) - prioridadeRank(b.prioridade);
-      if (rankCmp !== 0) return rankCmp;
-      // Desempate pelo sort do usuário (ou número decrescente por padrão)
+      if (!sortField) {
+        const prioridadeRank = (p: string) => {
+          if (p === "Emergencial") return 1;
+          if (p === "Urgente") return 2;
+          if (p === "Normal") return 3;
+          return 4;
+        };
+        const rankCmp = prioridadeRank(a.prioridade) - prioridadeRank(b.prioridade);
+        if (rankCmp !== 0) return rankCmp;
+        return b.numero - a.numero;
+      }
+
       let cmp = 0;
-      if (sortField === "numero") {
-        cmp = a.numero - b.numero;
-      } else if (sortField === "dataHora") {
-        cmp = (a.dataHoraSolicitacao || "").localeCompare(b.dataHoraSolicitacao || "");
-      } else {
-        cmp = b.numero - a.numero;
-        return cmp;
+      switch (sortField) {
+        case "numero":
+          cmp = a.numero - b.numero;
+          break;
+        case "dataHora":
+          cmp = (a.dataHoraSolicitacao || "").localeCompare(b.dataHoraSolicitacao || "");
+          break;
+        case "solicitante":
+          cmp = (a.solicitanteNome || "").localeCompare(b.solicitanteNome || "");
+          break;
+        case "tipo":
+          cmp = (a.tipo || "").localeCompare(b.tipo || "");
+          break;
+        case "cliente":
+          cmp = (a.clienteNome || "").localeCompare(b.clienteNome || "");
+          break;
+        case "local":
+          cmp = (a.localDescricao || "").localeCompare(b.localDescricao || "");
+          break;
+        case "pavimento":
+          cmp = (a.pavimentoDescricao || "").localeCompare(b.pavimentoDescricao || "");
+          break;
+        case "setor":
+          cmp = (a.setorDescricao || "").localeCompare(b.setorDescricao || "");
+          break;
+        case "equipamento":
+          cmp = (a.equipamentoNome || "").localeCompare(b.equipamentoNome || "");
+          break;
+        case "descricao":
+          cmp = (a.descricaoServicos || "").localeCompare(b.descricaoServicos || "");
+          break;
+        case "situacao":
+          cmp = (a.situacao || "").localeCompare(b.situacao || "");
+          break;
+        case "os": {
+          const osA = ordens.find(o => o.solicitacaoId === a.id)?.numero ?? 0;
+          const osB = ordens.find(o => o.solicitacaoId === b.id)?.numero ?? 0;
+          cmp = osA - osB;
+          break;
+        }
+        case "visitado":
+          cmp = Number(a.visitado) - Number(b.visitado);
+          break;
       }
       return sortDir === "asc" ? cmp : -cmp;
     });
@@ -712,20 +758,20 @@ export default function SolicitacaoServicosPage() {
 
   const { paginated, totalPages } = paginate(filtered, page, pageSize);
 
-  const colDefs: Record<string, { label: ReactNode; className?: string; sortable?: boolean }> = {
-    numero: { label: <>Nº <SortIcon field="numero" /></>, className: "cursor-pointer select-none", sortable: true },
-    dataHora: { label: <>Data/Hora <SortIcon field="dataHora" /></>, className: "cursor-pointer select-none", sortable: true },
-    solicitante: { label: "Solicitante" },
-    tipo: { label: "Tipo" },
-    cliente: { label: "Cliente" },
-    local: { label: "Local" },
-    pavimento: { label: "Pavimento" },
-    setor: { label: "Setor" },
-    equipamento: { label: "Equipamento" },
-    descricao: { label: "Descrição" },
-    situacao: { label: "Situação" },
-    visitado: { label: "Visitado", className: "w-20 text-center" },
-    os: { label: "OS" },
+  const colDefs: Record<string, { label: ReactNode; className?: string }> = {
+    numero: { label: <SortHeader field="numero">Nº</SortHeader>, className: "w-[100px] whitespace-nowrap" },
+    dataHora: { label: <SortHeader field="dataHora">Data/Hora</SortHeader>, className: "whitespace-nowrap" },
+    solicitante: { label: <SortHeader field="solicitante">Solicitante</SortHeader> },
+    tipo: { label: <SortHeader field="tipo">Tipo</SortHeader> },
+    cliente: { label: <SortHeader field="cliente">Cliente</SortHeader> },
+    local: { label: <SortHeader field="local">Local</SortHeader> },
+    pavimento: { label: <SortHeader field="pavimento">Pavimento</SortHeader> },
+    setor: { label: <SortHeader field="setor">Setor</SortHeader> },
+    equipamento: { label: <SortHeader field="equipamento">Equipamento</SortHeader> },
+    descricao: { label: <SortHeader field="descricao">Descrição</SortHeader> },
+    situacao: { label: <SortHeader field="situacao">Situação</SortHeader> },
+    os: { label: <SortHeader field="os">OS</SortHeader>, className: "whitespace-nowrap" },
+    visitado: { label: <SortHeader field="visitado">Visitado</SortHeader>, className: "w-20 text-center" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "solicitacao_servicos.lista",
@@ -1035,11 +1081,7 @@ export default function SolicitacaoServicosPage() {
                 if (!c) return null;
                 return (
                   <SortableTableHead key={key} id={key} className={c.className}>
-                    {c.sortable ? (
-                      <span onClick={() => handleSort(key as any)} className="cursor-pointer">
-                        {c.label}
-                      </span>
-                    ) : c.label}
+                    {c.label}
                   </SortableTableHead>
                 );
               })}
