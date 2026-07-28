@@ -54,13 +54,14 @@ const MapaFuncionarios = () => {
   const podePdf = tem("mapa_funcionarios.exportar_pdf");
   const podeExcel = tem("mapa_funcionarios.exportar_excel");
 
-  const [activeTab, setActiveTab] = useState<"faltas" | "horas_extras" | "advertencias">("faltas");
+  const [activeTab, setActiveTab] = useState<"faltas" | "horas_extras" | "advertencias" | "atestados">("faltas");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form state
   const [funcionarioId, setFuncionarioId] = useState("");
   const [data, setData] = useState("");
+  const [dataFim, setDataFim] = useState("");
   const [tipoFalta, setTipoFalta] = useState<TipoFalta>("injustificada");
   const [horasExtras, setHorasExtras] = useState("");
   const [percentual, setPercentual] = useState("50");
@@ -70,6 +71,7 @@ const MapaFuncionarios = () => {
   const [motivo, setMotivo] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+
 
   // Filters
   const [search, setSearch] = useState("");
