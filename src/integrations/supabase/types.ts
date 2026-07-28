@@ -6549,6 +6549,57 @@ export type Database = {
           },
         ]
       }
+      portal_solicitacoes_rh: {
+        Row: {
+          anexo_nome: string | null
+          anexo_path: string | null
+          assunto: string
+          cpf: string
+          created_at: string
+          descricao: string | null
+          funcionario_id: string
+          id: string
+          respondido_em: string | null
+          respondido_por: string | null
+          resposta_rh: string | null
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          anexo_nome?: string | null
+          anexo_path?: string | null
+          assunto: string
+          cpf: string
+          created_at?: string
+          descricao?: string | null
+          funcionario_id: string
+          id?: string
+          respondido_em?: string | null
+          respondido_por?: string | null
+          resposta_rh?: string | null
+          status?: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          anexo_nome?: string | null
+          anexo_path?: string | null
+          assunto?: string
+          cpf?: string
+          created_at?: string
+          descricao?: string | null
+          funcionario_id?: string
+          id?: string
+          respondido_em?: string | null
+          respondido_por?: string | null
+          resposta_rh?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       portal_termos_assinados: {
         Row: {
           assinado_em: string
