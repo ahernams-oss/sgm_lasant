@@ -27,6 +27,7 @@ import {
 } from "@/contexts/ProcessoSeletivoContext";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import ValidacaoAdmissao from "@/components/ValidacaoAdmissao";
 
 const ESTADO_CIVIL_OPTIONS = ["Solteiro(a)", "Casado(a)", "Divorciado(a)", "Viúvo(a)", "União Estável"];
 
@@ -801,318 +802,27 @@ const ProcessoSeletivoPage = () => {
                                 : <Badge variant="outline">Aguardando aceite LGPD</Badge>}
                             </div>
                           )}
-                          {/* Checklist de Documentos */}
-                        <div>
-                          <h3 className="text-sm font-semibold text-foreground mb-3">📋 Checklist de Documentos</h3>
-                          <div className="grid grid-cols-1 gap-2">
-                            {(filtrarDocs(c.documentos)).map((doc, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/50 transition-colors"
-                              >
-                                <Checkbox
-                                  checked={doc.entregue}
-                                  onCheckedChange={(checked) => {
-                                    const docs = [...(filtrarDocs(c.documentos))];
-                                    docs[idx] = { ...docs[idx], entregue: !!checked };
-                                    updateCandidato(processo!.id, c.id, { documentos: docs });
-                                  }}
-                                />
-                                <span className={`flex-1 ${doc.entregue ? "line-through text-muted-foreground" : ""}`}>{doc.nome}</span>
-                                {doc.naoPossui && <Badge variant="secondary" className="text-[10px]">Não possui</Badge>}
-                                <div className="flex items-center gap-1 shrink-0">
-                                  {doc.anexo ? (
-                                    <>
-                                      <button
-                                        onClick={() => {
-                                          const link = document.createElement("a");
-                                          link.href = doc.anexo!.base64;
-                                          link.download = doc.anexo!.nome;
-                                          link.click();
-                                        }}
-                                        className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-muted transition-colors"
-                                        title={`Baixar ${doc.anexo.nome}`}
-                                      >
-                                        <FileText className="h-3 w-3" />
-                                        <span className="truncate max-w-[80px]">{doc.anexo.nome}</span>
-                                      </button>
-                                      <button
-                                        onClick={() => {
-                                          const docs = [...(filtrarDocs(c.documentos))];
-                                          const { anexo, ...rest } = docs[idx];
-                                          docs[idx] = rest as typeof docs[number];
-                                          updateCandidato(processo!.id, c.id, { documentos: docs });
-                                        }}
-                                        className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
-                                        title="Remover anexo"
-                                      >
-                                        <Trash2 className="h-3 w-3" />
-                                      </button>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <input
-                                        type="file"
-                                        id={`doc-file-${c.id}-${idx}`}
-                                        className="hidden"
-                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                        onChange={(e) => {
-                                          const file = e.target.files?.[0];
-                                          if (!file) return;
-                                          if (file.size > 2 * 1024 * 1024) {
-                                            toast.error(`Arquivo "${file.name}" excede 2MB.`);
-                                            return;
-                                          }
-                                          const reader = new FileReader();
-                                          reader.onload = () => {
-                                            const docs = [...(filtrarDocs(c.documentos))];
-                                            docs[idx] = { ...docs[idx], anexo: { nome: file.name, tipo: file.type, base64: reader.result as string } };
-                                            updateCandidato(processo!.id, c.id, { documentos: docs });
-                                          };
-                                          reader.readAsDataURL(file);
-                                          e.target.value = "";
-                                        }}
-                                      />
-                                      <button
-                                        onClick={() => document.getElementById(`doc-file-${c.id}-${idx}`)?.click()}
-                                        className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-muted transition-colors"
-                                        title="Anexar arquivo"
-                                      >
-                                        <Paperclip className="h-3 w-3" />
-                                        Anexar
-                                      </button>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {(c.documentos || []).filter((d) => d.entregue).length} de {(filtrarDocs(c.documentos)).length} documentos entregues
-                          </p>
-                        </div>
+                          <ValidacaoAdmissao
+                            candidato={c}
+                            onExameChange={(patch) =>
+                              updateCandidato(processo!.id, c.id, {
+                                exameAdmissional: {
+                                  ...(c.exameAdmissional || { dataExame: "", resultado: "pendente" as const, observacoes: "" }),
+                                  ...patch,
+                                },
+                              })
+                            }
+                            onDadosBancariosPrefill={(b) =>
+                              updateCandidato(processo!.id, c.id, {
+                                dadosBancarios: {
+                                  ...(c.dadosBancarios || { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "", pix: "" }),
+                                  ...b,
+                                },
+                              })
+                            }
+                          />
 
-                        {/* Exame Admissional */}
-                        <div>
-                          <h3 className="text-sm font-semibold text-foreground mb-3">🏥 Exame Admissional</h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <label className="text-xs font-medium text-muted-foreground">Data do Exame</label>
-                              <Input
-                                type="date"
-                                value={c.exameAdmissional?.dataExame || ""}
-                                onChange={(e) =>
-                                  updateCandidato(processo!.id, c.id, {
-                                    exameAdmissional: { ...(c.exameAdmissional || { dataExame: "", resultado: "pendente" as const, observacoes: "" }), dataExame: e.target.value },
-                                  })
-                                }
-                                className="mt-1"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs font-medium text-muted-foreground">Resultado</label>
-                              <select
-                                value={c.exameAdmissional?.resultado || "pendente"}
-                                onChange={(e) =>
-                                  updateCandidato(processo!.id, c.id, {
-                                    exameAdmissional: {
-                                      ...(c.exameAdmissional || { dataExame: "", resultado: "pendente" as const, observacoes: "" }),
-                                      resultado: e.target.value as "pendente" | "apto" | "inapto",
-                                    },
-                                  })
-                                }
-                                className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                              >
-                                <option value="pendente">Pendente</option>
-                                <option value="apto">Apto</option>
-                                <option value="inapto">Inapto</option>
-                              </select>
-                            </div>
-                          </div>
-                          <div className="mt-3">
-                            <label className="text-xs font-medium text-muted-foreground">Observações</label>
-                            <Textarea
-                              value={c.exameAdmissional?.observacoes || ""}
-                              onChange={(e) =>
-                                updateCandidato(processo!.id, c.id, {
-                                  exameAdmissional: { ...(c.exameAdmissional || { dataExame: "", resultado: "pendente" as const, observacoes: "" }), observacoes: e.target.value },
-                                })
-                              }
-                              placeholder="Observações do exame admissional..."
-                              className="mt-1"
-                              rows={2}
-                            />
-                          </div>
-                          {c.exameAdmissional?.resultado === "apto" && (
-                            <div className="mt-2 bg-emerald-50 border border-emerald-200 rounded-md p-2 text-xs text-emerald-800">
-                              ✅ Candidato apto no exame admissional
-                            </div>
-                          )}
-                          {c.exameAdmissional?.resultado === "inapto" && (
-                            <div className="mt-2 bg-red-50 border border-red-200 rounded-md p-2 text-xs text-red-800">
-                              ❌ Candidato inapto no exame admissional
-                            </div>
-                          )}
-                          {/* Anexo do Exame */}
-                          <div className="mt-3">
-                            <label className="text-xs font-medium text-muted-foreground">Anexo do Exame</label>
-                            <div className="mt-1 flex items-center gap-2">
-                              {c.exameAdmissional?.anexo ? (
-                                <>
-                                  <button
-                                    onClick={() => {
-                                      const link = document.createElement("a");
-                                      link.href = c.exameAdmissional!.anexo!.base64;
-                                      link.download = c.exameAdmissional!.anexo!.nome;
-                                      link.click();
-                                    }}
-                                    className="inline-flex items-center gap-1 rounded border px-2 py-1 text-xs text-muted-foreground hover:bg-muted transition-colors"
-                                  >
-                                    <FileText className="h-3.5 w-3.5" />
-                                    <span className="truncate max-w-[150px]">{c.exameAdmissional.anexo.nome}</span>
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      const exame = { ...(c.exameAdmissional || { dataExame: "", resultado: "pendente" as const, observacoes: "" }) };
-                                      delete (exame as any).anexo;
-                                      updateCandidato(processo!.id, c.id, { exameAdmissional: exame });
-                                    }}
-                                    className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
-                                    title="Remover anexo"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </button>
-                                </>
-                              ) : (
-                                <>
-                                  <input
-                                    type="file"
-                                    id={`exame-file-${c.id}`}
-                                    className="hidden"
-                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                    onChange={(e) => {
-                                      const file = e.target.files?.[0];
-                                      if (!file) return;
-                                      if (file.size > 2 * 1024 * 1024) {
-                                        toast.error(`Arquivo "${file.name}" excede 2MB.`);
-                                        return;
-                                      }
-                                      const reader = new FileReader();
-                                      reader.onload = () => {
-                                        updateCandidato(processo!.id, c.id, {
-                                          exameAdmissional: {
-                                            ...(c.exameAdmissional || { dataExame: "", resultado: "pendente" as const, observacoes: "" }),
-                                            anexo: { nome: file.name, tipo: file.type, base64: reader.result as string },
-                                          },
-                                        });
-                                      };
-                                      reader.readAsDataURL(file);
-                                      e.target.value = "";
-                                    }}
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="gap-1"
-                                    onClick={() => document.getElementById(`exame-file-${c.id}`)?.click()}
-                                  >
-                                    <Paperclip className="h-3.5 w-3.5" /> Anexar exame
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
 
-                        {/* Dados Bancários */}
-                        <div>
-                          <h3 className="text-sm font-semibold text-foreground mb-3">🏦 Dados Bancários e Cadastrais</h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <label className="text-xs font-medium text-muted-foreground">Banco</label>
-                              <Input
-                                value={c.dadosBancarios?.banco || ""}
-                                onChange={(e) =>
-                                  updateCandidato(processo!.id, c.id, {
-                                    dadosBancarios: { ...(c.dadosBancarios || { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" }), banco: e.target.value },
-                                  })
-                                }
-                                placeholder="Ex: Bradesco"
-                                className="mt-1"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs font-medium text-muted-foreground">Agência</label>
-                              <Input
-                                value={c.dadosBancarios?.agencia || ""}
-                                onChange={(e) =>
-                                  updateCandidato(processo!.id, c.id, {
-                                    dadosBancarios: { ...(c.dadosBancarios || { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" }), agencia: e.target.value },
-                                  })
-                                }
-                                placeholder="Ex: 1234"
-                                className="mt-1"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs font-medium text-muted-foreground">Conta</label>
-                              <Input
-                                value={c.dadosBancarios?.conta || ""}
-                                onChange={(e) =>
-                                  updateCandidato(processo!.id, c.id, {
-                                    dadosBancarios: { ...(c.dadosBancarios || { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" }), conta: e.target.value },
-                                  })
-                                }
-                                placeholder="Ex: 12345-6"
-                                className="mt-1"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs font-medium text-muted-foreground">Tipo de Conta</label>
-                              <select
-                                value={c.dadosBancarios?.tipoConta || ""}
-                                onChange={(e) =>
-                                  updateCandidato(processo!.id, c.id, {
-                                    dadosBancarios: { ...(c.dadosBancarios || { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" }), tipoConta: e.target.value },
-                                  })
-                                }
-                                className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                              >
-                                <option value="">Selecione...</option>
-                                <option value="corrente">Corrente</option>
-                                <option value="poupanca">Poupança</option>
-                                <option value="salario">Salário</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="text-xs font-medium text-muted-foreground">PIS/PASEP</label>
-                              <Input
-                                value={c.dadosBancarios?.pisPasep || ""}
-                                onChange={(e) =>
-                                  updateCandidato(processo!.id, c.id, {
-                                    dadosBancarios: { ...(c.dadosBancarios || { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" }), pisPasep: e.target.value },
-                                  })
-                                }
-                                placeholder="Número do PIS/PASEP"
-                                className="mt-1"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs font-medium text-muted-foreground">PIX</label>
-                              <Input
-                                value={c.dadosBancarios?.pix || ""}
-                                onChange={(e) =>
-                                  updateCandidato(processo!.id, c.id, {
-                                    dadosBancarios: { ...(c.dadosBancarios || { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "" }), pix: e.target.value },
-                                  })
-                                }
-                                placeholder="Chave PIX"
-                                className="mt-1"
-                              />
-                            </div>
-                          </div>
-                        </div>
 
                         {/* Finalizar Contratação */}
                         <div className="pt-4 border-t">

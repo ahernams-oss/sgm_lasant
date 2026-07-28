@@ -12,6 +12,7 @@ export interface PortalUser {
 }
 
 const PUBLIC_ACTIONS = ["login", "signup", "reset-request"];
+const isAdminAction = (a: string) => a.startsWith("admin-");
 
 const isBrowser = () => typeof window !== "undefined";
 
@@ -108,7 +109,7 @@ async function readFunctionError(error: unknown, data: unknown) {
 
 export async function portalCall<T = any>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
   const token = portalStore.getToken();
-  const isPublicAction = PUBLIC_ACTIONS.includes(action);
+  const isPublicAction = PUBLIC_ACTIONS.includes(action) || isAdminAction(action);
 
   if (!isPublicAction && isPortalTokenExpired(token)) {
     expirePortalSession();
