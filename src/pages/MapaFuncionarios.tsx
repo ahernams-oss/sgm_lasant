@@ -3,7 +3,7 @@ import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
-import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle, Printer, Stethoscope, Check, ChevronsUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle, Printer, Stethoscope, Check, ChevronsUpDown, ChevronLeft, ChevronRight, CalendarIcon } from "lucide-react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -29,7 +30,7 @@ import { toast } from "sonner";
 import { gerarPdfMapaFuncionarios } from "@/lib/gerarPdfMapa";
 import { exportarExcelMapa } from "@/lib/gerarExcelMapa";
 import { gerarPdfAdvertencia } from "@/lib/gerarPdfAdvertencia";
-import { format } from "date-fns";
+import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { usePermissao } from "@/hooks/usePermissao";
 
