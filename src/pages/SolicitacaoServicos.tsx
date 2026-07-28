@@ -725,10 +725,11 @@ export default function SolicitacaoServicosPage() {
     descricao: { label: "Descrição" },
     situacao: { label: "Situação" },
     visitado: { label: "Visitado", className: "w-20 text-center" },
+    os: { label: "OS" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "solicitacao_servicos.lista",
-    ["numero", "dataHora", "solicitante", "tipo", "cliente", "local", "pavimento", "setor", "equipamento", "descricao", "situacao", "visitado"]
+    ["numero", "dataHora", "solicitante", "tipo", "cliente", "local", "pavimento", "setor", "equipamento", "descricao", "situacao", "os", "visitado"]
   );
 
   const allPageIds = paginated.map(s => s.id);
