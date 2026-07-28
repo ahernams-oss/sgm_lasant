@@ -3,7 +3,7 @@ import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
-import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle, Printer, Stethoscope, Check, ChevronsUpDown } from "lucide-react";
+import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle, Printer, Stethoscope, Check, ChevronsUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -695,7 +695,24 @@ const MapaFuncionarios = () => {
                 <span className="text-sm font-semibold text-foreground">({filteredLancamentos.length})</span>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <Input type="month" value={filterMes} onChange={(e) => { setFilterMes(e.target.value); setPageLanc(1); }} className="h-9 w-[160px] text-xs" />
+                <div className="flex items-center gap-1 rounded-md border border-input bg-background px-1">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { const [y, m] = filterMes.split("-").map(Number); const d = new Date(y, m - 2, 1); setFilterMes(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); setPageLanc(1); }}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" className="h-8 px-3 text-xs font-medium min-w-[130px]">
+                        {filterMes ? format(new Date(filterMes + "-01T12:00:00"), "MMMM 'de' yyyy", { locale: ptBR }) : "Período"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-2" align="start">
+                      <Input type="month" value={filterMes} onChange={(e) => { setFilterMes(e.target.value); setPageLanc(1); }} className="h-9 text-xs" />
+                    </PopoverContent>
+                  </Popover>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { const [y, m] = filterMes.split("-").map(Number); const d = new Date(y, m, 1); setFilterMes(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); setPageLanc(1); }}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
                 <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); setPageLanc(1); }}>
                   <SelectTrigger className="h-9 w-[160px] text-xs"><SelectValue placeholder="Cliente" /></SelectTrigger>
                   <SelectContent>
