@@ -8,7 +8,6 @@ import { ptBR } from "date-fns/locale";
 const TIPO_FALTA_LABELS: Record<TipoFalta, string> = {
   justificada: "Justificada",
   injustificada: "Injustificada",
-  atestado: "Atestado Médico",
   suspensao: "Suspensão",
 };
 
