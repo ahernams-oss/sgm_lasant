@@ -461,9 +461,16 @@ const MapaFuncionarios = () => {
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-foreground/80">Data *</Label>
+                  <Label className="text-xs font-semibold text-foreground/80">{activeTab === "atestados" ? "Data Início *" : "Data *"}</Label>
                   <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
                 </div>
+                {activeTab === "atestados" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-foreground/80">Data Término *</Label>
+                    <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+                  </div>
+                )}
+
 
                 <TabsContent value="faltas" className="mt-0 p-0">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
