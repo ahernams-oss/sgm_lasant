@@ -6549,6 +6549,117 @@ export type Database = {
           },
         ]
       }
+      portal_holerites_import_item: {
+        Row: {
+          cpf_detectado: string | null
+          created_at: string
+          funcionario_id: string | null
+          id: string
+          ignorar: boolean
+          lote_id: string
+          nome_detectado: string | null
+          observacao: string | null
+          pagina: number
+          pdf_pagina_base64: string | null
+          publicado: boolean
+          status_match: string
+          tipo: string
+          updated_at: string
+          valor_liquido: number | null
+        }
+        Insert: {
+          cpf_detectado?: string | null
+          created_at?: string
+          funcionario_id?: string | null
+          id?: string
+          ignorar?: boolean
+          lote_id: string
+          nome_detectado?: string | null
+          observacao?: string | null
+          pagina: number
+          pdf_pagina_base64?: string | null
+          publicado?: boolean
+          status_match?: string
+          tipo?: string
+          updated_at?: string
+          valor_liquido?: number | null
+        }
+        Update: {
+          cpf_detectado?: string | null
+          created_at?: string
+          funcionario_id?: string | null
+          id?: string
+          ignorar?: boolean
+          lote_id?: string
+          nome_detectado?: string | null
+          observacao?: string | null
+          pagina?: number
+          pdf_pagina_base64?: string | null
+          publicado?: boolean
+          status_match?: string
+          tipo?: string
+          updated_at?: string
+          valor_liquido?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_holerites_import_item_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_holerites_import_item_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "portal_holerites_import_lote"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_holerites_import_lote: {
+        Row: {
+          arquivo_nome: string
+          competencia_ano: number
+          competencia_mes: number
+          created_at: string
+          id: string
+          importado_por: string | null
+          importado_por_nome: string | null
+          status: string
+          total_paginas: number
+          total_publicados: number
+          updated_at: string
+        }
+        Insert: {
+          arquivo_nome: string
+          competencia_ano: number
+          competencia_mes: number
+          created_at?: string
+          id?: string
+          importado_por?: string | null
+          importado_por_nome?: string | null
+          status?: string
+          total_paginas?: number
+          total_publicados?: number
+          updated_at?: string
+        }
+        Update: {
+          arquivo_nome?: string
+          competencia_ano?: number
+          competencia_mes?: number
+          created_at?: string
+          id?: string
+          importado_por?: string | null
+          importado_por_nome?: string | null
+          status?: string
+          total_paginas?: number
+          total_publicados?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       portal_solicitacoes_rh: {
         Row: {
           anexo_nome: string | null
