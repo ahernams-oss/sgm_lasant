@@ -1057,6 +1057,8 @@ export default function SolicitacaoServicosPage() {
               const orcSS = orcamentos.find(o => o.solicitacaoId === s.id);
               const qtdRev = orcSS?.revisoes?.length ?? 0;
               const fromOrcamento = !!orcSS || (s.historico || []).some(h => (h.situacao || "").toLowerCase().includes("orçamento"));
+              const osVinculada = ordens.find(o => o.solicitacaoId === s.id);
+              const osLabel = osVinculada ? formatNumeroAno(osVinculada.numero, osVinculada.createdAt) : "-";
               const cellMap: Record<string, { node: ReactNode; className?: string }> = {
                 numero: {
                   node: (
