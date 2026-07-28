@@ -88,11 +88,16 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
     setTermos(res.termos || []);
     setObsRh(res.ficha?.observacoes_rh || "");
     const b = res.ficha?.bancarios || {};
-    if (b && Object.keys(b).length && !candidato.dadosBancarios?.banco) {
-      onDadosBancariosPrefill({
-        banco: b.banco || "", agencia: b.agencia || "", conta: b.conta || "",
-        tipoConta: b.tipoConta || "", pisPasep: b.pisPasep || "", pix: b.pix || "",
-      });
+    const docsDp = (res.ficha?.dados_pessoais as any)?.documentos || {};
+    if ((b && Object.keys(b).length) || Object.keys(docsDp).length) {
+      if (!candidato.dadosBancarios?.banco) {
+        onDadosBancariosPrefill({
+          banco: b.banco || "", agencia: b.agencia || "", conta: b.conta || "",
+          tipoConta: b.tipoConta || "",
+          pisPasep: b.pisPasep || docsDp.pisPasep || "",
+          pix: b.pix || b.chavePix || "",
+        });
+      }
     }
   }, [candidato.dadosBancarios?.banco, onDadosBancariosPrefill]);
 
