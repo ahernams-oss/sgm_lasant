@@ -12,6 +12,7 @@ export interface PortalUser {
 }
 
 const PUBLIC_ACTIONS = ["login", "signup", "reset-request"];
+const isAdminAction = (a: string) => a.startsWith("admin-");
 
 const isBrowser = () => typeof window !== "undefined";
 
