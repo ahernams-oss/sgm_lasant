@@ -3969,6 +3969,7 @@ export type Database = {
           created_at: string | null
           criado_em: string | null
           data: string | null
+          data_fim: string | null
           dias_falta: number | null
           funcionario_id: string
           horas_extras: number | null
@@ -3985,6 +3986,7 @@ export type Database = {
           created_at?: string | null
           criado_em?: string | null
           data?: string | null
+          data_fim?: string | null
           dias_falta?: number | null
           funcionario_id?: string
           horas_extras?: number | null
@@ -4001,6 +4003,7 @@ export type Database = {
           created_at?: string | null
           criado_em?: string | null
           data?: string | null
+          data_fim?: string | null
           dias_falta?: number | null
           funcionario_id?: string
           horas_extras?: number | null
