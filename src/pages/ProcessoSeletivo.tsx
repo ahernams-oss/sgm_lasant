@@ -928,6 +928,12 @@ const ProcessoSeletivoPage = () => {
                                     enviarWhatsApp(tel, msg).catch(() => {});
                                   }
                                 }
+
+                                updateCandidato(processo!.id, c.id, { contratacaoFinalizada: true });
+                                if (requisicaoId) {
+                                  updateStatus(requisicaoId, "Concluída");
+                                }
+                                toast.success(`${c.nome} foi cadastrado como funcionário e recebeu o acesso ao portal por WhatsApp!`);
                               }}
                             >
                               <CheckCircle2 className="h-4 w-4 mr-2" />
