@@ -135,14 +135,15 @@ Deno.serve(async (req) => {
       const cpf = normCpf(body.cpf);
       const senha = String(body.senha || "");
       if (!validCpf(cpf) || !senha) return json({ error: "CPF e senha são obrigatórios." }, 400);
+      const loginError = () => json({ error: "CPF ou senha inválidos." });
 
       const { data: cred } = await sb.from("portal_credenciais").select("*").eq("cpf", cpf).maybeSingle();
       if (!cred || !cred.senha_hash) {
         await log(cpf, null, "login", false, { motivo: "sem_cadastro" }, req);
-        return json({ error: "CPF ou senha inválidos." }, 401);
+        return loginError();
       }
       if (cred.bloqueado_ate && new Date(cred.bloqueado_ate) > new Date()) {
-        return json({ error: "Conta temporariamente bloqueada. Tente novamente mais tarde." }, 429);
+        return json({ error: "Conta temporariamente bloqueada. Tente novamente mais tarde." });
       }
       const ok = bcrypt.compareSync(senha, cred.senha_hash);
       if (!ok) {
@@ -150,7 +151,7 @@ Deno.serve(async (req) => {
         const bloq = tent >= 5 ? new Date(Date.now() + 15 * 60 * 1000).toISOString() : null;
         await sb.from("portal_credenciais").update({ tentativas_falhas: tent, bloqueado_ate: bloq }).eq("id", cred.id);
         await log(cpf, cred.id, "login", false, { motivo: "senha_incorreta", tentativas: tent }, req);
-        return json({ error: "CPF ou senha inválidos." }, 401);
+        return loginError();
       }
       await sb.from("portal_credenciais").update({ tentativas_falhas: 0, bloqueado_ate: null, ultimo_login: new Date().toISOString() }).eq("id", cred.id);
       await log(cpf, cred.id, "login", true, null, req);
