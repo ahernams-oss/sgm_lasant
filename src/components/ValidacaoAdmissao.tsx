@@ -248,7 +248,7 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
           Validação de admissão · CPF <span className="font-mono">{candidato.cpf || "—"}</span>
           {ficha && statusBadge(ficha.status)}
         </div>
-        <Button variant="outline" size="sm" onClick={carregar} disabled={loading}>
+        <Button variant="outline" size="sm" onClick={() => carregar(true)} disabled={loading}>
           <RefreshCw className={`h-3.5 w-3.5 mr-1 ${loading ? "animate-spin" : ""}`} /> Atualizar
         </Button>
       </div>
