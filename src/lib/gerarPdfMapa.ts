@@ -102,7 +102,7 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
     margin: { left: 14, right: 14 },
     head: [["Resumo do Período", "", "", ""]],
     body: [
-      [`Total de Faltas: ${totalFaltas} dia(s)`, `Justificadas: ${faltasJust}`, `Injustificadas: ${faltasInjust}`, `Funcionários c/ falta: ${funcComFalta}`],
+      [`Total de Faltas: ${totalFaltas}`, `Justificadas: ${faltasJust}`, `Injustificadas: ${faltasInjust}`, `Suspensões: ${faltasSusp}`],
       [`Total Horas Extras: ${totalHE.toFixed(1)}h`, `Funcionários c/ HE: ${funcComHE}`, `Total Advertências: ${totalAdv}`, `Funcionários c/ adv: ${funcComAdv}`],
     ],
     theme: "plain",
@@ -123,20 +123,19 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
     autoTable(doc, {
       startY: y,
       margin: { left: 14, right: 14 },
-      head: [["Data", "Funcionário", "Cargo", "Cliente", "Tipo", "Dias", "Observação"]],
+      head: [["Data", "Funcionário", "Cargo", "Cliente", "Tipo", "Observação"]],
       body: faltas.map((l) => [
         formatData(l.data),
         getFuncNome(l.funcionarioId),
         getCargoNome(l.funcionarioId),
         getClienteNome(l.funcionarioId),
         TIPO_FALTA_LABELS[l.tipoFalta || "injustificada"],
-        String(l.diasFalta || 1),
         l.observacao || "—",
       ]),
       theme: "striped",
       styles: { fontSize: 8, cellPadding: 2.5 },
       headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
-      columnStyles: { 6: { cellWidth: 60 } },
+      columnStyles: { 5: { cellWidth: 60 } },
     });
     y = (doc as any).lastAutoTable.finalY + 8;
   }
