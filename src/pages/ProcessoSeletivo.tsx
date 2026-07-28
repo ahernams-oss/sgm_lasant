@@ -151,6 +151,8 @@ const ProcessoSeletivoPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
   const [selectedTab, setSelectedTab] = useState<string>("candidatos");
+  const validacaoRef = useRef<Record<string, { ficha: any; docs: any[] }>>({});
+
 
   if (!requisicao || !processo) {
     return (
