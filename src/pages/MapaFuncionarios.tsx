@@ -3,7 +3,7 @@ import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
-import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle, Printer, Stethoscope, Check, ChevronsUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle, Printer, Stethoscope, Check, ChevronsUpDown, ChevronLeft, ChevronRight, CalendarIcon } from "lucide-react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -29,7 +30,7 @@ import { toast } from "sonner";
 import { gerarPdfMapaFuncionarios } from "@/lib/gerarPdfMapa";
 import { exportarExcelMapa } from "@/lib/gerarExcelMapa";
 import { gerarPdfAdvertencia } from "@/lib/gerarPdfAdvertencia";
-import { format } from "date-fns";
+import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { usePermissao } from "@/hooks/usePermissao";
 
@@ -133,6 +134,9 @@ const MapaFuncionarios = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const useCustomRange = Boolean(dateFrom && dateTo);
 
   const resetForm = () => {
     setFuncionarioId("");
@@ -295,7 +299,18 @@ const MapaFuncionarios = () => {
 
     let result = lancamentos.filter((l) => l.tipo === tipo);
 
-    if (filterMes) {
+    if (useCustomRange && dateFrom && dateTo) {
+      const from = startOfDay(dateFrom);
+      const to = endOfDay(dateTo);
+      result = result.filter((l) => {
+        try {
+          const d = parseISO(l.data);
+          return isWithinInterval(d, { start: from, end: to });
+        } catch {
+          return false;
+        }
+      });
+    } else if (filterMes) {
       result = result.filter((l) => l.data.startsWith(filterMes));
     }
     if (filterCliente !== "todos") {
@@ -320,7 +335,7 @@ const MapaFuncionarios = () => {
       );
     }
     return result.sort((a, b) => b.data.localeCompare(a.data));
-  }, [lancamentos, activeTab, filterMes, filterCliente, filterFuncionario, filterTipos, search, funcionarios]);
+  }, [lancamentos, activeTab, filterMes, useCustomRange, dateFrom, dateTo, filterCliente, filterFuncionario, filterTipos, search, funcionarios]);
 
 
   // Resumo do mês
@@ -696,23 +711,78 @@ const MapaFuncionarios = () => {
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <div className="flex items-center gap-1 rounded-md border border-input bg-background px-1">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { const [y, m] = filterMes.split("-").map(Number); const d = new Date(y, m - 2, 1); setFilterMes(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); setPageLanc(1); }}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { const [y, m] = filterMes.split("-").map(Number); const d = new Date(y, m - 2, 1); setFilterMes(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); setPageLanc(1); setDateFrom(undefined); setDateTo(undefined); }}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="ghost" className="h-8 px-3 text-xs font-medium min-w-[130px]">
-                        {filterMes ? format(new Date(filterMes + "-01T12:00:00"), "MMMM 'de' yyyy", { locale: ptBR }) : "Período"}
+                      <Button variant="ghost" className={cn("h-8 px-3 text-xs font-medium min-w-[130px]", useCustomRange && "text-primary")}>
+                        {useCustomRange && dateFrom && dateTo
+                          ? `${format(dateFrom, "dd/MM/yy")} – ${format(dateTo, "dd/MM/yy")}`
+                          : filterMes ? format(new Date(filterMes + "-01T12:00:00"), "MMMM 'de' yyyy", { locale: ptBR }) : "Período"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-2" align="start">
-                      <Input type="month" value={filterMes} onChange={(e) => { setFilterMes(e.target.value); setPageLanc(1); }} className="h-9 text-xs" />
+                      <Input type="month" value={filterMes} onChange={(e) => { setFilterMes(e.target.value); setPageLanc(1); setDateFrom(undefined); setDateTo(undefined); }} className="h-9 text-xs mb-2" />
                     </PopoverContent>
                   </Popover>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { const [y, m] = filterMes.split("-").map(Number); const d = new Date(y, m, 1); setFilterMes(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); setPageLanc(1); }}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { const [y, m] = filterMes.split("-").map(Number); const d = new Date(y, m, 1); setFilterMes(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); setPageLanc(1); setDateFrom(undefined); setDateTo(undefined); }}>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant={useCustomRange ? "default" : "outline"} size="sm" className="h-9 gap-1.5 text-xs">
+                      <CalendarIcon className="h-3.5 w-3.5" />
+                      {useCustomRange ? "Intervalo ativo" : "Intervalo"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-3" align="start">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold">Intervalo personalizado</span>
+                        {useCustomRange && (
+                          <button type="button" onClick={() => { setDateFrom(undefined); setDateTo(undefined); setPageLanc(1); }} className="text-xs text-primary hover:underline">
+                            Limpar
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-[10px] text-muted-foreground">Data inicial</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className={cn("h-8 w-[130px] justify-start text-left text-xs font-normal", !dateFrom && "text-muted-foreground")}>
+                                <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                                {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Início"}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar mode="single" selected={dateFrom} onSelect={(d) => { setDateFrom(d); setPageLanc(1); }} initialFocus locale={ptBR} className="p-3 pointer-events-auto" />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px] text-muted-foreground">Data final</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className={cn("h-8 w-[130px] justify-start text-left text-xs font-normal", !dateTo && "text-muted-foreground")}>
+                                <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                                {dateTo ? format(dateTo, "dd/MM/yyyy") : "Fim"}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar mode="single" selected={dateTo} onSelect={(d) => { setDateTo(d); setPageLanc(1); }} initialFocus locale={ptBR} className="p-3 pointer-events-auto" />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">Quando preenchido, o filtro mensal é ignorado.</p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+
                 <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); setPageLanc(1); }}>
                   <SelectTrigger className="h-9 w-[160px] text-xs"><SelectValue placeholder="Cliente" /></SelectTrigger>
                   <SelectContent>
