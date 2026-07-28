@@ -428,7 +428,7 @@ const MapaFuncionarios = () => {
                 </div>
 
                 <TabsContent value="faltas" className="mt-0 p-0">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs font-semibold text-foreground/80">Tipo de Falta</Label>
                       <Select value={tipoFalta} onValueChange={(v) => setTipoFalta(v as TipoFalta)}>
@@ -439,10 +439,6 @@ const MapaFuncionarios = () => {
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold text-foreground/80">Dias</Label>
-                      <Input type="number" min="1" value={diasFalta} onChange={(e) => setDiasFalta(e.target.value)} />
                     </div>
                   </div>
                   {/* Anexos */}
