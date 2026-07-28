@@ -429,7 +429,7 @@ const MapaFuncionarios = () => {
         {/* Formulário */}
         {showForm && (
           <form onSubmit={handleSubmit} className="mb-8 rounded-xl border border-border bg-card p-6 shadow-sm animate-fade-up">
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras" | "advertencias")} className="w-full">
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras" | "advertencias" | "atestados")} className="w-full">
               <TabsList className="mb-6">
                 <TabsTrigger value="faltas" className="gap-1.5">
                   <XCircle className="h-3.5 w-3.5" /> Falta
@@ -440,7 +440,11 @@ const MapaFuncionarios = () => {
                 <TabsTrigger value="advertencias" className="gap-1.5">
                   <AlertTriangle className="h-3.5 w-3.5" /> Advertência
                 </TabsTrigger>
+                <TabsTrigger value="atestados" className="gap-1.5">
+                  <Stethoscope className="h-3.5 w-3.5" /> Atestado Médico
+                </TabsTrigger>
               </TabsList>
+
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                 <div className="space-y-1.5">
