@@ -80,33 +80,48 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
   const [docObs, setDocObs] = useState<Record<string, string>>({});
   const cpf = (candidato.cpf || "").replace(/\D/g, "");
 
-  const carregar = useCallback(async () => {
+  const cacheKey = cpf ? `validacao_admissao_cache_${cpf}` : "";
+
+  const aplicarDados = useCallback((res: { ficha: FichaRow | null; documentos: DocRow[]; termos: TermoRow[] }) => {
+    setDocs(res.documentos || []);
+    setFicha(res.ficha);
+    setTermos(res.termos || []);
+    setObsRh(res.ficha?.observacoes_rh || "");
+    const b = res.ficha?.bancarios || {};
+    if (b && Object.keys(b).length && !candidato.dadosBancarios?.banco) {
+      onDadosBancariosPrefill({
+        banco: b.banco || "", agencia: b.agencia || "", conta: b.conta || "",
+        tipoConta: b.tipoConta || "", pisPasep: b.pisPasep || "", pix: b.pix || "",
+      });
+    }
+  }, [candidato.dadosBancarios?.banco, onDadosBancariosPrefill]);
+
+  const carregar = useCallback(async (force = false) => {
     if (!cpf || cpf.length !== 11) return;
+    if (!force && cacheKey) {
+      try {
+        const raw = sessionStorage.getItem(cacheKey);
+        if (raw) { aplicarDados(JSON.parse(raw)); return; }
+      } catch { /* ignora */ }
+    }
     setLoading(true);
     try {
       const res = await portalCall<{ ficha: FichaRow | null; documentos: DocRow[]; termos: TermoRow[] }>(
         "admin-cand-validacao", { cpf },
       );
-      setDocs(res.documentos || []);
-      setFicha(res.ficha);
-      setTermos(res.termos || []);
-      setObsRh(res.ficha?.observacoes_rh || "");
-      // Pré-preenche dados bancários do candidato local a partir do portal se estiverem vazios
-      const b = res.ficha?.bancarios || {};
-      if (b && Object.keys(b).length && !candidato.dadosBancarios?.banco) {
-        onDadosBancariosPrefill({
-          banco: b.banco || "", agencia: b.agencia || "", conta: b.conta || "",
-          tipoConta: b.tipoConta || "", pisPasep: b.pisPasep || "", pix: b.pix || "",
-        });
+      aplicarDados(res);
+      if (cacheKey) {
+        try { sessionStorage.setItem(cacheKey, JSON.stringify(res)); } catch { /* ignora */ }
       }
     } catch (e: any) {
       toast.error("Erro ao carregar dados do portal: " + e.message);
     } finally {
       setLoading(false);
     }
-  }, [cpf]); // eslint-disable-line
+  }, [cpf, cacheKey, aplicarDados]);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => { carregar(false); }, [carregar]);
+
 
   const criarUrlLocalDocumento = async (id: string) => {
     const { url, nome } = await portalCall<{ url: string; nome?: string }>("admin-cand-doc-url", { id });
@@ -196,10 +211,25 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
       setZipando(false);
     }
   };
+  const atualizarCache = (patch: { docs?: DocRow[]; ficha?: FichaRow | null }) => {
+    if (!cacheKey) return;
+    try {
+      const raw = sessionStorage.getItem(cacheKey);
+      const cur = raw ? JSON.parse(raw) : { ficha, documentos: docs, termos };
+      const next = {
+        ficha: patch.ficha !== undefined ? patch.ficha : cur.ficha,
+        documentos: patch.docs || cur.documentos,
+        termos: cur.termos || termos,
+      };
+      sessionStorage.setItem(cacheKey, JSON.stringify(next));
+    } catch { /* ignora */ }
+  };
   const setDocStatus = async (id: string, status: "aprovado" | "reprovado" | "pendente") => {
     try {
       await portalCall("admin-cand-doc-status", { id, status, observacao: docObs[id] || null });
-      setDocs((prev) => prev.map((d) => d.id === id ? { ...d, status, observacao: docObs[id] || null, revisado_em: new Date().toISOString() } : d));
+      const novos = docs.map((d) => d.id === id ? { ...d, status, observacao: docObs[id] || null, revisado_em: new Date().toISOString() } : d);
+      setDocs(novos);
+      atualizarCache({ docs: novos });
       toast.success("Status atualizado.");
     } catch (e: any) { toast.error(e.message); }
   };
@@ -207,7 +237,9 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
     if (!cpf) return;
     try {
       await portalCall("admin-cand-ficha-status", { cpf, status, observacoes_rh: obsRh || null });
-      setFicha((f) => f ? { ...f, status, observacoes_rh: obsRh, revisado_em: new Date().toISOString() } : f);
+      const nova = ficha ? { ...ficha, status, observacoes_rh: obsRh, revisado_em: new Date().toISOString() } : ficha;
+      setFicha(nova);
+      atualizarCache({ ficha: nova });
       toast.success("Ficha atualizada.");
     } catch (e: any) { toast.error(e.message); }
   };
@@ -233,7 +265,7 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
           Validação de admissão · CPF <span className="font-mono">{candidato.cpf || "—"}</span>
           {ficha && statusBadge(ficha.status)}
         </div>
-        <Button variant="outline" size="sm" onClick={carregar} disabled={loading}>
+        <Button variant="outline" size="sm" onClick={() => carregar(true)} disabled={loading}>
           <RefreshCw className={`h-3.5 w-3.5 mr-1 ${loading ? "animate-spin" : ""}`} /> Atualizar
         </Button>
       </div>
