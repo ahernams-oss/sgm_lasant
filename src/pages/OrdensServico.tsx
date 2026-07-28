@@ -7,7 +7,7 @@ import { SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
 import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { supabase } from "@/integrations/supabase/client";
 import { formatNumeroAno } from "@/lib/formatNumero";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useOrdensServico, OrdemServico, MaterialOS, ProfissionalOS, AnexoOS, FotoOS, ObservacaoOS, ObservacaoFiscalizacao, TIPOS_OS, TipoOS } from "@/contexts/OrdensServicoContext";
 import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { useServicos } from "@/contexts/ServicosContext";
@@ -880,6 +880,7 @@ export default function OrdensServicoPage() {
 
   const colDefs: Record<string, { label: string; className?: string }> = {
     numero: { label: "Nº OS", className: "w-[110px] whitespace-nowrap" },
+    ss: { label: "SS", className: "w-[110px] whitespace-nowrap" },
     cliente: { label: "Cliente" },
     descricao: { label: "Descrição" },
     setor: { label: "Setor" },
@@ -891,7 +892,7 @@ export default function OrdensServicoPage() {
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "ordens_servico.lista",
-    ["numero", "cliente", "descricao", "setor", "prioridade", "situacao", "dataAbertura", "dataInicio", "valor"]
+    ["numero", "ss", "cliente", "descricao", "setor", "prioridade", "situacao", "dataAbertura", "dataInicio", "valor"]
   );
 
   const abertasNaPagina = ordensPage.filter(o => o.situacao === "Aberta");
@@ -1119,7 +1120,7 @@ export default function OrdensServicoPage() {
             <TableBody>
               {ordensPage.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={colOrder.length + 2} className="text-center text-muted-foreground py-8">
                     Nenhuma Ordem de Serviço encontrada.
                   </TableCell>
                 </TableRow>
@@ -1130,30 +1131,31 @@ export default function OrdensServicoPage() {
                 const cellMap: Record<string, { node: ReactNode; className?: string }> = {
                   numero: {
                     node: (
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center gap-1 whitespace-nowrap">
-                          <span className="font-bold">{formatNumeroAno(os.numero, os.createdAt)}</span>
-                          {ass.length > 0 && (
-                            <span className="flex items-center gap-0.5 text-primary" title={`Assinada eletronicamente — ${tooltip}`}>
-                              {ass.map((a) => (
-                                <FileSignature key={a.id} className="h-3.5 w-3.5" />
-                              ))}
-                            </span>
-                          )}
-                        </div>
-                        {os.solicitacaoNumero ? (
-                          <a
-                            href={`/engenharia/solicitacao-servicos?numero=${os.solicitacaoNumero}`}
-                            className="text-[10px] text-primary hover:underline font-medium whitespace-nowrap"
-                            title="Ver Solicitação de Serviço vinculada"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            SS {formatNumeroAno(os.solicitacaoNumero, os.createdAt)}
-                          </a>
-                        ) : null}
+                      <div className="flex items-center gap-1 whitespace-nowrap">
+                        <span className="font-bold">{formatNumeroAno(os.numero, os.createdAt)}</span>
+                        {ass.length > 0 && (
+                          <span className="flex items-center gap-0.5 text-primary" title={`Assinada eletronicamente — ${tooltip}`}>
+                            {ass.map((a) => (
+                              <FileSignature key={a.id} className="h-3.5 w-3.5" />
+                            ))}
+                          </span>
+                        )}
                       </div>
                     ),
                     className: "align-top",
+                  },
+                  ss: {
+                    node: os.solicitacaoNumero ? (
+                      <Link
+                        to={`/engenharia/solicitacao-servicos?numero=${os.solicitacaoNumero}`}
+                        className="text-blue-600 hover:text-blue-800 hover:underline font-medium whitespace-nowrap"
+                        title="Ver Solicitação de Serviço vinculada"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        SS {formatNumeroAno(os.solicitacaoNumero, os.createdAt)}
+                      </Link>
+                    ) : "-",
+                    className: "text-xs whitespace-nowrap",
                   },
                   cliente: { node: os.clienteNome },
                   descricao: { node: os.descricaoServicos, className: "max-w-[250px] truncate" },
