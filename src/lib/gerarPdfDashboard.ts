@@ -220,22 +220,20 @@ export function gerarPdfDashboard(data: DashboardReportData): jsPDF {
     y = (doc as any).lastAutoTable.finalY + 10;
   }
 
-  // --- Atestados / Faltas ---
+  // --- Faltas / Suspensões ---
   if (lancamentos && lancamentos.length > 0) {
     y = checkPageBreak(doc, y, 60);
-    y = sectionTitle(doc, "Atestados e Faltas", y);
-    const atestados = lancamentos.filter((l: any) => l.tipoFalta === "atestado");
+    y = sectionTitle(doc, "Faltas e Suspensões", y);
     const faltasJust = lancamentos.filter((l: any) => l.tipo === "falta" && l.tipoFalta === "justificada");
     const faltasInjust = lancamentos.filter((l: any) => l.tipo === "falta" && l.tipoFalta === "injustificada");
-    const diasAfastado = atestados.reduce((acc: number, l: any) => acc + (l.diasFalta || 0), 0);
+    const suspensoes = lancamentos.filter((l: any) => l.tipo === "falta" && l.tipoFalta === "suspensao");
     autoTable(doc, {
       startY: y,
       head: [["Tipo", "Quantidade"]],
       body: [
-        ["Atestados", atestados.length.toString()],
-        ["Dias Afastados (atestado)", diasAfastado.toString()],
         ["Faltas Justificadas", faltasJust.length.toString()],
         ["Faltas Injustificadas", faltasInjust.length.toString()],
+        ["Suspensões", suspensoes.length.toString()],
       ],
       theme: "striped",
       styles: { fontSize: 9, cellPadding: 3 },
