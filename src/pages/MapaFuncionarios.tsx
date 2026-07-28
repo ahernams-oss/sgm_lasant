@@ -643,7 +643,6 @@ const MapaFuncionarios = () => {
                           {TIPO_FALTA_LABELS[l.tipoFalta || "injustificada"]}
                         </Badge>
                       ) };
-                      cellMap.dias = { node: l.diasFalta || 1 };
                       cellMap.anexos = { node: l.anexos && l.anexos.length > 0 ? (
                         <div className="flex items-center gap-1">
                           {l.anexos.map((a, i) => (
