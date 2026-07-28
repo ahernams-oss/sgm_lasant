@@ -607,8 +607,6 @@ function ExameAdmissionalSection({
   );
 }
 
-function _closingWrapper() {
-  return null;
 
 export function validacaoPodeEfetivar(ficha: FichaRow | null, docs: DocRow[]) {
   if (!ficha) return { ok: false, msg: "Ficha do portal não recebida." };
