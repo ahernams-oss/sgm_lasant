@@ -128,6 +128,8 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
   }, [cpf, cacheKey, aplicarDados]);
 
   useEffect(() => { carregar(false); }, [carregar]);
+  useEffect(() => { onValidacaoChange?.({ ficha, docs }); }, [ficha, docs, onValidacaoChange]);
+
 
 
   const criarUrlLocalDocumento = async (id: string) => {
