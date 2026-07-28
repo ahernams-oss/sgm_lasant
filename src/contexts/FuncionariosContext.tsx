@@ -126,8 +126,10 @@ function funcionarioToRow(f: Omit<Funcionario, "id">) {
     experiencia_renovado: f.experienciaRenovado,
     experiencia_notificado_10d_primeira: f.experienciaNotificado10dPrimeira,
     experiencia_notificado_10d_final: f.experienciaNotificado10dFinal,
+    foto: f.foto || null,
   };
 }
+
 
 interface FuncionariosContextType {
   funcionarios: Funcionario[];
