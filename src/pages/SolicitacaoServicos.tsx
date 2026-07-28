@@ -1113,6 +1113,17 @@ export default function SolicitacaoServicosPage() {
                     </div>
                   ),
                 },
+                os: {
+                  node: osVinculada ? (
+                    <Link
+                      to={`/engenharia/ordem-servico?numero=${osLabel}`}
+                      className="text-blue-600 hover:text-blue-800 hover:underline font-medium whitespace-nowrap"
+                    >
+                      OS {osLabel}
+                    </Link>
+                  ) : "-",
+                  className: "text-xs whitespace-nowrap",
+                },
                 visitado: {
                   node: (
                     <Checkbox
