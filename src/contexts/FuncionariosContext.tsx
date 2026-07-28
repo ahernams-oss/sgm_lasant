@@ -133,7 +133,7 @@ function funcionarioToRow(f: Omit<Funcionario, "id">) {
 
 interface FuncionariosContextType {
   funcionarios: Funcionario[];
-  addFuncionario: (f: Omit<Funcionario, "id">) => void;
+  addFuncionario: (f: Omit<Funcionario, "id">) => Promise<string | null>;
   updateFuncionario: (id: string, f: Partial<Omit<Funcionario, "id">>) => void;
   deleteFuncionario: (id: string) => void;
 }
@@ -158,10 +158,11 @@ export function FuncionariosProvider({ children }: { children: ReactNode }) {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: QK });
 
-  const addFuncionario = async (f: Omit<Funcionario, "id">) => {
-    const { error } = await (supabase as any).from("funcionarios").insert(funcionarioToRow(f));
-    if (error) { console.error("Erro:", error); toast.error("Erro ao cadastrar."); return; }
+  const addFuncionario = async (f: Omit<Funcionario, "id">): Promise<string | null> => {
+    const { data, error } = await (supabase as any).from("funcionarios").insert(funcionarioToRow(f)).select("id").single();
+    if (error) { console.error("Erro:", error); toast.error("Erro ao cadastrar."); return null; }
     await invalidate();
+    return (data?.id as string) ?? null;
   };
 
   const updateFuncionario = async (id: string, data: Partial<Omit<Funcionario, "id">>) => {

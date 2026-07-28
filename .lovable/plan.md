@@ -1,94 +1,87 @@
 
-# Portal do Funcionário e Candidato
+# Portal do Funcionário
 
-Portal público único (rota `/portal`) com login por CPF+senha que direciona para dois fluxos: funcionário contratado ou candidato em processo de contratação.
+Estender o portal existente (`/portal`) para atender também o **funcionário efetivado**, mantendo o mesmo login (CPF + senha) usado como candidato — o sistema detecta automaticamente se o usuário é candidato ou funcionário e roteia para a área correta.
 
-## Arquitetura
+## Fluxo de acesso (Opção A)
 
 ```text
-/portal                    → Login (CPF + senha)
-/portal/cadastrar-senha    → 1º acesso (CPF + Data Nasc. + define senha)
-/portal/esqueci-senha      → Reset via WhatsApp/e-mail
-/portal/funcionario        → Home do funcionário contratado
-  ├─ /holerites            → Ver/baixar holerites e comprovantes
-  ├─ /epis                 → Confirmar recebimento facial (integra fluxo existente)
-  ├─ /documentos           → ASO, exames, advertências, dados cadastrais
-  └─ /perfil               → Alterar senha, dados de contato
-/portal/candidato          → Home do candidato em contratação
-  ├─ /ficha                → Ficha cadastral (pessoais/endereço/bancário/dependentes)
-  ├─ /documentos           → Upload de RG, CPF, CTPS, comprovantes
-  ├─ /termos               → Assinatura eletrônica de contrato, LGPD, código conduta
-  └─ /admissional          → Agendar exame admissional + treinamentos integração
+Login em /portal (CPF + senha)
+        │
+        ├── Existe em `funcionarios` com status Ativo? → /portal/funcionario/*
+        │
+        └── Senão → /portal/candidato/* (fluxo atual)
 ```
 
-## Banco de dados
+Ao efetivar a contratação (RH clica "Finalizar Contratação"):
+- Credencial em `portal_credenciais` é **preservada** (mesmo CPF/senha).
+- Novo tipo `funcionario` é gravado no token JWT.
+- Disparo automático via WhatsApp: *"Parabéns, sua contratação foi concluída! Acesse o portal em app.lasant.com.br/portal com seu CPF e a senha que você já usa."*
 
-Nova tabela `portal_credenciais` (CPF único, senha bcrypt, vínculo a `funcionarios` ou `processos_seletivos`, tipo de acesso, flags de reset).
+## Áreas do Portal do Funcionário
 
-Nova tabela `portal_holerites` (funcionario_id, mês/ano, tipo — folha/13º/férias/rescisão, arquivo, disponibilizado_em).
+Menu lateral com 7 seções:
 
-Nova tabela `portal_ficha_admissao` (candidato_id, dados_pessoais JSONB, endereço JSONB, bancário JSONB, dependentes JSONB, status).
+1. **Início** — cards de resumo (próximas férias, holerite disponível, avisos não lidos, EPIs pendentes de assinatura).
+2. **Holerites** (`/portal/funcionario/holerites`) — lista mês/ano, download PDF via URL assinada (bucket `portal-holerites`).
+3. **Férias** (`/portal/funcionario/ferias`) — saldo de dias, histórico, botão "Solicitar férias" que grava em `ferias` com status `solicitada`.
+4. **Meus Documentos** (`/portal/funcionario/documentos`) — ASO, contratos, exames periódicos, documentos pessoais aprovados na admissão. Somente leitura + download.
+5. **EPIs** (`/portal/funcionario/epis`) — histórico de recebimentos (tabela `epis_recebimentos`) e link direto para assinar novos recebimentos pendentes (fluxo facial já existe).
+6. **Treinamentos** (`/portal/funcionario/treinamentos`) — certificados e treinamentos pendentes (`portal_treinamentos`).
+7. **Solicitações RH** (`/portal/funcionario/solicitacoes`) — abrir chamado ao RH (declaração de vínculo, alteração cadastral, atestado, outros). Nova tabela `portal_solicitacoes_rh`.
+8. **Avisos** (`/portal/funcionario/avisos`) — comunicados internos direcionados a funcionários (reaproveita `comunicacao_avisos` + `comunicacao_avisos_leitura`).
 
-Nova tabela `portal_documentos_candidato` (candidato_id, tipo_documento, storage_path, status validação, revisor).
+## Backend
 
-Nova tabela `portal_termos_assinados` (candidato_id/funcionario_id, tipo_termo, hash_sha256, ip, timestamp, aceite_texto).
+**Nova tabela** `portal_solicitacoes_rh`:
+- `id`, `funcionario_id`, `tipo` (declaracao/alteracao/atestado/outro), `assunto`, `descricao`, `anexo_url`, `status` (aberta/em_analise/concluida/rejeitada), `resposta_rh`, `respondido_por`, `respondido_em`, `created_at`.
+- RLS pública (padrão do projeto), GRANTs completos.
 
-Nova tabela `portal_treinamentos` (candidato_id, tipo, concluído_em, nota, certificado_path).
+**Edge function `portal-api`** — novas actions:
+- `funcionario.perfil` — retorna dados básicos + cargo + admissão.
+- `funcionario.holerites.list` / `funcionario.holerites.url`
+- `funcionario.ferias.list` / `funcionario.ferias.solicitar`
+- `funcionario.documentos.list` / `funcionario.documentos.url`
+- `funcionario.epis.list`
+- `funcionario.treinamentos.list`
+- `funcionario.solicitacoes.list` / `.criar` / `.upload`
+- `funcionario.avisos.list` / `.marcarLida`
 
-Nova tabela `portal_acessos_log` (auditoria de login e ações sensíveis).
-
-Novos buckets storage: `portal-holerites` (privado), `portal-candidato-docs` (privado), `portal-termos-assinados` (privado), `portal-treinamentos-cert` (privado).
-
-## Edge Functions
-
-- `portal-auth-login` — valida CPF+senha, retorna token de sessão.
-- `portal-auth-signup` — 1º acesso: valida CPF+Data Nasc. contra `funcionarios`/`processos_seletivos`, cria credencial.
-- `portal-auth-reset` — envia link via WhatsApp (PlugSend) e e-mail.
-- `portal-holerite-download` — URL assinada com auditoria.
-- `portal-candidato-submit` — grava ficha, dispara notificação ao RH.
-- `portal-termo-assinar` — gera hash SHA-256, salva assinatura.
+**`portal-api/login`** — após autenticar, procura em `funcionarios` pelo CPF; se ativo, retorna `tipo: 'funcionario'` no JWT (senão mantém `tipo: 'candidato'`).
 
 ## Frontend
 
-- Novo `PortalAuthContext` isolado do `AuthContext` interno.
-- Layout dedicado `PortalLayout` com branding LASANT, mobile-first.
-- Todas as rotas do portal ficam fora do `AppLayout` interno.
-- Reaproveitar componentes existentes: viewCEP, upload de imagem, captura facial de EPI.
+Estrutura de arquivos:
 
-## Administração interna (dentro do SGM existente)
+```text
+src/pages/portal/
+  PortalLogin.tsx          (roteia por tipo após login)
+  funcionario/
+    PortalFuncLayout.tsx   (sidebar + header com foto e nome)
+    PortalFuncHome.tsx
+    PortalFuncHolerites.tsx
+    PortalFuncFerias.tsx
+    PortalFuncDocumentos.tsx
+    PortalFuncEpis.tsx
+    PortalFuncTreinamentos.tsx
+    PortalFuncSolicitacoes.tsx
+    PortalFuncAvisos.tsx
+```
 
-- Nova página `/rh/portal` (permissão `portal_admin`) para:
-  - Upload em lote de holerites (por competência).
-  - Aprovar/reprovar documentos do candidato.
-  - Ver ficha preenchida e converter candidato em funcionário.
-  - Ver termos assinados com hash.
-  - Botão "Enviar link do portal" (WhatsApp) em Funcionários e em Processos Seletivos.
-- Nova permissão `portal_admin` em `PerfisAcessoContext`.
+- Layout segue o padrão visual do portal do candidato (logo Lasant + glassmorphism no login; sidebar clara nas telas internas).
+- `PortalAuthContext` ganha campo `tipo` ('candidato' | 'funcionario') e o `<PortalRoute>` redireciona automaticamente conforme o tipo.
+- Rotas registradas em `src/App.tsx` sob `/portal/funcionario/*`.
 
-## Segurança
+## Efetivação
 
-- Senha bcrypt (custo 10), política mínima (8 caracteres, 1 número, 1 letra).
-- Rate-limiting no login (5 tentativas / 15min por CPF+IP).
-- Logs completos em `portal_acessos_log`.
-- Buckets privados; downloads sempre via signed URL de curta duração emitida pelo edge function após validar sessão.
-- RLS bloqueia acesso direto do `anon`; toda leitura passa por edge function que valida o token de sessão.
+No `ProcessoSeletivo.tsx`, após gravar o funcionário:
+- Não recriar credencial (reaproveita a existente do candidato).
+- Disparar mensagem WhatsApp de boas-vindas com o link do portal.
 
-## Sequência de entrega (dentro desta entrega única)
+## Fora do escopo (para depois)
 
-1. Migração completa do banco + buckets + RLS + grants.
-2. Edge functions de auth.
-3. `PortalAuthContext` + rotas + layout.
-4. Telas do funcionário (holerites, EPIs redirecionando p/ fluxo existente, documentos, perfil).
-5. Telas do candidato (ficha, documentos, termos com hash, treinamentos).
-6. Página admin `/rh/portal` + botões "Enviar link" nas telas existentes.
-7. Permissão `portal_admin` no perfil de acesso.
+- Marcação de ponto pelo portal (fica em módulo próprio, já existe integração PontoMais).
+- Aprovação de férias pelo gestor no portal (fica no ERP).
+- Chat direto com RH em tempo real (por ora, solicitações são assíncronas).
 
-## Detalhes técnicos
-
-- Token de sessão: JWT curto (1h) assinado com secret dedicado `PORTAL_JWT_SECRET`, refresh via cookie httpOnly opcionalmente (v1 = renovar via re-login).
-- WhatsApp: `plugsend-send` já existente para os links de acesso.
-- E-mail: `send-transactional-email` já existente com novos templates `portal-welcome`, `portal-reset`.
-- Assinatura eletrônica: reaproveitar `assinaturaHash.ts` (SHA-256 canônico do payload aceito).
-- Storage: signed URLs com TTL de 60s para download.
-
-Nada nas telas internas atuais será removido — apenas adicionados botões "Enviar link do portal" e a nova página administrativa.
+Se aprovar, implemento em uma leva só: migração da tabela nova + edge function + telas do funcionário + roteamento por tipo + notificação WhatsApp na efetivação.

@@ -23,8 +23,12 @@ export default function PortalLayout({ children, requireTipo }: Props) {
   const menuFunc = [
     { to: "/portal/funcionario", label: "Início" },
     { to: "/portal/funcionario/holerites", label: "Holerites" },
-    { to: "/portal/funcionario/epis", label: "EPIs" },
+    { to: "/portal/funcionario/ferias", label: "Férias" },
     { to: "/portal/funcionario/documentos", label: "Documentos" },
+    { to: "/portal/funcionario/epis", label: "EPIs" },
+    { to: "/portal/funcionario/treinamentos", label: "Treinamentos" },
+    { to: "/portal/funcionario/solicitacoes", label: "Solicitações RH" },
+    { to: "/portal/funcionario/avisos", label: "Avisos" },
     { to: "/portal/funcionario/perfil", label: "Perfil" },
   ];
   const menuCand = [
