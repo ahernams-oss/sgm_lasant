@@ -3273,6 +3273,7 @@ export type Database = {
           experiencia_notificado_10d_primeira: boolean | null
           experiencia_primeira_etapa: string | null
           experiencia_renovado: boolean | null
+          foto: string | null
           id: string
           jornada_trabalho: string | null
           logradouro: string | null
@@ -3341,6 +3342,7 @@ export type Database = {
           experiencia_notificado_10d_primeira?: boolean | null
           experiencia_primeira_etapa?: string | null
           experiencia_renovado?: boolean | null
+          foto?: string | null
           id?: string
           jornada_trabalho?: string | null
           logradouro?: string | null
@@ -3409,6 +3411,7 @@ export type Database = {
           experiencia_notificado_10d_primeira?: boolean | null
           experiencia_primeira_etapa?: string | null
           experiencia_renovado?: boolean | null
+          foto?: string | null
           id?: string
           jornada_trabalho?: string | null
           logradouro?: string | null

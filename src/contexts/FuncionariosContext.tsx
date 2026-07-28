@@ -35,7 +35,9 @@ export interface Funcionario {
   experienciaInicio: string; experienciaPrimeiraEtapa: string;
   experienciaFim: string; experienciaRenovado: boolean;
   experienciaNotificado10dPrimeira: boolean; experienciaNotificado10dFinal: boolean;
+  foto: string;
 }
+
 
 export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   nome: "", cpf: "", rg: "", orgaoEmissor: "", dataNascimento: "", sexo: "",
@@ -53,7 +55,9 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   experienciaInicio: "", experienciaPrimeiraEtapa: "", experienciaFim: "",
   experienciaRenovado: false, experienciaNotificado10dPrimeira: false,
   experienciaNotificado10dFinal: false,
+  foto: "",
 };
+
 
 function rowToFuncionario(row: any): Funcionario {
   return {
@@ -89,8 +93,10 @@ function rowToFuncionario(row: any): Funcionario {
     experienciaRenovado: row.experiencia_renovado ?? false,
     experienciaNotificado10dPrimeira: row.experiencia_notificado_10d_primeira ?? false,
     experienciaNotificado10dFinal: row.experiencia_notificado_10d_final ?? false,
+    foto: row.foto ?? "",
   };
 }
+
 
 function funcionarioToRow(f: Omit<Funcionario, "id">) {
   return {
@@ -120,8 +126,10 @@ function funcionarioToRow(f: Omit<Funcionario, "id">) {
     experiencia_renovado: f.experienciaRenovado,
     experiencia_notificado_10d_primeira: f.experienciaNotificado10dPrimeira,
     experiencia_notificado_10d_final: f.experienciaNotificado10dFinal,
+    foto: f.foto || null,
   };
 }
+
 
 interface FuncionariosContextType {
   funcionarios: Funcionario[];
