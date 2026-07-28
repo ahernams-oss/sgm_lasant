@@ -741,7 +741,7 @@ const MapaFuncionarios = () => {
                     } else if (l.tipo === "hora_extra") {
                       cellMap.horas = { node: `${l.horasExtras}h`, className: "font-medium" };
                       cellMap.percentual = { node: <Badge className="bg-primary/10 text-primary text-xs">{l.percentual}%</Badge> };
-                    } else {
+                    } else if (l.tipo === "advertencia") {
                       cellMap.tipo = { node: (
                         <Badge variant={l.tipoAdvertencia === "escrita" ? "destructive" : "secondary"} className="text-xs">
                           {TIPO_ADVERTENCIA_LABELS[l.tipoAdvertencia || "verbal"]}
@@ -758,7 +758,24 @@ const MapaFuncionarios = () => {
                           <span className="text-xs text-muted-foreground">({l.anexos.length})</span>
                         </div>
                       ) : <span className="text-xs text-muted-foreground">—</span> };
+                    } else if (l.tipo === "atestado") {
+                      const inicio = new Date(l.data + "T00:00:00");
+                      const fim = l.dataFim ? new Date(l.dataFim + "T00:00:00") : inicio;
+                      const dias = Math.max(1, Math.round((fim.getTime() - inicio.getTime()) / 86400000) + 1);
+                      cellMap.dataFim = { node: l.dataFim ? formatData(l.dataFim) : "—" };
+                      cellMap.dias = { node: <Badge className="bg-primary/10 text-primary text-xs">{dias}d</Badge> };
+                      cellMap.anexos = { node: l.anexos && l.anexos.length > 0 ? (
+                        <div className="flex items-center gap-1">
+                          {l.anexos.map((a, i) => (
+                            <button key={i} onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline text-xs flex items-center gap-0.5" title={a.nome}>
+                              <Paperclip className="h-3 w-3" />
+                            </button>
+                          ))}
+                          <span className="text-xs text-muted-foreground">({l.anexos.length})</span>
+                        </div>
+                      ) : <span className="text-xs text-muted-foreground">—</span> };
                     }
+
                     return (
                     <TableRow key={l.id} className={idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}>
                       {colOrder.map(key => {
