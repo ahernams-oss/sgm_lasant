@@ -55,8 +55,8 @@ const TIPO_CONTA_OPTIONS = [
   "Conta Poupança",
 ];
 
-const F = ({ l, v, on, type = "text" }: any) => (
-  <div><Label className="text-xs">{l}</Label><Input type={type} value={v ?? ""} onChange={(e) => on(e.target.value)} /></div>
+const F = ({ l, v, on, type = "text", ph }: any) => (
+  <div><Label className="text-xs">{l}</Label><Input type={type} value={v ?? ""} placeholder={ph} onChange={(e) => on(e.target.value)} /></div>
 );
 
 function calcProgresso(dp: any, docs: any, end: any, bc: any, deps: Dep[], ces: Contato[]) {
@@ -110,7 +110,7 @@ export default function PortalFicha() {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string>("rascunho");
 
-  const [dp, setDp] = useState<any>({ nome: "", dataNasc: "", sexo: "", estadoCivil: "", nacionalidade: "Brasileira", naturalidade: "", nomeMae: "", nomePai: "", telefone: "", email: "", escolaridade: "", cursoFormacao: "", foto: "" });
+  const [dp, setDp] = useState<any>({ nome: "", dataNasc: "", sexo: "", estadoCivil: "", nacionalidade: "Brasileira", naturalidade: "", nomeMae: "", nomePai: "", telefone: "", email: "", escolaridade: "", cursoFormacao: "", foto: "", uniforme: { camisa: "", calca: "", calcado: "", peso: "", altura: "" } });
   const [docs, setDocs] = useState<any>({
     cpf: "", rgNumero: "", rgOrgao: "", rgUf: "", rgEmissao: "",
     ctpsNumero: "", ctpsSerie: "", ctpsUf: "", ctpsEmissao: "",
@@ -472,6 +472,19 @@ export default function PortalFicha() {
                 </Select>
               </div>
               <F l="Chave PIX" v={bc.chavePix} on={(v: string) => setBc({ ...bc, chavePix: v })} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Uniforme</CardTitle>
+              <p className="text-xs text-muted-foreground">Informações para dimensionamento de uniformes e EPIs.</p>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <F l="Tam. Camisa" v={dp.uniforme?.camisa || ""} on={(v: string) => setDp({ ...dp, uniforme: { ...(dp.uniforme || {}), camisa: v } })} ph="P, M, G..." />
+              <F l="Tam. Calça" v={dp.uniforme?.calca || ""} on={(v: string) => setDp({ ...dp, uniforme: { ...(dp.uniforme || {}), calca: v } })} ph="38, 40, 42" />
+              <F l="Tam. Calçado" v={dp.uniforme?.calcado || ""} on={(v: string) => setDp({ ...dp, uniforme: { ...(dp.uniforme || {}), calcado: v } })} ph="39, 40, 41" />
+              <F l="Peso (kg)" v={dp.uniforme?.peso || ""} on={(v: string) => setDp({ ...dp, uniforme: { ...(dp.uniforme || {}), peso: v } })} ph="Ex: 75" />
+              <F l="Altura (cm)" v={dp.uniforme?.altura || ""} on={(v: string) => setDp({ ...dp, uniforme: { ...(dp.uniforme || {}), altura: v } })} ph="Ex: 175" />
             </CardContent>
           </Card>
           <Card>
