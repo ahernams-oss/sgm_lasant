@@ -651,7 +651,7 @@ const MapaFuncionarios = () => {
           <div className="px-6 py-4 border-b border-border bg-muted/30">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras" | "advertencias")}>
+                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras" | "advertencias" | "atestados")}>
                   <TabsList className="h-9">
                     <TabsTrigger value="faltas" className="text-xs gap-1">
                       <XCircle className="h-3 w-3" /> Faltas
@@ -662,8 +662,12 @@ const MapaFuncionarios = () => {
                     <TabsTrigger value="advertencias" className="text-xs gap-1">
                       <AlertTriangle className="h-3 w-3" /> Advertências
                     </TabsTrigger>
+                    <TabsTrigger value="atestados" className="text-xs gap-1">
+                      <Stethoscope className="h-3 w-3" /> Atestados
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
+
                 <span className="text-sm font-semibold text-foreground">({filteredLancamentos.length})</span>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
