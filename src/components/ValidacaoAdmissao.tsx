@@ -354,7 +354,13 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
       <section>
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold">📁 Documentos enviados pelo portal</h3>
-          <span className="text-xs text-muted-foreground">{aprovDocs} aprov. · {reprDocs} reprov. · {totalDocs} total</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{aprovDocs} aprov. · {reprDocs} reprov. · {totalDocs} total</span>
+            <Button variant="outline" size="sm" onClick={baixarTodosZip} disabled={zipando || docs.length === 0}>
+              <Archive className={`h-3.5 w-3.5 mr-1 ${zipando ? "animate-pulse" : ""}`} />
+              {zipando ? "Compactando..." : "Baixar todos (ZIP)"}
+            </Button>
+          </div>
         </div>
         {docs.length === 0 ? (
           <p className="text-xs text-muted-foreground">Nenhum documento enviado pelo candidato.</p>
