@@ -705,13 +705,38 @@ const MapaFuncionarios = () => {
                     ))}
                   </SelectContent>
                 </Select>
-                <Select value={filterFuncionario} onValueChange={v => { setFilterFuncionario(v); setPageLanc(1); }}>
-                  <SelectTrigger className="h-9 w-[180px] text-xs"><SelectValue placeholder="Funcionário" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos Funcionários</SelectItem>
-                    {funcionarios.map((f) => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Popover open={funcPopoverOpen} onOpenChange={setFuncPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" aria-expanded={funcPopoverOpen} className="h-9 w-[220px] justify-between text-xs font-normal">
+                      <span className="truncate">
+                        {filterFuncionario === "todos"
+                          ? "Todos Funcionários"
+                          : funcionariosOrdenados.find(f => f.id === filterFuncionario)?.nome ?? "Funcionário"}
+                      </span>
+                      <ChevronsUpDown className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[260px] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Buscar funcionário..." className="h-9" />
+                      <CommandList>
+                        <CommandEmpty>Nenhum funcionário encontrado.</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem value="Todos Funcionários" onSelect={() => { setFilterFuncionario("todos"); setPageLanc(1); setFuncPopoverOpen(false); }}>
+                            <Check className={cn("mr-2 h-4 w-4", filterFuncionario === "todos" ? "opacity-100" : "opacity-0")} />
+                            Todos Funcionários
+                          </CommandItem>
+                          {funcionariosOrdenados.map((f) => (
+                            <CommandItem key={f.id} value={f.nome} onSelect={() => { setFilterFuncionario(f.id); setPageLanc(1); setFuncPopoverOpen(false); }}>
+                              <Check className={cn("mr-2 h-4 w-4", filterFuncionario === f.id ? "opacity-100" : "opacity-0")} />
+                              {f.nome}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 {(activeTab === "faltas" || activeTab === "advertencias") && (() => {
                   const opts = activeTab === "faltas"
                     ? [{ v: "justificada", l: "Justificada" }, { v: "injustificada", l: "Injustificada" }, { v: "suspensao", l: "Suspensão" }]
