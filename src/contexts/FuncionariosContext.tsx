@@ -35,7 +35,9 @@ export interface Funcionario {
   experienciaInicio: string; experienciaPrimeiraEtapa: string;
   experienciaFim: string; experienciaRenovado: boolean;
   experienciaNotificado10dPrimeira: boolean; experienciaNotificado10dFinal: boolean;
+  foto: string;
 }
+
 
 export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   nome: "", cpf: "", rg: "", orgaoEmissor: "", dataNascimento: "", sexo: "",
