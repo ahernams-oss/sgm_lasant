@@ -73,7 +73,7 @@ const Row = ({ label, value }: { label: string; value: any }) => (
   </div>
 );
 
-export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBancariosPrefill }: Props) {
+export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBancariosPrefill, onValidacaoChange }: Props) {
   const [loading, setLoading] = useState(false);
   const [docs, setDocs] = useState<DocRow[]>([]);
   const [ficha, setFicha] = useState<FichaRow | null>(null);
