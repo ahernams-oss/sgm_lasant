@@ -27,6 +27,7 @@ import {
 } from "@/contexts/ProcessoSeletivoContext";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import ValidacaoAdmissao from "@/components/ValidacaoAdmissao";
 
 const ESTADO_CIVIL_OPTIONS = ["Solteiro(a)", "Casado(a)", "Divorciado(a)", "Viúvo(a)", "União Estável"];
 
