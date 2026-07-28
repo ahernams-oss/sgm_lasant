@@ -949,19 +949,19 @@ export default function OrdensServicoPage() {
     };
   }, [filtroCliente, clientes, ordens]);
 
-  const { paginated: ordensPage, totalPages, safePage } = paginate(ordensFiltradas, page, pageSize);
+  const { paginated: ordensPage, totalPages, safePage } = paginate(sortedOrdens, page, pageSize);
 
-  const colDefs: Record<string, { label: string; className?: string }> = {
-    numero: { label: "Nº OS", className: "w-[110px] whitespace-nowrap" },
-    ss: { label: "SS", className: "w-[110px] whitespace-nowrap" },
-    cliente: { label: "Cliente" },
-    descricao: { label: "Descrição" },
-    setor: { label: "Setor" },
-    prioridade: { label: "Prioridade" },
-    situacao: { label: "Situação" },
-    dataAbertura: { label: "Data Abertura" },
-    dataInicio: { label: "Data Início" },
-    valor: { label: "Valor (c/ BDI)", className: "text-right" },
+  const colDefs: Record<string, { label: React.ReactNode; className?: string }> = {
+    numero: { label: <SortHeader field="numero">Nº OS</SortHeader>, className: "w-[110px] whitespace-nowrap" },
+    ss: { label: <SortHeader field="ss">SS</SortHeader>, className: "w-[110px] whitespace-nowrap" },
+    cliente: { label: <SortHeader field="cliente">Cliente</SortHeader> },
+    descricao: { label: <SortHeader field="descricao">Descrição</SortHeader> },
+    setor: { label: <SortHeader field="setor">Setor</SortHeader> },
+    prioridade: { label: <SortHeader field="prioridade">Prioridade</SortHeader> },
+    situacao: { label: <SortHeader field="situacao">Situação</SortHeader> },
+    dataAbertura: { label: <SortHeader field="dataAbertura">Data Abertura</SortHeader> },
+    dataInicio: { label: <SortHeader field="dataInicio">Data Início</SortHeader> },
+    valor: { label: <SortHeader field="valor">Valor (c/ BDI)</SortHeader>, className: "text-right" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "ordens_servico.lista",
