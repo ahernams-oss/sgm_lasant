@@ -211,10 +211,25 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
       setZipando(false);
     }
   };
+  const atualizarCache = (patch: { docs?: DocRow[]; ficha?: FichaRow | null }) => {
+    if (!cacheKey) return;
+    try {
+      const raw = sessionStorage.getItem(cacheKey);
+      const cur = raw ? JSON.parse(raw) : { ficha, documentos: docs, termos };
+      const next = {
+        ficha: patch.ficha !== undefined ? patch.ficha : cur.ficha,
+        documentos: patch.docs || cur.documentos,
+        termos: cur.termos || termos,
+      };
+      sessionStorage.setItem(cacheKey, JSON.stringify(next));
+    } catch { /* ignora */ }
+  };
   const setDocStatus = async (id: string, status: "aprovado" | "reprovado" | "pendente") => {
     try {
       await portalCall("admin-cand-doc-status", { id, status, observacao: docObs[id] || null });
-      setDocs((prev) => prev.map((d) => d.id === id ? { ...d, status, observacao: docObs[id] || null, revisado_em: new Date().toISOString() } : d));
+      const novos = docs.map((d) => d.id === id ? { ...d, status, observacao: docObs[id] || null, revisado_em: new Date().toISOString() } : d);
+      setDocs(novos);
+      atualizarCache({ docs: novos });
       toast.success("Status atualizado.");
     } catch (e: any) { toast.error(e.message); }
   };
@@ -222,7 +237,9 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
     if (!cpf) return;
     try {
       await portalCall("admin-cand-ficha-status", { cpf, status, observacoes_rh: obsRh || null });
-      setFicha((f) => f ? { ...f, status, observacoes_rh: obsRh, revisado_em: new Date().toISOString() } : f);
+      const nova = ficha ? { ...ficha, status, observacoes_rh: obsRh, revisado_em: new Date().toISOString() } : ficha;
+      setFicha(nova);
+      atualizarCache({ ficha: nova });
       toast.success("Ficha atualizada.");
     } catch (e: any) { toast.error(e.message); }
   };
