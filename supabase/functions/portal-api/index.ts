@@ -303,6 +303,16 @@ Deno.serve(async (req) => {
       const { data: exames } = await sb.from("exames_periodicos").select("*").eq("funcionario_id", cred.funcionario_id).order("data_exame", { ascending: false });
       return json({ funcionario: f, exames: exames ?? [] });
     }
+    if (action === "func-epis") {
+      if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
+      const { data: f } = await sb.from("funcionarios").select("epis").eq("id", cred.funcionario_id).maybeSingle();
+      const { data: recs } = await sb.from("epis_recebimentos")
+        .select("id, status, confirmado_em, epis_ids, epis_snapshot, created_at")
+        .eq("funcionario_id", cred.funcionario_id)
+        .order("created_at", { ascending: false });
+      return json({ epis: (f?.epis as any[]) ?? [], recebimentos: recs ?? [] });
+    }
+
 
     // ---- CANDIDATO ----
     if (action === "cand-ficha-get") {
