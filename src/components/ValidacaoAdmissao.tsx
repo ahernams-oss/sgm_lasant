@@ -44,7 +44,9 @@ interface Props {
   candidato: Candidato;
   onExameChange: (patch: Partial<Candidato["exameAdmissional"]>) => void;
   onDadosBancariosPrefill: (b: Partial<Candidato["dadosBancarios"]>) => void;
+  onValidacaoChange?: (data: { ficha: FichaRow | null; docs: DocRow[] }) => void;
 }
+
 
 const statusBadge = (s: string) => {
   const map: Record<string, { cls: string; label: string; icon: any }> = {
