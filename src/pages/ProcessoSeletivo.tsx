@@ -822,7 +822,9 @@ const ProcessoSeletivoPage = () => {
                                 },
                               })
                             }
+                            onValidacaoChange={(data) => { validacaoRef.current[c.id] = data; }}
                           />
+
 
 
 
