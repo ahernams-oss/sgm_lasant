@@ -815,6 +815,78 @@ export default function OrdensServicoPage() {
     });
   }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim]);
 
+  // Sorting
+  const [sortField, setSortField] = useState<string | null>("numero");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDir(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDir("asc");
+    }
+  };
+
+  const SortIcon = ({ field }: { field: string }) => {
+    if (sortField !== field) return <ArrowUpDown className="inline ml-1 h-3.5 w-3.5 opacity-40" />;
+    return sortDir === "asc"
+      ? <ArrowUp className="inline ml-1 h-3.5 w-3.5" />
+      : <ArrowDown className="inline ml-1 h-3.5 w-3.5" />;
+  };
+
+  const SortHeader = ({ field, children }: { field: string; children: React.ReactNode }) => (
+    <span className="cursor-pointer select-none flex items-center gap-1" onClick={() => handleSort(field)}>
+      {children}
+      <SortIcon field={field} />
+    </span>
+  );
+
+  const sortedOrdens = useMemo(() => {
+    const list = [...ordensFiltradas];
+    if (!sortField) return list;
+    list.sort((a, b) => {
+      let cmp = 0;
+      switch (sortField) {
+        case "numero":
+          cmp = a.numero - b.numero;
+          break;
+        case "ss":
+          cmp = (a.solicitacaoNumero || 0) - (b.solicitacaoNumero || 0);
+          break;
+        case "cliente":
+          cmp = (a.clienteNome || "").localeCompare(b.clienteNome || "");
+          break;
+        case "descricao":
+          cmp = (a.descricaoServicos || "").localeCompare(b.descricaoServicos || "");
+          break;
+        case "setor":
+          cmp = (a.setorDescricao || "").localeCompare(b.setorDescricao || "");
+          break;
+        case "prioridade":
+          cmp = (a.prioridade || "").localeCompare(b.prioridade || "");
+          break;
+        case "situacao":
+          cmp = (a.situacao || "").localeCompare(b.situacao || "");
+          break;
+        case "dataAbertura":
+          cmp = (a.createdAt || "").localeCompare(b.createdAt || "");
+          break;
+        case "dataInicio":
+          cmp = (a.dataInicio || "").localeCompare(b.dataInicio || "");
+          break;
+        case "valor": {
+          const totalA = calcTotalComBDI(a.materiais || [], a.materiaisEstoque || [], a.bdi || 0);
+          const totalB = calcTotalComBDI(b.materiais || [], b.materiaisEstoque || [], b.bdi || 0);
+          cmp = totalA - totalB;
+          break;
+        }
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+    return list;
+  }, [ordensFiltradas, sortField, sortDir, calcTotalComBDI]);
+
   const limparFiltros = () => {
     setBusca(""); setFiltroSituacao("Todas"); setFiltroCliente("Todos"); localStorage.setItem("os_filtroCliente", "Todos");
     setFiltroPrioridade("Todas"); setFiltroDataInicio(""); setFiltroDataFim("");
