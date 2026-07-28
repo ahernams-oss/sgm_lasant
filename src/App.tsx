@@ -93,6 +93,10 @@ import PortalHolerites from "./pages/portal/funcionario/PortalHolerites";
 import PortalFuncEpis from "./pages/portal/funcionario/PortalFuncEpis";
 import PortalFuncDocumentos from "./pages/portal/funcionario/PortalFuncDocumentos";
 import PortalPerfil from "./pages/portal/funcionario/PortalPerfil";
+import PortalFuncFerias from "./pages/portal/funcionario/PortalFuncFerias";
+import PortalFuncTreinamentos from "./pages/portal/funcionario/PortalFuncTreinamentos";
+import PortalFuncSolicitacoes from "./pages/portal/funcionario/PortalFuncSolicitacoes";
+import PortalFuncAvisos from "./pages/portal/funcionario/PortalFuncAvisos";
 import PortalCandHome from "./pages/portal/candidato/PortalCandHome";
 import PortalFicha from "./pages/portal/candidato/PortalFicha";
 import PortalCandDocumentos from "./pages/portal/candidato/PortalCandDocumentos";
@@ -563,6 +567,10 @@ const App = () => (
           <Route path="/portal/funcionario/epis" element={<PortalFuncEpis />} />
           <Route path="/portal/funcionario/documentos" element={<PortalFuncDocumentos />} />
           <Route path="/portal/funcionario/perfil" element={<PortalPerfil />} />
+          <Route path="/portal/funcionario/ferias" element={<PortalFuncFerias />} />
+          <Route path="/portal/funcionario/treinamentos" element={<PortalFuncTreinamentos />} />
+          <Route path="/portal/funcionario/solicitacoes" element={<PortalFuncSolicitacoes />} />
+          <Route path="/portal/funcionario/avisos" element={<PortalFuncAvisos />} />
           <Route path="/portal/candidato" element={<PortalCandHome />} />
           <Route path="/portal/candidato/ficha" element={<PortalFicha />} />
           <Route path="/portal/candidato/documentos" element={<PortalCandDocumentos />} />
