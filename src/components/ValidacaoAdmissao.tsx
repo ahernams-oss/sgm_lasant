@@ -80,33 +80,48 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
   const [docObs, setDocObs] = useState<Record<string, string>>({});
   const cpf = (candidato.cpf || "").replace(/\D/g, "");
 
-  const carregar = useCallback(async () => {
+  const cacheKey = cpf ? `validacao_admissao_cache_${cpf}` : "";
+
+  const aplicarDados = useCallback((res: { ficha: FichaRow | null; documentos: DocRow[]; termos: TermoRow[] }) => {
+    setDocs(res.documentos || []);
+    setFicha(res.ficha);
+    setTermos(res.termos || []);
+    setObsRh(res.ficha?.observacoes_rh || "");
+    const b = res.ficha?.bancarios || {};
+    if (b && Object.keys(b).length && !candidato.dadosBancarios?.banco) {
+      onDadosBancariosPrefill({
+        banco: b.banco || "", agencia: b.agencia || "", conta: b.conta || "",
+        tipoConta: b.tipoConta || "", pisPasep: b.pisPasep || "", pix: b.pix || "",
+      });
+    }
+  }, [candidato.dadosBancarios?.banco, onDadosBancariosPrefill]);
+
+  const carregar = useCallback(async (force = false) => {
     if (!cpf || cpf.length !== 11) return;
+    if (!force && cacheKey) {
+      try {
+        const raw = sessionStorage.getItem(cacheKey);
+        if (raw) { aplicarDados(JSON.parse(raw)); return; }
+      } catch { /* ignora */ }
+    }
     setLoading(true);
     try {
       const res = await portalCall<{ ficha: FichaRow | null; documentos: DocRow[]; termos: TermoRow[] }>(
         "admin-cand-validacao", { cpf },
       );
-      setDocs(res.documentos || []);
-      setFicha(res.ficha);
-      setTermos(res.termos || []);
-      setObsRh(res.ficha?.observacoes_rh || "");
-      // Pré-preenche dados bancários do candidato local a partir do portal se estiverem vazios
-      const b = res.ficha?.bancarios || {};
-      if (b && Object.keys(b).length && !candidato.dadosBancarios?.banco) {
-        onDadosBancariosPrefill({
-          banco: b.banco || "", agencia: b.agencia || "", conta: b.conta || "",
-          tipoConta: b.tipoConta || "", pisPasep: b.pisPasep || "", pix: b.pix || "",
-        });
+      aplicarDados(res);
+      if (cacheKey) {
+        try { sessionStorage.setItem(cacheKey, JSON.stringify(res)); } catch { /* ignora */ }
       }
     } catch (e: any) {
       toast.error("Erro ao carregar dados do portal: " + e.message);
     } finally {
       setLoading(false);
     }
-  }, [cpf]); // eslint-disable-line
+  }, [cpf, cacheKey, aplicarDados]);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => { carregar(false); }, [carregar]);
+
 
   const criarUrlLocalDocumento = async (id: string) => {
     const { url, nome } = await portalCall<{ url: string; nome?: string }>("admin-cand-doc-url", { id });
