@@ -869,7 +869,7 @@ const ProcessoSeletivoPage = () => {
                                 const bc: any = ficha.bancarios || {};
                                 const deps: any[] = ficha.dependentes || [];
 
-                                addFuncionario({
+                                const novoFuncId = await addFuncionario({
                                   ...({} as any),
                                   nome: dp.nome || c.nome,
                                   cargoId,
@@ -911,11 +911,23 @@ const ProcessoSeletivoPage = () => {
                                   foto: dp.foto || "",
                                 });
 
-                                updateCandidato(processo!.id, c.id, { contratacaoFinalizada: true });
-                                if (requisicaoId) {
-                                  updateStatus(requisicaoId, "Concluída");
+                                // Promove credencial do portal (candidato → funcionário) e avisa por WhatsApp
+                                const cpfNorm = String(dpDocs.cpf || c.cpf || "").replace(/\D/g, "");
+                                if (novoFuncId && cpfNorm.length === 11) {
+                                  try {
+                                    const { portalCall } = await import("@/lib/portalClient");
+                                    await portalCall("admin-promover-funcionario", { cpf: cpfNorm, funcionario_id: novoFuncId });
+                                  } catch (err) {
+                                    console.warn("Falha ao promover credencial do portal:", err);
+                                  }
+
+                                  const tel = dp.telefoneWhatsapp || dp.telefone || c.telefone || "";
+                                  if (tel) {
+                                    const nomeCand = dp.nome || c.nome;
+                                    const msg = `Olá ${nomeCand}! 🎉\n\nSua contratação na LASANT foi concluída com sucesso.\n\nA partir de agora você pode acessar o *Portal do Colaborador* com o mesmo CPF e senha que já cadastrou:\n\n👉 https://app.lasant.com.br/portal\n\nPor lá você terá acesso a: holerites, férias, documentos, EPIs, treinamentos, avisos internos e canal direto com o RH.\n\nBem-vindo(a) à equipe!`;
+                                    enviarWhatsApp(tel, msg).catch(() => {});
+                                  }
                                 }
-                                toast.success(`${c.nome} foi cadastrado como funcionário com todos os dados do portal!`);
                               }}
                             >
                               <CheckCircle2 className="h-4 w-4 mr-2" />
