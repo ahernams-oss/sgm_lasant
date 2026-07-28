@@ -44,7 +44,9 @@ interface Props {
   candidato: Candidato;
   onExameChange: (patch: Partial<Candidato["exameAdmissional"]>) => void;
   onDadosBancariosPrefill: (b: Partial<Candidato["dadosBancarios"]>) => void;
+  onValidacaoChange?: (data: { ficha: FichaRow | null; docs: DocRow[] }) => void;
 }
+
 
 const statusBadge = (s: string) => {
   const map: Record<string, { cls: string; label: string; icon: any }> = {
@@ -71,7 +73,7 @@ const Row = ({ label, value }: { label: string; value: any }) => (
   </div>
 );
 
-export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBancariosPrefill }: Props) {
+export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBancariosPrefill, onValidacaoChange }: Props) {
   const [loading, setLoading] = useState(false);
   const [docs, setDocs] = useState<DocRow[]>([]);
   const [ficha, setFicha] = useState<FichaRow | null>(null);
@@ -126,6 +128,8 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
   }, [cpf, cacheKey, aplicarDados]);
 
   useEffect(() => { carregar(false); }, [carregar]);
+  useEffect(() => { onValidacaoChange?.({ ficha, docs }); }, [ficha, docs, onValidacaoChange]);
+
 
 
   const criarUrlLocalDocumento = async (id: string) => {

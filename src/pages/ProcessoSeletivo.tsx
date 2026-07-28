@@ -27,7 +27,7 @@ import {
 } from "@/contexts/ProcessoSeletivoContext";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import ValidacaoAdmissao from "@/components/ValidacaoAdmissao";
+import ValidacaoAdmissao, { validacaoPodeEfetivar } from "@/components/ValidacaoAdmissao";
 
 const ESTADO_CIVIL_OPTIONS = ["Solteiro(a)", "Casado(a)", "Divorciado(a)", "Viúvo(a)", "União Estável"];
 
@@ -151,6 +151,8 @@ const ProcessoSeletivoPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
   const [selectedTab, setSelectedTab] = useState<string>("candidatos");
+  const validacaoRef = useRef<Record<string, { ficha: any; docs: any[] }>>({});
+
 
   if (!requisicao || !processo) {
     return (
@@ -820,7 +822,9 @@ const ProcessoSeletivoPage = () => {
                                 },
                               })
                             }
+                            onValidacaoChange={(data) => { validacaoRef.current[c.id] = data; }}
                           />
+
 
 
 
@@ -836,14 +840,14 @@ const ProcessoSeletivoPage = () => {
                               className="w-full bg-[hsl(120,30%,35%)] hover:bg-[hsl(120,30%,28%)] text-white"
                               onClick={() => {
                                 // Validações
-                                const docsList = filtrarDocs(c.documentos);
-                                const docsOk = docsList.filter((d) => d.entregue || d.naoPossui).length;
-                                const totalDocs = docsList.length;
-                                if (docsOk < totalDocs) {
-                                  toast.error("Todos os documentos devem estar entregues ou marcados como 'não possui'.");
+                                const val = validacaoRef.current[c.id];
+                                const check = validacaoPodeEfetivar(val?.ficha ?? null, val?.docs ?? []);
+                                if (!check.ok) {
+                                  toast.error(check.msg);
                                   return;
                                 }
                                 if (c.exameAdmissional?.resultado !== "apto") {
+
                                   toast.error("O candidato precisa estar apto no exame admissional.");
                                   return;
                                 }
