@@ -635,24 +635,31 @@ export default function SolicitacaoServicosPage() {
     return p?.color || "";
   };
 
-  const [sortField, setSortField] = useState<"numero" | "dataHora" | null>("numero");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
-  const handleSort = (field: "numero" | "dataHora") => {
+  const handleSort = (field: string) => {
     if (sortField === field) {
       setSortDir(prev => prev === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortDir("desc");
+      setSortDir("asc");
     }
   };
 
-  const SortIcon = ({ field }: { field: "numero" | "dataHora" }) => {
+  const SortIcon = ({ field }: { field: string }) => {
     if (sortField !== field) return <ArrowUpDown className="inline ml-1 h-3.5 w-3.5 opacity-40" />;
     return sortDir === "asc"
       ? <ArrowUp className="inline ml-1 h-3.5 w-3.5" />
       : <ArrowDown className="inline ml-1 h-3.5 w-3.5" />;
   };
+
+  const SortHeader = ({ field, children }: { field: string; children: ReactNode }) => (
+    <span className="cursor-pointer select-none flex items-center gap-1" onClick={() => handleSort(field)}>
+      {children}
+      <SortIcon field={field} />
+    </span>
+  );
 
   const filtered = useMemo(() => {
     let result = solicitacoes;
