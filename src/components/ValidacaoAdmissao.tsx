@@ -63,6 +63,13 @@ const statusBadge = (s: string) => {
 
 const fmtDate = (iso?: string | null) => iso ? new Date(iso).toLocaleString("pt-BR") : "—";
 
+const Row = ({ label, value }: { label: string; value: any }) => (
+  <div className="flex flex-col">
+    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</span>
+    <span className="text-sm">{value || <span className="text-muted-foreground">—</span>}</span>
+  </div>
+);
+
 export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBancariosPrefill }: Props) {
   const [loading, setLoading] = useState(false);
   const [docs, setDocs] = useState<DocRow[]>([]);
