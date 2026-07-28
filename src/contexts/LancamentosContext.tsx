@@ -2,7 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
-export type TipoLancamento = "falta" | "hora_extra" | "advertencia";
+export type TipoLancamento = "falta" | "hora_extra" | "advertencia" | "atestado";
 export type TipoFalta = "justificada" | "injustificada" | "suspensao";
 export type TipoAdvertencia = "verbal" | "escrita";
 
@@ -13,7 +13,9 @@ export interface Lancamento {
   tipoFalta?: TipoFalta; diasFalta?: number; anexos?: AnexoFalta[];
   horasExtras?: number; percentual?: number; observacao: string; criadoEm: string;
   tipoAdvertencia?: TipoAdvertencia; motivo?: string;
+  dataFim?: string;
 }
+
 
 interface LancamentosContextType {
   lancamentos: Lancamento[];
