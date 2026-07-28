@@ -197,6 +197,47 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    // -------- Ações administrativas (SGM app, sem token de portal) --------
+    if (action === "admin-cand-validacao") {
+      const cpf = normCpf(body.cpf);
+      if (!validCpf(cpf)) return json({ error: "CPF inválido." }, 400);
+      const [{ data: ficha }, { data: documentos }, { data: termos }, cand] = await Promise.all([
+        sb.from("portal_ficha_admissao").select("*").eq("cpf", cpf).maybeSingle(),
+        sb.from("portal_documentos_candidato").select("*").eq("cpf", cpf).order("enviado_em", { ascending: false }),
+        sb.from("portal_termos_assinados").select("*").eq("cpf", cpf).order("assinado_em", { ascending: false }),
+        findCandidato(cpf),
+      ]);
+      return json({ ficha, documentos: documentos ?? [], termos: termos ?? [], candidato: cand?.candidato ?? null });
+    }
+    if (action === "admin-cand-doc-url") {
+      const id = String(body.id || "");
+      const { data: d } = await sb.from("portal_documentos_candidato").select("storage_path,nome_arquivo").eq("id", id).maybeSingle();
+      if (!d) return json({ error: "Documento não encontrado." }, 404);
+      const { data: u } = await sb.storage.from("portal-candidato-docs").createSignedUrl(d.storage_path, 300);
+      return json({ url: u?.signedUrl, nome: d.nome_arquivo });
+    }
+    if (action === "admin-cand-doc-status") {
+      const id = String(body.id || "");
+      const status = String(body.status || "");
+      if (!["pendente", "aprovado", "reprovado"].includes(status)) return json({ error: "Status inválido." }, 400);
+      const { error } = await sb.from("portal_documentos_candidato").update({
+        status, observacao: body.observacao ?? null, revisado_em: new Date().toISOString(),
+      }).eq("id", id);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+    if (action === "admin-cand-ficha-status") {
+      const cpf = normCpf(body.cpf);
+      const status = String(body.status || "");
+      if (!validCpf(cpf) || !["rascunho", "enviada", "em_analise", "aprovada", "reprovada"].includes(status))
+        return json({ error: "Parâmetros inválidos." }, 400);
+      const { error } = await sb.from("portal_ficha_admissao").update({
+        status, observacoes_rh: body.observacoes_rh ?? null, revisado_em: new Date().toISOString(),
+      }).eq("cpf", cpf);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
     // -------- Ações autenticadas --------
     const cred = await requireAuth(req);
     if (!cred) return json({ error: "Sessão inválida ou expirada." }, 401);
