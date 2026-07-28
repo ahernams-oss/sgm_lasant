@@ -475,6 +475,19 @@ export default function PortalFicha() {
             </CardContent>
           </Card>
           <Card>
+            <CardHeader>
+              <CardTitle>Uniforme</CardTitle>
+              <p className="text-xs text-muted-foreground">Informações para dimensionamento de uniformes e EPIs.</p>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <F l="Tam. Camisa" v={dp.uniforme?.camisa || ""} on={(v: string) => setDp({ ...dp, uniforme: { ...(dp.uniforme || {}), camisa: v } })} ph="P, M, G..." />
+              <F l="Tam. Calça" v={dp.uniforme?.calca || ""} on={(v: string) => setDp({ ...dp, uniforme: { ...(dp.uniforme || {}), calca: v } })} ph="38, 40, 42" />
+              <F l="Tam. Calçado" v={dp.uniforme?.calcado || ""} on={(v: string) => setDp({ ...dp, uniforme: { ...(dp.uniforme || {}), calcado: v } })} ph="39, 40, 41" />
+              <F l="Peso (kg)" v={dp.uniforme?.peso || ""} on={(v: string) => setDp({ ...dp, uniforme: { ...(dp.uniforme || {}), peso: v } })} ph="Ex: 75" />
+              <F l="Altura (cm)" v={dp.uniforme?.altura || ""} on={(v: string) => setDp({ ...dp, uniforme: { ...(dp.uniforme || {}), altura: v } })} ph="Ex: 175" />
+            </CardContent>
+          </Card>
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Dependentes</CardTitle>
               <Button size="sm" variant="outline" onClick={() => setDeps([...deps, { nome: "", parentesco: "", nascimento: "", cpf: "" }])}><Plus className="w-4 h-4 mr-1" />Adicionar</Button>
