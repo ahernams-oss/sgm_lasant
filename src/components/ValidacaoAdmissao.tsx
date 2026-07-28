@@ -377,8 +377,8 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
                 <Row label="Agência" value={ba.agencia} />
                 <Row label="Conta" value={ba.conta} />
                 <Row label="Tipo" value={ba.tipoConta} />
-                <Row label="PIS/PASEP" value={ba.pisPasep} />
-                <Row label="PIX" value={ba.pix} />
+                <Row label="PIS/PASEP" value={ba.pisPasep || (dp as any)?.documentos?.pisPasep} />
+                <Row label="PIX" value={ba.pix || ba.chavePix} />
               </div>
             </div>
             {Array.isArray(ficha.dependentes) && ficha.dependentes.length > 0 && (
