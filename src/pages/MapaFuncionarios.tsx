@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -54,7 +56,8 @@ const MapaFuncionarios = () => {
   const podePdf = tem("mapa_funcionarios.exportar_pdf");
   const podeExcel = tem("mapa_funcionarios.exportar_excel");
 
-  const [activeTab, setActiveTab] = useState<"faltas" | "horas_extras" | "advertencias" | "atestados">("faltas");
+  const [activeTab, _setActiveTab] = useState<"faltas" | "horas_extras" | "advertencias" | "atestados">("faltas");
+  const setActiveTab = (v: "faltas" | "horas_extras" | "advertencias" | "atestados") => { _setActiveTab(v); setFilterTipos([]); };
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -113,6 +116,7 @@ const MapaFuncionarios = () => {
   const colDefs = colDefsByTab[activeTab];
   const [filterFuncionario, setFilterFuncionario] = useState("todos");
   const [filterCliente, setFilterCliente] = useState("todos");
+  const [filterTipos, setFilterTipos] = useState<string[]>([]);
   const [filterMes, setFilterMes] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -289,6 +293,13 @@ const MapaFuncionarios = () => {
     if (filterFuncionario !== "todos") {
       result = result.filter((l) => l.funcionarioId === filterFuncionario);
     }
+    if (filterTipos.length > 0) {
+      if (activeTab === "faltas") {
+        result = result.filter((l) => filterTipos.includes(l.tipoFalta || ""));
+      } else if (activeTab === "advertencias") {
+        result = result.filter((l) => filterTipos.includes(l.tipoAdvertencia || ""));
+      }
+    }
     if (search.trim()) {
       const term = search.toLowerCase();
       result = result.filter((l) =>
@@ -297,7 +308,8 @@ const MapaFuncionarios = () => {
       );
     }
     return result.sort((a, b) => b.data.localeCompare(a.data));
-  }, [lancamentos, activeTab, filterMes, filterCliente, filterFuncionario, search, funcionarios]);
+  }, [lancamentos, activeTab, filterMes, filterCliente, filterFuncionario, filterTipos, search, funcionarios]);
+
 
   // Resumo do mês
   const resumoMes = useMemo(() => {
@@ -688,6 +700,43 @@ const MapaFuncionarios = () => {
                     {funcionarios.map((f) => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                {(activeTab === "faltas" || activeTab === "advertencias") && (() => {
+                  const opts = activeTab === "faltas"
+                    ? [{ v: "justificada", l: "Justificada" }, { v: "injustificada", l: "Injustificada" }, { v: "suspensao", l: "Suspensão" }]
+                    : [{ v: "verbal", l: "Verbal" }, { v: "escrita", l: "Escrita" }];
+                  const toggle = (v: string) => {
+                    setFilterTipos(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+                    setPageLanc(1);
+                  };
+                  const label = filterTipos.length === 0 ? "Todos os Tipos" : `${filterTipos.length} tipo(s)`;
+                  return (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-9 w-[160px] text-xs justify-between">
+                          {label}
+                          <Filter className="h-3.5 w-3.5 opacity-60" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-52 p-2" align="start">
+                        <div className="flex items-center justify-between px-1 pb-1.5 mb-1 border-b">
+                          <span className="text-xs font-semibold">Tipo</span>
+                          {filterTipos.length > 0 && (
+                            <button type="button" onClick={() => { setFilterTipos([]); setPageLanc(1); }} className="text-xs text-primary hover:underline">
+                              Limpar
+                            </button>
+                          )}
+                        </div>
+                        {opts.map(o => (
+                          <label key={o.v} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
+                            <Checkbox checked={filterTipos.includes(o.v)} onCheckedChange={() => toggle(o.v)} />
+                            {o.l}
+                          </label>
+                        ))}
+                      </PopoverContent>
+                    </Popover>
+                  );
+                })()}
+
                 <div className="relative w-48">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input placeholder="Pesquisar..." value={search} onChange={(e) => { setSearch(e.target.value); setPageLanc(1); }} className="pl-9 h-9" />
