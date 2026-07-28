@@ -91,18 +91,25 @@ const MapaFuncionarios = () => {
       data: { label: "Data" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
       tipo: { label: "Tipo" }, motivo: { label: "Motivo" }, anexos: { label: "Anexos" }, observacao: { label: "Observação" },
     },
+    atestados: {
+      data: { label: "Início" }, dataFim: { label: "Término" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
+      dias: { label: "Dias" }, anexos: { label: "Anexos" }, observacao: { label: "Observação" },
+    },
   };
   const defaultsByTab: Record<string, string[]> = {
     faltas: ["data", "funcionario", "cargo", "cliente", "tipo", "anexos", "observacao"],
     horas_extras: ["data", "funcionario", "cargo", "cliente", "horas", "percentual", "observacao"],
     advertencias: ["data", "funcionario", "cargo", "cliente", "tipo", "motivo", "anexos", "observacao"],
+    atestados: ["data", "dataFim", "funcionario", "cargo", "cliente", "dias", "anexos", "observacao"],
   };
   const colFaltas = useColumnOrder("mapa_funcionarios.faltas", defaultsByTab.faltas);
   const colHoras = useColumnOrder("mapa_funcionarios.horas_extras", defaultsByTab.horas_extras);
   const colAdvert = useColumnOrder("mapa_funcionarios.advertencias", defaultsByTab.advertencias);
-  const colHook = activeTab === "faltas" ? colFaltas : activeTab === "horas_extras" ? colHoras : colAdvert;
+  const colAtest = useColumnOrder("mapa_funcionarios.atestados", defaultsByTab.atestados);
+  const colHook = activeTab === "faltas" ? colFaltas : activeTab === "horas_extras" ? colHoras : activeTab === "advertencias" ? colAdvert : colAtest;
   const colOrder = colHook.order;
   const setColOrder = colHook.setOrder;
+
   const colDefs = colDefsByTab[activeTab];
   const [filterFuncionario, setFilterFuncionario] = useState("todos");
   const [filterCliente, setFilterCliente] = useState("todos");
