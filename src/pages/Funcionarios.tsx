@@ -857,10 +857,17 @@ const Funcionarios = () => {
 
               {/* DADOS PESSOAIS */}
               <TabsContent value="pessoal">
+                {form.foto && (
+                  <div className="mb-4 flex items-center gap-4">
+                    <img src={form.foto} alt="Foto do funcionário" className="w-24 h-24 rounded-full object-cover border" />
+                    <span className="text-xs text-muted-foreground">Foto enviada pelo colaborador via portal.</span>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <Field label="Nome Completo" required>
                     <Input value={form.nome} onChange={(e) => update("nome", e.target.value)} placeholder="Nome completo" />
                   </Field>
+
                   <Field label="CPF" required>
                     <Input
                       value={form.cpf}
