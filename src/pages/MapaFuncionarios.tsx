@@ -79,7 +79,7 @@ const MapaFuncionarios = () => {
   const colDefsByTab: Record<string, Record<string, { label: string; className?: string }>> = {
     faltas: {
       data: { label: "Data" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
-      tipo: { label: "Tipo" }, dias: { label: "Dias" }, anexos: { label: "Anexos" }, observacao: { label: "Observação" },
+      tipo: { label: "Tipo" }, anexos: { label: "Anexos" }, observacao: { label: "Observação" },
     },
     horas_extras: {
       data: { label: "Data" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
@@ -91,7 +91,7 @@ const MapaFuncionarios = () => {
     },
   };
   const defaultsByTab: Record<string, string[]> = {
-    faltas: ["data", "funcionario", "cargo", "cliente", "tipo", "dias", "anexos", "observacao"],
+    faltas: ["data", "funcionario", "cargo", "cliente", "tipo", "anexos", "observacao"],
     horas_extras: ["data", "funcionario", "cargo", "cliente", "horas", "percentual", "observacao"],
     advertencias: ["data", "funcionario", "cargo", "cliente", "tipo", "motivo", "anexos", "observacao"],
   };
