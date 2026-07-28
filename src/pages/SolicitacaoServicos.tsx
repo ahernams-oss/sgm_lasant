@@ -685,25 +685,64 @@ export default function SolicitacaoServicosPage() {
       result = result.filter(s => filterOrigem === "orcamento" ? idsComOrcamento.has(s.id) : !idsComOrcamento.has(s.id));
     }
 
-    // Ordenação primária SEMPRE por prioridade: Emergencial (vermelho) → Urgente (amarelo) → Normal (verde) → sem prioridade
-    const prioridadeRank = (p: string) => {
-      if (p === "Emergencial") return 1;
-      if (p === "Urgente") return 2;
-      if (p === "Normal") return 3;
-      return 4;
-    };
+    // Ordenação por coluna (padrão: prioridade → número decrescente)
     result = [...result].sort((a, b) => {
-      const rankCmp = prioridadeRank(a.prioridade) - prioridadeRank(b.prioridade);
-      if (rankCmp !== 0) return rankCmp;
-      // Desempate pelo sort do usuário (ou número decrescente por padrão)
+      if (!sortField) {
+        const prioridadeRank = (p: string) => {
+          if (p === "Emergencial") return 1;
+          if (p === "Urgente") return 2;
+          if (p === "Normal") return 3;
+          return 4;
+        };
+        const rankCmp = prioridadeRank(a.prioridade) - prioridadeRank(b.prioridade);
+        if (rankCmp !== 0) return rankCmp;
+        return b.numero - a.numero;
+      }
+
       let cmp = 0;
-      if (sortField === "numero") {
-        cmp = a.numero - b.numero;
-      } else if (sortField === "dataHora") {
-        cmp = (a.dataHoraSolicitacao || "").localeCompare(b.dataHoraSolicitacao || "");
-      } else {
-        cmp = b.numero - a.numero;
-        return cmp;
+      switch (sortField) {
+        case "numero":
+          cmp = a.numero - b.numero;
+          break;
+        case "dataHora":
+          cmp = (a.dataHoraSolicitacao || "").localeCompare(b.dataHoraSolicitacao || "");
+          break;
+        case "solicitante":
+          cmp = (a.solicitanteNome || "").localeCompare(b.solicitanteNome || "");
+          break;
+        case "tipo":
+          cmp = (a.tipo || "").localeCompare(b.tipo || "");
+          break;
+        case "cliente":
+          cmp = (a.clienteNome || "").localeCompare(b.clienteNome || "");
+          break;
+        case "local":
+          cmp = (a.localDescricao || "").localeCompare(b.localDescricao || "");
+          break;
+        case "pavimento":
+          cmp = (a.pavimentoDescricao || "").localeCompare(b.pavimentoDescricao || "");
+          break;
+        case "setor":
+          cmp = (a.setorDescricao || "").localeCompare(b.setorDescricao || "");
+          break;
+        case "equipamento":
+          cmp = (a.equipamentoNome || "").localeCompare(b.equipamentoNome || "");
+          break;
+        case "descricao":
+          cmp = (a.descricaoServicos || "").localeCompare(b.descricaoServicos || "");
+          break;
+        case "situacao":
+          cmp = (a.situacao || "").localeCompare(b.situacao || "");
+          break;
+        case "os": {
+          const osA = ordens.find(o => o.solicitacaoId === a.id)?.numero ?? 0;
+          const osB = ordens.find(o => o.solicitacaoId === b.id)?.numero ?? 0;
+          cmp = osA - osB;
+          break;
+        }
+        case "visitado":
+          cmp = Number(a.visitado) - Number(b.visitado);
+          break;
       }
       return sortDir === "asc" ? cmp : -cmp;
     });
