@@ -292,6 +292,13 @@ const MapaFuncionarios = () => {
     if (filterFuncionario !== "todos") {
       result = result.filter((l) => l.funcionarioId === filterFuncionario);
     }
+    if (filterTipos.length > 0) {
+      if (activeTab === "faltas") {
+        result = result.filter((l) => filterTipos.includes(l.tipoFalta || ""));
+      } else if (activeTab === "advertencias") {
+        result = result.filter((l) => filterTipos.includes(l.tipoAdvertencia || ""));
+      }
+    }
     if (search.trim()) {
       const term = search.toLowerCase();
       result = result.filter((l) =>
@@ -300,7 +307,8 @@ const MapaFuncionarios = () => {
       );
     }
     return result.sort((a, b) => b.data.localeCompare(a.data));
-  }, [lancamentos, activeTab, filterMes, filterCliente, filterFuncionario, search, funcionarios]);
+  }, [lancamentos, activeTab, filterMes, filterCliente, filterFuncionario, filterTipos, search, funcionarios]);
+
 
   // Resumo do mês
   const resumoMes = useMemo(() => {
