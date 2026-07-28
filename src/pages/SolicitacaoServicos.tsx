@@ -993,6 +993,14 @@ export default function SolicitacaoServicosPage() {
             <SelectItem value="nao">Não Visitado</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={filterOrigem} onValueChange={v => { setFilterOrigem(v); setPage(1); }}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Origem" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as Origens</SelectItem>
+            <SelectItem value="orcamento">De Orçamento</SelectItem>
+            <SelectItem value="direta">Direta</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Batch action bar */}
