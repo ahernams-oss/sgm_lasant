@@ -400,6 +400,156 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    // ---- FÉRIAS (funcionário) ----
+    if (action === "func-ferias-list") {
+      if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
+      const { data } = await sb.from("ferias")
+        .select("id, periodo_aquisitivo_inicio, periodo_aquisitivo_fim, data_limite_concessao, dias_direito, data_inicio_gozo, data_fim_gozo, dias_gozados, dias_abonados, status, observacoes")
+        .eq("funcionario_id", cred.funcionario_id)
+        .order("periodo_aquisitivo_fim", { ascending: false });
+      return json({ ferias: data ?? [] });
+    }
+    if (action === "func-ferias-solicitar") {
+      if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
+      const id = String(body.id || "");
+      const inicio = String(body.data_inicio_gozo || "");
+      const fim = String(body.data_fim_gozo || "");
+      const abonados = Number(body.dias_abonados || 0);
+      const obs = String(body.observacoes || "");
+      if (!inicio || !fim) return json({ error: "Informe data de início e fim." }, 400);
+      const dias = Math.max(1, Math.round((new Date(fim).getTime() - new Date(inicio).getTime()) / 86400000) + 1);
+      const patch: any = {
+        data_inicio_gozo: inicio, data_fim_gozo: fim,
+        dias_gozados: dias, dias_abonados: abonados,
+        status: "solicitada",
+        observacoes: obs || null,
+      };
+      if (id) {
+        const { error } = await sb.from("ferias").update(patch).eq("id", id).eq("funcionario_id", cred.funcionario_id);
+        if (error) return json({ error: error.message }, 500);
+      } else {
+        // Cria pedido avulso caso RH não tenha aberto o período ainda
+        const { data: f } = await sb.from("funcionarios").select("nome").eq("id", cred.funcionario_id).maybeSingle();
+        const today = new Date();
+        const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()).toISOString().slice(0,10);
+        const { error } = await sb.from("ferias").insert({
+          funcionario_id: cred.funcionario_id,
+          funcionario_nome: f?.nome ?? null,
+          periodo_aquisitivo_inicio: oneYearAgo,
+          periodo_aquisitivo_fim: today.toISOString().slice(0,10),
+          data_limite_concessao: new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()).toISOString().slice(0,10),
+          dias_direito: 30,
+          ...patch,
+        });
+        if (error) return json({ error: error.message }, 500);
+      }
+      await log(cred.cpf, cred.id, "ferias-solicitar", true, { id, inicio, fim, dias }, req);
+      return json({ ok: true });
+    }
+
+    // ---- SOLICITAÇÕES RH ----
+    if (action === "func-solicitacoes-list") {
+      if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
+      const { data } = await sb.from("portal_solicitacoes_rh")
+        .select("*").eq("funcionario_id", cred.funcionario_id).order("created_at", { ascending: false });
+      return json({ solicitacoes: data ?? [] });
+    }
+    if (action === "func-solicitacoes-criar") {
+      if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
+      const tipo = String(body.tipo || "");
+      const assunto = String(body.assunto || "").trim();
+      const descricao = String(body.descricao || "").trim();
+      if (!tipo || !assunto) return json({ error: "Tipo e assunto são obrigatórios." }, 400);
+
+      let anexo_path: string | null = null;
+      let anexo_nome: string | null = null;
+      const b64 = String(body.arquivo_base64 || "");
+      if (b64) {
+        const bin = Uint8Array.from(atob(b64.split(",").pop() || b64), (c) => c.charCodeAt(0));
+        const sanitize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]+/g, "_");
+        anexo_nome = String(body.nome_arquivo || "anexo");
+        const safe = sanitize(anexo_nome) || "arquivo";
+        anexo_path = `${cred.funcionario_id}/${Date.now()}-${safe}`;
+        const { error: upErr } = await sb.storage.from("funcionarios-anexos").upload(anexo_path, bin, {
+          contentType: body.content_type || "application/octet-stream", upsert: false,
+        });
+        if (upErr) return json({ error: upErr.message }, 500);
+      }
+      const { error } = await sb.from("portal_solicitacoes_rh").insert({
+        funcionario_id: cred.funcionario_id, cpf: cred.cpf,
+        tipo, assunto, descricao: descricao || null,
+        anexo_path, anexo_nome, status: "aberta",
+      });
+      if (error) return json({ error: error.message }, 500);
+      await log(cred.cpf, cred.id, "solicitacao-rh", true, { tipo, assunto }, req);
+      return json({ ok: true });
+    }
+    if (action === "func-solicitacao-anexo-url") {
+      if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
+      const id = String(body.id || "");
+      const { data: s } = await sb.from("portal_solicitacoes_rh").select("anexo_path,anexo_nome,funcionario_id")
+        .eq("id", id).maybeSingle();
+      if (!s || s.funcionario_id !== cred.funcionario_id || !s.anexo_path) return json({ error: "Anexo não disponível." }, 404);
+      const { data: u } = await sb.storage.from("funcionarios-anexos").createSignedUrl(s.anexo_path, 300);
+      return json({ url: u?.signedUrl, nome: s.anexo_nome });
+    }
+
+    // ---- AVISOS ----
+    if (action === "func-avisos-list") {
+      if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
+      const { data: f } = await sb.from("funcionarios").select("email,nome").eq("id", cred.funcionario_id).maybeSingle();
+      const email = (f?.email || "").toLowerCase();
+      const { data: avisos } = await sb.from("comunicacao_avisos")
+        .select("id,titulo,conteudo,prioridade,criado_por,destinatarios_emails,created_at,ativo")
+        .eq("ativo", true).order("created_at", { ascending: false }).limit(100);
+      const filtered = (avisos ?? []).filter((a: any) => {
+        const dest = Array.isArray(a.destinatarios_emails) ? a.destinatarios_emails.map((e: any) => String(e).toLowerCase()) : [];
+        return dest.length === 0 || dest.includes(email);
+      });
+      const ids = filtered.map((a: any) => a.id);
+      let leituras: any[] = [];
+      if (ids.length && email) {
+        const { data: lr } = await sb.from("comunicacao_avisos_leitura").select("aviso_id,lido_em")
+          .in("aviso_id", ids).eq("usuario_email", email);
+        leituras = lr ?? [];
+      }
+      const lidos = new Map(leituras.map((l: any) => [l.aviso_id, l.lido_em]));
+      return json({
+        avisos: filtered.map((a: any) => ({ ...a, lido_em: lidos.get(a.id) || null })),
+        me: { nome: f?.nome, email },
+      });
+    }
+    if (action === "func-aviso-marcar-lida") {
+      if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
+      const id = String(body.id || "");
+      const { data: f } = await sb.from("funcionarios").select("email,nome").eq("id", cred.funcionario_id).maybeSingle();
+      if (!f?.email) return json({ ok: true });
+      const { data: existente } = await sb.from("comunicacao_avisos_leitura")
+        .select("id").eq("aviso_id", id).eq("usuario_email", f.email.toLowerCase()).maybeSingle();
+      if (!existente) {
+        await sb.from("comunicacao_avisos_leitura").insert({
+          aviso_id: id, usuario_nome: f.nome, usuario_email: f.email.toLowerCase(),
+          lido_em: new Date().toISOString(),
+        });
+      }
+      return json({ ok: true });
+    }
+
+    // ---- HOME resumo do funcionário ----
+    if (action === "func-home-resumo") {
+      if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
+      const [{ count: holCount }, { count: solPend }, { count: ferPend }] = await Promise.all([
+        sb.from("portal_holerites").select("id", { count: "exact", head: true }).eq("funcionario_id", cred.funcionario_id).is("visualizado_em", null),
+        sb.from("portal_solicitacoes_rh").select("id", { count: "exact", head: true }).eq("funcionario_id", cred.funcionario_id).in("status", ["aberta", "em_analise"]),
+        sb.from("ferias").select("id", { count: "exact", head: true }).eq("funcionario_id", cred.funcionario_id).in("status", ["solicitada", "pendente"]),
+      ]);
+      return json({
+        holerites_nao_lidos: holCount ?? 0,
+        solicitacoes_pendentes: solPend ?? 0,
+        ferias_pendentes: ferPend ?? 0,
+      });
+    }
+
     return json({ error: "Ação desconhecida." }, 400);
   } catch (e) {
     console.error("[portal-api] error:", e);
