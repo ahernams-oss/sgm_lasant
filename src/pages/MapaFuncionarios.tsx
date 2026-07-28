@@ -595,7 +595,43 @@ const MapaFuncionarios = () => {
                     </div>
                   </div>
                 </TabsContent>
+
+                <TabsContent value="atestados" className="mt-0 p-0">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-foreground/80">Atestado / Documentos</Label>
+                    <div className="flex items-center gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="gap-1.5">
+                        <Paperclip className="h-3.5 w-3.5" /> Anexar Arquivo
+                      </Button>
+                      <span className="text-xs text-muted-foreground">PDF, DOC, JPG, PNG (máx. 2MB)</span>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        multiple
+                        className="hidden"
+                        onChange={handleFileUpload}
+                      />
+                    </div>
+                    {anexos.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {anexos.map((a, i) => (
+                          <div key={i} className="flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2.5 py-1.5 text-xs">
+                            <Paperclip className="h-3 w-3 text-muted-foreground" />
+                            <button type="button" onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline truncate max-w-[150px]">
+                              {a.nome}
+                            </button>
+                            <button type="button" onClick={() => handleRemoveAnexo(i)} className="text-muted-foreground hover:text-destructive ml-1">
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
               </div>
+
 
               <div className="space-y-1.5 mb-4">
                 <Label className="text-xs font-semibold text-foreground/80">Observação</Label>
