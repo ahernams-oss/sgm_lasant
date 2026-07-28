@@ -696,26 +696,26 @@ const Dashboard = () => {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-primary" /> Atestados e Faltas
+                    <FileText className="h-4 w-4 text-primary" /> Faltas
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                     <div>
-                      <p className="text-xl font-bold text-foreground">{atestadosStats.totalAtestados}</p>
-                      <p className="text-[10px] text-muted-foreground">Atestados</p>
+                      <p className="text-xl font-bold text-foreground">{faltasStats.totalFaltas}</p>
+                      <p className="text-[10px] text-muted-foreground">Total Faltas</p>
                     </div>
                     <div>
-                      <p className="text-xl font-bold" style={{ color: "hsl(38, 92%, 50%)" }}>{atestadosStats.totalDiasAtestado}</p>
-                      <p className="text-[10px] text-muted-foreground">Dias Afastados</p>
-                    </div>
-                    <div>
-                      <p className="text-xl font-bold" style={{ color: "hsl(160, 84%, 39%)" }}>{atestadosStats.faltasJust}</p>
+                      <p className="text-xl font-bold" style={{ color: "hsl(160, 84%, 39%)" }}>{faltasStats.faltasJust}</p>
                       <p className="text-[10px] text-muted-foreground">Justificadas</p>
                     </div>
                     <div>
-                      <p className="text-xl font-bold" style={{ color: "hsl(0, 72%, 51%)" }}>{atestadosStats.faltasInjust}</p>
+                      <p className="text-xl font-bold" style={{ color: "hsl(0, 72%, 51%)" }}>{faltasStats.faltasInjust}</p>
                       <p className="text-[10px] text-muted-foreground">Injustificadas</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-foreground">{faltasStats.faltasSusp}</p>
+                      <p className="text-[10px] text-muted-foreground">Suspensões</p>
                     </div>
                   </div>
                 </CardContent>
