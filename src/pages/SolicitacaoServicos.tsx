@@ -1081,11 +1081,7 @@ export default function SolicitacaoServicosPage() {
                 if (!c) return null;
                 return (
                   <SortableTableHead key={key} id={key} className={c.className}>
-                    {c.sortable ? (
-                      <span onClick={() => handleSort(key as any)} className="cursor-pointer">
-                        {c.label}
-                      </span>
-                    ) : c.label}
+                    {c.label}
                   </SortableTableHead>
                 );
               })}
