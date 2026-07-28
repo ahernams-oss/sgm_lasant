@@ -117,6 +117,16 @@ const MapaFuncionarios = () => {
 
   const colDefs = colDefsByTab[activeTab];
   const [filterFuncionario, setFilterFuncionario] = useState("todos");
+  const [funcPopoverOpen, setFuncPopoverOpen] = useState(false);
+  const toTitle = (s: string) => (s || "").toLocaleLowerCase("pt-BR").replace(/(^|\s|-|')(\p{L})/gu, (_, p, c) => p + c.toLocaleUpperCase("pt-BR"));
+  const funcionariosOrdenados = useMemo(() => {
+    const seen = new Map<string, { id: string; nome: string }>();
+    for (const f of funcionarios) {
+      const key = (f.nome || "").trim().toLocaleLowerCase("pt-BR");
+      if (key && !seen.has(key)) seen.set(key, { id: f.id, nome: toTitle(f.nome.trim()) });
+    }
+    return Array.from(seen.values()).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  }, [funcionarios]);
   const [filterCliente, setFilterCliente] = useState("todos");
   const [filterTipos, setFilterTipos] = useState<string[]>([]);
   const [filterMes, setFilterMes] = useState(() => {
