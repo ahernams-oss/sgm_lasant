@@ -491,36 +491,124 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
       </section>
 
       {/* Exame Admissional (editor RH) */}
-      <section>
-        <h3 className="text-sm font-semibold mb-2">🏥 Exame Admissional</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Data do Exame</label>
-            <Input type="date" value={candidato.exameAdmissional?.dataExame || ""}
-              onChange={(e) => onExameChange({ dataExame: e.target.value })} className="mt-1" />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Resultado</label>
-            <select
-              value={candidato.exameAdmissional?.resultado || "pendente"}
-              onChange={(e) => onExameChange({ resultado: e.target.value as any })}
-              className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="pendente">Pendente</option>
-              <option value="apto">Apto</option>
-              <option value="inapto">Inapto</option>
-            </select>
-          </div>
-        </div>
-        <div className="mt-3">
-          <label className="text-xs font-medium text-muted-foreground">Observações</label>
-          <Textarea rows={2} value={candidato.exameAdmissional?.observacoes || ""}
-            onChange={(e) => onExameChange({ observacoes: e.target.value })} />
-        </div>
-      </section>
+      <ExameAdmissionalSection candidato={candidato} onExameChange={onExameChange} />
     </div>
   );
 }
+
+function ExameAdmissionalSection({
+  candidato,
+  onExameChange,
+}: {
+  candidato: Candidato;
+  onExameChange: (patch: Partial<Candidato["exameAdmissional"]>) => void;
+}) {
+  const [clinica, setClinica] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [horario, setHorario] = useState("");
+  const [enviando, setEnviando] = useState(false);
+
+  const notificar = async () => {
+    const telefone = (candidato.telefone || "").replace(/\D/g, "");
+    if (telefone.length < 10) {
+      toast.error("Candidato sem telefone válido cadastrado.");
+      return;
+    }
+    const data = candidato.exameAdmissional?.dataExame;
+    if (!data) {
+      toast.error("Informe a Data do Exame antes de notificar.");
+      return;
+    }
+    if (!clinica.trim()) {
+      toast.error("Informe a Clínica.");
+      return;
+    }
+    const dataFmt = data.split("-").reverse().join("/");
+    const nome = (candidato.nome || "").split(" ")[0] || "";
+    const partes = [
+      `Olá${nome ? ", " + nome : ""}! Seu *Exame Admissional* foi agendado:`,
+      ``,
+      `📅 Data: ${dataFmt}${horario ? " às " + horario : ""}`,
+      `🏥 Clínica: ${clinica}`,
+    ];
+    if (endereco.trim()) partes.push(`📍 Endereço: ${endereco}`);
+    const obs = candidato.exameAdmissional?.observacoes?.trim();
+    if (obs) partes.push(``, `Observações: ${obs}`);
+    partes.push(``, `Compareça em jejum se orientado pela clínica e leve um documento com foto.`);
+    const mensagem = partes.join("\n");
+
+    setEnviando(true);
+    try {
+      const { enviarWhatsApp } = await import("@/lib/whatsapp");
+      const r = await enviarWhatsApp(telefone, mensagem);
+      if (r.success) toast.success("Candidato notificado via WhatsApp.");
+      else toast.error("Falha ao enviar WhatsApp: " + (r.error || "erro desconhecido"));
+    } catch (e: any) {
+      toast.error("Erro ao enviar WhatsApp: " + (e?.message || e));
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  return (
+    <section>
+      <h3 className="text-sm font-semibold mb-2">🏥 Exame Admissional</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-medium text-muted-foreground">Data do Exame</label>
+          <Input type="date" value={candidato.exameAdmissional?.dataExame || ""}
+            onChange={(e) => onExameChange({ dataExame: e.target.value })} className="mt-1" />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground">Resultado</label>
+          <select
+            value={candidato.exameAdmissional?.resultado || "pendente"}
+            onChange={(e) => onExameChange({ resultado: e.target.value as any })}
+            className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          >
+            <option value="pendente">Pendente</option>
+            <option value="apto">Apto</option>
+            <option value="inapto">Inapto</option>
+          </select>
+        </div>
+      </div>
+      <div className="mt-3">
+        <label className="text-xs font-medium text-muted-foreground">Observações</label>
+        <Textarea rows={2} value={candidato.exameAdmissional?.observacoes || ""}
+          onChange={(e) => onExameChange({ observacoes: e.target.value })} />
+      </div>
+
+      <div className="mt-4 border-t pt-3">
+        <p className="text-xs font-medium text-muted-foreground mb-2">
+          Notificar candidato via WhatsApp (dados enviados apenas na mensagem)
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Clínica</label>
+            <Input value={clinica} onChange={(e) => setClinica(e.target.value)} className="mt-1" placeholder="Nome da clínica" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Endereço</label>
+            <Input value={endereco} onChange={(e) => setEndereco(e.target.value)} className="mt-1" placeholder="Rua, nº, bairro" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Horário</label>
+            <Input type="time" value={horario} onChange={(e) => setHorario(e.target.value)} className="mt-1" />
+          </div>
+        </div>
+        <div className="mt-3 flex justify-end">
+          <Button size="sm" onClick={notificar} disabled={enviando} className="gap-1.5">
+            <MessageCircle className="h-4 w-4" />
+            {enviando ? "Enviando..." : "Notificar Candidato (WhatsApp)"}
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function _closingWrapper() {
+  return null;
 
 export function validacaoPodeEfetivar(ficha: FichaRow | null, docs: DocRow[]) {
   if (!ficha) return { ok: false, msg: "Ficha do portal não recebida." };
