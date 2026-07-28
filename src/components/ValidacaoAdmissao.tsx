@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
+import JSZip from "jszip";
 import { portalCall } from "@/lib/portalClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, Clock, Eye, Download, FileText, RefreshCw, ShieldCheck, FileCheck } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Eye, Download, FileText, RefreshCw, ShieldCheck, FileCheck, Archive } from "lucide-react";
 import { toast } from "sonner";
 import type { Candidato } from "@/contexts/ProcessoSeletivoContext";
 
