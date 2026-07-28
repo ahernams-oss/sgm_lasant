@@ -107,21 +107,45 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
 
   useEffect(() => { carregar(); }, [carregar]);
 
+  const criarUrlLocalDocumento = async (id: string) => {
+    const { url, nome } = await portalCall<{ url: string; nome?: string }>("admin-cand-doc-url", { id });
+    if (!url) throw new Error("URL do documento não foi gerada.");
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Não foi possível carregar o documento.");
+    const blob = await res.blob();
+    return { objectUrl: URL.createObjectURL(blob), nome };
+  };
+
   const abrirDoc = async (id: string) => {
+    const preview = window.open("about:blank", "_blank");
+    if (preview) {
+      preview.opener = null;
+      preview.document.title = "Carregando documento";
+      preview.document.body.innerHTML = "<p style='font-family: sans-serif; padding: 24px;'>Carregando documento...</p>";
+    }
     try {
-      const { url } = await portalCall<{ url: string }>("admin-cand-doc-url", { id });
-      if (url) window.open(url, "_blank");
-    } catch (e: any) { toast.error(e.message); }
+      const { objectUrl } = await criarUrlLocalDocumento(id);
+      if (preview) {
+        preview.location.href = objectUrl;
+      } else {
+        const a = document.createElement("a");
+        a.href = objectUrl;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.click();
+      }
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    } catch (e: any) {
+      preview?.close();
+      toast.error(e.message);
+    }
   };
   const baixarDoc = async (id: string, nome: string) => {
     try {
-      const { url } = await portalCall<{ url: string }>("admin-cand-doc-url", { id });
-      if (!url) return;
-      const res = await fetch(url);
-      const blob = await res.blob();
+      const { objectUrl, nome: nomeServidor } = await criarUrlLocalDocumento(id);
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob); a.download = nome; a.click();
-      URL.revokeObjectURL(a.href);
+      a.href = objectUrl; a.download = nomeServidor || nome; a.click();
+      URL.revokeObjectURL(objectUrl);
     } catch (e: any) { toast.error(e.message); }
   };
   const setDocStatus = async (id: string, status: "aprovado" | "reprovado" | "pendente") => {
