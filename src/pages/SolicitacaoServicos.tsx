@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, type ReactNode } from "react";
 import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { useSolicitacoesServicos, SolicitacaoServico, HistoricoEntry } from "@/contexts/SolicitacoesServicosContext";
@@ -725,10 +725,11 @@ export default function SolicitacaoServicosPage() {
     descricao: { label: "Descrição" },
     situacao: { label: "Situação" },
     visitado: { label: "Visitado", className: "w-20 text-center" },
+    os: { label: "OS" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "solicitacao_servicos.lista",
-    ["numero", "dataHora", "solicitante", "tipo", "cliente", "local", "pavimento", "setor", "equipamento", "descricao", "situacao", "visitado"]
+    ["numero", "dataHora", "solicitante", "tipo", "cliente", "local", "pavimento", "setor", "equipamento", "descricao", "situacao", "os", "visitado"]
   );
 
   const allPageIds = paginated.map(s => s.id);
@@ -1048,7 +1049,7 @@ export default function SolicitacaoServicosPage() {
           <TableBody>
             {paginated.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={14} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={15} className="text-center text-muted-foreground py-8">
                   Nenhuma solicitação cadastrada
                 </TableCell>
               </TableRow>
@@ -1056,6 +1057,8 @@ export default function SolicitacaoServicosPage() {
               const orcSS = orcamentos.find(o => o.solicitacaoId === s.id);
               const qtdRev = orcSS?.revisoes?.length ?? 0;
               const fromOrcamento = !!orcSS || (s.historico || []).some(h => (h.situacao || "").toLowerCase().includes("orçamento"));
+              const osVinculada = ordens.find(o => o.solicitacaoId === s.id);
+              const osLabel = osVinculada ? formatNumeroAno(osVinculada.numero, osVinculada.createdAt) : "-";
               const cellMap: Record<string, { node: ReactNode; className?: string }> = {
                 numero: {
                   node: (
@@ -1109,6 +1112,17 @@ export default function SolicitacaoServicosPage() {
                       )}
                     </div>
                   ),
+                },
+                os: {
+                  node: osVinculada ? (
+                    <Link
+                      to={`/engenharia/ordem-servico?numero=${osLabel}`}
+                      className="text-blue-600 hover:text-blue-800 hover:underline font-medium whitespace-nowrap"
+                    >
+                      OS {osLabel}
+                    </Link>
+                  ) : "-",
+                  className: "text-xs whitespace-nowrap",
                 },
                 visitado: {
                   node: (
