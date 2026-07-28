@@ -782,6 +782,12 @@ const MapaFuncionarios = () => {
                     </div>
                   </PopoverContent>
                 </Popover>
+                {useCustomRange && (
+                  <Button variant="ghost" size="icon" className="h-9 w-9 -ml-1 text-muted-foreground hover:text-destructive" title="Limpar intervalo e voltar à navegação mensal" onClick={() => { setDateFrom(undefined); setDateTo(undefined); setPageLanc(1); }}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+
 
                 <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); setPageLanc(1); }}>
                   <SelectTrigger className="h-9 w-[160px] text-xs"><SelectValue placeholder="Cliente" /></SelectTrigger>
