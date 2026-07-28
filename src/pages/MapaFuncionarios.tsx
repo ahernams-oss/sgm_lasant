@@ -121,6 +121,7 @@ const MapaFuncionarios = () => {
   const resetForm = () => {
     setFuncionarioId("");
     setData("");
+    setDataFim("");
     setTipoFalta("injustificada");
     setHorasExtras("");
     setPercentual("50");
@@ -176,6 +177,20 @@ const MapaFuncionarios = () => {
         addLancamento(payload);
         toast.success("Advertência registrada.");
       }
+    } else if (activeTab === "atestados") {
+      if (!dataFim) { toast.error("Informe a data de término."); return; }
+      if (dataFim < data) { toast.error("A data de término deve ser igual ou posterior à data de início."); return; }
+      const payload = {
+        funcionarioId, tipo: "atestado" as const, data,
+        dataFim, anexos, observacao,
+      };
+      if (editingId) {
+        updateLancamento(editingId, payload);
+        toast.success("Atestado atualizado.");
+      } else {
+        addLancamento(payload);
+        toast.success("Atestado registrado.");
+      }
     }
     resetForm();
   };
@@ -197,10 +212,15 @@ const MapaFuncionarios = () => {
       setTipoAdvertencia(l.tipoAdvertencia || "verbal");
       setMotivo(l.motivo || "");
       setAnexos(l.anexos || []);
+    } else if (l.tipo === "atestado") {
+      setActiveTab("atestados");
+      setDataFim(l.dataFim || "");
+      setAnexos(l.anexos || []);
     }
     setEditingId(l.id);
     setShowForm(true);
   };
+
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
