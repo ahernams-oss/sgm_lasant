@@ -225,12 +225,41 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
     } catch { /* ignora */ }
   };
   const setDocStatus = async (id: string, status: "aprovado" | "reprovado" | "pendente") => {
+    const doc = docs.find((d) => d.id === id);
+    const motivo = (docObs[id] ?? doc?.observacao ?? "").trim();
+    if (status === "reprovado" && !motivo) {
+      toast.error("Informe o motivo da reprovação na observação antes de reprovar.");
+      return;
+    }
     try {
-      await portalCall("admin-cand-doc-status", { id, status, observacao: docObs[id] || null });
-      const novos = docs.map((d) => d.id === id ? { ...d, status, observacao: docObs[id] || null, revisado_em: new Date().toISOString() } : d);
+      await portalCall("admin-cand-doc-status", { id, status, observacao: motivo || null });
+      const novos = docs.map((d) => d.id === id ? { ...d, status, observacao: motivo || null, revisado_em: new Date().toISOString() } : d);
       setDocs(novos);
       atualizarCache({ docs: novos });
       toast.success("Status atualizado.");
+
+      if (status === "reprovado" && doc) {
+        const telefone = (candidato.telefone || "").replace(/\D/g, "");
+        if (telefone.length >= 10) {
+          const nome = (candidato.nome || "").split(" ")[0] || "";
+          const mensagem =
+            `Olá${nome ? ", " + nome : ""}! Identificamos uma pendência em sua documentação de admissão:\n\n` +
+            `📄 Documento: *${doc.tipo_documento}*\n` +
+            `❌ Status: Reprovado\n` +
+            `📝 Motivo: ${motivo}\n\n` +
+            `Por favor, acesse o Portal do Colaborador e reenvie o documento corrigido. Qualquer dúvida, entre em contato com o RH.`;
+          try {
+            const { enviarWhatsApp } = await import("@/lib/whatsapp");
+            const r = await enviarWhatsApp(telefone, mensagem);
+            if (r.success) toast.success("Candidato notificado via WhatsApp.");
+            else toast.warning(`Documento reprovado, mas falhou notificar WhatsApp: ${r.error || ""}`);
+          } catch (err: any) {
+            toast.warning(`Documento reprovado, mas falhou notificar WhatsApp: ${err?.message || ""}`);
+          }
+        } else {
+          toast.warning("Documento reprovado. Candidato sem telefone válido — não foi possível notificar via WhatsApp.");
+        }
+      }
     } catch (e: any) { toast.error(e.message); }
   };
   const setFichaStatus = async (status: "em_analise" | "aprovada" | "reprovada") => {
