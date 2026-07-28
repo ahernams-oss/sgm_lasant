@@ -673,6 +673,10 @@ export default function SolicitacaoServicosPage() {
     if (filterTipo !== "all") result = result.filter(s => s.tipo === filterTipo);
     if (filterSituacao !== "all") result = result.filter(s => s.situacao === filterSituacao);
     if (filterVisitado !== "all") result = result.filter(s => filterVisitado === "sim" ? s.visitado : !s.visitado);
+    if (filterOrigem !== "all") {
+      const idsComOrcamento = new Set(orcamentos.map(o => o.solicitacaoId));
+      result = result.filter(s => filterOrigem === "orcamento" ? idsComOrcamento.has(s.id) : !idsComOrcamento.has(s.id));
+    }
 
     // Ordenação primária SEMPRE por prioridade: Emergencial (vermelho) → Urgente (amarelo) → Normal (verde) → sem prioridade
     const prioridadeRank = (p: string) => {
