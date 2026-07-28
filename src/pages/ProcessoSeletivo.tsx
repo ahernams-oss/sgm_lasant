@@ -838,7 +838,7 @@ const ProcessoSeletivoPage = () => {
                           ) : (
                             <Button
                               className="w-full bg-[hsl(120,30%,35%)] hover:bg-[hsl(120,30%,28%)] text-white"
-                              onClick={() => {
+                              onClick={async () => {
                                 // Validações
                                 const val = validacaoRef.current[c.id];
                                 const check = validacaoPodeEfetivar(val?.ficha ?? null, val?.docs ?? []);
@@ -847,7 +847,6 @@ const ProcessoSeletivoPage = () => {
                                   return;
                                 }
                                 if (c.exameAdmissional?.resultado !== "apto") {
-
                                   toast.error("O candidato precisa estar apto no exame admissional.");
                                   return;
                                 }
@@ -855,7 +854,6 @@ const ProcessoSeletivoPage = () => {
                                 // Recupera dados da requisição/processo seletivo
                                 const cargoId = requisicao?.cargoId || requisicao?.cargoNome || "";
                                 const salario = requisicao?.salarioVaga || "";
-                                // Converte dataContratacao (dd/mm/yyyy) para yyyy-mm-dd
                                 const toIsoDate = (br?: string) => {
                                   if (!br) return new Date().toISOString().slice(0, 10);
                                   const m = br.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
@@ -863,38 +861,67 @@ const ProcessoSeletivoPage = () => {
                                 };
                                 const dataAdmissao = toIsoDate(c.dataContratacao);
 
+                                // Recupera dados do portal (ficha)
+                                const ficha: any = val?.ficha || {};
+                                const dp: any = ficha.dados_pessoais || {};
+                                const dpDocs: any = dp.documentos || {};
+                                const end: any = ficha.endereco || {};
+                                const bc: any = ficha.bancarios || {};
+                                const deps: any[] = ficha.dependentes || [];
+
                                 addFuncionario({
                                   ...({} as any),
-                                  nome: c.nome,
+                                  nome: dp.nome || c.nome,
                                   cargoId,
-                                  telefone: c.telefone || "",
-                                  email: c.email || "",
-                                  cpf: "", rg: "", orgaoEmissor: "", dataNascimento: "", sexo: "",
-                                  estadoCivil: "", nacionalidade: "Brasileira", naturalidade: "",
-                                  nomeMae: "", nomePai: "", pcd: false, tipoPcd: "",
-                                  cep: "", logradouro: "", numero: "", complemento: "",
-                                  bairro: "", cidade: "", uf: "",
+                                  telefone: dp.telefone || c.telefone || "",
+                                  telefoneWhatsapp: dp.telefoneWhatsapp || dp.telefone || c.telefone || "",
+                                  email: dp.email || c.email || "",
+                                  cpf: dpDocs.cpf || c.cpf || "",
+                                  rg: dpDocs.rgNumero || "",
+                                  orgaoEmissor: [dpDocs.rgOrgao, dpDocs.rgUf].filter(Boolean).join("/"),
+                                  dataNascimento: dp.dataNasc || c.dataNascimento || "",
+                                  sexo: dp.sexo || "",
+                                  estadoCivil: dp.estadoCivil || "",
+                                  nacionalidade: dp.nacionalidade || "Brasileira",
+                                  naturalidade: dp.naturalidade || "",
+                                  nomeMae: dp.nomeMae || "",
+                                  nomePai: dp.nomePai || "",
+                                  pcd: !!dp.pcd, tipoPcd: dp.tipoPcd || "",
+                                  cep: end.cep || "", logradouro: end.logradouro || "",
+                                  numero: end.numero || "", complemento: end.complemento || "",
+                                  bairro: end.bairro || "", cidade: end.cidade || "", uf: end.uf || "",
                                   clienteId: requisicao?.unidade || "", dataAdmissao,
                                   dataDemissao: "", tipoContrato: "CLT", salario,
-                                  jornadaTrabalho: requisicao?.jornada || "", ctps: "", serieCtps: "", pis: "",
-                                  banco: c.dadosBancarios?.banco || "", agencia: c.dadosBancarios?.agencia || "",
-                                  conta: c.dadosBancarios?.conta || "", tipoConta: "Corrente", chavePix: "",
-                                  tituloEleitor: "", zonaEleitoral: "", secaoEleitoral: "",
-                                  cnh: "", categoriaCnh: "", validadeCnh: "", certificadoReservista: "",
+                                  jornadaTrabalho: requisicao?.jornada || "",
+                                  ctps: dpDocs.ctpsNumero || "",
+                                  serieCtps: dpDocs.ctpsSerie || "",
+                                  pis: bc.pisPasep || dpDocs.pisPasep || "",
+                                  banco: bc.banco || "", agencia: bc.agencia || "", conta: bc.conta || "",
+                                  tipoConta: bc.tipoConta || "Corrente",
+                                  chavePix: bc.pix || bc.chavePix || "",
+                                  tituloEleitor: dpDocs.tituloEleitor || "",
+                                  zonaEleitoral: dpDocs.tituloZona || "",
+                                  secaoEleitoral: dpDocs.tituloSecao || "",
+                                  cnh: dpDocs.cnhNumero || "",
+                                  categoriaCnh: dpDocs.cnhCategoria || "",
+                                  validadeCnh: dpDocs.cnhValidade || "",
+                                  certificadoReservista: dpDocs.reservistaNumero || "",
+                                  dependentes: deps as any,
                                   observacoes: "", status: "Ativo" as const,
+                                  foto: dp.foto || "",
                                 });
 
                                 updateCandidato(processo!.id, c.id, { contratacaoFinalizada: true });
-                                // Atualizar status da requisição para Concluída
                                 if (requisicaoId) {
                                   updateStatus(requisicaoId, "Concluída");
                                 }
-                                toast.success(`${c.nome} foi cadastrado como funcionário com sucesso!`);
+                                toast.success(`${c.nome} foi cadastrado como funcionário com todos os dados do portal!`);
                               }}
                             >
                               <CheckCircle2 className="h-4 w-4 mr-2" />
                               Finalizar Contratação
                             </Button>
+
                           )}
                         </div>
                       </CardContent>
