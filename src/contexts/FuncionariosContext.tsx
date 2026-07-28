@@ -55,7 +55,9 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   experienciaInicio: "", experienciaPrimeiraEtapa: "", experienciaFim: "",
   experienciaRenovado: false, experienciaNotificado10dPrimeira: false,
   experienciaNotificado10dFinal: false,
+  foto: "",
 };
+
 
 function rowToFuncionario(row: any): Funcionario {
   return {
