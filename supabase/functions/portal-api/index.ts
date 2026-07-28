@@ -239,7 +239,21 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
-    // -------- Ações autenticadas --------
+    // Promove credencial de candidato para funcionário quando RH finaliza contratação.
+    // Reaproveita CPF/senha; portal passa a rotear para /portal/funcionario no próximo login.
+    if (action === "admin-promover-funcionario") {
+      const cpf = normCpf(body.cpf);
+      const funcId = String(body.funcionario_id || "");
+      if (!validCpf(cpf) || !funcId) return json({ error: "Parâmetros inválidos." }, 400);
+      const { data: cred } = await sb.from("portal_credenciais").select("id, tipo_acesso").eq("cpf", cpf).maybeSingle();
+      if (cred) {
+        await sb.from("portal_credenciais").update({
+          tipo_acesso: "funcionario",
+          funcionario_id: funcId,
+        }).eq("id", cred.id);
+      }
+      return json({ ok: true, promovido: !!cred });
+    }
     const cred = await requireAuth(req);
     if (!cred) return json({ error: "Sessão inválida ou expirada." }, 401);
 
