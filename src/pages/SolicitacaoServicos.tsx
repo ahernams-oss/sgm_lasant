@@ -112,13 +112,14 @@ export default function SolicitacaoServicosPage() {
   const [formCollapsed, setFormCollapsed] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(7);
-  const _ssSavedFilters = loadPersistedFilters<{ search: string; filterTipo: string; filterSituacao: string; filterVisitado: string; }>("solicitacao_servicos_filters_v1");
+  const _ssSavedFilters = loadPersistedFilters<{ search: string; filterTipo: string; filterSituacao: string; filterVisitado: string; filterOrigem: string; }>("solicitacao_servicos_filters_v1");
   const [search, setSearch] = useState(_ssSavedFilters?.search ?? "");
   const [filterCliente, setFilterCliente] = useState(() => localStorage.getItem("ss_filtroCliente") || "all");
   const [filterTipo, setFilterTipo] = useState(_ssSavedFilters?.filterTipo ?? "all");
   const [filterSituacao, setFilterSituacao] = useState(_ssSavedFilters?.filterSituacao ?? "all");
   const [filterVisitado, setFilterVisitado] = useState(_ssSavedFilters?.filterVisitado ?? "all");
-  usePersistFilters("solicitacao_servicos_filters_v1", { search, filterTipo, filterSituacao, filterVisitado });
+  const [filterOrigem, setFilterOrigem] = useState(_ssSavedFilters?.filterOrigem ?? "all");
+  usePersistFilters("solicitacao_servicos_filters_v1", { search, filterTipo, filterSituacao, filterVisitado, filterOrigem });
   const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
     const numero = searchParams.get("numero");
