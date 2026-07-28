@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
+import JSZip from "jszip";
 import { portalCall } from "@/lib/portalClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, Clock, Eye, Download, FileText, RefreshCw, ShieldCheck, FileCheck } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Eye, Download, FileText, RefreshCw, ShieldCheck, FileCheck, Archive } from "lucide-react";
 import { toast } from "sonner";
 import type { Candidato } from "@/contexts/ProcessoSeletivoContext";
 
@@ -147,6 +148,53 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
       a.href = objectUrl; a.download = nomeServidor || nome; a.click();
       URL.revokeObjectURL(objectUrl);
     } catch (e: any) { toast.error(e.message); }
+  };
+
+  const [zipando, setZipando] = useState(false);
+  const baixarTodosZip = async () => {
+    if (!docs.length) { toast.info("Nenhum documento para baixar."); return; }
+    setZipando(true);
+    const tid = toast.loading(`Preparando ZIP (0/${docs.length})...`);
+    try {
+      const zip = new JSZip();
+      const usados = new Set<string>();
+      let ok = 0;
+      for (let i = 0; i < docs.length; i++) {
+        const d = docs[i];
+        try {
+          const { url, nome } = await portalCall<{ url: string; nome?: string }>("admin-cand-doc-url", { id: d.id });
+          const res = await fetch(url);
+          if (!res.ok) throw new Error("fetch falhou");
+          const blob = await res.blob();
+          const base = (nome || d.nome_arquivo || `doc-${i + 1}`).replace(/[\\/:*?"<>|]/g, "_");
+          const tipo = (d.tipo_documento || "Outros").replace(/[\\/:*?"<>|]/g, "_");
+          let nomeFinal = `${tipo}/${base}`;
+          let n = 1;
+          while (usados.has(nomeFinal)) {
+            const dot = base.lastIndexOf(".");
+            nomeFinal = dot > 0
+              ? `${tipo}/${base.slice(0, dot)}_${++n}${base.slice(dot)}`
+              : `${tipo}/${base}_${++n}`;
+          }
+          usados.add(nomeFinal);
+          zip.file(nomeFinal, blob);
+          ok++;
+        } catch { /* pula documento com erro */ }
+        toast.loading(`Preparando ZIP (${i + 1}/${docs.length})...`, { id: tid });
+      }
+      if (!ok) throw new Error("Nenhum documento pôde ser baixado.");
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(zipBlob);
+      const nomeCand = (candidato.nome || "candidato").replace(/[\\/:*?"<>|]/g, "_");
+      const a = document.createElement("a");
+      a.href = url; a.download = `documentos_${nomeCand}.zip`; a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`ZIP gerado com ${ok} documento(s).`, { id: tid });
+    } catch (e: any) {
+      toast.error(e.message || "Falha ao gerar ZIP.", { id: tid });
+    } finally {
+      setZipando(false);
+    }
   };
   const setDocStatus = async (id: string, status: "aprovado" | "reprovado" | "pendente") => {
     try {
@@ -306,7 +354,13 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
       <section>
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold">📁 Documentos enviados pelo portal</h3>
-          <span className="text-xs text-muted-foreground">{aprovDocs} aprov. · {reprDocs} reprov. · {totalDocs} total</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{aprovDocs} aprov. · {reprDocs} reprov. · {totalDocs} total</span>
+            <Button variant="outline" size="sm" onClick={baixarTodosZip} disabled={zipando || docs.length === 0}>
+              <Archive className={`h-3.5 w-3.5 mr-1 ${zipando ? "animate-pulse" : ""}`} />
+              {zipando ? "Compactando..." : "Baixar todos (ZIP)"}
+            </Button>
+          </div>
         </div>
         {docs.length === 0 ? (
           <p className="text-xs text-muted-foreground">Nenhum documento enviado pelo candidato.</p>
