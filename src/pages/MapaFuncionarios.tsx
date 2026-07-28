@@ -3,7 +3,7 @@ import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
-import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle, Printer } from "lucide-react";
+import { CalendarClock, Plus, Trash2, Pencil, Search, Clock, XCircle, Filter, Paperclip, Download, X, FileDown, FileSpreadsheet, AlertTriangle, Printer, Stethoscope } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -54,13 +54,14 @@ const MapaFuncionarios = () => {
   const podePdf = tem("mapa_funcionarios.exportar_pdf");
   const podeExcel = tem("mapa_funcionarios.exportar_excel");
 
-  const [activeTab, setActiveTab] = useState<"faltas" | "horas_extras" | "advertencias">("faltas");
+  const [activeTab, setActiveTab] = useState<"faltas" | "horas_extras" | "advertencias" | "atestados">("faltas");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form state
   const [funcionarioId, setFuncionarioId] = useState("");
   const [data, setData] = useState("");
+  const [dataFim, setDataFim] = useState("");
   const [tipoFalta, setTipoFalta] = useState<TipoFalta>("injustificada");
   const [horasExtras, setHorasExtras] = useState("");
   const [percentual, setPercentual] = useState("50");
@@ -70,6 +71,7 @@ const MapaFuncionarios = () => {
   const [motivo, setMotivo] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+
 
   // Filters
   const [search, setSearch] = useState("");
@@ -89,18 +91,25 @@ const MapaFuncionarios = () => {
       data: { label: "Data" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
       tipo: { label: "Tipo" }, motivo: { label: "Motivo" }, anexos: { label: "Anexos" }, observacao: { label: "Observação" },
     },
+    atestados: {
+      data: { label: "Início" }, dataFim: { label: "Término" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
+      dias: { label: "Dias" }, anexos: { label: "Anexos" }, observacao: { label: "Observação" },
+    },
   };
   const defaultsByTab: Record<string, string[]> = {
     faltas: ["data", "funcionario", "cargo", "cliente", "tipo", "anexos", "observacao"],
     horas_extras: ["data", "funcionario", "cargo", "cliente", "horas", "percentual", "observacao"],
     advertencias: ["data", "funcionario", "cargo", "cliente", "tipo", "motivo", "anexos", "observacao"],
+    atestados: ["data", "dataFim", "funcionario", "cargo", "cliente", "dias", "anexos", "observacao"],
   };
   const colFaltas = useColumnOrder("mapa_funcionarios.faltas", defaultsByTab.faltas);
   const colHoras = useColumnOrder("mapa_funcionarios.horas_extras", defaultsByTab.horas_extras);
   const colAdvert = useColumnOrder("mapa_funcionarios.advertencias", defaultsByTab.advertencias);
-  const colHook = activeTab === "faltas" ? colFaltas : activeTab === "horas_extras" ? colHoras : colAdvert;
+  const colAtest = useColumnOrder("mapa_funcionarios.atestados", defaultsByTab.atestados);
+  const colHook = activeTab === "faltas" ? colFaltas : activeTab === "horas_extras" ? colHoras : activeTab === "advertencias" ? colAdvert : colAtest;
   const colOrder = colHook.order;
   const setColOrder = colHook.setOrder;
+
   const colDefs = colDefsByTab[activeTab];
   const [filterFuncionario, setFilterFuncionario] = useState("todos");
   const [filterCliente, setFilterCliente] = useState("todos");
@@ -112,6 +121,7 @@ const MapaFuncionarios = () => {
   const resetForm = () => {
     setFuncionarioId("");
     setData("");
+    setDataFim("");
     setTipoFalta("injustificada");
     setHorasExtras("");
     setPercentual("50");
@@ -167,6 +177,20 @@ const MapaFuncionarios = () => {
         addLancamento(payload);
         toast.success("Advertência registrada.");
       }
+    } else if (activeTab === "atestados") {
+      if (!dataFim) { toast.error("Informe a data de término."); return; }
+      if (dataFim < data) { toast.error("A data de término deve ser igual ou posterior à data de início."); return; }
+      const payload = {
+        funcionarioId, tipo: "atestado" as const, data,
+        dataFim, anexos, observacao,
+      };
+      if (editingId) {
+        updateLancamento(editingId, payload);
+        toast.success("Atestado atualizado.");
+      } else {
+        addLancamento(payload);
+        toast.success("Atestado registrado.");
+      }
     }
     resetForm();
   };
@@ -188,10 +212,15 @@ const MapaFuncionarios = () => {
       setTipoAdvertencia(l.tipoAdvertencia || "verbal");
       setMotivo(l.motivo || "");
       setAnexos(l.anexos || []);
+    } else if (l.tipo === "atestado") {
+      setActiveTab("atestados");
+      setDataFim(l.dataFim || "");
+      setAnexos(l.anexos || []);
     }
     setEditingId(l.id);
     setShowForm(true);
   };
+
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -246,7 +275,8 @@ const MapaFuncionarios = () => {
   };
 
   const filteredLancamentos = useMemo(() => {
-    const tipo = activeTab === "faltas" ? "falta" : activeTab === "horas_extras" ? "hora_extra" : "advertencia";
+    const tipo = activeTab === "faltas" ? "falta" : activeTab === "horas_extras" ? "hora_extra" : activeTab === "advertencias" ? "advertencia" : "atestado";
+
     let result = lancamentos.filter((l) => l.tipo === tipo);
 
     if (filterMes) {
@@ -399,7 +429,7 @@ const MapaFuncionarios = () => {
         {/* Formulário */}
         {showForm && (
           <form onSubmit={handleSubmit} className="mb-8 rounded-xl border border-border bg-card p-6 shadow-sm animate-fade-up">
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras" | "advertencias")} className="w-full">
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras" | "advertencias" | "atestados")} className="w-full">
               <TabsList className="mb-6">
                 <TabsTrigger value="faltas" className="gap-1.5">
                   <XCircle className="h-3.5 w-3.5" /> Falta
@@ -410,7 +440,11 @@ const MapaFuncionarios = () => {
                 <TabsTrigger value="advertencias" className="gap-1.5">
                   <AlertTriangle className="h-3.5 w-3.5" /> Advertência
                 </TabsTrigger>
+                <TabsTrigger value="atestados" className="gap-1.5">
+                  <Stethoscope className="h-3.5 w-3.5" /> Atestado Médico
+                </TabsTrigger>
               </TabsList>
+
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                 <div className="space-y-1.5">
@@ -427,9 +461,16 @@ const MapaFuncionarios = () => {
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-foreground/80">Data *</Label>
+                  <Label className="text-xs font-semibold text-foreground/80">{activeTab === "atestados" ? "Data Início *" : "Data *"}</Label>
                   <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
                 </div>
+                {activeTab === "atestados" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-foreground/80">Data Término *</Label>
+                    <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+                  </div>
+                )}
+
 
                 <TabsContent value="faltas" className="mt-0 p-0">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -554,7 +595,43 @@ const MapaFuncionarios = () => {
                     </div>
                   </div>
                 </TabsContent>
+
+                <TabsContent value="atestados" className="mt-0 p-0">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-foreground/80">Atestado / Documentos</Label>
+                    <div className="flex items-center gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="gap-1.5">
+                        <Paperclip className="h-3.5 w-3.5" /> Anexar Arquivo
+                      </Button>
+                      <span className="text-xs text-muted-foreground">PDF, DOC, JPG, PNG (máx. 2MB)</span>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        multiple
+                        className="hidden"
+                        onChange={handleFileUpload}
+                      />
+                    </div>
+                    {anexos.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {anexos.map((a, i) => (
+                          <div key={i} className="flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2.5 py-1.5 text-xs">
+                            <Paperclip className="h-3 w-3 text-muted-foreground" />
+                            <button type="button" onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline truncate max-w-[150px]">
+                              {a.nome}
+                            </button>
+                            <button type="button" onClick={() => handleRemoveAnexo(i)} className="text-muted-foreground hover:text-destructive ml-1">
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
               </div>
+
 
               <div className="space-y-1.5 mb-4">
                 <Label className="text-xs font-semibold text-foreground/80">Observação</Label>
@@ -574,7 +651,7 @@ const MapaFuncionarios = () => {
           <div className="px-6 py-4 border-b border-border bg-muted/30">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras" | "advertencias")}>
+                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "faltas" | "horas_extras" | "advertencias" | "atestados")}>
                   <TabsList className="h-9">
                     <TabsTrigger value="faltas" className="text-xs gap-1">
                       <XCircle className="h-3 w-3" /> Faltas
@@ -585,8 +662,12 @@ const MapaFuncionarios = () => {
                     <TabsTrigger value="advertencias" className="text-xs gap-1">
                       <AlertTriangle className="h-3 w-3" /> Advertências
                     </TabsTrigger>
+                    <TabsTrigger value="atestados" className="text-xs gap-1">
+                      <Stethoscope className="h-3 w-3" /> Atestados
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
+
                 <span className="text-sm font-semibold text-foreground">({filteredLancamentos.length})</span>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
@@ -660,7 +741,7 @@ const MapaFuncionarios = () => {
                     } else if (l.tipo === "hora_extra") {
                       cellMap.horas = { node: `${l.horasExtras}h`, className: "font-medium" };
                       cellMap.percentual = { node: <Badge className="bg-primary/10 text-primary text-xs">{l.percentual}%</Badge> };
-                    } else {
+                    } else if (l.tipo === "advertencia") {
                       cellMap.tipo = { node: (
                         <Badge variant={l.tipoAdvertencia === "escrita" ? "destructive" : "secondary"} className="text-xs">
                           {TIPO_ADVERTENCIA_LABELS[l.tipoAdvertencia || "verbal"]}
@@ -677,7 +758,24 @@ const MapaFuncionarios = () => {
                           <span className="text-xs text-muted-foreground">({l.anexos.length})</span>
                         </div>
                       ) : <span className="text-xs text-muted-foreground">—</span> };
+                    } else if (l.tipo === "atestado") {
+                      const inicio = new Date(l.data + "T00:00:00");
+                      const fim = l.dataFim ? new Date(l.dataFim + "T00:00:00") : inicio;
+                      const dias = Math.max(1, Math.round((fim.getTime() - inicio.getTime()) / 86400000) + 1);
+                      cellMap.dataFim = { node: l.dataFim ? formatData(l.dataFim) : "—" };
+                      cellMap.dias = { node: <Badge className="bg-primary/10 text-primary text-xs">{dias}d</Badge> };
+                      cellMap.anexos = { node: l.anexos && l.anexos.length > 0 ? (
+                        <div className="flex items-center gap-1">
+                          {l.anexos.map((a, i) => (
+                            <button key={i} onClick={() => handleDownloadAnexo(a)} className="text-primary hover:underline text-xs flex items-center gap-0.5" title={a.nome}>
+                              <Paperclip className="h-3 w-3" />
+                            </button>
+                          ))}
+                          <span className="text-xs text-muted-foreground">({l.anexos.length})</span>
+                        </div>
+                      ) : <span className="text-xs text-muted-foreground">—</span> };
                     }
+
                     return (
                     <TableRow key={l.id} className={idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}>
                       {colOrder.map(key => {
