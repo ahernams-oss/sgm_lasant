@@ -1,0 +1,1 @@
+UPDATE public.portal_credenciais SET senha_hash='$2b$10$znfHOOV0kXECVgibNM2jSu8049ZLtVGkPTYKDTf0BndPsgylYyjmO', tentativas_falhas=0, bloqueado_ate=NULL, updated_at=now() WHERE cpf='09163947781';
