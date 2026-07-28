@@ -86,9 +86,10 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
   const advertencias = lancamentos.filter((l) => l.tipo === "advertencia").sort((a, b) => a.data.localeCompare(b.data));
 
   // KPIs
-  const totalFaltas = faltas.reduce((s, l) => s + (l.diasFalta || 1), 0);
-  const faltasJust = faltas.filter((l) => l.tipoFalta === "justificada" || l.tipoFalta === "atestado").reduce((s, l) => s + (l.diasFalta || 1), 0);
-  const faltasInjust = faltas.filter((l) => l.tipoFalta === "injustificada").reduce((s, l) => s + (l.diasFalta || 1), 0);
+  const totalFaltas = faltas.length;
+  const faltasJust = faltas.filter((l) => l.tipoFalta === "justificada").length;
+  const faltasInjust = faltas.filter((l) => l.tipoFalta === "injustificada").length;
+  const faltasSusp = faltas.filter((l) => l.tipoFalta === "suspensao").length;
   const totalHE = horasExtras.reduce((s, l) => s + (l.horasExtras || 0), 0);
   const funcComFalta = new Set(faltas.map((l) => l.funcionarioId)).size;
   const funcComHE = new Set(horasExtras.map((l) => l.funcionarioId)).size;

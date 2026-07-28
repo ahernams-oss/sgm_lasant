@@ -221,13 +221,13 @@ const Dashboard = () => {
     return { total, vencidos, aVencer30, emDia: total - vencidos - aVencer30 };
   }, [exames]);
 
-  // ---- Atestados / Lançamentos ----
-  const atestadosStats = useMemo(() => {
-    const atestados = lancamentos.filter(l => l.tipoFalta === "atestado");
-    const faltasJust = lancamentos.filter(l => l.tipo === "falta" && l.tipoFalta === "justificada");
-    const faltasInjust = lancamentos.filter(l => l.tipo === "falta" && l.tipoFalta === "injustificada");
-    const totalDiasAtestado = atestados.reduce((acc, l) => acc + (l.diasFalta || 0), 0);
-    return { totalAtestados: atestados.length, totalDiasAtestado, faltasJust: faltasJust.length, faltasInjust: faltasInjust.length };
+  // ---- Lançamentos de faltas ----
+  const faltasStats = useMemo(() => {
+    const faltas = lancamentos.filter(l => l.tipo === "falta");
+    const faltasJust = faltas.filter(l => l.tipoFalta === "justificada");
+    const faltasInjust = faltas.filter(l => l.tipoFalta === "injustificada");
+    const faltasSusp = faltas.filter(l => l.tipoFalta === "suspensao");
+    return { totalFaltas: faltas.length, faltasJust: faltasJust.length, faltasInjust: faltasInjust.length, faltasSusp: faltasSusp.length };
   }, [lancamentos]);
 
   // ---- Férias ----
