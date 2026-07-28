@@ -56,7 +56,8 @@ const MapaFuncionarios = () => {
   const podePdf = tem("mapa_funcionarios.exportar_pdf");
   const podeExcel = tem("mapa_funcionarios.exportar_excel");
 
-  const [activeTab, setActiveTab] = useState<"faltas" | "horas_extras" | "advertencias" | "atestados">("faltas");
+  const [activeTab, _setActiveTab] = useState<"faltas" | "horas_extras" | "advertencias" | "atestados">("faltas");
+  const setActiveTab = (v: "faltas" | "horas_extras" | "advertencias" | "atestados") => { _setActiveTab(v); setFilterTipos([]); };
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
