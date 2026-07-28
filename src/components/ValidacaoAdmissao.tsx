@@ -149,6 +149,53 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
       URL.revokeObjectURL(objectUrl);
     } catch (e: any) { toast.error(e.message); }
   };
+
+  const [zipando, setZipando] = useState(false);
+  const baixarTodosZip = async () => {
+    if (!docs.length) { toast.info("Nenhum documento para baixar."); return; }
+    setZipando(true);
+    const tid = toast.loading(`Preparando ZIP (0/${docs.length})...`);
+    try {
+      const zip = new JSZip();
+      const usados = new Set<string>();
+      let ok = 0;
+      for (let i = 0; i < docs.length; i++) {
+        const d = docs[i];
+        try {
+          const { url, nome } = await portalCall<{ url: string; nome?: string }>("admin-cand-doc-url", { id: d.id });
+          const res = await fetch(url);
+          if (!res.ok) throw new Error("fetch falhou");
+          const blob = await res.blob();
+          const base = (nome || d.nome_arquivo || `doc-${i + 1}`).replace(/[\\/:*?"<>|]/g, "_");
+          const tipo = (d.tipo_documento || "Outros").replace(/[\\/:*?"<>|]/g, "_");
+          let nomeFinal = `${tipo}/${base}`;
+          let n = 1;
+          while (usados.has(nomeFinal)) {
+            const dot = base.lastIndexOf(".");
+            nomeFinal = dot > 0
+              ? `${tipo}/${base.slice(0, dot)}_${++n}${base.slice(dot)}`
+              : `${tipo}/${base}_${++n}`;
+          }
+          usados.add(nomeFinal);
+          zip.file(nomeFinal, blob);
+          ok++;
+        } catch { /* pula documento com erro */ }
+        toast.loading(`Preparando ZIP (${i + 1}/${docs.length})...`, { id: tid });
+      }
+      if (!ok) throw new Error("Nenhum documento pôde ser baixado.");
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(zipBlob);
+      const nomeCand = (candidato.nome || "candidato").replace(/[\\/:*?"<>|]/g, "_");
+      const a = document.createElement("a");
+      a.href = url; a.download = `documentos_${nomeCand}.zip`; a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`ZIP gerado com ${ok} documento(s).`, { id: tid });
+    } catch (e: any) {
+      toast.error(e.message || "Falha ao gerar ZIP.", { id: tid });
+    } finally {
+      setZipando(false);
+    }
+  };
   const setDocStatus = async (id: string, status: "aprovado" | "reprovado" | "pendente") => {
     try {
       await portalCall("admin-cand-doc-status", { id, status, observacao: docObs[id] || null });
