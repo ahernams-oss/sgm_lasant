@@ -131,6 +131,7 @@ import SolicitacaoServicosPage from "@/pages/SolicitacaoServicos";
 import { SolicitacoesServicosProvider } from "@/contexts/SolicitacoesServicosContext";
 import OrdensServicoPage from "@/pages/OrdensServico";
 import AprovarLoteSS from "@/pages/AprovarLoteSS";
+import ImportarHolerites from "@/pages/ImportarHolerites";
 import { OrdensServicoProvider } from "@/contexts/OrdensServicoContext";
 import { OrcamentosProvider } from "@/contexts/OrcamentosContext";
 import { ComunicacaoProvider } from "@/contexts/ComunicacaoContext";
@@ -228,6 +229,7 @@ function ProtectedAppRoutes() {
         <Route path="/epis" element={<RotaProtegida perm="funcionarios"><EpisPage /></RotaProtegida>} />
         <Route path="/epis/catalogo" element={<RotaProtegida perm="cargos"><EpisCatalogoPage /></RotaProtegida>} />
         <Route path="/epis/recebimentos" element={<RotaProtegida perm="epi_recebimento_facial"><RelatorioRecebimentoEpis /></RotaProtegida>} />
+        <Route path="/rh/importar-holerites" element={<RotaProtegida perm="funcionarios"><ImportarHolerites /></RotaProtegida>} />
         <Route path="/exames" element={<RotaProtegida perm="funcionarios"><ExamesPage /></RotaProtegida>} />
         <Route path="/mapa-funcionarios" element={<RotaProtegida perm="mapa_funcionarios"><MapaFuncionarios /></RotaProtegida>} />
         <Route path="/mapa-plantoes" element={<RotaProtegida perm="mapa_funcionarios"><MapaPlantoes /></RotaProtegida>} />
