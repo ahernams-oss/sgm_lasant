@@ -112,13 +112,14 @@ export default function SolicitacaoServicosPage() {
   const [formCollapsed, setFormCollapsed] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(7);
-  const _ssSavedFilters = loadPersistedFilters<{ search: string; filterTipo: string; filterSituacao: string; filterVisitado: string; }>("solicitacao_servicos_filters_v1");
+  const _ssSavedFilters = loadPersistedFilters<{ search: string; filterTipo: string; filterSituacao: string; filterVisitado: string; filterOrigem: string; }>("solicitacao_servicos_filters_v1");
   const [search, setSearch] = useState(_ssSavedFilters?.search ?? "");
   const [filterCliente, setFilterCliente] = useState(() => localStorage.getItem("ss_filtroCliente") || "all");
   const [filterTipo, setFilterTipo] = useState(_ssSavedFilters?.filterTipo ?? "all");
   const [filterSituacao, setFilterSituacao] = useState(_ssSavedFilters?.filterSituacao ?? "all");
   const [filterVisitado, setFilterVisitado] = useState(_ssSavedFilters?.filterVisitado ?? "all");
-  usePersistFilters("solicitacao_servicos_filters_v1", { search, filterTipo, filterSituacao, filterVisitado });
+  const [filterOrigem, setFilterOrigem] = useState(_ssSavedFilters?.filterOrigem ?? "all");
+  usePersistFilters("solicitacao_servicos_filters_v1", { search, filterTipo, filterSituacao, filterVisitado, filterOrigem });
   const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
     const numero = searchParams.get("numero");
@@ -128,6 +129,7 @@ export default function SolicitacaoServicosPage() {
       setFilterTipo("all");
       setFilterSituacao("all");
       setFilterVisitado("all");
+      setFilterOrigem("all");
       setPage(1);
       const next = new URLSearchParams(searchParams);
       next.delete("numero");
@@ -671,6 +673,10 @@ export default function SolicitacaoServicosPage() {
     if (filterTipo !== "all") result = result.filter(s => s.tipo === filterTipo);
     if (filterSituacao !== "all") result = result.filter(s => s.situacao === filterSituacao);
     if (filterVisitado !== "all") result = result.filter(s => filterVisitado === "sim" ? s.visitado : !s.visitado);
+    if (filterOrigem !== "all") {
+      const idsComOrcamento = new Set(orcamentos.map(o => o.solicitacaoId));
+      result = result.filter(s => filterOrigem === "orcamento" ? idsComOrcamento.has(s.id) : !idsComOrcamento.has(s.id));
+    }
 
     // Ordenação primária SEMPRE por prioridade: Emergencial (vermelho) → Urgente (amarelo) → Normal (verde) → sem prioridade
     const prioridadeRank = (p: string) => {
@@ -696,7 +702,7 @@ export default function SolicitacaoServicosPage() {
     });
 
     return result;
-  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterVisitado, sortField, sortDir]);
+  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterVisitado, filterOrigem, orcamentos, sortField, sortDir]);
 
   const clientesUnicos = useMemo(() => {
     const map = new Map<string, string>();
@@ -985,6 +991,14 @@ export default function SolicitacaoServicosPage() {
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="sim">Visitado</SelectItem>
             <SelectItem value="nao">Não Visitado</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterOrigem} onValueChange={v => { setFilterOrigem(v); setPage(1); }}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Origem" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as Origens</SelectItem>
+            <SelectItem value="orcamento">De Orçamento</SelectItem>
+            <SelectItem value="direta">Direta</SelectItem>
           </SelectContent>
         </Select>
       </div>
