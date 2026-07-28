@@ -63,6 +63,13 @@ const statusBadge = (s: string) => {
 
 const fmtDate = (iso?: string | null) => iso ? new Date(iso).toLocaleString("pt-BR") : "—";
 
+const Row = ({ label, value }: { label: string; value: any }) => (
+  <div className="flex flex-col">
+    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</span>
+    <span className="text-sm">{value || <span className="text-muted-foreground">—</span>}</span>
+  </div>
+);
+
 export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBancariosPrefill }: Props) {
   const [loading, setLoading] = useState(false);
   const [docs, setDocs] = useState<DocRow[]>([]);
@@ -141,12 +148,9 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
   const aprovDocs = docs.filter((d) => d.status === "aprovado").length;
   const reprDocs = docs.filter((d) => d.status === "reprovado").length;
 
-  const Row = ({ label, value }: { label: string; value: any }) => (
-    <div className="flex flex-col">
-      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</span>
-      <span className="text-sm">{value || <span className="text-muted-foreground">—</span>}</span>
-    </div>
-  );
+  // Row is defined at module scope (below) to avoid re-creating the component
+  // on every render and to prevent React "cannot give refs to function components" warnings.
+
 
   return (
     <div className="space-y-6">
