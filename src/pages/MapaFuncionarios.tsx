@@ -695,7 +695,24 @@ const MapaFuncionarios = () => {
                 <span className="text-sm font-semibold text-foreground">({filteredLancamentos.length})</span>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <Input type="month" value={filterMes} onChange={(e) => { setFilterMes(e.target.value); setPageLanc(1); }} className="h-9 w-[160px] text-xs" />
+                <div className="flex items-center gap-1 rounded-md border border-input bg-background px-1">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { const [y, m] = filterMes.split("-").map(Number); const d = new Date(y, m - 2, 1); setFilterMes(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); setPageLanc(1); }}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" className="h-8 px-3 text-xs font-medium min-w-[130px]">
+                        {filterMes ? format(new Date(filterMes + "-01T12:00:00"), "MMMM 'de' yyyy", { locale: ptBR }) : "Período"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-2" align="start">
+                      <Input type="month" value={filterMes} onChange={(e) => { setFilterMes(e.target.value); setPageLanc(1); }} className="h-9 text-xs" />
+                    </PopoverContent>
+                  </Popover>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { const [y, m] = filterMes.split("-").map(Number); const d = new Date(y, m, 1); setFilterMes(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); setPageLanc(1); }}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
                 <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); setPageLanc(1); }}>
                   <SelectTrigger className="h-9 w-[160px] text-xs"><SelectValue placeholder="Cliente" /></SelectTrigger>
                   <SelectContent>
