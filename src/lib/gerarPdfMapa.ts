@@ -8,7 +8,6 @@ import { ptBR } from "date-fns/locale";
 const TIPO_FALTA_LABELS: Record<TipoFalta, string> = {
   justificada: "Justificada",
   injustificada: "Injustificada",
-  atestado: "Atestado Médico",
   suspensao: "Suspensão",
 };
 
@@ -87,9 +86,10 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
   const advertencias = lancamentos.filter((l) => l.tipo === "advertencia").sort((a, b) => a.data.localeCompare(b.data));
 
   // KPIs
-  const totalFaltas = faltas.reduce((s, l) => s + (l.diasFalta || 1), 0);
-  const faltasJust = faltas.filter((l) => l.tipoFalta === "justificada" || l.tipoFalta === "atestado").reduce((s, l) => s + (l.diasFalta || 1), 0);
-  const faltasInjust = faltas.filter((l) => l.tipoFalta === "injustificada").reduce((s, l) => s + (l.diasFalta || 1), 0);
+  const totalFaltas = faltas.length;
+  const faltasJust = faltas.filter((l) => l.tipoFalta === "justificada").length;
+  const faltasInjust = faltas.filter((l) => l.tipoFalta === "injustificada").length;
+  const faltasSusp = faltas.filter((l) => l.tipoFalta === "suspensao").length;
   const totalHE = horasExtras.reduce((s, l) => s + (l.horasExtras || 0), 0);
   const funcComFalta = new Set(faltas.map((l) => l.funcionarioId)).size;
   const funcComHE = new Set(horasExtras.map((l) => l.funcionarioId)).size;
@@ -102,7 +102,7 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
     margin: { left: 14, right: 14 },
     head: [["Resumo do Período", "", "", ""]],
     body: [
-      [`Total de Faltas: ${totalFaltas} dia(s)`, `Justificadas: ${faltasJust}`, `Injustificadas: ${faltasInjust}`, `Funcionários c/ falta: ${funcComFalta}`],
+      [`Total de Faltas: ${totalFaltas}`, `Justificadas: ${faltasJust}`, `Injustificadas: ${faltasInjust}`, `Suspensões: ${faltasSusp}`],
       [`Total Horas Extras: ${totalHE.toFixed(1)}h`, `Funcionários c/ HE: ${funcComHE}`, `Total Advertências: ${totalAdv}`, `Funcionários c/ adv: ${funcComAdv}`],
     ],
     theme: "plain",
@@ -123,20 +123,19 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
     autoTable(doc, {
       startY: y,
       margin: { left: 14, right: 14 },
-      head: [["Data", "Funcionário", "Cargo", "Cliente", "Tipo", "Dias", "Observação"]],
+      head: [["Data", "Funcionário", "Cargo", "Cliente", "Tipo", "Observação"]],
       body: faltas.map((l) => [
         formatData(l.data),
         getFuncNome(l.funcionarioId),
         getCargoNome(l.funcionarioId),
         getClienteNome(l.funcionarioId),
         TIPO_FALTA_LABELS[l.tipoFalta || "injustificada"],
-        String(l.diasFalta || 1),
         l.observacao || "—",
       ]),
       theme: "striped",
       styles: { fontSize: 8, cellPadding: 2.5 },
       headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
-      columnStyles: { 6: { cellWidth: 60 } },
+      columnStyles: { 5: { cellWidth: 60 } },
     });
     y = (doc as any).lastAutoTable.finalY + 8;
   }

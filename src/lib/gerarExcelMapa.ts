@@ -7,7 +7,6 @@ import { ptBR } from "date-fns/locale";
 const TIPO_FALTA_LABELS: Record<TipoFalta, string> = {
   justificada: "Justificada",
   injustificada: "Injustificada",
-  atestado: "Atestado Médico",
   suspensao: "Suspensão",
 };
 
@@ -52,11 +51,10 @@ export function exportarExcelMapa(params: ExcelMapaParams) {
     "Cargo": getCargoNome(l.funcionarioId),
     "Cliente": getClienteNome(l.funcionarioId),
     "Tipo": TIPO_FALTA_LABELS[l.tipoFalta || "injustificada"],
-    "Dias": l.diasFalta || 1,
     "Observação": l.observacao || "",
   }));
-  const wsFaltas = XLSX.utils.json_to_sheet(faltasData.length > 0 ? faltasData : [{ "Data": "", "Funcionário": "", "Cargo": "", "Cliente": "", "Tipo": "", "Dias": "", "Observação": "" }]);
-  wsFaltas["!cols"] = [{ wch: 12 }, { wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 18 }, { wch: 8 }, { wch: 40 }];
+  const wsFaltas = XLSX.utils.json_to_sheet(faltasData.length > 0 ? faltasData : [{ "Data": "", "Funcionário": "", "Cargo": "", "Cliente": "", "Tipo": "", "Observação": "" }]);
+  wsFaltas["!cols"] = [{ wch: 12 }, { wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 18 }, { wch: 40 }];
   XLSX.utils.book_append_sheet(wb, wsFaltas, "Faltas");
 
   // Horas extras sheet

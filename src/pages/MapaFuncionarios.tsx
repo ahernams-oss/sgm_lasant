@@ -32,7 +32,6 @@ import { usePermissao } from "@/hooks/usePermissao";
 const TIPO_FALTA_LABELS: Record<TipoFalta, string> = {
   justificada: "Justificada",
   injustificada: "Injustificada",
-  atestado: "Atestado Médico",
   suspensao: "Suspensão",
 };
 
@@ -63,7 +62,6 @@ const MapaFuncionarios = () => {
   const [funcionarioId, setFuncionarioId] = useState("");
   const [data, setData] = useState("");
   const [tipoFalta, setTipoFalta] = useState<TipoFalta>("injustificada");
-  const [diasFalta, setDiasFalta] = useState("1");
   const [horasExtras, setHorasExtras] = useState("");
   const [percentual, setPercentual] = useState("50");
   const [observacao, setObservacao] = useState("");
@@ -81,7 +79,7 @@ const MapaFuncionarios = () => {
   const colDefsByTab: Record<string, Record<string, { label: string; className?: string }>> = {
     faltas: {
       data: { label: "Data" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
-      tipo: { label: "Tipo" }, dias: { label: "Dias" }, anexos: { label: "Anexos" }, observacao: { label: "Observação" },
+      tipo: { label: "Tipo" }, anexos: { label: "Anexos" }, observacao: { label: "Observação" },
     },
     horas_extras: {
       data: { label: "Data" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
@@ -93,7 +91,7 @@ const MapaFuncionarios = () => {
     },
   };
   const defaultsByTab: Record<string, string[]> = {
-    faltas: ["data", "funcionario", "cargo", "cliente", "tipo", "dias", "anexos", "observacao"],
+    faltas: ["data", "funcionario", "cargo", "cliente", "tipo", "anexos", "observacao"],
     horas_extras: ["data", "funcionario", "cargo", "cliente", "horas", "percentual", "observacao"],
     advertencias: ["data", "funcionario", "cargo", "cliente", "tipo", "motivo", "anexos", "observacao"],
   };
@@ -115,7 +113,6 @@ const MapaFuncionarios = () => {
     setFuncionarioId("");
     setData("");
     setTipoFalta("injustificada");
-    setDiasFalta("1");
     setHorasExtras("");
     setPercentual("50");
     setObservacao("");
@@ -135,7 +132,7 @@ const MapaFuncionarios = () => {
     if (activeTab === "faltas") {
       const payload = {
         funcionarioId, tipo: "falta" as const, data,
-        tipoFalta, diasFalta: Number(diasFalta) || 1, anexos, observacao,
+        tipoFalta, anexos, observacao,
       };
       if (editingId) {
         updateLancamento(editingId, payload);
@@ -181,7 +178,6 @@ const MapaFuncionarios = () => {
     if (l.tipo === "falta") {
       setActiveTab("faltas");
       setTipoFalta(l.tipoFalta || "injustificada");
-      setDiasFalta(String(l.diasFalta || 1));
       setAnexos(l.anexos || []);
     } else if (l.tipo === "hora_extra") {
       setActiveTab("horas_extras");
@@ -280,9 +276,10 @@ const MapaFuncionarios = () => {
     const horas = mesLancamentos.filter((l) => l.tipo === "hora_extra");
     const advertencias = mesLancamentos.filter((l) => l.tipo === "advertencia");
     return {
-      totalFaltas: faltas.reduce((sum, l) => sum + (l.diasFalta || 1), 0),
-      totalFaltasJustificadas: faltas.filter((l) => l.tipoFalta === "justificada" || l.tipoFalta === "atestado").reduce((sum, l) => sum + (l.diasFalta || 1), 0),
-      totalFaltasInjustificadas: faltas.filter((l) => l.tipoFalta === "injustificada").reduce((sum, l) => sum + (l.diasFalta || 1), 0),
+      totalFaltas: faltas.length,
+      totalFaltasJustificadas: faltas.filter((l) => l.tipoFalta === "justificada").length,
+      totalFaltasInjustificadas: faltas.filter((l) => l.tipoFalta === "injustificada").length,
+      totalFaltasSuspensao: faltas.filter((l) => l.tipoFalta === "suspensao").length,
       totalHorasExtras: horas.reduce((sum, l) => sum + (l.horasExtras || 0), 0),
       funcionariosComFalta: new Set(faltas.map((l) => l.funcionarioId)).size,
       funcionariosComHE: new Set(horas.map((l) => l.funcionarioId)).size,
@@ -369,7 +366,7 @@ const MapaFuncionarios = () => {
         </div>
 
         {/* Resumo cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 animate-fade-up" style={{ animationDelay: "50ms" }}>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6 animate-fade-up" style={{ animationDelay: "50ms" }}>
           <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
             <p className="text-xs text-muted-foreground mb-1">Total Faltas (mês)</p>
             <p className="text-2xl font-bold text-foreground">{resumoMes.totalFaltas}</p>
@@ -382,6 +379,10 @@ const MapaFuncionarios = () => {
           <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
             <p className="text-xs text-muted-foreground mb-1">Faltas Justificadas</p>
             <p className="text-2xl font-bold text-foreground">{resumoMes.totalFaltasJustificadas}</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+            <p className="text-xs text-muted-foreground mb-1">Suspensões</p>
+            <p className="text-2xl font-bold text-foreground">{resumoMes.totalFaltasSuspensao}</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
             <p className="text-xs text-muted-foreground mb-1">Horas Extras (mês)</p>
@@ -431,7 +432,7 @@ const MapaFuncionarios = () => {
                 </div>
 
                 <TabsContent value="faltas" className="mt-0 p-0">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs font-semibold text-foreground/80">Tipo de Falta</Label>
                       <Select value={tipoFalta} onValueChange={(v) => setTipoFalta(v as TipoFalta)}>
@@ -442,10 +443,6 @@ const MapaFuncionarios = () => {
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold text-foreground/80">Dias</Label>
-                      <Input type="number" min="1" value={diasFalta} onChange={(e) => setDiasFalta(e.target.value)} />
                     </div>
                   </div>
                   {/* Anexos */}
@@ -650,7 +647,6 @@ const MapaFuncionarios = () => {
                           {TIPO_FALTA_LABELS[l.tipoFalta || "injustificada"]}
                         </Badge>
                       ) };
-                      cellMap.dias = { node: l.diasFalta || 1 };
                       cellMap.anexos = { node: l.anexos && l.anexos.length > 0 ? (
                         <div className="flex items-center gap-1">
                           {l.anexos.map((a, i) => (

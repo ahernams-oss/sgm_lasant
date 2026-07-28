@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 
 export type TipoLancamento = "falta" | "hora_extra" | "advertencia";
-export type TipoFalta = "justificada" | "injustificada" | "atestado" | "suspensao";
+export type TipoFalta = "justificada" | "injustificada" | "suspensao";
 export type TipoAdvertencia = "verbal" | "escrita";
 
 export interface AnexoFalta { nome: string; tipo: string; base64: string; }

@@ -221,13 +221,13 @@ const Dashboard = () => {
     return { total, vencidos, aVencer30, emDia: total - vencidos - aVencer30 };
   }, [exames]);
 
-  // ---- Atestados / Lançamentos ----
-  const atestadosStats = useMemo(() => {
-    const atestados = lancamentos.filter(l => l.tipoFalta === "atestado");
-    const faltasJust = lancamentos.filter(l => l.tipo === "falta" && l.tipoFalta === "justificada");
-    const faltasInjust = lancamentos.filter(l => l.tipo === "falta" && l.tipoFalta === "injustificada");
-    const totalDiasAtestado = atestados.reduce((acc, l) => acc + (l.diasFalta || 0), 0);
-    return { totalAtestados: atestados.length, totalDiasAtestado, faltasJust: faltasJust.length, faltasInjust: faltasInjust.length };
+  // ---- Lançamentos de faltas ----
+  const faltasStats = useMemo(() => {
+    const faltas = lancamentos.filter(l => l.tipo === "falta");
+    const faltasJust = faltas.filter(l => l.tipoFalta === "justificada");
+    const faltasInjust = faltas.filter(l => l.tipoFalta === "injustificada");
+    const faltasSusp = faltas.filter(l => l.tipoFalta === "suspensao");
+    return { totalFaltas: faltas.length, faltasJust: faltasJust.length, faltasInjust: faltasInjust.length, faltasSusp: faltasSusp.length };
   }, [lancamentos]);
 
   // ---- Férias ----
@@ -696,26 +696,26 @@ const Dashboard = () => {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-primary" /> Atestados e Faltas
+                    <FileText className="h-4 w-4 text-primary" /> Faltas
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                     <div>
-                      <p className="text-xl font-bold text-foreground">{atestadosStats.totalAtestados}</p>
-                      <p className="text-[10px] text-muted-foreground">Atestados</p>
+                      <p className="text-xl font-bold text-foreground">{faltasStats.totalFaltas}</p>
+                      <p className="text-[10px] text-muted-foreground">Total Faltas</p>
                     </div>
                     <div>
-                      <p className="text-xl font-bold" style={{ color: "hsl(38, 92%, 50%)" }}>{atestadosStats.totalDiasAtestado}</p>
-                      <p className="text-[10px] text-muted-foreground">Dias Afastados</p>
-                    </div>
-                    <div>
-                      <p className="text-xl font-bold" style={{ color: "hsl(160, 84%, 39%)" }}>{atestadosStats.faltasJust}</p>
+                      <p className="text-xl font-bold" style={{ color: "hsl(160, 84%, 39%)" }}>{faltasStats.faltasJust}</p>
                       <p className="text-[10px] text-muted-foreground">Justificadas</p>
                     </div>
                     <div>
-                      <p className="text-xl font-bold" style={{ color: "hsl(0, 72%, 51%)" }}>{atestadosStats.faltasInjust}</p>
+                      <p className="text-xl font-bold" style={{ color: "hsl(0, 72%, 51%)" }}>{faltasStats.faltasInjust}</p>
                       <p className="text-[10px] text-muted-foreground">Injustificadas</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-foreground">{faltasStats.faltasSusp}</p>
+                      <p className="text-[10px] text-muted-foreground">Suspensões</p>
                     </div>
                   </div>
                 </CardContent>
