@@ -55,8 +55,8 @@ const TIPO_CONTA_OPTIONS = [
   "Conta Poupança",
 ];
 
-const F = ({ l, v, on, type = "text" }: any) => (
-  <div><Label className="text-xs">{l}</Label><Input type={type} value={v ?? ""} onChange={(e) => on(e.target.value)} /></div>
+const F = ({ l, v, on, type = "text", ph }: any) => (
+  <div><Label className="text-xs">{l}</Label><Input type={type} value={v ?? ""} placeholder={ph} onChange={(e) => on(e.target.value)} /></div>
 );
 
 function calcProgresso(dp: any, docs: any, end: any, bc: any, deps: Dep[], ces: Contato[]) {
