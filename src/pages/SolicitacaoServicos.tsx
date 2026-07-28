@@ -758,20 +758,20 @@ export default function SolicitacaoServicosPage() {
 
   const { paginated, totalPages } = paginate(filtered, page, pageSize);
 
-  const colDefs: Record<string, { label: ReactNode; className?: string; sortable?: boolean }> = {
-    numero: { label: <>Nº <SortIcon field="numero" /></>, className: "cursor-pointer select-none", sortable: true },
-    dataHora: { label: <>Data/Hora <SortIcon field="dataHora" /></>, className: "cursor-pointer select-none", sortable: true },
-    solicitante: { label: "Solicitante" },
-    tipo: { label: "Tipo" },
-    cliente: { label: "Cliente" },
-    local: { label: "Local" },
-    pavimento: { label: "Pavimento" },
-    setor: { label: "Setor" },
-    equipamento: { label: "Equipamento" },
-    descricao: { label: "Descrição" },
-    situacao: { label: "Situação" },
-    visitado: { label: "Visitado", className: "w-20 text-center" },
-    os: { label: "OS" },
+  const colDefs: Record<string, { label: ReactNode; className?: string }> = {
+    numero: { label: <SortHeader field="numero">Nº</SortHeader>, className: "w-[100px] whitespace-nowrap" },
+    dataHora: { label: <SortHeader field="dataHora">Data/Hora</SortHeader>, className: "whitespace-nowrap" },
+    solicitante: { label: <SortHeader field="solicitante">Solicitante</SortHeader> },
+    tipo: { label: <SortHeader field="tipo">Tipo</SortHeader> },
+    cliente: { label: <SortHeader field="cliente">Cliente</SortHeader> },
+    local: { label: <SortHeader field="local">Local</SortHeader> },
+    pavimento: { label: <SortHeader field="pavimento">Pavimento</SortHeader> },
+    setor: { label: <SortHeader field="setor">Setor</SortHeader> },
+    equipamento: { label: <SortHeader field="equipamento">Equipamento</SortHeader> },
+    descricao: { label: <SortHeader field="descricao">Descrição</SortHeader> },
+    situacao: { label: <SortHeader field="situacao">Situação</SortHeader> },
+    os: { label: <SortHeader field="os">OS</SortHeader>, className: "whitespace-nowrap" },
+    visitado: { label: <SortHeader field="visitado">Visitado</SortHeader>, className: "w-20 text-center" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "solicitacao_servicos.lista",
