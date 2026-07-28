@@ -342,20 +342,31 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
           <div className="space-y-4 rounded-md border p-3">
             <div>
               <div className="text-xs font-semibold mb-1 text-muted-foreground">Dados Pessoais</div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <Row label="Nome" value={dp.nome} />
-                <Row label="CPF" value={dp.cpf} />
-                <Row label="Data Nasc." value={dp.dataNascimento} />
-                <Row label="Sexo" value={dp.sexo} />
-                <Row label="Estado Civil" value={dp.estadoCivil} />
-                <Row label="Nacionalidade" value={dp.nacionalidade} />
-                <Row label="Naturalidade" value={dp.naturalidade} />
-                <Row label="Escolaridade" value={dp.escolaridade} />
-                <Row label="Curso/Formação" value={dp.formacao} />
-                <Row label="Nome Mãe" value={dp.nomeMae} />
-                <Row label="Nome Pai" value={dp.nomePai} />
-                <Row label="E-mail" value={dp.email} />
-                <Row label="Telefone" value={dp.telefone} />
+              <div className="flex gap-4">
+                <div className="shrink-0">
+                  <div className="w-28 h-36 rounded-md border bg-muted overflow-hidden flex items-center justify-center">
+                    {dp.foto ? (
+                      <img src={dp.foto} alt="Foto do candidato" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground text-center px-1">Sem foto</span>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1">
+                  <Row label="Nome" value={dp.nome} />
+                  <Row label="CPF" value={dp.cpf} />
+                  <Row label="Data Nasc." value={dp.dataNascimento} />
+                  <Row label="Sexo" value={dp.sexo} />
+                  <Row label="Estado Civil" value={dp.estadoCivil} />
+                  <Row label="Nacionalidade" value={dp.nacionalidade} />
+                  <Row label="Naturalidade" value={dp.naturalidade} />
+                  <Row label="Escolaridade" value={dp.escolaridade} />
+                  <Row label="Curso/Formação" value={dp.formacao} />
+                  <Row label="Nome Mãe" value={dp.nomeMae} />
+                  <Row label="Nome Pai" value={dp.nomePai} />
+                  <Row label="E-mail" value={dp.email} />
+                  <Row label="Telefone" value={dp.telefone} />
+                </div>
               </div>
             </div>
             <div>
