@@ -299,7 +299,18 @@ const MapaFuncionarios = () => {
 
     let result = lancamentos.filter((l) => l.tipo === tipo);
 
-    if (filterMes) {
+    if (useCustomRange && dateFrom && dateTo) {
+      const from = startOfDay(dateFrom);
+      const to = endOfDay(dateTo);
+      result = result.filter((l) => {
+        try {
+          const d = parseISO(l.data);
+          return isWithinInterval(d, { start: from, end: to });
+        } catch {
+          return false;
+        }
+      });
+    } else if (filterMes) {
       result = result.filter((l) => l.data.startsWith(filterMes));
     }
     if (filterCliente !== "todos") {
@@ -324,7 +335,7 @@ const MapaFuncionarios = () => {
       );
     }
     return result.sort((a, b) => b.data.localeCompare(a.data));
-  }, [lancamentos, activeTab, filterMes, filterCliente, filterFuncionario, filterTipos, search, funcionarios]);
+  }, [lancamentos, activeTab, filterMes, useCustomRange, dateFrom, dateTo, filterCliente, filterFuncionario, filterTipos, search, funcionarios]);
 
 
   // Resumo do mês
