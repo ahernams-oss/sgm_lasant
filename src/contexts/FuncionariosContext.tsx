@@ -93,8 +93,10 @@ function rowToFuncionario(row: any): Funcionario {
     experienciaRenovado: row.experiencia_renovado ?? false,
     experienciaNotificado10dPrimeira: row.experiencia_notificado_10d_primeira ?? false,
     experienciaNotificado10dFinal: row.experiencia_notificado_10d_final ?? false,
+    foto: row.foto ?? "",
   };
 }
+
 
 function funcionarioToRow(f: Omit<Funcionario, "id">) {
   return {
