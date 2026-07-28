@@ -129,6 +129,7 @@ export default function SolicitacaoServicosPage() {
       setFilterTipo("all");
       setFilterSituacao("all");
       setFilterVisitado("all");
+      setFilterOrigem("all");
       setPage(1);
       const next = new URLSearchParams(searchParams);
       next.delete("numero");
