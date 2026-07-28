@@ -1,0 +1,1 @@
+UPDATE public.portal_credenciais SET tipo_acesso='funcionario', funcionario_id='8892e373-36d9-46cc-a602-798898c2e706', updated_at=now() WHERE cpf='09163947781';
