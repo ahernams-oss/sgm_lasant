@@ -840,14 +840,14 @@ const ProcessoSeletivoPage = () => {
                               className="w-full bg-[hsl(120,30%,35%)] hover:bg-[hsl(120,30%,28%)] text-white"
                               onClick={() => {
                                 // Validações
-                                const docsList = filtrarDocs(c.documentos);
-                                const docsOk = docsList.filter((d) => d.entregue || d.naoPossui).length;
-                                const totalDocs = docsList.length;
-                                if (docsOk < totalDocs) {
-                                  toast.error("Todos os documentos devem estar entregues ou marcados como 'não possui'.");
+                                const val = validacaoRef.current[c.id];
+                                const check = validacaoPodeEfetivar(val?.ficha ?? null, val?.docs ?? []);
+                                if (!check.ok) {
+                                  toast.error(check.msg);
                                   return;
                                 }
                                 if (c.exameAdmissional?.resultado !== "apto") {
+
                                   toast.error("O candidato precisa estar apto no exame admissional.");
                                   return;
                                 }
