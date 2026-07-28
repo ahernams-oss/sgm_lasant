@@ -117,7 +117,12 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
   };
 
   const abrirDoc = async (id: string) => {
-    const preview = window.open("", "_blank", "noopener,noreferrer");
+    const preview = window.open("about:blank", "_blank");
+    if (preview) {
+      preview.opener = null;
+      preview.document.title = "Carregando documento";
+      preview.document.body.innerHTML = "<p style='font-family: sans-serif; padding: 24px;'>Carregando documento...</p>";
+    }
     try {
       const { objectUrl } = await criarUrlLocalDocumento(id);
       if (preview) {
