@@ -35,6 +35,7 @@ const rowToLancamento = (r: any): Lancamento => ({
   percentual: r.percentual ? Number(r.percentual) : undefined,
   observacao: r.observacao ?? "", criadoEm: r.criado_em ?? "",
   tipoAdvertencia: r.tipo_advertencia || undefined, motivo: r.motivo || undefined,
+  dataFim: r.data_fim || undefined,
 });
 
 const lancamentoToRow = (l: Omit<Lancamento, "id">) => ({
@@ -43,7 +44,9 @@ const lancamentoToRow = (l: Omit<Lancamento, "id">) => ({
   anexos: (l.anexos ?? []) as any, horas_extras: l.horasExtras ?? 0,
   percentual: l.percentual ?? 0, observacao: l.observacao, criado_em: l.criadoEm,
   tipo_advertencia: l.tipoAdvertencia ?? "", motivo: l.motivo ?? "",
+  data_fim: l.dataFim ?? null,
 });
+
 
 export function LancamentosProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
