@@ -62,7 +62,6 @@ const MapaFuncionarios = () => {
   const [funcionarioId, setFuncionarioId] = useState("");
   const [data, setData] = useState("");
   const [tipoFalta, setTipoFalta] = useState<TipoFalta>("injustificada");
-  const [diasFalta, setDiasFalta] = useState("1");
   const [horasExtras, setHorasExtras] = useState("");
   const [percentual, setPercentual] = useState("50");
   const [observacao, setObservacao] = useState("");
@@ -114,7 +113,6 @@ const MapaFuncionarios = () => {
     setFuncionarioId("");
     setData("");
     setTipoFalta("injustificada");
-    setDiasFalta("1");
     setHorasExtras("");
     setPercentual("50");
     setObservacao("");
@@ -134,7 +132,7 @@ const MapaFuncionarios = () => {
     if (activeTab === "faltas") {
       const payload = {
         funcionarioId, tipo: "falta" as const, data,
-        tipoFalta, diasFalta: Number(diasFalta) || 1, anexos, observacao,
+        tipoFalta, anexos, observacao,
       };
       if (editingId) {
         updateLancamento(editingId, payload);
@@ -180,7 +178,6 @@ const MapaFuncionarios = () => {
     if (l.tipo === "falta") {
       setActiveTab("faltas");
       setTipoFalta(l.tipoFalta || "injustificada");
-      setDiasFalta(String(l.diasFalta || 1));
       setAnexos(l.anexos || []);
     } else if (l.tipo === "hora_extra") {
       setActiveTab("horas_extras");
