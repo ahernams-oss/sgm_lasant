@@ -75,6 +75,8 @@ export default function Auditoria() {
     if (!error && data?.ok) {
       setRegistros(data.data || []);
       setTotal(data.total ?? 0);
+      if (data.resumo) setResumo(data.resumo);
+
     }
     setLoading(false);
   };
