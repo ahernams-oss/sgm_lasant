@@ -51,8 +51,10 @@ const formatValor = (v: any): string => {
 
 export default function Auditoria() {
   const [registros, setRegistros] = useState<Registro[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [busca, setBusca] = useState("");
+  const [buscaAplicada, setBuscaAplicada] = useState("");
   const [filtroModulo, setFiltroModulo] = useState("todos");
   const [filtroAcao, setFiltroAcao] = useState("todos");
   const [dataIni, setDataIni] = useState("");
@@ -61,12 +63,17 @@ export default function Auditoria() {
   const [pageSize, setPageSize] = useState(20);
   const [detalhe, setDetalhe] = useState<Registro | null>(null);
 
-  const carregar = async () => {
+  const carregar = async (opts?: { page?: number; busca?: string }) => {
+    const p = opts?.page ?? page;
+    const b = opts?.busca ?? buscaAplicada;
     setLoading(true);
     const { data, error } = await (supabase as any).functions.invoke("audit-read", {
-      body: { dataIni, dataFim, limit: 500 },
+      body: { dataIni, dataFim, page: p, pageSize, modulo: filtroModulo, acao: filtroAcao, busca: b },
     });
-    if (!error && data?.ok) setRegistros(data.data || []);
+    if (!error && data?.ok) {
+      setRegistros(data.data || []);
+      setTotal(data.total ?? 0);
+    }
     setLoading(false);
   };
 
@@ -77,36 +84,30 @@ export default function Auditoria() {
     if (!error && data?.ok && data.data) setDetalhe(data.data as Registro);
   };
 
+  // Recarrega ao mudar página, tamanho de página ou filtros de módulo/ação.
+  useEffect(() => { carregar(); /* eslint-disable-next-line */ }, [page, pageSize, filtroModulo, filtroAcao]);
 
-  useEffect(() => { carregar(); /* eslint-disable-next-line */ }, []);
+  // Debounce da busca (aplica no servidor).
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (busca !== buscaAplicada) {
+        setBuscaAplicada(busca);
+        setPage(1);
+        carregar({ page: 1, busca });
+      }
+    }, 400);
+    return () => clearTimeout(t);
+    /* eslint-disable-next-line */
+  }, [busca]);
 
-  const filtrados = useMemo(() => registros.filter((r) => {
-    if (filtroModulo !== "todos" && r.modulo !== filtroModulo) return false;
-    if (filtroAcao !== "todos" && r.acao !== filtroAcao) return false;
-    if (busca) {
-      const t = busca.toLowerCase();
-      const blob = `${r.usuario_nome || ""} ${r.usuario_email || ""} ${r.entidade_descricao || ""} ${r.entidade_id || ""} ${moduloLabel(r.modulo)}`.toLowerCase();
-      if (!blob.includes(t)) return false;
-    }
-    return true;
-  }), [registros, filtroModulo, filtroAcao, busca]);
-
-  const { paginated } = paginate(filtrados, page, pageSize);
-
-  const kpis = useMemo(() => {
-    const total = filtrados.length;
-    const c = filtrados.filter(r => r.acao === "insert").length;
-    const u = filtrados.filter(r => r.acao === "update").length;
-    const d = filtrados.filter(r => r.acao === "delete").length;
-    const usuariosUnicos = new Set(filtrados.map(r => r.usuario_id).filter(Boolean)).size;
-    return { total, c, u, d, usuariosUnicos };
-  }, [filtrados]);
+  const paginated = registros;
 
   const diff = useMemo(() => {
     if (!detalhe) return [];
     if (detalhe.acao === "update") return diffSimples(detalhe.dados_antes, detalhe.dados_depois);
     return [];
   }, [detalhe]);
+
 
   return (
     <div className="p-6 space-y-4">
