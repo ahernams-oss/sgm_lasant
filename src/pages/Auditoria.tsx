@@ -52,6 +52,8 @@ const formatValor = (v: any): string => {
 export default function Auditoria() {
   const [registros, setRegistros] = useState<Registro[]>([]);
   const [total, setTotal] = useState(0);
+  const [resumo, setResumo] = useState({ insert: 0, update: 0, delete: 0 });
+
   const [loading, setLoading] = useState(false);
   const [busca, setBusca] = useState("");
   const [buscaAplicada, setBuscaAplicada] = useState("");
