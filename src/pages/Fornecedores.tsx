@@ -353,7 +353,8 @@ const Fornecedores = () => {
                       checked={selectedIds.includes(fornecedor.id)}
                       onCheckedChange={() => toggleOne(fornecedor.id)}
                     />
-                    <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
+                    <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-5 gap-x-4 gap-y-1">
+                      <p className="text-sm font-semibold text-primary tabular-nums">Nº {fornecedor.codigo ?? "—"}</p>
                       <p className="text-sm font-medium text-foreground truncate">{fornecedor.nome}</p>
                       <p className="text-sm text-muted-foreground truncate tabular-nums">{fornecedor.cnpj || "—"}</p>
                       <p className="text-sm text-muted-foreground truncate">{fornecedor.contato || "—"}</p>
