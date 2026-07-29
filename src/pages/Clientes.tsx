@@ -396,7 +396,8 @@ const Clientes = () => {
                       checked={selectedIds.includes(cliente.id)}
                       onCheckedChange={() => toggleOne(cliente.id)}
                     />
-                    <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
+                    <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-5 gap-x-4 gap-y-1">
+                      <p className="text-sm font-semibold text-primary tabular-nums">Nº {cliente.codigo ?? "—"}</p>
                       <p className="text-sm font-medium text-foreground truncate">{cliente.nome}</p>
                       <p className="text-sm text-muted-foreground truncate tabular-nums">{cliente.cnpj || "—"}</p>
                       <p className="text-sm text-muted-foreground truncate">{cliente.contato || "—"}</p>
