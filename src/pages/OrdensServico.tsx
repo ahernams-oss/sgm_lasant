@@ -269,6 +269,16 @@ export default function OrdensServicoPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
+  // Sync Origem and Situação filters to URL for shareable links
+  useEffect(() => {
+    const next = new URLSearchParams(searchParams);
+    if (filtroOrigem && filtroOrigem !== "all") next.set("origem", filtroOrigem); else next.delete("origem");
+    if (filtroSituacao && filtroSituacao !== "Todas") next.set("situacao", filtroSituacao); else next.delete("situacao");
+    if (next.toString() !== searchParams.toString()) setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtroOrigem, filtroSituacao]);
+
+
   // Form fields
   const [clienteId, setClienteId] = useState("");
   const [nCliente, setNCliente] = useState("");
