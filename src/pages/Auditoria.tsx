@@ -195,7 +195,7 @@ export default function Auditoria() {
                     {r.entidade_descricao || <span className="text-muted-foreground">(sem descrição)</span>}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="ghost" onClick={() => setDetalhe(r)} title="Ver detalhes">
+                    <Button size="sm" variant="ghost" onClick={() => abrirDetalhe(r)} title="Ver detalhes">
                       <Eye className="h-4 w-4" />
                     </Button>
                   </TableCell>
