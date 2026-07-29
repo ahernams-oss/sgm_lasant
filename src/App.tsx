@@ -549,7 +549,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           <Route path="/cotacao/proposta/:token" element={<PropostaFornecedorPage />} />
+
           <Route path="/portal-fornecedor" element={<PortalFornecedorPage />} />
           <Route path="/portal-fornecedor/pregao/:id/sala" element={<PregaoSalaFornecedorPage />} />
           <Route path="/unsubscribe" element={<UnsubscribePage />} />
