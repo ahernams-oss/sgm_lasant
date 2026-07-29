@@ -212,7 +212,7 @@ export default function InteligenciaComprasPage() {
     await addRequisicao({
       solicitante: usuarioLogado?.nome || "Inteligência de Compras",
       centroCusto: "CONSOLIDADO", centroCustoNome: "Consolidado (Múltiplos CCs)",
-      localEntrega: "", justificativa, urgencia: "Normal", prazoDesejado: "",
+      localEntrega: "", justificativa, urgencia: "Baixa", prazoDesejado: "",
       itens: itensConsolidados, anexos: [],
     });
     for (const grupo of selectedGroups) {
@@ -280,7 +280,7 @@ export default function InteligenciaComprasPage() {
       centroCustoNome: activeGroup.centroCustoNome,
       localEntrega: selectedRCList[0]?.localEntrega || "",
       justificativa,
-      urgencia: "Normal",
+      urgencia: "Baixa",
       prazoDesejado: "",
       itens: itensConsolidados,
       anexos: [],

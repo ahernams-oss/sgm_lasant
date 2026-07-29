@@ -165,7 +165,7 @@ export default function RequisicaoComprasPage() {
   const [centroCusto, setCentroCusto] = useState("");
   const [localEntrega, setLocalEntrega] = useState("");
   const [justificativa, setJustificativa] = useState("");
-  const [urgencia, setUrgencia] = useState<GrauUrgencia>("Normal");
+  const [urgencia, setUrgencia] = useState<GrauUrgencia>("Baixa");
   const [prazoDesejado, setPrazoDesejado] = useState("");
   const [itens, setItens] = useState<ItemRequisicaoCompras[]>([]);
   const [anexos, setAnexos] = useState<AnexoRequisicaoCompras[]>([]);
@@ -232,7 +232,7 @@ export default function RequisicaoComprasPage() {
   };
 
   const resetForm = () => {
-    setCentroCusto(""); setLocalEntrega(""); setJustificativa(""); setUrgencia("Normal"); setPrazoDesejado("");
+    setCentroCusto(""); setLocalEntrega(""); setJustificativa(""); setUrgencia("Baixa"); setPrazoDesejado("");
     setItens([]); setAnexos([]);
     resetItemForm();
   };
