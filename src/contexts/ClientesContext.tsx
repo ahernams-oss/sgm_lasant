@@ -57,7 +57,7 @@ export interface Contrato {
   faturamentos: Faturamento[];
 }
 export interface Cliente {
-  id: string; tipo: "Cliente" | "Fornecedor"; nome: string; nomeFantasia: string;
+  id: string; codigo?: number; tipo: "Cliente" | "Fornecedor"; nome: string; nomeFantasia: string;
   cnpj: string; inscricaoEstadual: string; inscricaoMunicipal: string; esfera: string; descricao: string; cap: string;
   email: string; emailEngenharia: string; emailOsCc: string; emailOsBcc: string;
   emailSsCc: string; emailSsBcc: string; emailCompras: string;
