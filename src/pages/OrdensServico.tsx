@@ -781,6 +781,7 @@ export default function OrdensServicoPage() {
   };
 
   const ordensFiltradas = useMemo(() => {
+    const ssIdsComOrcamento = new Set(orcamentosAll.map(o => o.solicitacaoId).filter(Boolean));
     return ordens.filter(o => {
       const q = busca.toLowerCase();
       const matchBusca = !busca ||
@@ -798,6 +799,10 @@ export default function OrdensServicoPage() {
       const matchPrioridade = filtroPrioridade === "Todas" || o.prioridade === filtroPrioridade;
       const matchDataInicio = !filtroDataInicio || o.dataInicio >= filtroDataInicio;
       const matchDataFim = !filtroDataFim || o.dataInicio <= filtroDataFim;
+      const veioDeOrcamento = !!o.solicitacaoId && ssIdsComOrcamento.has(o.solicitacaoId);
+      const matchOrigem = filtroOrigem === "all"
+        || (filtroOrigem === "orcamento" && veioDeOrcamento)
+        || (filtroOrigem === "direta" && !veioDeOrcamento);
       const dataStatus = (situacao: string): string | null => {
         const hist = (o.historico || []).filter((h: any) => h?.situacao === situacao);
         if (hist.length === 0) return null;
@@ -812,9 +817,9 @@ export default function OrdensServicoPage() {
       const matchValIni = !filtroValidadaIni || (dtVal && dtVal !== "ok" && dtVal >= filtroValidadaIni);
       const matchValFim = !filtroValidadaFim || (dtVal && dtVal !== "ok" && dtVal <= filtroValidadaFim);
       return matchBusca && matchSituacao && matchCliente && matchPrioridade && matchDataInicio && matchDataFim
-        && matchConfIni && matchConfFim && matchValIni && matchValFim;
+        && matchConfIni && matchConfFim && matchValIni && matchValFim && matchOrigem;
     });
-  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim]);
+  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim, filtroOrigem, orcamentosAll]);
 
   // Sorting
   const [sortField, setSortField] = useState<string | null>("numero");
