@@ -64,11 +64,19 @@ export default function Auditoria() {
   const carregar = async () => {
     setLoading(true);
     const { data, error } = await (supabase as any).functions.invoke("audit-read", {
-      body: { dataIni, dataFim, limit: 2000 },
+      body: { dataIni, dataFim, limit: 500 },
     });
     if (!error && data?.ok) setRegistros(data.data || []);
     setLoading(false);
   };
+
+  // Carrega o registro completo (com snapshots) apenas ao abrir o detalhe.
+  const abrirDetalhe = async (r: Registro) => {
+    setDetalhe(r);
+    const { data, error } = await (supabase as any).functions.invoke("audit-read", { body: { id: r.id } });
+    if (!error && data?.ok && data.data) setDetalhe(data.data as Registro);
+  };
+
 
   useEffect(() => { carregar(); /* eslint-disable-next-line */ }, []);
 
@@ -187,7 +195,7 @@ export default function Auditoria() {
                     {r.entidade_descricao || <span className="text-muted-foreground">(sem descrição)</span>}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="ghost" onClick={() => setDetalhe(r)} title="Ver detalhes">
+                    <Button size="sm" variant="ghost" onClick={() => abrirDetalhe(r)} title="Ver detalhes">
                       <Eye className="h-4 w-4" />
                     </Button>
                   </TableCell>
