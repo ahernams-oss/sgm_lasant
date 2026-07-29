@@ -85,7 +85,7 @@ const ClientesContext = createContext<ClientesContextType | undefined>(undefined
 const QK = ["clientes"] as const;
 
 const rowToCliente = (r: any): Cliente => ({
-  id: r.id, tipo: r.tipo || "Cliente", nome: r.nome ?? "", nomeFantasia: r.nome_fantasia ?? "",
+  id: r.id, codigo: r.codigo ?? undefined, tipo: r.tipo || "Cliente", nome: r.nome ?? "", nomeFantasia: r.nome_fantasia ?? "",
   cnpj: r.cnpj ?? "", inscricaoEstadual: r.inscricao_estadual ?? "",
   inscricaoMunicipal: r.inscricao_municipal ?? "", esfera: r.esfera ?? "", descricao: r.descricao ?? "", cap: r.cap ?? "",
   email: r.email ?? "", emailEngenharia: r.email_engenharia ?? "",
