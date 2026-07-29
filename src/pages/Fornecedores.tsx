@@ -205,6 +205,7 @@ const Fornecedores = () => {
     const term = search.toLowerCase();
     return fornecedores.filter(
       (c) =>
+        String(c.codigo ?? "").includes(term) ||
         c.nome.toLowerCase().includes(term) ||
         c.nomeFantasia?.toLowerCase().includes(term) ||
         c.cnpj.toLowerCase().includes(term) ||
