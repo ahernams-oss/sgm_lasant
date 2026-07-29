@@ -5,6 +5,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AppLayout from "@/components/AppLayout";
+import OAuthConsent from "@/pages/OAuthConsent";
+
 import Index from "./pages/Index.tsx";
 import Home from "./pages/Home.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
@@ -549,7 +551,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           <Route path="/cotacao/proposta/:token" element={<PropostaFornecedorPage />} />
+
           <Route path="/portal-fornecedor" element={<PortalFornecedorPage />} />
           <Route path="/portal-fornecedor/pregao/:id/sala" element={<PregaoSalaFornecedorPage />} />
           <Route path="/unsubscribe" element={<UnsubscribePage />} />
