@@ -241,7 +241,7 @@ export default function OrdensServicoPage() {
   const [filtroConfirmadoFim, setFiltroConfirmadoFim] = useState(_osDatasStatus?.confFim ?? "");
   const [filtroValidadaIni, setFiltroValidadaIni] = useState(_osDatasStatus?.valIni ?? "");
   const [filtroValidadaFim, setFiltroValidadaFim] = useState(_osDatasStatus?.valFim ?? "");
-  usePersistFilters("ordens_servico_filters_v1", { busca, filtroSituacao, filtroPrioridade, filtroDataInicio, filtroDataFim });
+  usePersistFilters("ordens_servico_filters_v1", { busca, filtroSituacao, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroOrigem });
   usePersistFilters("ordens_servico_datas_status_v1", { confIni: filtroConfirmadoIni, confFim: filtroConfirmadoFim, valIni: filtroValidadaIni, valFim: filtroValidadaFim });
   const _osTipoData = loadPersistedFilters<{ tipo: "inicio" | "confirmado" | "validada" }>("ordens_servico_tipo_data_v1");
   const [tipoDataFiltro, setTipoDataFiltro] = useState<"inicio" | "confirmado" | "validada">(_osTipoData?.tipo ?? "inicio");
