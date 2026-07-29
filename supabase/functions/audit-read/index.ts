@@ -48,7 +48,27 @@ Deno.serve(async (req) => {
 
     const { data, error, count } = await q;
     if (error) return json({ ok: false, error: error.message }, 500);
-    return json({ ok: true, data, total: count ?? 0, page, pageSize });
+
+    // Resumo (contagens por ação) usando HEAD counts — não carrega linhas.
+    let resumo: Record<string, number> | undefined;
+    if (body?.resumo !== false) {
+      const base = () => {
+        let c = admin.from("auditoria").select("id", { count: "exact", head: true });
+        if (dataIni) c = c.gte("created_at", new Date(dataIni + "T00:00:00").toISOString());
+        if (dataFim) c = c.lte("created_at", new Date(dataFim + "T23:59:59").toISOString());
+        if (modulo && modulo !== "todos") c = c.eq("modulo", modulo);
+        return c;
+      };
+      const [i, u, d] = await Promise.all([
+        base().eq("acao", "insert"),
+        base().eq("acao", "update"),
+        base().eq("acao", "delete"),
+      ]);
+      resumo = { insert: i.count ?? 0, update: u.count ?? 0, delete: d.count ?? 0 };
+    }
+
+    return json({ ok: true, data, total: count ?? 0, page, pageSize, resumo });
+
   } catch (e) {
     return json({ ok: false, error: (e as Error).message }, 500);
   }
