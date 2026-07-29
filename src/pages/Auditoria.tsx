@@ -116,19 +116,18 @@ export default function Auditoria() {
           <h1 className="text-2xl font-serif font-semibold">Auditoria do Sistema</h1>
           <p className="text-sm text-muted-foreground">Registro de criações, edições e exclusões em todos os módulos.</p>
         </div>
-        <Button variant="outline" onClick={carregar} disabled={loading}>
+        <Button variant="outline" onClick={() => carregar()} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />
           Atualizar
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: "Total de eventos", value: kpis.total, color: "text-foreground" },
-          { label: "Criações", value: kpis.c, color: "text-emerald-600" },
-          { label: "Edições", value: kpis.u, color: "text-amber-600" },
-          { label: "Exclusões", value: kpis.d, color: "text-destructive" },
-          { label: "Usuários distintos", value: kpis.usuariosUnicos, color: "text-primary" },
+          { label: "Total de eventos", value: total, color: "text-foreground" },
+          { label: "Criações", value: resumo.insert, color: "text-emerald-600" },
+          { label: "Edições", value: resumo.update, color: "text-amber-600" },
+          { label: "Exclusões", value: resumo.delete, color: "text-destructive" },
         ].map((k) => (
           <Card key={k.label}><CardContent className="p-4">
             <div className="text-xs text-muted-foreground">{k.label}</div>
@@ -136,6 +135,7 @@ export default function Auditoria() {
           </CardContent></Card>
         ))}
       </div>
+
 
       <Card>
         <CardHeader className="pb-2">
