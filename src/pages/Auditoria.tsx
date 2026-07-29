@@ -171,7 +171,7 @@ export default function Auditoria() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">{filtrados.length} evento(s)</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{total} evento(s)</CardTitle></CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
@@ -211,7 +211,7 @@ export default function Auditoria() {
               )}
             </TableBody>
           </Table>
-          <PaginationControls currentPage={page} totalItems={filtrados.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
+          <PaginationControls currentPage={page} totalItems={total} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
         </CardContent>
       </Card>
 
