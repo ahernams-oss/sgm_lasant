@@ -228,8 +228,9 @@ export default function OrdensServicoPage() {
   const [viewOS, setViewOS] = useState<OrdemServico | null>(null);
   const [viewSSTarget, setViewSSTarget] = useState<SolicitacaoServico | null>(null);
   const { orcamentos: orcamentosAll } = useOrcamentos();
-  const _osSavedFilters = loadPersistedFilters<{ busca: string; filtroSituacao: string; filtroPrioridade: string; filtroDataInicio: string; filtroDataFim: string; }>("ordens_servico_filters_v1");
+  const _osSavedFilters = loadPersistedFilters<{ busca: string; filtroSituacao: string; filtroPrioridade: string; filtroDataInicio: string; filtroDataFim: string; filtroOrigem: string; }>("ordens_servico_filters_v1");
   const [busca, setBusca] = useState(_osSavedFilters?.busca ?? "");
+  const [filtroOrigem, setFiltroOrigem] = useState(_osSavedFilters?.filtroOrigem ?? "all");
   const [filtroSituacao, setFiltroSituacao] = useState(_osSavedFilters?.filtroSituacao ?? "Todas");
   const [filtroCliente, setFiltroCliente] = useState(() => localStorage.getItem("os_filtroCliente") || "Todos");
   const [filtroPrioridade, setFiltroPrioridade] = useState(_osSavedFilters?.filtroPrioridade ?? "Todas");
@@ -240,7 +241,7 @@ export default function OrdensServicoPage() {
   const [filtroConfirmadoFim, setFiltroConfirmadoFim] = useState(_osDatasStatus?.confFim ?? "");
   const [filtroValidadaIni, setFiltroValidadaIni] = useState(_osDatasStatus?.valIni ?? "");
   const [filtroValidadaFim, setFiltroValidadaFim] = useState(_osDatasStatus?.valFim ?? "");
-  usePersistFilters("ordens_servico_filters_v1", { busca, filtroSituacao, filtroPrioridade, filtroDataInicio, filtroDataFim });
+  usePersistFilters("ordens_servico_filters_v1", { busca, filtroSituacao, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroOrigem });
   usePersistFilters("ordens_servico_datas_status_v1", { confIni: filtroConfirmadoIni, confFim: filtroConfirmadoFim, valIni: filtroValidadaIni, valFim: filtroValidadaFim });
   const _osTipoData = loadPersistedFilters<{ tipo: "inicio" | "confirmado" | "validada" }>("ordens_servico_tipo_data_v1");
   const [tipoDataFiltro, setTipoDataFiltro] = useState<"inicio" | "confirmado" | "validada">(_osTipoData?.tipo ?? "inicio");
@@ -780,6 +781,7 @@ export default function OrdensServicoPage() {
   };
 
   const ordensFiltradas = useMemo(() => {
+    const ssIdsComOrcamento = new Set(orcamentosAll.map(o => o.solicitacaoId).filter(Boolean));
     return ordens.filter(o => {
       const q = busca.toLowerCase();
       const matchBusca = !busca ||
@@ -797,6 +799,10 @@ export default function OrdensServicoPage() {
       const matchPrioridade = filtroPrioridade === "Todas" || o.prioridade === filtroPrioridade;
       const matchDataInicio = !filtroDataInicio || o.dataInicio >= filtroDataInicio;
       const matchDataFim = !filtroDataFim || o.dataInicio <= filtroDataFim;
+      const veioDeOrcamento = !!o.solicitacaoId && ssIdsComOrcamento.has(o.solicitacaoId);
+      const matchOrigem = filtroOrigem === "all"
+        || (filtroOrigem === "orcamento" && veioDeOrcamento)
+        || (filtroOrigem === "direta" && !veioDeOrcamento);
       const dataStatus = (situacao: string): string | null => {
         const hist = (o.historico || []).filter((h: any) => h?.situacao === situacao);
         if (hist.length === 0) return null;
@@ -811,9 +817,9 @@ export default function OrdensServicoPage() {
       const matchValIni = !filtroValidadaIni || (dtVal && dtVal !== "ok" && dtVal >= filtroValidadaIni);
       const matchValFim = !filtroValidadaFim || (dtVal && dtVal !== "ok" && dtVal <= filtroValidadaFim);
       return matchBusca && matchSituacao && matchCliente && matchPrioridade && matchDataInicio && matchDataFim
-        && matchConfIni && matchConfFim && matchValIni && matchValFim;
+        && matchConfIni && matchConfFim && matchValIni && matchValFim && matchOrigem;
     });
-  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim]);
+  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim, filtroOrigem, orcamentosAll]);
 
   // Sorting
   const [sortField, setSortField] = useState<string | null>("numero");
@@ -1065,6 +1071,17 @@ export default function OrdensServicoPage() {
                 <SelectContent>
                   <SelectItem value="Todas">Todas</SelectItem>
                   {PRIORIDADES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-[180px]">
+              <Label>Origem</Label>
+              <Select value={filtroOrigem} onValueChange={v => { setFiltroOrigem(v); setPage(1); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="orcamento">De Orçamento</SelectItem>
+                  <SelectItem value="direta">Direta</SelectItem>
                 </SelectContent>
               </Select>
             </div>
