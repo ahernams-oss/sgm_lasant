@@ -523,6 +523,7 @@ export type Database = {
           cep: string | null
           cidade: string | null
           cnpj: string | null
+          codigo: number | null
           complemento: string | null
           contato: string | null
           contratos: Json | null
@@ -568,6 +569,7 @@ export type Database = {
           cep?: string | null
           cidade?: string | null
           cnpj?: string | null
+          codigo?: number | null
           complemento?: string | null
           contato?: string | null
           contratos?: Json | null
@@ -613,6 +615,7 @@ export type Database = {
           cep?: string | null
           cidade?: string | null
           cnpj?: string | null
+          codigo?: number | null
           complemento?: string | null
           contato?: string | null
           contratos?: Json | null
