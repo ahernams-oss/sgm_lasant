@@ -220,31 +220,26 @@ export default function DashboardMedicoes() {
 
   return (
     <div className="p-4 md:p-8 space-y-6 animate-fade-up">
-      {/* Hero Header */}
-      <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary via-primary/90 to-indigo-700 p-6 md:p-8 text-primary-foreground shadow-lg">
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
-        <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm mb-3">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider">Engenharia e Manutenção · Visão Executiva</span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard de Medição de Serviços e Obras</h1>
-            <p className="text-sm md:text-base text-primary-foreground/85 mt-1.5 max-w-2xl">
-              Acompanhamento financeiro e operacional consolidado das medições de obras e contratos.
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
+      <DashboardHeader
+        title="Dashboard de Medição de Serviços e Obras"
+        badge="Engenharia e Manutenção · Visão Executiva"
+        description="Acompanhamento financeiro e operacional consolidado das medições de obras e contratos."
+        lastUpdated={lastUpdated}
+        isRefreshing={isRefreshing}
+        autoRefresh={autoRefresh}
+        onToggleAutoRefresh={setAutoRefresh}
+        onRefresh={refresh}
+        actions={
+          <>
             <Button variant="secondary" size="sm" className="h-9 text-xs gap-1.5 bg-white text-primary hover:bg-white/90 shadow-sm" onClick={() => downloadPdfMedicoes(filtered, filterLabel)}>
               <FileText className="h-3.5 w-3.5" /> Relatório PDF
             </Button>
             <Button variant="secondary" size="sm" className="h-9 text-xs gap-1.5 bg-white/15 text-white hover:bg-white/25 border border-white/20 backdrop-blur-sm" onClick={() => downloadExcelMedicoes(filtered, filterLabel)}>
               <Download className="h-3.5 w-3.5" /> Relatório Excel
             </Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Filters */}
       <Card>
