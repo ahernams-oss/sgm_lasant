@@ -359,18 +359,26 @@ export default function DashboardSSOS() {
     if (orcPeriodo === "semana") { const r = new Date(d); r.setDate(d.getDate() - 7); return r; }
     if (orcPeriodo === "quinzena") { const r = new Date(d); r.setDate(d.getDate() - 15); return r; }
     if (orcPeriodo === "mes") { const r = new Date(d); r.setDate(d.getDate() - 30); return r; }
+    if (orcPeriodo === "personalizado") return orcDe ? new Date(`${orcDe}T00:00:00`) : null;
     return null;
-  }, [orcPeriodo]);
+  }, [orcPeriodo, orcDe]);
+
+  const orcEndDate = useMemo(() => {
+    if (orcPeriodo !== "personalizado" || !orcAte) return null;
+    return new Date(`${orcAte}T23:59:59`);
+  }, [orcPeriodo, orcAte]);
 
   const orcamentosFiltrados = useMemo(() => {
     return orcamentos.filter(o => {
       const d = parseDate(o.dataCriacao || o.createdAt);
       if (!inRange(d)) return false;
       if (orcStartDate && d && d < orcStartDate) return false;
+      if (orcEndDate && d && d > orcEndDate) return false;
       if (clienteFilter !== "todos" && o.clienteId !== clienteFilter) return false;
       return true;
     });
-  }, [orcamentos, dateFrom, dateTo, clienteFilter, orcStartDate]);
+  }, [orcamentos, dateFrom, dateTo, clienteFilter, orcStartDate, orcEndDate]);
+
 
   const orcTotalQtd = orcamentosFiltrados.length;
   const orcValorTotal = orcamentosFiltrados.reduce((s, o) => s + (Number(o.valorTotal) || 0), 0);
