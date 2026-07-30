@@ -331,6 +331,24 @@ const ProcessoSeletivoPage = () => {
     }
   };
 
+  const handleAprovacaoExpressa = async (candidato: Candidato) => {
+    if (!podeAvaliar) { toast.error("Você não possui permissão para esta ação."); return; }
+    if (!podeStatusPS("aprovado")) { toast.error('Você não possui permissão para marcar candidato como "aprovado".'); return; }
+    const dateNow = new Date().toLocaleDateString("pt-BR");
+    const marca = `[Aprovação Expressa em ${dateNow}]`;
+    await updateCandidato(processo!.id, candidato.id, {
+      statusPsicologico: "aprovado",
+      statusTecnico: "aprovado",
+      parecerPsicologo: candidato.parecerPsicologo?.trim() || `Aprovado automaticamente via Aprovação Expressa. ${marca}`,
+      parecerTecnico: candidato.parecerTecnico?.trim() || `Aprovado automaticamente via Aprovação Expressa. ${marca}`,
+      dataEntrevistaTecnica: candidato.dataEntrevistaTecnica || dateNow,
+      dataLiberacao: dateNow,
+      etapaAtual: "liberacao",
+      statusLiberacao: "pendente",
+    });
+    toast.success(`${candidato.nome} aprovado(a) por Aprovação Expressa — aguardando Liberação.`);
+  };
+
   const getEtapaStatus = (c: Candidato, etapa: EtapaCandidato) => {
     if (etapa === "entrevista_psicologica") return c.statusPsicologico;
     if (etapa === "entrevista_tecnica") return c.statusTecnico;
