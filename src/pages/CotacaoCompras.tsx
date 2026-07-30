@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { supabase } from "@/integrations/supabase/client";
+import { enviarEmailCompras } from "@/lib/emailCompras";
 import { useCargos } from "@/contexts/CargosContext";
 import { usePcAssinaturas } from "@/contexts/PcAssinaturasContext";
 import { gerarHashPc } from "@/lib/assinaturaHashPc";

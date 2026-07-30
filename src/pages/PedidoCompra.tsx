@@ -28,6 +28,7 @@ import { downloadPdfOrdemCompra, uploadPdfOrdemCompra } from "@/lib/gerarPdfOrde
 import { enviarPlugSend as enviarWhatsApp, enviarPlugSendComDocumento as enviarWhatsAppComDocumento } from "@/lib/plugsend";
 import { notificarCompras, formatarPrioridade, formatarDataHora, formatarData, formatarPedido } from "@/lib/notificacoesCompras";
 import { supabase } from "@/integrations/supabase/client";
+import { enviarEmailCompras } from "@/lib/emailCompras";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
