@@ -23,10 +23,12 @@ const ProcessosSeletivos = () => {
   const [search, setSearch] = useState("");
   const [cliente, setCliente] = useState("");
   const [cargo, setCargo] = useState("");
+  const [status, setStatus] = useState("");
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
 
   const processosComReq = useMemo(() =>
     processos.map((p) => ({
@@ -51,6 +53,15 @@ const ProcessosSeletivos = () => {
       ).sort((a, b) => (a as string).localeCompare(b as string)),
     [processosComReq]
   );
+
+  const getProcessoStatus = (p: typeof processosComReq[0]) => {
+    const total = p.candidatos.length;
+    if (total === 0) return "em_andamento";
+    const contratados = p.candidatos.filter((c) => c.etapaAtual === "contratacao").length;
+    if (contratados === total) return "concluido";
+    if (p.candidatos.some((c) => c.etapaAtual === "liberacao")) return "liberacao";
+    return "em_andamento";
+  };
 
   const parseData = (s: string) => {
     const [d, m, y] = (s || "").split("/");
@@ -79,25 +90,29 @@ const ProcessosSeletivos = () => {
         p.candidatos.some((c) => c.nome.toLowerCase().includes(term));
       const matchCliente = !cliente || p.requisicao?.unidade === cliente;
       const matchCargo = !cargo || p.requisicao?.cargoNome === cargo;
+      const matchStatus = !status || getProcessoStatus(p) === status;
       const matchPeriodo =
         (!inicio || dataProc >= inicio) &&
         (!fimAjustado || dataProc <= fimAjustado);
-      return matchSearch && matchCliente && matchCargo && matchPeriodo;
+      return matchSearch && matchCliente && matchCargo && matchStatus && matchPeriodo;
     });
 
     return [...base].sort((a, b) => parseData(b.dataCriacao) - parseData(a.dataCriacao));
-  }, [processosComReq, search, cliente, cargo, dataInicio, dataFim]);
+  }, [processosComReq, search, cliente, cargo, status, dataInicio, dataFim]);
+
 
   const limparFiltros = () => {
     setSearch("");
     setCliente("");
     setCargo("");
+    setStatus("");
     setDataInicio("");
     setDataFim("");
     setPage(1);
   };
 
-  const filtrosAtivos = search || cliente || cargo || dataInicio || dataFim;
+  const filtrosAtivos = search || cliente || cargo || status || dataInicio || dataFim;
+
 
   return (
     <div className="bg-background">
@@ -124,7 +139,7 @@ const ProcessosSeletivos = () => {
               <SlidersHorizontal className="h-4 w-4 text-primary" />
               Filtros
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -158,6 +173,19 @@ const ProcessosSeletivos = () => {
                   ))}
                 </SelectContent>
               </Select>
+
+              <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value=" ">Todos</SelectItem>
+                  <SelectItem value="em_andamento">Em andamento</SelectItem>
+                  <SelectItem value="liberacao">Em liberação</SelectItem>
+                  <SelectItem value="concluido">Concluído</SelectItem>
+                </SelectContent>
+              </Select>
+
 
               <div className="flex items-center gap-2">
                 <Input
