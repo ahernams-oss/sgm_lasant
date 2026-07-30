@@ -2331,6 +2331,24 @@ export default function OrdensServicoPage() {
                 ) : null;
               })()}
 
+              {viewOS.situacao === "Cancelada" && (() => {
+                const evt = [...(viewOS.historico || [])].reverse().find((h: any) => h.situacao === "Cancelada" && h.motivo);
+                return (
+                  <div className="border border-destructive/40 rounded-lg p-4 bg-destructive/5 space-y-1">
+                    <h4 className="text-sm font-semibold flex items-center gap-2 text-destructive">
+                      <Ban className="h-4 w-4" /> OS Cancelada
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      {evt?.usuario ? `Por ${evt.usuario}` : ""}{evt?.data ? ` em ${new Date(evt.data).toLocaleString("pt-BR")}` : ""}
+                    </p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      <span className="font-semibold">Justificativa: </span>
+                      {(evt as any)?.motivo || "-"}
+                    </p>
+                  </div>
+                );
+              })()}
+
               <div>
                 <p className="text-xs text-muted-foreground font-semibold">Aprovador:</p>
                 <p>{viewOS.operadorNome || "-"}</p>
