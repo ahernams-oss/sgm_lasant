@@ -2406,37 +2406,83 @@ export default function OrdensServicoPage() {
       {/* Double Confirm Delete */}
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
 
-      {/* Cancel OS with motivo */}
-      <Dialog open={!!cancelId} onOpenChange={o => { if (!o) { setCancelMotivo(""); cancelCancelAction(); } }}>
+      {/* Cancel OS: motivo + dupla confirmação + senha */}
+      <Dialog open={!!cancelId} onOpenChange={o => { if (!o) closeCancelDialog(); }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Ban className="h-5 w-5 text-destructive" />
-              Confirmação de Cancelamento
+              Cancelamento de Ordem de Serviço {cancelStep === 1 ? "(1/3)" : cancelStep === 2 ? "(2/3)" : "(3/3)"}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3 py-2">
-            <p className="text-sm text-muted-foreground">
-              A Ordem de Serviço será mantida no sistema com status <b>Cancelada</b>. Informe o motivo do cancelamento — ele ficará registrado no histórico da OS.
-            </p>
-            <div>
-              <Label>Motivo do cancelamento *</Label>
-              <Textarea
-                value={cancelMotivo}
-                onChange={e => setCancelMotivo(e.target.value)}
-                placeholder="Descreva o motivo do cancelamento..."
-                rows={4}
-                required
-                aria-required="true"
-              />
+
+          {cancelStep === 1 && (
+            <div className="space-y-3 py-2">
+              <p className="text-sm text-muted-foreground">
+                A Ordem de Serviço será mantida no sistema com status <b>Cancelada</b>. Informe a justificativa — ela ficará registrada e visível na OS.
+              </p>
+              <div>
+                <Label>Justificativa do cancelamento *</Label>
+                <Textarea
+                  value={cancelMotivo}
+                  onChange={e => setCancelMotivo(e.target.value)}
+                  placeholder="Descreva o motivo do cancelamento..."
+                  rows={4}
+                  required
+                  aria-required="true"
+                />
+              </div>
             </div>
-          </div>
+          )}
+
+          {cancelStep === 2 && (
+            <div className="space-y-3 py-2">
+              <p className="text-sm">
+                Confirma novamente o cancelamento desta Ordem de Serviço? Esta operação altera definitivamente a situação da OS.
+              </p>
+              <div className="border rounded-md p-3 bg-muted/30 text-sm whitespace-pre-wrap">
+                <span className="text-xs font-semibold text-muted-foreground block mb-1">Justificativa informada:</span>
+                {cancelMotivo.trim()}
+              </div>
+            </div>
+          )}
+
+          {cancelStep === 3 && (
+            <div className="space-y-3 py-2">
+              <p className="text-sm text-muted-foreground">
+                Para concluir, confirme sua senha de acesso.
+              </p>
+              <div>
+                <Label>Senha *</Label>
+                <Input
+                  type="password"
+                  value={cancelSenha}
+                  onChange={e => setCancelSenha(e.target.value)}
+                  placeholder="Digite sua senha"
+                  autoComplete="current-password"
+                  onKeyDown={e => { if (e.key === "Enter" && !cancelLoading) handleCancelOS(); }}
+                />
+              </div>
+            </div>
+          )}
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setCancelMotivo(""); cancelCancelAction(); }}>Voltar</Button>
-            <Button variant="destructive" onClick={handleCancelOS}>Confirmar Cancelamento</Button>
+            <Button variant="outline" onClick={closeCancelDialog}>Voltar</Button>
+            {cancelStep === 1 && (
+              <Button variant="destructive" onClick={() => { if (validarMotivoCancelamento()) setCancelStep(2); }}>Continuar</Button>
+            )}
+            {cancelStep === 2 && (
+              <Button variant="destructive" onClick={() => setCancelStep(3)}>Sim, confirmo o cancelamento</Button>
+            )}
+            {cancelStep === 3 && (
+              <Button variant="destructive" onClick={handleCancelOS} disabled={cancelLoading}>
+                {cancelLoading ? "Validando..." : "Confirmar Cancelamento"}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
 
 
       {/* Dialog: Justificativa para Não Aprovar */}
