@@ -465,6 +465,26 @@ export default function DashboardSSOS() {
         onRefresh={refresh}
         actions={
           <>
+            <DashboardExportButtons
+              title="Dashboard SS e OS"
+              kpis={() => [
+                { grupo: "Solicitações", label: "Total SS", value: ssTotal },
+                { grupo: "Solicitações", label: "Aguardando aprovação", value: ssAguardando },
+                { grupo: "Solicitações", label: "Aprovadas", value: ssAprovadas },
+                { grupo: "Solicitações", label: "Concluídas", value: ssConcluidas },
+                { grupo: "Solicitações", label: "Canceladas", value: ssCanceladas },
+                { grupo: "Ordens de Serviço", label: "Total OS", value: osTotal },
+                { grupo: "Ordens de Serviço", label: "Abertas", value: osAbertas },
+                { grupo: "Ordens de Serviço", label: "Executadas", value: osExecutadas },
+                { grupo: "Ordens de Serviço", label: "Validadas", value: osValidadas },
+                { grupo: "Ordens de Serviço", label: "Emergenciais", value: osEmergenciais },
+                { grupo: "Ordens de Serviço", label: "Conversão SS→OS", value: `${taxaConversao.toFixed(1)}%` },
+                { grupo: "Ordens de Serviço", label: "Taxa de conclusão", value: `${taxaConclusao.toFixed(1)}%` },
+                { grupo: "Orçamentos", label: "Quantidade", value: orcTotalQtd },
+                { grupo: "Orçamentos", label: "Valor total orçado", value: fmtBRL(orcValorTotal) },
+                { grupo: "Orçamentos", label: "Ticket médio", value: fmtBRL(orcTicketMedio) },
+              ]}
+            />
             <Button variant="secondary" size="sm" onClick={() => downloadPdfDashboardSSOS(buildReportData())} className="h-9 bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm">
               <FileDown className="mr-2 h-4 w-4" /> Exportar PDF
             </Button>
@@ -473,6 +493,7 @@ export default function DashboardSSOS() {
             </Button>
           </>
         }
+
       />
 
       {/* Filtros */}
