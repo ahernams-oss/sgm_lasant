@@ -105,12 +105,14 @@ const ProcessosSeletivos = () => {
     setSearch("");
     setCliente("");
     setCargo("");
+    setStatus("");
     setDataInicio("");
     setDataFim("");
     setPage(1);
   };
 
-  const filtrosAtivos = search || cliente || cargo || dataInicio || dataFim;
+  const filtrosAtivos = search || cliente || cargo || status || dataInicio || dataFim;
+
 
   return (
     <div className="bg-background">
