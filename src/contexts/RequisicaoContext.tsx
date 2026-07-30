@@ -64,6 +64,7 @@ const reqToRow = (r: Requisicao) => ({
   unidade: r.unidade,
   cargo_nome: r.cargoNome, cargo_id: r.cargoId, jornada: r.jornada,
   carga_horaria: r.cargaHoraria, tipo_contratacao: r.tipoContratacao as any,
+  tipo_contratacao_detalhe: r.tipoContratacaoDetalhe ?? "",
   interno_externo: r.internoExterno, origem_vaga: r.origemVaga,
   motivo_outros: r.motivoOutros, matricula: r.matricula,
   nome_substituido: r.nomeSubstituido, cargo_substituido: r.cargoSubstituido,
