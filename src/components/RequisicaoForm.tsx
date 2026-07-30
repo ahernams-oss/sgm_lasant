@@ -32,10 +32,20 @@ interface Indicado {
   nome: string;
   telefone: string;
   email: string;
+  cpf: string;
+  dataNascimento: string;
   arquivo: File | null;
 }
 
-const emptyIndicado = (): Indicado => ({ nome: "", telefone: "", email: "", arquivo: null });
+const emptyIndicado = (): Indicado => ({ nome: "", telefone: "", email: "", cpf: "", dataNascimento: "", arquivo: null });
+
+const fileToBase64 = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
 const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { cargos } = useCargos();
@@ -78,13 +88,45 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
   const isAumentoQuadro = form.origemVaga === "Aumento de Quadro";
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.unidade || !form.cargo) {
       toast.error("Preencha ao menos a Unidade e o Cargo.");
       return;
     }
     const cargoObj = cargos.find((c) => c.id === form.cargo);
+
+    let indicadosPayload: {
+      nome: string; telefone: string; email: string; cpf: string; dataNascimento: string;
+      curriculo?: { nome: string; tipo: string; base64: string } | null;
+    }[] = [];
+    if (form.desejaIndicar === "Sim") {
+      const preenchidos = indicados.filter((i) => i.nome.trim());
+      for (const i of preenchidos) {
+        const cpfDigits = i.cpf.replace(/\D/g, "");
+        if (cpfDigits.length !== 11) {
+          toast.error(`Informe um CPF válido para o indicado "${i.nome}".`);
+          return;
+        }
+        if (!i.dataNascimento) {
+          toast.error(`Informe a data de nascimento do indicado "${i.nome}".`);
+          return;
+        }
+        let curriculo: { nome: string; tipo: string; base64: string } | null = null;
+        if (i.arquivo) {
+          if (i.arquivo.size > 2 * 1024 * 1024) {
+            toast.error(`O currículo de "${i.nome}" excede 2MB.`);
+            return;
+          }
+          curriculo = { nome: i.arquivo.name, tipo: i.arquivo.type, base64: await fileToBase64(i.arquivo) };
+        }
+        indicadosPayload.push({
+          nome: i.nome.trim(), telefone: i.telefone, email: i.email,
+          cpf: cpfDigits, dataNascimento: i.dataNascimento, curriculo,
+        });
+      }
+    }
+
     addRequisicao({
       headcount: form.headcount,
       orcamento: form.orcamento,
@@ -110,9 +152,11 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       atividadesCargo: form.atividadesCargo,
       salarioVaga: form.salarioVaga,
       solicitante: usuarioLogado?.nome || "",
+      indicados: indicadosPayload,
     });
     toast.success("Requisição enviada com sucesso!");
     onSuccess?.();
+    setIndicados([emptyIndicado()]);
     setForm({
       headcount: "", orcamento: "", tipoVaga: "",
       unidade: "", cargo: "", jornada: "", cargaHoraria: "",
@@ -523,6 +567,39 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                         onChange={(e) => {
                           const updated = [...indicados];
                           updated[idx] = { ...updated[idx], email: e.target.value };
+                          setIndicados(updated);
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="field-label">CPF</label>
+                      <Input
+                        placeholder="000.000.000-00"
+                        inputMode="numeric"
+                        maxLength={14}
+                        value={ind.cpf}
+                        onChange={(e) => {
+                          const d = e.target.value.replace(/\D/g, "").slice(0, 11);
+                          const masked = d
+                            .replace(/^(\d{3})(\d)/, "$1.$2")
+                            .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+                            .replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2");
+                          const updated = [...indicados];
+                          updated[idx] = { ...updated[idx], cpf: masked };
+                          setIndicados(updated);
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="field-label">Data de Nascimento</label>
+                      <Input
+                        type="date"
+                        value={ind.dataNascimento}
+                        onChange={(e) => {
+                          const updated = [...indicados];
+                          updated[idx] = { ...updated[idx], dataNascimento: e.target.value };
                           setIndicados(updated);
                         }}
                       />
