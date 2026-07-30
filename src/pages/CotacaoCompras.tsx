@@ -2024,43 +2024,76 @@ export default function CotacaoComprasPage() {
 
       {/* Dialog Enviar PDF da Cotação por E-mail */}
       <Dialog open={pdfDialogOpen} onOpenChange={setPdfDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Enviar PDF da Cotação por E-mail</DialogTitle>
             <DialogDescription>
-              Gera o PDF do Pedido de Cotação e envia diretamente ao e-mail do fornecedor escolhido.
+              Gera o PDF do Pedido de Cotação e envia aos e-mails dos fornecedores selecionados.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <Label>Fornecedor *</Label>
-              <Select value={pdfFornecedorId} onValueChange={handleSelectFornecedorPdf}>
-                <SelectTrigger><SelectValue placeholder="Selecione um fornecedor..." /></SelectTrigger>
-                <SelectContent>
-                  {fornecedores.map(f => (
-                    <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>E-mail do Fornecedor *</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label>Fornecedores * ({pdfFornecedorIds.length} selecionado(s))</Label>
+                {pdfFornecedorIds.length > 0 && (
+                  <Button variant="ghost" size="sm" onClick={() => { setPdfFornecedorIds([]); setPdfEmails({}); }}>Limpar</Button>
+                )}
+              </div>
               <Input
-                type="email"
-                value={pdfEmail}
-                onChange={e => setPdfEmail(e.target.value)}
-                placeholder="email@fornecedor.com"
+                placeholder="Buscar fornecedor..."
+                value={pdfBusca}
+                onChange={e => setPdfBusca(e.target.value)}
+                className="mb-2"
               />
-              <p className="text-xs text-muted-foreground mt-1">Preenchido do cadastro. Ajuste se necessário.</p>
+              <div className="max-h-48 overflow-y-auto rounded-md border p-2 space-y-1">
+                {fornecedores
+                  .filter(f => f.nome.toLowerCase().includes(pdfBusca.toLowerCase()))
+                  .map(f => (
+                    <label key={f.id} className="flex items-center gap-2 rounded px-1 py-1 hover:bg-muted cursor-pointer">
+                      <Checkbox
+                        checked={pdfFornecedorIds.includes(f.id)}
+                        onCheckedChange={() => togglePdfFornecedor(f.id)}
+                      />
+                      <span className="text-sm">{f.nome}</span>
+                    </label>
+                  ))}
+                {fornecedores.filter(f => f.nome.toLowerCase().includes(pdfBusca.toLowerCase())).length === 0 && (
+                  <p className="text-sm text-muted-foreground py-2 text-center">Nenhum fornecedor encontrado</p>
+                )}
+              </div>
             </div>
+
+            {pdfFornecedorIds.length > 0 && (
+              <div className="space-y-2">
+                <Label>E-mails dos Fornecedores *</Label>
+                <div className="max-h-52 overflow-y-auto space-y-2 pr-1">
+                  {pdfFornecedorIds.map(id => {
+                    const f = fornecedores.find(x => x.id === id);
+                    return (
+                      <div key={id}>
+                        <p className="text-xs text-muted-foreground mb-1">{f?.nome}</p>
+                        <Input
+                          type="email"
+                          value={pdfEmails[id] || ""}
+                          onChange={e => setPdfEmails(prev => ({ ...prev, [id]: e.target.value }))}
+                          placeholder="email@fornecedor.com"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground">Preenchidos do cadastro. Ajuste se necessário.</p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPdfDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleEnviarPdfFornecedor} disabled={pdfLoading || !pdfFornecedorId || !pdfEmail}>
+            <Button onClick={handleEnviarPdfFornecedor} disabled={pdfLoading || pdfFornecedorIds.length === 0}>
               <Mail className="mr-2 h-4 w-4" />
-              {pdfLoading ? "Enviando..." : "Enviar PDF"}
+              {pdfLoading ? "Enviando..." : `Enviar PDF${pdfFornecedorIds.length > 1 ? ` (${pdfFornecedorIds.length})` : ""}`}
             </Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
     </div>
