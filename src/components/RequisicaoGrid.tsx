@@ -83,6 +83,8 @@ const RequisicaoGrid = () => {
   const [justificativaReprovacao, setJustificativaReprovacao] = useState("");
   const [suspendendoReq, setSuspendendoReq] = useState<Requisicao | null>(null);
   const [justificativaSuspensao, setJustificativaSuspensao] = useState("");
+  const [aprovandoReq, setAprovandoReq] = useState<Requisicao | null>(null);
+  const [justificativaAprovacao, setJustificativaAprovacao] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(7);
 
