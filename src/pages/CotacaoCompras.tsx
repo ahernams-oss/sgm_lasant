@@ -180,8 +180,9 @@ export default function CotacaoComprasPage() {
   // Enviar PDF por e-mail (cotação direta)
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
   const [pdfCotacaoId, setPdfCotacaoId] = useState("");
-  const [pdfFornecedorId, setPdfFornecedorId] = useState("");
-  const [pdfEmail, setPdfEmail] = useState("");
+  const [pdfFornecedorIds, setPdfFornecedorIds] = useState<string[]>([]);
+  const [pdfEmails, setPdfEmails] = useState<Record<string, string>>({});
+  const [pdfBusca, setPdfBusca] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const compradores = useMemo(() => {
@@ -616,69 +617,101 @@ export default function CotacaoComprasPage() {
 
   const openPdfDialog = (cotId: string) => {
     setPdfCotacaoId(cotId);
-    setPdfFornecedorId("");
-    setPdfEmail("");
+    setPdfFornecedorIds([]);
+    setPdfEmails({});
+    setPdfBusca("");
     setPdfDialogOpen(true);
   };
 
-  const handleSelectFornecedorPdf = (fornId: string) => {
-    setPdfFornecedorId(fornId);
+  const emailPadraoFornecedor = (fornId: string) => {
     const forn = fornecedores.find(f => f.id === fornId);
-    setPdfEmail((forn as any)?.emailCompras || forn?.email || "");
+    return (forn as any)?.emailCompras || forn?.email || "";
+  };
+
+  const togglePdfFornecedor = (fornId: string) => {
+    setPdfFornecedorIds(prev => {
+      if (prev.includes(fornId)) return prev.filter(id => id !== fornId);
+      setPdfEmails(e => (e[fornId] !== undefined ? e : { ...e, [fornId]: emailPadraoFornecedor(fornId) }));
+      return [...prev, fornId];
+    });
   };
 
   const handleEnviarPdfFornecedor = async () => {
-    if (!pdfFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
-    if (!pdfEmail) { toast({ title: "Informe o e-mail do fornecedor", variant: "destructive" }); return; }
+    if (pdfFornecedorIds.length === 0) { toast({ title: "Selecione ao menos um fornecedor", variant: "destructive" }); return; }
+    const semEmail = pdfFornecedorIds.filter(id => !(pdfEmails[id] || "").trim());
+    if (semEmail.length > 0) {
+      toast({ title: "Informe o e-mail de todos os fornecedores selecionados", variant: "destructive" });
+      return;
+    }
     setPdfLoading(true);
+    const enviados: string[] = [];
+    const falhas: string[] = [];
     try {
       const cot = cotacoes.find(c => c.id === pdfCotacaoId);
       const req = requisicoes.find(r => r.id === cot?.requisicaoId) || null;
-      const forn = fornecedores.find(f => f.id === pdfFornecedorId);
-      if (!cot || !forn) throw new Error("Dados não encontrados");
-
-      const { blob, fileName } = await gerarBlobPedidoCotacao({
-        cotacao: cot,
-        requisicao: req,
-        empresa,
-        fornecedor: {
-          id: forn.id,
-          nome: forn.nome,
-          cnpj: forn.cnpj || "",
-          email: pdfEmail,
-          telefone: getTelefoneFornecedor(forn) || "",
-        },
-      });
-
-      const path = `cotacoes/${cot.id}/${forn.id}-${Date.now()}.pdf`;
-      const { error: upErr } = await supabase.storage
-        .from("documentos")
-        .upload(path, blob, { contentType: "application/pdf", upsert: true });
-      if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("documentos").getPublicUrl(path);
-      const pdfUrl = pub.publicUrl;
+      if (!cot) throw new Error("Cotação não encontrada");
 
       const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
       const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
 
-      const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "cotacao-confirmation",
-          recipientEmail: pdfEmail,
-          idempotencyKey: `cotacao-pdf-${cot.id}-${forn.id}-${Date.now()}`,
-          templateData: {
-            fornecedorNome: forn.nome,
-            cotacaoNumero: cot.numero,
-            comprador,
-            pdfUrl,
-            nomeEmpresa,
-          },
-        },
-      });
-      if (emailErr) throw emailErr;
+      for (const fornId of pdfFornecedorIds) {
+        const forn = fornecedores.find(f => f.id === fornId);
+        if (!forn) continue;
+        const email = (pdfEmails[fornId] || "").trim();
+        try {
+          const { blob } = await gerarBlobPedidoCotacao({
+            cotacao: cot,
+            requisicao: req,
+            empresa,
+            fornecedor: {
+              id: forn.id,
+              nome: forn.nome,
+              cnpj: forn.cnpj || "",
+              email,
+              telefone: getTelefoneFornecedor(forn) || "",
+            },
+          });
 
-      toast({ title: `PDF enviado para ${forn.nome}`, description: fileName });
-      setPdfDialogOpen(false);
+          const path = `cotacoes/${cot.id}/${forn.id}-${Date.now()}.pdf`;
+          const { error: upErr } = await supabase.storage
+            .from("documentos")
+            .upload(path, blob, { contentType: "application/pdf", upsert: true });
+          if (upErr) throw upErr;
+          const { data: pub } = supabase.storage.from("documentos").getPublicUrl(path);
+          const pdfUrl = pub.publicUrl;
+
+          const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "cotacao-confirmation",
+              recipientEmail: email,
+              idempotencyKey: `cotacao-pdf-${cot.id}-${forn.id}-${Date.now()}`,
+              templateData: {
+                fornecedorNome: forn.nome,
+                cotacaoNumero: cot.numero,
+                comprador,
+                pdfUrl,
+                nomeEmpresa,
+              },
+            },
+          });
+          if (emailErr) throw emailErr;
+          enviados.push(forn.nome);
+        } catch (err: any) {
+          console.error(err);
+          falhas.push(`${forn.nome}: ${err?.message || "erro"}`);
+        }
+      }
+
+      if (enviados.length > 0) {
+        toast({
+          title: `PDF enviado para ${enviados.length} fornecedor(es)`,
+          description: enviados.join(", "),
+        });
+      }
+      if (falhas.length > 0) {
+        toast({ title: "Falhas no envio", description: falhas.join(" | "), variant: "destructive" });
+      }
+      if (falhas.length === 0) setPdfDialogOpen(false);
     } catch (e: any) {
       console.error(e);
       toast({ title: "Erro ao enviar PDF", description: e.message, variant: "destructive" });
@@ -686,6 +719,7 @@ export default function CotacaoComprasPage() {
       setPdfLoading(false);
     }
   };
+
 
   const handleGerarEEnviarIndividual = async () => {
     if (!enviarFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
@@ -1990,43 +2024,76 @@ export default function CotacaoComprasPage() {
 
       {/* Dialog Enviar PDF da Cotação por E-mail */}
       <Dialog open={pdfDialogOpen} onOpenChange={setPdfDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Enviar PDF da Cotação por E-mail</DialogTitle>
             <DialogDescription>
-              Gera o PDF do Pedido de Cotação e envia diretamente ao e-mail do fornecedor escolhido.
+              Gera o PDF do Pedido de Cotação e envia aos e-mails dos fornecedores selecionados.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <Label>Fornecedor *</Label>
-              <Select value={pdfFornecedorId} onValueChange={handleSelectFornecedorPdf}>
-                <SelectTrigger><SelectValue placeholder="Selecione um fornecedor..." /></SelectTrigger>
-                <SelectContent>
-                  {fornecedores.map(f => (
-                    <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>E-mail do Fornecedor *</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label>Fornecedores * ({pdfFornecedorIds.length} selecionado(s))</Label>
+                {pdfFornecedorIds.length > 0 && (
+                  <Button variant="ghost" size="sm" onClick={() => { setPdfFornecedorIds([]); setPdfEmails({}); }}>Limpar</Button>
+                )}
+              </div>
               <Input
-                type="email"
-                value={pdfEmail}
-                onChange={e => setPdfEmail(e.target.value)}
-                placeholder="email@fornecedor.com"
+                placeholder="Buscar fornecedor..."
+                value={pdfBusca}
+                onChange={e => setPdfBusca(e.target.value)}
+                className="mb-2"
               />
-              <p className="text-xs text-muted-foreground mt-1">Preenchido do cadastro. Ajuste se necessário.</p>
+              <div className="max-h-48 overflow-y-auto rounded-md border p-2 space-y-1">
+                {fornecedores
+                  .filter(f => f.nome.toLowerCase().includes(pdfBusca.toLowerCase()))
+                  .map(f => (
+                    <label key={f.id} className="flex items-center gap-2 rounded px-1 py-1 hover:bg-muted cursor-pointer">
+                      <Checkbox
+                        checked={pdfFornecedorIds.includes(f.id)}
+                        onCheckedChange={() => togglePdfFornecedor(f.id)}
+                      />
+                      <span className="text-sm">{f.nome}</span>
+                    </label>
+                  ))}
+                {fornecedores.filter(f => f.nome.toLowerCase().includes(pdfBusca.toLowerCase())).length === 0 && (
+                  <p className="text-sm text-muted-foreground py-2 text-center">Nenhum fornecedor encontrado</p>
+                )}
+              </div>
             </div>
+
+            {pdfFornecedorIds.length > 0 && (
+              <div className="space-y-2">
+                <Label>E-mails dos Fornecedores *</Label>
+                <div className="max-h-52 overflow-y-auto space-y-2 pr-1">
+                  {pdfFornecedorIds.map(id => {
+                    const f = fornecedores.find(x => x.id === id);
+                    return (
+                      <div key={id}>
+                        <p className="text-xs text-muted-foreground mb-1">{f?.nome}</p>
+                        <Input
+                          type="email"
+                          value={pdfEmails[id] || ""}
+                          onChange={e => setPdfEmails(prev => ({ ...prev, [id]: e.target.value }))}
+                          placeholder="email@fornecedor.com"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground">Preenchidos do cadastro. Ajuste se necessário.</p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPdfDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleEnviarPdfFornecedor} disabled={pdfLoading || !pdfFornecedorId || !pdfEmail}>
+            <Button onClick={handleEnviarPdfFornecedor} disabled={pdfLoading || pdfFornecedorIds.length === 0}>
               <Mail className="mr-2 h-4 w-4" />
-              {pdfLoading ? "Enviando..." : "Enviar PDF"}
+              {pdfLoading ? "Enviando..." : `Enviar PDF${pdfFornecedorIds.length > 1 ? ` (${pdfFornecedorIds.length})` : ""}`}
             </Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
     </div>
