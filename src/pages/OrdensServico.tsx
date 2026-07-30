@@ -233,11 +233,12 @@ export default function OrdensServicoPage() {
   const [viewOS, setViewOS] = useState<OrdemServico | null>(null);
   const [viewSSTarget, setViewSSTarget] = useState<SolicitacaoServico | null>(null);
   const { orcamentos: orcamentosAll } = useOrcamentos();
-  const _osSavedFilters = loadPersistedFilters<{ busca: string; filtroSituacao: string; filtroPrioridade: string; filtroDataInicio: string; filtroDataFim: string; filtroOrigem: string; }>("ordens_servico_filters_v1");
+  const _osSavedFilters = loadPersistedFilters<{ busca: string; filtroSituacao: string; filtroPrioridade: string; filtroDataInicio: string; filtroDataFim: string; filtroOrigem: string; filtroFotos: string; }>("ordens_servico_filters_v1");
   const [busca, setBusca] = useState(_osSavedFilters?.busca ?? "");
   const _osUrlInitial = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const [filtroOrigem, setFiltroOrigem] = useState(_osUrlInitial.get("origem") ?? _osSavedFilters?.filtroOrigem ?? "all");
   const [filtroSituacao, setFiltroSituacao] = useState(_osUrlInitial.get("situacao") ?? _osSavedFilters?.filtroSituacao ?? "Todas");
+  const [filtroFotos, setFiltroFotos] = useState(_osSavedFilters?.filtroFotos ?? "all");
 
   const [filtroCliente, setFiltroCliente] = useState(() => localStorage.getItem("os_filtroCliente") || "Todos");
   const [filtroPrioridade, setFiltroPrioridade] = useState(_osSavedFilters?.filtroPrioridade ?? "Todas");
@@ -248,7 +249,7 @@ export default function OrdensServicoPage() {
   const [filtroConfirmadoFim, setFiltroConfirmadoFim] = useState(_osDatasStatus?.confFim ?? "");
   const [filtroValidadaIni, setFiltroValidadaIni] = useState(_osDatasStatus?.valIni ?? "");
   const [filtroValidadaFim, setFiltroValidadaFim] = useState(_osDatasStatus?.valFim ?? "");
-  usePersistFilters("ordens_servico_filters_v1", { busca, filtroSituacao, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroOrigem });
+  usePersistFilters("ordens_servico_filters_v1", { busca, filtroSituacao, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroOrigem, filtroFotos });
   usePersistFilters("ordens_servico_datas_status_v1", { confIni: filtroConfirmadoIni, confFim: filtroConfirmadoFim, valIni: filtroValidadaIni, valFim: filtroValidadaFim });
   const _osTipoData = loadPersistedFilters<{ tipo: "inicio" | "confirmado" | "validada" }>("ordens_servico_tipo_data_v1");
   const [tipoDataFiltro, setTipoDataFiltro] = useState<"inicio" | "confirmado" | "validada">(_osTipoData?.tipo ?? "inicio");
@@ -842,6 +843,10 @@ export default function OrdensServicoPage() {
       const matchOrigem = filtroOrigem === "all"
         || (filtroOrigem === "orcamento" && veioDeOrcamento)
         || (filtroOrigem === "direta" && !veioDeOrcamento);
+      const qtdFotos = Array.isArray(o.fotos) ? o.fotos.length : 0;
+      const matchFotos = filtroFotos === "all"
+        || (filtroFotos === "com_foto" && qtdFotos > 0)
+        || (filtroFotos === "sem_foto" && qtdFotos === 0);
       const dataStatus = (situacao: string): string | null => {
         const hist = (o.historico || []).filter((h: any) => h?.situacao === situacao);
         if (hist.length === 0) return null;
@@ -856,9 +861,9 @@ export default function OrdensServicoPage() {
       const matchValIni = !filtroValidadaIni || (dtVal && dtVal !== "ok" && dtVal >= filtroValidadaIni);
       const matchValFim = !filtroValidadaFim || (dtVal && dtVal !== "ok" && dtVal <= filtroValidadaFim);
       return matchBusca && matchSituacao && matchCliente && matchPrioridade && matchDataInicio && matchDataFim
-        && matchConfIni && matchConfFim && matchValIni && matchValFim && matchOrigem;
+        && matchConfIni && matchConfFim && matchValIni && matchValFim && matchOrigem && matchFotos;
     });
-  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim, filtroOrigem, orcamentosAll]);
+  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim, filtroOrigem, filtroFotos, orcamentosAll]);
 
   // Sorting
   const [sortField, setSortField] = useState<string | null>("numero");
@@ -936,10 +941,11 @@ export default function OrdensServicoPage() {
     setBusca(""); setFiltroSituacao("Todas"); setFiltroCliente("Todos"); localStorage.setItem("os_filtroCliente", "Todos");
     setFiltroPrioridade("Todas"); setFiltroDataInicio(""); setFiltroDataFim("");
     setFiltroConfirmadoIni(""); setFiltroConfirmadoFim(""); setFiltroValidadaIni(""); setFiltroValidadaFim("");
+    setFiltroOrigem("all"); setFiltroFotos("all");
     setPage(1);
   };
 
-  const temFiltrosAtivos = busca || filtroSituacao !== "Todas" || filtroCliente !== "Todos" || filtroPrioridade !== "Todas" || filtroDataInicio || filtroDataFim || filtroConfirmadoIni || filtroConfirmadoFim || filtroValidadaIni || filtroValidadaFim;
+  const temFiltrosAtivos = busca || filtroSituacao !== "Todas" || filtroCliente !== "Todos" || filtroPrioridade !== "Todas" || filtroDataInicio || filtroDataFim || filtroConfirmadoIni || filtroConfirmadoFim || filtroValidadaIni || filtroValidadaFim || filtroOrigem !== "all" || filtroFotos !== "all";
 
   const totalValorFiltrado = useMemo(() => {
     return ordensFiltradas.reduce((acc, os) => {
@@ -1121,6 +1127,17 @@ export default function OrdensServicoPage() {
                   <SelectItem value="all">Todas</SelectItem>
                   <SelectItem value="orcamento">De Orçamento</SelectItem>
                   <SelectItem value="direta">Direta</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-[180px]">
+              <Label>Fotos</Label>
+              <Select value={filtroFotos} onValueChange={v => { setFiltroFotos(v); setPage(1); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="com_foto">Com foto</SelectItem>
+                  <SelectItem value="sem_foto">Sem foto</SelectItem>
                 </SelectContent>
               </Select>
             </div>
