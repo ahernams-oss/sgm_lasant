@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 /** E-mail que recebe cópia de todos os envios do módulo de Compras. */
 export const EMAIL_COPIA_COMPRAS = "compras@lasant.com.br";
 
-interface EnvioComprasParams {
+interface EnvioComprasBody {
   templateName: string;
   recipientEmail: string;
   idempotencyKey: string;
@@ -15,12 +15,9 @@ interface EnvioComprasParams {
  * automaticamente uma cópia para EMAIL_COPIA_COMPRAS.
  * A cópia é "best-effort": falhas nela não afetam o envio principal.
  */
-export async function enviarEmailCompras({
-  templateName,
-  recipientEmail,
-  idempotencyKey,
-  templateData,
-}: EnvioComprasParams): Promise<{ error: any }> {
+export async function enviarEmailCompras({ body }: { body: EnvioComprasBody }): Promise<{ error: any }> {
+  const { templateName, recipientEmail, idempotencyKey, templateData } = body;
+
   const { error } = await supabase.functions.invoke("send-transactional-email", {
     body: { templateName, recipientEmail, idempotencyKey, templateData },
   });
