@@ -99,7 +99,23 @@ export default function DashboardFinanceiro() {
         autoRefresh={autoRefresh}
         onToggleAutoRefresh={setAutoRefresh}
         onRefresh={refresh}
+        actions={
+          <DashboardExportButtons
+            title="Dashboard Financeiro"
+            kpis={() => [
+              { label: "Saldo total", value: formatBRL(kpi.saldo), subtitle: `${contasBancarias.length} conta(s)` },
+              { label: "A pagar (30d)", value: formatBRL(kpi.aPagar) },
+              { label: "A receber (30d)", value: formatBRL(kpi.aReceber) },
+              { label: "Inadimplência", value: formatBRL(kpi.inadimp) },
+              { label: "Vencido a pagar", value: formatBRL(kpi.vencidoPagar) },
+              { label: "Entradas do mês", value: formatBRL(kpi.entradas) },
+              { label: "Saídas do mês", value: formatBRL(kpi.saidas) },
+              { label: "Resultado do mês", value: formatBRL(kpi.result), subtitle: kpi.liquidez != null ? `Liquidez ${kpi.liquidez.toFixed(2)}x` : "" },
+            ]}
+          />
+        }
       />
+
 
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
         <KpiCardFinanceiro title="Saldo total" value={formatBRL(kpi.saldo)} icon={Wallet} tone="info" subtitle={`${contasBancarias.length} conta(s)`} />
