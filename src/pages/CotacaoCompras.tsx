@@ -1309,6 +1309,12 @@ export default function CotacaoComprasPage() {
                           <DropdownMenuItem onClick={() => openPropostaDialog(c.id)}>
                             <Plus className="mr-2 h-4 w-4" />Adicionar Proposta Manual
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            openPropostaDialog(c.id);
+                            setTimeout(() => document.getElementById("ia-proposta-file")?.click(), 350);
+                          }}>
+                            <Sparkles className="mr-2 h-4 w-4" />Ler Proposta em PDF com IA
+                          </DropdownMenuItem>
                           {c.status === "Em Andamento" && (
                             <DropdownMenuItem onClick={() => openFinalizarDialog(c.id)} disabled={c.propostas.length < 1}>
                               <Lock className="mr-2 h-4 w-4" />Finalizar Cotação
