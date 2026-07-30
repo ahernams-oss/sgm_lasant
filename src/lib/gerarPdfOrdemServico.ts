@@ -569,7 +569,7 @@ export async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }
   }
 }
 
-function addContinuationHeaders(doc: jsPDF, osNumero?: number | string, clienteIdent?: string) {
+export function addContinuationHeaders(doc: jsPDF, osNumero?: number | string, clienteIdent?: string) {
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
   const pages = doc.getNumberOfPages();
