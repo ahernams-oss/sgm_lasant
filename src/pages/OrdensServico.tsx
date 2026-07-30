@@ -14,6 +14,7 @@ import { useServicos } from "@/contexts/ServicosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissao } from "@/hooks/usePermissao";
+import { verificarSenhaUsuario } from "@/lib/verifySenha";
 import { useSco } from "@/contexts/ScoContext";
 import { useI0 } from "@/contexts/I0Context";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
