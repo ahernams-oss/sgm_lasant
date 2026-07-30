@@ -205,6 +205,17 @@ export async function gerarPdfRequisicao(req: Requisicao, empresa?: Empresa) {
   renderFullWidthBlock("Conhecimento de Informática", req.conhecimentoInformatica);
   renderFullWidthBlock("Atividades do Cargo", req.atividadesCargo);
 
+  // ===== RESUMO DA APROVAÇÃO / PROCESSO SELETIVO =====
+  const ultimoEvento = [...(req.historicoStatus || [])].reverse().find((h) => h.observacao);
+  if (ultimoEvento) {
+    renderFullWidthBlock(
+      "Justificativa da Decisão",
+      `${ultimoEvento.status} em ${ultimoEvento.dataHora}${ultimoEvento.usuario ? ` por ${ultimoEvento.usuario}` : ""}\n"${ultimoEvento.observacao}"`
+    );
+  }
+
+
+
   // ===== ANEXOS =====
   if (y + 20 > ph - 30) {
     doc.addPage();
@@ -237,14 +248,21 @@ export async function gerarPdfRequisicao(req: Requisicao, empresa?: Empresa) {
 
     autoTable(doc, {
       startY: y,
-      head: [["Status", "Data/Hora", "Usuário"]],
+      head: [["Status", "Data/Hora", "Usuário", "Justificativa"]],
       body: req.historicoStatus.map((h) => [
         h.status,
         h.dataHora,
         h.usuario || "—",
+        h.observacao || "—",
       ]),
       theme: "striped",
-      styles: { fontSize: 9, cellPadding: 4, textColor: [40, 40, 40] },
+      styles: { fontSize: 9, cellPadding: 4, textColor: [40, 40, 40], overflow: "linebreak" },
+      columnStyles: {
+        0: { cellWidth: 28 },
+        1: { cellWidth: 34 },
+        2: { cellWidth: 34 },
+        3: { cellWidth: "auto", fontStyle: "italic" },
+      },
       headStyles: {
         fillColor: DARK_BLUE,
         textColor: [255, 255, 255],
