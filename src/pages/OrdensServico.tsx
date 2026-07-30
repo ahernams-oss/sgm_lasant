@@ -941,10 +941,11 @@ export default function OrdensServicoPage() {
     setBusca(""); setFiltroSituacao("Todas"); setFiltroCliente("Todos"); localStorage.setItem("os_filtroCliente", "Todos");
     setFiltroPrioridade("Todas"); setFiltroDataInicio(""); setFiltroDataFim("");
     setFiltroConfirmadoIni(""); setFiltroConfirmadoFim(""); setFiltroValidadaIni(""); setFiltroValidadaFim("");
+    setFiltroOrigem("all"); setFiltroFotos("all");
     setPage(1);
   };
 
-  const temFiltrosAtivos = busca || filtroSituacao !== "Todas" || filtroCliente !== "Todos" || filtroPrioridade !== "Todas" || filtroDataInicio || filtroDataFim || filtroConfirmadoIni || filtroConfirmadoFim || filtroValidadaIni || filtroValidadaFim;
+  const temFiltrosAtivos = busca || filtroSituacao !== "Todas" || filtroCliente !== "Todos" || filtroPrioridade !== "Todas" || filtroDataInicio || filtroDataFim || filtroConfirmadoIni || filtroConfirmadoFim || filtroValidadaIni || filtroValidadaFim || filtroOrigem !== "all" || filtroFotos !== "all";
 
   const totalValorFiltrado = useMemo(() => {
     return ordensFiltradas.reduce((acc, os) => {
