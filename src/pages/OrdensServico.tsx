@@ -861,9 +861,9 @@ export default function OrdensServicoPage() {
       const matchValIni = !filtroValidadaIni || (dtVal && dtVal !== "ok" && dtVal >= filtroValidadaIni);
       const matchValFim = !filtroValidadaFim || (dtVal && dtVal !== "ok" && dtVal <= filtroValidadaFim);
       return matchBusca && matchSituacao && matchCliente && matchPrioridade && matchDataInicio && matchDataFim
-        && matchConfIni && matchConfFim && matchValIni && matchValFim && matchOrigem;
+        && matchConfIni && matchConfFim && matchValIni && matchValFim && matchOrigem && matchFotos;
     });
-  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim, filtroOrigem, orcamentosAll]);
+  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim, filtroOrigem, filtroFotos, orcamentosAll]);
 
   // Sorting
   const [sortField, setSortField] = useState<string | null>("numero");
