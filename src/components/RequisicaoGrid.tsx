@@ -277,6 +277,12 @@ const RequisicaoGrid = () => {
     if (filterUnidade !== "todos") {
       result = result.filter((r) => r.unidade === filterUnidade);
     }
+    if (filterOrigem !== "todos") {
+      result = result.filter((r) => (r.origemVaga || "") === filterOrigem);
+    }
+    if (filterSolicitante !== "todos") {
+      result = result.filter((r) => (r.solicitante || "") === filterSolicitante);
+    }
     if (filterDataDe) {
       const de = new Date(filterDataDe);
       result = result.filter((r) => { const d = parseDataBR(r.dataCriacao); return d && d >= de; });
@@ -292,7 +298,15 @@ const RequisicaoGrid = () => {
       if (db !== da) return db - da;
       return (b.numero ?? 0) - (a.numero ?? 0);
     });
-  }, [requisicoes, search, filterStatus, filterUnidade, filterDataDe, filterDataAte]);
+  }, [requisicoes, search, filterStatus, filterUnidade, filterOrigem, filterSolicitante, filterDataDe, filterDataAte]);
+
+  const solicitantesUnicos = useMemo(
+    () => Array.from(new Set(requisicoes.map((r) => r.solicitante).filter(Boolean))).sort((a, b) =>
+      (a as string).localeCompare(b as string)
+    ) as string[],
+    [requisicoes]
+  );
+
 
   if (requisicoes.length === 0) {
     return (
