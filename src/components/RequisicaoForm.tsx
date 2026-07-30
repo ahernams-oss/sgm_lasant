@@ -20,7 +20,8 @@ import { useRequisicoes } from "@/contexts/RequisicaoContext";
 import { useAuth } from "@/contexts/AuthContext";
 
 const jornadaOptions = ["Diarista", "Plantão Diurno - PAR", "Plantão Diurno - ÍMPAR", "Plantão Noturno - PAR", "Plantão Noturno - ÍMPAR"];
-const contratacaoOptions = ["Efetivo", "Temporário", "PCD", "Estagiário"];
+const contratacaoOptions = ["Efetivo", "Temporário"];
+const tipoContratacaoOptions = ["Padrão", "PCD", "Temporário", "Estagiário", "Jovem Aprendiz"];
 const internoExternoOptions = ["Interno", "Externo"];
 const origemOptions = ["Afastamento", "Desligamento", "Aumento de Quadro", "Promoção", "Outros"];
 const formacaoOptions = ["Ensino Fundamental", "Ensino Médio", "Ensino Superior", "Curso Técnico", "Outros"];
@@ -61,6 +62,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     jornada: "",
     cargaHoraria: "",
     tipoContratacao: [] as string[],
+    tipoContratacaoDetalhe: "",
     internoExterno: "",
     origemVaga: "",
     motivoOutros: "",
@@ -137,6 +139,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       jornada: form.jornada,
       cargaHoraria: form.cargaHoraria,
       tipoContratacao: form.tipoContratacao,
+      tipoContratacaoDetalhe: form.tipoContratacaoDetalhe,
       internoExterno: form.internoExterno,
       origemVaga: form.origemVaga,
       motivoOutros: form.motivoOutros,
@@ -160,7 +163,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     setForm({
       headcount: "", orcamento: "", tipoVaga: "",
       unidade: "", cargo: "", jornada: "", cargaHoraria: "",
-      tipoContratacao: [], internoExterno: "", origemVaga: "", motivoOutros: "",
+      tipoContratacao: [], tipoContratacaoDetalhe: "", internoExterno: "", origemVaga: "", motivoOutros: "",
       matricula: "", nomeSubstituido: "", cargoSubstituido: "",
       salarioSubstituido: "", dataDesligamento: "",
       formacao: [], formacaoDetalhe: "", experiencia: "",
@@ -348,6 +351,19 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
               </SelectTrigger>
               <SelectContent>
                 {contratacaoOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="field-label">Tipo de contratação</label>
+            <Select value={form.tipoContratacaoDetalhe} onValueChange={(v) => update("tipoContratacaoDetalhe", v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo de contratação" />
+              </SelectTrigger>
+              <SelectContent>
+                {tipoContratacaoOptions.map((opt) => (
                   <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                 ))}
               </SelectContent>
@@ -663,7 +679,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         <Button type="button" variant="outline" size="lg" className="px-6 rounded-lg" onClick={() => setForm({
           headcount: "", orcamento: "", tipoVaga: "",
           unidade: "", cargo: "", jornada: "", cargaHoraria: "",
-          tipoContratacao: [], internoExterno: "", origemVaga: "", motivoOutros: "",
+          tipoContratacao: [], tipoContratacaoDetalhe: "", internoExterno: "", origemVaga: "", motivoOutros: "",
           matricula: "", nomeSubstituido: "", cargoSubstituido: "",
           salarioSubstituido: "", dataDesligamento: "",
           formacao: [], formacaoDetalhe: "", experiencia: "",
