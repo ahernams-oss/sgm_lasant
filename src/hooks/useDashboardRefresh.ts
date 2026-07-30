@@ -19,12 +19,13 @@ export function useDashboardRefresh(onRefresh?: () => void | Promise<void>, inte
   const refresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      await cbRef.current?.();
+      if (cbRef.current) await cbRef.current();
+      else await qc.invalidateQueries();
     } finally {
       setLastUpdated(new Date());
       setIsRefreshing(false);
     }
-  }, []);
+  }, [qc]);
 
   useEffect(() => {
     if (!autoRefresh) return;
