@@ -138,15 +138,16 @@ export default function DashboardMultisistemico() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <LayoutDashboard className="h-7 w-7 text-primary" />
-        <div>
-          <h1 className="text-2xl font-serif font-semibold">Dashboard Multisistêmico</h1>
-          <p className="text-sm text-muted-foreground">
-            Visão consolidada de todos os módulos. Selecione os que deseja visualizar.
-          </p>
-        </div>
-      </div>
+      <DashboardHeader
+        title="Dashboard Multisistêmico"
+        badge="Visão Gerencial Consolidada"
+        description="Visão consolidada de todos os módulos. Selecione os que deseja visualizar."
+        lastUpdated={lastUpdated}
+        isRefreshing={isRefreshing}
+        autoRefresh={autoRefresh}
+        onToggleAutoRefresh={setAutoRefresh}
+        onRefresh={refresh}
+      />
 
       <Card>
         <CardHeader className="pb-2">
