@@ -205,6 +205,17 @@ export async function gerarPdfRequisicao(req: Requisicao, empresa?: Empresa) {
   renderFullWidthBlock("Conhecimento de Informática", req.conhecimentoInformatica);
   renderFullWidthBlock("Atividades do Cargo", req.atividadesCargo);
 
+  // ===== RESUMO DA APROVAÇÃO / PROCESSO SELETIVO =====
+  const ultimoEvento = [...(req.historicoStatus || [])].reverse().find((h) => h.observacao);
+  if (ultimoEvento) {
+    renderFullWidthBlock(
+      "Justificativa da Decisão",
+      `${ultimoEvento.status} em ${ultimoEvento.dataHora}${ultimoEvento.usuario ? ` por ${ultimoEvento.usuario}` : ""}\n"${ultimoEvento.observacao}"`
+    );
+  }
+
+
+
   // ===== ANEXOS =====
   if (y + 20 > ph - 30) {
     doc.addPage();
