@@ -30,7 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { usePermissao } from "@/hooks/usePermissao";
-import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText, CheckSquare, MessageCircle, AlertTriangle } from "lucide-react";
+import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText, CheckSquare, MessageCircle, AlertTriangle, Sparkles, Upload } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { notificarCompras, formatarPrioridade, formatarDataHora, formatarData, formatarPedido } from "@/lib/notificacoesCompras";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -154,6 +154,70 @@ export default function CotacaoComprasPage() {
   const [propValidade, setPropValidade] = useState("");
   const [propObs, setPropObs] = useState("");
   const [propItens, setPropItens] = useState<ItemCotacaoFornecedor[]>([]);
+  const [iaLoading, setIaLoading] = useState(false);
+  const [iaResumo, setIaResumo] = useState<{ arquivo: string; lidos: number; total: number; fornecedorNome?: string | null } | null>(null);
+
+  const lerPropostaPdf = async (file: File) => {
+    if (propItens.length === 0) { toast({ title: "Nenhum item na cotação", variant: "destructive" }); return; }
+    if (file.size > 10 * 1024 * 1024) { toast({ title: "Arquivo muito grande", description: "Limite de 10 MB.", variant: "destructive" }); return; }
+    setIaLoading(true);
+    setIaResumo(null);
+    try {
+      const buf = new Uint8Array(await file.arrayBuffer());
+      let bin = "";
+      for (let i = 0; i < buf.length; i += 8192) bin += String.fromCharCode(...buf.subarray(i, i + 8192));
+      const base64 = btoa(bin);
+
+      const { data, error } = await supabase.functions.invoke("ler-proposta-cotacao", {
+        body: {
+          fileBase64: base64,
+          mimeType: file.type || "application/pdf",
+          fileName: file.name,
+          itens: propItens.map(i => ({ itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida })),
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+
+      const res = data as any;
+      const mapa = new Map<string, number>();
+      (res.itens || []).forEach((i: any) => {
+        if (i.precoUnitario != null && !Number.isNaN(Number(i.precoUnitario)) && Number(i.precoUnitario) > 0) {
+          mapa.set(String(i.itemId), Number(i.precoUnitario));
+        }
+      });
+
+      setPropItens(prev => prev.map(it => mapa.has(it.itemId) ? { ...it, precoUnitario: mapa.get(it.itemId)! } : it));
+      if (res.condicaoPagamento) setPropCondicao(String(res.condicaoPagamento));
+      if (res.prazoEntrega) setPropPrazo(String(res.prazoEntrega));
+      if (res.validadeProposta && /^\d{4}-\d{2}-\d{2}$/.test(String(res.validadeProposta))) setPropValidade(String(res.validadeProposta));
+      if (res.observacao) setPropObs(String(res.observacao));
+
+      // Tenta identificar o fornecedor pelo nome/CNPJ
+      if (!editingPropostaId && !propFornecedorId) {
+        const digits = (s: string) => (s || "").replace(/\D/g, "");
+        const cnpj = digits(res.cnpj || "");
+        const nome = String(res.fornecedorNome || "").toLowerCase().trim();
+        const achado = fornecedores.find((f: any) => (cnpj && digits(f.cnpj || "") === cnpj))
+          || (nome ? fornecedores.find((f: any) => f.nome?.toLowerCase().includes(nome) || nome.includes(f.nome?.toLowerCase() || "###")) : undefined);
+        if (achado) setPropFornecedorId(achado.id);
+      }
+
+      setIaResumo({ arquivo: file.name, lidos: mapa.size, total: propItens.length, fornecedorNome: res.fornecedorNome });
+      toast({
+        title: mapa.size > 0 ? "Documento lido pela IA" : "Nenhum preço identificado",
+        description: mapa.size > 0
+          ? `${mapa.size} de ${propItens.length} itens preenchidos. Confira os valores antes de salvar.`
+          : "Não foi possível localizar preços correspondentes aos itens.",
+        variant: mapa.size > 0 ? undefined : "destructive",
+      });
+    } catch (e: any) {
+      toast({ title: "Falha na leitura do PDF", description: e?.message || "Tente novamente.", variant: "destructive" });
+    } finally {
+      setIaLoading(false);
+    }
+  };
+
 
   // Finalizar form
   const [finVencedorId, setFinVencedorId] = useState("");
@@ -1334,6 +1398,42 @@ export default function CotacaoComprasPage() {
             <DialogDescription>Preencha os dados da proposta recebida.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="rounded-lg border border-dashed p-3 bg-muted/40 space-y-2">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2 text-sm">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="font-medium">Leitura automática por IA</span>
+                  <span className="text-muted-foreground">— envie o PDF da proposta do fornecedor e os preços serão preenchidos.</span>
+                </div>
+                <div>
+                  <input
+                    id="ia-proposta-file"
+                    type="file"
+                    accept="application/pdf,image/*"
+                    className="hidden"
+                    onChange={e => { const f = e.target.files?.[0]; if (f) lerPropostaPdf(f); e.currentTarget.value = ""; }}
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    disabled={iaLoading}
+                    onClick={() => document.getElementById("ia-proposta-file")?.click()}
+                  >
+                    {iaLoading
+                      ? <><RefreshCw className="mr-2 h-4 w-4 animate-spin" />Lendo documento…</>
+                      : <><Upload className="mr-2 h-4 w-4" />Ler PDF com IA</>}
+                  </Button>
+                </div>
+              </div>
+              {iaResumo && (
+                <p className="text-xs text-muted-foreground">
+                  <strong>{iaResumo.arquivo}</strong>: {iaResumo.lidos} de {iaResumo.total} itens preenchidos
+                  {iaResumo.fornecedorNome ? ` • Fornecedor identificado: ${iaResumo.fornecedorNome}` : ""} — confira os valores antes de salvar.
+                </p>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Fornecedor *</Label>
