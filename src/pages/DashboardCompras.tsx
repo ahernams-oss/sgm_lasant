@@ -52,28 +52,12 @@ const GRADIENT_STYLES = [
 ];
 
 const GradientKpiCard = ({
-  icon: Icon, label, value, gradientIdx = 0, subtitle,
+  icon, label, value, gradientIdx = 0, subtitle, trend,
 }: {
-  icon: any; label: string; value: number | string; gradientIdx?: number; subtitle?: string;
-}) => {
-  const style = GRADIENT_STYLES[gradientIdx % GRADIENT_STYLES.length];
-  return (
-    <Card className={cn("overflow-hidden border", style.border)}>
-      <CardContent className="pt-4 pb-3 px-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-2xl font-bold text-foreground">{value}</p>
-            <p className="text-xs font-medium text-muted-foreground mt-0.5">{label}</p>
-            {subtitle && <p className="text-[10px] text-muted-foreground/70 mt-0.5">{subtitle}</p>}
-          </div>
-          <div className={cn("rounded-xl p-2.5 bg-gradient-to-br", style.bg)}>
-            <Icon className={cn("h-4 w-4", style.icon)} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+  icon: any; label: string; value: number | string; gradientIdx?: number; subtitle?: string; trend?: number | null;
+}) => (
+  <DashboardKpiCard icon={icon} label={label} value={value} subtitle={subtitle} trend={trend} gradientIdx={gradientIdx} />
+);
 
 function diffHours(a: string, b: string) {
   return (new Date(b).getTime() - new Date(a).getTime()) / (1000 * 60 * 60);
