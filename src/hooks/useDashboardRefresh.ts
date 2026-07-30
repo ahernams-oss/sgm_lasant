@@ -1,17 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 const DEFAULT_INTERVAL = 60_000;
 
 /**
  * Controla atualização (manual + automática) dos dashboards.
- * `onRefresh` deve recarregar os dados da tela.
+ * Sem `onRefresh`, invalida todas as queries em cache (recarrega os dados da tela).
  */
 export function useDashboardRefresh(onRefresh?: () => void | Promise<void>, intervalMs = DEFAULT_INTERVAL) {
+  const qc = useQueryClient();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const cbRef = useRef(onRefresh);
   cbRef.current = onRefresh;
+
 
   const refresh = useCallback(async () => {
     setIsRefreshing(true);
