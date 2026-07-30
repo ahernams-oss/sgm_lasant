@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wallet, TrendingDown, TrendingUp, AlertTriangle, Banknote, ArrowDownCircle, ArrowUpCircle, CalendarClock } from "lucide-react";
 import KpiCardFinanceiro from "@/components/financeiro/KpiCardFinanceiro";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import DashboardExportButtons from "@/components/dashboard/DashboardExportButtons";
 import { useDashboardRefresh } from "@/hooks/useDashboardRefresh";
 import { useFinanceiro, formatBRL, formatDate, isVencida } from "@/contexts/FinanceiroContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
