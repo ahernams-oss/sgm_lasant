@@ -407,6 +407,20 @@ const ProcessoSeletivoPage = () => {
           </p>
         </div>
 
+        {/* Histórico de Eventos da Requisição */}
+        <Card className="mb-6 animate-fade-up">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <ClipboardCheck className="h-4 w-4 text-primary" />
+              Histórico da Requisição #{requisicao.numero}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RequisicaoHistoricoTimeline historico={requisicao.historicoStatus} />
+          </CardContent>
+        </Card>
+
+
         {/* Workflow Timeline */}
         {processo.candidatos.length > 0 && (
           <Card className="mb-6 animate-fade-up">
