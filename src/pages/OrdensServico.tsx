@@ -843,6 +843,10 @@ export default function OrdensServicoPage() {
       const matchOrigem = filtroOrigem === "all"
         || (filtroOrigem === "orcamento" && veioDeOrcamento)
         || (filtroOrigem === "direta" && !veioDeOrcamento);
+      const qtdFotos = Array.isArray(o.fotos) ? o.fotos.length : 0;
+      const matchFotos = filtroFotos === "all"
+        || (filtroFotos === "com_foto" && qtdFotos > 0)
+        || (filtroFotos === "sem_foto" && qtdFotos === 0);
       const dataStatus = (situacao: string): string | null => {
         const hist = (o.historico || []).filter((h: any) => h?.situacao === situacao);
         if (hist.length === 0) return null;
