@@ -1815,6 +1815,41 @@ export default function CotacaoComprasPage() {
                   </>
                 )}
               </div>
+              {(() => {
+                const reqView = requisicoes.find(r => r.id === viewCotacao.requisicaoId);
+                const itensView = reqView?.itens || [];
+                return (
+                  <div>
+                    <h3 className="font-semibold mt-4 mb-2">Materiais / Serviços Cotados ({itensView.length})</h3>
+                    {itensView.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Nenhum item encontrado na requisição vinculada.</p>
+                    ) : (
+                      <div className="rounded-md border">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-10">#</TableHead>
+                              <TableHead>Descrição</TableHead>
+                              <TableHead className="w-24 text-right">Qtd.</TableHead>
+                              <TableHead className="w-20">Un.</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {itensView.map((i: any, idx: number) => (
+                              <TableRow key={i.id || idx}>
+                                <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
+                                <TableCell>{i.descricao}</TableCell>
+                                <TableCell className="text-right">{i.quantidade}</TableCell>
+                                <TableCell>{i.unidadeMedida}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
               <h3 className="font-semibold mt-4">Propostas ({viewCotacao.propostas.length})</h3>
               {viewCotacao.propostas.map(p => {
                 const isEditable = viewCotacao.status === "Em Andamento" || viewCotacao.status === "Aguardando Aprovação";
