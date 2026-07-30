@@ -34,6 +34,7 @@ const PERIODOS: { value: Periodo; label: string; desc: string }[] = [
 
 const TIPOS: { value: TipoRelatorio; label: string; desc: string }[] = [
   { value: "fechamento_validadas", label: "Fechamento (Validadas)", desc: "Apenas OSs Validadas — OS, Unidade, Categoria e Valor, com totais e gráfico por categoria." },
+  { value: "fechamento_local", label: "Fechamento (Validadas) por Local", desc: "OSs Validadas segmentadas por Local, com resumo dos tipos de OS e gráfico ao final de cada local." },
   { value: "fechamento_categoria", label: "Fechamento por Categoria", desc: "Apenas OSs Validadas, agrupadas por categoria com Nº OS, Setor, Valor e Valor com BDI, totais e gráficos." },
   { value: "analitico", label: "Analítico (detalhado)", desc: "Lista completa de OSs com nº, cliente, situação, prioridade, datas e descrição." },
   { value: "sintetico", label: "Sintético (resumo)", desc: "Resumo por situação e por cliente, com totais." },
