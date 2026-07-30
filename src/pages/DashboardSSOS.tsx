@@ -632,19 +632,50 @@ export default function DashboardSSOS() {
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Calculator className="h-4 w-4 text-primary" /> Orçamentos
           </h2>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Label className="text-xs font-medium text-muted-foreground">Período:</Label>
             <Select value={orcPeriodo} onValueChange={(v: any) => setOrcPeriodo(v)}>
-              <SelectTrigger className="h-8 text-xs w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-8 text-xs w-[170px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="dia">Hoje</SelectItem>
                 <SelectItem value="semana">Últimos 7 dias</SelectItem>
                 <SelectItem value="quinzena">Últimos 15 dias</SelectItem>
                 <SelectItem value="mes">Últimos 30 dias</SelectItem>
                 <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="personalizado">Intervalo personalizado</SelectItem>
               </SelectContent>
             </Select>
+            {orcPeriodo === "personalizado" && (
+              <div className="flex items-center gap-1.5">
+                <Input
+                  type="date"
+                  value={orcDe}
+                  max={orcAte || undefined}
+                  onChange={(e) => setOrcDe(e.target.value)}
+                  className="h-8 text-xs w-[140px]"
+                />
+                <span className="text-xs text-muted-foreground">até</span>
+                <Input
+                  type="date"
+                  value={orcAte}
+                  min={orcDe || undefined}
+                  onChange={(e) => setOrcAte(e.target.value)}
+                  className="h-8 text-xs w-[140px]"
+                />
+                {(orcDe || orcAte) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => { setOrcDe(""); setOrcAte(""); }}
+                  >
+                    Limpar
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
+
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <KpiCard icon={Calculator} label="Orçamentos" value={orcTotalQtd} gradientIdx={0} />
