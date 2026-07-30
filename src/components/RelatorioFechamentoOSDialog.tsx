@@ -1076,6 +1076,10 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       toast.error("Nenhuma OS encontrada no período/filtros selecionados.");
       return;
     }
+    if (tipo === "fechamento_local") {
+      await exportarFechamentoLocal(formato);
+      return;
+    }
     if (tipo === "fechamento_validadas") {
       await exportarFechamentoValidadas(formato);
       return;
