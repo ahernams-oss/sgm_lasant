@@ -680,8 +680,8 @@ export default function CotacaoComprasPage() {
           const { data: pub } = supabase.storage.from("documentos").getPublicUrl(path);
           const pdfUrl = pub.publicUrl;
 
-          const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
-            body: {
+          const { error: emailErr } = await enviarEmailCompras({
+            
               templateName: "cotacao-confirmation",
               recipientEmail: email,
               idempotencyKey: `cotacao-pdf-${cot.id}-${forn.id}-${Date.now()}`,
@@ -755,8 +755,8 @@ export default function CotacaoComprasPage() {
 
       const canais: string[] = [];
       if (canalEmail && enviarEmail) {
-        const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
-          body: {
+        const { error: emailErr } = await enviarEmailCompras({
+          
             templateName: "cotacao-confirmation",
             recipientEmail: enviarEmail,
             idempotencyKey: `cotacao-${cot.id}-${forn.id}`,
@@ -944,8 +944,8 @@ export default function CotacaoComprasPage() {
         if (!emailForn) { erros++; continue; }
 
         try {
-          await supabase.functions.invoke("send-transactional-email", {
-            body: {
+          await enviarEmailCompras({
+            
               templateName: "cotacao-confirmation",
               recipientEmail: emailForn,
               idempotencyKey: `cotacao-${cot.id}-${forn?.id || item.fornecedorNome}`,

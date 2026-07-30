@@ -235,8 +235,8 @@ export default function PedidoCompraPage() {
         }
         const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
 
-        const { error } = await supabase.functions.invoke("send-transactional-email", {
-          body: {
+        const { error } = await enviarEmailCompras({
+          
             templateName: "ordem-compra-confirmation",
             recipientEmail: sendEmail,
             idempotencyKey: `ordem-compra-${sendPedido.id}-${Date.now()}`,
@@ -415,8 +415,8 @@ export default function PedidoCompraPage() {
         if (batchMethod === "email") {
           const email = fornecedor?.email || fornecedor?.emailCompras || "";
           if (!email) throw new Error(`${pcNum}: fornecedor sem e-mail`);
-          const { error } = await supabase.functions.invoke("send-transactional-email", {
-            body: {
+          const { error } = await enviarEmailCompras({
+            
               templateName: "ordem-compra-confirmation",
               recipientEmail: email,
               idempotencyKey: `ordem-compra-${p.id}-${Date.now()}`,
