@@ -180,8 +180,9 @@ export default function CotacaoComprasPage() {
   // Enviar PDF por e-mail (cotação direta)
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
   const [pdfCotacaoId, setPdfCotacaoId] = useState("");
-  const [pdfFornecedorId, setPdfFornecedorId] = useState("");
-  const [pdfEmail, setPdfEmail] = useState("");
+  const [pdfFornecedorIds, setPdfFornecedorIds] = useState<string[]>([]);
+  const [pdfEmails, setPdfEmails] = useState<Record<string, string>>({});
+  const [pdfBusca, setPdfBusca] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const compradores = useMemo(() => {
