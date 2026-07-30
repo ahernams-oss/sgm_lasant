@@ -42,6 +42,7 @@ const filtrarDocs = (docs?: DocumentoContratacao[]) =>
   (docs && docs.length > 0 ? docs : DOCUMENTOS_OBRIGATORIOS.map((n): DocumentoContratacao => ({ nome: n, entregue: false })))
     .filter((d) => !DOCS_REMOVIDOS.includes(d.nome));
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
+import RequisicaoHistoricoTimeline from "@/components/RequisicaoHistoricoTimeline";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { usePermissao } from "@/hooks/usePermissao";
