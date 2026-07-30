@@ -23,10 +23,12 @@ const ProcessosSeletivos = () => {
   const [search, setSearch] = useState("");
   const [cliente, setCliente] = useState("");
   const [cargo, setCargo] = useState("");
+  const [status, setStatus] = useState("");
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
 
   const processosComReq = useMemo(() =>
     processos.map((p) => ({
@@ -51,6 +53,15 @@ const ProcessosSeletivos = () => {
       ).sort((a, b) => (a as string).localeCompare(b as string)),
     [processosComReq]
   );
+
+  const getProcessoStatus = (p: typeof processosComReq[0]) => {
+    const total = p.candidatos.length;
+    if (total === 0) return "em_andamento";
+    const contratados = p.candidatos.filter((c) => c.etapaAtual === "contratacao").length;
+    if (contratados === total) return "concluido";
+    if (p.candidatos.some((c) => c.etapaAtual === "liberacao")) return "liberacao";
+    return "em_andamento";
+  };
 
   const parseData = (s: string) => {
     const [d, m, y] = (s || "").split("/");
@@ -79,14 +90,16 @@ const ProcessosSeletivos = () => {
         p.candidatos.some((c) => c.nome.toLowerCase().includes(term));
       const matchCliente = !cliente || p.requisicao?.unidade === cliente;
       const matchCargo = !cargo || p.requisicao?.cargoNome === cargo;
+      const matchStatus = !status || getProcessoStatus(p) === status;
       const matchPeriodo =
         (!inicio || dataProc >= inicio) &&
         (!fimAjustado || dataProc <= fimAjustado);
-      return matchSearch && matchCliente && matchCargo && matchPeriodo;
+      return matchSearch && matchCliente && matchCargo && matchStatus && matchPeriodo;
     });
 
     return [...base].sort((a, b) => parseData(b.dataCriacao) - parseData(a.dataCriacao));
-  }, [processosComReq, search, cliente, cargo, dataInicio, dataFim]);
+  }, [processosComReq, search, cliente, cargo, status, dataInicio, dataFim]);
+
 
   const limparFiltros = () => {
     setSearch("");
