@@ -1398,6 +1398,42 @@ export default function CotacaoComprasPage() {
             <DialogDescription>Preencha os dados da proposta recebida.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="rounded-lg border border-dashed p-3 bg-muted/40 space-y-2">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2 text-sm">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="font-medium">Leitura automática por IA</span>
+                  <span className="text-muted-foreground">— envie o PDF da proposta do fornecedor e os preços serão preenchidos.</span>
+                </div>
+                <div>
+                  <input
+                    id="ia-proposta-file"
+                    type="file"
+                    accept="application/pdf,image/*"
+                    className="hidden"
+                    onChange={e => { const f = e.target.files?.[0]; if (f) lerPropostaPdf(f); e.currentTarget.value = ""; }}
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    disabled={iaLoading}
+                    onClick={() => document.getElementById("ia-proposta-file")?.click()}
+                  >
+                    {iaLoading
+                      ? <><RefreshCw className="mr-2 h-4 w-4 animate-spin" />Lendo documento…</>
+                      : <><Upload className="mr-2 h-4 w-4" />Ler PDF com IA</>}
+                  </Button>
+                </div>
+              </div>
+              {iaResumo && (
+                <p className="text-xs text-muted-foreground">
+                  <strong>{iaResumo.arquivo}</strong>: {iaResumo.lidos} de {iaResumo.total} itens preenchidos
+                  {iaResumo.fornecedorNome ? ` • Fornecedor identificado: ${iaResumo.fornecedorNome}` : ""} — confira os valores antes de salvar.
+                </p>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Fornecedor *</Label>
