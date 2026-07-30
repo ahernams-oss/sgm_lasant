@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-const DEFAULT_INTERVAL = 60_000;
+const DEFAULT_INTERVAL = 300_000;
 
 /**
  * Controla atualização (manual + automática) dos dashboards.

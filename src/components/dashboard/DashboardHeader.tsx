@@ -59,7 +59,7 @@ export default function DashboardHeader({
                   )}
                 >
                   <Radio className={cn("h-3 w-3", autoRefresh && "animate-pulse")} />
-                  {autoRefresh ? "Auto 60s" : "Auto off"}
+                  {autoRefresh ? "Auto 300s" : "Auto off"}
                 </button>
               )}
             </div>
