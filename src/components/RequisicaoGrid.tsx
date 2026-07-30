@@ -83,6 +83,8 @@ const RequisicaoGrid = () => {
   const [justificativaReprovacao, setJustificativaReprovacao] = useState("");
   const [suspendendoReq, setSuspendendoReq] = useState<Requisicao | null>(null);
   const [justificativaSuspensao, setJustificativaSuspensao] = useState("");
+  const [aprovandoReq, setAprovandoReq] = useState<Requisicao | null>(null);
+  const [justificativaAprovacao, setJustificativaAprovacao] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(7);
 
@@ -206,6 +208,19 @@ const RequisicaoGrid = () => {
         });
       }
     }
+  };
+
+  const confirmarAprovacao = () => {
+    if (!aprovandoReq) return;
+    const just = justificativaAprovacao.trim();
+    if (!just) {
+      toast.error("Informe a justificativa da aprovação.");
+      return;
+    }
+    handleStatusChange(aprovandoReq, "Aprovada", just);
+    setAprovandoReq(null);
+    setJustificativaAprovacao("");
+    toast.success("Requisição aprovada.");
   };
 
   const confirmarReprovacao = () => {
@@ -393,7 +408,7 @@ const RequisicaoGrid = () => {
                             ) : req.status === "Suspensa" ? (
                               <>
                                 {podeStatusRP("Aprovada") && (
-                                  <DropdownMenuItem onClick={() => handleStatusChange(req, "Aprovada")}>
+                                  <DropdownMenuItem onClick={() => { setAprovandoReq(req); setJustificativaAprovacao(""); }}>
                                     <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Reativar (Aprovar)
                                   </DropdownMenuItem>
                                 )}
@@ -406,7 +421,7 @@ const RequisicaoGrid = () => {
                                   </DropdownMenuItem>
                                 )}
                                 {podeStatusRP("Aprovada") && (
-                                  <DropdownMenuItem onClick={() => handleStatusChange(req, "Aprovada")}>
+                                  <DropdownMenuItem onClick={() => { setAprovandoReq(req); setJustificativaAprovacao(""); }}>
                                     <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Aprovar
                                   </DropdownMenuItem>
                                 )}
@@ -667,6 +682,30 @@ const RequisicaoGrid = () => {
                 ))}
               </div>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!aprovandoReq} onOpenChange={(open) => { if (!open) { setAprovandoReq(null); setJustificativaAprovacao(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Aprovar Requisição #{aprovandoReq?.numero}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <label className="field-label">Justificativa da aprovação <span className="text-red-600">*</span></label>
+            <Textarea
+              value={justificativaAprovacao}
+              onChange={(e) => setJustificativaAprovacao(e.target.value)}
+              placeholder="Descreva o motivo/justificativa da aprovação..."
+              rows={5}
+              autoFocus
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => { setAprovandoReq(null); setJustificativaAprovacao(""); }}>Cancelar</Button>
+            <Button onClick={confirmarAprovacao}>
+              <CheckCircle2 className="mr-2 h-4 w-4" /> Confirmar Aprovação
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
