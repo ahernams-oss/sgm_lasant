@@ -114,6 +114,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
   const [tipo, setTipo] = useState<TipoRelatorio>("fechamento_validadas");
   const [clienteSel, setClienteSel] = useState<string>("todos");
   const [situacaoSel, setSituacaoSel] = useState<string>("todas");
+  const [localSel, setLocalSel] = useState<string>("todos");
   const [dataInicio, setDataInicio] = useState<string>("");
   const [dataFim, setDataFim] = useState<string>("");
   const [orientacao, setOrientacao] = useState<"p" | "l">("p");
