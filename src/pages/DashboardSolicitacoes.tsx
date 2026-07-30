@@ -351,43 +351,26 @@ export default function DashboardSolicitacoes() {
 
   return (
     <div className="p-4 md:p-8 space-y-6 animate-fade-up">
-      {/* Hero */}
-      <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary via-primary/90 to-indigo-700 p-6 md:p-8 text-primary-foreground shadow-lg">
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
-        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm mb-3">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider">Solicitações de Serviço · Operacional</span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-              Dashboard de Solicitações de Serviço
-            </h1>
-            <p className="text-sm md:text-base text-primary-foreground/85 mt-1.5 max-w-2xl">
-              Acompanhamento de SS e OS — abertura, fluxo, situação e produtividade por cliente.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2 shrink-0">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => downloadPdfDashboardSSOS(buildReportData())}
-              className="bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm"
-            >
+      <DashboardHeader
+        title="Dashboard de Solicitações de Serviço"
+        badge="Solicitações de Serviço · Operacional"
+        description="Acompanhamento de SS e OS — abertura, fluxo, situação e produtividade por cliente."
+        lastUpdated={lastUpdated}
+        isRefreshing={isRefreshing}
+        autoRefresh={autoRefresh}
+        onToggleAutoRefresh={setAutoRefresh}
+        onRefresh={refresh}
+        actions={
+          <>
+            <Button variant="secondary" size="sm" onClick={() => downloadPdfDashboardSSOS(buildReportData())} className="h-9 bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm">
               <FileDown className="mr-2 h-4 w-4" /> Exportar PDF
             </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => downloadExcelDashboardSSOS(buildReportData())}
-              className="bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm"
-            >
+            <Button variant="secondary" size="sm" onClick={() => downloadExcelDashboardSSOS(buildReportData())} className="h-9 bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm">
               <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar Excel
             </Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Filtros */}
       <Card>
