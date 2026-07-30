@@ -869,6 +869,206 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     onOpenChange(false);
   };
 
+  const drawBarChart = (items: { nome: string; valor: number }[], titulo: string): string => {
+    const W = 900, H = 520, padL = 70, padR = 30, padT = 70, padB = 130;
+    const canvas = document.createElement("canvas");
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#111"; ctx.font = "bold 26px Helvetica"; ctx.textAlign = "center";
+    ctx.fillText(titulo, W / 2, 40);
+    const max = Math.max(1, ...items.map(i => i.valor));
+    const chartW = W - padL - padR, chartH = H - padT - padB;
+    ctx.strokeStyle = "#d1d5db"; ctx.lineWidth = 1;
+    for (let g = 0; g <= 4; g++) {
+      const y = padT + chartH - (chartH * g) / 4;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+      ctx.fillStyle = "#6b7280"; ctx.font = "16px Helvetica"; ctx.textAlign = "right";
+      ctx.fillText(String(Math.round((max * g) / 4)), padL - 8, y + 5);
+    }
+    const bw = chartW / (items.length || 1);
+    items.forEach((it, i) => {
+      const h = (it.valor / max) * chartH;
+      const x = padL + i * bw + bw * 0.2;
+      const w = bw * 0.6;
+      const y = padT + chartH - h;
+      ctx.fillStyle = PIE_COLORS[i % PIE_COLORS.length];
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#111"; ctx.font = "bold 18px Helvetica"; ctx.textAlign = "center";
+      ctx.fillText(String(it.valor), x + w / 2, y - 8);
+      ctx.save();
+      ctx.translate(x + w / 2, padT + chartH + 12);
+      ctx.rotate(-Math.PI / 6);
+      ctx.textAlign = "right"; ctx.font = "16px Helvetica"; ctx.fillStyle = "#374151";
+      ctx.fillText(it.nome.length > 26 ? it.nome.slice(0, 25) + "…" : it.nome, 0, 0);
+      ctx.restore();
+    });
+    return canvas.toDataURL("image/png");
+  };
+
+  const exportarFechamentoLocal = async (formato: "pdf" | "excel") => {
+    const clienteNome = clienteSel !== "todos"
+      ? (clientes.find(c => c.id === clienteSel)?.nome || "TODOS OS CLIENTES")
+      : "TODOS OS CLIENTES";
+    const dataIni = fmtData(intervalo.ini.toISOString());
+    const dataFimStr = fmtData(intervalo.fim.toISOString());
+    const totalSemBdi = (o: any) => { const { sco, est } = totalOS(o); return sco + est; };
+
+    // Agrupa por local
+    const locMap = new Map<string, OrdemServico[]>();
+    ordensFiltradas.forEach(o => {
+      const loc = o.localDescricao || "SEM LOCAL";
+      if (!locMap.has(loc)) locMap.set(loc, []);
+      locMap.get(loc)!.push(o);
+    });
+    const locais = Array.from(locMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    const totalGeral = ordensFiltradas.reduce((s, o) => s + totalSemBdi(o), 0);
+
+    const tiposDoLocal = (list: OrdemServico[]) => {
+      const m = new Map<string, { qtd: number; valor: number }>();
+      list.forEach(o => {
+        const t = o.tipoOs?.descricao || "SEM TIPO";
+        const cur = m.get(t) || { qtd: 0, valor: 0 };
+        cur.qtd += 1; cur.valor += totalSemBdi(o);
+        m.set(t, cur);
+      });
+      return Array.from(m.entries())
+        .map(([nome, v]) => ({ nome, ...v }))
+        .sort((a, b) => b.qtd - a.qtd);
+    };
+
+    if (formato === "excel") {
+      const wb = XLSX.utils.book_new();
+      const geral: any[] = [];
+      const resumo: any[] = [];
+      locais.forEach(([loc, list]) => {
+        list.forEach(o => geral.push({
+          "Local": loc,
+          "OS": formatNumeroAno(o.numero, o.createdAt),
+          "Unidade": o.clienteNome || "-",
+          "Tipo de OS": o.tipoOs?.descricao || "-",
+          "Categoria": o.categoria || "-",
+          "Valor": Number(totalSemBdi(o).toFixed(2)),
+        }));
+        tiposDoLocal(list).forEach(t => resumo.push({
+          "Local": loc, "Tipo de OS": t.nome, "Qtd": t.qtd, "Valor": Number(t.valor.toFixed(2)),
+        }));
+      });
+      const ws = XLSX.utils.json_to_sheet(geral);
+      ws["!cols"] = [{ wch: 30 }, { wch: 14 }, { wch: 34 }, { wch: 20 }, { wch: 26 }, { wch: 14 }];
+      XLSX.utils.book_append_sheet(wb, ws, "Fechamento por Local");
+      const wsR = XLSX.utils.json_to_sheet(resumo);
+      wsR["!cols"] = [{ wch: 30 }, { wch: 24 }, { wch: 8 }, { wch: 14 }];
+      XLSX.utils.book_append_sheet(wb, wsR, "Tipos por Local");
+      XLSX.writeFile(wb, "relatorio_fechamento_por_local.xlsx");
+      toast.success("Excel gerado!");
+      onOpenChange(false);
+      return;
+    }
+
+    const doc = new jsPDF({ orientation: orientacao, unit: "mm", format: "a4" });
+    const pw = doc.internal.pageSize.getWidth();
+
+    if (empresa?.logoUrl) {
+      const logo = await loadImg(empresa.logoUrl);
+      if (logo) { try { doc.addImage(logo, "PNG", 14, 12, 40, 20); } catch {} }
+    }
+    doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(30, 30, 30);
+    doc.text(clienteNome.toUpperCase(), pw / 2, 50, { align: "center" });
+    doc.setFontSize(13); doc.setTextColor(80, 80, 80);
+    doc.text("RELATÓRIO DE FECHAMENTO - VALIDADAS POR LOCAL", pw / 2, 60, { align: "center" });
+    autoTable(doc, {
+      startY: 72,
+      head: [["Data inicial", "Data final"]],
+      body: [[dataIni, dataFimStr]],
+      theme: "grid",
+      styles: { halign: "center", fontSize: 11, cellPadding: 3 },
+      headStyles: { fillColor: [30, 58, 107], textColor: 255 },
+      tableWidth: 120,
+      margin: { left: (pw - 120) / 2 },
+    });
+
+    // Resumo geral por local
+    doc.addPage();
+    doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(30, 30, 30);
+    doc.text("Resumo Geral por Local", pw / 2, 16, { align: "center" });
+    autoTable(doc, {
+      startY: 22,
+      head: [["Local", "Qtd OS", "Valor", "%"]],
+      body: locais.map(([loc, list]) => {
+        const v = list.reduce((s, o) => s + totalSemBdi(o), 0);
+        return [loc, String(list.length), fmtBRL(v), `${totalGeral > 0 ? ((v / totalGeral) * 100).toFixed(2) : "0,00"}%`];
+      }),
+      foot: [["TOTAL", String(ordensFiltradas.length), fmtBRL(totalGeral), "100,00%"]],
+      styles: { fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
+      footStyles: { fillColor: [230, 235, 245], textColor: 30, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      columnStyles: { 1: { halign: "center", cellWidth: 20 }, 2: { halign: "right", cellWidth: 34 }, 3: { halign: "right", cellWidth: 22 } },
+    });
+
+    // Uma seção por local
+    for (const [loc, list] of locais) {
+      const totalLocal = list.reduce((s, o) => s + totalSemBdi(o), 0);
+      doc.addPage();
+      doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(30, 58, 107);
+      doc.text(`Local: ${loc}`, 14, 16);
+      doc.setTextColor(30, 30, 30);
+      autoTable(doc, {
+        startY: 22,
+        head: [["OS", "Unidade", "Tipo de OS", "Categoria", "Valor"]],
+        body: list.map(o => [
+          formatNumeroAno(o.numero, o.createdAt),
+          o.clienteNome || "-",
+          o.tipoOs?.descricao || "-",
+          o.categoria || "-",
+          fmtBRL(totalSemBdi(o)),
+        ]),
+        foot: [[{ content: `Nº de OS: ${list.length}`, colSpan: 3 } as any, "Total do Local", fmtBRL(totalLocal)]],
+        styles: { fontSize: 8.5, cellPadding: 2 },
+        headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
+        footStyles: { fillColor: [230, 235, 245], textColor: 30, fontStyle: "bold" },
+        alternateRowStyles: { fillColor: [245, 247, 250] },
+        columnStyles: { 0: { cellWidth: 22 }, 4: { halign: "right", cellWidth: 30 } },
+      });
+
+      // Resumo dos tipos de OS do local
+      const tipos = tiposDoLocal(list);
+      let y = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 8 : 40;
+      const ph = doc.internal.pageSize.getHeight();
+      if (y > ph - 60) { doc.addPage(); y = 18; }
+      doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+      doc.text(`Resumo dos Tipos de OS — ${loc}`, 14, y);
+      autoTable(doc, {
+        startY: y + 4,
+        head: [["Tipo de OS", "Qtd", "% Qtd", "Valor"]],
+        body: tipos.map(t => [
+          t.nome, String(t.qtd),
+          `${((t.qtd / (list.length || 1)) * 100).toFixed(2)}%`,
+          fmtBRL(t.valor),
+        ]),
+        foot: [["TOTAL", String(list.length), "100,00%", fmtBRL(totalLocal)]],
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
+        footStyles: { fillColor: [230, 235, 245], textColor: 30, fontStyle: "bold" },
+        columnStyles: { 1: { halign: "center", cellWidth: 20 }, 2: { halign: "right", cellWidth: 24 }, 3: { halign: "right", cellWidth: 34 } },
+      });
+
+      // Gráfico do local
+      const chart = drawBarChart(tipos.map(t => ({ nome: t.nome, valor: t.qtd })), `Tipos de OS — ${loc}`);
+      let y2 = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 8 : 40;
+      const imgW = Math.min(pw - 28, 170);
+      const imgH = (imgW * 520) / 900;
+      if (y2 + imgH > ph - 18) { doc.addPage(); y2 = 18; }
+      try { doc.addImage(chart, "PNG", (pw - imgW) / 2, y2, imgW, imgH); } catch {}
+    }
+
+    addFooter(doc);
+    doc.save("relatorio_fechamento_por_local.pdf");
+    toast.success("PDF gerado!");
+    onOpenChange(false);
+  };
+
   const exportar = async (formato: "pdf" | "excel") => {
     if (tipo === "ciclo_ss") { await exportarCicloSS(formato); return; }
     if (tipo === "ciclo_os") { await exportarCicloOS(formato); return; }
