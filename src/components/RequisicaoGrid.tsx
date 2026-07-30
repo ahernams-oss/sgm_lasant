@@ -686,6 +686,30 @@ const RequisicaoGrid = () => {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!aprovandoReq} onOpenChange={(open) => { if (!open) { setAprovandoReq(null); setJustificativaAprovacao(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Aprovar Requisição #{aprovandoReq?.numero}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <label className="field-label">Justificativa da aprovação <span className="text-red-600">*</span></label>
+            <Textarea
+              value={justificativaAprovacao}
+              onChange={(e) => setJustificativaAprovacao(e.target.value)}
+              placeholder="Descreva o motivo/justificativa da aprovação..."
+              rows={5}
+              autoFocus
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => { setAprovandoReq(null); setJustificativaAprovacao(""); }}>Cancelar</Button>
+            <Button onClick={confirmarAprovacao}>
+              <CheckCircle2 className="mr-2 h-4 w-4" /> Confirmar Aprovação
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!reprovandoReq} onOpenChange={(open) => { if (!open) { setReprovandoReq(null); setJustificativaReprovacao(""); } }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
