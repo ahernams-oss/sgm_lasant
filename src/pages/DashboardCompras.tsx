@@ -204,6 +204,58 @@ export default function DashboardCompras() {
   const reprovadaList = useMemo(() => filtered.filter(r => r.status === "Reprovada"), [filtered]);
   const pendentesEntrega = useMemo(() => filtered.filter(r => ["Pedido Emitido", "Em Entrega"].includes(r.status)), [filtered]);
 
+  // ---- Filtros e paginação das grids de acompanhamento ----
+  const [pendBusca, setPendBusca] = useState("");
+  const [pendStatus, setPendStatus] = useState("todos");
+  const [pendUrgencia, setPendUrgencia] = useState("todas");
+  const [pendPage, setPendPage] = useState(1);
+  const [pendSize, setPendSize] = useState(10);
+
+  const [repBusca, setRepBusca] = useState("");
+  const [repPage, setRepPage] = useState(1);
+  const [repSize, setRepSize] = useState(10);
+
+  const [audBusca, setAudBusca] = useState("");
+  const [audStatus, setAudStatus] = useState("todos");
+  const [audPage, setAudPage] = useState(1);
+  const [audSize, setAudSize] = useState(10);
+
+  const norm = (s: any) => String(s ?? "").toLowerCase();
+
+  const pendentesFiltradas = useMemo(() => {
+    const t = pendBusca.trim().toLowerCase();
+    return pendentesEntrega.filter(r =>
+      (pendStatus === "todos" || r.status === pendStatus) &&
+      (pendUrgencia === "todas" || r.urgencia === pendUrgencia) &&
+      (!t || [r.numero, r.solicitante, r.centroCustoNome].some(v => norm(v).includes(t)))
+    );
+  }, [pendentesEntrega, pendBusca, pendStatus, pendUrgencia]);
+
+  const reprovadasFiltradas = useMemo(() => {
+    const t = repBusca.trim().toLowerCase();
+    if (!t) return reprovadaList;
+    return reprovadaList.filter(r => {
+      const motivo = r.historicoStatus.find(h => h.status === "Reprovada")?.observacao || "";
+      return [r.numero, r.solicitante, r.centroCustoNome, motivo].some(v => norm(v).includes(t));
+    });
+  }, [reprovadaList, repBusca]);
+
+  const auditoriaEventos = useMemo(() => {
+    const all = filtered.flatMap(r => r.historicoStatus.map(h => ({ ...h, reqNumero: r.numero })))
+      .sort((a, b) => new Date(b.dataHora).getTime() - new Date(a.dataHora).getTime());
+    const t = audBusca.trim().toLowerCase();
+    return all.filter(ev =>
+      (audStatus === "todos" || ev.status === audStatus) &&
+      (!t || [ev.reqNumero, ev.usuario, ev.observacao].some(v => norm(v).includes(t)))
+    );
+  }, [filtered, audBusca, audStatus]);
+
+  const auditoriaStatusOpcoes = useMemo(
+    () => Array.from(new Set(filtered.flatMap(r => r.historicoStatus.map(h => h.status)))).sort(),
+    [filtered]
+  );
+
+
   // Pedidos filtrados pelo mesmo período (data de criação) — exclui cancelados
   const pedidosFiltrados = useMemo(() => {
     return pedidos.filter(p => {
