@@ -30,7 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { usePermissao } from "@/hooks/usePermissao";
-import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText, CheckSquare, MessageCircle, AlertTriangle } from "lucide-react";
+import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText, CheckSquare, MessageCircle, AlertTriangle, Sparkles, Upload } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { notificarCompras, formatarPrioridade, formatarDataHora, formatarData, formatarPedido } from "@/lib/notificacoesCompras";
 import { Checkbox } from "@/components/ui/checkbox";
