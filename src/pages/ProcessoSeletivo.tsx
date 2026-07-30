@@ -609,7 +609,15 @@ const ProcessoSeletivoPage = () => {
                           />
                         </div>
                         {isCurrentEtapa && c.statusPsicologico === "pendente" && (
-                          <div className="flex gap-2 justify-end">
+                          <div className="flex gap-2 justify-end flex-wrap">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-amber-600 hover:text-amber-700 border-amber-300"
+                              onClick={() => handleAprovacaoExpressa(c)}
+                            >
+                              <Zap className="h-4 w-4 mr-1" /> Aprovação Expressa
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"
