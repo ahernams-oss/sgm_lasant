@@ -521,6 +521,15 @@ const RequisicaoGrid = () => {
                   </Select>
                 </div>
                 <div>
+                  <label className="field-label">Tipo de contratação</label>
+                  <Select value={editForm.tipoContratacaoDetalhe} onValueChange={(v) => setEditForm(p => ({ ...p, tipoContratacaoDetalhe: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {tipoContratacaoOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <label className="field-label">Recrutamento</label>
                   <Select value={editForm.internoExterno} onValueChange={(v) => setEditForm(p => ({ ...p, internoExterno: v }))}>
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
