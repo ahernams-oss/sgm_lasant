@@ -18,7 +18,6 @@ import { gerarPdfRequisicao } from "@/lib/gerarPdfRequisicao";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import {
 import RequisicaoHistoricoTimeline from "@/components/RequisicaoHistoricoTimeline";
 import {
   Dialog,
