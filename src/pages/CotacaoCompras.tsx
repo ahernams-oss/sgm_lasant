@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { supabase } from "@/integrations/supabase/client";
+import { enviarEmailCompras } from "@/lib/emailCompras";
 import { useCargos } from "@/contexts/CargosContext";
 import { usePcAssinaturas } from "@/contexts/PcAssinaturasContext";
 import { gerarHashPc } from "@/lib/assinaturaHashPc";
@@ -680,7 +681,7 @@ export default function CotacaoComprasPage() {
           const { data: pub } = supabase.storage.from("documentos").getPublicUrl(path);
           const pdfUrl = pub.publicUrl;
 
-          const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
+          const { error: emailErr } = await enviarEmailCompras({
             body: {
               templateName: "cotacao-confirmation",
               recipientEmail: email,
@@ -755,7 +756,7 @@ export default function CotacaoComprasPage() {
 
       const canais: string[] = [];
       if (canalEmail && enviarEmail) {
-        const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
+        const { error: emailErr } = await enviarEmailCompras({
           body: {
             templateName: "cotacao-confirmation",
             recipientEmail: enviarEmail,
@@ -839,7 +840,7 @@ export default function CotacaoComprasPage() {
 
           if (canalEmail && emailForn) {
             try {
-              await supabase.functions.invoke("send-transactional-email", {
+              await enviarEmailCompras({
                 body: {
                   templateName: "cotacao-confirmation",
                   recipientEmail: emailForn,
@@ -897,7 +898,7 @@ export default function CotacaoComprasPage() {
       const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
       const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
 
-      const { error } = await supabase.functions.invoke("send-transactional-email", {
+      const { error } = await enviarEmailCompras({
         body: {
           templateName: "cotacao-confirmation",
           recipientEmail: enviarEmail,
@@ -944,7 +945,7 @@ export default function CotacaoComprasPage() {
         if (!emailForn) { erros++; continue; }
 
         try {
-          await supabase.functions.invoke("send-transactional-email", {
+          await enviarEmailCompras({
             body: {
               templateName: "cotacao-confirmation",
               recipientEmail: emailForn,

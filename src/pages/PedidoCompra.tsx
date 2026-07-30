@@ -28,6 +28,7 @@ import { downloadPdfOrdemCompra, uploadPdfOrdemCompra } from "@/lib/gerarPdfOrde
 import { enviarPlugSend as enviarWhatsApp, enviarPlugSendComDocumento as enviarWhatsAppComDocumento } from "@/lib/plugsend";
 import { notificarCompras, formatarPrioridade, formatarDataHora, formatarData, formatarPedido } from "@/lib/notificacoesCompras";
 import { supabase } from "@/integrations/supabase/client";
+import { enviarEmailCompras } from "@/lib/emailCompras";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
@@ -235,7 +236,7 @@ export default function PedidoCompraPage() {
         }
         const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
 
-        const { error } = await supabase.functions.invoke("send-transactional-email", {
+        const { error } = await enviarEmailCompras({
           body: {
             templateName: "ordem-compra-confirmation",
             recipientEmail: sendEmail,
@@ -415,7 +416,7 @@ export default function PedidoCompraPage() {
         if (batchMethod === "email") {
           const email = fornecedor?.email || fornecedor?.emailCompras || "";
           if (!email) throw new Error(`${pcNum}: fornecedor sem e-mail`);
-          const { error } = await supabase.functions.invoke("send-transactional-email", {
+          const { error } = await enviarEmailCompras({
             body: {
               templateName: "ordem-compra-confirmation",
               recipientEmail: email,
