@@ -43,9 +43,23 @@ export default function DashboardKpiCard({
   const v = DASHBOARD_KPI_VARIANTS[gradientIdx % DASHBOARD_KPI_VARIANTS.length];
   const hasTrend = trend !== undefined && trend !== null && Number.isFinite(trend);
   const TrendIcon = !hasTrend ? Minus : (trend as number) > 0 ? TrendingUp : (trend as number) < 0 ? TrendingDown : Minus;
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const exportar = async (tipo: "pdf" | "jpg") => {
+    if (!cardRef.current) return;
+    try {
+      if (tipo === "jpg") await exportarKpiCardJpg(cardRef.current, label);
+      else await exportarKpiCardPdf(cardRef.current, label);
+      toast.success(`Indicador exportado em ${tipo.toUpperCase()}`);
+    } catch (err) {
+      console.error("Erro ao exportar indicador:", err);
+      toast.error("Falha ao exportar indicador");
+    }
+  };
 
   return (
     <Card
+      ref={cardRef}
       onClick={onClick}
       className={cn(
         "group relative overflow-hidden border border-border/60 transition-all duration-300",
@@ -55,6 +69,32 @@ export default function DashboardKpiCard({
       )}
     >
       <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", v.ring)} />
+      <div
+        className="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+        data-export-ignore="true"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              title="Exportar indicador"
+              className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <Download className="h-3.5 w-3.5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem onClick={() => exportar("pdf")}>
+              <FileDown className="h-3.5 w-3.5 mr-2" /> Exportar PDF
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportar("jpg")}>
+              <ImageDown className="h-3.5 w-3.5 mr-2" /> Exportar JPG
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
       <CardContent className="pt-5 pb-4 px-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
