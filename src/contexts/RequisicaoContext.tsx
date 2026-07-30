@@ -5,6 +5,15 @@ import { enviarNotificacaoRP } from "@/lib/notificacaoRP";
 
 export interface StatusHistorico { status: string; dataHora: string; usuario?: string; observacao?: string; }
 
+export interface IndicadoRP {
+  nome: string;
+  telefone: string;
+  email: string;
+  cpf: string;
+  dataNascimento: string;
+  curriculo?: { nome: string; tipo: string; base64: string } | null;
+}
+
 export interface Requisicao {
   id: string; numero: number; dataCriacao: string;
   headcount: string; orcamento: string; tipoVaga: string;
