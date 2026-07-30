@@ -616,69 +616,101 @@ export default function CotacaoComprasPage() {
 
   const openPdfDialog = (cotId: string) => {
     setPdfCotacaoId(cotId);
-    setPdfFornecedorId("");
-    setPdfEmail("");
+    setPdfFornecedorIds([]);
+    setPdfEmails({});
+    setPdfBusca("");
     setPdfDialogOpen(true);
   };
 
-  const handleSelectFornecedorPdf = (fornId: string) => {
-    setPdfFornecedorId(fornId);
+  const emailPadraoFornecedor = (fornId: string) => {
     const forn = fornecedores.find(f => f.id === fornId);
-    setPdfEmail((forn as any)?.emailCompras || forn?.email || "");
+    return (forn as any)?.emailCompras || forn?.email || "";
+  };
+
+  const togglePdfFornecedor = (fornId: string) => {
+    setPdfFornecedorIds(prev => {
+      if (prev.includes(fornId)) return prev.filter(id => id !== fornId);
+      setPdfEmails(e => (e[fornId] !== undefined ? e : { ...e, [fornId]: emailPadraoFornecedor(fornId) }));
+      return [...prev, fornId];
+    });
   };
 
   const handleEnviarPdfFornecedor = async () => {
-    if (!pdfFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
-    if (!pdfEmail) { toast({ title: "Informe o e-mail do fornecedor", variant: "destructive" }); return; }
+    if (pdfFornecedorIds.length === 0) { toast({ title: "Selecione ao menos um fornecedor", variant: "destructive" }); return; }
+    const semEmail = pdfFornecedorIds.filter(id => !(pdfEmails[id] || "").trim());
+    if (semEmail.length > 0) {
+      toast({ title: "Informe o e-mail de todos os fornecedores selecionados", variant: "destructive" });
+      return;
+    }
     setPdfLoading(true);
+    const enviados: string[] = [];
+    const falhas: string[] = [];
     try {
       const cot = cotacoes.find(c => c.id === pdfCotacaoId);
       const req = requisicoes.find(r => r.id === cot?.requisicaoId) || null;
-      const forn = fornecedores.find(f => f.id === pdfFornecedorId);
-      if (!cot || !forn) throw new Error("Dados não encontrados");
-
-      const { blob, fileName } = await gerarBlobPedidoCotacao({
-        cotacao: cot,
-        requisicao: req,
-        empresa,
-        fornecedor: {
-          id: forn.id,
-          nome: forn.nome,
-          cnpj: forn.cnpj || "",
-          email: pdfEmail,
-          telefone: getTelefoneFornecedor(forn) || "",
-        },
-      });
-
-      const path = `cotacoes/${cot.id}/${forn.id}-${Date.now()}.pdf`;
-      const { error: upErr } = await supabase.storage
-        .from("documentos")
-        .upload(path, blob, { contentType: "application/pdf", upsert: true });
-      if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("documentos").getPublicUrl(path);
-      const pdfUrl = pub.publicUrl;
+      if (!cot) throw new Error("Cotação não encontrada");
 
       const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
       const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
 
-      const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "cotacao-confirmation",
-          recipientEmail: pdfEmail,
-          idempotencyKey: `cotacao-pdf-${cot.id}-${forn.id}-${Date.now()}`,
-          templateData: {
-            fornecedorNome: forn.nome,
-            cotacaoNumero: cot.numero,
-            comprador,
-            pdfUrl,
-            nomeEmpresa,
-          },
-        },
-      });
-      if (emailErr) throw emailErr;
+      for (const fornId of pdfFornecedorIds) {
+        const forn = fornecedores.find(f => f.id === fornId);
+        if (!forn) continue;
+        const email = (pdfEmails[fornId] || "").trim();
+        try {
+          const { blob } = await gerarBlobPedidoCotacao({
+            cotacao: cot,
+            requisicao: req,
+            empresa,
+            fornecedor: {
+              id: forn.id,
+              nome: forn.nome,
+              cnpj: forn.cnpj || "",
+              email,
+              telefone: getTelefoneFornecedor(forn) || "",
+            },
+          });
 
-      toast({ title: `PDF enviado para ${forn.nome}`, description: fileName });
-      setPdfDialogOpen(false);
+          const path = `cotacoes/${cot.id}/${forn.id}-${Date.now()}.pdf`;
+          const { error: upErr } = await supabase.storage
+            .from("documentos")
+            .upload(path, blob, { contentType: "application/pdf", upsert: true });
+          if (upErr) throw upErr;
+          const { data: pub } = supabase.storage.from("documentos").getPublicUrl(path);
+          const pdfUrl = pub.publicUrl;
+
+          const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "cotacao-confirmation",
+              recipientEmail: email,
+              idempotencyKey: `cotacao-pdf-${cot.id}-${forn.id}-${Date.now()}`,
+              templateData: {
+                fornecedorNome: forn.nome,
+                cotacaoNumero: cot.numero,
+                comprador,
+                pdfUrl,
+                nomeEmpresa,
+              },
+            },
+          });
+          if (emailErr) throw emailErr;
+          enviados.push(forn.nome);
+        } catch (err: any) {
+          console.error(err);
+          falhas.push(`${forn.nome}: ${err?.message || "erro"}`);
+        }
+      }
+
+      if (enviados.length > 0) {
+        toast({
+          title: `PDF enviado para ${enviados.length} fornecedor(es)`,
+          description: enviados.join(", "),
+        });
+      }
+      if (falhas.length > 0) {
+        toast({ title: "Falhas no envio", description: falhas.join(" | "), variant: "destructive" });
+      }
+      if (falhas.length === 0) setPdfDialogOpen(false);
     } catch (e: any) {
       console.error(e);
       toast({ title: "Erro ao enviar PDF", description: e.message, variant: "destructive" });
@@ -686,6 +718,7 @@ export default function CotacaoComprasPage() {
       setPdfLoading(false);
     }
   };
+
 
   const handleGerarEEnviarIndividual = async () => {
     if (!enviarFornecedorId) { toast({ title: "Selecione um fornecedor", variant: "destructive" }); return; }
