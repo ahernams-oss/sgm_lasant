@@ -408,7 +408,7 @@ const RequisicaoGrid = () => {
                             ) : req.status === "Suspensa" ? (
                               <>
                                 {podeStatusRP("Aprovada") && (
-                                  <DropdownMenuItem onClick={() => handleStatusChange(req, "Aprovada")}>
+                                  <DropdownMenuItem onClick={() => { setAprovandoReq(req); setJustificativaAprovacao(""); }}>
                                     <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Reativar (Aprovar)
                                   </DropdownMenuItem>
                                 )}
@@ -421,7 +421,7 @@ const RequisicaoGrid = () => {
                                   </DropdownMenuItem>
                                 )}
                                 {podeStatusRP("Aprovada") && (
-                                  <DropdownMenuItem onClick={() => handleStatusChange(req, "Aprovada")}>
+                                  <DropdownMenuItem onClick={() => { setAprovandoReq(req); setJustificativaAprovacao(""); }}>
                                     <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Aprovar
                                   </DropdownMenuItem>
                                 )}
