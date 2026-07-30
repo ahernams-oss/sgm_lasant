@@ -233,11 +233,12 @@ export default function OrdensServicoPage() {
   const [viewOS, setViewOS] = useState<OrdemServico | null>(null);
   const [viewSSTarget, setViewSSTarget] = useState<SolicitacaoServico | null>(null);
   const { orcamentos: orcamentosAll } = useOrcamentos();
-  const _osSavedFilters = loadPersistedFilters<{ busca: string; filtroSituacao: string; filtroPrioridade: string; filtroDataInicio: string; filtroDataFim: string; filtroOrigem: string; }>("ordens_servico_filters_v1");
+  const _osSavedFilters = loadPersistedFilters<{ busca: string; filtroSituacao: string; filtroPrioridade: string; filtroDataInicio: string; filtroDataFim: string; filtroOrigem: string; filtroFotos: string; }>("ordens_servico_filters_v1");
   const [busca, setBusca] = useState(_osSavedFilters?.busca ?? "");
   const _osUrlInitial = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const [filtroOrigem, setFiltroOrigem] = useState(_osUrlInitial.get("origem") ?? _osSavedFilters?.filtroOrigem ?? "all");
   const [filtroSituacao, setFiltroSituacao] = useState(_osUrlInitial.get("situacao") ?? _osSavedFilters?.filtroSituacao ?? "Todas");
+  const [filtroFotos, setFiltroFotos] = useState(_osSavedFilters?.filtroFotos ?? "all");
 
   const [filtroCliente, setFiltroCliente] = useState(() => localStorage.getItem("os_filtroCliente") || "Todos");
   const [filtroPrioridade, setFiltroPrioridade] = useState(_osSavedFilters?.filtroPrioridade ?? "Todas");
