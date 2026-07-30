@@ -343,6 +343,28 @@ const RequisicaoGrid = () => {
               ))}
             </SelectContent>
           </Select>
+          <Select value={filterOrigem} onValueChange={setFilterOrigem}>
+            <SelectTrigger className="h-9 w-[160px] text-xs">
+              <SelectValue placeholder="Origem" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas Origens</SelectItem>
+              {origemOptions.map((o) => (
+                <SelectItem key={o} value={o}>{o}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterSolicitante} onValueChange={setFilterSolicitante}>
+            <SelectTrigger className="h-9 w-[170px] text-xs">
+              <SelectValue placeholder="Solicitante" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos Solicitantes</SelectItem>
+              {solicitantesUnicos.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Input type="date" value={filterDataDe} onChange={(e) => setFilterDataDe(e.target.value)} className="h-9 w-[140px] text-xs" placeholder="De" title="Data inicial" />
           <Input type="date" value={filterDataAte} onChange={(e) => setFilterDataAte(e.target.value)} className="h-9 w-[140px] text-xs" placeholder="Até" title="Data final" />
           <div className="relative w-52">
