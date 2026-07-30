@@ -78,6 +78,8 @@ const RequisicaoGrid = () => {
   const [filterUnidade, setFilterUnidade] = useState<string>("todos");
   const [filterDataDe, setFilterDataDe] = useState<string>("");
   const [filterDataAte, setFilterDataAte] = useState<string>("");
+  const [filterOrigem, setFilterOrigem] = useState<string>("todos");
+  const [filterSolicitante, setFilterSolicitante] = useState<string>("todos");
   const [editingReq, setEditingReq] = useState<Requisicao | null>(null);
   const [historicoReq, setHistoricoReq] = useState<Requisicao | null>(null);
   const [reprovandoReq, setReprovandoReq] = useState<Requisicao | null>(null);
@@ -275,6 +277,12 @@ const RequisicaoGrid = () => {
     if (filterUnidade !== "todos") {
       result = result.filter((r) => r.unidade === filterUnidade);
     }
+    if (filterOrigem !== "todos") {
+      result = result.filter((r) => (r.origemVaga || "") === filterOrigem);
+    }
+    if (filterSolicitante !== "todos") {
+      result = result.filter((r) => (r.solicitante || "") === filterSolicitante);
+    }
     if (filterDataDe) {
       const de = new Date(filterDataDe);
       result = result.filter((r) => { const d = parseDataBR(r.dataCriacao); return d && d >= de; });
@@ -290,7 +298,15 @@ const RequisicaoGrid = () => {
       if (db !== da) return db - da;
       return (b.numero ?? 0) - (a.numero ?? 0);
     });
-  }, [requisicoes, search, filterStatus, filterUnidade, filterDataDe, filterDataAte]);
+  }, [requisicoes, search, filterStatus, filterUnidade, filterOrigem, filterSolicitante, filterDataDe, filterDataAte]);
+
+  const solicitantesUnicos = useMemo(
+    () => Array.from(new Set(requisicoes.map((r) => r.solicitante).filter(Boolean))).sort((a, b) =>
+      (a as string).localeCompare(b as string)
+    ) as string[],
+    [requisicoes]
+  );
+
 
   if (requisicoes.length === 0) {
     return (
@@ -323,6 +339,28 @@ const RequisicaoGrid = () => {
             <SelectContent>
               <SelectItem value="todos">Todos Status</SelectItem>
               {statusOptions.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterOrigem} onValueChange={setFilterOrigem}>
+            <SelectTrigger className="h-9 w-[160px] text-xs">
+              <SelectValue placeholder="Origem" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas Origens</SelectItem>
+              {origemOptions.map((o) => (
+                <SelectItem key={o} value={o}>{o}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterSolicitante} onValueChange={setFilterSolicitante}>
+            <SelectTrigger className="h-9 w-[170px] text-xs">
+              <SelectValue placeholder="Solicitante" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos Solicitantes</SelectItem>
+              {solicitantesUnicos.map((s) => (
                 <SelectItem key={s} value={s}>{s}</SelectItem>
               ))}
             </SelectContent>
