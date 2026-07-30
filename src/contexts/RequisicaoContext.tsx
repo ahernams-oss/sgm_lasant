@@ -19,7 +19,7 @@ export interface Requisicao {
   headcount: string; orcamento: string; tipoVaga: string;
   unidade: string;
   cargoNome: string; cargoId: string; jornada: string; cargaHoraria: string;
-  tipoContratacao: string[]; internoExterno: string; origemVaga: string;
+  tipoContratacao: string[]; tipoContratacaoDetalhe?: string; internoExterno: string; origemVaga: string;
   motivoOutros: string; matricula: string; nomeSubstituido: string;
   cargoSubstituido: string; salarioSubstituido: string; dataDesligamento: string;
   formacao: string[]; formacaoDetalhe: string; experiencia: string;
