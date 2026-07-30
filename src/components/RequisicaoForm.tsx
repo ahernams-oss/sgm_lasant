@@ -108,12 +108,18 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     }[] = [];
     if (form.desejaIndicar === "Sim") {
       const preenchidos = indicados.filter((i) => i.nome.trim());
+      const cpfsVistos = new Set<string>();
       for (const i of preenchidos) {
         const cpfDigits = i.cpf.replace(/\D/g, "");
         if (cpfDigits.length !== 11) {
           toast.error(`Informe um CPF válido para o indicado "${i.nome}".`);
           return;
         }
+        if (cpfsVistos.has(cpfDigits)) {
+          toast.error(`O CPF do indicado "${i.nome}" já foi informado em outro indicado.`);
+          return;
+        }
+        cpfsVistos.add(cpfDigits);
         if (!i.dataNascimento) {
           toast.error(`Informe a data de nascimento do indicado "${i.nome}".`);
           return;

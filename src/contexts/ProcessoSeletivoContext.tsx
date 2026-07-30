@@ -173,13 +173,16 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
   ) => {
     const p = processos.find(p => p.id === processoId);
     if (!p) return 0;
-    const existentes = new Set(
-      p.candidatos.map(c => (c.cpf || "").replace(/\D/g, "") || c.nome.trim().toLowerCase())
-    );
+    // Chave composta: CPF + nome — evita descartar indicados distintos
+    // que tenham sido cadastrados com o mesmo CPF por engano.
+    const chaveDe = (cpf?: string, nome?: string) =>
+      `${(cpf || "").replace(/\D/g, "")}|${(nome || "").trim().toLowerCase()}`;
+    const existentes = new Set(p.candidatos.map(c => chaveDe(c.cpf, c.nome)));
     const novos: Candidato[] = [];
     for (const item of lista) {
-      const chave = (item.cpf || "").replace(/\D/g, "") || item.nome.trim().toLowerCase();
-      if (!chave || existentes.has(chave)) continue;
+      if (!item.nome?.trim()) continue;
+      const chave = chaveDe(item.cpf, item.nome);
+      if (existentes.has(chave)) continue;
       if (p.candidatos.length + novos.length >= 5) break;
       existentes.add(chave);
       novos.push({
