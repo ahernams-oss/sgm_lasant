@@ -79,13 +79,9 @@ function groupSum<T>(arr: T[], getKey: (x: T) => string, getVal: (x: T) => numbe
   return Object.entries(m).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
 }
 
-function KPI({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
+function KPI({ label, value, hint, icon, gradientIdx = 0 }: { label: string; value: string | number; hint?: string; icon?: any; gradientIdx?: number }) {
   return (
-    <div className="rounded-xl border bg-card p-4">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="text-2xl font-semibold tabular-nums mt-1">{value}</div>
-      {hint && <div className="text-xs text-muted-foreground mt-1">{hint}</div>}
-    </div>
+    <DashboardKpiCard icon={icon ?? LayoutDashboard} label={label} value={value} subtitle={hint} gradientIdx={gradientIdx} />
   );
 }
 
