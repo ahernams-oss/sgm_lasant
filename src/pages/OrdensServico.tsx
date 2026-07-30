@@ -1131,6 +1131,17 @@ export default function OrdensServicoPage() {
               </Select>
             </div>
             <div className="w-[180px]">
+              <Label>Fotos</Label>
+              <Select value={filtroFotos} onValueChange={v => { setFiltroFotos(v); setPage(1); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="com_foto">Com foto</SelectItem>
+                  <SelectItem value="sem_foto">Sem foto</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-[180px]">
               <Label>Situação</Label>
               <Select value={filtroSituacao} onValueChange={v => { setFiltroSituacao(v); setPage(1); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
