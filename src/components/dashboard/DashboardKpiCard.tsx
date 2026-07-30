@@ -1,6 +1,16 @@
+import { useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { TrendingDown, TrendingUp, Minus, Download, FileDown, ImageDown } from "lucide-react";
+import { toast } from "sonner";
+import { exportarKpiCardJpg, exportarKpiCardPdf } from "@/lib/exportKpiCard";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 
 export const DASHBOARD_KPI_VARIANTS = [
   { ring: "from-primary to-indigo-600", chip: "bg-primary/10", icon: "text-primary" },
