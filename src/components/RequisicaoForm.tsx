@@ -1,6 +1,9 @@
 import { useState, useRef } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, Paperclip, Send } from "lucide-react";
+import { Plus, Trash2, Paperclip, Send, Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useClientes } from "@/contexts/ClientesContext";
 import FormSection from "@/components/FormSection";
 import CheckboxGroup from "@/components/CheckboxGroup";
