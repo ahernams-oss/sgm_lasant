@@ -398,17 +398,19 @@ export default function DashboardCompras() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="p-4 md:p-8 space-y-6 animate-fade-up">
+      <DashboardHeader
+        title="Dashboard de Compras"
+        badge="Compras e Suprimentos"
+        description="Indicadores de desempenho do processo de compras."
+        lastUpdated={lastUpdated}
+        isRefreshing={isRefreshing}
+        autoRefresh={autoRefresh}
+        onToggleAutoRefresh={setAutoRefresh}
+        onRefresh={refresh}
+      />
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-primary mb-1">
-            <LayoutDashboard className="h-4 w-4" />
-            <span className="text-xs font-medium uppercase tracking-wider">Compras e Suprimentos</span>
-          </div>
-          <h1 className="text-xl font-bold text-foreground">Dashboard de Compras</h1>
-          <p className="text-sm text-muted-foreground">Indicadores de desempenho do processo de compras.</p>
-        </div>
+        <div />
         <div className="flex gap-3 items-center flex-wrap">
           <DashboardFilters
             storageKey="dashboard-compras:filters"
