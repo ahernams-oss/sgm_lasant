@@ -1182,12 +1182,22 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
             </div>
             <div>
               <Label className="text-sm">Situação</Label>
-              <Select value={(tipo === "fechamento_validadas" || tipo === "fechamento_categoria") ? "Validada" : situacaoSel} onValueChange={setSituacaoSel} disabled={tipo === "fechamento_validadas" || tipo === "fechamento_categoria"}>
+              <Select value={(tipo === "fechamento_validadas" || tipo === "fechamento_categoria" || tipo === "fechamento_local") ? "Validada" : situacaoSel} onValueChange={setSituacaoSel} disabled={tipo === "fechamento_validadas" || tipo === "fechamento_categoria" || tipo === "fechamento_local"}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todas">Todas</SelectItem>
                   {situacoesUnicas.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  {(tipo === "fechamento_validadas" || tipo === "fechamento_categoria") && !situacoesUnicas.includes("Validada") && <SelectItem value="Validada">Validada</SelectItem>}
+                  {(tipo === "fechamento_validadas" || tipo === "fechamento_categoria" || tipo === "fechamento_local") && !situacoesUnicas.includes("Validada") && <SelectItem value="Validada">Validada</SelectItem>}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-2">
+              <Label className="text-sm">Local</Label>
+              <Select value={localSel} onValueChange={setLocalSel}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os locais</SelectItem>
+                  {locaisUnicos.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
