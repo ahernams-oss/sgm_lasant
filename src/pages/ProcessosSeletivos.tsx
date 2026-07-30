@@ -139,7 +139,7 @@ const ProcessosSeletivos = () => {
               <SlidersHorizontal className="h-4 w-4 text-primary" />
               Filtros
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -186,25 +186,25 @@ const ProcessosSeletivos = () => {
                 </SelectContent>
               </Select>
 
-
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 sm:col-span-2 lg:col-span-2">
                 <Input
                   type="date"
                   placeholder="De"
                   value={dataInicio}
                   onChange={(e) => { setDataInicio(e.target.value); setPage(1); }}
-                  className="h-9"
+                  className="h-9 flex-1"
                 />
-                <span className="text-muted-foreground">→</span>
+                <span className="text-muted-foreground whitespace-nowrap">→</span>
                 <Input
                   type="date"
                   placeholder="Até"
                   value={dataFim}
                   onChange={(e) => { setDataFim(e.target.value); setPage(1); }}
-                  className="h-9"
+                  className="h-9 flex-1"
                 />
               </div>
             </div>
+
             {filtrosAtivos && (
               <div className="flex justify-end mt-3">
                 <Button variant="ghost" size="sm" onClick={limparFiltros} className="h-8 text-muted-foreground hover:text-foreground">
