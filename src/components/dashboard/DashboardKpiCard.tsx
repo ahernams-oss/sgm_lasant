@@ -98,7 +98,7 @@ export default function DashboardKpiCard({
       <CardContent className="pt-5 pb-4 px-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground truncate">{label}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground leading-tight whitespace-normal break-words">{label}</p>
             <p
               className={cn("text-xl font-bold text-foreground mt-1.5 truncate tabular-nums", valueClassName)}
               style={valueColor ? { color: valueColor } : undefined}
