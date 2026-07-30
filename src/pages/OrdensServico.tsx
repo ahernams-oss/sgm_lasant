@@ -14,6 +14,7 @@ import { useServicos } from "@/contexts/ServicosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissao } from "@/hooks/usePermissao";
+import { verificarSenhaUsuario } from "@/lib/verifySenha";
 import { useSco } from "@/contexts/ScoContext";
 import { useI0 } from "@/contexts/I0Context";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
@@ -209,6 +210,9 @@ export default function OrdensServicoPage() {
     { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema", ...(motivo ? { motivo } : {}) },
   ];
   const [cancelMotivo, setCancelMotivo] = useState("");
+  const [cancelStep, setCancelStep] = useState<1 | 2 | 3>(1);
+  const [cancelSenha, setCancelSenha] = useState("");
+  const [cancelLoading, setCancelLoading] = useState(false);
   const { categorias: categoriasServicos } = useCategoriasServicos();
   const { servicos: servicosCadastrados } = useServicos();
   const { scos } = useSco();
@@ -560,19 +564,43 @@ export default function OrdensServicoPage() {
     setNaoAprovarJustificativa("");
   };
 
-  const handleCancelOS = async () => {
-    if (!podeWorkflowOS || !podeStCanceladaOS) {
-      toast.error("Você não possui permissão para cancelar OS.");
-      cancelCancelAction();
-      return;
-    }
+  const closeCancelDialog = () => {
+    setCancelMotivo("");
+    setCancelSenha("");
+    setCancelStep(1);
+    setCancelLoading(false);
+    cancelCancelAction();
+  };
+
+  const validarMotivoCancelamento = () => {
     const motivoLimpo = cancelMotivo.trim();
     if (!motivoLimpo) {
       toast.error("Informe o motivo do cancelamento.");
-      return;
+      return false;
     }
     if (motivoLimpo.length < 5) {
       toast.error("O motivo do cancelamento deve ter pelo menos 5 caracteres.");
+      return false;
+    }
+    return true;
+  };
+
+  const handleCancelOS = async () => {
+    if (!podeStCanceladaOS) {
+      toast.error("Você não possui permissão para cancelar OS.");
+      closeCancelDialog();
+      return;
+    }
+    if (!validarMotivoCancelamento()) return;
+    if (!cancelSenha) {
+      toast.error("Informe sua senha para confirmar o cancelamento.");
+      return;
+    }
+    setCancelLoading(true);
+    const senhaOk = await verificarSenhaUsuario(usuarioLogado?.email || "", cancelSenha);
+    if (!senhaOk) {
+      setCancelLoading(false);
+      toast.error("Senha inválida. Operação não realizada.");
       return;
     }
     if (cancelId) {
@@ -589,9 +617,8 @@ export default function OrdensServicoPage() {
         ...financeiro,
       });
       toast.success("Ordem de Serviço cancelada!");
-      setCancelMotivo("");
-      cancelCancelAction();
     }
+    closeCancelDialog();
   };
 
 
@@ -602,7 +629,6 @@ export default function OrdensServicoPage() {
       case "Aberta":
         acts = [
           { label: "Executar", icon: Play, target: "Executada", action: () => handleWorkflowAction(os, "Executada") },
-          { label: "Cancelar OS", icon: Ban, target: "Cancelada", action: () => requestCancel(os.id), destructive: true },
         ]; break;
       case "Executada":
         acts = [
@@ -1339,6 +1365,14 @@ export default function OrdensServicoPage() {
                             <action.icon className="mr-2 h-4 w-4" /> {action.label}
                           </DropdownMenuItem>
                         ))}
+                        {podeStCanceladaOS && os.situacao !== "Cancelada" && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => { setCancelMotivo(""); setCancelSenha(""); setCancelStep(1); requestCancel(os.id); }} className="text-destructive">
+                              <Ban className="mr-2 h-4 w-4" /> Cancelar OS
+                            </DropdownMenuItem>
+                          </>
+                        )}
                         {podeExcluirOS && (
                           <>
                             <DropdownMenuSeparator />
@@ -2297,6 +2331,24 @@ export default function OrdensServicoPage() {
                 ) : null;
               })()}
 
+              {viewOS.situacao === "Cancelada" && (() => {
+                const evt = [...(viewOS.historico || [])].reverse().find((h: any) => h.situacao === "Cancelada" && h.motivo);
+                return (
+                  <div className="border border-destructive/40 rounded-lg p-4 bg-destructive/5 space-y-1">
+                    <h4 className="text-sm font-semibold flex items-center gap-2 text-destructive">
+                      <Ban className="h-4 w-4" /> OS Cancelada
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      {evt?.usuario ? `Por ${evt.usuario}` : ""}{evt?.data ? ` em ${new Date(evt.data).toLocaleString("pt-BR")}` : ""}
+                    </p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      <span className="font-semibold">Justificativa: </span>
+                      {(evt as any)?.motivo || "-"}
+                    </p>
+                  </div>
+                );
+              })()}
+
               <div>
                 <p className="text-xs text-muted-foreground font-semibold">Aprovador:</p>
                 <p>{viewOS.operadorNome || "-"}</p>
@@ -2372,37 +2424,83 @@ export default function OrdensServicoPage() {
       {/* Double Confirm Delete */}
       <DoubleConfirmDelete open={!!deleteId} onOpenChange={o => !o && cancelDelete()} onConfirm={handleDelete} />
 
-      {/* Cancel OS with motivo */}
-      <Dialog open={!!cancelId} onOpenChange={o => { if (!o) { setCancelMotivo(""); cancelCancelAction(); } }}>
+      {/* Cancel OS: motivo + dupla confirmação + senha */}
+      <Dialog open={!!cancelId} onOpenChange={o => { if (!o) closeCancelDialog(); }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Ban className="h-5 w-5 text-destructive" />
-              Confirmação de Cancelamento
+              Cancelamento de Ordem de Serviço {cancelStep === 1 ? "(1/3)" : cancelStep === 2 ? "(2/3)" : "(3/3)"}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3 py-2">
-            <p className="text-sm text-muted-foreground">
-              A Ordem de Serviço será mantida no sistema com status <b>Cancelada</b>. Informe o motivo do cancelamento — ele ficará registrado no histórico da OS.
-            </p>
-            <div>
-              <Label>Motivo do cancelamento *</Label>
-              <Textarea
-                value={cancelMotivo}
-                onChange={e => setCancelMotivo(e.target.value)}
-                placeholder="Descreva o motivo do cancelamento..."
-                rows={4}
-                required
-                aria-required="true"
-              />
+
+          {cancelStep === 1 && (
+            <div className="space-y-3 py-2">
+              <p className="text-sm text-muted-foreground">
+                A Ordem de Serviço será mantida no sistema com status <b>Cancelada</b>. Informe a justificativa — ela ficará registrada e visível na OS.
+              </p>
+              <div>
+                <Label>Justificativa do cancelamento *</Label>
+                <Textarea
+                  value={cancelMotivo}
+                  onChange={e => setCancelMotivo(e.target.value)}
+                  placeholder="Descreva o motivo do cancelamento..."
+                  rows={4}
+                  required
+                  aria-required="true"
+                />
+              </div>
             </div>
-          </div>
+          )}
+
+          {cancelStep === 2 && (
+            <div className="space-y-3 py-2">
+              <p className="text-sm">
+                Confirma novamente o cancelamento desta Ordem de Serviço? Esta operação altera definitivamente a situação da OS.
+              </p>
+              <div className="border rounded-md p-3 bg-muted/30 text-sm whitespace-pre-wrap">
+                <span className="text-xs font-semibold text-muted-foreground block mb-1">Justificativa informada:</span>
+                {cancelMotivo.trim()}
+              </div>
+            </div>
+          )}
+
+          {cancelStep === 3 && (
+            <div className="space-y-3 py-2">
+              <p className="text-sm text-muted-foreground">
+                Para concluir, confirme sua senha de acesso.
+              </p>
+              <div>
+                <Label>Senha *</Label>
+                <Input
+                  type="password"
+                  value={cancelSenha}
+                  onChange={e => setCancelSenha(e.target.value)}
+                  placeholder="Digite sua senha"
+                  autoComplete="current-password"
+                  onKeyDown={e => { if (e.key === "Enter" && !cancelLoading) handleCancelOS(); }}
+                />
+              </div>
+            </div>
+          )}
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setCancelMotivo(""); cancelCancelAction(); }}>Voltar</Button>
-            <Button variant="destructive" onClick={handleCancelOS}>Confirmar Cancelamento</Button>
+            <Button variant="outline" onClick={closeCancelDialog}>Voltar</Button>
+            {cancelStep === 1 && (
+              <Button variant="destructive" onClick={() => { if (validarMotivoCancelamento()) setCancelStep(2); }}>Continuar</Button>
+            )}
+            {cancelStep === 2 && (
+              <Button variant="destructive" onClick={() => setCancelStep(3)}>Sim, confirmo o cancelamento</Button>
+            )}
+            {cancelStep === 3 && (
+              <Button variant="destructive" onClick={handleCancelOS} disabled={cancelLoading}>
+                {cancelLoading ? "Validando..." : "Confirmar Cancelamento"}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
 
 
       {/* Dialog: Justificativa para Não Aprovar */}
