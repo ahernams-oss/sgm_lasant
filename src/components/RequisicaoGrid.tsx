@@ -78,6 +78,8 @@ const RequisicaoGrid = () => {
   const [filterUnidade, setFilterUnidade] = useState<string>("todos");
   const [filterDataDe, setFilterDataDe] = useState<string>("");
   const [filterDataAte, setFilterDataAte] = useState<string>("");
+  const [filterOrigem, setFilterOrigem] = useState<string>("todos");
+  const [filterSolicitante, setFilterSolicitante] = useState<string>("todos");
   const [editingReq, setEditingReq] = useState<Requisicao | null>(null);
   const [historicoReq, setHistoricoReq] = useState<Requisicao | null>(null);
   const [reprovandoReq, setReprovandoReq] = useState<Requisicao | null>(null);
