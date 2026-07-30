@@ -48,28 +48,11 @@ const KPI_VARIANTS = [
   { ring: "from-cyan-500 to-sky-600", bg: "bg-cyan-50", icon: "text-cyan-600" },
 ];
 
-const KpiCard = ({ icon: Icon, label, value, subtitle, gradientIdx = 0 }: {
-  icon: any; label: string; value: number | string; subtitle?: string; gradientIdx?: number;
-}) => {
-  const v = KPI_VARIANTS[gradientIdx % KPI_VARIANTS.length];
-  return (
-    <Card className="group relative overflow-hidden border border-border/60 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-      <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", v.ring)} />
-      <CardContent className="pt-5 pb-4 px-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-            <p className="text-xl font-bold text-foreground mt-1.5 truncate">{value}</p>
-            {subtitle && <p className="text-[10px] text-muted-foreground/80 mt-0.5">{subtitle}</p>}
-          </div>
-          <div className={cn("rounded-xl p-2.5 shrink-0 transition-transform group-hover:scale-110", v.bg)}>
-            <Icon className={cn("h-4 w-4", v.icon)} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+const KpiCard = ({ icon, label, value, subtitle, gradientIdx = 0, trend }: {
+  icon: any; label: string; value: number | string; subtitle?: string; gradientIdx?: number; trend?: number | null;
+}) => (
+  <DashboardKpiCard icon={icon} label={label} value={value} subtitle={subtitle} trend={trend} gradientIdx={gradientIdx} />
+);
 
 function parseDate(s?: string): Date | null {
   if (!s) return null;
