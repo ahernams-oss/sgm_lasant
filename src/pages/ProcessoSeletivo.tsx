@@ -42,6 +42,7 @@ const filtrarDocs = (docs?: DocumentoContratacao[]) =>
   (docs && docs.length > 0 ? docs : DOCUMENTOS_OBRIGATORIOS.map((n): DocumentoContratacao => ({ nome: n, entregue: false })))
     .filter((d) => !DOCS_REMOVIDOS.includes(d.nome));
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
+import RequisicaoHistoricoTimeline from "@/components/RequisicaoHistoricoTimeline";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { usePermissao } from "@/hooks/usePermissao";
@@ -406,6 +407,20 @@ const ProcessoSeletivoPage = () => {
             Requisição de {requisicao.dataCriacao} · {processo.candidatos.length}/5 candidatos
           </p>
         </div>
+
+        {/* Histórico de Eventos da Requisição */}
+        <Card className="mb-6 animate-fade-up">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <ClipboardCheck className="h-4 w-4 text-primary" />
+              Histórico da Requisição #{requisicao.numero}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RequisicaoHistoricoTimeline historico={requisicao.historicoStatus} />
+          </CardContent>
+        </Card>
+
 
         {/* Workflow Timeline */}
         {processo.candidatos.length > 0 && (

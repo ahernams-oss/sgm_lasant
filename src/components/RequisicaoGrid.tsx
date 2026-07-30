@@ -18,6 +18,7 @@ import { gerarPdfRequisicao } from "@/lib/gerarPdfRequisicao";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import RequisicaoHistoricoTimeline from "@/components/RequisicaoHistoricoTimeline";
 import {
   Dialog,
   DialogContent,
@@ -648,6 +649,13 @@ const RequisicaoGrid = () => {
               <Textarea rows={4} value={editForm.atividadesCargo} onChange={e => setEditForm(p => ({ ...p, atividadesCargo: e.target.value }))} className="resize-none" />
             </div>
 
+            {/* Histórico de Eventos */}
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Histórico de Eventos</h3>
+              <RequisicaoHistoricoTimeline historico={editingReq?.historicoStatus} />
+            </div>
+
+
             <div className="flex gap-2 justify-end pt-2">
               <Button variant="outline" onClick={() => setEditingReq(null)}>Cancelar</Button>
               <Button onClick={saveEdit}>Salvar Alterações</Button>
@@ -662,27 +670,9 @@ const RequisicaoGrid = () => {
             <DialogTitle>Histórico — Requisição #{historicoReq?.numero}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            {(!historicoReq?.historicoStatus || historicoReq.historicoStatus.length === 0) ? (
-              <p className="text-sm text-muted-foreground text-center py-4">Nenhum registro de histórico.</p>
-            ) : (
-              <div className="relative pl-6 space-y-4">
-                <div className="absolute left-2.5 top-1 bottom-1 w-px bg-border" />
-                {historicoReq.historicoStatus.map((h, idx) => (
-                  <div key={idx} className="relative">
-                    <div className="absolute -left-[18px] top-1 h-3 w-3 rounded-full border-2 border-primary bg-background" />
-                    <div>
-                      <Badge variant="outline" className="text-xs font-medium mb-1">
-                        {h.status}
-                      </Badge>
-                      <p className="text-xs text-muted-foreground tabular-nums">{h.dataHora}</p>
-                      {h.usuario && <p className="text-xs text-muted-foreground">por {h.usuario}</p>}
-                      {h.observacao && <p className="text-xs text-foreground mt-1 italic">"{h.observacao}"</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <RequisicaoHistoricoTimeline historico={historicoReq?.historicoStatus} />
           </div>
+
         </DialogContent>
       </Dialog>
 
