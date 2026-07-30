@@ -257,34 +257,64 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           <div>
             <label className="field-label">Cargo</label>
             {cargos.length > 0 ? (
-              <Select
-                value={form.cargo}
-                onValueChange={(cargoId) => {
-                  const selected = cargos.find((c) => c.id === cargoId);
-                  if (selected) {
-                    // Pegar o salário da data base vigente (mais recente)
-                    const salarioVigente = selected.salarios?.length
-                      ? [...selected.salarios].sort((a, b) => (b.dataBase || "").localeCompare(a.dataBase || ""))[0]
-                      : null;
-                    setForm((prev) => ({
-                      ...prev,
-                      cargo: cargoId,
-                      salarioVaga: salarioVigente?.valor || selected.salario || "",
-                    }));
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o cargo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {cargos.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.nome}{c.nivel ? ` — Nível ${c.nivel}` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={cargoOpen} onOpenChange={setCargoOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={cargoOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    <span className={cn("truncate", !form.cargo && "text-muted-foreground")}>
+                      {form.cargo
+                        ? (() => {
+                            const c = cargos.find((c) => c.id === form.cargo);
+                            return c ? `${c.nome}${c.nivel ? ` — Nível ${c.nivel}` : ""}` : "Selecione o cargo";
+                          })()
+                        : "Selecione o cargo"}
+                    </span>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command
+                    filter={(value, search) =>
+                      value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
+                    }
+                  >
+                    <CommandInput placeholder="Buscar cargo..." />
+                    <CommandList className="max-h-72">
+                      <CommandEmpty>Nenhum cargo encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {cargos.map((c) => {
+                          const label = `${c.nome}${c.nivel ? ` — Nível ${c.nivel}` : ""}`;
+                          return (
+                            <CommandItem
+                              key={c.id}
+                              value={`${label} ${c.id}`}
+                              onSelect={() => {
+                                const salarioVigente = c.salarios?.length
+                                  ? [...c.salarios].sort((a, b) => (b.dataBase || "").localeCompare(a.dataBase || ""))[0]
+                                  : null;
+                                setForm((prev) => ({
+                                  ...prev,
+                                  cargo: c.id,
+                                  salarioVaga: salarioVigente?.valor || c.salario || "",
+                                }));
+                                setCargoOpen(false);
+                              }}
+                            >
+                              <Check className={cn("mr-2 h-4 w-4", form.cargo === c.id ? "opacity-100" : "opacity-0")} />
+                              <span className="truncate">{label}</span>
+                            </CommandItem>
+                          );
+                        })}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             ) : (
               <Input
                 placeholder="Cadastre cargos primeiro"
