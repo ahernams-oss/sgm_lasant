@@ -1,5 +1,6 @@
 import DashboardKpiCard from "@/components/dashboard/DashboardKpiCard";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import DashboardExportButtons from "@/components/dashboard/DashboardExportButtons";
 import { useDashboardRefresh } from "@/hooks/useDashboardRefresh";
 import { useMemo, useState } from "react";
 import { format, parseISO, isValid } from "date-fns";
