@@ -19,7 +19,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, LineChart, Line,
 } from "recharts";
-import { FileText, ShoppingCart, Clock, AlertTriangle, CheckCircle, XCircle, Package, TrendingUp, LayoutDashboard, DollarSign } from "lucide-react";
+import { FileText, ShoppingCart, Clock, AlertTriangle, CheckCircle, XCircle, Package, TrendingUp, LayoutDashboard, DollarSign, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import DashboardFilters, { type DashboardFiltersState, loadDashboardFilters } from "@/components/DashboardFilters";
 import RelatoriosComprasDialog from "@/components/compras/RelatoriosComprasDialog";
 import jsPDF from "jspdf";
@@ -203,6 +205,58 @@ export default function DashboardCompras() {
 
   const reprovadaList = useMemo(() => filtered.filter(r => r.status === "Reprovada"), [filtered]);
   const pendentesEntrega = useMemo(() => filtered.filter(r => ["Pedido Emitido", "Em Entrega"].includes(r.status)), [filtered]);
+
+  // ---- Filtros e paginação das grids de acompanhamento ----
+  const [pendBusca, setPendBusca] = useState("");
+  const [pendStatus, setPendStatus] = useState("todos");
+  const [pendUrgencia, setPendUrgencia] = useState("todas");
+  const [pendPage, setPendPage] = useState(1);
+  const [pendSize, setPendSize] = useState(10);
+
+  const [repBusca, setRepBusca] = useState("");
+  const [repPage, setRepPage] = useState(1);
+  const [repSize, setRepSize] = useState(10);
+
+  const [audBusca, setAudBusca] = useState("");
+  const [audStatus, setAudStatus] = useState("todos");
+  const [audPage, setAudPage] = useState(1);
+  const [audSize, setAudSize] = useState(10);
+
+  const norm = (s: any) => String(s ?? "").toLowerCase();
+
+  const pendentesFiltradas = useMemo(() => {
+    const t = pendBusca.trim().toLowerCase();
+    return pendentesEntrega.filter(r =>
+      (pendStatus === "todos" || r.status === pendStatus) &&
+      (pendUrgencia === "todas" || r.urgencia === pendUrgencia) &&
+      (!t || [r.numero, r.solicitante, r.centroCustoNome].some(v => norm(v).includes(t)))
+    );
+  }, [pendentesEntrega, pendBusca, pendStatus, pendUrgencia]);
+
+  const reprovadasFiltradas = useMemo(() => {
+    const t = repBusca.trim().toLowerCase();
+    if (!t) return reprovadaList;
+    return reprovadaList.filter(r => {
+      const motivo = r.historicoStatus.find(h => h.status === "Reprovada")?.observacao || "";
+      return [r.numero, r.solicitante, r.centroCustoNome, motivo].some(v => norm(v).includes(t));
+    });
+  }, [reprovadaList, repBusca]);
+
+  const auditoriaEventos = useMemo(() => {
+    const all = filtered.flatMap(r => r.historicoStatus.map(h => ({ ...h, reqNumero: r.numero })))
+      .sort((a, b) => new Date(b.dataHora).getTime() - new Date(a.dataHora).getTime());
+    const t = audBusca.trim().toLowerCase();
+    return all.filter(ev =>
+      (audStatus === "todos" || ev.status === audStatus) &&
+      (!t || [ev.reqNumero, ev.usuario, ev.observacao].some(v => norm(v).includes(t)))
+    );
+  }, [filtered, audBusca, audStatus]);
+
+  const auditoriaStatusOpcoes = useMemo(
+    () => Array.from(new Set(filtered.flatMap(r => r.historicoStatus.map(h => h.status)))).sort(),
+    [filtered]
+  );
+
 
   // Pedidos filtrados pelo mesmo período (data de criação) — exclui cancelados
   const pedidosFiltrados = useMemo(() => {
@@ -673,14 +727,42 @@ export default function DashboardCompras() {
       {/* Tabs with tables */}
       <Tabs defaultValue="pendentes">
         <TabsList>
-          <TabsTrigger value="pendentes">Pendentes de Entrega ({pendentesEntrega.length})</TabsTrigger>
-          <TabsTrigger value="reprovadas">Reprovadas ({reprovadaList.length})</TabsTrigger>
-          <TabsTrigger value="auditoria">Auditoria Recente</TabsTrigger>
+          <TabsTrigger value="pendentes">Pendentes de Entrega ({pendentesFiltradas.length})</TabsTrigger>
+          <TabsTrigger value="reprovadas">Reprovadas ({reprovadasFiltradas.length})</TabsTrigger>
+          <TabsTrigger value="auditoria">Auditoria Recente ({auditoriaEventos.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pendentes">
           <Card>
-            <CardContent className="p-0">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex flex-wrap gap-2 items-center">
+                <div className="relative flex-1 min-w-[220px]">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input className="pl-9 h-9" placeholder="Buscar por nº, solicitante ou centro de custo..."
+                    value={pendBusca} onChange={(e) => { setPendBusca(e.target.value); setPendPage(1); }} />
+                </div>
+                <Select value={pendStatus} onValueChange={(v) => { setPendStatus(v); setPendPage(1); }}>
+                  <SelectTrigger className="w-[180px] h-9"><SelectValue placeholder="Status" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos os status</SelectItem>
+                    <SelectItem value="Pedido Emitido">Pedido Emitido</SelectItem>
+                    <SelectItem value="Em Entrega">Em Entrega</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={pendUrgencia} onValueChange={(v) => { setPendUrgencia(v); setPendPage(1); }}>
+                  <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder="Urgência" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todas">Todas urgências</SelectItem>
+                    <SelectItem value="Baixa">Baixa</SelectItem>
+                    <SelectItem value="Normal">Normal</SelectItem>
+                    <SelectItem value="Alta">Alta</SelectItem>
+                    <SelectItem value="Urgente">Urgente</SelectItem>
+                  </SelectContent>
+                </Select>
+                {(pendBusca || pendStatus !== "todos" || pendUrgencia !== "todas") && (
+                  <Button variant="ghost" size="sm" onClick={() => { setPendBusca(""); setPendStatus("todos"); setPendUrgencia("todas"); setPendPage(1); }}>Limpar</Button>
+                )}
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -694,9 +776,9 @@ export default function DashboardCompras() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pendentesEntrega.length === 0 ? (
+                  {pendentesFiltradas.length === 0 ? (
                     <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhum pedido pendente</TableCell></TableRow>
-                  ) : pendentesEntrega.map(r => (
+                  ) : paginate(pendentesFiltradas, pendPage, pendSize).paginated.map(r => (
                     <TableRow key={r.id}>
                       <TableCell className="font-mono font-bold">{r.numero}</TableCell>
                       <TableCell>{new Date(r.dataCriacao).toLocaleDateString("pt-BR")}</TableCell>
@@ -709,13 +791,20 @@ export default function DashboardCompras() {
                   ))}
                 </TableBody>
               </Table>
+              <PaginationControls currentPage={pendPage} totalItems={pendentesFiltradas.length} onPageChange={setPendPage}
+                pageSize={pendSize} onPageSizeChange={(s) => { setPendSize(s); setPendPage(1); }} />
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="reprovadas">
           <Card>
-            <CardContent className="p-0">
+            <CardContent className="p-4 space-y-3">
+              <div className="relative max-w-sm">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input className="pl-9 h-9" placeholder="Buscar por nº, solicitante, centro de custo ou motivo..."
+                  value={repBusca} onChange={(e) => { setRepBusca(e.target.value); setRepPage(1); }} />
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -727,9 +816,9 @@ export default function DashboardCompras() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {reprovadaList.length === 0 ? (
+                  {reprovadasFiltradas.length === 0 ? (
                     <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhum processo reprovado</TableCell></TableRow>
-                  ) : reprovadaList.map(r => {
+                  ) : paginate(reprovadasFiltradas, repPage, repSize).paginated.map(r => {
                     const motivo = r.historicoStatus.find(h => h.status === "Reprovada")?.observacao || "-";
                     return (
                       <TableRow key={r.id}>
@@ -743,13 +832,32 @@ export default function DashboardCompras() {
                   })}
                 </TableBody>
               </Table>
+              <PaginationControls currentPage={repPage} totalItems={reprovadasFiltradas.length} onPageChange={setRepPage}
+                pageSize={repSize} onPageSizeChange={(s) => { setRepSize(s); setRepPage(1); }} />
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="auditoria">
           <Card>
-            <CardContent className="p-0">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex flex-wrap gap-2 items-center">
+                <div className="relative flex-1 min-w-[220px]">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input className="pl-9 h-9" placeholder="Buscar por requisição, usuário ou observação..."
+                    value={audBusca} onChange={(e) => { setAudBusca(e.target.value); setAudPage(1); }} />
+                </div>
+                <Select value={audStatus} onValueChange={(v) => { setAudStatus(v); setAudPage(1); }}>
+                  <SelectTrigger className="w-[200px] h-9"><SelectValue placeholder="Ação (Status)" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todas as ações</SelectItem>
+                    {auditoriaStatusOpcoes.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                {(audBusca || audStatus !== "todos") && (
+                  <Button variant="ghost" size="sm" onClick={() => { setAudBusca(""); setAudStatus("todos"); setAudPage(1); }}>Limpar</Button>
+                )}
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -761,30 +869,26 @@ export default function DashboardCompras() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(() => {
-                    const allEvents = filtered.flatMap(r =>
-                      r.historicoStatus.map(h => ({ ...h, reqNumero: r.numero }))
-                    ).sort((a, b) => new Date(b.dataHora).getTime() - new Date(a.dataHora).getTime()).slice(0, 50);
-
-                    if (allEvents.length === 0) {
-                      return <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Sem registros</TableCell></TableRow>;
-                    }
-                    return allEvents.map((ev, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="text-xs">{format(new Date(ev.dataHora), "dd-MM-yyyy HH:mm")}</TableCell>
-                        <TableCell className="font-mono font-bold">{ev.reqNumero}</TableCell>
-                        <TableCell>{ev.usuario}</TableCell>
-                        <TableCell><Badge variant="outline">{ev.status}</Badge></TableCell>
-                        <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{ev.observacao || "-"}</TableCell>
-                      </TableRow>
-                    ));
-                  })()}
+                  {auditoriaEventos.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Sem registros</TableCell></TableRow>
+                  ) : paginate(auditoriaEventos, audPage, audSize).paginated.map((ev, i) => (
+                    <TableRow key={`${ev.reqNumero}-${ev.dataHora}-${i}`}>
+                      <TableCell className="text-xs">{format(new Date(ev.dataHora), "dd-MM-yyyy HH:mm")}</TableCell>
+                      <TableCell className="font-mono font-bold">{ev.reqNumero}</TableCell>
+                      <TableCell>{ev.usuario}</TableCell>
+                      <TableCell><Badge variant="outline">{ev.status}</Badge></TableCell>
+                      <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{ev.observacao || "-"}</TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
+              <PaginationControls currentPage={audPage} totalItems={auditoriaEventos.length} onPageChange={setAudPage}
+                pageSize={audSize} onPageSizeChange={(s) => { setAudSize(s); setAudPage(1); }} />
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
 
       <RelatoriosComprasDialog open={relatoriosOpen} onOpenChange={setRelatoriosOpen} />
     </div>
