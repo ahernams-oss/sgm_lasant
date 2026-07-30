@@ -1,3 +1,6 @@
+import DashboardKpiCard from "@/components/dashboard/DashboardKpiCard";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import { useDashboardRefresh } from "@/hooks/useDashboardRefresh";
 import { useState, useMemo, useEffect } from "react";
 import { format, differenceInCalendarDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
