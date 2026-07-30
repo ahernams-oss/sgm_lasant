@@ -140,22 +140,28 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const ref = o.createdAt ? new Date(o.createdAt).getTime() : 0;
       if (isNaN(ref) || ref < iniMs || ref > fimMs) return false;
       if (clienteSel !== "todos" && o.clienteId !== clienteSel) return false;
-      if (tipo === "fechamento_validadas" || tipo === "fechamento_categoria") {
+      if (localSel !== "todos" && (o.localDescricao || "SEM LOCAL") !== localSel) return false;
+      if (tipo === "fechamento_validadas" || tipo === "fechamento_categoria" || tipo === "fechamento_local") {
         if (o.situacao !== "Validada") return false;
       } else if (situacaoSel !== "todas" && o.situacao !== situacaoSel) return false;
       return true;
     });
-  }, [ordens, intervalo, clienteSel, situacaoSel, tipo]);
+  }, [ordens, intervalo, clienteSel, situacaoSel, localSel, tipo]);
 
   const situacoesUnicas = useMemo(() => Array.from(new Set(ordens.map(o => o.situacao).filter(Boolean))), [ordens]);
+  const locaisUnicos = useMemo(
+    () => Array.from(new Set(ordens.map(o => o.localDescricao || "SEM LOCAL"))).sort((a, b) => a.localeCompare(b)),
+    [ordens],
+  );
 
   const filtrosLabel = useMemo(() => {
     const parts: string[] = [];
     parts.push(`Período: ${fmtData(intervalo.ini.toISOString())} a ${fmtData(intervalo.fim.toISOString())}`);
     if (clienteSel !== "todos") parts.push(`Cliente: ${clientes.find(c => c.id === clienteSel)?.nome}`);
+    if (localSel !== "todos") parts.push(`Local: ${localSel}`);
     if (situacaoSel !== "todas") parts.push(`Situação: ${situacaoSel}`);
     return parts.join(" | ");
-  }, [intervalo, clienteSel, situacaoSel, clientes]);
+  }, [intervalo, clienteSel, situacaoSel, localSel, clientes]);
 
   const buildData = (): { titulo: string; columns: string[]; rows: string[][]; orientation: "p" | "l" } => {
     const periodoLabel = PERIODOS.find(p => p.value === periodo)?.label || "";
