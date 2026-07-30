@@ -393,8 +393,8 @@ const ProcessoSeletivoPage = () => {
       <div className="container max-w-full mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6 animate-fade-up">
-          <Button variant="ghost" size="sm" className="mb-3 -ml-2" onClick={() => navigate("/")}>
-            <ArrowLeft className="h-4 w-4 mr-1" /> Voltar às Requisições
+          <Button variant="ghost" size="sm" className="mb-3 -ml-2" onClick={() => navigate("/processos-seletivos")}>
+            <ArrowLeft className="h-4 w-4 mr-1" /> Voltar aos Processos Seletivos
           </Button>
           <div className="flex items-center gap-2 text-primary mb-1">
             <ClipboardCheck className="h-4 w-4" />
