@@ -1,5 +1,6 @@
 import DashboardKpiCard from "@/components/dashboard/DashboardKpiCard";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import DashboardExportButtons from "@/components/dashboard/DashboardExportButtons";
 import { useDashboardRefresh } from "@/hooks/useDashboardRefresh";
 import { useState, useMemo, useEffect } from "react";
 import { format, differenceInCalendarDays } from "date-fns";
@@ -361,6 +362,28 @@ const Dashboard = () => {
           onRefresh={refresh}
           actions={
             <>
+              <DashboardExportButtons
+                title="Dashboard de Gestão de Pessoas"
+                kpis={() => [
+                  { grupo: "Requisições", label: "Total", value: totalReqs },
+                  ...["Pendente", "Em Análise", "Aprovada", "Reprovada", "Concluída"].map((status) => ({
+                    grupo: "Requisições",
+                    label: status,
+                    value: filteredReqs.filter((r) => r.status === status).length,
+                  })),
+                  { grupo: "Requisições", label: "Taxa de aprovação", value: `${taxaAprovacao.toFixed(1)}%` },
+                  { grupo: "Requisições", label: "Tempo médio de análise", value: tempoMedioAnalise > 0 ? `${tempoMedioAnalise.toFixed(1)}d` : "N/A" },
+                  { grupo: "Processos Seletivos", label: "Processos", value: psStats.total },
+                  { grupo: "Processos Seletivos", label: "Candidatos", value: psStats.candidatosTotal },
+                  { grupo: "Processos Seletivos", label: "Contratados", value: psStats.contratados },
+                  { grupo: "Processos Seletivos", label: "Em andamento", value: psStats.emAndamento },
+                  { grupo: "Funcionários", label: "Total", value: funcStats.total },
+                  { grupo: "Funcionários", label: "Ativos", value: funcStats.ativos },
+                  { grupo: "Funcionários", label: "Inativos", value: funcStats.inativos },
+                  { grupo: "Funcionários", label: "Afastados", value: funcStats.afastados },
+                  { grupo: "Funcionários", label: "Férias", value: funcStats.ferias },
+                ]}
+              />
               <Button variant="secondary" size="sm" onClick={handleDownloadPdf} className="h-9 bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm gap-1.5">
                 <FileDown className="h-3.5 w-3.5" /> Exportar PDF
               </Button>
@@ -369,6 +392,7 @@ const Dashboard = () => {
               </Button>
             </>
           }
+
         />
 
         {/* Filtros fora do cabeçalho */}

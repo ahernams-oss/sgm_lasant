@@ -1,5 +1,6 @@
 import DashboardKpiCard from "@/components/dashboard/DashboardKpiCard";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import DashboardExportButtons from "@/components/dashboard/DashboardExportButtons";
 import { useDashboardRefresh } from "@/hooks/useDashboardRefresh";
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
@@ -231,6 +232,20 @@ export default function DashboardMedicoes() {
         onRefresh={refresh}
         actions={
           <>
+            <DashboardExportButtons
+              title="Dashboard de Medições"
+              context={filterLabel}
+              kpis={() => [
+                { label: "Total de medições", value: totalMedicoes },
+                { label: "Valor contratado", value: fmt(valorContratado) },
+                { label: "Valor medido", value: fmt(valorMedido) },
+                { label: "Saldo aberto", value: fmt(saldoAberto), subtitle: "Contratado − Medido" },
+                { label: "% médio de execução", value: fmtPct(percentualMedio) },
+                { label: "Em andamento", value: emAndamento },
+                { label: "Concluídas", value: concluidas },
+                { label: "Paralisadas", value: paralisadas },
+              ]}
+            />
             <Button variant="secondary" size="sm" className="h-9 text-xs gap-1.5 bg-white text-primary hover:bg-white/90 shadow-sm" onClick={() => downloadPdfMedicoes(filtered, filterLabel)}>
               <FileText className="h-3.5 w-3.5" /> Relatório PDF
             </Button>
@@ -239,6 +254,7 @@ export default function DashboardMedicoes() {
             </Button>
           </>
         }
+
       />
 
       {/* Filters */}

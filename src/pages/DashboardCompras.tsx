@@ -1,5 +1,6 @@
 import DashboardKpiCard from "@/components/dashboard/DashboardKpiCard";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import DashboardExportButtons from "@/components/dashboard/DashboardExportButtons";
 import { useDashboardRefresh } from "@/hooks/useDashboardRefresh";
 import { useMemo, useState, useCallback } from "react";
 import { format } from "date-fns";
@@ -462,7 +463,23 @@ export default function DashboardCompras() {
         autoRefresh={autoRefresh}
         onToggleAutoRefresh={setAutoRefresh}
         onRefresh={refresh}
+        actions={
+          <DashboardExportButtons
+            title="Dashboard de Compras"
+            kpis={() => [
+              { label: "Total de requisições", value: totalReqs },
+              { label: "Em andamento", value: abertas },
+              { label: "Concluídas", value: concluidas },
+              { label: "Reprovadas", value: reprovadas },
+              { label: "Itens", value: totalItens },
+              { label: "Urgentes", value: urgentes, subtitle: "Urgente + Alta" },
+              { label: "Tempo médio de aprovação", value: timeMetrics.approvalCount > 0 ? formatHours(timeMetrics.avgApproval) : "N/A" },
+              { label: "Tempo médio de conclusão", value: timeMetrics.completionCount > 0 ? formatHours(timeMetrics.avgCompletion) : "N/A" },
+            ]}
+          />
+        }
       />
+
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div />
         <div className="flex gap-3 items-center flex-wrap">
