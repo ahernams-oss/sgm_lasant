@@ -25,6 +25,7 @@ export interface Requisicao {
   formacao: string[]; formacaoDetalhe: string; experiencia: string;
   conhecimentoInformatica: string; atividadesCargo: string; salarioVaga: string;
   solicitante?: string;
+  indicados?: IndicadoRP[];
   status: "Pendente" | "Em Análise" | "Aprovada" | "Reprovada" | "Suspensa" | "Concluída";
   aprovadoPor?: string; historicoStatus: StatusHistorico[];
 }
@@ -52,6 +53,7 @@ const rowToReq = (r: any): Requisicao => ({
   conhecimentoInformatica: r.conhecimento_informatica ?? "",
   atividadesCargo: r.atividades_cargo ?? "", salarioVaga: r.salario_vaga ?? "",
   solicitante: r.solicitante ?? "",
+  indicados: r.indicados ?? [],
   status: r.status ?? "Pendente", aprovadoPor: r.aprovado_por ?? "",
   historicoStatus: r.historico_status ?? [],
 });
@@ -70,6 +72,7 @@ const reqToRow = (r: Requisicao) => ({
   experiencia: r.experiencia, conhecimento_informatica: r.conhecimentoInformatica,
   atividades_cargo: r.atividadesCargo, salario_vaga: r.salarioVaga,
   solicitante: r.solicitante ?? "",
+  indicados: r.indicados ?? [],
   status: r.status, aprovado_por: r.aprovadoPor ?? "",
   historico_status: r.historicoStatus as any,
 });
