@@ -67,6 +67,10 @@ interface ProcessoSeletivoContextType {
   getProcessoByRequisicao: (requisicaoId: string) => ProcessoSeletivo | undefined;
   addCandidato: (processoId: string, candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores" | "anexos" | "documentos" | "exameAdmissional" | "dadosBancarios"> & { anexos?: AnexoCandidato[] }) => void;
   updateCandidato: (processoId: string, candidatoId: string, data: Partial<Candidato>) => void;
+  importarCandidatos: (
+    processoId: string,
+    lista: { nome: string; telefone?: string; email?: string; cpf?: string; dataNascimento?: string; anexos?: AnexoCandidato[] }[],
+  ) => Promise<number>;
   avancarEtapa: (processoId: string, candidatoId: string) => void;
 }
 
@@ -269,7 +273,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
   };
 
   return (
-    <ProcessoSeletivoContext.Provider value={{ processos, criarProcesso, getProcessoByRequisicao, addCandidato, updateCandidato, avancarEtapa }}>
+    <ProcessoSeletivoContext.Provider value={{ processos, criarProcesso, getProcessoByRequisicao, addCandidato, updateCandidato, importarCandidatos, avancarEtapa }}>
       {children}
     </ProcessoSeletivoContext.Provider>
   );
