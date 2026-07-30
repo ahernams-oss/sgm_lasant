@@ -147,7 +147,69 @@ export default function DashboardMultisistemico() {
         autoRefresh={autoRefresh}
         onToggleAutoRefresh={setAutoRefresh}
         onRefresh={refresh}
+        actions={
+          <DashboardExportButtons
+            title="Dashboard Multisistêmico"
+            context={`Período: ${dataIni || "início"} a ${dataFim || "hoje"}`}
+            kpis={() => {
+              const out: { grupo: string; label: string; value: string | number }[] = [];
+              const push = (grupo: string, itens: [string, string | number][]) =>
+                itens.forEach(([label, value]) => out.push({ grupo, label, value }));
+              if (ativos.includes("os"))
+                push("Ordens de Serviço", [
+                  ["Total OS", fOrdens.length],
+                  ["Em Execução", fOrdens.filter((o: any) => o.situacao === "Em Execução").length],
+                  ["Concluídas", fOrdens.filter((o: any) => o.situacao === "Concluída").length],
+                  ["Canceladas", fOrdens.filter((o: any) => o.situacao === "Cancelada").length],
+                ]);
+              if (ativos.includes("ss"))
+                push("Solicitações de Serviço", [
+                  ["Total SS", fSol.length],
+                  ["Aprovadas", fSol.filter((s: any) => s.situacao === "Aprovada").length],
+                  ["Pendentes", fSol.filter((s: any) => s.situacao === "Pendente").length],
+                  ["Rejeitadas", fSol.filter((s: any) => s.situacao === "Rejeitada").length],
+                ]);
+              if (ativos.includes("pc"))
+                push("Pedidos de Compra", [
+                  ["Total Pedidos", fPed.length],
+                  ["Valor Total", formatBRL(fPed.reduce((s, p: any) => s + Number(p.valorTotal || 0), 0))],
+                  ["Aprovados", fPed.filter((p: any) => p.status === "Aprovado").length],
+                  ["Pendentes", fPed.filter((p: any) => p.status === "Pendente").length],
+                ]);
+              if (ativos.includes("rc"))
+                push("Requisições de Compras", [
+                  ["Total RC", fReq.length],
+                  ["Em Cotação", fReq.filter((r: any) => r.status === "Em Cotação").length],
+                  ["Aprovadas", fReq.filter((r: any) => r.status === "Aprovada").length],
+                  ["Concluídas", fReq.filter((r: any) => r.status === "Concluída").length],
+                ]);
+              if (ativos.includes("func"))
+                push("Funcionários", [
+                  ["Total", funcionarios.length],
+                  ["Ativos", funcionarios.filter((f: any) => f.status === "Ativo").length],
+                  ["Inativos", funcionarios.filter((f: any) => f.status !== "Ativo").length],
+                  ["Admissões no Período", fFunc.length],
+                ]);
+              if (ativos.includes("cp"))
+                push("Contas a Pagar", [
+                  ["Total Lançado", formatBRL(fCp.reduce((s, c: any) => s + Number(c.valor_total || 0), 0))],
+                  ["Total Pago", formatBRL(fCp.reduce((s, c: any) => s + Number(c.valor_pago || 0), 0))],
+                  ["Em Aberto", fCp.filter((c: any) => c.status !== "Pago").length],
+                  ["Quitadas", fCp.filter((c: any) => c.status === "Pago").length],
+                ]);
+              if (ativos.includes("cr"))
+                push("Contas a Receber", [
+                  ["Total Lançado", formatBRL(fCr.reduce((s, c: any) => s + Number(c.valor_total || 0), 0))],
+                  ["Total Recebido", formatBRL(fCr.reduce((s, c: any) => s + Number(c.valor_recebido || 0), 0))],
+                  ["Em Aberto", fCr.filter((c: any) => c.status !== "Recebido").length],
+                  ["Recebidas", fCr.filter((c: any) => c.status === "Recebido").length],
+                ]);
+              return out;
+            }}
+          />
+        }
       />
+
 
       <Card>
         <CardHeader className="pb-2">
