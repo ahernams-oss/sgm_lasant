@@ -56,6 +56,7 @@ const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { addRequisicao } = useRequisicoes();
   const { clientes } = useClientes();
   const { usuarioLogado } = useAuth();
+  const [cargoOpen, setCargoOpen] = useState(false);
   const [form, setForm] = useState({
     headcount: "",
     orcamento: "",
