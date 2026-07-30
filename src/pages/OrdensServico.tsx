@@ -563,19 +563,43 @@ export default function OrdensServicoPage() {
     setNaoAprovarJustificativa("");
   };
 
-  const handleCancelOS = async () => {
-    if (!podeWorkflowOS || !podeStCanceladaOS) {
-      toast.error("Você não possui permissão para cancelar OS.");
-      cancelCancelAction();
-      return;
-    }
+  const closeCancelDialog = () => {
+    setCancelMotivo("");
+    setCancelSenha("");
+    setCancelStep(1);
+    setCancelLoading(false);
+    cancelCancelAction();
+  };
+
+  const validarMotivoCancelamento = () => {
     const motivoLimpo = cancelMotivo.trim();
     if (!motivoLimpo) {
       toast.error("Informe o motivo do cancelamento.");
-      return;
+      return false;
     }
     if (motivoLimpo.length < 5) {
       toast.error("O motivo do cancelamento deve ter pelo menos 5 caracteres.");
+      return false;
+    }
+    return true;
+  };
+
+  const handleCancelOS = async () => {
+    if (!podeStCanceladaOS) {
+      toast.error("Você não possui permissão para cancelar OS.");
+      closeCancelDialog();
+      return;
+    }
+    if (!validarMotivoCancelamento()) return;
+    if (!cancelSenha) {
+      toast.error("Informe sua senha para confirmar o cancelamento.");
+      return;
+    }
+    setCancelLoading(true);
+    const senhaOk = await verificarSenhaUsuario(usuarioLogado?.email || "", cancelSenha);
+    if (!senhaOk) {
+      setCancelLoading(false);
+      toast.error("Senha inválida. Operação não realizada.");
       return;
     }
     if (cancelId) {
@@ -592,9 +616,8 @@ export default function OrdensServicoPage() {
         ...financeiro,
       });
       toast.success("Ordem de Serviço cancelada!");
-      setCancelMotivo("");
-      cancelCancelAction();
     }
+    closeCancelDialog();
   };
 
 
@@ -605,7 +628,6 @@ export default function OrdensServicoPage() {
       case "Aberta":
         acts = [
           { label: "Executar", icon: Play, target: "Executada", action: () => handleWorkflowAction(os, "Executada") },
-          { label: "Cancelar OS", icon: Ban, target: "Cancelada", action: () => requestCancel(os.id), destructive: true },
         ]; break;
       case "Executada":
         acts = [
