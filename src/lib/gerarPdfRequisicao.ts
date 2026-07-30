@@ -152,6 +152,7 @@ export async function gerarPdfRequisicao(req: Requisicao, empresa?: Empresa) {
   // ===== CONTRATAÇÃO =====
   addSection("Contratação", [
     ["Modalidade", req.tipoContratacao?.join(", ") || ""],
+    ["Tipo de contratação", req.tipoContratacaoDetalhe || ""],
     ["Recrutamento", req.internoExterno],
   ]);
 

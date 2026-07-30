@@ -7949,6 +7949,7 @@ export type Database = {
           solicitante: string | null
           status: string | null
           tipo_contratacao: Json | null
+          tipo_contratacao_detalhe: string | null
           tipo_vaga: string | null
           unidade: string | null
         }
@@ -7983,6 +7984,7 @@ export type Database = {
           solicitante?: string | null
           status?: string | null
           tipo_contratacao?: Json | null
+          tipo_contratacao_detalhe?: string | null
           tipo_vaga?: string | null
           unidade?: string | null
         }
@@ -8017,6 +8019,7 @@ export type Database = {
           solicitante?: string | null
           status?: string | null
           tipo_contratacao?: Json | null
+          tipo_contratacao_detalhe?: string | null
           tipo_vaga?: string | null
           unidade?: string | null
         }

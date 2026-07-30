@@ -105,7 +105,7 @@ const RequisicaoGrid = () => {
 
   const [editForm, setEditForm] = useState({
     unidade: "", cargoId: "", jornada: "", cargaHoraria: "",
-    tipoContratacao: [] as string[], internoExterno: "", origemVaga: "", motivoOutros: "",
+    tipoContratacao: [] as string[], tipoContratacaoDetalhe: "", internoExterno: "", origemVaga: "", motivoOutros: "",
     matricula: "", nomeSubstituido: "", cargoSubstituido: "",
     salarioSubstituido: "", dataDesligamento: "",
     formacao: [] as string[], formacaoDetalhe: "", experiencia: "",
@@ -127,6 +127,7 @@ const RequisicaoGrid = () => {
       jornada: req.jornada || "",
       cargaHoraria: req.cargaHoraria || "",
       tipoContratacao: req.tipoContratacao || [],
+      tipoContratacaoDetalhe: req.tipoContratacaoDetalhe || "",
       internoExterno: req.internoExterno || "",
       origemVaga: req.origemVaga || "",
       motivoOutros: req.motivoOutros || "",
@@ -155,6 +156,7 @@ const RequisicaoGrid = () => {
       jornada: editForm.jornada,
       cargaHoraria: editForm.cargaHoraria,
       tipoContratacao: editForm.tipoContratacao,
+      tipoContratacaoDetalhe: editForm.tipoContratacaoDetalhe,
       internoExterno: editForm.internoExterno,
       origemVaga: editForm.origemVaga,
       motivoOutros: editForm.motivoOutros,
@@ -175,7 +177,8 @@ const RequisicaoGrid = () => {
   };
 
   const jornadaOptions = ["Diarista", "Plantão Diurno - PAR", "Plantão Diurno - ÍMPAR", "Plantão Noturno - PAR", "Plantão Noturno - ÍMPAR"];
-  const contratacaoOptions = ["Efetivo", "Temporário", "PCD", "Estagiário"];
+  const contratacaoOptions = ["Efetivo", "Temporário"];
+  const tipoContratacaoOptions = ["Padrão", "PCD", "Temporário", "Estagiário", "Jovem Aprendiz"];
   const internoExternoOptions = ["Interno", "Externo"];
   const origemOptions = ["Afastamento", "Desligamento", "Aumento de Quadro", "Promoção", "Outros"];
   const formacaoOptions = ["Ensino Fundamental", "Ensino Médio", "Ensino Superior", "Curso Técnico", "Outros"];
@@ -514,6 +517,15 @@ const RequisicaoGrid = () => {
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
                       {contratacaoOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="field-label">Tipo de contratação</label>
+                  <Select value={editForm.tipoContratacaoDetalhe} onValueChange={(v) => setEditForm(p => ({ ...p, tipoContratacaoDetalhe: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {tipoContratacaoOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
