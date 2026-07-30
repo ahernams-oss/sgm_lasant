@@ -148,7 +148,7 @@ async function renderAssinaturas(doc: jsPDF, assinaturas: OsAssinatura[], y: num
   return y;
 }
 
-async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: RenderOSOptions) {
+export async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: RenderOSOptions) {
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
   const cw = pw - ml - mr;
@@ -569,7 +569,7 @@ async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }: Rende
   }
 }
 
-function addContinuationHeaders(doc: jsPDF, osNumero?: number | string, clienteIdent?: string) {
+export function addContinuationHeaders(doc: jsPDF, osNumero?: number | string, clienteIdent?: string) {
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
   const pages = doc.getNumberOfPages();
