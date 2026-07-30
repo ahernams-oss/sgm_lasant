@@ -19,7 +19,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, LineChart, Line,
 } from "recharts";
-import { FileText, ShoppingCart, Clock, AlertTriangle, CheckCircle, XCircle, Package, TrendingUp, LayoutDashboard, DollarSign } from "lucide-react";
+import { FileText, ShoppingCart, Clock, AlertTriangle, CheckCircle, XCircle, Package, TrendingUp, LayoutDashboard, DollarSign, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 import DashboardFilters, { type DashboardFiltersState, loadDashboardFilters } from "@/components/DashboardFilters";
 import RelatoriosComprasDialog from "@/components/compras/RelatoriosComprasDialog";
 import jsPDF from "jspdf";
