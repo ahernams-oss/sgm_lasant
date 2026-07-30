@@ -162,6 +162,45 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
     await saveAndReload(processoId, { ...p, candidatos: [...p.candidatos, novoCandidato] });
   };
 
+  // Importa vários candidatos de uma só vez (ex.: indicados da requisição)
+  const importarCandidatos = async (
+    processoId: string,
+    lista: { nome: string; telefone?: string; email?: string; cpf?: string; dataNascimento?: string; anexos?: AnexoCandidato[] }[],
+  ) => {
+    const p = processos.find(p => p.id === processoId);
+    if (!p) return 0;
+    const existentes = new Set(
+      p.candidatos.map(c => (c.cpf || "").replace(/\D/g, "") || c.nome.trim().toLowerCase())
+    );
+    const novos: Candidato[] = [];
+    for (const item of lista) {
+      const chave = (item.cpf || "").replace(/\D/g, "") || item.nome.trim().toLowerCase();
+      if (!chave || existentes.has(chave)) continue;
+      if (p.candidatos.length + novos.length >= 5) break;
+      existentes.add(chave);
+      novos.push({
+        id: crypto.randomUUID(),
+        nome: item.nome,
+        telefone: item.telefone || "",
+        email: item.email || "",
+        cpf: (item.cpf || "").replace(/\D/g, ""),
+        dataNascimento: item.dataNascimento || "",
+        etapaAtual: "entrevista_psicologica", idade: "", estadoCivil: "",
+        experienciasAnteriores: "", anexos: item.anexos || [],
+        dataEntrevistaPsicologica: new Date().toLocaleDateString("pt-BR"),
+        parecerPsicologo: "", statusPsicologico: "pendente",
+        avaliadorTecnico: "", parecerTecnico: "", statusTecnico: "pendente",
+        liberadoPor: "", statusLiberacao: "pendente",
+        documentos: DOCUMENTOS_OBRIGATORIOS.map(nome => ({ nome, entregue: false })),
+        exameAdmissional: { dataExame: "", resultado: "pendente", observacoes: "" },
+        dadosBancarios: { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "", pix: "" },
+      });
+    }
+    if (novos.length === 0) return 0;
+    await saveAndReload(processoId, { ...p, candidatos: [...p.candidatos, ...novos] });
+    return novos.length;
+  };
+
   const updateCandidato = async (processoId: string, candidatoId: string, data: Partial<Candidato>) => {
     let before: Candidato | undefined;
     let after: Candidato | undefined;
