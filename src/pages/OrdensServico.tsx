@@ -1365,6 +1365,14 @@ export default function OrdensServicoPage() {
                             <action.icon className="mr-2 h-4 w-4" /> {action.label}
                           </DropdownMenuItem>
                         ))}
+                        {podeStCanceladaOS && os.situacao !== "Cancelada" && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => { setCancelMotivo(""); setCancelSenha(""); setCancelStep(1); requestCancel(os.id); }} className="text-destructive">
+                              <Ban className="mr-2 h-4 w-4" /> Cancelar OS
+                            </DropdownMenuItem>
+                          </>
+                        )}
                         {podeExcluirOS && (
                           <>
                             <DropdownMenuSeparator />
