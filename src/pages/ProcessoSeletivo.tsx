@@ -516,9 +516,25 @@ const ProcessoSeletivoPage = () => {
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
-                          {podeEditar && (<Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => openEditDialog(c)}>
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>)}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                                <MoreVertical className="h-3.5 w-3.5" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {podeEditar && (
+                                <DropdownMenuItem onClick={() => openEditDialog(c)}>
+                                  <Pencil className="h-4 w-4 mr-2" /> Editar candidato
+                                </DropdownMenuItem>
+                              )}
+                              {c.etapaAtual === "entrevista_psicologica" && c.statusPsicologico === "pendente" && podeAvaliar && podeStatusPS("aprovado") && (
+                                <DropdownMenuItem onClick={() => handleAprovacaoExpressa(c)}>
+                                  <Zap className="h-4 w-4 mr-2 text-amber-500" /> Aprovação Expressa
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                           <Badge variant="outline" className={statusBadge[getEtapaStatus(c, c.etapaAtual)]}>
                             {etapaLabels[c.etapaAtual]}
                           </Badge>
