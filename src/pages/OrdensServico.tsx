@@ -209,6 +209,9 @@ export default function OrdensServicoPage() {
     { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema", ...(motivo ? { motivo } : {}) },
   ];
   const [cancelMotivo, setCancelMotivo] = useState("");
+  const [cancelStep, setCancelStep] = useState<1 | 2 | 3>(1);
+  const [cancelSenha, setCancelSenha] = useState("");
+  const [cancelLoading, setCancelLoading] = useState(false);
   const { categorias: categoriasServicos } = useCategoriasServicos();
   const { servicos: servicosCadastrados } = useServicos();
   const { scos } = useSco();
