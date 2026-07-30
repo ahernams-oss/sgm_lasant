@@ -210,6 +210,19 @@ const RequisicaoGrid = () => {
     }
   };
 
+  const confirmarAprovacao = () => {
+    if (!aprovandoReq) return;
+    const just = justificativaAprovacao.trim();
+    if (!just) {
+      toast.error("Informe a justificativa da aprovação.");
+      return;
+    }
+    handleStatusChange(aprovandoReq, "Aprovada", just);
+    setAprovandoReq(null);
+    setJustificativaAprovacao("");
+    toast.success("Requisição aprovada.");
+  };
+
   const confirmarReprovacao = () => {
     if (!reprovandoReq) return;
     const just = justificativaReprovacao.trim();
