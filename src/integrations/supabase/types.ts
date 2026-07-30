@@ -7935,6 +7935,7 @@ export type Database = {
           headcount: string | null
           historico_status: Json | null
           id: string
+          indicados: Json
           interno_externo: string | null
           jornada: string | null
           matricula: string | null
@@ -7968,6 +7969,7 @@ export type Database = {
           headcount?: string | null
           historico_status?: Json | null
           id?: string
+          indicados?: Json
           interno_externo?: string | null
           jornada?: string | null
           matricula?: string | null
@@ -8001,6 +8003,7 @@ export type Database = {
           headcount?: string | null
           historico_status?: Json | null
           id?: string
+          indicados?: Json
           interno_externo?: string | null
           jornada?: string | null
           matricula?: string | null

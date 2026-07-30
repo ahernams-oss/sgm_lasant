@@ -130,7 +130,7 @@ const ProcessoSeletivoPage = () => {
   const { requisicaoId } = useParams<{ requisicaoId: string }>();
   const navigate = useNavigate();
   const { requisicoes, updateStatus } = useRequisicoes();
-  const { getProcessoByRequisicao, criarProcesso, addCandidato, updateCandidato, avancarEtapa } =
+  const { getProcessoByRequisicao, criarProcesso, addCandidato, updateCandidato, importarCandidatos, avancarEtapa } =
     useProcessoSeletivo();
   const { temAcessoTotal } = useAuth();
   const { clientes } = useClientes();
@@ -149,6 +149,29 @@ const ProcessoSeletivoPage = () => {
   if (!processo && requisicaoId && requisicao?.status === "Aprovada") {
     processo = criarProcesso(requisicaoId);
   }
+
+  // Recupera automaticamente os indicados da requisição aprovada como candidatos
+  const importIndicadosRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!processo || !requisicao || requisicao.status !== "Aprovada") return;
+    const indicados = requisicao.indicados || [];
+    if (indicados.length === 0) return;
+    if (importIndicadosRef.current === processo.id) return;
+    importIndicadosRef.current = processo.id;
+    importarCandidatos(
+      processo.id,
+      indicados.map((i) => ({
+        nome: i.nome,
+        telefone: i.telefone,
+        email: i.email,
+        cpf: i.cpf,
+        dataNascimento: i.dataNascimento,
+        anexos: i.curriculo ? [i.curriculo] : [],
+      })),
+    ).then((qtd) => {
+      if (qtd > 0) toast.success(`${qtd} indicado(s) da requisição importado(s) como candidato(s).`);
+    });
+  }, [processo?.id, requisicao?.status]);
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingCandidato, setEditingCandidato] = useState<Candidato | null>(null);

@@ -5,6 +5,15 @@ import { enviarNotificacaoRP } from "@/lib/notificacaoRP";
 
 export interface StatusHistorico { status: string; dataHora: string; usuario?: string; observacao?: string; }
 
+export interface IndicadoRP {
+  nome: string;
+  telefone: string;
+  email: string;
+  cpf: string;
+  dataNascimento: string;
+  curriculo?: { nome: string; tipo: string; base64: string } | null;
+}
+
 export interface Requisicao {
   id: string; numero: number; dataCriacao: string;
   headcount: string; orcamento: string; tipoVaga: string;
@@ -16,6 +25,7 @@ export interface Requisicao {
   formacao: string[]; formacaoDetalhe: string; experiencia: string;
   conhecimentoInformatica: string; atividadesCargo: string; salarioVaga: string;
   solicitante?: string;
+  indicados?: IndicadoRP[];
   status: "Pendente" | "Em Análise" | "Aprovada" | "Reprovada" | "Suspensa" | "Concluída";
   aprovadoPor?: string; historicoStatus: StatusHistorico[];
 }
@@ -43,6 +53,7 @@ const rowToReq = (r: any): Requisicao => ({
   conhecimentoInformatica: r.conhecimento_informatica ?? "",
   atividadesCargo: r.atividades_cargo ?? "", salarioVaga: r.salario_vaga ?? "",
   solicitante: r.solicitante ?? "",
+  indicados: r.indicados ?? [],
   status: r.status ?? "Pendente", aprovadoPor: r.aprovado_por ?? "",
   historicoStatus: r.historico_status ?? [],
 });
@@ -61,6 +72,7 @@ const reqToRow = (r: Requisicao) => ({
   experiencia: r.experiencia, conhecimento_informatica: r.conhecimentoInformatica,
   atividades_cargo: r.atividadesCargo, salario_vaga: r.salarioVaga,
   solicitante: r.solicitante ?? "",
+  indicados: r.indicados ?? [],
   status: r.status, aprovado_por: r.aprovadoPor ?? "",
   historico_status: r.historicoStatus as any,
 });

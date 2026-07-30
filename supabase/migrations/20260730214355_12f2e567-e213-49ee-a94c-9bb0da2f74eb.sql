@@ -1,0 +1,1 @@
+ALTER TABLE public.requisicoes ADD COLUMN IF NOT EXISTS indicados jsonb NOT NULL DEFAULT '[]'::jsonb;
