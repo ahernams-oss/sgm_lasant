@@ -92,6 +92,7 @@ function buildFilterLabel(filters: ReportFilters, clientes: { id: string; nome: 
 }
 
 export default function DashboardMedicoes() {
+  const { lastUpdated, isRefreshing, refresh, autoRefresh, setAutoRefresh } = useDashboardRefresh();
   const { medicoes, loading } = useMedicoes();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();

@@ -71,6 +71,7 @@ function formatHours(h: number) {
 }
 
 export default function DashboardCompras() {
+  const { lastUpdated, isRefreshing, refresh, autoRefresh, setAutoRefresh } = useDashboardRefresh();
   const { requisicoes } = useRequisicaoCompras();
   const { pedidos } = usePedidoCompra();
   const { materiais } = useMateriaisServicos();

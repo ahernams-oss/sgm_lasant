@@ -61,6 +61,7 @@ function parseDate(s?: string): Date | null {
 }
 
 export default function DashboardSSOS() {
+  const { lastUpdated, isRefreshing, refresh, autoRefresh, setAutoRefresh } = useDashboardRefresh();
   const { solicitacoes } = useSolicitacoesServicos();
   const { ordens } = useOrdensServico();
   const { orcamentos } = useOrcamentos();

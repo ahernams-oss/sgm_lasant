@@ -91,6 +91,7 @@ const GradientKpiCard = ({
 );
 
 const Dashboard = () => {
+  const { lastUpdated, isRefreshing, refresh, autoRefresh, setAutoRefresh } = useDashboardRefresh();
   const { requisicoes } = useRequisicoes();
   const { clientes } = useClientes();
   const { funcionarios } = useFuncionarios();

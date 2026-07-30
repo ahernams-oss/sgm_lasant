@@ -95,6 +95,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
 }
 
 export default function DashboardMultisistemico() {
+  const { lastUpdated, isRefreshing, refresh, autoRefresh, setAutoRefresh } = useDashboardRefresh();
   const fin = useFinanceiro();
   const { clientes } = useClientes();
   const { funcionarios } = useFuncionarios();
