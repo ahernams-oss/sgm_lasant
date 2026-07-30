@@ -236,7 +236,7 @@ export default function PedidoCompraPage() {
         const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
 
         const { error } = await enviarEmailCompras({
-          
+          body: {
             templateName: "ordem-compra-confirmation",
             recipientEmail: sendEmail,
             idempotencyKey: `ordem-compra-${sendPedido.id}-${Date.now()}`,
@@ -416,7 +416,7 @@ export default function PedidoCompraPage() {
           const email = fornecedor?.email || fornecedor?.emailCompras || "";
           if (!email) throw new Error(`${pcNum}: fornecedor sem e-mail`);
           const { error } = await enviarEmailCompras({
-            
+            body: {
               templateName: "ordem-compra-confirmation",
               recipientEmail: email,
               idempotencyKey: `ordem-compra-${p.id}-${Date.now()}`,

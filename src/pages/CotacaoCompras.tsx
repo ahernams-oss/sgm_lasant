@@ -681,7 +681,7 @@ export default function CotacaoComprasPage() {
           const pdfUrl = pub.publicUrl;
 
           const { error: emailErr } = await enviarEmailCompras({
-            
+            body: {
               templateName: "cotacao-confirmation",
               recipientEmail: email,
               idempotencyKey: `cotacao-pdf-${cot.id}-${forn.id}-${Date.now()}`,
@@ -756,7 +756,7 @@ export default function CotacaoComprasPage() {
       const canais: string[] = [];
       if (canalEmail && enviarEmail) {
         const { error: emailErr } = await enviarEmailCompras({
-          
+          body: {
             templateName: "cotacao-confirmation",
             recipientEmail: enviarEmail,
             idempotencyKey: `cotacao-${cot.id}-${forn.id}`,
@@ -839,7 +839,7 @@ export default function CotacaoComprasPage() {
 
           if (canalEmail && emailForn) {
             try {
-              await supabase.functions.invoke("send-transactional-email", {
+              await enviarEmailCompras({
                 body: {
                   templateName: "cotacao-confirmation",
                   recipientEmail: emailForn,
@@ -897,7 +897,7 @@ export default function CotacaoComprasPage() {
       const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
       const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
 
-      const { error } = await supabase.functions.invoke("send-transactional-email", {
+      const { error } = await enviarEmailCompras({
         body: {
           templateName: "cotacao-confirmation",
           recipientEmail: enviarEmail,
@@ -945,7 +945,7 @@ export default function CotacaoComprasPage() {
 
         try {
           await enviarEmailCompras({
-            
+            body: {
               templateName: "cotacao-confirmation",
               recipientEmail: emailForn,
               idempotencyKey: `cotacao-${cot.id}-${forn?.id || item.fornecedorNome}`,
