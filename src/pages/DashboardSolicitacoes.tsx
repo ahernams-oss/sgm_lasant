@@ -1,3 +1,6 @@
+import DashboardKpiCard from "@/components/dashboard/DashboardKpiCard";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import { useDashboardRefresh } from "@/hooks/useDashboardRefresh";
 import { useMemo, useState } from "react";
 import { format, parseISO, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -38,28 +41,11 @@ const KPI_VARIANTS = [
   { ring: "from-cyan-500 to-sky-600", bg: "bg-cyan-50", icon: "text-cyan-600" },
 ];
 
-const KpiCard = ({ icon: Icon, label, value, subtitle, gradientIdx = 0 }: {
-  icon: any; label: string; value: number | string; subtitle?: string; gradientIdx?: number;
-}) => {
-  const v = KPI_VARIANTS[gradientIdx % KPI_VARIANTS.length];
-  return (
-    <Card className="group relative overflow-hidden border border-border/60 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-      <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", v.ring)} />
-      <CardContent className="pt-5 pb-4 px-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-            <p className="text-xl font-bold text-foreground mt-1.5 truncate">{value}</p>
-            {subtitle && <p className="text-[10px] text-muted-foreground/80 mt-0.5">{subtitle}</p>}
-          </div>
-          <div className={cn("rounded-xl p-2.5 shrink-0 transition-transform group-hover:scale-110", v.bg)}>
-            <Icon className={cn("h-4 w-4", v.icon)} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+const KpiCard = ({ icon, label, value, subtitle, gradientIdx = 0, trend }: {
+  icon: any; label: string; value: number | string; subtitle?: string; gradientIdx?: number; trend?: number | null;
+}) => (
+  <DashboardKpiCard icon={icon} label={label} value={value} subtitle={subtitle} trend={trend} gradientIdx={gradientIdx} />
+);
 
 function parseDate(s?: string): Date | null {
   if (!s) return null;
@@ -68,6 +54,7 @@ function parseDate(s?: string): Date | null {
 }
 
 export default function DashboardSolicitacoes() {
+  const { lastUpdated, isRefreshing, refresh, autoRefresh, setAutoRefresh } = useDashboardRefresh();
   const { solicitacoes } = useSolicitacoesServicos();
   const { ordens } = useOrdensServico();
   const { orcamentos } = useOrcamentos();
@@ -364,43 +351,26 @@ export default function DashboardSolicitacoes() {
 
   return (
     <div className="p-4 md:p-8 space-y-6 animate-fade-up">
-      {/* Hero */}
-      <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary via-primary/90 to-indigo-700 p-6 md:p-8 text-primary-foreground shadow-lg">
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
-        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm mb-3">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider">Solicitações de Serviço · Operacional</span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-              Dashboard de Solicitações de Serviço
-            </h1>
-            <p className="text-sm md:text-base text-primary-foreground/85 mt-1.5 max-w-2xl">
-              Acompanhamento de SS e OS — abertura, fluxo, situação e produtividade por cliente.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2 shrink-0">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => downloadPdfDashboardSSOS(buildReportData())}
-              className="bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm"
-            >
+      <DashboardHeader
+        title="Dashboard de Solicitações de Serviço"
+        badge="Solicitações de Serviço · Operacional"
+        description="Acompanhamento de SS e OS — abertura, fluxo, situação e produtividade por cliente."
+        lastUpdated={lastUpdated}
+        isRefreshing={isRefreshing}
+        autoRefresh={autoRefresh}
+        onToggleAutoRefresh={setAutoRefresh}
+        onRefresh={refresh}
+        actions={
+          <>
+            <Button variant="secondary" size="sm" onClick={() => downloadPdfDashboardSSOS(buildReportData())} className="h-9 bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm">
               <FileDown className="mr-2 h-4 w-4" /> Exportar PDF
             </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => downloadExcelDashboardSSOS(buildReportData())}
-              className="bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm"
-            >
+            <Button variant="secondary" size="sm" onClick={() => downloadExcelDashboardSSOS(buildReportData())} className="h-9 bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm">
               <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar Excel
             </Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Filtros */}
       <Card>

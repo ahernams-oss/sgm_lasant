@@ -1,3 +1,6 @@
+import DashboardKpiCard from "@/components/dashboard/DashboardKpiCard";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import { useDashboardRefresh } from "@/hooks/useDashboardRefresh";
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { useMedicoes, MedicaoServico } from "@/contexts/MedicoesContext";
@@ -41,29 +44,12 @@ const KPI_VARIANTS = [
 ];
 
 const GradientKpiCard = ({
-  icon: Icon, label, value, gradientIdx = 0, subtitle,
+  icon, label, value, gradientIdx = 0, subtitle, trend,
 }: {
-  icon: any; label: string; value: number | string; gradientIdx?: number; subtitle?: string;
-}) => {
-  const v = KPI_VARIANTS[gradientIdx % KPI_VARIANTS.length];
-  return (
-    <Card className="group relative overflow-hidden border border-border/60 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-      <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", v.ring)} />
-      <CardContent className="pt-5 pb-4 px-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-            <p className="text-lg font-bold text-foreground mt-1.5 truncate">{value}</p>
-            {subtitle && <p className="text-[10px] text-muted-foreground/80 mt-0.5">{subtitle}</p>}
-          </div>
-          <div className={cn("rounded-xl p-2.5 shrink-0 transition-transform group-hover:scale-110", v.bg)}>
-            <Icon className={cn("h-4 w-4", v.icon)} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+  icon: any; label: string; value: number | string; gradientIdx?: number; subtitle?: string; trend?: number | null;
+}) => (
+  <DashboardKpiCard icon={icon} label={label} value={value} subtitle={subtitle} trend={trend} gradientIdx={gradientIdx} />
+);
 
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -106,6 +92,7 @@ function buildFilterLabel(filters: ReportFilters, clientes: { id: string; nome: 
 }
 
 export default function DashboardMedicoes() {
+  const { lastUpdated, isRefreshing, refresh, autoRefresh, setAutoRefresh } = useDashboardRefresh();
   const { medicoes, loading } = useMedicoes();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
@@ -233,31 +220,26 @@ export default function DashboardMedicoes() {
 
   return (
     <div className="p-4 md:p-8 space-y-6 animate-fade-up">
-      {/* Hero Header */}
-      <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary via-primary/90 to-indigo-700 p-6 md:p-8 text-primary-foreground shadow-lg">
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
-        <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm mb-3">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider">Engenharia e Manutenção · Visão Executiva</span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard de Medição de Serviços e Obras</h1>
-            <p className="text-sm md:text-base text-primary-foreground/85 mt-1.5 max-w-2xl">
-              Acompanhamento financeiro e operacional consolidado das medições de obras e contratos.
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
+      <DashboardHeader
+        title="Dashboard de Medição de Serviços e Obras"
+        badge="Engenharia e Manutenção · Visão Executiva"
+        description="Acompanhamento financeiro e operacional consolidado das medições de obras e contratos."
+        lastUpdated={lastUpdated}
+        isRefreshing={isRefreshing}
+        autoRefresh={autoRefresh}
+        onToggleAutoRefresh={setAutoRefresh}
+        onRefresh={refresh}
+        actions={
+          <>
             <Button variant="secondary" size="sm" className="h-9 text-xs gap-1.5 bg-white text-primary hover:bg-white/90 shadow-sm" onClick={() => downloadPdfMedicoes(filtered, filterLabel)}>
               <FileText className="h-3.5 w-3.5" /> Relatório PDF
             </Button>
             <Button variant="secondary" size="sm" className="h-9 text-xs gap-1.5 bg-white/15 text-white hover:bg-white/25 border border-white/20 backdrop-blur-sm" onClick={() => downloadExcelMedicoes(filtered, filterLabel)}>
               <Download className="h-3.5 w-3.5" /> Relatório Excel
             </Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Filters */}
       <Card>

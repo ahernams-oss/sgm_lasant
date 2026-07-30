@@ -1,3 +1,6 @@
+import DashboardKpiCard from "@/components/dashboard/DashboardKpiCard";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import { useDashboardRefresh } from "@/hooks/useDashboardRefresh";
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -76,13 +79,9 @@ function groupSum<T>(arr: T[], getKey: (x: T) => string, getVal: (x: T) => numbe
   return Object.entries(m).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
 }
 
-function KPI({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
+function KPI({ label, value, hint, icon, gradientIdx = 0 }: { label: string; value: string | number; hint?: string; icon?: any; gradientIdx?: number }) {
   return (
-    <div className="rounded-xl border bg-card p-4">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="text-2xl font-semibold tabular-nums mt-1">{value}</div>
-      {hint && <div className="text-xs text-muted-foreground mt-1">{hint}</div>}
-    </div>
+    <DashboardKpiCard icon={icon ?? LayoutDashboard} label={label} value={value} subtitle={hint} gradientIdx={gradientIdx} />
   );
 }
 
@@ -96,6 +95,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
 }
 
 export default function DashboardMultisistemico() {
+  const { lastUpdated, isRefreshing, refresh, autoRefresh, setAutoRefresh } = useDashboardRefresh();
   const fin = useFinanceiro();
   const { clientes } = useClientes();
   const { funcionarios } = useFuncionarios();
@@ -138,15 +138,16 @@ export default function DashboardMultisistemico() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <LayoutDashboard className="h-7 w-7 text-primary" />
-        <div>
-          <h1 className="text-2xl font-serif font-semibold">Dashboard Multisistêmico</h1>
-          <p className="text-sm text-muted-foreground">
-            Visão consolidada de todos os módulos. Selecione os que deseja visualizar.
-          </p>
-        </div>
-      </div>
+      <DashboardHeader
+        title="Dashboard Multisistêmico"
+        badge="Visão Gerencial Consolidada"
+        description="Visão consolidada de todos os módulos. Selecione os que deseja visualizar."
+        lastUpdated={lastUpdated}
+        isRefreshing={isRefreshing}
+        autoRefresh={autoRefresh}
+        onToggleAutoRefresh={setAutoRefresh}
+        onRefresh={refresh}
+      />
 
       <Card>
         <CardHeader className="pb-2">

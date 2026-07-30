@@ -1,3 +1,6 @@
+import DashboardKpiCard from "@/components/dashboard/DashboardKpiCard";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import { useDashboardRefresh } from "@/hooks/useDashboardRefresh";
 import { useMemo, useState, useCallback } from "react";
 import { format } from "date-fns";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
@@ -49,28 +52,12 @@ const GRADIENT_STYLES = [
 ];
 
 const GradientKpiCard = ({
-  icon: Icon, label, value, gradientIdx = 0, subtitle,
+  icon, label, value, gradientIdx = 0, subtitle, trend,
 }: {
-  icon: any; label: string; value: number | string; gradientIdx?: number; subtitle?: string;
-}) => {
-  const style = GRADIENT_STYLES[gradientIdx % GRADIENT_STYLES.length];
-  return (
-    <Card className={cn("overflow-hidden border", style.border)}>
-      <CardContent className="pt-4 pb-3 px-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-2xl font-bold text-foreground">{value}</p>
-            <p className="text-xs font-medium text-muted-foreground mt-0.5">{label}</p>
-            {subtitle && <p className="text-[10px] text-muted-foreground/70 mt-0.5">{subtitle}</p>}
-          </div>
-          <div className={cn("rounded-xl p-2.5 bg-gradient-to-br", style.bg)}>
-            <Icon className={cn("h-4 w-4", style.icon)} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+  icon: any; label: string; value: number | string; gradientIdx?: number; subtitle?: string; trend?: number | null;
+}) => (
+  <DashboardKpiCard icon={icon} label={label} value={value} subtitle={subtitle} trend={trend} gradientIdx={gradientIdx} />
+);
 
 function diffHours(a: string, b: string) {
   return (new Date(b).getTime() - new Date(a).getTime()) / (1000 * 60 * 60);
@@ -84,6 +71,7 @@ function formatHours(h: number) {
 }
 
 export default function DashboardCompras() {
+  const { lastUpdated, isRefreshing, refresh, autoRefresh, setAutoRefresh } = useDashboardRefresh();
   const { requisicoes } = useRequisicaoCompras();
   const { pedidos } = usePedidoCompra();
   const { materiais } = useMateriaisServicos();
@@ -410,17 +398,19 @@ export default function DashboardCompras() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="p-4 md:p-8 space-y-6 animate-fade-up">
+      <DashboardHeader
+        title="Dashboard de Compras"
+        badge="Compras e Suprimentos"
+        description="Indicadores de desempenho do processo de compras."
+        lastUpdated={lastUpdated}
+        isRefreshing={isRefreshing}
+        autoRefresh={autoRefresh}
+        onToggleAutoRefresh={setAutoRefresh}
+        onRefresh={refresh}
+      />
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-primary mb-1">
-            <LayoutDashboard className="h-4 w-4" />
-            <span className="text-xs font-medium uppercase tracking-wider">Compras e Suprimentos</span>
-          </div>
-          <h1 className="text-xl font-bold text-foreground">Dashboard de Compras</h1>
-          <p className="text-sm text-muted-foreground">Indicadores de desempenho do processo de compras.</p>
-        </div>
+        <div />
         <div className="flex gap-3 items-center flex-wrap">
           <DashboardFilters
             storageKey="dashboard-compras:filters"
