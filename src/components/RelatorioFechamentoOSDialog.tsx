@@ -150,9 +150,18 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
 
   const situacoesUnicas = useMemo(() => Array.from(new Set(ordens.map(o => o.situacao).filter(Boolean))), [ordens]);
   const locaisUnicos = useMemo(
-    () => Array.from(new Set(ordens.map(o => o.localDescricao || "SEM LOCAL"))).sort((a, b) => a.localeCompare(b)),
-    [ordens],
+    () => Array.from(new Set(
+      ordens
+        .filter(o => clienteSel === "todos" || o.clienteId === clienteSel)
+        .map(o => o.localDescricao || "SEM LOCAL")
+    )).sort((a, b) => a.localeCompare(b)),
+    [ordens, clienteSel],
   );
+
+  // Reseta o local quando ele não pertence mais ao cliente selecionado
+  useEffect(() => {
+    if (localSel !== "todos" && !locaisUnicos.includes(localSel)) setLocalSel("todos");
+  }, [locaisUnicos, localSel]);
 
   const filtrosLabel = useMemo(() => {
     const parts: string[] = [];
