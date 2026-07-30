@@ -649,6 +649,13 @@ const RequisicaoGrid = () => {
               <Textarea rows={4} value={editForm.atividadesCargo} onChange={e => setEditForm(p => ({ ...p, atividadesCargo: e.target.value }))} className="resize-none" />
             </div>
 
+            {/* Histórico de Eventos */}
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Histórico de Eventos</h3>
+              <RequisicaoHistoricoTimeline historico={editingReq?.historicoStatus} />
+            </div>
+
+
             <div className="flex gap-2 justify-end pt-2">
               <Button variant="outline" onClick={() => setEditingReq(null)}>Cancelar</Button>
               <Button onClick={saveEdit}>Salvar Alterações</Button>
