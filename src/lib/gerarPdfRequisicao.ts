@@ -237,14 +237,21 @@ export async function gerarPdfRequisicao(req: Requisicao, empresa?: Empresa) {
 
     autoTable(doc, {
       startY: y,
-      head: [["Status", "Data/Hora", "Usuário"]],
+      head: [["Status", "Data/Hora", "Usuário", "Justificativa"]],
       body: req.historicoStatus.map((h) => [
         h.status,
         h.dataHora,
         h.usuario || "—",
+        h.observacao || "—",
       ]),
       theme: "striped",
-      styles: { fontSize: 9, cellPadding: 4, textColor: [40, 40, 40] },
+      styles: { fontSize: 9, cellPadding: 4, textColor: [40, 40, 40], overflow: "linebreak" },
+      columnStyles: {
+        0: { cellWidth: 28 },
+        1: { cellWidth: 34 },
+        2: { cellWidth: 34 },
+        3: { cellWidth: "auto", fontStyle: "italic" },
+      },
       headStyles: {
         fillColor: DARK_BLUE,
         textColor: [255, 255, 255],
