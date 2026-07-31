@@ -339,11 +339,16 @@ const ProcessoSeletivoPage = () => {
 
     // Liberação aprovada: enviar link do portal do candidato via WhatsApp
     if (statusField === "statusLiberacao" && status === "aprovado" && candidato.telefone) {
-      const link = `${window.location.origin}/portal-candidato/${processo!.id}/${candidato.id}`;
       const msg =
         `Olá ${candidato.nome}! Você foi aprovado(a) na etapa de Liberação do processo seletivo` +
         (requisicao?.cargoNome ? ` para a vaga de ${requisicao.cargoNome}` : "") +
-        `.\n\nPara prosseguir com a contratação, acesse o link abaixo, leia e aceite os termos da LGPD e anexe seus documentos:\n\n${link}\n\nCaso não possua algum documento, marque a opção "Não possuo".`;
+        ` da LASANT CONSTRUÇÕES.\n\n` +
+        `Para prosseguir com a contratação, acesse o link abaixo, leia e aceite os termos da LGPD e anexe seus documentos, através do portal do funcionário.\n\n` +
+        `Lá você deverá cadastrar seu acesso.\n\n` +
+        `Após o acesso, enviar os documentos e aguardar aprovação dos documentos pelo RH/DP\n\n` +
+        `https://app.lasant.com.br\n\n` +
+        `Em caso de dúvidas entre em contato com RH (21) 99941-8169`;
+
       enviarWhatsApp(candidato.telefone, msg).then((r) => {
         if (r.success) toast.success(`Link enviado para o WhatsApp de ${candidato.nome}.`);
         else toast.error(`Falha ao enviar link ao candidato: ${r.error}`);
