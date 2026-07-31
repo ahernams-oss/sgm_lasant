@@ -151,6 +151,8 @@ export default function PortalFicha() {
         setEnd({ ...end, ...(ficha.endereco || {}) });
         setBc({ ...bc, ...(ficha.bancarios || {}) });
         setDeps(ficha.dependentes || []); setCes(ficha.contatos_emergencia || []);
+        if (rest.pensao_alimenticia) setPensao((p: any) => ({ ...p, ...rest.pensao_alimenticia }));
+
         setStatus(ficha.status || "rascunho");
       } else {
         // Primeiro acesso: pré-preenche a partir do cadastro do candidato
