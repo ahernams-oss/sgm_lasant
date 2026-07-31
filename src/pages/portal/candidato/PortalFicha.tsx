@@ -679,28 +679,40 @@ export default function PortalFicha() {
                   </div>
                   {pensao.podeApresentarCopia === "Sim" && (
                     <div className="rounded-md border p-3 space-y-2">
-                      <Label className="text-xs">Anexar cópia do documento (PDF, JPG ou PNG — até 5MB)</Label>
-                      {pensao.anexo ? (
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-sm truncate">{pensao.anexo.nome}</span>
-                          <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={() => setPensao({ ...pensao, anexo: null })}>
+                      <Label className="text-xs">Anexar cópias dos documentos (PDF, JPG ou PNG — até 3 arquivos, 5MB cada)</Label>
+                      {(pensao.anexos || []).map((a: any, i: number) => (
+                        <div key={i} className="flex items-center justify-between gap-2">
+                          <span className="text-sm truncate">{a.nome}</span>
+                          <Button type="button" variant="ghost" size="sm" className="text-destructive"
+                            onClick={() => setPensao((p: any) => ({ ...p, anexos: (p.anexos || []).filter((_: any, j: number) => j !== i) }))}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                      ) : (
+                      ))}
+                      {(pensao.anexos || []).length < 3 && (
                         <Input
                           type="file"
+                          multiple
                           accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
                           onChange={(e) => {
-                            const f = e.target.files?.[0];
+                            const files = Array.from(e.target.files || []);
                             e.target.value = "";
-                            if (!f) return;
-                            const okType = ["application/pdf", "image/jpeg", "image/png"].includes(f.type);
-                            if (!okType) { toast.error("Formato inválido. Envie PDF, JPG ou PNG."); return; }
-                            if (f.size > 5 * 1024 * 1024) { toast.error("Arquivo excede 5MB."); return; }
-                            const r = new FileReader();
-                            r.onload = () => setPensao((p: any) => ({ ...p, anexo: { nome: f.name, tipo: f.type, base64: String(r.result) } }));
-                            r.readAsDataURL(f);
+                            if (!files.length) return;
+                            const atuais = (pensao.anexos || []).length;
+                            const livres = 3 - atuais;
+                            if (files.length > livres) toast.error(`Somente ${livres} arquivo(s) restante(s). Os excedentes foram ignorados.`);
+                            files.slice(0, livres).forEach((f) => {
+                              const okType = ["application/pdf", "image/jpeg", "image/png"].includes(f.type);
+                              if (!okType) { toast.error(`${f.name}: formato inválido. Envie PDF, JPG ou PNG.`); return; }
+                              if (f.size > 5 * 1024 * 1024) { toast.error(`${f.name}: arquivo excede 5MB.`); return; }
+                              const r = new FileReader();
+                              r.onload = () => setPensao((p: any) => {
+                                const lista = p.anexos || [];
+                                if (lista.length >= 3) return p;
+                                return { ...p, anexos: [...lista, { nome: f.name, tipo: f.type, base64: String(r.result) }] };
+                              });
+                              r.readAsDataURL(f);
+                            });
                           }}
                         />
                       )}
