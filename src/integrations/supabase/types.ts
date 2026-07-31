@@ -3260,15 +3260,18 @@ export type Database = {
           cnh: string | null
           complemento: string | null
           conta: string | null
+          contatos_emergencia: Json
           cpf: string
           created_at: string | null
           ctps: string | null
+          curso_formacao: string | null
           data_admissao: string | null
           data_demissao: string | null
           data_nascimento: string | null
           dependentes: Json | null
           email: string | null
           epis: Json | null
+          escolaridade: string | null
           estado_civil: string | null
           experiencia_fim: string | null
           experiencia_inicio: string | null
@@ -3291,6 +3294,7 @@ export type Database = {
           orgao_emissor: string | null
           passagens: Json | null
           pcd: boolean | null
+          pensao_alimenticia: Json
           peso: string | null
           pis: string | null
           rg: string | null
@@ -3329,15 +3333,18 @@ export type Database = {
           cnh?: string | null
           complemento?: string | null
           conta?: string | null
+          contatos_emergencia?: Json
           cpf: string
           created_at?: string | null
           ctps?: string | null
+          curso_formacao?: string | null
           data_admissao?: string | null
           data_demissao?: string | null
           data_nascimento?: string | null
           dependentes?: Json | null
           email?: string | null
           epis?: Json | null
+          escolaridade?: string | null
           estado_civil?: string | null
           experiencia_fim?: string | null
           experiencia_inicio?: string | null
@@ -3360,6 +3367,7 @@ export type Database = {
           orgao_emissor?: string | null
           passagens?: Json | null
           pcd?: boolean | null
+          pensao_alimenticia?: Json
           peso?: string | null
           pis?: string | null
           rg?: string | null
@@ -3398,15 +3406,18 @@ export type Database = {
           cnh?: string | null
           complemento?: string | null
           conta?: string | null
+          contatos_emergencia?: Json
           cpf?: string
           created_at?: string | null
           ctps?: string | null
+          curso_formacao?: string | null
           data_admissao?: string | null
           data_demissao?: string | null
           data_nascimento?: string | null
           dependentes?: Json | null
           email?: string | null
           epis?: Json | null
+          escolaridade?: string | null
           estado_civil?: string | null
           experiencia_fim?: string | null
           experiencia_inicio?: string | null
@@ -3429,6 +3440,7 @@ export type Database = {
           orgao_emissor?: string | null
           passagens?: Json | null
           pcd?: boolean | null
+          pensao_alimenticia?: Json
           peso?: string | null
           pis?: string | null
           rg?: string | null
