@@ -596,26 +596,63 @@ export default function PortalFicha() {
               {pensao.possui && (
                 <div className="space-y-3 rounded-lg border p-3">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div><Label className="text-xs">Número do processo ou documento</Label><Input value={pensao.processo} onChange={(e) => setPensao({ ...pensao, processo: e.target.value })} /></div>
-                    <div><Label className="text-xs">Percentual (%) ou valor determinado</Label><Input value={pensao.percentualOuValor} onChange={(e) => setPensao({ ...pensao, percentualOuValor: e.target.value })} placeholder="Ex.: 30% ou R$ 800,00" /></div>
-                    <div><Label className="text-xs">Nome do alimentando</Label><Input value={pensao.alimentandoNome} onChange={(e) => setPensao({ ...pensao, alimentandoNome: e.target.value })} /></div>
-                    <div>
-                      <Label className="text-xs">CPF do alimentando</Label>
-                      <Input value={pensao.alimentandoCpf} inputMode="numeric" maxLength={14}
-                        onChange={(e) => setPensao({ ...pensao, alimentandoCpf: maskCPF(e.target.value) })}
-                        className={pensao.alimentandoCpf && !isValidCPF(pensao.alimentandoCpf) ? "border-destructive focus-visible:ring-destructive" : ""} />
+                    <div><Label className="text-xs">Número do processo ou documento (geral)</Label><Input value={pensao.processo} onChange={(e) => setPensao({ ...pensao, processo: e.target.value })} /></div>
+                    <div><Label className="text-xs">Percentual (%) ou valor determinado (geral)</Label><Input value={pensao.percentualOuValor} onChange={(e) => setPensao({ ...pensao, percentualOuValor: e.target.value })} placeholder="Ex.: 30% ou R$ 800,00" /></div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-semibold">Alimentandos ({(pensao.beneficiarios || []).length})</Label>
+                      <Button type="button" size="sm" variant="outline"
+                        onClick={() => setPensao((p: any) => ({ ...p, beneficiarios: [...(p.beneficiarios || []), novoBeneficiario()] }))}>
+                        <Plus className="w-4 h-4 mr-1" />Adicionar alimentando
+                      </Button>
                     </div>
-                    <div><Label className="text-xs">Nome do representante legal</Label><Input value={pensao.representanteNome} onChange={(e) => setPensao({ ...pensao, representanteNome: e.target.value })} /></div>
-                    <div>
-                      <Label className="text-xs">CPF do representante legal</Label>
-                      <Input value={pensao.representanteCpf} inputMode="numeric" maxLength={14}
-                        onChange={(e) => setPensao({ ...pensao, representanteCpf: maskCPF(e.target.value) })}
-                        className={pensao.representanteCpf && !isValidCPF(pensao.representanteCpf) ? "border-destructive focus-visible:ring-destructive" : ""} />
-                    </div>
+                    {(pensao.beneficiarios || []).map((b: any, i: number) => {
+                      const upd = (patch: any) => setPensao((p: any) => ({
+                        ...p, beneficiarios: (p.beneficiarios || []).map((x: any, j: number) => (j === i ? { ...x, ...patch } : x)),
+                      }));
+                      return (
+                        <div key={i} className="rounded-md border p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-medium text-muted-foreground">Alimentando {i + 1}</span>
+                            <Button type="button" variant="ghost" size="sm" className="text-destructive"
+                              onClick={() => setPensao((p: any) => ({ ...p, beneficiarios: (p.beneficiarios || []).filter((_: any, j: number) => j !== i) }))}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div><Label className="text-xs">Nome do alimentando</Label><Input value={b.nome || ""} onChange={(e) => upd({ nome: e.target.value })} /></div>
+                            <div>
+                              <Label className="text-xs">CPF do alimentando</Label>
+                              <Input value={b.cpf || ""} inputMode="numeric" maxLength={14}
+                                onChange={(e) => upd({ cpf: maskCPF(e.target.value) })}
+                                className={b.cpf && !isValidCPF(b.cpf) ? "border-destructive focus-visible:ring-destructive" : ""} />
+                            </div>
+                            <div><Label className="text-xs">Nome do representante legal</Label><Input value={b.representanteNome || ""} onChange={(e) => upd({ representanteNome: e.target.value })} /></div>
+                            <div>
+                              <Label className="text-xs">CPF do representante legal</Label>
+                              <Input value={b.representanteCpf || ""} inputMode="numeric" maxLength={14}
+                                onChange={(e) => upd({ representanteCpf: maskCPF(e.target.value) })}
+                                className={b.representanteCpf && !isValidCPF(b.representanteCpf) ? "border-destructive focus-visible:ring-destructive" : ""} />
+                            </div>
+                            <div><Label className="text-xs">Processo/documento deste alimentando</Label><Input value={b.processo || ""} onChange={(e) => upd({ processo: e.target.value })} placeholder="Opcional se já informado acima" /></div>
+                            <div><Label className="text-xs">Percentual (%) ou valor</Label><Input value={b.percentualOuValor || ""} onChange={(e) => upd({ percentualOuValor: e.target.value })} placeholder="Ex.: 20% ou R$ 500,00" /></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {(pensao.beneficiarios || []).length === 0 && (
+                      <p className="text-xs text-muted-foreground">Nenhum alimentando informado. Clique em "Adicionar alimentando".</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <div className="md:col-span-2"><Label className="text-xs">Conta bancária indicada no documento</Label><Input value={pensao.contaBancaria} onChange={(e) => setPensao({ ...pensao, contaBancaria: e.target.value })} placeholder="Banco, agência, conta e titular" /></div>
                     <div><Label className="text-xs">Data de início do desconto</Label><Input type="date" value={pensao.dataInicio} onChange={(e) => setPensao({ ...pensao, dataInicio: e.target.value })} /></div>
                     <div><Label className="text-xs">Data de término do desconto</Label><Input type="date" value={pensao.dataTermino} onChange={(e) => setPensao({ ...pensao, dataTermino: e.target.value })} /></div>
                   </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <div>
                       <Label className="text-xs">A empresa anterior já realizava o desconto?</Label>
