@@ -21,7 +21,7 @@ const UF_OPTIONS = [
   "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO",
 ];
 
-interface Dep { nome: string; parentesco: string; nascimento: string; cpf?: string; }
+interface Dep { nome: string; parentesco: string; nascimento: string; cpf?: string; salario_familia?: boolean; incapacidade_trabalho?: boolean; }
 interface Contato { nome: string; parentesco: string; telefone: string; }
 
 const ESCOLARIDADE_OPTIONS = [
