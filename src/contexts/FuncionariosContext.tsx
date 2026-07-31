@@ -8,7 +8,8 @@ export const tiposTransporte: TipoTransporte[] = ["Ônibus", "Trem", "Metrô", "
 
 export interface PassagemDiaria { id: string; tipoTransporte: TipoTransporte; itinerario: string; valorPassagem: string; quantidade: number; total: number; }
 export interface AnexoDependente { id: string; nome: string; base64: string; tipo: string; }
-export interface Dependente { id: string; nome: string; cpf: string; dataNascimento: string; grauParentesco: string; anexos: AnexoDependente[]; }
+export interface Dependente { id: string; nome: string; cpf: string; dataNascimento: string; grauParentesco: string; anexos: AnexoDependente[]; salarioFamilia?: boolean; incapacidadeTrabalho?: boolean; }
+export interface ContatoEmergencia { nome: string; parentesco?: string; telefone?: string; }
 export interface NrFuncionario { id: string; numero: string; descricao: string; dataEntrega: string; anexoBase64?: string; anexoNome?: string; anexoTipo?: string; }
 export interface EpiItem { id: string; quantidade: number; descricao: string; ca: string; dataEntrega: string; dataVencimento?: string; pedido?: string; }
 export interface UniformeItem { id: string; quantidade: number; descricao: string; tamanho: string; dataEntrega: string; dataVencimento?: string; }
