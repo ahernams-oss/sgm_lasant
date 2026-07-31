@@ -126,10 +126,13 @@ export default function PortalFicha() {
   const [deps, setDeps] = useState<Dep[]>([]);
   const [ces, setCes] = useState<Contato[]>([]);
   const [pensao, setPensao] = useState<any>({
-    possui: false, processo: "", percentualOuValor: "", alimentandoNome: "", alimentandoCpf: "",
-    representanteNome: "", representanteCpf: "", contaBancaria: "", dataInicio: "", dataTermino: "",
-    empresaAnteriorDescontava: "", podeApresentarCopia: "", observacoes: "", anexo: null,
+    possui: false, processo: "", percentualOuValor: "",
+    beneficiarios: [] as any[],
+    contaBancaria: "", dataInicio: "", dataTermino: "",
+    empresaAnteriorDescontava: "", podeApresentarCopia: "", observacoes: "", anexos: [] as any[],
   });
+  const novoBeneficiario = () => ({ nome: "", cpf: "", representanteNome: "", representanteCpf: "", processo: "", percentualOuValor: "" });
+
 
 
   useEffect(() => {
