@@ -53,6 +53,9 @@ async function log(cpf: string | null, credId: string | null, acao: string, suce
   } catch (_) {}
 }
 
+/** MODO TESTE: libera o acesso de candidatos sem validação de data de nascimento. */
+const PORTAL_TESTE_CANDIDATO = true;
+
 /** Locate the candidate JSON entry across all processos_seletivos. */
 async function findCandidato(cpf: string, dataNasc?: string | null) {
   const { data } = await sb.from("processos_seletivos").select("id, requisicao_id, candidatos");
@@ -114,20 +117,25 @@ Deno.serve(async (req) => {
       }
 
       // Tenta como candidato
-      const cand = await findCandidato(cpf, dataNasc);
-      if (!cand) return json({ error: "CPF não localizado como funcionário nem candidato ativo." }, 404);
+      // MODO TESTE: aceita o candidato mesmo com data de nascimento divergente
+      // ou sem vínculo em processo seletivo.
+      const cand = PORTAL_TESTE_CANDIDATO
+        ? (await findCandidato(cpf, dataNasc)) ?? (await findCandidato(cpf))
+        : await findCandidato(cpf, dataNasc);
+      if (!cand && !PORTAL_TESTE_CANDIDATO)
+        return json({ error: "CPF não localizado como funcionário nem candidato ativo." }, 404);
       const hash = bcrypt.hashSync(senha, bcrypt.genSaltSync(10));
       const { data: cred, error } = await sb.from("portal_credenciais").insert({
         cpf, senha_hash: hash, tipo_acesso: "candidato",
-        processo_seletivo_id: cand.processo_seletivo_id,
-        candidato_ref: cand.candidato_ref,
-        email: cand.candidato?.email ?? null,
-        telefone: cand.candidato?.telefone ?? cand.candidato?.whatsapp ?? null,
+        processo_seletivo_id: cand?.processo_seletivo_id ?? null,
+        candidato_ref: cand?.candidato_ref ?? null,
+        email: cand?.candidato?.email ?? null,
+        telefone: cand?.candidato?.telefone ?? cand?.candidato?.whatsapp ?? null,
       }).select().single();
       if (error) return json({ error: "Falha ao criar acesso." }, 500);
       await log(cpf, cred.id, "signup", true, { tipo: "candidato" }, req);
       const token = await sign({ sub: cred.id, cpf, tipo: "candidato" });
-      return json({ token, tipo: "candidato", nome: cand.candidato?.nome ?? "Candidato" });
+      return json({ token, tipo: "candidato", nome: cand?.candidato?.nome ?? "Candidato" });
     }
 
     // -------- LOGIN --------
@@ -185,8 +193,9 @@ Deno.serve(async (req) => {
         const { data: f } = await sb.from("funcionarios").select("data_nascimento").eq("id", cred.funcionario_id).maybeSingle();
         match = f?.data_nascimento === dataNasc;
       } else {
+        // MODO TESTE: candidato pode redefinir a senha apenas com o CPF.
         const cand = await findCandidato(cpf, dataNasc);
-        match = !!cand;
+        match = PORTAL_TESTE_CANDIDATO ? true : !!cand;
       }
       if (!match) return json({ error: "Dados não conferem." }, 401);
 
