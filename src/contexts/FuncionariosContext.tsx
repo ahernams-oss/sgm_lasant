@@ -59,6 +59,8 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   experienciaRenovado: false, experienciaNotificado10dPrimeira: false,
   experienciaNotificado10dFinal: false,
   foto: "",
+  escolaridade: "", cursoFormacao: "",
+  contatosEmergencia: [], pensaoAlimenticia: {},
 };
 
 
@@ -97,6 +99,9 @@ function rowToFuncionario(row: any): Funcionario {
     experienciaNotificado10dPrimeira: row.experiencia_notificado_10d_primeira ?? false,
     experienciaNotificado10dFinal: row.experiencia_notificado_10d_final ?? false,
     foto: row.foto ?? "",
+    escolaridade: row.escolaridade ?? "", cursoFormacao: row.curso_formacao ?? "",
+    contatosEmergencia: row.contatos_emergencia ?? [],
+    pensaoAlimenticia: row.pensao_alimenticia ?? {},
   };
 }
 
@@ -130,6 +135,9 @@ function funcionarioToRow(f: Omit<Funcionario, "id">) {
     experiencia_notificado_10d_primeira: f.experienciaNotificado10dPrimeira,
     experiencia_notificado_10d_final: f.experienciaNotificado10dFinal,
     foto: f.foto || null,
+    escolaridade: f.escolaridade || null, curso_formacao: f.cursoFormacao || null,
+    contatos_emergencia: (f.contatosEmergencia ?? []) as any,
+    pensao_alimenticia: (f.pensaoAlimenticia ?? {}) as any,
   };
 }
 
