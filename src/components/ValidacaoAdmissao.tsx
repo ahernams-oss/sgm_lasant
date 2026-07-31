@@ -358,14 +358,14 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1">
                   <Row label="Nome" value={dp.nome} />
-                  <Row label="CPF" value={dp.cpf} />
-                  <Row label="Data Nasc." value={dp.dataNascimento} />
+                  <Row label="CPF" value={dp.cpf || dpDocs.cpf} />
+                  <Row label="Data Nasc." value={dp.dataNasc || dp.dataNascimento} />
                   <Row label="Sexo" value={dp.sexo} />
                   <Row label="Estado Civil" value={dp.estadoCivil} />
                   <Row label="Nacionalidade" value={dp.nacionalidade} />
                   <Row label="Naturalidade" value={dp.naturalidade} />
                   <Row label="Escolaridade" value={dp.escolaridade} />
-                  <Row label="Curso/Formação" value={dp.formacao} />
+                  <Row label="Curso/Formação" value={dp.cursoFormacao || dp.formacao} />
                   <Row label="Nome Mãe" value={dp.nomeMae} />
                   <Row label="Nome Pai" value={dp.nomePai} />
                   <Row label="E-mail" value={dp.email} />
@@ -373,6 +373,46 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
                 </div>
               </div>
             </div>
+
+            <div>
+              <div className="text-xs font-semibold mb-1 text-muted-foreground">Documentos informados</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <Row label="RG" value={dpDocs.rgNumero} />
+                <Row label="Órgão/UF" value={[dpDocs.rgOrgao, dpDocs.rgUf].filter(Boolean).join("/")} />
+                <Row label="Emissão RG" value={dpDocs.rgEmissao} />
+                <Row label="CTPS" value={dpDocs.ctpsNumero} />
+                <Row label="Série/UF CTPS" value={[dpDocs.ctpsSerie, dpDocs.ctpsUf].filter(Boolean).join("/")} />
+                <Row label="Emissão CTPS" value={dpDocs.ctpsEmissao} />
+                <Row label="PIS/PASEP" value={dpDocs.pisPasep} />
+                <Row label="Título de Eleitor" value={dpDocs.tituloEleitor} />
+                <Row label="Zona/Seção" value={[dpDocs.tituloZona, dpDocs.tituloSecao].filter(Boolean).join("/")} />
+                <Row label="CNH" value={dpDocs.cnhNumero} />
+                <Row label="Categoria CNH" value={dpDocs.cnhCategoria} />
+                <Row label="Validade CNH" value={dpDocs.cnhValidade} />
+                <Row label="1ª Habilitação" value={dpDocs.cnhPrimeira} />
+                <Row label="Reservista" value={dpDocs.reservistaNumero} />
+                <Row label="Cat. Reservista" value={dpDocs.reservistaCategoria} />
+                <Row label="Passaporte" value={dpDocs.passaporteNumero} />
+                <Row label="Validade Passaporte" value={dpDocs.passaporteValidade} />
+                <Row label="Certidão" value={dpDocs.certidaoNumero} />
+                <Row label="Tipo Certidão" value={dpDocs.certidaoTipo} />
+                <Row label="Emissão Certidão" value={dpDocs.certidaoEmissao} />
+              </div>
+            </div>
+
+            {uni && Object.values(uni).some(Boolean) && (
+              <div>
+                <div className="text-xs font-semibold mb-1 text-muted-foreground">Uniforme / Medidas</div>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  <Row label="Camisa" value={uni.camisa} />
+                  <Row label="Calça" value={uni.calca} />
+                  <Row label="Calçado" value={uni.calcado} />
+                  <Row label="Peso" value={uni.peso} />
+                  <Row label="Altura" value={uni.altura} />
+                </div>
+              </div>
+            )}
+
             <div>
               <div className="text-xs font-semibold mb-1 text-muted-foreground">Endereço</div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -392,7 +432,7 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
                 <Row label="Agência" value={ba.agencia} />
                 <Row label="Conta" value={ba.conta} />
                 <Row label="Tipo" value={ba.tipoConta} />
-                <Row label="PIS/PASEP" value={ba.pisPasep || (dp as any)?.documentos?.pisPasep} />
+                <Row label="PIS/PASEP" value={ba.pisPasep || dpDocs.pisPasep} />
                 <Row label="PIX" value={ba.pix || ba.chavePix} />
               </div>
             </div>
@@ -401,13 +441,87 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
                 <div className="text-xs font-semibold mb-1 text-muted-foreground">Dependentes ({ficha.dependentes.length})</div>
                 <div className="space-y-1">
                   {ficha.dependentes.map((d: any, i: number) => (
-                    <div key={i} className="text-xs rounded border px-2 py-1">
-                      {d.nome} · {d.parentesco} · nasc. {d.dataNascimento || "—"}
+                    <div key={i} className="text-xs rounded border px-2 py-1 flex flex-wrap items-center gap-2">
+                      <span>{d.nome} · {d.parentesco} · nasc. {d.nascimento || d.dataNascimento || "—"} · CPF {d.cpf || "—"}</span>
+                      {d.salario_familia && <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300">Salário-família</Badge>}
+                      {d.incapacidade_trabalho && <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">Incapacidade p/ trabalho</Badge>}
                     </div>
                   ))}
                 </div>
               </div>
             )}
+
+            <div>
+              <div className="text-xs font-semibold mb-1 text-muted-foreground">Pensão Alimentícia</div>
+              {!pensao?.possui ? (
+                <p className="text-xs text-muted-foreground">Candidato informou que não há desconto de pensão alimentícia.</p>
+              ) : (
+                <div className="space-y-3 rounded border p-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <Row label="Processo (geral)" value={pensao.processo} />
+                    <Row label="Percentual/Valor (geral)" value={pensao.percentualOuValor} />
+                    <Row label="Conta bancária" value={pensao.contaBancaria} />
+                    <Row label="Início do desconto" value={pensao.dataInicio} />
+                    <Row label="Término do desconto" value={pensao.dataTermino} />
+                    <Row label="Empresa anterior descontava" value={pensao.empresaAnteriorDescontava} />
+                    <Row label="Pode apresentar cópia" value={pensao.podeApresentarCopia} />
+                  </div>
+                  {(pensao.beneficiarios || []).length > 0 && (
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
+                        Alimentandos ({pensao.beneficiarios.length})
+                      </div>
+                      <div className="space-y-1">
+                        {pensao.beneficiarios.map((b: any, i: number) => (
+                          <div key={i} className="rounded border px-2 py-1 grid grid-cols-2 md:grid-cols-3 gap-2">
+                            <Row label="Alimentando" value={b.nome} />
+                            <Row label="CPF" value={b.cpf} />
+                            <Row label="Processo" value={b.processo || pensao.processo} />
+                            <Row label="Representante legal" value={b.representanteNome} />
+                            <Row label="CPF do representante" value={b.representanteCpf} />
+                            <Row label="Percentual/Valor" value={b.percentualOuValor || pensao.percentualOuValor} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {(pensao.anexos || []).length > 0 && (
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
+                        Documentos anexados ({pensao.anexos.length})
+                      </div>
+                      <div className="space-y-1">
+                        {pensao.anexos.map((a: any, i: number) => (
+                          <div key={i} className="flex items-center justify-between rounded border px-2 py-1 text-xs">
+                            <span className="truncate">{a.nome || `anexo-${i + 1}`}</span>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="sm" onClick={() => window.open(a.base64 || a.url, "_blank", "noopener")} title="Visualizar">
+                                <Eye className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                title="Baixar"
+                                onClick={() => {
+                                  const link = document.createElement("a");
+                                  link.href = a.base64 || a.url;
+                                  link.download = a.nome || `pensao-${i + 1}`;
+                                  link.click();
+                                }}
+                              >
+                                <Download className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {pensao.observacoes && <Row label="Observações" value={pensao.observacoes} />}
+                </div>
+              )}
+            </div>
+
             {Array.isArray(ficha.contatos_emergencia) && ficha.contatos_emergencia.length > 0 && (
               <div>
                 <div className="text-xs font-semibold mb-1 text-muted-foreground">Contatos de Emergência ({ficha.contatos_emergencia.length})</div>
@@ -430,6 +544,7 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
           </div>
         )}
       </section>
+
 
       {/* Documentos */}
       <section>
