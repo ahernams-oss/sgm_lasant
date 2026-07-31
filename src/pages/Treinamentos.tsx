@@ -13,9 +13,10 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { GraduationCap, Plus, MoreHorizontal, Loader2, Check, ChevronsUpDown, CheckCircle2, Clock, PlayCircle } from "lucide-react";
+import { GraduationCap, Plus, MoreHorizontal, Loader2, Check, ChevronsUpDown, CheckCircle2, Clock, PlayCircle, FileSpreadsheet, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { exportarTreinamentosCsv, exportarTreinamentosPdf, type TreinamentoExportRow } from "@/lib/exportTreinamentos";
 
 interface Treinamento {
   id: string;
