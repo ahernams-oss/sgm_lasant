@@ -37,6 +37,8 @@ export interface Funcionario {
   experienciaFim: string; experienciaRenovado: boolean;
   experienciaNotificado10dPrimeira: boolean; experienciaNotificado10dFinal: boolean;
   foto: string;
+  escolaridade: string; cursoFormacao: string;
+  contatosEmergencia: ContatoEmergencia[]; pensaoAlimenticia: any;
 }
 
 
