@@ -217,9 +217,24 @@ export default function PortalFicha() {
         toast.error("Há CPF de dependente inválido.");
         return;
       }
-      if (pensao.possui && (!pensao.processo?.trim() || !pensao.percentualOuValor?.trim() || !pensao.alimentandoNome?.trim())) {
-        toast.error("Informe processo/documento, percentual ou valor e o nome do alimentando da pensão alimentícia.");
-        return;
+      if (pensao.possui) {
+        const bens = pensao.beneficiarios || [];
+        if (bens.length === 0 || bens.some((b: any) => !b.nome?.trim())) {
+          toast.error("Informe o nome de cada alimentando da pensão alimentícia.");
+          return;
+        }
+        if (bens.some((b: any) => b.cpf && !isValidCPF(b.cpf)) || bens.some((b: any) => b.representanteCpf && !isValidCPF(b.representanteCpf))) {
+          toast.error("Há CPF inválido no bloco de pensão alimentícia.");
+          return;
+        }
+        if (!pensao.processo?.trim() && bens.some((b: any) => !b.processo?.trim())) {
+          toast.error("Informe o número do processo/documento da pensão alimentícia.");
+          return;
+        }
+        if (!pensao.percentualOuValor?.trim() && bens.some((b: any) => !b.percentualOuValor?.trim())) {
+          toast.error("Informe o percentual ou valor determinado da pensão alimentícia.");
+          return;
+        }
       }
     }
 
