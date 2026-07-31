@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { GraduationCap, Plus, MoreHorizontal, Loader2, Check, ChevronsUpDown, CheckCircle2, Clock, PlayCircle } from "lucide-react";
 import { toast } from "sonner";
-import DoubleConfirmDelete from "@/components/DoubleConfirmDelete";
+import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 
 interface Treinamento {
   id: string;
@@ -74,6 +74,7 @@ export default function Treinamentos() {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [comboOpen, setComboOpen] = useState(false);
+  const [excluirId, setExcluirId] = useState<string | null>(null);
 
   const nomePorCpf = useMemo(() => {
     const m = new Map<string, string>();
@@ -254,15 +255,9 @@ export default function Treinamentos() {
                           {t.status !== "concluido" && (
                             <DropdownMenuItem onClick={() => marcarConcluido(t)}>Marcar como concluído</DropdownMenuItem>
                           )}
-                          <DoubleConfirmDelete
-                            onConfirm={() => excluir(t.id)}
-                            itemName={t.titulo}
-                            trigger={
-                              <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                Excluir
-                              </DropdownMenuItem>
-                            }
-                          />
+                          <DropdownMenuItem className="text-destructive" onClick={() => setExcluirId(t.id)}>
+                            Excluir
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -273,6 +268,12 @@ export default function Treinamentos() {
           )}
         </CardContent>
       </Card>
+
+      <DoubleConfirmDelete
+        open={!!excluirId}
+        onOpenChange={(v) => !v && setExcluirId(null)}
+        onConfirm={() => { if (excluirId) excluir(excluirId); setExcluirId(null); }}
+      />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">
