@@ -171,6 +171,34 @@ export default function Treinamentos() {
 
   const funcionarioSelecionado = funcionarios.find((f) => onlyDigits(f.cpf) === onlyDigits(form.cpf));
 
+  const linhasExport = (): TreinamentoExportRow[] =>
+    filtrados.map((t) => ({
+      funcionario: nomePorCpf.get(onlyDigits(t.cpf)) ?? "—",
+      cpf: t.cpf,
+      titulo: t.titulo,
+      tipo: TIPOS.find((x) => x.v === t.tipo)?.l ?? t.tipo,
+      status: STATUS.find((x) => x.v === t.status)?.l ?? t.status,
+      nota: t.nota != null ? String(t.nota) : "—",
+      conclusao: fmt(t.concluido_em),
+    }));
+
+  const contextoExport = () =>
+    [
+      `Registros: ${filtrados.length}`,
+      filtroStatus !== "todos" ? `Status: ${STATUS.find((s) => s.v === filtroStatus)?.l}` : null,
+      filtroTipo !== "todos" ? `Tipo: ${TIPOS.find((s) => s.v === filtroTipo)?.l}` : null,
+      busca.trim() ? `Busca: ${busca.trim()}` : null,
+    ]
+      .filter(Boolean)
+      .join(" | ");
+
+  const exportar = (fn: (r: TreinamentoExportRow[], c?: string) => void, label: string) => {
+    const rows = linhasExport();
+    if (rows.length === 0) return toast.error("Nenhum treinamento para exportar.");
+    fn(rows, contextoExport());
+    toast.success(`${label} gerado com sucesso.`);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -180,8 +208,17 @@ export default function Treinamentos() {
           </h1>
           <p className="text-sm text-muted-foreground">Gerencie os treinamentos exibidos no Portal do Funcionário.</p>
         </div>
-        <Button onClick={abrirNovo}><Plus className="w-4 h-4 mr-2" />Novo treinamento</Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" onClick={() => exportar(exportarTreinamentosCsv, "CSV")}>
+            <FileSpreadsheet className="w-4 h-4 mr-2" />Exportar CSV
+          </Button>
+          <Button variant="outline" onClick={() => exportar(exportarTreinamentosPdf, "PDF")}>
+            <FileDown className="w-4 h-4 mr-2" />Exportar PDF
+          </Button>
+          <Button onClick={abrirNovo}><Plus className="w-4 h-4 mr-2" />Novo treinamento</Button>
+        </div>
       </div>
+
 
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {[
