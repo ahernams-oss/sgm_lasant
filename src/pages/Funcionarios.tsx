@@ -852,6 +852,7 @@ const Funcionarios = () => {
                 <TabsTrigger value="ferias">Férias</TabsTrigger>
                 <TabsTrigger value="promocoes">Promoções</TabsTrigger>
                 <TabsTrigger value="anexos_docs">Anexos</TabsTrigger>
+                <TabsTrigger value="pensao">Pensão / Emergência</TabsTrigger>
                 <TabsTrigger value="observacoes">Observações</TabsTrigger>
               </TabsList>
 
@@ -945,6 +946,12 @@ const Funcionarios = () => {
                   </Field>
                   <Field label="E-mail">
                     <Input type="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="email@exemplo.com" />
+                  </Field>
+                  <Field label="Escolaridade">
+                    <Input value={form.escolaridade || ""} onChange={(e) => update("escolaridade", e.target.value)} placeholder="Ex: Ensino Médio Completo" />
+                  </Field>
+                  <Field label="Curso / Formação">
+                    <Input value={form.cursoFormacao || ""} onChange={(e) => update("cursoFormacao", e.target.value)} placeholder="Curso ou formação" />
                   </Field>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-foreground/80">PCD</Label>
@@ -1286,6 +1293,88 @@ const Funcionarios = () => {
                   onChange={(a) => update("anexosDocumentos", a)}
                   funcionarioId={editingId || undefined}
                 />
+              </TabsContent>
+
+              {/* PENSÃO / CONTATOS DE EMERGÊNCIA */}
+              <TabsContent value="pensao">
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-sm font-semibold mb-2">Contatos de Emergência</h3>
+                    {(form.contatosEmergencia || []).length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Nenhum contato informado.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {(form.contatosEmergencia || []).map((ct: any, i: number) => (
+                          <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-3 border rounded-md p-3">
+                            <Field label="Nome"><Input value={ct.nome || ""} onChange={(e) => {
+                              const arr = [...(form.contatosEmergencia || [])]; arr[i] = { ...arr[i], nome: e.target.value }; update("contatosEmergencia", arr as any);
+                            }} /></Field>
+                            <Field label="Parentesco"><Input value={ct.parentesco || ""} onChange={(e) => {
+                              const arr = [...(form.contatosEmergencia || [])]; arr[i] = { ...arr[i], parentesco: e.target.value }; update("contatosEmergencia", arr as any);
+                            }} /></Field>
+                            <Field label="Telefone"><Input value={ct.telefone || ""} onChange={(e) => {
+                              const arr = [...(form.contatosEmergencia || [])]; arr[i] = { ...arr[i], telefone: e.target.value }; update("contatosEmergencia", arr as any);
+                            }} /></Field>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <Button type="button" variant="outline" size="sm" className="mt-2"
+                      onClick={() => update("contatosEmergencia", ([...(form.contatosEmergencia || []), { nome: "", parentesco: "", telefone: "" }]) as any)}>
+                      Adicionar contato
+                    </Button>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-semibold mb-2">Pensão Alimentícia</h3>
+                    {!form.pensaoAlimenticia?.possui ? (
+                      <p className="text-sm text-muted-foreground">Sem desconto de pensão alimentícia informado na ficha.</p>
+                    ) : (
+                      <div className="space-y-3 text-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div><span className="text-muted-foreground text-xs">Processo/documento</span><p>{form.pensaoAlimenticia.processo || "—"}</p></div>
+                          <div><span className="text-muted-foreground text-xs">Percentual/valor</span><p>{form.pensaoAlimenticia.percentualOuValor || "—"}</p></div>
+                          <div><span className="text-muted-foreground text-xs">Conta bancária</span><p>{form.pensaoAlimenticia.contaBancaria || "—"}</p></div>
+                          <div><span className="text-muted-foreground text-xs">Início do desconto</span><p>{form.pensaoAlimenticia.dataInicio || "—"}</p></div>
+                          <div><span className="text-muted-foreground text-xs">Término do desconto</span><p>{form.pensaoAlimenticia.dataTermino || "—"}</p></div>
+                          <div><span className="text-muted-foreground text-xs">Empresa anterior descontava</span><p>{form.pensaoAlimenticia.empresaAnteriorDescontava || "—"}</p></div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs">Alimentandos</span>
+                          {(form.pensaoAlimenticia.beneficiarios || []).length === 0 ? (
+                            <p>—</p>
+                          ) : (
+                            <div className="space-y-2 mt-1">
+                              {(form.pensaoAlimenticia.beneficiarios || []).map((b: any, i: number) => (
+                                <div key={i} className="border rounded-md p-2">
+                                  <p className="font-medium">{b.nome || "—"} {b.cpf ? `— CPF ${b.cpf}` : ""}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Representante: {b.representanteNome || "—"} {b.representanteCpf ? `(${b.representanteCpf})` : ""} · Processo: {b.processo || "—"} · Percentual/valor: {b.percentualOuValor || "—"}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {(form.pensaoAlimenticia.anexos || []).length > 0 && (
+                          <div>
+                            <span className="text-muted-foreground text-xs">Documentos anexados</span>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {(form.pensaoAlimenticia.anexos || []).map((a: any, i: number) => (
+                                <a key={i} href={a.base64 || a.url} target="_blank" rel="noreferrer" download={a.nome} className="text-primary underline text-xs">
+                                  {a.nome || `Documento ${i + 1}`}
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {form.pensaoAlimenticia.observacoes && (
+                          <div><span className="text-muted-foreground text-xs">Observações</span><p>{form.pensaoAlimenticia.observacoes}</p></div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </TabsContent>
 
               {/* OBSERVAÇÕES */}
