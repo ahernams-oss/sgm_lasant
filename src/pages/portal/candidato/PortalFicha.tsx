@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Plus, Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { isValidCPF, maskCPF, onlyDigits } from "@/lib/validators";
 import RadioGroupCustom from "@/components/RadioGroupCustom";
@@ -20,7 +21,7 @@ const UF_OPTIONS = [
   "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO",
 ];
 
-interface Dep { nome: string; parentesco: string; nascimento: string; cpf?: string; }
+interface Dep { nome: string; parentesco: string; nascimento: string; cpf?: string; salario_familia?: boolean; incapacidade_trabalho?: boolean; }
 interface Contato { nome: string; parentesco: string; telefone: string; }
 
 const ESCOLARIDADE_OPTIONS = [
@@ -494,28 +495,46 @@ export default function PortalFicha() {
             </CardHeader>
             <CardContent className="space-y-2">
               {deps.map((d, i) => (
-                <div key={i} className="grid grid-cols-2 md:grid-cols-5 gap-2 items-end">
-                  <div className="md:col-span-2"><Label className="text-xs">Nome</Label><Input value={d.nome} onChange={(e) => { const n = [...deps]; n[i].nome = e.target.value; setDeps(n); }} /></div>
-                  <div>
-                    <Label className="text-xs">Parentesco</Label>
-                    <Select value={d.parentesco || ""} onValueChange={(v) => { const n = [...deps]; n[i].parentesco = v; setDeps(n); }}>
-                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                      <SelectContent>
-                        {PARENTESCO_OPTIONS.map((op) => <SelectItem key={op} value={op}>{op}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                <div key={i} className="space-y-2 rounded-lg border p-3">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2 items-end">
+                    <div className="md:col-span-2"><Label className="text-xs">Nome</Label><Input value={d.nome} onChange={(e) => { const n = [...deps]; n[i].nome = e.target.value; setDeps(n); }} /></div>
+                    <div>
+                      <Label className="text-xs">Parentesco</Label>
+                      <Select value={d.parentesco || ""} onValueChange={(v) => { const n = [...deps]; n[i].parentesco = v; setDeps(n); }}>
+                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                        <SelectContent>
+                          {PARENTESCO_OPTIONS.map((op) => <SelectItem key={op} value={op}>{op}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div><Label className="text-xs">Nascimento</Label><Input type="date" value={d.nascimento} onChange={(e) => { const n = [...deps]; n[i].nascimento = e.target.value; setDeps(n); }} /></div>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="CPF"
+                        value={d.cpf ?? ""}
+                        inputMode="numeric"
+                        maxLength={14}
+                        onChange={(e) => { const n = [...deps]; n[i].cpf = maskCPF(e.target.value); setDeps(n); }}
+                        className={d.cpf && !isValidCPF(d.cpf) ? "border-destructive focus-visible:ring-destructive" : ""}
+                      />
+                      <Button size="icon" variant="ghost" onClick={() => setDeps(deps.filter((_, x) => x !== i))}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                    </div>
                   </div>
-                  <div><Label className="text-xs">Nascimento</Label><Input type="date" value={d.nascimento} onChange={(e) => { const n = [...deps]; n[i].nascimento = e.target.value; setDeps(n); }} /></div>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="CPF"
-                      value={d.cpf ?? ""}
-                      inputMode="numeric"
-                      maxLength={14}
-                      onChange={(e) => { const n = [...deps]; n[i].cpf = maskCPF(e.target.value); setDeps(n); }}
-                      className={d.cpf && !isValidCPF(d.cpf) ? "border-destructive focus-visible:ring-destructive" : ""}
-                    />
-                    <Button size="icon" variant="ghost" onClick={() => setDeps(deps.filter((_, x) => x !== i))}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                  <div className="flex flex-col gap-2 md:flex-row md:gap-6">
+                    <label className="flex items-start gap-2 text-xs cursor-pointer">
+                      <Checkbox
+                        checked={!!d.salario_familia}
+                        onCheckedChange={(c) => { const n = [...deps]; n[i].salario_familia = !!c; setDeps(n); }}
+                      />
+                      <span>Possui direito a salário-família</span>
+                    </label>
+                    <label className="flex items-start gap-2 text-xs cursor-pointer">
+                      <Checkbox
+                        checked={!!d.incapacidade_trabalho}
+                        onCheckedChange={(c) => { const n = [...deps]; n[i].incapacidade_trabalho = !!c; setDeps(n); }}
+                      />
+                      <span>Possui incapacidade para o trabalho (quando necessário para fins legais ou de benefício)</span>
+                    </label>
                   </div>
                 </div>
               ))}
