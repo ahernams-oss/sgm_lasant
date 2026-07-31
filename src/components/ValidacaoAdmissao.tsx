@@ -283,6 +283,9 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
   };
 
   const dp = ficha?.dados_pessoais || {};
+  const dpDocs = (dp as any)?.documentos || {};
+  const uni = (dp as any)?.uniforme || {};
+  const pensao = (dp as any)?.pensao_alimenticia || null;
   const en = ficha?.endereco || {};
   const ba = ficha?.bancarios || {};
 
