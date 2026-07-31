@@ -128,7 +128,7 @@ export default function PortalFicha() {
   const [pensao, setPensao] = useState<any>({
     possui: false, processo: "", percentualOuValor: "", alimentandoNome: "", alimentandoCpf: "",
     representanteNome: "", representanteCpf: "", contaBancaria: "", dataInicio: "", dataTermino: "",
-    empresaAnteriorDescontava: "", podeApresentarCopia: "", observacoes: "",
+    empresaAnteriorDescontava: "", podeApresentarCopia: "", observacoes: "", anexo: null,
   });
 
 
