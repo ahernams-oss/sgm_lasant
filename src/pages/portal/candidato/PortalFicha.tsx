@@ -555,6 +555,67 @@ export default function PortalFicha() {
             </CardContent>
           </Card>
           <Card>
+            <CardHeader><CardTitle>Pensão Alimentícia</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              <label className="flex items-start gap-2 text-sm cursor-pointer">
+                <Checkbox checked={!!pensao.possui} onCheckedChange={(c) => setPensao({ ...pensao, possui: !!c })} />
+                <span>Existe decisão judicial, acordo homologado, escritura pública ou ordem formal que deva ser cumprida pela empresa para desconto de pensão alimentícia em folha?</span>
+              </label>
+              {pensao.possui && (
+                <div className="space-y-3 rounded-lg border p-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div><Label className="text-xs">Número do processo ou documento</Label><Input value={pensao.processo} onChange={(e) => setPensao({ ...pensao, processo: e.target.value })} /></div>
+                    <div><Label className="text-xs">Percentual (%) ou valor determinado</Label><Input value={pensao.percentualOuValor} onChange={(e) => setPensao({ ...pensao, percentualOuValor: e.target.value })} placeholder="Ex.: 30% ou R$ 800,00" /></div>
+                    <div><Label className="text-xs">Nome do alimentando</Label><Input value={pensao.alimentandoNome} onChange={(e) => setPensao({ ...pensao, alimentandoNome: e.target.value })} /></div>
+                    <div>
+                      <Label className="text-xs">CPF do alimentando</Label>
+                      <Input value={pensao.alimentandoCpf} inputMode="numeric" maxLength={14}
+                        onChange={(e) => setPensao({ ...pensao, alimentandoCpf: maskCPF(e.target.value) })}
+                        className={pensao.alimentandoCpf && !isValidCPF(pensao.alimentandoCpf) ? "border-destructive focus-visible:ring-destructive" : ""} />
+                    </div>
+                    <div><Label className="text-xs">Nome do representante legal</Label><Input value={pensao.representanteNome} onChange={(e) => setPensao({ ...pensao, representanteNome: e.target.value })} /></div>
+                    <div>
+                      <Label className="text-xs">CPF do representante legal</Label>
+                      <Input value={pensao.representanteCpf} inputMode="numeric" maxLength={14}
+                        onChange={(e) => setPensao({ ...pensao, representanteCpf: maskCPF(e.target.value) })}
+                        className={pensao.representanteCpf && !isValidCPF(pensao.representanteCpf) ? "border-destructive focus-visible:ring-destructive" : ""} />
+                    </div>
+                    <div className="md:col-span-2"><Label className="text-xs">Conta bancária indicada no documento</Label><Input value={pensao.contaBancaria} onChange={(e) => setPensao({ ...pensao, contaBancaria: e.target.value })} placeholder="Banco, agência, conta e titular" /></div>
+                    <div><Label className="text-xs">Data de início do desconto</Label><Input type="date" value={pensao.dataInicio} onChange={(e) => setPensao({ ...pensao, dataInicio: e.target.value })} /></div>
+                    <div><Label className="text-xs">Data de término do desconto</Label><Input type="date" value={pensao.dataTermino} onChange={(e) => setPensao({ ...pensao, dataTermino: e.target.value })} /></div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">A empresa anterior já realizava o desconto?</Label>
+                      <Select value={pensao.empresaAnteriorDescontava || ""} onValueChange={(v) => setPensao({ ...pensao, empresaAnteriorDescontava: v })}>
+                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Sim">Sim</SelectItem>
+                          <SelectItem value="Não">Não</SelectItem>
+                          <SelectItem value="Não sei informar">Não sei informar</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Pode apresentar cópia integral e atualizada do documento?</Label>
+                      <Select value={pensao.podeApresentarCopia || ""} onValueChange={(v) => setPensao({ ...pensao, podeApresentarCopia: v })}>
+                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Sim">Sim</SelectItem>
+                          <SelectItem value="Não">Não</SelectItem>
+                          <SelectItem value="Providenciarei">Providenciarei</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div><Label className="text-xs">Observações</Label><Textarea rows={2} value={pensao.observacoes} onChange={(e) => setPensao({ ...pensao, observacoes: e.target.value })} /></div>
+                  <p className="text-xs text-muted-foreground">Anexe a cópia integral do documento na aba de Documentos do portal.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Contatos de Emergência</CardTitle>
               <Button size="sm" variant="outline" onClick={() => setCes([...ces, { nome: "", parentesco: "", telefone: "" }])}><Plus className="w-4 h-4 mr-1" />Adicionar</Button>
