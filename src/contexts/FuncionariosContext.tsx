@@ -8,7 +8,8 @@ export const tiposTransporte: TipoTransporte[] = ["Ônibus", "Trem", "Metrô", "
 
 export interface PassagemDiaria { id: string; tipoTransporte: TipoTransporte; itinerario: string; valorPassagem: string; quantidade: number; total: number; }
 export interface AnexoDependente { id: string; nome: string; base64: string; tipo: string; }
-export interface Dependente { id: string; nome: string; cpf: string; dataNascimento: string; grauParentesco: string; anexos: AnexoDependente[]; }
+export interface Dependente { id: string; nome: string; cpf: string; dataNascimento: string; grauParentesco: string; anexos: AnexoDependente[]; salarioFamilia?: boolean; incapacidadeTrabalho?: boolean; }
+export interface ContatoEmergencia { nome: string; parentesco?: string; telefone?: string; }
 export interface NrFuncionario { id: string; numero: string; descricao: string; dataEntrega: string; anexoBase64?: string; anexoNome?: string; anexoTipo?: string; }
 export interface EpiItem { id: string; quantidade: number; descricao: string; ca: string; dataEntrega: string; dataVencimento?: string; pedido?: string; }
 export interface UniformeItem { id: string; quantidade: number; descricao: string; tamanho: string; dataEntrega: string; dataVencimento?: string; }
@@ -36,6 +37,8 @@ export interface Funcionario {
   experienciaFim: string; experienciaRenovado: boolean;
   experienciaNotificado10dPrimeira: boolean; experienciaNotificado10dFinal: boolean;
   foto: string;
+  escolaridade: string; cursoFormacao: string;
+  contatosEmergencia: ContatoEmergencia[]; pensaoAlimenticia: any;
 }
 
 
@@ -56,6 +59,8 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   experienciaRenovado: false, experienciaNotificado10dPrimeira: false,
   experienciaNotificado10dFinal: false,
   foto: "",
+  escolaridade: "", cursoFormacao: "",
+  contatosEmergencia: [], pensaoAlimenticia: {},
 };
 
 
@@ -94,6 +99,9 @@ function rowToFuncionario(row: any): Funcionario {
     experienciaNotificado10dPrimeira: row.experiencia_notificado_10d_primeira ?? false,
     experienciaNotificado10dFinal: row.experiencia_notificado_10d_final ?? false,
     foto: row.foto ?? "",
+    escolaridade: row.escolaridade ?? "", cursoFormacao: row.curso_formacao ?? "",
+    contatosEmergencia: row.contatos_emergencia ?? [],
+    pensaoAlimenticia: row.pensao_alimenticia ?? {},
   };
 }
 
@@ -127,6 +135,9 @@ function funcionarioToRow(f: Omit<Funcionario, "id">) {
     experiencia_notificado_10d_primeira: f.experienciaNotificado10dPrimeira,
     experiencia_notificado_10d_final: f.experienciaNotificado10dFinal,
     foto: f.foto || null,
+    escolaridade: f.escolaridade || null, curso_formacao: f.cursoFormacao || null,
+    contatos_emergencia: (f.contatosEmergencia ?? []) as any,
+    pensao_alimenticia: (f.pensaoAlimenticia ?? {}) as any,
   };
 }
 

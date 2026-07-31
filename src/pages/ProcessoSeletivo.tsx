@@ -959,6 +959,9 @@ const ProcessoSeletivoPage = () => {
                                 const end: any = ficha.endereco || {};
                                 const bc: any = ficha.bancarios || {};
                                 const deps: any[] = ficha.dependentes || [];
+                                const ces: any[] = ficha.contatos_emergencia || [];
+                                const uni: any = dp.uniforme || {};
+                                const pensao: any = dp.pensao_alimenticia || {};
 
                                 const novoFuncId = await addFuncionario({
                                   ...({} as any),
@@ -997,7 +1000,29 @@ const ProcessoSeletivoPage = () => {
                                   categoriaCnh: dpDocs.cnhCategoria || "",
                                   validadeCnh: dpDocs.cnhValidade || "",
                                   certificadoReservista: dpDocs.reservistaNumero || "",
-                                  dependentes: deps as any,
+                                  dependentes: deps.map((d: any, i: number) => ({
+                                    id: d.id || `dep-${i}`,
+                                    nome: d.nome || "",
+                                    cpf: d.cpf || "",
+                                    dataNascimento: d.dataNascimento || d.data_nasc || d.nascimento || "",
+                                    grauParentesco: d.grauParentesco || d.parentesco || "",
+                                    anexos: d.anexos || [],
+                                    salarioFamilia: !!(d.salarioFamilia ?? d.salario_familia),
+                                    incapacidadeTrabalho: !!(d.incapacidadeTrabalho ?? d.incapacidade_trabalho),
+                                  })) as any,
+                                  contatosEmergencia: ces.map((ct: any) => ({
+                                    nome: ct.nome || "",
+                                    parentesco: ct.parentesco || ct.grau || "",
+                                    telefone: ct.telefone || "",
+                                  })) as any,
+                                  pensaoAlimenticia: pensao as any,
+                                  escolaridade: dp.escolaridade || "",
+                                  cursoFormacao: dp.cursoFormacao || dp.curso_formacao || "",
+                                  tamanhoCamisa: uni.camisa || "",
+                                  tamanhoCalca: uni.calca || "",
+                                  tamanhoCalcado: uni.calcado || "",
+                                  peso: uni.peso || "",
+                                  altura: uni.altura || "",
                                   observacoes: "", status: "Ativo" as const,
                                   foto: dp.foto || "",
                                 });
