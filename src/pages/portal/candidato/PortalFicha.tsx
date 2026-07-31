@@ -200,7 +200,12 @@ export default function PortalFicha() {
         toast.error("Há CPF de dependente inválido.");
         return;
       }
+      if (pensao.possui && (!pensao.processo?.trim() || !pensao.percentualOuValor?.trim() || !pensao.alimentandoNome?.trim())) {
+        toast.error("Informe processo/documento, percentual ou valor e o nome do alimentando da pensão alimentícia.");
+        return;
+      }
     }
+
     setSaving(true);
     try {
       await portalCall("cand-ficha-save", { dados_pessoais: { ...dp, documentos: docs, pensao_alimenticia: pensao }, endereco: end, bancarios: bc, dependentes: deps, contatos_emergencia: ces, enviar });
