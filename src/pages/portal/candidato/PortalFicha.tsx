@@ -608,8 +608,37 @@ export default function PortalFicha() {
                       </Select>
                     </div>
                   </div>
+                  {pensao.podeApresentarCopia === "Sim" && (
+                    <div className="rounded-md border p-3 space-y-2">
+                      <Label className="text-xs">Anexar cópia do documento (PDF, JPG ou PNG — até 5MB)</Label>
+                      {pensao.anexo ? (
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm truncate">{pensao.anexo.nome}</span>
+                          <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={() => setPensao({ ...pensao, anexo: null })}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            e.target.value = "";
+                            if (!f) return;
+                            const okType = ["application/pdf", "image/jpeg", "image/png"].includes(f.type);
+                            if (!okType) { toast.error("Formato inválido. Envie PDF, JPG ou PNG."); return; }
+                            if (f.size > 5 * 1024 * 1024) { toast.error("Arquivo excede 5MB."); return; }
+                            const r = new FileReader();
+                            r.onload = () => setPensao((p: any) => ({ ...p, anexo: { nome: f.name, tipo: f.type, base64: String(r.result) } }));
+                            r.readAsDataURL(f);
+                          }}
+                        />
+                      )}
+                    </div>
+                  )}
                   <div><Label className="text-xs">Observações</Label><Textarea rows={2} value={pensao.observacoes} onChange={(e) => setPensao({ ...pensao, observacoes: e.target.value })} /></div>
-                  <p className="text-xs text-muted-foreground">Anexe a cópia integral do documento na aba de Documentos do portal.</p>
+
                 </div>
               )}
             </CardContent>
