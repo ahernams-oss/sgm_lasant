@@ -125,6 +125,12 @@ export default function PortalFicha() {
   const [bc, setBc] = useState<any>({ banco: "", agencia: "", conta: "", tipoConta: "", chavePix: "" });
   const [deps, setDeps] = useState<Dep[]>([]);
   const [ces, setCes] = useState<Contato[]>([]);
+  const [pensao, setPensao] = useState<any>({
+    possui: false, processo: "", percentualOuValor: "", alimentandoNome: "", alimentandoCpf: "",
+    representanteNome: "", representanteCpf: "", contaBancaria: "", dataInicio: "", dataTermino: "",
+    empresaAnteriorDescontava: "", podeApresentarCopia: "", observacoes: "",
+  });
+
 
   useEffect(() => {
     portalCall<{ ficha: any; prefill?: { nome?: string; cpf?: string; dataNascimento?: string } }>("cand-ficha-get").then(({ ficha, prefill }) => {
