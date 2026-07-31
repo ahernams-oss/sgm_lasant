@@ -126,10 +126,13 @@ export default function PortalFicha() {
   const [deps, setDeps] = useState<Dep[]>([]);
   const [ces, setCes] = useState<Contato[]>([]);
   const [pensao, setPensao] = useState<any>({
-    possui: false, processo: "", percentualOuValor: "", alimentandoNome: "", alimentandoCpf: "",
-    representanteNome: "", representanteCpf: "", contaBancaria: "", dataInicio: "", dataTermino: "",
-    empresaAnteriorDescontava: "", podeApresentarCopia: "", observacoes: "", anexo: null,
+    possui: false, processo: "", percentualOuValor: "",
+    beneficiarios: [] as any[],
+    contaBancaria: "", dataInicio: "", dataTermino: "",
+    empresaAnteriorDescontava: "", podeApresentarCopia: "", observacoes: "", anexos: [] as any[],
   });
+  const novoBeneficiario = () => ({ nome: "", cpf: "", representanteNome: "", representanteCpf: "", processo: "", percentualOuValor: "" });
+
 
 
   useEffect(() => {
@@ -151,7 +154,21 @@ export default function PortalFicha() {
         setEnd({ ...end, ...(ficha.endereco || {}) });
         setBc({ ...bc, ...(ficha.bancarios || {}) });
         setDeps(ficha.dependentes || []); setCes(ficha.contatos_emergencia || []);
-        if (rest.pensao_alimenticia) setPensao((p: any) => ({ ...p, ...rest.pensao_alimenticia }));
+        if (rest.pensao_alimenticia) {
+          const pa = { ...rest.pensao_alimenticia };
+          // Migração: formato antigo (1 alimentando / 1 anexo) → listas
+          if (!Array.isArray(pa.beneficiarios)) {
+            pa.beneficiarios = (pa.alimentandoNome || pa.alimentandoCpf || pa.representanteNome)
+              ? [{
+                  nome: pa.alimentandoNome || "", cpf: pa.alimentandoCpf || "",
+                  representanteNome: pa.representanteNome || "", representanteCpf: pa.representanteCpf || "",
+                  processo: pa.processo || "", percentualOuValor: pa.percentualOuValor || "",
+                }]
+              : [];
+          }
+          if (!Array.isArray(pa.anexos)) pa.anexos = pa.anexo ? [pa.anexo] : [];
+          setPensao((p: any) => ({ ...p, ...pa }));
+        }
 
         setStatus(ficha.status || "rascunho");
       } else {
@@ -200,9 +217,24 @@ export default function PortalFicha() {
         toast.error("Há CPF de dependente inválido.");
         return;
       }
-      if (pensao.possui && (!pensao.processo?.trim() || !pensao.percentualOuValor?.trim() || !pensao.alimentandoNome?.trim())) {
-        toast.error("Informe processo/documento, percentual ou valor e o nome do alimentando da pensão alimentícia.");
-        return;
+      if (pensao.possui) {
+        const bens = pensao.beneficiarios || [];
+        if (bens.length === 0 || bens.some((b: any) => !b.nome?.trim())) {
+          toast.error("Informe o nome de cada alimentando da pensão alimentícia.");
+          return;
+        }
+        if (bens.some((b: any) => b.cpf && !isValidCPF(b.cpf)) || bens.some((b: any) => b.representanteCpf && !isValidCPF(b.representanteCpf))) {
+          toast.error("Há CPF inválido no bloco de pensão alimentícia.");
+          return;
+        }
+        if (!pensao.processo?.trim() && bens.some((b: any) => !b.processo?.trim())) {
+          toast.error("Informe o número do processo/documento da pensão alimentícia.");
+          return;
+        }
+        if (!pensao.percentualOuValor?.trim() && bens.some((b: any) => !b.percentualOuValor?.trim())) {
+          toast.error("Informe o percentual ou valor determinado da pensão alimentícia.");
+          return;
+        }
       }
     }
 
@@ -564,26 +596,63 @@ export default function PortalFicha() {
               {pensao.possui && (
                 <div className="space-y-3 rounded-lg border p-3">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div><Label className="text-xs">Número do processo ou documento</Label><Input value={pensao.processo} onChange={(e) => setPensao({ ...pensao, processo: e.target.value })} /></div>
-                    <div><Label className="text-xs">Percentual (%) ou valor determinado</Label><Input value={pensao.percentualOuValor} onChange={(e) => setPensao({ ...pensao, percentualOuValor: e.target.value })} placeholder="Ex.: 30% ou R$ 800,00" /></div>
-                    <div><Label className="text-xs">Nome do alimentando</Label><Input value={pensao.alimentandoNome} onChange={(e) => setPensao({ ...pensao, alimentandoNome: e.target.value })} /></div>
-                    <div>
-                      <Label className="text-xs">CPF do alimentando</Label>
-                      <Input value={pensao.alimentandoCpf} inputMode="numeric" maxLength={14}
-                        onChange={(e) => setPensao({ ...pensao, alimentandoCpf: maskCPF(e.target.value) })}
-                        className={pensao.alimentandoCpf && !isValidCPF(pensao.alimentandoCpf) ? "border-destructive focus-visible:ring-destructive" : ""} />
+                    <div><Label className="text-xs">Número do processo ou documento (geral)</Label><Input value={pensao.processo} onChange={(e) => setPensao({ ...pensao, processo: e.target.value })} /></div>
+                    <div><Label className="text-xs">Percentual (%) ou valor determinado (geral)</Label><Input value={pensao.percentualOuValor} onChange={(e) => setPensao({ ...pensao, percentualOuValor: e.target.value })} placeholder="Ex.: 30% ou R$ 800,00" /></div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-semibold">Alimentandos ({(pensao.beneficiarios || []).length})</Label>
+                      <Button type="button" size="sm" variant="outline"
+                        onClick={() => setPensao((p: any) => ({ ...p, beneficiarios: [...(p.beneficiarios || []), novoBeneficiario()] }))}>
+                        <Plus className="w-4 h-4 mr-1" />Adicionar alimentando
+                      </Button>
                     </div>
-                    <div><Label className="text-xs">Nome do representante legal</Label><Input value={pensao.representanteNome} onChange={(e) => setPensao({ ...pensao, representanteNome: e.target.value })} /></div>
-                    <div>
-                      <Label className="text-xs">CPF do representante legal</Label>
-                      <Input value={pensao.representanteCpf} inputMode="numeric" maxLength={14}
-                        onChange={(e) => setPensao({ ...pensao, representanteCpf: maskCPF(e.target.value) })}
-                        className={pensao.representanteCpf && !isValidCPF(pensao.representanteCpf) ? "border-destructive focus-visible:ring-destructive" : ""} />
-                    </div>
+                    {(pensao.beneficiarios || []).map((b: any, i: number) => {
+                      const upd = (patch: any) => setPensao((p: any) => ({
+                        ...p, beneficiarios: (p.beneficiarios || []).map((x: any, j: number) => (j === i ? { ...x, ...patch } : x)),
+                      }));
+                      return (
+                        <div key={i} className="rounded-md border p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-medium text-muted-foreground">Alimentando {i + 1}</span>
+                            <Button type="button" variant="ghost" size="sm" className="text-destructive"
+                              onClick={() => setPensao((p: any) => ({ ...p, beneficiarios: (p.beneficiarios || []).filter((_: any, j: number) => j !== i) }))}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div><Label className="text-xs">Nome do alimentando</Label><Input value={b.nome || ""} onChange={(e) => upd({ nome: e.target.value })} /></div>
+                            <div>
+                              <Label className="text-xs">CPF do alimentando</Label>
+                              <Input value={b.cpf || ""} inputMode="numeric" maxLength={14}
+                                onChange={(e) => upd({ cpf: maskCPF(e.target.value) })}
+                                className={b.cpf && !isValidCPF(b.cpf) ? "border-destructive focus-visible:ring-destructive" : ""} />
+                            </div>
+                            <div><Label className="text-xs">Nome do representante legal</Label><Input value={b.representanteNome || ""} onChange={(e) => upd({ representanteNome: e.target.value })} /></div>
+                            <div>
+                              <Label className="text-xs">CPF do representante legal</Label>
+                              <Input value={b.representanteCpf || ""} inputMode="numeric" maxLength={14}
+                                onChange={(e) => upd({ representanteCpf: maskCPF(e.target.value) })}
+                                className={b.representanteCpf && !isValidCPF(b.representanteCpf) ? "border-destructive focus-visible:ring-destructive" : ""} />
+                            </div>
+                            <div><Label className="text-xs">Processo/documento deste alimentando</Label><Input value={b.processo || ""} onChange={(e) => upd({ processo: e.target.value })} placeholder="Opcional se já informado acima" /></div>
+                            <div><Label className="text-xs">Percentual (%) ou valor</Label><Input value={b.percentualOuValor || ""} onChange={(e) => upd({ percentualOuValor: e.target.value })} placeholder="Ex.: 20% ou R$ 500,00" /></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {(pensao.beneficiarios || []).length === 0 && (
+                      <p className="text-xs text-muted-foreground">Nenhum alimentando informado. Clique em "Adicionar alimentando".</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <div className="md:col-span-2"><Label className="text-xs">Conta bancária indicada no documento</Label><Input value={pensao.contaBancaria} onChange={(e) => setPensao({ ...pensao, contaBancaria: e.target.value })} placeholder="Banco, agência, conta e titular" /></div>
                     <div><Label className="text-xs">Data de início do desconto</Label><Input type="date" value={pensao.dataInicio} onChange={(e) => setPensao({ ...pensao, dataInicio: e.target.value })} /></div>
                     <div><Label className="text-xs">Data de término do desconto</Label><Input type="date" value={pensao.dataTermino} onChange={(e) => setPensao({ ...pensao, dataTermino: e.target.value })} /></div>
                   </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <div>
                       <Label className="text-xs">A empresa anterior já realizava o desconto?</Label>
@@ -610,28 +679,40 @@ export default function PortalFicha() {
                   </div>
                   {pensao.podeApresentarCopia === "Sim" && (
                     <div className="rounded-md border p-3 space-y-2">
-                      <Label className="text-xs">Anexar cópia do documento (PDF, JPG ou PNG — até 5MB)</Label>
-                      {pensao.anexo ? (
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-sm truncate">{pensao.anexo.nome}</span>
-                          <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={() => setPensao({ ...pensao, anexo: null })}>
+                      <Label className="text-xs">Anexar cópias dos documentos (PDF, JPG ou PNG — até 3 arquivos, 5MB cada)</Label>
+                      {(pensao.anexos || []).map((a: any, i: number) => (
+                        <div key={i} className="flex items-center justify-between gap-2">
+                          <span className="text-sm truncate">{a.nome}</span>
+                          <Button type="button" variant="ghost" size="sm" className="text-destructive"
+                            onClick={() => setPensao((p: any) => ({ ...p, anexos: (p.anexos || []).filter((_: any, j: number) => j !== i) }))}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                      ) : (
+                      ))}
+                      {(pensao.anexos || []).length < 3 && (
                         <Input
                           type="file"
+                          multiple
                           accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
                           onChange={(e) => {
-                            const f = e.target.files?.[0];
+                            const files = Array.from(e.target.files || []);
                             e.target.value = "";
-                            if (!f) return;
-                            const okType = ["application/pdf", "image/jpeg", "image/png"].includes(f.type);
-                            if (!okType) { toast.error("Formato inválido. Envie PDF, JPG ou PNG."); return; }
-                            if (f.size > 5 * 1024 * 1024) { toast.error("Arquivo excede 5MB."); return; }
-                            const r = new FileReader();
-                            r.onload = () => setPensao((p: any) => ({ ...p, anexo: { nome: f.name, tipo: f.type, base64: String(r.result) } }));
-                            r.readAsDataURL(f);
+                            if (!files.length) return;
+                            const atuais = (pensao.anexos || []).length;
+                            const livres = 3 - atuais;
+                            if (files.length > livres) toast.error(`Somente ${livres} arquivo(s) restante(s). Os excedentes foram ignorados.`);
+                            files.slice(0, livres).forEach((f) => {
+                              const okType = ["application/pdf", "image/jpeg", "image/png"].includes(f.type);
+                              if (!okType) { toast.error(`${f.name}: formato inválido. Envie PDF, JPG ou PNG.`); return; }
+                              if (f.size > 5 * 1024 * 1024) { toast.error(`${f.name}: arquivo excede 5MB.`); return; }
+                              const r = new FileReader();
+                              r.onload = () => setPensao((p: any) => {
+                                const lista = p.anexos || [];
+                                if (lista.length >= 3) return p;
+                                return { ...p, anexos: [...lista, { nome: f.name, tipo: f.type, base64: String(r.result) }] };
+                              });
+                              r.readAsDataURL(f);
+                            });
                           }}
                         />
                       )}
