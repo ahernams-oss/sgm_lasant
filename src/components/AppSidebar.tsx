@@ -47,6 +47,7 @@ import {
   Shirt,
   FileSignature,
   CheckCircle2,
+  GraduationCap,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissao } from "@/hooks/usePermissao";
