@@ -228,6 +228,8 @@ const DependentesTab = ({ dependentes, onChange }: { dependentes: Dependente[]; 
                   {dep.cpf && <span className="text-muted-foreground">CPF: {dep.cpf}</span>}
                   {dep.dataNascimento && <span className="text-muted-foreground">Nasc: {dep.dataNascimento.split("-").reverse().join("/")}</span>}
                   <Badge variant="secondary">{dep.grauParentesco}</Badge>
+                  {dep.salarioFamilia && <Badge variant="outline">Salário-família</Badge>}
+                  {dep.incapacidadeTrabalho && <Badge variant="outline">Incapacidade p/ trabalho</Badge>}
                 </div>
                 <Button type="button" variant="ghost" size="icon" className="text-destructive" onClick={() => removeDependente(dep.id)}>
                   <Trash2 className="h-4 w-4" />
