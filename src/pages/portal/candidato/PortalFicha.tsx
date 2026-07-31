@@ -203,7 +203,7 @@ export default function PortalFicha() {
     }
     setSaving(true);
     try {
-      await portalCall("cand-ficha-save", { dados_pessoais: { ...dp, documentos: docs }, endereco: end, bancarios: bc, dependentes: deps, contatos_emergencia: ces, enviar });
+      await portalCall("cand-ficha-save", { dados_pessoais: { ...dp, documentos: docs, pensao_alimenticia: pensao }, endereco: end, bancarios: bc, dependentes: deps, contatos_emergencia: ces, enviar });
       toast.success(enviar ? "Ficha enviada para análise do RH." : "Rascunho salvo.");
       if (enviar) setStatus("enviada");
     } catch (e: any) { toast.error(e.message); }
