@@ -154,7 +154,21 @@ export default function PortalFicha() {
         setEnd({ ...end, ...(ficha.endereco || {}) });
         setBc({ ...bc, ...(ficha.bancarios || {}) });
         setDeps(ficha.dependentes || []); setCes(ficha.contatos_emergencia || []);
-        if (rest.pensao_alimenticia) setPensao((p: any) => ({ ...p, ...rest.pensao_alimenticia }));
+        if (rest.pensao_alimenticia) {
+          const pa = { ...rest.pensao_alimenticia };
+          // Migração: formato antigo (1 alimentando / 1 anexo) → listas
+          if (!Array.isArray(pa.beneficiarios)) {
+            pa.beneficiarios = (pa.alimentandoNome || pa.alimentandoCpf || pa.representanteNome)
+              ? [{
+                  nome: pa.alimentandoNome || "", cpf: pa.alimentandoCpf || "",
+                  representanteNome: pa.representanteNome || "", representanteCpf: pa.representanteCpf || "",
+                  processo: pa.processo || "", percentualOuValor: pa.percentualOuValor || "",
+                }]
+              : [];
+          }
+          if (!Array.isArray(pa.anexos)) pa.anexos = pa.anexo ? [pa.anexo] : [];
+          setPensao((p: any) => ({ ...p, ...pa }));
+        }
 
         setStatus(ficha.status || "rascunho");
       } else {
