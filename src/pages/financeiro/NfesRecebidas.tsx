@@ -58,6 +58,18 @@ const formatCnpj = (c: string | null) => {
   if (d.length !== 14) return c || "—";
   return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12)}`;
 };
+// Nº/Série: usa os campos gravados e, quando ausentes, extrai da chave de acesso (44 dígitos)
+const numeroSerie = (n: { numero: string | null; serie: string | null; chave?: string | null }) => {
+  const ch = (n.chave || "").replace(/\D+/g, "");
+  let numero = (n.numero || "").replace(/^0+/, "");
+  let serie = (n.serie || "").replace(/^0+/, "");
+  if (ch.length === 44) {
+    if (!numero) numero = ch.slice(25, 34).replace(/^0+/, "");
+    if (!serie) serie = ch.slice(22, 25).replace(/^0+/, "");
+  }
+  if (!numero && !serie) return "—";
+  return `${numero || "—"}${serie ? ` / ${serie}` : ""}`;
+};
 
 export default function NfesRecebidas() {
   const { empresa } = useEmpresa();
