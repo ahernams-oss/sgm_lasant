@@ -67,6 +67,7 @@ const numeroSerie = (n: { numero: string | null; serie: string | null; chave?: s
     if (!numero) numero = ch.slice(25, 34).replace(/^0+/, "");
     if (!serie) serie = ch.slice(22, 25).replace(/^0+/, "");
   }
+  if (!serie && ch.length === 44) serie = "0";
   if (!numero && !serie) return "—";
   return `${numero || "—"}${serie ? ` / ${serie}` : ""}`;
 };
