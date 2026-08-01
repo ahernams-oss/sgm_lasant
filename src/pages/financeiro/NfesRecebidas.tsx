@@ -83,6 +83,10 @@ export default function NfesRecebidas() {
   const [diagOpen, setDiagOpen] = useState(false);
   const [diagLoading, setDiagLoading] = useState(false);
   const [diagData, setDiagData] = useState<any>(null);
+  const [diagBnOpen, setDiagBnOpen] = useState(false);
+  const [diagBnLoading, setDiagBnLoading] = useState(false);
+  const [diagBnData, setDiagBnData] = useState<any>(null);
+
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
