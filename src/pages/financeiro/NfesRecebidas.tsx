@@ -492,7 +492,30 @@ export default function NfesRecebidas() {
         </TabsContent>
       </Tabs>
 
+      <Dialog open={diagBnOpen} onOpenChange={setDiagBnOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader><DialogTitle>Diagnóstico Brasil NFe</DialogTitle></DialogHeader>
+          {diagBnLoading ? (
+            <div className="py-8 text-center text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin inline mr-2" /> Consultando Brasil NFe…</div>
+          ) : diagBnData ? (
+            <div className="space-y-2 text-sm">
+              <div><b>HTTP Status:</b> {diagBnData.httpStatus ?? "—"} {diagBnData.ok ? "✅" : "❌"}</div>
+              <div className="break-all"><b>Endpoint:</b> <code className="text-xs">{diagBnData.url}</code></div>
+              <div><b>Período consultado:</b> <code className="text-xs">{diagBnData.request?.DtInicio} → {diagBnData.request?.DtFim}</code></div>
+              <div><b>Total de documentos:</b> {diagBnData.totalDocumentos ?? 0}</div>
+              {Array.isArray(diagBnData.avisos) && diagBnData.avisos.length > 0 && (
+                <div><b>Avisos:</b> {diagBnData.avisos.join(" • ")}</div>
+              )}
+              {diagBnData.error && <div className="text-destructive"><b>Erro:</b> {String(diagBnData.error)}</div>}
+              <div><b>Resposta (preview):</b></div>
+              <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-80">{JSON.stringify(diagBnData.preview?.length ? diagBnData.preview : (diagBnData.raw ?? diagBnData), null, 2)}</pre>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={diagOpen} onOpenChange={setDiagOpen}>
+
         <DialogContent className="max-w-3xl">
           <DialogHeader><DialogTitle>Diagnóstico Focus NFe</DialogTitle></DialogHeader>
           {diagLoading ? (
