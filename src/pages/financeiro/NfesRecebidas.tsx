@@ -390,7 +390,6 @@ export default function NfesRecebidas() {
                     <TableHead>Nº/Série</TableHead>
                     <TableHead>Emitente</TableHead>
                     <TableHead>CNPJ</TableHead>
-                    <TableHead>Chave</TableHead>
                     <TableHead className="text-right">Valor</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
@@ -398,18 +397,18 @@ export default function NfesRecebidas() {
                 </TableHeader>
                 <TableBody>
                   {loading ? (
-                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Carregando…</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Carregando…</TableCell></TableRow>
                   ) : paginated.length === 0 ? (
-                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       Nenhuma NFe encontrada. Clique em <b>Importar NFes</b> ou faça upload de XML.
                     </TableCell></TableRow>
                   ) : paginated.map(n => (
                     <TableRow key={n.id}>
                       <TableCell>{formatDateTime(n.data_emissao)}</TableCell>
-                      <TableCell>{n.numero || "—"}{n.serie ? `/${n.serie}` : ""}</TableCell>
+                      <TableCell className="tabular-nums" title={n.chave}>{numeroSerie(n)}</TableCell>
                       <TableCell className="max-w-xs truncate" title={n.emitente_nome || ""}>{n.emitente_nome || "—"}</TableCell>
                       <TableCell>{formatCnpj(n.emitente_cnpj)}</TableCell>
-                      <TableCell className="font-mono text-xs">{n.chave}</TableCell>
+
                       <TableCell className="text-right">{formatBRL(n.valor_total)}</TableCell>
                       <TableCell>{n.status ? <Badge variant="secondary">{n.status}</Badge> : "—"}</TableCell>
                       <TableCell className="text-right">
