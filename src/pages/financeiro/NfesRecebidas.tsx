@@ -107,6 +107,26 @@ export default function NfesRecebidas() {
     }
   };
 
+  const diagnosticarBrasilNfe = async () => {
+    setDiagBnOpen(true); setDiagBnLoading(true); setDiagBnData(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("brasilnfe-diagnostico", {
+        body: {
+          tipoDocumentoFiscal: 0,
+          dtInicio: dataIni ? `${dataIni}T00:00:00-03:00` : undefined,
+          dtFim: dataFim ? `${dataFim}T23:59:59-03:00` : undefined,
+        },
+      });
+      if (error) throw error;
+      setDiagBnData(data);
+    } catch (e: any) {
+      setDiagBnData({ ok: false, error: e.message });
+    } finally {
+      setDiagBnLoading(false);
+    }
+  };
+
+
   const load = async () => {
     setLoading(true);
     const { data, error } = await (supabase as any).from("nfes_recebidas").select("*").order("data_emissao", { ascending: false });
