@@ -83,6 +83,10 @@ export default function NfesRecebidas() {
   const [diagOpen, setDiagOpen] = useState(false);
   const [diagLoading, setDiagLoading] = useState(false);
   const [diagData, setDiagData] = useState<any>(null);
+  const [diagBnOpen, setDiagBnOpen] = useState(false);
+  const [diagBnLoading, setDiagBnLoading] = useState(false);
+  const [diagBnData, setDiagBnData] = useState<any>(null);
+
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -106,6 +110,26 @@ export default function NfesRecebidas() {
       setDiagLoading(false);
     }
   };
+
+  const diagnosticarBrasilNfe = async () => {
+    setDiagBnOpen(true); setDiagBnLoading(true); setDiagBnData(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("brasilnfe-diagnostico", {
+        body: {
+          tipoDocumentoFiscal: 0,
+          dtInicio: dataIni ? `${dataIni}T00:00:00-03:00` : undefined,
+          dtFim: dataFim ? `${dataFim}T23:59:59-03:00` : undefined,
+        },
+      });
+      if (error) throw error;
+      setDiagBnData(data);
+    } catch (e: any) {
+      setDiagBnData({ ok: false, error: e.message });
+    } finally {
+      setDiagBnLoading(false);
+    }
+  };
+
 
   const load = async () => {
     setLoading(true);
@@ -321,6 +345,10 @@ export default function NfesRecebidas() {
               <Button variant="outline" onClick={diagnosticar} disabled={!empresa.id}>
                 <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Focus
               </Button>
+              <Button variant="outline" onClick={diagnosticarBrasilNfe}>
+                <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Brasil NFe
+              </Button>
+
               <Button onClick={importar} disabled={importando || !empresa.id}>
                 {importando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
                 Importar NFes (SEFAZ)
@@ -464,7 +492,30 @@ export default function NfesRecebidas() {
         </TabsContent>
       </Tabs>
 
+      <Dialog open={diagBnOpen} onOpenChange={setDiagBnOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader><DialogTitle>Diagnóstico Brasil NFe</DialogTitle></DialogHeader>
+          {diagBnLoading ? (
+            <div className="py-8 text-center text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin inline mr-2" /> Consultando Brasil NFe…</div>
+          ) : diagBnData ? (
+            <div className="space-y-2 text-sm">
+              <div><b>HTTP Status:</b> {diagBnData.httpStatus ?? "—"} {diagBnData.ok ? "✅" : "❌"}</div>
+              <div className="break-all"><b>Endpoint:</b> <code className="text-xs">{diagBnData.url}</code></div>
+              <div><b>Período consultado:</b> <code className="text-xs">{diagBnData.request?.DtInicio} → {diagBnData.request?.DtFim}</code></div>
+              <div><b>Total de documentos:</b> {diagBnData.totalDocumentos ?? 0}</div>
+              {Array.isArray(diagBnData.avisos) && diagBnData.avisos.length > 0 && (
+                <div><b>Avisos:</b> {diagBnData.avisos.join(" • ")}</div>
+              )}
+              {diagBnData.error && <div className="text-destructive"><b>Erro:</b> {String(diagBnData.error)}</div>}
+              <div><b>Resposta (preview):</b></div>
+              <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-80">{JSON.stringify(diagBnData.preview?.length ? diagBnData.preview : (diagBnData.raw ?? diagBnData), null, 2)}</pre>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={diagOpen} onOpenChange={setDiagOpen}>
+
         <DialogContent className="max-w-3xl">
           <DialogHeader><DialogTitle>Diagnóstico Focus NFe</DialogTitle></DialogHeader>
           {diagLoading ? (
