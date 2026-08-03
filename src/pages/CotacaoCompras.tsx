@@ -483,6 +483,7 @@ export default function CotacaoComprasPage() {
       }
 
       await Promise.all(pedidosCriados.map(p => assinarPedidoAutomatico(p)));
+      await Promise.all(pedidosCriados.map(p => notificarPedidoNoGrupo(p, cot.requisicaoId)));
 
       updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador",
         fornecedorIds.length > 1
