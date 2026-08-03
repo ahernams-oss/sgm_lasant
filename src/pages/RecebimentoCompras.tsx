@@ -506,7 +506,7 @@ export default function RecebimentoComprasPage() {
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>PC-{viewPedido && String(viewPedido.numero).padStart(4, "0")}</DialogTitle>
-            <DialogDescription>Detalhes do pedido de compra</DialogDescription>
+            <DialogDescription>Detalhes do ordem de compra</DialogDescription>
           </DialogHeader>
           {viewPedido && (
             <div className="space-y-4">

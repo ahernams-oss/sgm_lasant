@@ -33,7 +33,7 @@ function addDays(iso: string, days: number) {
   return d.toISOString().slice(0, 10);
 }
 
-/** Gera lançamentos no Contas a Pagar para um Pedido de Compra. Idempotente. */
+/** Gera lançamentos no Contas a Pagar para um Ordem de Compra. Idempotente. */
 export async function gerarContasPagarDePC(pedido: PedidoLike, opts?: { silent?: boolean }): Promise<number> {
   // verifica se já existe
   const { data: existentes } = await (supabase as any)

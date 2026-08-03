@@ -53,7 +53,7 @@ interface ModDef {
 const MODULOS: ModDef[] = [
   { key: "os", label: "Ordens de Serviço", color: "#673ab7" },
   { key: "ss", label: "Solicitações de Serviço", color: "#5e35b1" },
-  { key: "pc", label: "Pedidos de Compra", color: "#7e57c2" },
+  { key: "pc", label: "Ordens de Compra", color: "#7e57c2" },
   { key: "rc", label: "Requisições de Compras", color: "#9575cd" },
   { key: "func", label: "Funcionários", color: "#4527a0" },
   { key: "cp", label: "Contas a Pagar", color: "#c62828" },
@@ -171,7 +171,7 @@ export default function DashboardMultisistemico() {
                   ["Rejeitadas", fSol.filter((s: any) => s.situacao === "Rejeitada").length],
                 ]);
               if (ativos.includes("pc"))
-                push("Pedidos de Compra", [
+                push("Ordens de Compra", [
                   ["Total Pedidos", fPed.length],
                   ["Valor Total", formatBRL(fPed.reduce((s, p: any) => s + Number(p.valorTotal || 0), 0))],
                   ["Aprovados", fPed.filter((p: any) => p.status === "Aprovado").length],
@@ -337,7 +337,7 @@ export default function DashboardMultisistemico() {
       {/* PC */}
       {ativos.includes("pc") && (
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Pedidos de Compra</h2>
+          <h2 className="text-lg font-semibold">Ordens de Compra</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <KPI label="Total Pedidos" value={fPed.length} />
             <KPI label="Valor Total" value={formatBRL(fPed.reduce((s, p: any) => s + Number(p.valorTotal || 0), 0))} />

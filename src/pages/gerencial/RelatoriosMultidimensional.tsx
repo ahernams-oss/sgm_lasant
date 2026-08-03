@@ -196,7 +196,7 @@ export default function RelatoriosMultidimensional() {
       },
       {
         key: "pc",
-        label: "Pedidos de Compra",
+        label: "Ordens de Compra",
         rows: pedidos,
         dateField: (r) => r.dataCriacao,
         dimensions: [

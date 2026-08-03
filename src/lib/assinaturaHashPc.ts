@@ -1,4 +1,4 @@
-// Hash SHA-256 do conteúdo essencial do Pedido de Compra para garantir integridade
+// Hash SHA-256 do conteúdo essencial do Ordem de Compra para garantir integridade
 import type { PedidoCompra } from "@/contexts/PedidoCompraContext";
 
 const s = (v: any) => (v === null || v === undefined ? "" : String(v));

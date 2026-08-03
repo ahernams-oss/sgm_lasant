@@ -473,7 +473,7 @@ export default function PedidoCompraPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Pedidos de Compra</h1>
+        <h1 className="text-2xl font-bold text-foreground">Ordens de Compra</h1>
       </div>
 
       <div className="flex flex-wrap gap-3 items-end">
@@ -641,7 +641,7 @@ export default function PedidoCompraPage() {
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>PC-{viewPedido && String(viewPedido.numero).padStart(4, "0")}</DialogTitle>
-            <DialogDescription>Detalhes do pedido de compra</DialogDescription>
+            <DialogDescription>Detalhes do ordem de compra</DialogDescription>
           </DialogHeader>
           {viewPedido && (
             <div className="space-y-4">

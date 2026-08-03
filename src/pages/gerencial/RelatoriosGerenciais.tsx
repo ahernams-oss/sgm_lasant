@@ -34,7 +34,7 @@ const TIPOS: { value: TipoRel; label: string; desc: string; usaCliente: boolean;
   { value: "os_status", label: "OS por Situação", desc: "Total de Ordens de Serviço agrupadas por situação no período.", usaCliente: true, usaSituacao: true },
   { value: "os_cliente", label: "OS por Cliente", desc: "Quantidade de Ordens de Serviço por cliente no período.", usaCliente: true, usaSituacao: true },
   { value: "ss_status", label: "SS por Situação", desc: "Solicitações de Serviço agrupadas por situação no período.", usaCliente: true, usaSituacao: true },
-  { value: "compras_pedidos", label: "Pedidos de Compra por Fornecedor", desc: "Total emitido em pedidos de compra agrupado por fornecedor.", usaCliente: false, usaSituacao: false },
+  { value: "compras_pedidos", label: "Ordens de Compra por Fornecedor", desc: "Total emitido em ordens de compra agrupado por fornecedor.", usaCliente: false, usaSituacao: false },
   { value: "requisicoes_status", label: "Requisições de Compras por Status", desc: "Volume e percentual de RCs por status no período.", usaCliente: false, usaSituacao: false },
   { value: "funcionarios_cliente", label: "Funcionários Ativos por Cliente", desc: "Quadro de funcionários ativos distribuídos por cliente/contrato.", usaCliente: true, usaSituacao: false },
   { value: "funcionarios_cargo", label: "Funcionários por Cargo", desc: "Distribuição de funcionários ativos por cargo (CBO).", usaCliente: false, usaSituacao: false },
@@ -157,7 +157,7 @@ export default function RelatoriosGerenciais() {
       });
       const total = lista.reduce((s, p) => s + Number(p.valorTotal || 0), 0);
       return {
-        titulo: "Pedidos de Compra por Fornecedor", filtros: filtroLabel,
+        titulo: "Ordens de Compra por Fornecedor", filtros: filtroLabel,
         colunas: ["Fornecedor", "Qtd. Pedidos", "Valor Total"],
         linhas: linhas as any,
         totais: [{ label: "Total Geral", valor: formatBRL(total) }],

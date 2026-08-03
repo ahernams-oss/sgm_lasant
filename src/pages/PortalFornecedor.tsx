@@ -131,7 +131,7 @@ function DashboardFornecedor({ pedidos, convites, loading }: { pedidos: PedidoRo
   }
 
   if (pedidos.length === 0) {
-    return <Card><CardContent className="pt-6"><p className="text-muted-foreground text-sm">Nenhum pedido de compra para acompanhar ainda.</p></CardContent></Card>;
+    return <Card><CardContent className="pt-6"><p className="text-muted-foreground text-sm">Nenhum ordem de compra para acompanhar ainda.</p></CardContent></Card>;
   }
 
   return (
@@ -166,7 +166,7 @@ function DashboardFornecedor({ pedidos, convites, loading }: { pedidos: PedidoRo
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Pedidos por status</CardTitle>
-          <CardDescription>Distribuição dos seus pedidos de compra</CardDescription>
+          <CardDescription>Distribuição dos seus ordens de compra</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -376,7 +376,7 @@ function LoginScreen({ onLogin }: { onLogin: (s: FornecedorSession) => void }) {
         <CardHeader className="text-center">
           <img src={logoLasant} alt="Lasant Construções" className="h-16 mx-auto mb-3 object-contain" />
           <CardTitle>Portal de fornecedores Lasant Construções</CardTitle>
-          <CardDescription>Acesse suas cotações e pedidos de compra</CardDescription>
+          <CardDescription>Acesse suas cotações e ordens de compra</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -663,7 +663,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     doc.rect(0, 0, pw, 24, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(13); doc.setFont("helvetica", "bold");
-    doc.text("Relatório de Pedidos de Compra", 14, 11);
+    doc.text("Relatório de Ordens de Compra", 14, 11);
     doc.setFontSize(8); doc.setFont("helvetica", "normal");
     doc.text(session.nome, 14, 18);
     doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pw - 14, 18, { align: "right" });
@@ -782,7 +782,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
               <FileText className="h-4 w-4 mr-2" /> Cotações
             </TabsTrigger>
             <TabsTrigger value="pedidos">
-              <ShoppingCart className="h-4 w-4 mr-2" /> Pedidos de Compra
+              <ShoppingCart className="h-4 w-4 mr-2" /> Ordens de Compra
             </TabsTrigger>
             <TabsTrigger value="pregoes">
               <Gavel className="h-4 w-4 mr-2" /> Pregões Eletrônicos
@@ -957,7 +957,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
           <TabsContent value="pedidos">
             <Card>
               <CardHeader className="flex flex-row items-start justify-between gap-4">
-                <CardTitle className="text-base">Pedidos de Compra emitidos</CardTitle>
+                <CardTitle className="text-base">Ordens de Compra emitidos</CardTitle>
                 <div className="flex gap-2">
                   {pedidosFiltrados.length > 0 && (
                     <Button

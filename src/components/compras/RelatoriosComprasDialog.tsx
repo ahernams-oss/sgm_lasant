@@ -192,7 +192,7 @@ export default function RelatoriosComprasDialog({ open, onOpenChange }: Props) {
         <DialogHeader>
           <DialogTitle>Relatórios de Compras</DialogTitle>
           <DialogDescription>
-            Análises consolidadas a partir dos Pedidos de Compra emitidos.
+            Análises consolidadas a partir dos Ordens de Compra emitidos.
           </DialogDescription>
         </DialogHeader>
 
