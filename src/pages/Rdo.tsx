@@ -311,7 +311,26 @@ export default function RdoPage() {
     if (!form.cliente_id) { toast.error("Selecione um cliente."); return; }
     if (!form.obra) { toast.error("Informe a obra."); return; }
     if (!form.data_rdo) { toast.error("Informe a data do RDO."); return; }
+
+    // Impede que o acumulado de avanço físico da obra ultrapasse 100%
+    const mesmaObra = (r: any) =>
+      (form.obra_id && r.obra_id === form.obra_id) ||
+      (r.cliente_id === form.cliente_id &&
+        (r.obra || "").toLowerCase().trim() === (form.obra || "").toLowerCase().trim());
+    const acumuladoOutros = rdosList
+      .filter((r) => r.id !== editing?.id && mesmaObra(r))
+      .reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0);
+    const atual = Number(form.avanco_fisico_geral) || 0;
+    if (acumuladoOutros + atual > 100.0001) {
+      const restante = Math.max(0, 100 - acumuladoOutros);
+      toast.error(
+        `Avanço acumulado da obra ultrapassaria 100%. Já lançado: ${acumuladoOutros.toFixed(1)}%. Máximo permitido neste RDO: ${restante.toFixed(1)}%.`
+      );
+      return;
+    }
+
     setSaving(true);
+
     try {
       const payload = { ...form };
       let ok = false;
