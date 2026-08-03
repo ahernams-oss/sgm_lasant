@@ -150,8 +150,9 @@ export default function ResponsaveisTecnicosPage() {
           </Table>
           <PaginationControls
             currentPage={page} pageSize={pageSize} totalItems={filtered.length}
-            onPageChange={setPage} onPageSizeChange={setPageSize}
+            onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
           />
+
         </CardContent>
       </Card>
 
