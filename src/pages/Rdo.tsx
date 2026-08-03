@@ -232,6 +232,7 @@ export default function RdoPage() {
       obra_id: ctx?.id || null,
       obra: ctx?.nome || "",
     });
+    setActiveTab("geral");
     setDialogOpen(true);
   };
   const openEdit = (r: Rdo, tab?: string) => {
