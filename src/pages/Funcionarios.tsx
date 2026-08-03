@@ -801,8 +801,18 @@ const Funcionarios = () => {
     }
     if (filterStatus !== "todos") result = result.filter((f) => f.status === filterStatus);
     if (filterCliente !== "todos") result = result.filter((f) => f.clienteId === filterCliente);
+
+    result = [...result].sort((a, b) => {
+      let valueA = "";
+      let valueB = "";
+      if (sortBy === "nome") { valueA = a.nome; valueB = b.nome; }
+      else if (sortBy === "cliente") { valueA = getClienteNome(a.clienteId); valueB = getClienteNome(b.clienteId); }
+      else if (sortBy === "cargo") { valueA = getCargoNome(a.cargoId); valueB = getCargoNome(b.cargoId); }
+      return sortDir === "asc" ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+    });
+
     return result;
-  }, [funcionarios, search, filterStatus, filterCliente, cargos, clientes]);
+  }, [funcionarios, search, filterStatus, filterCliente, sortBy, sortDir, cargos, clientes]);
 
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
