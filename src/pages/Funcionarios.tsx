@@ -29,7 +29,7 @@ import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, FilterX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { isValidCPF } from "@/lib/validators";
@@ -1419,6 +1419,16 @@ const Funcionarios = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 px-2.5 text-xs"
+                onClick={() => { setSearch(""); setFilterStatus("todos"); setFilterCliente("todos"); setPage(1); }}
+                disabled={!search && filterStatus === "todos" && filterCliente === "todos"}
+              >
+                <FilterX className="h-3.5 w-3.5 mr-1.5" /> Limpar
+              </Button>
             </div>
           </div>
           {filteredFuncionarios.length === 0 ? (
