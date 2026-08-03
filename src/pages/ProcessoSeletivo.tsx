@@ -844,6 +844,14 @@ const ProcessoSeletivoPage = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
+                                className="text-emerald-700 hover:text-emerald-800"
+                                onClick={() => avisarAprovacaoCandidato(c)}
+                              >
+                                <CheckCircle2 className="h-4 w-4 mr-1" /> Avisar Aprovação
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
                                 className="text-red-600 hover:text-red-700"
                                 onClick={() => handleAprovarEtapa(c, "statusLiberacao", "reprovado")}
                               >
@@ -858,6 +866,7 @@ const ProcessoSeletivoPage = () => {
                               </Button>
                             </div>
                           )}
+
                         </CardContent>
                       </Card>
                     );
