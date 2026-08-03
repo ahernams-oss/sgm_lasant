@@ -10,6 +10,7 @@ import { usePermissao } from "@/hooks/usePermissao";
 import { AssinaturaEletronicaOficial } from "@/components/AssinaturaEletronicaOficial";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -262,7 +263,14 @@ export default function RdoPage() {
 
   const addAtiv = () => setForm((f) => ({ ...f, atividades: [...(f.atividades || []), { descricao: "", percentual_avanco: 0, observacao: "" }] }));
   const updAtiv = (i: number, k: keyof RdoAtividadeItem, v: any) =>
-    setForm((f) => ({ ...f, atividades: (f.atividades || []).map((x, idx) => idx === i ? { ...x, [k]: k === "percentual_avanco" ? Number(v) || 0 : v } : x) }));
+    setForm((f) => ({
+      ...f,
+      atividades: (f.atividades || []).map((x, idx) =>
+        idx === i
+          ? { ...x, [k]: k === "percentual_avanco" ? Math.min(100, Math.max(0, Number(v) || 0)) : v }
+          : x
+      ),
+    }));
   const delAtiv = (i: number) => setForm((f) => ({ ...f, atividades: (f.atividades || []).filter((_, idx) => idx !== i) }));
 
   const handleUpload = async (files: FileList | null) => {
@@ -450,10 +458,25 @@ export default function RdoPage() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input className="pl-8" placeholder="Buscar por nº, data ou responsável..." value={obraRdoSearch} onChange={(e) => setObraRdoSearch(e.target.value)} />
+            </div>
+            <div className="flex-1 min-w-[220px] max-w-md flex flex-col gap-1">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Evolução da obra</span>
+                <span className="font-medium">
+                  {rdosDaObra.length
+                    ? (rdosDaObra.reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0) / rdosDaObra.length).toFixed(1)
+                    : "0.0"}%
+                </span>
+              </div>
+              <Progress
+                value={rdosDaObra.length
+                  ? Math.min(100, rdosDaObra.reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0) / rdosDaObra.length)
+                  : 0}
+              />
             </div>
             <Button onClick={() => openNew()}>
               <Plus className="h-4 w-4 mr-2" /> Novo RDO
@@ -616,8 +639,11 @@ export default function RdoPage() {
                   <Label>Avanço Físico Geral (%)</Label>
                   <Input
                     type="number" step="0.01" min={0} max={100}
-                    value={form.avanco_fisico_geral ?? 0}
-                    onChange={(e) => setForm({ ...form, avanco_fisico_geral: Number(e.target.value.replace(",", ".")) || 0 })}
+                    value={Math.min(100, Number(form.avanco_fisico_geral) || 0)}
+                    onChange={(e) => {
+                      const val = Math.min(100, Math.max(0, Number(e.target.value.replace(",", ".")) || 0));
+                      setForm({ ...form, avanco_fisico_geral: val });
+                    }}
                   />
                 </div>
               </div>
