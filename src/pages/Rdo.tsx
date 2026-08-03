@@ -173,6 +173,7 @@ export default function RdoPage() {
   const [editing, setEditing] = useState<Rdo | null>(null);
   const [form, setForm] = useState<Partial<Rdo>>(emptyForm());
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("geral");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const assinaturasDoRdo = useMemo(() => editing ? porRdo(editing.id) : [], [editing, porRdo]);
