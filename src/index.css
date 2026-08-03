@@ -71,18 +71,6 @@
   }
 }
 
-@media (max-width: 1024px) {
-  :root {
-    --sidebar-width: 14rem;
-  }
-}
-
-@media (max-width: 768px) {
-  :root {
-    --sidebar-width: 100%;
-  }
-}
-
 @layer base {
   * {
     @apply border-border;
