@@ -530,7 +530,7 @@ export default function RdoPage() {
             <DialogTitle>{editing ? `Editar RDO Nº ${editing.numero}` : "Novo RDO"}</DialogTitle>
           </DialogHeader>
 
-          <Tabs defaultValue="geral" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-6 w-full">
               <TabsTrigger value="geral">Geral</TabsTrigger>
               <TabsTrigger value="clima">Clima</TabsTrigger>
