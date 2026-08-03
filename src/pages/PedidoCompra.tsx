@@ -226,7 +226,7 @@ export default function PedidoCompraPage() {
     try {
       // Upload PDF to storage and get public URL
       const pdfUrl = await uploadPdfOrdemCompra(pdfData);
-      const pcNum = `PC-${String(sendPedido.numero).padStart(4, "0")}`;
+      const pcNum = `OC-${String(sendPedido.numero).padStart(4, "0")}`;
 
       if (sendMethod === "email") {
         if (!sendEmail.trim()) {
@@ -412,7 +412,7 @@ export default function PedidoCompraPage() {
           autorizadoPor: usuarioLogado?.nome || "Usuário",
           assinatura,
         });
-        const pcNum = `PC-${String(p.numero).padStart(4, "0")}`;
+        const pcNum = `OC-${String(p.numero).padStart(4, "0")}`;
         if (batchMethod === "email") {
           const email = fornecedor?.email || fornecedor?.emailCompras || "";
           if (!email) throw new Error(`${pcNum}: fornecedor sem e-mail`);
@@ -573,7 +573,7 @@ export default function PedidoCompraPage() {
               const rcVinculada = requisicoes.find(r => r.id === p.requisicaoId);
               const canUpdate = getNextStatuses(p.status).length > 0;
               const cellMap: Record<string, ReactNode> = {
-                numero: <a href={`/compras/pedidos?numero=${p.numero}`} className="font-mono font-bold text-primary hover:underline">PC-{String(p.numero).padStart(4, "0")}</a>,
+                numero: <a href={`/compras/pedidos?numero=${p.numero}`} className="font-mono font-bold text-primary hover:underline">OC-{String(p.numero).padStart(4, "0")}</a>,
                 centroCusto: <span className="text-sm">{rcVinculada?.centroCustoNome || "-"}</span>,
                 rc: <a href={`/compras/requisicoes?numero=${p.requisicaoNumero}`} className="font-mono text-primary hover:underline">RCS-{String(p.requisicaoNumero).padStart(4, "0")}</a>,
                 data: format(new Date(p.dataCriacao), "dd/MM/yyyy"),
@@ -640,7 +640,7 @@ export default function PedidoCompraPage() {
       <Dialog open={!!viewPedido} onOpenChange={() => setViewPedido(null)}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>PC-{viewPedido && String(viewPedido.numero).padStart(4, "0")}</DialogTitle>
+            <DialogTitle>OC-{viewPedido && String(viewPedido.numero).padStart(4, "0")}</DialogTitle>
             <DialogDescription>Detalhes do ordem de compra</DialogDescription>
           </DialogHeader>
           {viewPedido && (
@@ -723,7 +723,7 @@ export default function PedidoCompraPage() {
       <Dialog open={!!historicoPedido} onOpenChange={() => setHistoricoPedido(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Histórico — PC-{historicoPedido && String(historicoPedido.numero).padStart(4, "0")}</DialogTitle>
+            <DialogTitle>Histórico — OC-{historicoPedido && String(historicoPedido.numero).padStart(4, "0")}</DialogTitle>
             <DialogDescription>Linha do tempo do pedido</DialogDescription>
           </DialogHeader>
           {historicoPedido && (
@@ -783,7 +783,7 @@ export default function PedidoCompraPage() {
           <DialogHeader>
             <DialogTitle>Enviar Ordem de Compra</DialogTitle>
             <DialogDescription>
-              {sendPedido && `PC-${String(sendPedido.numero).padStart(4, "0")} — ${sendPedido.fornecedorNome}`}
+              {sendPedido && `OC-${String(sendPedido.numero).padStart(4, "0")} — ${sendPedido.fornecedorNome}`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

@@ -54,7 +54,7 @@ export async function gerarContasPagarDePC(pedido: PedidoLike, opts?: { silent?:
   const rows = dias.map((d, i) => {
     const valor = i === n - 1 ? Math.round((total - valorParcela * (n - 1)) * 100) / 100 : valorParcela;
     return {
-      descricao: `PC-${String(pedido.numero).padStart(4, "0")} ${pedido.fornecedorNome}${n > 1 ? ` (${i + 1}/${n})` : ""}`,
+      descricao: `OC-${String(pedido.numero).padStart(4, "0")} ${pedido.fornecedorNome}${n > 1 ? ` (${i + 1}/${n})` : ""}`,
       fornecedor_id: pedido.fornecedorId || null,
       fornecedor_nome: pedido.fornecedorNome,
       valor_total: valor,

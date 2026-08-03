@@ -23,7 +23,7 @@ export async function notificarPedidoGrupo(input: NotificarPedidoGrupoInput): Pr
   if (!jid) return;
 
   const { pedido } = input;
-  const pcNum = `PC-${String(pedido.numero).padStart(4, "0")}`;
+  const pcNum = `OC-${String(pedido.numero).padStart(4, "0")}`;
 
   const linhas: string[] = [];
   linhas.push(`*${input.clienteNome.toUpperCase()}*`, "");

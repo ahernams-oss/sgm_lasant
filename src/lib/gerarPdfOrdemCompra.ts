@@ -117,7 +117,7 @@ export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<j
   doc.text("ORDEM DE COMPRA", mr, 16, { align: "right" });
 
   // order number
-  const pcNum = `PC-${String(pedido.numero).padStart(4, "0")}`;
+  const pcNum = `OC-${String(pedido.numero).padStart(4, "0")}`;
   doc.setFontSize(12);
   doc.text(`Nº ${pcNum}`, mr, 27, { align: "right" });
 
@@ -325,7 +325,7 @@ export function gerarPdfOrdemCompra(data: OrdemCompraData): jsPDF {
 
 export async function downloadPdfOrdemCompra(data: OrdemCompraData) {
   const doc = await gerarPdfOrdemCompraAsync(data);
-  doc.save(`Ordem_Compra_PC-${String(data.pedido.numero).padStart(4, "0")}.pdf`);
+  doc.save(`Ordem_Compra_OC-${String(data.pedido.numero).padStart(4, "0")}.pdf`);
 }
 
 export async function getPdfOrdemCompraBase64(data: OrdemCompraData): Promise<string> {
@@ -337,7 +337,7 @@ export async function uploadPdfOrdemCompra(data: OrdemCompraData): Promise<strin
   const { supabase } = await import("@/integrations/supabase/client");
   const doc = await gerarPdfOrdemCompraAsync(data);
   const pdfBlob = doc.output("blob");
-  const fileName = `ordens_compra/OC_PC-${String(data.pedido.numero).padStart(4, "0")}_${Date.now()}.pdf`;
+  const fileName = `ordens_compra/OC_OC-${String(data.pedido.numero).padStart(4, "0")}_${Date.now()}.pdf`;
 
   const { error: uploadError } = await supabase.storage
     .from("documentos")

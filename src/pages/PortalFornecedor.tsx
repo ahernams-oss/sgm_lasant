@@ -216,7 +216,7 @@ function DashboardFornecedor({ pedidos, convites, loading }: { pedidos: PedidoRo
               <TableBody>
                 {ultimos.map((p) => (
                   <TableRow key={p.id}>
-                    <TableCell className="font-medium">PC-{String(p.numero).padStart(4, "0")}</TableCell>
+                    <TableCell className="font-medium">OC-{String(p.numero).padStart(4, "0")}</TableCell>
                     <TableCell>{fmtDate(p.data_criacao)}</TableCell>
                     <TableCell>
                       <Badge variant="secondary" style={{ background: `${STATUS_PEDIDO_COLORS[p.status] || "#666"}20`, color: STATUS_PEDIDO_COLORS[p.status] || undefined }}>
@@ -672,7 +672,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       startY: 30,
       head: [["Pedido", "Data", "Comprador", "Status", "Pagamento", "Prazo", "Local", "Valor Total"]],
       body: pedidosFiltrados.map((p) => [
-        `PC-${String(p.numero).padStart(4, "0")}`,
+        `OC-${String(p.numero).padStart(4, "0")}`,
         fmtDate(p.data_criacao), p.comprador, p.status,
         p.condicao_pagamento || "-", p.prazo_entrega || "-", p.local_entrega || "-",
         fmtMoney(p.valor_total),
@@ -688,7 +688,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const exportPedidosExcel = () => {
     const wb = XLSX.utils.book_new();
     const wsResumo = XLSX.utils.json_to_sheet(pedidosFiltrados.map((p) => ({
-      "Pedido": `PC-${String(p.numero).padStart(4, "0")}`,
+      "Pedido": `OC-${String(p.numero).padStart(4, "0")}`,
       "Data": fmtDate(p.data_criacao),
       "Comprador": p.comprador,
       "Status": p.status,
@@ -705,7 +705,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       if (Array.isArray(p.itens)) {
         p.itens.forEach((it: any) => {
           itens.push({
-            "Pedido": `PC-${String(p.numero).padStart(4, "0")}`,
+            "Pedido": `OC-${String(p.numero).padStart(4, "0")}`,
             "Item": it.descricao,
             "Qtd": Number(it.quantidade || 0),
             "Unidade": it.unidadeMedida || it.unidade || "",
@@ -995,7 +995,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
                           <div className="flex items-center gap-2">
                             {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                             <div>
-                              <p className="font-semibold">PC-{String(p.numero).padStart(4, "0")}</p>
+                              <p className="font-semibold">OC-{String(p.numero).padStart(4, "0")}</p>
                               <p className="text-xs text-muted-foreground">
                                 {fmtDate(p.data_criacao)} • {p.comprador}
                               </p>

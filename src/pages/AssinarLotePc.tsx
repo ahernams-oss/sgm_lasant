@@ -278,7 +278,7 @@ export default function AssinarLotePc() {
                     />
                   </TableCell>
                   <TableCell className="font-mono font-bold">
-                    PC-{String(p.numero).padStart(4, "0")}
+                    OC-{String(p.numero).padStart(4, "0")}
                   </TableCell>
                   <TableCell className="font-mono">
                     {p.requisicaoNumero ? `RC-${String(p.requisicaoNumero).padStart(4, "0")}` : "—"}
