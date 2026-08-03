@@ -119,12 +119,21 @@ function CronogramaInner() {
       const a = { ...atvs[idx] };
       const valores = { ...(a.valores || {}) };
       const cur = valores[periodo] || { previsto_fisico: 0, previsto_financeiro: 0, realizado_fisico: 0, realizado_financeiro: 0 };
-      valores[periodo] = { ...cur, [campo]: val };
+      const next = { ...cur, [campo]: val };
+      // Realizado R$ calculado pelo Realizado % sobre o Previsto do período
+      if (campo === "realizado_fisico" || campo === "previsto_financeiro" || campo === "previsto_fisico") {
+        const prevPct = Number(next.previsto_fisico) || 0;
+        const prevFin = Number(next.previsto_financeiro) || 0;
+        const realPct = Number(next.realizado_fisico) || 0;
+        next.realizado_financeiro = prevPct > 0 ? (realPct / prevPct) * prevFin : 0;
+      }
+      valores[periodo] = next;
       a.valores = valores;
       atvs[idx] = a;
       return { ...f, atividades: atvs };
     });
   };
+
 
   // Distribui valor_total proporcional ao previsto físico (modo distribuido)
   const distribuirFinanceiro = (idx: number) => {
