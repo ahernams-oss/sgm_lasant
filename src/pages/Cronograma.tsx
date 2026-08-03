@@ -147,7 +147,8 @@ function CronogramaInner() {
         const cur = valores[p.rotulo] || { previsto_fisico: 0, previsto_financeiro: 0, realizado_fisico: 0, realizado_financeiro: 0 };
         const pct = Number(cur.previsto_fisico) || 0;
         const fin = totalPct > 0 ? (pct / totalPct) * (Number(a.valor_total) || 0) : 0;
-        valores[p.rotulo] = { ...cur, previsto_financeiro: fin };
+        const realFin = pct > 0 ? ((Number(cur.realizado_fisico) || 0) / pct) * fin : 0;
+        valores[p.rotulo] = { ...cur, previsto_financeiro: fin, realizado_financeiro: realFin };
       });
       a.valores = valores;
       atvs[idx] = a;
