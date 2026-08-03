@@ -29,7 +29,7 @@ import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Check, ChevronsUpDown, FilterX } from "lucide-react";
+import { Check, ChevronsUpDown, FilterX, ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { isValidCPF } from "@/lib/validators";
@@ -646,6 +646,8 @@ const Funcionarios = () => {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [filterCliente, setFilterCliente] = useState<string>("todos");
+  const [sortBy, setSortBy] = useState<"nome" | "cliente" | "cargo">("nome");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [transferir, setTransferir] = useState<{ id: string; nome: string; clienteId: string } | null>(null);
@@ -799,8 +801,18 @@ const Funcionarios = () => {
     }
     if (filterStatus !== "todos") result = result.filter((f) => f.status === filterStatus);
     if (filterCliente !== "todos") result = result.filter((f) => f.clienteId === filterCliente);
+
+    result = [...result].sort((a, b) => {
+      let valueA = "";
+      let valueB = "";
+      if (sortBy === "nome") { valueA = a.nome; valueB = b.nome; }
+      else if (sortBy === "cliente") { valueA = getClienteNome(a.clienteId); valueB = getClienteNome(b.clienteId); }
+      else if (sortBy === "cargo") { valueA = getCargoNome(a.cargoId); valueB = getCargoNome(b.cargoId); }
+      return sortDir === "asc" ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+    });
+
     return result;
-  }, [funcionarios, search, filterStatus, filterCliente, cargos, clientes]);
+  }, [funcionarios, search, filterStatus, filterCliente, sortBy, sortDir, cargos, clientes]);
 
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
@@ -1419,13 +1431,31 @@ const Funcionarios = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                <SelectTrigger className="h-9 w-[150px] text-xs border-primary/30"><SelectValue placeholder="Ordenar por" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="nome">Nome</SelectItem>
+                  <SelectItem value="cliente">Unidade</SelectItem>
+                  <SelectItem value="cargo">Cargo</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant={sortBy ? "default" : "outline"}
+                size="icon"
+                className="h-9 w-9"
+                onClick={() => setSortDir((d) => d === "asc" ? "desc" : "asc")}
+                title={sortDir === "asc" ? "Ordem crescente" : "Ordem decrescente"}
+              >
+                {sortDir === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+              </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 className="h-9 px-2.5 text-xs"
-                onClick={() => { setSearch(""); setFilterStatus("todos"); setFilterCliente("todos"); setPage(1); }}
-                disabled={!search && filterStatus === "todos" && filterCliente === "todos"}
+                onClick={() => { setSearch(""); setFilterStatus("todos"); setFilterCliente("todos"); setSortBy("nome"); setSortDir("asc"); setPage(1); }}
+                disabled={!search && filterStatus === "todos" && filterCliente === "todos" && sortBy === "nome" && sortDir === "asc"}
               >
                 <FilterX className="h-3.5 w-3.5 mr-1.5" /> Limpar
               </Button>
