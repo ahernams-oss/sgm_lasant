@@ -234,9 +234,10 @@ export default function RdoPage() {
     });
     setDialogOpen(true);
   };
-  const openEdit = (r: Rdo) => {
+  const openEdit = (r: Rdo, tab?: string) => {
     setEditing(r);
     setForm({ ...r });
+    setActiveTab(tab || "geral");
     setDialogOpen(true);
   };
 
