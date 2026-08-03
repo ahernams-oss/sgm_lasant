@@ -500,6 +500,9 @@ export default function RdoPage() {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
+                        <Button size="icon" variant="ghost" onClick={() => openEdit(r, "assinaturas")} title="Assinar RDO">
+                          <FileSignature className="h-4 w-4 text-primary" />
+                        </Button>
                         <Button size="icon" variant="ghost" onClick={() => openEdit(r)} title="Editar">
                           <Edit className="h-4 w-4" />
                         </Button>
