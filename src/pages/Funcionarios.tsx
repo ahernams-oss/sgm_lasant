@@ -1431,13 +1431,31 @@ const Funcionarios = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                <SelectTrigger className="h-9 w-[150px] text-xs border-primary/30"><SelectValue placeholder="Ordenar por" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="nome">Nome</SelectItem>
+                  <SelectItem value="cliente">Unidade</SelectItem>
+                  <SelectItem value="cargo">Cargo</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant={sortBy ? "default" : "outline"}
+                size="icon"
+                className="h-9 w-9"
+                onClick={() => setSortDir((d) => d === "asc" ? "desc" : "asc")}
+                title={sortDir === "asc" ? "Ordem crescente" : "Ordem decrescente"}
+              >
+                {sortDir === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+              </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 className="h-9 px-2.5 text-xs"
-                onClick={() => { setSearch(""); setFilterStatus("todos"); setFilterCliente("todos"); setPage(1); }}
-                disabled={!search && filterStatus === "todos" && filterCliente === "todos"}
+                onClick={() => { setSearch(""); setFilterStatus("todos"); setFilterCliente("todos"); setSortBy("nome"); setSortDir("asc"); setPage(1); }}
+                disabled={!search && filterStatus === "todos" && filterCliente === "todos" && sortBy === "nome" && sortDir === "asc"}
               >
                 <FilterX className="h-3.5 w-3.5 mr-1.5" /> Limpar
               </Button>
