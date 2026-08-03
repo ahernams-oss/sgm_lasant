@@ -115,6 +115,31 @@ function CronogramaInner() {
     setForm((f) => ({ ...f, atividades: (f.atividades || []).filter((_, i) => i !== idx) }));
   };
 
+  const fileAtvRef = useRef<HTMLInputElement>(null);
+
+  const handleExportAtvs = () => {
+    const atvs = form.atividades || [];
+    if (atvs.length === 0) { toast.error("Nenhuma atividade para exportar."); return; }
+    exportarAtividadesExcel(atvs, `Atividades_${form.numero || "Cronograma"}`);
+  };
+
+  const handleImportAtvs = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      const atuais = form.atividades || [];
+      const novas = await importarAtividadesExcel(file, atuais.length + 1);
+      if (novas.length === 0) { toast.error("Nenhuma atividade válida encontrada na planilha."); return; }
+      setForm((f) => ({ ...f, atividades: [...(f.atividades || []), ...novas] }));
+      toast.success(`${novas.length} atividade(s) importada(s)`);
+    } catch {
+      toast.error("Erro ao ler a planilha. Use o modelo de importação.");
+    }
+  };
+
+
+
   const updValor = (idx: number, periodo: string, campo: "previsto_fisico" | "previsto_financeiro" | "realizado_fisico" | "realizado_financeiro", val: number) => {
     setForm((f) => {
       const atvs = [...(f.atividades || [])];
