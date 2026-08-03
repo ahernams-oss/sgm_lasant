@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, FileDown, FileSpreadsheet, Pencil, RefreshCw, CalendarRange, FileText, Activity, DollarSign, ListChecks } from "lucide-react";
+import { Plus, Trash2, FileDown, FileSpreadsheet, Pencil, RefreshCw, CalendarRange, FileText, Activity, DollarSign, ListChecks, Upload } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CronogramasProvider, useCronogramas, gerarPeriodos, type Cronograma, type CronogramaAtividade } from "@/contexts/CronogramasContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -16,6 +16,8 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useRdos } from "@/contexts/RdosContext";
 import { gerarPdfCronograma } from "@/lib/gerarPdfCronograma";
 import { gerarExcelCronograma } from "@/lib/gerarExcelCronograma";
+import { baixarModeloAtividades, exportarAtividadesExcel, importarAtividadesExcel } from "@/lib/atividadesCronogramaExcel";
+
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { usePermissao } from "@/hooks/usePermissao";
 import { toast } from "sonner";
@@ -112,6 +114,31 @@ function CronogramaInner() {
   const delAtv = (idx: number) => {
     setForm((f) => ({ ...f, atividades: (f.atividades || []).filter((_, i) => i !== idx) }));
   };
+
+  const fileAtvRef = useRef<HTMLInputElement>(null);
+
+  const handleExportAtvs = () => {
+    const atvs = form.atividades || [];
+    if (atvs.length === 0) { toast.error("Nenhuma atividade para exportar."); return; }
+    exportarAtividadesExcel(atvs, `Atividades_${form.numero || "Cronograma"}`);
+  };
+
+  const handleImportAtvs = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      const atuais = form.atividades || [];
+      const novas = await importarAtividadesExcel(file, atuais.length + 1);
+      if (novas.length === 0) { toast.error("Nenhuma atividade válida encontrada na planilha."); return; }
+      setForm((f) => ({ ...f, atividades: [...(f.atividades || []), ...novas] }));
+      toast.success(`${novas.length} atividade(s) importada(s)`);
+    } catch {
+      toast.error("Erro ao ler a planilha. Use o modelo de importação.");
+    }
+  };
+
+
 
   const updValor = (idx: number, periodo: string, campo: "previsto_fisico" | "previsto_financeiro" | "realizado_fisico" | "realizado_financeiro", val: number) => {
     setForm((f) => {
@@ -427,10 +454,17 @@ function CronogramaInner() {
             </TabsContent>
 
             <TabsContent value="atividades" className="space-y-3 pt-4">
-              <Button onClick={addAtv} variant="outline" className="gap-2"><Plus className="h-4 w-4" /> Nova Atividade</Button>
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={addAtv} variant="outline" className="gap-2"><Plus className="h-4 w-4" /> Nova Atividade</Button>
+                <Button onClick={baixarModeloAtividades} variant="outline" className="gap-2"><FileDown className="h-4 w-4" /> Modelo Excel</Button>
+                <Button onClick={() => fileAtvRef.current?.click()} variant="outline" className="gap-2"><Upload className="h-4 w-4" /> Importar Excel</Button>
+                <Button onClick={handleExportAtvs} variant="outline" className="gap-2"><FileSpreadsheet className="h-4 w-4" /> Exportar Excel</Button>
+                <input ref={fileAtvRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImportAtvs} />
+              </div>
               {atividades.length === 0 && (
                 <p className="text-sm text-muted-foreground">Nenhuma atividade.</p>
               )}
+
               {atividades.map((a, i) => (
                 <Card key={a.id}>
                   <CardContent className="pt-4 grid grid-cols-12 gap-2 items-end">
