@@ -632,8 +632,11 @@ export default function RdoPage() {
                   <Label>Avanço Físico Geral (%)</Label>
                   <Input
                     type="number" step="0.01" min={0} max={100}
-                    value={form.avanco_fisico_geral ?? 0}
-                    onChange={(e) => setForm({ ...form, avanco_fisico_geral: Number(e.target.value.replace(",", ".")) || 0 })}
+                    value={Math.min(100, Number(form.avanco_fisico_geral) || 0)}
+                    onChange={(e) => {
+                      const val = Math.min(100, Math.max(0, Number(e.target.value.replace(",", ".")) || 0));
+                      setForm({ ...form, avanco_fisico_geral: val });
+                    }}
                   />
                 </div>
               </div>
