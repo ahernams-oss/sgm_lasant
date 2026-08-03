@@ -91,11 +91,22 @@ export default function ResponsaveisTecnicosPage() {
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-base">Filtros</CardTitle></CardHeader>
         <CardContent>
-          <div className="relative max-w-md">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input className="pl-8" placeholder="Buscar por nome, CREA ou CPF..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative w-full max-w-md">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input className="pl-8" placeholder="Buscar por nome, CREA ou CPF..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+            </div>
+            {search && (
+              <Button variant="outline" size="sm" onClick={() => { setSearch(""); setPage(1); }}>
+                <X className="h-4 w-4 mr-1" /> Limpar
+              </Button>
+            )}
+            <span className="text-sm text-muted-foreground">
+              {filtered.length} registro(s) encontrado(s)
+            </span>
           </div>
         </CardContent>
+
       </Card>
 
       <Card>
@@ -139,8 +150,9 @@ export default function ResponsaveisTecnicosPage() {
           </Table>
           <PaginationControls
             currentPage={page} pageSize={pageSize} totalItems={filtered.length}
-            onPageChange={setPage} onPageSizeChange={setPageSize}
+            onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
           />
+
         </CardContent>
       </Card>
 
