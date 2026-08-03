@@ -24,6 +24,8 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { matchNumero } from "@/lib/matchNumero";
 import { CheckCircle2, Search, Trophy, AlertTriangle, ShieldCheck, MessageCircle, Loader2 } from "lucide-react";
 import { notificarCompras, formatarPrioridade, formatarDataHora, formatarData, formatarPedido } from "@/lib/notificacoesCompras";
+import { notificarPedidoGrupo } from "@/lib/notificacaoPedidoCompra";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -51,6 +53,7 @@ export default function AprovarLoteCotacoesPage() {
   const { podeAprovar } = useLimiteAprovacao();
   const { tem } = usePermissao();
   const { registrar: registrarAssinaturaPc } = usePcAssinaturas();
+  const { empresa } = useEmpresa();
   const { toast } = useToast();
 
   const podeAprovarCot = tem("cotacoes.status.finalizada");
@@ -215,6 +218,20 @@ export default function AprovarLoteCotacoesPage() {
     });
   };
 
+  const notificarPedidoNoGrupo = async (pedido: PedidoCompra, reqId: string) => {
+    const r = requisicoes.find(x => x.id === reqId);
+    const cli = r ? clientes.find(c => c.id === r.centroCusto) : null;
+    if (!cli?.grupoWhatsapp) return;
+    await notificarPedidoGrupo({
+      jid: cli.grupoWhatsapp,
+      clienteNome: cli.nome,
+      pedido,
+      empresa,
+      fornecedor: clientes.find(c => c.id === pedido.fornecedorId) || null,
+      autorizadoPor: usuarioLogado?.nome || "",
+    });
+  };
+
   const enviarOtp = async () => {
     if (!usuarioLogado?.id) { toast({ title: "Usuário não identificado.", variant: "destructive" }); return; }
     setOtpError("");
@@ -315,6 +332,7 @@ export default function AprovarLoteCotacoesPage() {
           pcCount++;
         }
         await Promise.all(pedidos.map(p => assinarPedido(p)));
+        await Promise.all(pedidos.map(p => notificarPedidoNoGrupo(p, cot.requisicaoId)));
         await updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador",
           fornIds.length > 1 ? `${fornIds.length} pedidos gerados (aprovação em lote — menor preço)` : "Pedido gerado (aprovação em lote — menor preço)");
         notificarCliente(cot.requisicaoId);

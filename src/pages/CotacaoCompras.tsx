@@ -33,6 +33,7 @@ import { usePermissao } from "@/hooks/usePermissao";
 import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText, CheckSquare, MessageCircle, AlertTriangle, Sparkles, Upload } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { notificarCompras, formatarPrioridade, formatarDataHora, formatarData, formatarPedido } from "@/lib/notificacoesCompras";
+import { notificarPedidoGrupo } from "@/lib/notificacaoPedidoCompra";
 import { Checkbox } from "@/components/ui/checkbox";
 import { downloadPdfCotacao } from "@/lib/gerarPdfCotacao";
 import { downloadPdfPedidoCotacaoTodos, gerarBlobPedidoCotacao } from "@/lib/gerarPdfPedidoCotacao";
@@ -84,6 +85,20 @@ export default function CotacaoComprasPage() {
       console.error("Falha ao assinar pedido automaticamente:", e);
     }
   }, [usuarioLogado, cargos, registrarAssinaturaPc]);
+
+  const notificarPedidoNoGrupo = useCallback(async (pedido: PedidoCompra, reqId: string) => {
+    const r = requisicoes.find(x => x.id === reqId);
+    const cli = r ? clientes.find(c => c.id === r.centroCusto) : null;
+    if (!cli?.grupoWhatsapp) return;
+    await notificarPedidoGrupo({
+      jid: cli.grupoWhatsapp,
+      clienteNome: cli.nome,
+      pedido,
+      empresa,
+      fornecedor: clientes.find(c => c.id === pedido.fornecedorId) || null,
+      autorizadoPor: usuarioLogado?.nome || "",
+    });
+  }, [requisicoes, clientes, empresa, usuarioLogado]);
 
   const fornecedores = useMemo(() => clientes.filter(c => c.tipo === "Fornecedor"), [clientes]);
   const reqDisponiveisParaCotacao = useMemo(() => requisicoes.filter(r => r.status === "Enviada" || r.status === "Em Cotação"), [requisicoes]);
@@ -468,6 +483,7 @@ export default function CotacaoComprasPage() {
       }
 
       await Promise.all(pedidosCriados.map(p => assinarPedidoAutomatico(p)));
+      await Promise.all(pedidosCriados.map(p => notificarPedidoNoGrupo(p, cot.requisicaoId)));
 
       updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador",
         fornecedorIds.length > 1
@@ -497,6 +513,7 @@ export default function CotacaoComprasPage() {
           observacoes: "",
         });
         await assinarPedidoAutomatico(novoPedido);
+        await notificarPedidoNoGrupo(novoPedido, cot.requisicaoId);
         updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador", "Pedido gerado e assinado eletronicamente após aprovação");
         notificarStatusReq(cot.requisicaoId, "APROVADA - PEDIDO EMITIDO (COMPRADO)", "Data da aprovação");
       }
