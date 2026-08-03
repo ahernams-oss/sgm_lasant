@@ -216,6 +216,12 @@ export default function RdoPage() {
       .sort((a, b) => (b.data_rdo || "").localeCompare(a.data_rdo || ""));
   }, [rdosList, selectedObra, obraRdoSearch]);
 
+  // Evolução acumulada da obra: soma do avanço físico geral de todas as RDOs, limitada a 100%
+  const evolucaoObra = useMemo(() => {
+    const total = rdosDaObra.reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0);
+    return Math.min(100, total);
+  }, [rdosDaObra]);
+
   const openObraRdos = (o: ObraType) => {
     setSelectedObra(o);
     setObraRdoSearch("");
@@ -466,17 +472,9 @@ export default function RdoPage() {
             <div className="flex-1 min-w-[220px] max-w-md flex flex-col gap-1">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Evolução da obra</span>
-                <span className="font-medium">
-                  {rdosDaObra.length
-                    ? Math.min(100, rdosDaObra.reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0)).toFixed(1)
-                    : "0.0"}%
-                </span>
+                <span className="font-medium">{evolucaoObra.toFixed(1)}%</span>
               </div>
-              <Progress
-                value={rdosDaObra.length
-                  ? Math.min(100, rdosDaObra.reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0))
-                  : 0}
-              />
+              <Progress value={evolucaoObra} />
             </div>
             <Button onClick={() => openNew()}>
               <Plus className="h-4 w-4 mr-2" /> Novo RDO
