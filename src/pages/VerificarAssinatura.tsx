@@ -265,7 +265,7 @@ export default function VerificarAssinatura() {
   const tituloDocumento = tipo === "rdo"
     ? `RDO Nº ${assinatura?.rdo_numero ?? ""}`
     : tipo === "pc"
-    ? `Ordem de Compra PC-${String(assinatura?.pedido_numero ?? "").padStart(4, "0")}`
+    ? `Ordem de Compra OC-${String(assinatura?.pedido_numero ?? "").padStart(4, "0")}`
     : tipo === "laudo"
     ? `Laudo de Condenação Nº ${assinatura?.laudo_numero ?? ""}`
     : `OS Nº ${assinatura?.os_numero ?? ""}`;

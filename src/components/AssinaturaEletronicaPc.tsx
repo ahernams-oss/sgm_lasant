@@ -96,7 +96,7 @@ export function AssinaturaEletronicaPc({ pedido, onAssinado, variant = "default"
           <div className="space-y-3 text-sm">
             <p>
               Você está prestes a assinar eletronicamente a{" "}
-              <strong>Ordem de Compra PC-{String(pedido.numero).padStart(4, "0")}</strong> como{" "}
+              <strong>Ordem de Compra OC-{String(pedido.numero).padStart(4, "0")}</strong> como{" "}
               <strong>Aprovador</strong>.
             </p>
             <div className="bg-muted/50 border rounded p-3 text-xs space-y-1">

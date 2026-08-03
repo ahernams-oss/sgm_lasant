@@ -292,7 +292,7 @@ export default function RecebimentoComprasPage() {
                 return recebido >= i.quantidade;
               }).length;
               const cellMap: Record<string, ReactNode> = {
-                numero: <span className="font-mono font-bold">PC-{String(p.numero).padStart(4, "0")}</span>,
+                numero: <span className="font-mono font-bold">OC-{String(p.numero).padStart(4, "0")}</span>,
                 rc: <span className="font-mono">RCS-{String(p.requisicaoNumero).padStart(4, "0")}</span>,
                 fornecedor: p.fornecedorNome,
                 localEntrega: <span className="text-sm">{p.localEntrega || "-"}</span>,
@@ -356,7 +356,7 @@ export default function RecebimentoComprasPage() {
       <Dialog open={recDialogOpen} onOpenChange={setRecDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Registrar Recebimento — PC-{recPedido && String(recPedido.numero).padStart(4, "0")}</DialogTitle>
+            <DialogTitle>Registrar Recebimento — OC-{recPedido && String(recPedido.numero).padStart(4, "0")}</DialogTitle>
             <DialogDescription>
               Fornecedor: {recPedido?.fornecedorNome} | Local: {recPedido?.localEntrega || "-"}
             </DialogDescription>
@@ -505,7 +505,7 @@ export default function RecebimentoComprasPage() {
       <Dialog open={!!viewPedido} onOpenChange={() => setViewPedido(null)}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>PC-{viewPedido && String(viewPedido.numero).padStart(4, "0")}</DialogTitle>
+            <DialogTitle>OC-{viewPedido && String(viewPedido.numero).padStart(4, "0")}</DialogTitle>
             <DialogDescription>Detalhes do ordem de compra</DialogDescription>
           </DialogHeader>
           {viewPedido && (
@@ -563,7 +563,7 @@ export default function RecebimentoComprasPage() {
           <DialogHeader>
             <DialogTitle>Histórico de Recebimentos</DialogTitle>
             <DialogDescription>
-              PC-{histPedidoId && String(pedidos.find(p => p.id === histPedidoId)?.numero || 0).padStart(4, "0")}
+              OC-{histPedidoId && String(pedidos.find(p => p.id === histPedidoId)?.numero || 0).padStart(4, "0")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
