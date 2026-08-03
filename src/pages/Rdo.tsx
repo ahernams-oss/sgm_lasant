@@ -216,6 +216,12 @@ export default function RdoPage() {
       .sort((a, b) => (b.data_rdo || "").localeCompare(a.data_rdo || ""));
   }, [rdosList, selectedObra, obraRdoSearch]);
 
+  // Evolução acumulada da obra: soma do avanço físico geral de todas as RDOs, limitada a 100%
+  const evolucaoObra = useMemo(() => {
+    const total = rdosDaObra.reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0);
+    return Math.min(100, total);
+  }, [rdosDaObra]);
+
   const openObraRdos = (o: ObraType) => {
     setSelectedObra(o);
     setObraRdoSearch("");
