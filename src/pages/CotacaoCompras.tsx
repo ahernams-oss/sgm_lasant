@@ -86,6 +86,20 @@ export default function CotacaoComprasPage() {
     }
   }, [usuarioLogado, cargos, registrarAssinaturaPc]);
 
+  const notificarPedidoNoGrupo = useCallback(async (pedido: PedidoCompra, reqId: string) => {
+    const r = requisicoes.find(x => x.id === reqId);
+    const cli = r ? clientes.find(c => c.id === r.centroCusto) : null;
+    if (!cli?.grupoWhatsapp) return;
+    await notificarPedidoGrupo({
+      jid: cli.grupoWhatsapp,
+      clienteNome: cli.nome,
+      pedido,
+      empresa,
+      fornecedor: clientes.find(c => c.id === pedido.fornecedorId) || null,
+      autorizadoPor: usuarioLogado?.nome || "",
+    });
+  }, [requisicoes, clientes, empresa, usuarioLogado]);
+
   const fornecedores = useMemo(() => clientes.filter(c => c.tipo === "Fornecedor"), [clientes]);
   const reqDisponiveisParaCotacao = useMemo(() => requisicoes.filter(r => r.status === "Enviada" || r.status === "Em Cotação"), [requisicoes]);
 
