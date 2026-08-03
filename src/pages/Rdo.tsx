@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Edit, Trash2, FileDown, Upload, X, Eraser, FileText, Image as ImageIcon, Building2, Settings, Loader2 } from "lucide-react";
+import { Search, Plus, Edit, Trash2, FileDown, Upload, X, Eraser, FileText, Image as ImageIcon, Building2, Settings, Loader2, FileSignature } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls from "@/components/PaginationControls";
@@ -173,6 +173,7 @@ export default function RdoPage() {
   const [editing, setEditing] = useState<Rdo | null>(null);
   const [form, setForm] = useState<Partial<Rdo>>(emptyForm());
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("geral");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const assinaturasDoRdo = useMemo(() => editing ? porRdo(editing.id) : [], [editing, porRdo]);
@@ -231,11 +232,13 @@ export default function RdoPage() {
       obra_id: ctx?.id || null,
       obra: ctx?.nome || "",
     });
+    setActiveTab("geral");
     setDialogOpen(true);
   };
-  const openEdit = (r: Rdo) => {
+  const openEdit = (r: Rdo, tab?: string) => {
     setEditing(r);
     setForm({ ...r });
+    setActiveTab(tab || "geral");
     setDialogOpen(true);
   };
 
@@ -498,6 +501,9 @@ export default function RdoPage() {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
+                        <Button size="icon" variant="ghost" onClick={() => openEdit(r, "assinaturas")} title="Assinar RDO">
+                          <FileSignature className="h-4 w-4 text-primary" />
+                        </Button>
                         <Button size="icon" variant="ghost" onClick={() => openEdit(r)} title="Editar">
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -525,7 +531,7 @@ export default function RdoPage() {
             <DialogTitle>{editing ? `Editar RDO Nº ${editing.numero}` : "Novo RDO"}</DialogTitle>
           </DialogHeader>
 
-          <Tabs defaultValue="geral" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-6 w-full">
               <TabsTrigger value="geral">Geral</TabsTrigger>
               <TabsTrigger value="clima">Clima</TabsTrigger>
