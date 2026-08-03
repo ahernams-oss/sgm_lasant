@@ -119,12 +119,21 @@ function CronogramaInner() {
       const a = { ...atvs[idx] };
       const valores = { ...(a.valores || {}) };
       const cur = valores[periodo] || { previsto_fisico: 0, previsto_financeiro: 0, realizado_fisico: 0, realizado_financeiro: 0 };
-      valores[periodo] = { ...cur, [campo]: val };
+      const next = { ...cur, [campo]: val };
+      // Realizado R$ calculado pelo Realizado % sobre o Previsto do período
+      if (campo === "realizado_fisico" || campo === "previsto_financeiro" || campo === "previsto_fisico") {
+        const prevPct = Number(next.previsto_fisico) || 0;
+        const prevFin = Number(next.previsto_financeiro) || 0;
+        const realPct = Number(next.realizado_fisico) || 0;
+        next.realizado_financeiro = prevPct > 0 ? (realPct / prevPct) * prevFin : 0;
+      }
+      valores[periodo] = next;
       a.valores = valores;
       atvs[idx] = a;
       return { ...f, atividades: atvs };
     });
   };
+
 
   // Distribui valor_total proporcional ao previsto físico (modo distribuido)
   const distribuirFinanceiro = (idx: number) => {
@@ -138,7 +147,8 @@ function CronogramaInner() {
         const cur = valores[p.rotulo] || { previsto_fisico: 0, previsto_financeiro: 0, realizado_fisico: 0, realizado_financeiro: 0 };
         const pct = Number(cur.previsto_fisico) || 0;
         const fin = totalPct > 0 ? (pct / totalPct) * (Number(a.valor_total) || 0) : 0;
-        valores[p.rotulo] = { ...cur, previsto_financeiro: fin };
+        const realFin = pct > 0 ? ((Number(cur.realizado_fisico) || 0) / pct) * fin : 0;
+        valores[p.rotulo] = { ...cur, previsto_financeiro: fin, realizado_financeiro: realFin };
       });
       a.valores = valores;
       atvs[idx] = a;
@@ -179,9 +189,10 @@ function CronogramaInner() {
           const totalPctPrev = periodos.reduce((s, x) => s + (Number(a.valores?.[x.rotulo]?.previsto_fisico) || 0), 0);
           const pctAtv = totalPctPrev > 0 ? (Number(cur.previsto_fisico) || 0) / totalPctPrev : 0;
           const realFis = media * pctAtv;
-          const realFin = a.modo_financeiro === "distribuido" && totalPctPrev > 0
-            ? (realFis / 100) * (Number(a.valor_total) || 0)
-            : cur.realizado_financeiro;
+          const prevPctPeriodo = Number(cur.previsto_fisico) || 0;
+          const realFin = prevPctPeriodo > 0
+            ? (realFis / prevPctPeriodo) * (Number(cur.previsto_financeiro) || 0)
+            : 0;
           valores[p.rotulo] = { ...cur, realizado_fisico: realFis, realizado_financeiro: realFin };
         });
         return { ...a, valores };
@@ -546,9 +557,11 @@ function CronogramaInner() {
                                   <Input
                                     type="number"
                                     step="0.01"
-                                    className="h-7 text-xs"
-                                    value={a.valores?.[p.rotulo]?.realizado_financeiro ?? 0}
-                                    onChange={(e) => updValor(i, p.rotulo, "realizado_financeiro", Number(e.target.value))}
+                                    className="h-7 text-xs bg-muted"
+                                    readOnly
+                                    title="Calculado a partir do Realizado %"
+                                    value={Number(a.valores?.[p.rotulo]?.realizado_financeiro ?? 0).toFixed(2)}
+                                    onChange={() => {}}
                                   />
                                 </td>
                               ))}
