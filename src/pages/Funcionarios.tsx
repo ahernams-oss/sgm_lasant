@@ -1399,7 +1399,7 @@ const Funcionarios = () => {
           <div className="px-6 py-4 border-b border-border bg-muted/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <h2 className="text-sm font-semibold text-foreground">Funcionários Cadastrados ({filteredFuncionarios.length})</h2>
             <div className="flex-1 flex items-center justify-center gap-2 flex-wrap">
-              <div className="relative w-[19.5rem]">
+              <div className="relative w-[29.25rem]">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Pesquisar..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="pl-9 h-9" />
               </div>
