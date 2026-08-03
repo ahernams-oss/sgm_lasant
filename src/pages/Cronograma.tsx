@@ -189,9 +189,10 @@ function CronogramaInner() {
           const totalPctPrev = periodos.reduce((s, x) => s + (Number(a.valores?.[x.rotulo]?.previsto_fisico) || 0), 0);
           const pctAtv = totalPctPrev > 0 ? (Number(cur.previsto_fisico) || 0) / totalPctPrev : 0;
           const realFis = media * pctAtv;
-          const realFin = a.modo_financeiro === "distribuido" && totalPctPrev > 0
-            ? (realFis / 100) * (Number(a.valor_total) || 0)
-            : cur.realizado_financeiro;
+          const prevPctPeriodo = Number(cur.previsto_fisico) || 0;
+          const realFin = prevPctPeriodo > 0
+            ? (realFis / prevPctPeriodo) * (Number(cur.previsto_financeiro) || 0)
+            : 0;
           valores[p.rotulo] = { ...cur, realizado_fisico: realFis, realizado_financeiro: realFin };
         });
         return { ...a, valores };
