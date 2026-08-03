@@ -895,9 +895,24 @@ export default function RdoPage() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Responsável</Label>
-                  <Input value={obraForm.responsavel || ""} onChange={(e) => setObraForm({ ...obraForm, responsavel: e.target.value })} />
+                  <Label>Responsável Técnico</Label>
+                  <Select
+                    value={obraForm.responsavel || ""}
+                    onValueChange={(v) => setObraForm({ ...obraForm, responsavel: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={responsaveis.length === 0 ? "Cadastre um Responsável Técnico" : "Selecione o responsável"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {responsaveis.map((r) => (
+                        <SelectItem key={r.id} value={`${r.nome} - ${r.titulo} - CREA ${r.crea}`}>
+                          {r.nome} - {r.titulo} - CREA {r.crea}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+
                 <div>
                   <Label>Data de Início</Label>
                   <Input type="date" value={obraForm.data_inicio || ""} onChange={(e) => setObraForm({ ...obraForm, data_inicio: e.target.value })} />
