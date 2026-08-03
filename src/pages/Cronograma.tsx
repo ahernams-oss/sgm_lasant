@@ -16,6 +16,8 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useRdos } from "@/contexts/RdosContext";
 import { gerarPdfCronograma } from "@/lib/gerarPdfCronograma";
 import { gerarExcelCronograma } from "@/lib/gerarExcelCronograma";
+import { baixarModeloAtividades, exportarAtividadesExcel, importarAtividadesExcel } from "@/lib/atividadesCronogramaExcel";
+
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { usePermissao } from "@/hooks/usePermissao";
 import { toast } from "sonner";
