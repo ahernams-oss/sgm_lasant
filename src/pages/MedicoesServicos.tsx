@@ -789,6 +789,10 @@ const MedicoesServicos = () => {
               <DialogHeader>
                 <div className="flex items-center justify-between">
                   <DialogTitle>Medição #{detailMedicao.numero} — {detailMedicao.descricao}</DialogTitle>
+                  {(detailMedicao as any).fornecedor_nome && (
+                    <p className="text-sm text-muted-foreground">Fornecedor: <span className="font-medium text-foreground">{(detailMedicao as any).fornecedor_nome}</span></p>
+                  )}
+
                   <div className="flex gap-2 mr-6">
                     <Button variant="outline" size="sm" onClick={() => downloadPdfHistoricoMedicao(detailMedicao)}>
                       <FileText className="mr-1 h-4 w-4" /> PDF
@@ -926,6 +930,10 @@ const MedicoesServicos = () => {
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Lançar Medição — {detailMedicao.descricao}</DialogTitle>
+                {(detailMedicao as any).fornecedor_nome && (
+                  <p className="text-sm text-muted-foreground">Fornecedor: <span className="font-medium text-foreground">{(detailMedicao as any).fornecedor_nome}</span></p>
+                )}
+
               </DialogHeader>
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
