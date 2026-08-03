@@ -181,6 +181,35 @@ const ProcessosSeletivos = () => {
 
   const filtrosAtivos = search || cliente || cargo || status || dataInicio || dataFim;
 
+  const toISO = (d: Date) => d.toISOString().slice(0, 10);
+  const periodoPresets = [
+    { label: "Hoje", range: () => { const h = toISO(new Date()); return [h, h] as const; } },
+    { label: "7 dias", range: () => { const f = new Date(); const i = new Date(); i.setDate(i.getDate() - 6); return [toISO(i), toISO(f)] as const; } },
+    { label: "30 dias", range: () => { const f = new Date(); const i = new Date(); i.setDate(i.getDate() - 29); return [toISO(i), toISO(f)] as const; } },
+    { label: "Este mês", range: () => { const n = new Date(); return [toISO(new Date(n.getFullYear(), n.getMonth(), 1)), toISO(n)] as const; } },
+    { label: "Este ano", range: () => { const n = new Date(); return [toISO(new Date(n.getFullYear(), 0, 1)), toISO(n)] as const; } },
+  ];
+
+  const statusLabels: Record<string, string> = {
+    em_andamento: "Em andamento",
+    liberacao: "Em liberação",
+    concluido: "Concluído",
+  };
+
+  const formatBr = (s: string) => (s ? s.split("-").reverse().join("/") : "");
+
+  const chipsAtivos = [
+    search && { label: `Busca: ${search}`, clear: () => { setSearch(""); setPage(1); } },
+    cliente && { label: `Unidade: ${cliente}`, clear: () => { setCliente(""); setPage(1); } },
+    cargo && { label: `Cargo: ${cargo}`, clear: () => { setCargo(""); setPage(1); } },
+    status && { label: `Status: ${statusLabels[status] || status}`, clear: () => { setStatus(""); setPage(1); } },
+    (dataInicio || dataFim) && {
+      label: `Período: ${formatBr(dataInicio) || "…"} → ${formatBr(dataFim) || "…"}`,
+      clear: () => { setDataInicio(""); setDataFim(""); setPage(1); },
+    },
+  ].filter(Boolean) as { label: string; clear: () => void }[];
+
+
 
   return (
     <div className="bg-background">
