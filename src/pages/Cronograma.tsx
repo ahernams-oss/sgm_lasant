@@ -427,10 +427,17 @@ function CronogramaInner() {
             </TabsContent>
 
             <TabsContent value="atividades" className="space-y-3 pt-4">
-              <Button onClick={addAtv} variant="outline" className="gap-2"><Plus className="h-4 w-4" /> Nova Atividade</Button>
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={addAtv} variant="outline" className="gap-2"><Plus className="h-4 w-4" /> Nova Atividade</Button>
+                <Button onClick={baixarModeloAtividades} variant="outline" className="gap-2"><FileDown className="h-4 w-4" /> Modelo Excel</Button>
+                <Button onClick={() => fileAtvRef.current?.click()} variant="outline" className="gap-2"><Upload className="h-4 w-4" /> Importar Excel</Button>
+                <Button onClick={handleExportAtvs} variant="outline" className="gap-2"><FileSpreadsheet className="h-4 w-4" /> Exportar Excel</Button>
+                <input ref={fileAtvRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImportAtvs} />
+              </div>
               {atividades.length === 0 && (
                 <p className="text-sm text-muted-foreground">Nenhuma atividade.</p>
               )}
+
               {atividades.map((a, i) => (
                 <Card key={a.id}>
                   <CardContent className="pt-4 grid grid-cols-12 gap-2 items-end">
