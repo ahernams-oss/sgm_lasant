@@ -366,7 +366,23 @@ const ProcessoSeletivoPage = () => {
     }
   };
 
+  const avisarAprovacaoCandidato = async (candidato: Candidato) => {
+    if (!candidato.telefone) { toast.error("Candidato sem telefone cadastrado."); return; }
+    const cargo = requisicao?.cargoNome || "a função";
+    const msg =
+      `Olá, ${candidato.nome}! Tudo bem?\n\n` +
+      `Temos o prazer de informar que você foi aprovado(a) no processo seletivo da LASANT CONSTRUÇÕES para a função de ${cargo}.\n\n` +
+      `Parabenizamos você pela aprovação e agradecemos pelo interesse em fazer parte da nossa equipe!\n\n` +
+      `Para darmos continuidade ao processo de admissão, pedimos que aguarde o contato do nosso Departamento de Recursos Humanos, que encaminhará as orientações sobre documentação, exame admissional e data prevista para início das atividades.\n\n` +
+      `Seja bem-vindo(a) à LASANT Construções! Esperamos construir juntos uma trajetória de muito aprendizado, crescimento e excelentes resultados.\n\n` +
+      `Atenciosamente,\nDepartamento de Recursos Humanos\nLASANT CONSTRUÇÕES LTDA.`;
+    const r = await enviarWhatsApp(candidato.telefone, msg);
+    if (r.success) toast.success(`Aviso de aprovação enviado para ${candidato.nome}.`);
+    else toast.error(`Falha ao enviar aviso: ${r.error}`);
+  };
+
   const handleAprovacaoExpressa = async (candidato: Candidato) => {
+
     if (!podeAvaliar) { toast.error("Você não possui permissão para esta ação."); return; }
     if (!podeStatusPS("aprovado")) { toast.error('Você não possui permissão para marcar candidato como "aprovado".'); return; }
     const dateNow = new Date().toLocaleDateString("pt-BR");
@@ -844,6 +860,14 @@ const ProcessoSeletivoPage = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
+                                className="text-emerald-700 hover:text-emerald-800"
+                                onClick={() => avisarAprovacaoCandidato(c)}
+                              >
+                                <CheckCircle2 className="h-4 w-4 mr-1" /> Avisar Aprovação
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
                                 className="text-red-600 hover:text-red-700"
                                 onClick={() => handleAprovarEtapa(c, "statusLiberacao", "reprovado")}
                               >
@@ -858,6 +882,7 @@ const ProcessoSeletivoPage = () => {
                               </Button>
                             </div>
                           )}
+
                         </CardContent>
                       </Card>
                     );
