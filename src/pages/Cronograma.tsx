@@ -557,9 +557,11 @@ function CronogramaInner() {
                                   <Input
                                     type="number"
                                     step="0.01"
-                                    className="h-7 text-xs"
-                                    value={a.valores?.[p.rotulo]?.realizado_financeiro ?? 0}
-                                    onChange={(e) => updValor(i, p.rotulo, "realizado_financeiro", Number(e.target.value))}
+                                    className="h-7 text-xs bg-muted"
+                                    readOnly
+                                    title="Calculado a partir do Realizado %"
+                                    value={Number(a.valores?.[p.rotulo]?.realizado_financeiro ?? 0).toFixed(2)}
+                                    onChange={() => {}}
                                   />
                                 </td>
                               ))}
