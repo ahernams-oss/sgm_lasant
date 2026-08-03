@@ -60,7 +60,7 @@ const Fornecedores = () => {
     const { fornecedor: f, senha } = senhaDialog;
     const tel = f.telefonesWhatsapp || f.telefones?.[0];
     if (!tel) { toast.error("Fornecedor sem WhatsApp cadastrado."); return; }
-    const msg = `Olá ${f.contato || f.nome}!\n\nSeu acesso ao Portal do Fornecedor está liberado.\n\n🔗 ${portalUrl}\nE-mail: ${f.email}\nSenha: ${senha}\n\nLá você poderá visualizar cotações e pedidos de compra.`;
+    const msg = `Olá ${f.contato || f.nome}!\n\nSeu acesso ao Portal do Fornecedor está liberado.\n\n🔗 ${portalUrl}\nE-mail: ${f.email}\nSenha: ${senha}\n\nLá você poderá visualizar cotações e ordens de compra.`;
     toast.loading("Enviando WhatsApp...", { id: "wpp-senha" });
     const r = await enviarWhatsApp(tel, msg);
     if (r.success) toast.success("Senha enviada por WhatsApp!", { id: "wpp-senha" });

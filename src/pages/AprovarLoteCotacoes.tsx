@@ -354,7 +354,7 @@ export default function AprovarLoteCotacoesPage() {
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Trophy className="h-6 w-6 text-primary" /> Aprovação em Lote — Menor Preço
           </h1>
-          <p className="text-sm text-muted-foreground">Aprova automaticamente, para cada item de cada cotação selecionada, o fornecedor com o menor preço unitário e emite os Pedidos de Compra agrupados por fornecedor.</p>
+          <p className="text-sm text-muted-foreground">Aprova automaticamente, para cada item de cada cotação selecionada, o fornecedor com o menor preço unitário e emite os Ordens de Compra agrupados por fornecedor.</p>
         </div>
         <Button
           disabled={selecionados.length === 0 || processing}
@@ -481,7 +481,7 @@ export default function AprovarLoteCotacoesPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-primary" /> Confirmar Aprovação em Lote</DialogTitle>
             <DialogDescription>
-              Serão aprovadas <b>{selecionados.length}</b> cotação(ões), gerando pedidos de compra agrupados por fornecedor vencedor e assinados eletronicamente em seu nome.
+              Serão aprovadas <b>{selecionados.length}</b> cotação(ões), gerando ordens de compra agrupados por fornecedor vencedor e assinados eletronicamente em seu nome.
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[50vh] overflow-y-auto space-y-3">

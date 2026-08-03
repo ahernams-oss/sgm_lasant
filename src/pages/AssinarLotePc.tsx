@@ -186,7 +186,7 @@ export default function AssinarLotePc() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">
-              Assinar Pedidos de Compra em Lote
+              Assinar Ordens de Compra em Lote
             </h1>
             <p className="text-sm text-muted-foreground">
               Pedidos pendentes de assinatura do aprovador

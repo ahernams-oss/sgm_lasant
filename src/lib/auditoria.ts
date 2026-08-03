@@ -23,7 +23,7 @@ const MODULOS_LABEL: Record<string, string> = {
   requisicoes: "Requisições",
   requisicao_compras: "Requisição de Compras (RCS)",
   cotacao_compras: "Cotações de Compras",
-  pedido_compra: "Pedidos de Compra",
+  pedido_compra: "Ordens de Compra",
   recebimento: "Recebimento de Compras",
   estoque: "Estoque",
   medicoes: "Medições de Serviços",

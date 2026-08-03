@@ -146,7 +146,7 @@ const menuItems = [
       { title: "Dashboard Compras", url: "/compras/dashboard", icon: LayoutDashboard, perm: "dashboard_compras" },
       { title: "Requisições de Compras", url: "/compras/requisicoes", icon: ShoppingCart, perm: "requisicoes_compras" },
       { title: "Cotações", url: "/compras/cotacoes", icon: Scale, perm: "cotacoes" },
-      { title: "Pedidos de Compra", url: "/compras/pedidos", icon: FileCheck, perm: "pedidos_compra" },
+      { title: "Ordens de Compra", url: "/compras/pedidos", icon: FileCheck, perm: "pedidos_compra" },
       { title: "Aprovação em Lote (Menor Preço)", url: "/compras/aprovar-lote-cotacoes", icon: CheckCircle2, perm: "cotacoes" },
       { title: "Assinar PC em Lote", url: "/compras/assinar-lote-pc", icon: ShieldCheck, perm: "pc_assinatura" },
       { title: "Inteligência de Compras", url: "/compras/inteligencia", icon: Sparkles, perm: "requisicoes_compras" },

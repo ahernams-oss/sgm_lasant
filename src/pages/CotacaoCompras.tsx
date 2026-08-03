@@ -1584,7 +1584,7 @@ export default function CotacaoComprasPage() {
             <DialogDescription>
               {finModoItemizado
                 ? "Selecione o fornecedor vencedor para cada item usando os checkboxes. Pedidos separados serão gerados por fornecedor."
-                : "Selecione o fornecedor vencedor e justifique a escolha. Um Pedido de Compra será gerado automaticamente."
+                : "Selecione o fornecedor vencedor e justifique a escolha. Um Ordem de Compra será gerado automaticamente."
               }
             </DialogDescription>
           </DialogHeader>

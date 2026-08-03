@@ -434,7 +434,7 @@ export default function NfesRecebidas() {
                         <Button size="sm" variant="ghost" onClick={() => baixarDanfe(n)} title="Baixar DANFE (PDF)">
                           <FileDown className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" disabled title="Vincular ao Pedido de Compra (em breve)">
+                        <Button size="sm" variant="ghost" disabled title="Vincular ao Ordem de Compra (em breve)">
                           <FileText className="h-4 w-4" />
                         </Button>
                       </TableCell>

@@ -652,7 +652,7 @@ export default function DashboardCompras() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm">Top 10 Materiais (Volume)</CardTitle>
-            <p className="text-xs text-muted-foreground">Quantidade total adquirida via Pedidos de Compra</p>
+            <p className="text-xs text-muted-foreground">Quantidade total adquirida via Ordens de Compra</p>
           </CardHeader>
           <CardContent>
             {topMaterialVolume.length === 0 ? (
@@ -674,7 +674,7 @@ export default function DashboardCompras() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm">Top 10 Materiais (Valor Financeiro)</CardTitle>
-            <p className="text-xs text-muted-foreground">Maior gasto acumulado em Pedidos de Compra</p>
+            <p className="text-xs text-muted-foreground">Maior gasto acumulado em Ordens de Compra</p>
           </CardHeader>
           <CardContent>
             {topMaterialValor.length === 0 ? (
@@ -699,7 +699,7 @@ export default function DashboardCompras() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm">Top 10 Serviços (Volume)</CardTitle>
-            <p className="text-xs text-muted-foreground">Quantidade total contratada via Pedidos de Compra</p>
+            <p className="text-xs text-muted-foreground">Quantidade total contratada via Ordens de Compra</p>
           </CardHeader>
           <CardContent>
             {topServicoVolume.length === 0 ? (
@@ -721,7 +721,7 @@ export default function DashboardCompras() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm">Top 10 Serviços (Valor Financeiro)</CardTitle>
-            <p className="text-xs text-muted-foreground">Maior gasto acumulado em Pedidos de Compra</p>
+            <p className="text-xs text-muted-foreground">Maior gasto acumulado em Ordens de Compra</p>
           </CardHeader>
           <CardContent>
             {topServicoValor.length === 0 ? (

@@ -189,11 +189,11 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
       },
       {
         key: "pedidos_compra",
-        label: "Pedidos de Compra (PC)",
+        label: "Ordens de Compra (PC)",
         acoes: [
-          { key: "pedidos_compra.criar", label: "Pode Criar Pedido de Compra" },
-          { key: "pedidos_compra.editar", label: "Pode Editar Pedido de Compra" },
-          { key: "pedidos_compra.cancelar", label: "Pode Cancelar Pedido de Compra" },
+          { key: "pedidos_compra.criar", label: "Pode Criar Ordem de Compra" },
+          { key: "pedidos_compra.editar", label: "Pode Editar Ordem de Compra" },
+          { key: "pedidos_compra.cancelar", label: "Pode Cancelar Ordem de Compra" },
         ],
         statusTransicoes: [
           { key: "pedidos_compra.status.emitido", label: "Pode Emitir PC" },
@@ -521,7 +521,7 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
       },
       {
         key: "pc_assinatura",
-        label: "Assinatura de Pedidos de Compra",
+        label: "Assinatura de Ordens de Compra",
         acoes: [
           { key: "pc.assinar", label: "Assinar PC" },
           { key: "pc.assinar_lote", label: "Assinar PC em Lote" },
@@ -825,7 +825,7 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
         { key: "financeiro.nfes_recebidas.importar", label: "Pode Importar NFes da SEFAZ (Focus)" },
         { key: "financeiro.nfes_recebidas.baixar_xml", label: "Pode Baixar XML da NFe" },
         { key: "financeiro.nfes_recebidas.baixar_danfe", label: "Pode Baixar DANFE (PDF)" },
-        { key: "financeiro.nfes_recebidas.vincular_pc", label: "Pode Vincular NFe ao Pedido de Compra" },
+        { key: "financeiro.nfes_recebidas.vincular_pc", label: "Pode Vincular NFe ao Ordem de Compra" },
       ]},
     ],
   },
