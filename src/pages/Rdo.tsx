@@ -472,17 +472,9 @@ export default function RdoPage() {
             <div className="flex-1 min-w-[220px] max-w-md flex flex-col gap-1">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Evolução da obra</span>
-                <span className="font-medium">
-                  {rdosDaObra.length
-                    ? Math.min(100, rdosDaObra.reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0)).toFixed(1)
-                    : "0.0"}%
-                </span>
+                <span className="font-medium">{evolucaoObra.toFixed(1)}%</span>
               </div>
-              <Progress
-                value={rdosDaObra.length
-                  ? Math.min(100, rdosDaObra.reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0))
-                  : 0}
-              />
+              <Progress value={evolucaoObra} />
             </div>
             <Button onClick={() => openNew()}>
               <Plus className="h-4 w-4 mr-2" /> Novo RDO
