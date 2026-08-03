@@ -203,85 +203,148 @@ const ProcessosSeletivos = () => {
         {/* Filtros */}
         <Card className="mb-6 animate-fade-up">
           <CardContent className="py-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground mb-3">
-              <SlidersHorizontal className="h-4 w-4 text-primary" />
-              Filtros
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <SlidersHorizontal className="h-4 w-4 text-primary" />
+                Filtros
+                {filtrosAtivos && (
+                  <Badge variant="secondary" className="ml-1">
+                    {filtered.length} de {processosComReq.length}
+                  </Badge>
+                )}
+              </div>
+              {filtrosAtivos && (
+                <Button variant="ghost" size="sm" onClick={limparFiltros} className="h-8 text-muted-foreground hover:text-foreground">
+                  <X className="h-3.5 w-3.5 mr-1" /> Limpar filtros
+                </Button>
+              )}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Pesquisar processos..."
-                  value={search}
-                  onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                  className="pl-9 h-9"
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Buscar</Label>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Candidato, cargo, unidade..."
+                    value={search}
+                    onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                    className="pl-9 pr-8 h-9"
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      aria-label="Limpar busca"
+                      onClick={() => { setSearch(""); setPage(1); }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Cliente / Unidade</Label>
+                <FiltroCombobox
+                  value={cliente}
+                  onChange={(v) => { setCliente(v); setPage(1); }}
+                  options={clientesUnicos as string[]}
+                  placeholder="Todos"
+                  searchPlaceholder="Buscar cliente/unidade..."
                 />
               </div>
 
-              <Select value={cliente} onValueChange={(v) => { setCliente(v); setPage(1); }}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Cliente / Unidade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value=" ">Todos</SelectItem>
-                  {clientesUnicos.map((u) => (
-                    <SelectItem key={u as string} value={u as string}>{u as string}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={cargo} onValueChange={(v) => { setCargo(v); setPage(1); }}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Cargo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value=" ">Todos</SelectItem>
-                  {cargosUnicos.map((c) => (
-                    <SelectItem key={c as string} value={c as string}>{c as string}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value=" ">Todos</SelectItem>
-                  <SelectItem value="em_andamento">Em andamento</SelectItem>
-                  <SelectItem value="liberacao">Em liberação</SelectItem>
-                  <SelectItem value="concluido">Concluído</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <div className="flex items-center gap-2 sm:col-span-2 lg:col-span-2">
-                <Input
-                  type="date"
-                  placeholder="De"
-                  value={dataInicio}
-                  onChange={(e) => { setDataInicio(e.target.value); setPage(1); }}
-                  className="h-9 flex-1"
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Cargo</Label>
+                <FiltroCombobox
+                  value={cargo}
+                  onChange={(v) => { setCargo(v); setPage(1); }}
+                  options={cargosUnicos as string[]}
+                  placeholder="Todos"
+                  searchPlaceholder="Buscar cargo..."
                 />
-                <span className="text-muted-foreground whitespace-nowrap">→</span>
-                <Input
-                  type="date"
-                  placeholder="Até"
-                  value={dataFim}
-                  onChange={(e) => { setDataFim(e.target.value); setPage(1); }}
-                  className="h-9 flex-1"
-                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Status</Label>
+                <Select value={status || " "} onValueChange={(v) => { setStatus(v.trim()); setPage(1); }}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value=" ">Todos</SelectItem>
+                    <SelectItem value="em_andamento">Em andamento</SelectItem>
+                    <SelectItem value="liberacao">Em liberação</SelectItem>
+                    <SelectItem value="concluido">Concluído</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label className="text-xs text-muted-foreground">Período de criação</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="date"
+                    value={dataInicio}
+                    onChange={(e) => { setDataInicio(e.target.value); setPage(1); }}
+                    className="h-9 flex-1"
+                  />
+                  <span className="text-muted-foreground whitespace-nowrap">→</span>
+                  <Input
+                    type="date"
+                    value={dataFim}
+                    onChange={(e) => { setDataFim(e.target.value); setPage(1); }}
+                    className="h-9 flex-1"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label className="text-xs text-muted-foreground">Atalhos de período</Label>
+                <div className="flex flex-wrap gap-2">
+                  {periodoPresets.map((p) => (
+                    <Button
+                      key={p.label}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-9"
+                      onClick={() => { const [i, f] = p.range(); setDataInicio(i); setDataFim(f); setPage(1); }}
+                    >
+                      {p.label}
+                    </Button>
+                  ))}
+                  {(dataInicio || dataFim) && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-9 text-muted-foreground"
+                      onClick={() => { setDataInicio(""); setDataFim(""); setPage(1); }}
+                    >
+                      <X className="h-3.5 w-3.5 mr-1" /> Período
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
 
             {filtrosAtivos && (
-              <div className="flex justify-end mt-3">
-                <Button variant="ghost" size="sm" onClick={limparFiltros} className="h-8 text-muted-foreground hover:text-foreground">
-                  <X className="h-3.5 w-3.5 mr-1" /> Limpar filtros
-                </Button>
+              <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t">
+                {chipsAtivos.map((c) => (
+                  <Badge key={c.label} variant="secondary" className="gap-1 font-normal">
+                    {c.label}
+                    <button type="button" onClick={c.clear} aria-label={`Remover ${c.label}`}>
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
               </div>
             )}
           </CardContent>
         </Card>
+
 
         {filtered.length === 0 ? (
           <Card>
