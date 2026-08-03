@@ -646,6 +646,8 @@ const Funcionarios = () => {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [filterCliente, setFilterCliente] = useState<string>("todos");
+  const [sortBy, setSortBy] = useState<"nome" | "cliente" | "cargo">("nome");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [transferir, setTransferir] = useState<{ id: string; nome: string; clienteId: string } | null>(null);
