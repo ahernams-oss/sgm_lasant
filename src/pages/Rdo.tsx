@@ -468,13 +468,13 @@ export default function RdoPage() {
                 <span className="text-muted-foreground">Evolução da obra</span>
                 <span className="font-medium">
                   {rdosDaObra.length
-                    ? (rdosDaObra.reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0) / rdosDaObra.length).toFixed(1)
+                    ? Math.min(100, rdosDaObra.reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0)).toFixed(1)
                     : "0.0"}%
                 </span>
               </div>
               <Progress
                 value={rdosDaObra.length
-                  ? Math.min(100, rdosDaObra.reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0) / rdosDaObra.length)
+                  ? Math.min(100, rdosDaObra.reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0))
                   : 0}
               />
             </div>
