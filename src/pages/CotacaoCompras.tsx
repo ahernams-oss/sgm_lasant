@@ -33,6 +33,7 @@ import { usePermissao } from "@/hooks/usePermissao";
 import { Plus, Search, Eye, Trophy, XCircle, BarChart3, Trash2, MoreHorizontal, FilterX, Send, Copy, Link2, RefreshCw, CheckCircle2, Lock, ShieldCheck, Pencil, Mail, FileDown, FileText, CheckSquare, MessageCircle, AlertTriangle, Sparkles, Upload } from "lucide-react";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { notificarCompras, formatarPrioridade, formatarDataHora, formatarData, formatarPedido } from "@/lib/notificacoesCompras";
+import { notificarPedidoGrupo } from "@/lib/notificacaoPedidoCompra";
 import { Checkbox } from "@/components/ui/checkbox";
 import { downloadPdfCotacao } from "@/lib/gerarPdfCotacao";
 import { downloadPdfPedidoCotacaoTodos, gerarBlobPedidoCotacao } from "@/lib/gerarPdfPedidoCotacao";
