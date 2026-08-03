@@ -263,7 +263,14 @@ export default function RdoPage() {
 
   const addAtiv = () => setForm((f) => ({ ...f, atividades: [...(f.atividades || []), { descricao: "", percentual_avanco: 0, observacao: "" }] }));
   const updAtiv = (i: number, k: keyof RdoAtividadeItem, v: any) =>
-    setForm((f) => ({ ...f, atividades: (f.atividades || []).map((x, idx) => idx === i ? { ...x, [k]: k === "percentual_avanco" ? Number(v) || 0 : v } : x) }));
+    setForm((f) => ({
+      ...f,
+      atividades: (f.atividades || []).map((x, idx) =>
+        idx === i
+          ? { ...x, [k]: k === "percentual_avanco" ? Math.min(100, Math.max(0, Number(v) || 0)) : v }
+          : x
+      ),
+    }));
   const delAtiv = (i: number) => setForm((f) => ({ ...f, atividades: (f.atividades || []).filter((_, idx) => idx !== i) }));
 
   const handleUpload = async (files: FileList | null) => {
