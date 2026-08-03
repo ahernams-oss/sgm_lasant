@@ -451,10 +451,25 @@ export default function RdoPage() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input className="pl-8" placeholder="Buscar por nº, data ou responsável..." value={obraRdoSearch} onChange={(e) => setObraRdoSearch(e.target.value)} />
+            </div>
+            <div className="flex-1 min-w-[220px] max-w-md flex flex-col gap-1">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Evolução da obra</span>
+                <span className="font-medium">
+                  {rdosDaObra.length
+                    ? (rdosDaObra.reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0) / rdosDaObra.length).toFixed(1)
+                    : "0.0"}%
+                </span>
+              </div>
+              <Progress
+                value={rdosDaObra.length
+                  ? Math.min(100, rdosDaObra.reduce((acc, r) => acc + (Number(r.avanco_fisico_geral) || 0), 0) / rdosDaObra.length)
+                  : 0}
+              />
             </div>
             <Button onClick={() => openNew()}>
               <Plus className="h-4 w-4 mr-2" /> Novo RDO
