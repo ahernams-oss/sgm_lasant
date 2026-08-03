@@ -513,6 +513,7 @@ export default function CotacaoComprasPage() {
           observacoes: "",
         });
         await assinarPedidoAutomatico(novoPedido);
+        await notificarPedidoNoGrupo(novoPedido, cot.requisicaoId);
         updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador", "Pedido gerado e assinado eletronicamente após aprovação");
         notificarStatusReq(cot.requisicaoId, "APROVADA - PEDIDO EMITIDO (COMPRADO)", "Data da aprovação");
       }
