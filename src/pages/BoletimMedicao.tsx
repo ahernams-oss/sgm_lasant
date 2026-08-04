@@ -110,10 +110,36 @@ export default function BoletimMedicaoPage() {
     if (obra || crono) toast.success("Dados da obra recuperados");
   };
 
+  const cronogramaAtual = cronogramas.find(
+    (c) => c.cliente_id === form.cliente_id && (c.obra || "") === (form.obra || ""),
+  );
+  const atividadesCronograma = (cronogramaAtual?.atividades || [])
+    .slice()
+    .sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+
   const setFrentes = (fn: (fs: BoletimMedicaoFrente[]) => BoletimMedicaoFrente[]) =>
     setForm((f) => ({ ...f, frentes: fn(f.frentes || []) }));
 
+  const importarFrentesCronograma = () => {
+    if (!atividadesCronograma.length) { toast.error("Nenhuma atividade no cronograma desta obra"); return; }
+    setFrentes((fs) => {
+      const existentes = new Set(fs.map((f) => f.nome.trim().toLowerCase()));
+      const novas = atividadesCronograma
+        .filter((a) => !existentes.has((a.descricao || "").trim().toLowerCase()))
+        .map((a) => ({
+          id: crypto.randomUUID(),
+          nome: a.descricao,
+          valor_contrato: Number(a.valor_total) || 0,
+          medicoes: [],
+        }));
+      if (!novas.length) toast.info("Todas as atividades já estão nas frentes");
+      else toast.success(`${novas.length} frente(s) importada(s) do cronograma`);
+      return [...fs.filter((f) => f.nome.trim() || f.medicoes.length), ...novas];
+    });
+  };
+
   const addFrente = () => setFrentes((fs) => [...fs, novaFrente()]);
+
   const updFrente = (idx: number, patch: Partial<BoletimMedicaoFrente>) =>
     setFrentes((fs) => fs.map((f, i) => (i === idx ? { ...f, ...patch } : f)));
   const delFrente = (idx: number) => setFrentes((fs) => fs.filter((_, i) => i !== idx));
