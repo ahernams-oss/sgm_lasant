@@ -9,7 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Search, ChevronRight, ShieldAlert, AlertTriangle } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ChevronRight, ShieldAlert, AlertTriangle, Check, ChevronsUpDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
@@ -17,6 +20,48 @@ import type { ReactNode } from "react";
 import { usePermissao } from "@/hooks/usePermissao";
 import { guardDuplicates, scanDuplicatesGrouped, type DuplicateMatch, type GroupedDuplicatePair } from "@/lib/duplicateDetection";
 import { DuplicateWarningDialog, DuplicateAnalysisDialog } from "@/components/DuplicateDialogs";
+
+interface SubGrupoOption { id: string; codigo: string; nome: string; grupoCodigo: string; grupoNome: string; }
+
+function SubGrupoCombobox({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: SubGrupoOption[] }) {
+  const [open, setOpen] = useState(false);
+  const sel = options.find(o => o.id === value);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between font-normal">
+          {sel ? (
+            <span className="truncate">{sel.grupoCodigo}.{sel.codigo} - {sel.nome} <span className="text-muted-foreground">({sel.grupoNome})</span></span>
+          ) : <span className="text-muted-foreground">Selecione o subgrupo</span>}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <Command filter={(v, search) => (v.toLowerCase().includes(search.toLowerCase()) ? 1 : 0)}>
+          <CommandInput placeholder="Buscar por código, subgrupo ou grupo..." />
+          <CommandList>
+            <CommandEmpty>Nenhum subgrupo encontrado.</CommandEmpty>
+            <CommandGroup>
+              {options.map(o => (
+                <CommandItem
+                  key={o.id}
+                  value={`${o.grupoCodigo}.${o.codigo} ${o.nome} ${o.grupoCodigo} ${o.grupoNome}`}
+                  onSelect={() => { onChange(o.id); setOpen(false); }}
+                >
+                  <Check className={cn("mr-2 h-4 w-4", value === o.id ? "opacity-100" : "opacity-0")} />
+                  <span className="truncate">
+                    <span className="font-medium">{o.grupoCodigo}.{o.codigo}</span> - {o.nome}
+                    <span className="text-muted-foreground"> · Grupo {o.grupoCodigo} - {o.grupoNome}</span>
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export default function CategoriasCompras() {
   const {
@@ -54,6 +99,10 @@ export default function CategoriasCompras() {
   const [classeDialog, setClasseDialog] = useState(false);
   const [editClasseId, setEditClasseId] = useState<string | null>(null);
   const [classeForm, setClasseForm] = useState({ subGrupoId: "", codigo: "", nome: "" });
+  const subGrupoOptions = useMemo<SubGrupoOption[]>(() => subGrupos.map(s => {
+    const g = grupos.find(gr => gr.id === s.grupoId);
+    return { id: s.id, codigo: s.codigo, nome: s.nome, grupoCodigo: g?.codigo ?? "", grupoNome: g?.nome ?? "" };
+  }).sort((a, b) => `${a.grupoCodigo}.${a.codigo}`.localeCompare(`${b.grupoCodigo}.${b.codigo}`)), [subGrupos, grupos]);
 
   // Filter
   const [filterGrupoId, setFilterGrupoId] = useState<string>("all");
@@ -500,15 +549,11 @@ export default function CategoriasCompras() {
           <DialogHeader><DialogTitle>{editClasseId ? "Editar" : "Nova"} Classe</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div><Label>SubGrupo *</Label>
-              <Select value={classeForm.subGrupoId} onValueChange={v => setClasseForm(f => ({ ...f, subGrupoId: v }))}>
-                <SelectTrigger><SelectValue placeholder="Selecione o subgrupo" /></SelectTrigger>
-                <SelectContent>
-                  {subGrupos.map(s => {
-                    const g = grupos.find(g => g.id === s.grupoId);
-                    return <SelectItem key={s.id} value={s.id}>{g?.codigo}.{s.codigo} - {s.nome}</SelectItem>;
-                  })}
-                </SelectContent>
-              </Select>
+              <SubGrupoCombobox
+                value={classeForm.subGrupoId}
+                onChange={v => setClasseForm(f => ({ ...f, subGrupoId: v }))}
+                options={subGrupoOptions}
+              />
             </div>
             <div><Label>Código *</Label><Input placeholder="Ex: 002" value={classeForm.codigo} onChange={e => setClasseForm(f => ({ ...f, codigo: e.target.value }))} /></div>
             <div><Label>Nome *</Label><Input placeholder="Ex: Fio Cabinho" value={classeForm.nome} onChange={e => setClasseForm(f => ({ ...f, nome: e.target.value }))} /></div>
