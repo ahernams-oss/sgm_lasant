@@ -214,14 +214,16 @@ export default function OrdensServicoPage() {
   const [cancelStep, setCancelStep] = useState<1 | 2 | 3>(1);
   const [cancelSenha, setCancelSenha] = useState("");
   const [cancelLoading, setCancelLoading] = useState(false);
-  // ===== Reverter OS Validada para status anterior (dupla senha + justificativa) =====
+  // ===== Retorno de OS Validada: solicitação + ciência de outro usuário =====
   const [revertOS, setRevertOS] = useState<OrdemServico | null>(null);
   const [revertStep, setRevertStep] = useState<1 | 2>(1);
   const [revertMotivo, setRevertMotivo] = useState("");
   const [revertSenha, setRevertSenha] = useState("");
-  const [revertEmail2, setRevertEmail2] = useState("");
-  const [revertSenha2, setRevertSenha2] = useState("");
   const [revertLoading, setRevertLoading] = useState(false);
+  // Confirmação (ciência) por outro usuário
+  const [cienciaOS, setCienciaOS] = useState<OrdemServico | null>(null);
+  const [cienciaSenha, setCienciaSenha] = useState("");
+  const [cienciaLoading, setCienciaLoading] = useState(false);
 
   const statusAnteriorDe = (os: OrdemServico): string => {
     const hist = (os.historico || []) as any[];
@@ -238,12 +240,17 @@ export default function OrdensServicoPage() {
     setRevertStep(1);
     setRevertMotivo("");
     setRevertSenha("");
-    setRevertEmail2("");
-    setRevertSenha2("");
     setRevertLoading(false);
   };
 
-  const handleReverterValidada = async () => {
+  const closeCienciaDialog = () => {
+    setCienciaOS(null);
+    setCienciaSenha("");
+    setCienciaLoading(false);
+  };
+
+  // Etapa 1: solicitante registra o pedido de retorno (fica pendente de ciência)
+  const handleSolicitarRetorno = async () => {
     if (!revertOS) return;
     const motivo = revertMotivo.trim();
     if (motivo.length < 5) {
@@ -251,42 +258,82 @@ export default function OrdensServicoPage() {
       return;
     }
     if (!revertSenha) {
-      toast.error("Informe sua senha (solicitante).");
-      return;
-    }
-    const email2 = revertEmail2.trim().toLowerCase();
-    if (!email2 || !revertSenha2) {
-      toast.error("Informe e-mail e senha do usuário que dá ciência.");
-      return;
-    }
-    if (email2 === (usuarioLogado?.email || "").toLowerCase()) {
-      toast.error("A ciência deve ser de outro usuário, diferente do solicitante.");
+      toast.error("Informe sua senha.");
       return;
     }
     setRevertLoading(true);
     try {
-      const ok1 = await verificarSenhaUsuario(usuarioLogado?.email || "", revertSenha);
-      if (!ok1) {
-        toast.error("Senha do solicitante inválida.");
-        return;
-      }
-      const ok2 = await verificarSenhaUsuario(email2, revertSenha2);
-      if (!ok2) {
-        toast.error("Credenciais do usuário de ciência inválidas.");
+      const ok = await verificarSenhaUsuario(usuarioLogado?.email || "", revertSenha);
+      if (!ok) {
+        toast.error("Senha inválida.");
         return;
       }
       const destino = statusAnteriorDe(revertOS);
-      const motivoCompleto = `Retorno de "Validada" para "${destino}". Justificativa: ${motivo} | Ciência: ${email2}`;
+      const pendente = {
+        motivo,
+        destino,
+        origem: revertOS.situacao,
+        solicitanteId: usuarioLogado?.id || "",
+        solicitanteNome: usuarioLogado?.nome || "",
+        solicitanteEmail: usuarioLogado?.email || "",
+        data: new Date().toISOString(),
+      };
       await updateOrdem(revertOS.id, {
-        situacao: destino,
-        historico: buildOSHistorico(destino, revertOS.historico || [], motivoCompleto),
+        retorno_pendente: pendente,
+        historico: buildOSHistorico(
+          revertOS.situacao,
+          revertOS.historico || [],
+          `Solicitação de retorno para "${destino}" — aguardando ciência de outro usuário. Justificativa: ${motivo}`,
+        ),
       });
-      toast.success(`OS retornada para "${destino}".`);
+      toast.success("Solicitação registrada. Aguardando ciência de outro usuário.");
       closeRevertDialog();
     } finally {
       setRevertLoading(false);
     }
   };
+
+  // Etapa 2: outro usuário dá ciência e o retorno é efetivado
+  const handleConfirmarCiencia = async () => {
+    if (!cienciaOS) return;
+    const pend = cienciaOS.retornoPendente;
+    if (!pend) return;
+    if (pend.solicitanteId === usuarioLogado?.id) {
+      toast.error("A ciência deve ser dada por outro usuário, diferente do solicitante.");
+      return;
+    }
+    if (!cienciaSenha) {
+      toast.error("Informe sua senha para confirmar a ciência.");
+      return;
+    }
+    setCienciaLoading(true);
+    try {
+      const ok = await verificarSenhaUsuario(usuarioLogado?.email || "", cienciaSenha);
+      if (!ok) {
+        toast.error("Senha inválida.");
+        return;
+      }
+      const motivoCompleto = `Retorno de "${pend.origem}" para "${pend.destino}". Solicitante: ${pend.solicitanteNome} | Justificativa: ${pend.motivo} | Ciência: ${usuarioLogado?.nome} (${usuarioLogado?.email})`;
+      await updateOrdem(cienciaOS.id, {
+        situacao: pend.destino,
+        retorno_pendente: null,
+        historico: buildOSHistorico(pend.destino, cienciaOS.historico || [], motivoCompleto),
+      });
+      toast.success(`OS retornada para "${pend.destino}".`);
+      closeCienciaDialog();
+    } finally {
+      setCienciaLoading(false);
+    }
+  };
+
+  const cancelarSolicitacaoRetorno = async (os: OrdemServico) => {
+    await updateOrdem(os.id, {
+      retorno_pendente: null,
+      historico: buildOSHistorico(os.situacao, os.historico || [], "Solicitação de retorno de status cancelada."),
+    });
+    toast.success("Solicitação de retorno cancelada.");
+  };
+
 
   const { categorias: categoriasServicos } = useCategoriasServicos();
   const { servicos: servicosCadastrados } = useServicos();
@@ -1360,6 +1407,24 @@ export default function OrdensServicoPage() {
                             ))}
                           </span>
                         )}
+                        {os.retornoPendente && (
+                          <button
+                            type="button"
+                            className="text-amber-600 animate-pulse"
+                            title={`Retorno pendente de ciência — solicitado por ${os.retornoPendente.solicitanteNome} para "${os.retornoPendente.destino}". Justificativa: ${os.retornoPendente.motivo}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (os.retornoPendente?.solicitanteId === usuarioLogado?.id) {
+                                toast.info("Aguardando ciência de outro usuário.");
+                                return;
+                              }
+                              closeCienciaDialog();
+                              setCienciaOS(os);
+                            }}
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
                     ),
                     className: "align-top",
@@ -1470,14 +1535,29 @@ export default function OrdensServicoPage() {
                             <action.icon className="mr-2 h-4 w-4" /> {action.label}
                           </DropdownMenuItem>
                         ))}
-                        {podeWorkflowOS && os.situacao === "Validada" && (
+                        {podeWorkflowOS && os.situacao === "Validada" && !os.retornoPendente && (
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => { closeRevertDialog(); setRevertOS(os); }}>
-                              <RotateCcw className="mr-2 h-4 w-4" /> Retornar ao status anterior
+                              <RotateCcw className="mr-2 h-4 w-4" /> Solicitar retorno ao status anterior
                             </DropdownMenuItem>
                           </>
                         )}
+                        {podeWorkflowOS && os.retornoPendente && (
+                          <>
+                            <DropdownMenuSeparator />
+                            {os.retornoPendente.solicitanteId !== usuarioLogado?.id ? (
+                              <DropdownMenuItem onClick={() => { closeCienciaDialog(); setCienciaOS(os); }} className="text-amber-600">
+                                <RotateCcw className="mr-2 h-4 w-4" /> Dar ciência e confirmar retorno
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => cancelarSolicitacaoRetorno(os)}>
+                                <Ban className="mr-2 h-4 w-4" /> Cancelar solicitação de retorno
+                              </DropdownMenuItem>
+                            )}
+                          </>
+                        )}
+
                         {podeStCanceladaOS && os.situacao !== "Cancelada" && (
                           <>
                             <DropdownMenuSeparator />
@@ -2616,13 +2696,13 @@ export default function OrdensServicoPage() {
 
 
 
-      {/* Dialog: Retornar OS Validada ao status anterior */}
+      {/* Dialog: Solicitar retorno da OS ao status anterior */}
       <Dialog open={!!revertOS} onOpenChange={o => { if (!o) closeRevertDialog(); }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <RotateCcw className="h-5 w-5 text-primary" />
-              Retornar OS ao status anterior {revertStep === 1 ? "(1/2)" : "(2/2)"}
+              Solicitar retorno da OS ao status anterior {revertStep === 1 ? "(1/2)" : "(2/2)"}
             </DialogTitle>
           </DialogHeader>
 
@@ -2630,7 +2710,8 @@ export default function OrdensServicoPage() {
             <div className="space-y-3 py-2">
               <p className="text-sm text-muted-foreground">
                 A OS <b>{formatNumeroAno(revertOS.numero, revertOS.createdAt)}</b> voltará de <b>Validada</b> para{" "}
-                <b>{statusAnteriorDe(revertOS)}</b>. Informe a justificativa — ela ficará registrada no histórico.
+                <b>{statusAnteriorDe(revertOS)}</b> somente após a ciência de outro usuário. Informe a justificativa —
+                ela ficará registrada no histórico.
               </p>
               <div>
                 <Label>Justificativa *</Label>
@@ -2658,25 +2739,12 @@ export default function OrdensServicoPage() {
                   onChange={e => setRevertSenha(e.target.value)}
                   placeholder="Sua senha"
                   autoComplete="current-password"
+                  onKeyDown={e => { if (e.key === "Enter" && !revertLoading) handleSolicitarRetorno(); }}
                 />
               </div>
-              <div className="space-y-2 border-t pt-3">
-                <Label>Ciência de outro usuário *</Label>
-                <Input
-                  type="email"
-                  value={revertEmail2}
-                  onChange={e => setRevertEmail2(e.target.value)}
-                  placeholder="email.do.usuario@empresa.com"
-                />
-                <Input
-                  type="password"
-                  value={revertSenha2}
-                  onChange={e => setRevertSenha2(e.target.value)}
-                  placeholder="Senha do usuário que dá ciência"
-                  onKeyDown={e => { if (e.key === "Enter" && !revertLoading) handleReverterValidada(); }}
-                />
-              </div>
-
+              <p className="text-xs text-muted-foreground">
+                Após confirmar, a OS ficará marcada na grid com um ícone de pendência até que outro usuário registre a ciência.
+              </p>
             </div>
           )}
 
@@ -2695,13 +2763,63 @@ export default function OrdensServicoPage() {
                 Continuar
               </Button>
             ) : (
-              <Button onClick={handleReverterValidada} disabled={revertLoading}>
-                {revertLoading ? "Validando..." : "Confirmar retorno"}
+              <Button onClick={handleSolicitarRetorno} disabled={revertLoading}>
+                {revertLoading ? "Validando..." : "Registrar solicitação"}
               </Button>
             )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog: Ciência de outro usuário para efetivar o retorno */}
+      <Dialog open={!!cienciaOS} onOpenChange={o => { if (!o) closeCienciaDialog(); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5 text-amber-600" />
+              Confirmar retorno de status (ciência)
+            </DialogTitle>
+          </DialogHeader>
+
+          {cienciaOS?.retornoPendente && (
+            <div className="space-y-4 py-2">
+              <div className="border rounded-md p-3 bg-muted/30 text-sm space-y-1">
+                <div>
+                  OS <b>{formatNumeroAno(cienciaOS.numero, cienciaOS.createdAt)}</b> — retorno de{" "}
+                  <b>{cienciaOS.retornoPendente.origem}</b> para <b>{cienciaOS.retornoPendente.destino}</b>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Solicitado por {cienciaOS.retornoPendente.solicitanteNome} em{" "}
+                  {new Date(cienciaOS.retornoPendente.data).toLocaleString("pt-BR")}
+                </div>
+                <div className="pt-1 whitespace-pre-wrap">
+                  <span className="text-xs font-semibold text-muted-foreground block">Justificativa:</span>
+                  {cienciaOS.retornoPendente.motivo}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Sua senha ({usuarioLogado?.email}) *</Label>
+                <Input
+                  type="password"
+                  value={cienciaSenha}
+                  onChange={e => setCienciaSenha(e.target.value)}
+                  placeholder="Senha para dar ciência"
+                  autoComplete="current-password"
+                  onKeyDown={e => { if (e.key === "Enter" && !cienciaLoading) handleConfirmarCiencia(); }}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={closeCienciaDialog}>Cancelar</Button>
+            <Button onClick={handleConfirmarCiencia} disabled={cienciaLoading}>
+              {cienciaLoading ? "Validando..." : "Dar ciência e retornar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Dialog: Justificativa para Não Aprovar */}
       <Dialog open={!!naoAprovarOS} onOpenChange={o => { if (!o) { setNaoAprovarOS(null); setNaoAprovarJustificativa(""); } }}>

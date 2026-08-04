@@ -49,6 +49,17 @@ export interface OrdemServico {
   historico: { situacao: string; data: string; usuario: string }[];
   avaliacao?: number | null; avaliacaoJustificativa?: string;
   avaliacaoData?: string; avaliacaoUsuario?: string;
+  retornoPendente?: RetornoPendenteOS | null;
+}
+
+export interface RetornoPendenteOS {
+  motivo: string;
+  destino: string;
+  origem: string;
+  solicitanteId: string;
+  solicitanteNome: string;
+  solicitanteEmail: string;
+  data: string;
 }
 
 interface OrdensServicoContextType {
@@ -97,6 +108,7 @@ const rowToOrdem = (r: any): OrdemServico => ({
   avaliacaoJustificativa: r.avaliacao_justificativa ?? "",
   avaliacaoData: r.avaliacao_data ?? "",
   avaliacaoUsuario: r.avaliacao_usuario ?? "",
+  retornoPendente: r.retorno_pendente && typeof r.retorno_pendente === "object" ? r.retorno_pendente : null,
 });
 
 export function OrdensServicoProvider({ children }: { children: ReactNode }) {
