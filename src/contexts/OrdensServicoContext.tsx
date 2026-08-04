@@ -108,6 +108,7 @@ const rowToOrdem = (r: any): OrdemServico => ({
   avaliacaoJustificativa: r.avaliacao_justificativa ?? "",
   avaliacaoData: r.avaliacao_data ?? "",
   avaliacaoUsuario: r.avaliacao_usuario ?? "",
+  retornoPendente: r.retorno_pendente && typeof r.retorno_pendente === "object" ? r.retorno_pendente : null,
 });
 
 export function OrdensServicoProvider({ children }: { children: ReactNode }) {
