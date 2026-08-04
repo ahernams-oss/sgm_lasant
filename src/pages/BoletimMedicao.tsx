@@ -203,6 +203,16 @@ export default function BoletimMedicaoPage() {
     }
   };
 
+  const baixarExcel = (b: BoletimMedicao) => {
+    try {
+      downloadExcelBoletimMedicao(b, empresa);
+    } catch (e) {
+      console.error(e);
+      toast.error("Erro ao gerar o Excel do boletim");
+    }
+  };
+
+
   const lista = useMemo(() => {
     const q = filtro.trim().toLowerCase();
     if (!q) return boletins;
