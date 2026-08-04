@@ -1407,6 +1407,24 @@ export default function OrdensServicoPage() {
                             ))}
                           </span>
                         )}
+                        {os.retornoPendente && (
+                          <button
+                            type="button"
+                            className="text-amber-600 animate-pulse"
+                            title={`Retorno pendente de ciência — solicitado por ${os.retornoPendente.solicitanteNome} para "${os.retornoPendente.destino}". Justificativa: ${os.retornoPendente.motivo}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (os.retornoPendente?.solicitanteId === usuarioLogado?.id) {
+                                toast.info("Aguardando ciência de outro usuário.");
+                                return;
+                              }
+                              closeCienciaDialog();
+                              setCienciaOS(os);
+                            }}
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
                     ),
                     className: "align-top",
