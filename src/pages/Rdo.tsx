@@ -627,6 +627,24 @@ export default function RdoPage() {
                     </Select>
                   )}
                 </div>
+                {obraDoForm && (
+                  <div className="col-span-2 grid grid-cols-3 gap-3 rounded-lg border bg-muted/40 p-3 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Contrato Nº</p>
+                      <p className="font-medium">{obraDoForm.contrato_numero || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Processo Nº</p>
+                      <p className="font-medium">{obraDoForm.processo_numero || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Valor Total do Contrato</p>
+                      <p className="font-medium">
+                        {(Number(obraDoForm.valor_total_contrato) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      </p>
+                    </div>
+                  </div>
+                )}
                 <div>
                   <Label>Responsável Técnico</Label>
                   <Select
