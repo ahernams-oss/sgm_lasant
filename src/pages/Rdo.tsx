@@ -914,6 +914,23 @@ export default function RdoPage() {
                 </div>
 
                 <div>
+                  <Label>Contrato Nº</Label>
+                  <Input value={obraForm.contrato_numero || ""} onChange={(e) => setObraForm({ ...obraForm, contrato_numero: e.target.value })} placeholder="Ex.: 123/2025" />
+                </div>
+                <div>
+                  <Label>Processo Nº</Label>
+                  <Input value={obraForm.processo_numero || ""} onChange={(e) => setObraForm({ ...obraForm, processo_numero: e.target.value })} placeholder="Ex.: 0001234/2025" />
+                </div>
+                <div>
+                  <Label>Valor Total do Contrato (R$)</Label>
+                  <Input
+                    type="number" step="0.01" min={0}
+                    value={obraForm.valor_total_contrato ?? 0}
+                    onChange={(e) => setObraForm({ ...obraForm, valor_total_contrato: Number(e.target.value) || 0 })}
+                  />
+                </div>
+
+                <div>
                   <Label>Data de Início</Label>
                   <Input type="date" value={obraForm.data_inicio || ""} onChange={(e) => setObraForm({ ...obraForm, data_inicio: e.target.value })} />
                 </div>
