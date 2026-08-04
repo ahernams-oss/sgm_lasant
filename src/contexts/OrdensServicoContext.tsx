@@ -49,6 +49,17 @@ export interface OrdemServico {
   historico: { situacao: string; data: string; usuario: string }[];
   avaliacao?: number | null; avaliacaoJustificativa?: string;
   avaliacaoData?: string; avaliacaoUsuario?: string;
+  retornoPendente?: RetornoPendenteOS | null;
+}
+
+export interface RetornoPendenteOS {
+  motivo: string;
+  destino: string;
+  origem: string;
+  solicitanteId: string;
+  solicitanteNome: string;
+  solicitanteEmail: string;
+  data: string;
 }
 
 interface OrdensServicoContextType {
