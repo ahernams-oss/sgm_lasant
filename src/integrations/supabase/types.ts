@@ -284,6 +284,72 @@ export type Database = {
           },
         ]
       }
+      boletins_medicao: {
+        Row: {
+          ano: number
+          cliente_id: string | null
+          cliente_nome: string | null
+          contrato_numero: string | null
+          created_at: string
+          data_emissao: string | null
+          data_envio: string | null
+          enviado_cliente: boolean
+          frentes: Json
+          id: string
+          numero: number | null
+          objeto: string | null
+          obra: string | null
+          observacoes: string | null
+          processo_numero: string | null
+          responsavel_tecnico: string | null
+          status: string
+          updated_at: string
+          valor_total_contrato: number
+        }
+        Insert: {
+          ano?: number
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          contrato_numero?: string | null
+          created_at?: string
+          data_emissao?: string | null
+          data_envio?: string | null
+          enviado_cliente?: boolean
+          frentes?: Json
+          id?: string
+          numero?: number | null
+          objeto?: string | null
+          obra?: string | null
+          observacoes?: string | null
+          processo_numero?: string | null
+          responsavel_tecnico?: string | null
+          status?: string
+          updated_at?: string
+          valor_total_contrato?: number
+        }
+        Update: {
+          ano?: number
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          contrato_numero?: string | null
+          created_at?: string
+          data_emissao?: string | null
+          data_envio?: string | null
+          enviado_cliente?: boolean
+          frentes?: Json
+          id?: string
+          numero?: number | null
+          objeto?: string | null
+          obra?: string | null
+          observacoes?: string | null
+          processo_numero?: string | null
+          responsavel_tecnico?: string | null
+          status?: string
+          updated_at?: string
+          valor_total_contrato?: number
+        }
+        Relationships: []
+      }
       cargos: {
         Row: {
           anexos: Json | null
