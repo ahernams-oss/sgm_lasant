@@ -214,6 +214,80 @@ export default function OrdensServicoPage() {
   const [cancelStep, setCancelStep] = useState<1 | 2 | 3>(1);
   const [cancelSenha, setCancelSenha] = useState("");
   const [cancelLoading, setCancelLoading] = useState(false);
+  // ===== Reverter OS Validada para status anterior (dupla senha + justificativa) =====
+  const [revertOS, setRevertOS] = useState<OrdemServico | null>(null);
+  const [revertStep, setRevertStep] = useState<1 | 2>(1);
+  const [revertMotivo, setRevertMotivo] = useState("");
+  const [revertSenha, setRevertSenha] = useState("");
+  const [revertEmail2, setRevertEmail2] = useState("");
+  const [revertSenha2, setRevertSenha2] = useState("");
+  const [revertLoading, setRevertLoading] = useState(false);
+
+  const statusAnteriorDe = (os: OrdemServico): string => {
+    const hist = (os.historico || []) as any[];
+    const idx = [...hist].map(h => h?.situacao).lastIndexOf("Validada");
+    for (let i = (idx > 0 ? idx - 1 : hist.length - 1); i >= 0; i--) {
+      const s = hist[i]?.situacao;
+      if (s && s !== "Validada") return s;
+    }
+    return "Concluída";
+  };
+
+  const closeRevertDialog = () => {
+    setRevertOS(null);
+    setRevertStep(1);
+    setRevertMotivo("");
+    setRevertSenha("");
+    setRevertEmail2("");
+    setRevertSenha2("");
+    setRevertLoading(false);
+  };
+
+  const handleReverterValidada = async () => {
+    if (!revertOS) return;
+    const motivo = revertMotivo.trim();
+    if (motivo.length < 5) {
+      toast.error("Informe uma justificativa com pelo menos 5 caracteres.");
+      return;
+    }
+    if (!revertSenha) {
+      toast.error("Informe sua senha (solicitante).");
+      return;
+    }
+    const email2 = revertEmail2.trim().toLowerCase();
+    if (!email2 || !revertSenha2) {
+      toast.error("Informe e-mail e senha do usuário que dá ciência.");
+      return;
+    }
+    if (email2 === (usuarioLogado?.email || "").toLowerCase()) {
+      toast.error("A ciência deve ser de outro usuário, diferente do solicitante.");
+      return;
+    }
+    setRevertLoading(true);
+    try {
+      const ok1 = await verificarSenhaUsuario(usuarioLogado?.email || "", revertSenha);
+      if (!ok1) {
+        toast.error("Senha do solicitante inválida.");
+        return;
+      }
+      const ok2 = await verificarSenhaUsuario(email2, revertSenha2);
+      if (!ok2) {
+        toast.error("Credenciais do usuário de ciência inválidas.");
+        return;
+      }
+      const destino = statusAnteriorDe(revertOS);
+      const motivoCompleto = `Retorno de "Validada" para "${destino}". Justificativa: ${motivo} | Ciência: ${email2}`;
+      await updateOrdem(revertOS.id, {
+        situacao: destino,
+        historico: buildOSHistorico(destino, revertOS.historico || [], motivoCompleto),
+      });
+      toast.success(`OS retornada para "${destino}".`);
+      closeRevertDialog();
+    } finally {
+      setRevertLoading(false);
+    }
+  };
+
   const { categorias: categoriasServicos } = useCategoriasServicos();
   const { servicos: servicosCadastrados } = useServicos();
   const { scos } = useSco();
@@ -1396,6 +1470,14 @@ export default function OrdensServicoPage() {
                             <action.icon className="mr-2 h-4 w-4" /> {action.label}
                           </DropdownMenuItem>
                         ))}
+                        {podeWorkflowOS && os.situacao === "Validada" && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => { closeRevertDialog(); setRevertOS(os); }}>
+                              <RotateCcw className="mr-2 h-4 w-4" /> Retornar ao status anterior
+                            </DropdownMenuItem>
+                          </>
+                        )}
                         {podeStCanceladaOS && os.situacao !== "Cancelada" && (
                           <>
                             <DropdownMenuSeparator />
@@ -2533,6 +2615,93 @@ export default function OrdensServicoPage() {
       </Dialog>
 
 
+
+      {/* Dialog: Retornar OS Validada ao status anterior */}
+      <Dialog open={!!revertOS} onOpenChange={o => { if (!o) closeRevertDialog(); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5 text-primary" />
+              Retornar OS ao status anterior {revertStep === 1 ? "(1/2)" : "(2/2)"}
+            </DialogTitle>
+          </DialogHeader>
+
+          {revertOS && revertStep === 1 && (
+            <div className="space-y-3 py-2">
+              <p className="text-sm text-muted-foreground">
+                A OS <b>{formatNumeroAno(revertOS.numero, revertOS.createdAt)}</b> voltará de <b>Validada</b> para{" "}
+                <b>{statusAnteriorDe(revertOS)}</b>. Informe a justificativa — ela ficará registrada no histórico.
+              </p>
+              <div>
+                <Label>Justificativa *</Label>
+                <Textarea
+                  value={revertMotivo}
+                  onChange={e => setRevertMotivo(e.target.value)}
+                  placeholder="Descreva o motivo do retorno de status..."
+                  rows={4}
+                />
+              </div>
+            </div>
+          )}
+
+          {revertOS && revertStep === 2 && (
+            <div className="space-y-4 py-2">
+              <div className="border rounded-md p-3 bg-muted/30 text-sm whitespace-pre-wrap">
+                <span className="text-xs font-semibold text-muted-foreground block mb-1">Justificativa informada:</span>
+                {revertMotivo.trim()}
+              </div>
+              <div className="space-y-2">
+                <Label>Senha do solicitante ({usuarioLogado?.email}) *</Label>
+                <Input
+                  type="password"
+                  value={revertSenha}
+                  onChange={e => setRevertSenha(e.target.value)}
+                  placeholder="Sua senha"
+                  autoComplete="current-password"
+                />
+              </div>
+              <div className="space-y-2 border-t pt-3">
+                <Label>Ciência de outro usuário — e-mail *</Label>
+                <Input
+                  type="email"
+                  value={revertEmail2}
+                  onChange={e => setRevertEmail2(e.target.value)}
+                  placeholder="email.do.usuario@empresa.com"
+                />
+                <Label>Ciência de outro usuário — senha *</Label>
+                <Input
+                  type="password"
+                  value={revertSenha2}
+                  onChange={e => setRevertSenha2(e.target.value)}
+                  placeholder="Senha do usuário que dá ciência"
+                  onKeyDown={e => { if (e.key === "Enter" && !revertLoading) handleReverterValidada(); }}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={closeRevertDialog}>Cancelar</Button>
+            {revertStep === 1 ? (
+              <Button
+                onClick={() => {
+                  if (revertMotivo.trim().length < 5) {
+                    toast.error("Informe uma justificativa com pelo menos 5 caracteres.");
+                    return;
+                  }
+                  setRevertStep(2);
+                }}
+              >
+                Continuar
+              </Button>
+            ) : (
+              <Button onClick={handleReverterValidada} disabled={revertLoading}>
+                {revertLoading ? "Validando..." : "Confirmar retorno"}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog: Justificativa para Não Aprovar */}
       <Dialog open={!!naoAprovarOS} onOpenChange={o => { if (!o) { setNaoAprovarOS(null); setNaoAprovarJustificativa(""); } }}>
