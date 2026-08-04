@@ -272,6 +272,10 @@ export default function BoletimMedicaoPage() {
                       <Button size="icon" variant="ghost" title="Baixar PDF" onClick={() => baixarPdf(b)}>
                         <FileDown className="h-4 w-4" />
                       </Button>
+                      <Button size="icon" variant="ghost" title="Exportar Excel" onClick={() => baixarExcel(b)}>
+                        <FileSpreadsheet className="h-4 w-4 text-green-700" />
+                      </Button>
+
                       <Button size="icon" variant="ghost" title="Marcar como enviado ao cliente" onClick={() => marcarEnviado(b)}>
                         <Send className={`h-4 w-4 ${b.enviado_cliente ? "text-green-600" : ""}`} />
                       </Button>
