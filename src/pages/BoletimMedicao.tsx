@@ -45,6 +45,7 @@ export default function BoletimMedicaoPage() {
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { obras } = useObras();
+  const { cronogramas } = useCronogramas();
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<BoletimMedicao | null>(null);
