@@ -170,6 +170,8 @@ import ContratosTerceirosPage from "./pages/ContratosTerceiros.tsx";
 import { BimProvider } from "@/contexts/BimContext";
 import { CronogramasProvider } from "@/contexts/CronogramasContext";
 import EventogramaPage from "./pages/Eventograma.tsx";
+import BoletimMedicaoPage from "./pages/BoletimMedicao.tsx";
+import { BoletinsMedicaoProvider } from "@/contexts/BoletinsMedicaoContext";
 import { EventogramasProvider } from "@/contexts/EventogramasContext";
 import { OrcamentosScoProvider } from "@/contexts/OrcamentosScoContext";
 import OrcamentosSco from "./pages/OrcamentosSco.tsx";
@@ -395,6 +397,7 @@ function ProtectedAppRoutes() {
         <Route path="/engenharia/rdo" element={<RotaProtegida perm="rdo"><RdoPage /></RotaProtegida>} />
         <Route path="/engenharia/cronograma" element={<RotaProtegida perm="cronograma"><CronogramaPage /></RotaProtegida>} />
         <Route path="/engenharia/eventograma" element={<RotaProtegida perm="eventograma"><EventogramaPage /></RotaProtegida>} />
+        <Route path="/engenharia/boletim-medicao" element={<RotaProtegida perm="medicoes"><BoletinsMedicaoProvider><BoletimMedicaoPage /></BoletinsMedicaoProvider></RotaProtegida>} />
         <Route path="/obras/bim" element={<RotaProtegida perm="bim"><BimPage /></RotaProtegida>} />
         <Route path="/engenharia/responsaveis-tecnicos" element={<RotaProtegida perm="responsaveis_tecnicos"><ResponsaveisTecnicosPage /></RotaProtegida>} />
         <Route path="/cadastros/responsaveis-tecnicos" element={<RotaProtegida perm="responsaveis_tecnicos"><ResponsaveisTecnicosPage /></RotaProtegida>} />
