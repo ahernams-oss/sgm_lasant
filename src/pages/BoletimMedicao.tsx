@@ -8,13 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, FileDown, Pencil, Send, Layers } from "lucide-react";
+import { Plus, Trash2, FileDown, Pencil, Send, Layers, FileSpreadsheet } from "lucide-react";
 import { useBoletinsMedicao, type BoletimMedicao, type BoletimMedicaoFrente } from "@/contexts/BoletinsMedicaoContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useObras } from "@/contexts/ObrasContext";
 import { useCronogramas } from "@/contexts/CronogramasContext";
 import { gerarPdfBoletimMedicao } from "@/lib/gerarPdfBoletimMedicao";
+import { downloadExcelBoletimMedicao } from "@/lib/gerarExcelBoletimMedicao";
+
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
 
@@ -203,6 +205,16 @@ export default function BoletimMedicaoPage() {
     }
   };
 
+  const baixarExcel = (b: BoletimMedicao) => {
+    try {
+      downloadExcelBoletimMedicao(b, empresa);
+    } catch (e) {
+      console.error(e);
+      toast.error("Erro ao gerar o Excel do boletim");
+    }
+  };
+
+
   const lista = useMemo(() => {
     const q = filtro.trim().toLowerCase();
     if (!q) return boletins;
@@ -272,6 +284,10 @@ export default function BoletimMedicaoPage() {
                       <Button size="icon" variant="ghost" title="Baixar PDF" onClick={() => baixarPdf(b)}>
                         <FileDown className="h-4 w-4" />
                       </Button>
+                      <Button size="icon" variant="ghost" title="Exportar Excel" onClick={() => baixarExcel(b)}>
+                        <FileSpreadsheet className="h-4 w-4 text-green-700" />
+                      </Button>
+
                       <Button size="icon" variant="ghost" title="Marcar como enviado ao cliente" onClick={() => marcarEnviado(b)}>
                         <Send className={`h-4 w-4 ${b.enviado_cliente ? "text-green-600" : ""}`} />
                       </Button>
