@@ -214,14 +214,16 @@ export default function OrdensServicoPage() {
   const [cancelStep, setCancelStep] = useState<1 | 2 | 3>(1);
   const [cancelSenha, setCancelSenha] = useState("");
   const [cancelLoading, setCancelLoading] = useState(false);
-  // ===== Reverter OS Validada para status anterior (dupla senha + justificativa) =====
+  // ===== Retorno de OS Validada: solicitação + ciência de outro usuário =====
   const [revertOS, setRevertOS] = useState<OrdemServico | null>(null);
   const [revertStep, setRevertStep] = useState<1 | 2>(1);
   const [revertMotivo, setRevertMotivo] = useState("");
   const [revertSenha, setRevertSenha] = useState("");
-  const [revertEmail2, setRevertEmail2] = useState("");
-  const [revertSenha2, setRevertSenha2] = useState("");
   const [revertLoading, setRevertLoading] = useState(false);
+  // Confirmação (ciência) por outro usuário
+  const [cienciaOS, setCienciaOS] = useState<OrdemServico | null>(null);
+  const [cienciaSenha, setCienciaSenha] = useState("");
+  const [cienciaLoading, setCienciaLoading] = useState(false);
 
   const statusAnteriorDe = (os: OrdemServico): string => {
     const hist = (os.historico || []) as any[];
@@ -238,12 +240,17 @@ export default function OrdensServicoPage() {
     setRevertStep(1);
     setRevertMotivo("");
     setRevertSenha("");
-    setRevertEmail2("");
-    setRevertSenha2("");
     setRevertLoading(false);
   };
 
-  const handleReverterValidada = async () => {
+  const closeCienciaDialog = () => {
+    setCienciaOS(null);
+    setCienciaSenha("");
+    setCienciaLoading(false);
+  };
+
+  // Etapa 1: solicitante registra o pedido de retorno (fica pendente de ciência)
+  const handleSolicitarRetorno = async () => {
     if (!revertOS) return;
     const motivo = revertMotivo.trim();
     if (motivo.length < 5) {
@@ -251,42 +258,82 @@ export default function OrdensServicoPage() {
       return;
     }
     if (!revertSenha) {
-      toast.error("Informe sua senha (solicitante).");
-      return;
-    }
-    const email2 = revertEmail2.trim().toLowerCase();
-    if (!email2 || !revertSenha2) {
-      toast.error("Informe e-mail e senha do usuário que dá ciência.");
-      return;
-    }
-    if (email2 === (usuarioLogado?.email || "").toLowerCase()) {
-      toast.error("A ciência deve ser de outro usuário, diferente do solicitante.");
+      toast.error("Informe sua senha.");
       return;
     }
     setRevertLoading(true);
     try {
-      const ok1 = await verificarSenhaUsuario(usuarioLogado?.email || "", revertSenha);
-      if (!ok1) {
-        toast.error("Senha do solicitante inválida.");
-        return;
-      }
-      const ok2 = await verificarSenhaUsuario(email2, revertSenha2);
-      if (!ok2) {
-        toast.error("Credenciais do usuário de ciência inválidas.");
+      const ok = await verificarSenhaUsuario(usuarioLogado?.email || "", revertSenha);
+      if (!ok) {
+        toast.error("Senha inválida.");
         return;
       }
       const destino = statusAnteriorDe(revertOS);
-      const motivoCompleto = `Retorno de "Validada" para "${destino}". Justificativa: ${motivo} | Ciência: ${email2}`;
+      const pendente = {
+        motivo,
+        destino,
+        origem: revertOS.situacao,
+        solicitanteId: usuarioLogado?.id || "",
+        solicitanteNome: usuarioLogado?.nome || "",
+        solicitanteEmail: usuarioLogado?.email || "",
+        data: new Date().toISOString(),
+      };
       await updateOrdem(revertOS.id, {
-        situacao: destino,
-        historico: buildOSHistorico(destino, revertOS.historico || [], motivoCompleto),
+        retorno_pendente: pendente,
+        historico: buildOSHistorico(
+          revertOS.situacao,
+          revertOS.historico || [],
+          `Solicitação de retorno para "${destino}" — aguardando ciência de outro usuário. Justificativa: ${motivo}`,
+        ),
       });
-      toast.success(`OS retornada para "${destino}".`);
+      toast.success("Solicitação registrada. Aguardando ciência de outro usuário.");
       closeRevertDialog();
     } finally {
       setRevertLoading(false);
     }
   };
+
+  // Etapa 2: outro usuário dá ciência e o retorno é efetivado
+  const handleConfirmarCiencia = async () => {
+    if (!cienciaOS) return;
+    const pend = cienciaOS.retornoPendente;
+    if (!pend) return;
+    if (pend.solicitanteId === usuarioLogado?.id) {
+      toast.error("A ciência deve ser dada por outro usuário, diferente do solicitante.");
+      return;
+    }
+    if (!cienciaSenha) {
+      toast.error("Informe sua senha para confirmar a ciência.");
+      return;
+    }
+    setCienciaLoading(true);
+    try {
+      const ok = await verificarSenhaUsuario(usuarioLogado?.email || "", cienciaSenha);
+      if (!ok) {
+        toast.error("Senha inválida.");
+        return;
+      }
+      const motivoCompleto = `Retorno de "${pend.origem}" para "${pend.destino}". Solicitante: ${pend.solicitanteNome} | Justificativa: ${pend.motivo} | Ciência: ${usuarioLogado?.nome} (${usuarioLogado?.email})`;
+      await updateOrdem(cienciaOS.id, {
+        situacao: pend.destino,
+        retorno_pendente: null,
+        historico: buildOSHistorico(pend.destino, cienciaOS.historico || [], motivoCompleto),
+      });
+      toast.success(`OS retornada para "${pend.destino}".`);
+      closeCienciaDialog();
+    } finally {
+      setCienciaLoading(false);
+    }
+  };
+
+  const cancelarSolicitacaoRetorno = async (os: OrdemServico) => {
+    await updateOrdem(os.id, {
+      retorno_pendente: null,
+      historico: buildOSHistorico(os.situacao, os.historico || [], "Solicitação de retorno de status cancelada."),
+    });
+    toast.success("Solicitação de retorno cancelada.");
+  };
+
 
   const { categorias: categoriasServicos } = useCategoriasServicos();
   const { servicos: servicosCadastrados } = useServicos();
