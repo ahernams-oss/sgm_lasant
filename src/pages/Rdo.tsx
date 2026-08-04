@@ -255,6 +255,11 @@ export default function RdoPage() {
   };
 
   const obrasDoCliente = useMemo(() => obrasList.filter((o) => o.cliente_id === (form.cliente_id || "")), [obrasList, form.cliente_id]);
+  const obraDoForm = useMemo(
+    () => obrasList.find((o) => o.id === form.obra_id) ||
+      obrasList.find((o) => o.cliente_id === form.cliente_id && (o.nome || "").toLowerCase().trim() === (form.obra || "").toLowerCase().trim()),
+    [obrasList, form.obra_id, form.cliente_id, form.obra],
+  );
 
   // Listas dinâmicas
   const addEfetivo = () => setForm((f) => ({ ...f, efetivo: [...(f.efetivo || []), { funcao: "", quantidade: 0, horas: 0 }] }));
@@ -627,6 +632,24 @@ export default function RdoPage() {
                     </Select>
                   )}
                 </div>
+                {obraDoForm && (
+                  <div className="col-span-2 grid grid-cols-3 gap-3 rounded-lg border bg-muted/40 p-3 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Contrato Nº</p>
+                      <p className="font-medium">{obraDoForm.contrato_numero || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Processo Nº</p>
+                      <p className="font-medium">{obraDoForm.processo_numero || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Valor Total do Contrato</p>
+                      <p className="font-medium">
+                        {(Number(obraDoForm.valor_total_contrato) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      </p>
+                    </div>
+                  </div>
+                )}
                 <div>
                   <Label>Responsável Técnico</Label>
                   <Select
@@ -911,6 +934,23 @@ export default function RdoPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div>
+                  <Label>Contrato Nº</Label>
+                  <Input value={obraForm.contrato_numero || ""} onChange={(e) => setObraForm({ ...obraForm, contrato_numero: e.target.value })} placeholder="Ex.: 123/2025" />
+                </div>
+                <div>
+                  <Label>Processo Nº</Label>
+                  <Input value={obraForm.processo_numero || ""} onChange={(e) => setObraForm({ ...obraForm, processo_numero: e.target.value })} placeholder="Ex.: 0001234/2025" />
+                </div>
+                <div>
+                  <Label>Valor Total do Contrato (R$)</Label>
+                  <Input
+                    type="number" step="0.01" min={0}
+                    value={obraForm.valor_total_contrato ?? 0}
+                    onChange={(e) => setObraForm({ ...obraForm, valor_total_contrato: Number(e.target.value) || 0 })}
+                  />
                 </div>
 
                 <div>

@@ -4845,6 +4845,7 @@ export type Database = {
         Row: {
           cliente_id: string
           cliente_nome: string
+          contrato_numero: string | null
           created_at: string
           data_inicio: string | null
           data_prevista_termino: string | null
@@ -4854,13 +4855,16 @@ export type Database = {
           nome: string
           numero: number
           observacoes: string | null
+          processo_numero: string | null
           responsavel: string | null
           status: string | null
           updated_at: string
+          valor_total_contrato: number | null
         }
         Insert: {
           cliente_id?: string
           cliente_nome?: string
+          contrato_numero?: string | null
           created_at?: string
           data_inicio?: string | null
           data_prevista_termino?: string | null
@@ -4870,13 +4874,16 @@ export type Database = {
           nome?: string
           numero?: number
           observacoes?: string | null
+          processo_numero?: string | null
           responsavel?: string | null
           status?: string | null
           updated_at?: string
+          valor_total_contrato?: number | null
         }
         Update: {
           cliente_id?: string
           cliente_nome?: string
+          contrato_numero?: string | null
           created_at?: string
           data_inicio?: string | null
           data_prevista_termino?: string | null
@@ -4886,9 +4893,11 @@ export type Database = {
           nome?: string
           numero?: number
           observacoes?: string | null
+          processo_numero?: string | null
           responsavel?: string | null
           status?: string | null
           updated_at?: string
+          valor_total_contrato?: number | null
         }
         Relationships: []
       }

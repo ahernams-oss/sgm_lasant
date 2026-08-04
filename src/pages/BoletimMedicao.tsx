@@ -84,6 +84,10 @@ export default function BoletimMedicaoPage() {
       if (objeto && !f.objeto) next.objeto = objeto;
       const resp = obra?.responsavel || crono?.responsavel || "";
       if (resp && !f.responsavel_tecnico) next.responsavel_tecnico = resp;
+      if ((obra as any)?.contrato_numero && !f.contrato_numero) next.contrato_numero = (obra as any).contrato_numero;
+      if ((obra as any)?.processo_numero && !f.processo_numero) next.processo_numero = (obra as any).processo_numero;
+      if (Number((obra as any)?.valor_total_contrato) && !Number(f.valor_total_contrato))
+        next.valor_total_contrato = Number((obra as any).valor_total_contrato);
 
       const atividades = crono?.atividades || [];
       if (atividades.length && !(f.frentes || []).length) {
@@ -100,7 +104,7 @@ export default function BoletimMedicaoPage() {
       const totalCrono =
         Number(crono?.valor_total) ||
         atividades.reduce((s, a) => s + (Number(a.valor_total) || 0), 0);
-      if (totalCrono && !Number(f.valor_total_contrato)) next.valor_total_contrato = totalCrono;
+      if (totalCrono && !Number(next.valor_total_contrato)) next.valor_total_contrato = totalCrono;
       return next;
     });
     if (obra || crono) toast.success("Dados da obra recuperados");
