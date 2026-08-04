@@ -149,6 +149,28 @@ export function OrdensServicoProvider({ children }: { children: ReactNode }) {
 
 export function useOrdensServico() {
   const ctx = useContext(OrdensServicoContext);
-  if (!ctx) throw new Error("useOrdensServico must be used within OrdensServicoProvider");
+  const warnedRef = useRef(false);
+
+  useEffect(() => {
+    if (!ctx && !warnedRef.current) {
+      warnedRef.current = true;
+      toast.error("Módulo indisponível", {
+        description:
+          "O provider de Ordens de Serviço não está ativo. Recarregue a página ou entre em contato com o suporte.",
+        duration: 6000,
+      });
+    }
+  }, [ctx]);
+
+  if (!ctx) {
+    return {
+      ordens: [],
+      addOrdem: async () => {},
+      updateOrdem: async () => {},
+      deleteOrdem: async () => {},
+      loading: false,
+    } as OrdensServicoContextType;
+  }
+
   return ctx;
 }
