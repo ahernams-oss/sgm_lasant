@@ -110,10 +110,36 @@ export default function BoletimMedicaoPage() {
     if (obra || crono) toast.success("Dados da obra recuperados");
   };
 
+  const cronogramaAtual = cronogramas.find(
+    (c) => c.cliente_id === form.cliente_id && (c.obra || "") === (form.obra || ""),
+  );
+  const atividadesCronograma = (cronogramaAtual?.atividades || [])
+    .slice()
+    .sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+
   const setFrentes = (fn: (fs: BoletimMedicaoFrente[]) => BoletimMedicaoFrente[]) =>
     setForm((f) => ({ ...f, frentes: fn(f.frentes || []) }));
 
+  const importarFrentesCronograma = () => {
+    if (!atividadesCronograma.length) { toast.error("Nenhuma atividade no cronograma desta obra"); return; }
+    setFrentes((fs) => {
+      const existentes = new Set(fs.map((f) => f.nome.trim().toLowerCase()));
+      const novas = atividadesCronograma
+        .filter((a) => !existentes.has((a.descricao || "").trim().toLowerCase()))
+        .map((a) => ({
+          id: crypto.randomUUID(),
+          nome: a.descricao,
+          valor_contrato: Number(a.valor_total) || 0,
+          medicoes: [],
+        }));
+      if (!novas.length) toast.info("Todas as atividades já estão nas frentes");
+      else toast.success(`${novas.length} frente(s) importada(s) do cronograma`);
+      return [...fs.filter((f) => f.nome.trim() || f.medicoes.length), ...novas];
+    });
+  };
+
   const addFrente = () => setFrentes((fs) => [...fs, novaFrente()]);
+
   const updFrente = (idx: number, patch: Partial<BoletimMedicaoFrente>) =>
     setFrentes((fs) => fs.map((f, i) => (i === idx ? { ...f, ...patch } : f)));
   const delFrente = (idx: number) => setFrentes((fs) => fs.filter((_, i) => i !== idx));
@@ -348,7 +374,13 @@ export default function BoletimMedicaoPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold flex items-center gap-2"><Layers className="h-4 w-4" />Frentes de Obra e Medições</h3>
-              <Button size="sm" variant="outline" onClick={addFrente}><Plus className="h-4 w-4 mr-1" />Adicionar Frente</Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="secondary" onClick={importarFrentesCronograma} disabled={!atividadesCronograma.length}>
+                  <Layers className="h-4 w-4 mr-1" />Importar do Cronograma
+                </Button>
+                <Button size="sm" variant="outline" onClick={addFrente}><Plus className="h-4 w-4 mr-1" />Adicionar Frente</Button>
+              </div>
+
             </div>
 
             {(form.frentes || []).map((fr, fi) => {
@@ -360,8 +392,23 @@ export default function BoletimMedicaoPage() {
                     <div className="grid grid-cols-1 md:grid-cols-[1fr_200px_auto] gap-3 items-end">
                       <div>
                         <Label>Frente / Obra</Label>
-                        <Input value={fr.nome} onChange={(e) => updFrente(fi, { nome: e.target.value })} placeholder="Ex.: Impermeabilização Cobertura" />
+                        <Input
+                          list="atividades-cronograma"
+                          value={fr.nome}
+                          onChange={(e) => {
+                            const nome = e.target.value;
+                            const at = atividadesCronograma.find((a) => a.descricao === nome);
+                            updFrente(fi, at && !Number(fr.valor_contrato)
+                              ? { nome, valor_contrato: Number(at.valor_total) || 0 }
+                              : { nome });
+                          }}
+                          placeholder="Ex.: Impermeabilização Cobertura"
+                        />
+                        <datalist id="atividades-cronograma">
+                          {atividadesCronograma.map((a) => <option key={a.id} value={a.descricao} />)}
+                        </datalist>
                       </div>
+
                       <div>
                         <Label>Valor do Contrato (R$)</Label>
                         <Input
