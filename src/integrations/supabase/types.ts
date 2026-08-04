@@ -5072,6 +5072,7 @@ export type Database = {
           profissionais: Json | null
           ramal: string | null
           ressalva_aprovacao: string | null
+          retorno_pendente: Json | null
           servico: string | null
           setor_descricao: string | null
           setor_id: string | null
@@ -5120,6 +5121,7 @@ export type Database = {
           profissionais?: Json | null
           ramal?: string | null
           ressalva_aprovacao?: string | null
+          retorno_pendente?: Json | null
           servico?: string | null
           setor_descricao?: string | null
           setor_id?: string | null
@@ -5168,6 +5170,7 @@ export type Database = {
           profissionais?: Json | null
           ramal?: string | null
           ressalva_aprovacao?: string | null
+          retorno_pendente?: Json | null
           servico?: string | null
           setor_descricao?: string | null
           setor_id?: string | null
