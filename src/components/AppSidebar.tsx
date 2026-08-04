@@ -124,6 +124,7 @@ const menuItems = [
   {
     group: "Obras",
     items: [
+      { title: "Dashboard Medições", url: "/engenharia/dashboard-medicoes", icon: BarChart3, perm: "dashboard_medicoes" },
       { title: "RDO - Diário de Obras", url: "/engenharia/rdo", icon: FileSpreadsheet, perm: "rdo" },
       { title: "Cronograma Físico-Financeiro", url: "/engenharia/cronograma", icon: CalendarClock, perm: "cronograma" },
       { title: "Eventograma", url: "/engenharia/eventograma", icon: GanttChartSquare, perm: "eventograma" },
