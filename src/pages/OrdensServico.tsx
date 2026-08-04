@@ -1517,14 +1517,29 @@ export default function OrdensServicoPage() {
                             <action.icon className="mr-2 h-4 w-4" /> {action.label}
                           </DropdownMenuItem>
                         ))}
-                        {podeWorkflowOS && os.situacao === "Validada" && (
+                        {podeWorkflowOS && os.situacao === "Validada" && !os.retornoPendente && (
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => { closeRevertDialog(); setRevertOS(os); }}>
-                              <RotateCcw className="mr-2 h-4 w-4" /> Retornar ao status anterior
+                              <RotateCcw className="mr-2 h-4 w-4" /> Solicitar retorno ao status anterior
                             </DropdownMenuItem>
                           </>
                         )}
+                        {podeWorkflowOS && os.retornoPendente && (
+                          <>
+                            <DropdownMenuSeparator />
+                            {os.retornoPendente.solicitanteId !== usuarioLogado?.id ? (
+                              <DropdownMenuItem onClick={() => { closeCienciaDialog(); setCienciaOS(os); }} className="text-amber-600">
+                                <RotateCcw className="mr-2 h-4 w-4" /> Dar ciência e confirmar retorno
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => cancelarSolicitacaoRetorno(os)}>
+                                <Ban className="mr-2 h-4 w-4" /> Cancelar solicitação de retorno
+                              </DropdownMenuItem>
+                            )}
+                          </>
+                        )}
+
                         {podeStCanceladaOS && os.situacao !== "Cancelada" && (
                           <>
                             <DropdownMenuSeparator />
