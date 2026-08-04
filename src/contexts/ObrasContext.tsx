@@ -15,6 +15,9 @@ export interface Obra {
   data_inicio?: string | null;
   data_prevista_termino?: string | null;
   status?: string;
+  contrato_numero?: string;
+  processo_numero?: string;
+  valor_total_contrato?: number;
   observacoes?: string;
   created_at?: string;
   updated_at?: string;
