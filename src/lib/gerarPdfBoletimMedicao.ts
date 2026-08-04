@@ -223,7 +223,10 @@ export async function gerarPdfBoletimMedicao(boletim: BoletimMedicao, empresa?: 
     doc.setPage(i);
     doc.setFontSize(7);
     doc.setTextColor(110, 110, 110);
-    const rodape = [empresa?.site, empresa?.endereco, empresa?.email].filter(Boolean).join("  |  ");
+    const enderecoEmpresa = [empresa?.logradouro, empresa?.numero, empresa?.bairro, empresa?.cidade, empresa?.uf]
+      .filter(Boolean)
+      .join(", ");
+    const rodape = [empresa?.site, enderecoEmpresa, empresa?.email].filter(Boolean).join("  |  ");
     if (rodape) doc.text(rodape, pw / 2, ph - 10, { align: "center" });
     doc.text(`Página ${i} de ${pages}`, pw - ml, ph - 10, { align: "right" });
   }
