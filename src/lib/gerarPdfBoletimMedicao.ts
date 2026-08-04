@@ -39,7 +39,6 @@ interface Bloco {
 
 function montarBlocos(boletim: BoletimMedicao): Bloco[] {
   const frentes: BoletimMedicaoFrente[] = boletim.frentes || [];
-  const minLinhas = 6;
 
   const blocos: Bloco[] = frentes.map((f) => {
     const meds = [...(f.medicoes || [])].sort((a, b) => (a.numero || 0) - (b.numero || 0));
@@ -48,40 +47,34 @@ function montarBlocos(boletim: BoletimMedicao): Bloco[] {
       periodo: m.periodo_inicio || m.periodo_fim ? `${fmtDate(m.periodo_inicio)} A ${fmtDate(m.periodo_fim)}` : "",
       valor: Number(m.valor) || 0,
     }));
-    for (let i = linhas.length; i < minLinhas; i++) {
-      linhas.push({ label: ordinal(i + 1), periodo: "", valor: null });
-    }
     return { titulo: `Obra: ${f.nome || "-"}`, linhas, valorContrato: Number(f.valor_contrato) || 0 };
   });
 
-  // Sintético
-  const maxMed = Math.max(
-    minLinhas,
-    ...frentes.map((f) => (f.medicoes || []).reduce((mx, m) => Math.max(mx, Number(m.numero) || 0), 0)),
-  );
-  const sintLinhas: Bloco["linhas"] = [];
-  for (let n = 1; n <= maxMed; n++) {
+  // Sintético — apenas medições efetivamente lançadas
+  const numeros = Array.from(
+    new Set(frentes.flatMap((f) => (f.medicoes || []).map((m) => Number(m.numero) || 0))),
+  ).sort((a, b) => a - b);
+  const sintLinhas: Bloco["linhas"] = numeros.map((n) => {
     let soma = 0;
-    let algum = false;
     let periodo = "";
     frentes.forEach((f) => {
       const m = (f.medicoes || []).find((x) => Number(x.numero) === n);
       if (m) {
-        algum = true;
         soma += Number(m.valor) || 0;
         if (!periodo && (m.periodo_inicio || m.periodo_fim)) {
           periodo = `${fmtDate(m.periodo_inicio)} A ${fmtDate(m.periodo_fim)}`;
         }
       }
     });
-    sintLinhas.push({ label: ordinal(n), periodo, valor: algum ? soma : null });
-  }
+    return { label: ordinal(n), periodo, valor: soma };
+  });
   const totalContrato =
     Number(boletim.valor_total_contrato) || frentes.reduce((s, f) => s + (Number(f.valor_contrato) || 0), 0);
 
   blocos.push({ titulo: "SINTÉTICO", linhas: sintLinhas, valorContrato: totalContrato, destaque: true });
   return blocos;
 }
+
 
 function desenharBloco(doc: jsPDF, bloco: Bloco, startY: number, ml: number, cw: number): number {
   const faturado = bloco.linhas.reduce((s, l) => s + (l.valor || 0), 0);
