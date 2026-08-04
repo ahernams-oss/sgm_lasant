@@ -482,12 +482,12 @@ export default function CategoriasCompras() {
           <DialogHeader><DialogTitle>{editSubId ? "Editar" : "Novo"} SubGrupo</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div><Label>Grupo *</Label>
-              <Select value={subForm.grupoId} onValueChange={v => setSubForm(f => ({ ...f, grupoId: v }))}>
+              <Select value={subForm.grupoId} onValueChange={v => setSubForm(f => ({ ...f, grupoId: v, codigo: editSubId ? f.codigo : nextSubCodigo(v) }))}>
                 <SelectTrigger><SelectValue placeholder="Selecione o grupo" /></SelectTrigger>
                 <SelectContent>{grupos.map(g => <SelectItem key={g.id} value={g.id}>{g.codigo} - {g.nome}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div><Label>Código *</Label><Input placeholder="Ex: 001" value={subForm.codigo} onChange={e => setSubForm(f => ({ ...f, codigo: e.target.value }))} /></div>
+            <div><Label>Código</Label><Input value={subForm.codigo} readOnly disabled className="font-mono" /><p className="text-xs text-muted-foreground mt-1">Gerado automaticamente</p></div>
             <div><Label>Nome *</Label><Input placeholder="Ex: Fios" value={subForm.nome} onChange={e => setSubForm(f => ({ ...f, nome: e.target.value }))} /></div>
           </div>
           <DialogFooter><Button onClick={saveSub}>Salvar</Button></DialogFooter>
