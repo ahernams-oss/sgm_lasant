@@ -27,8 +27,11 @@ export function downloadExcelHistoricoMedicao(med: MedicaoServico) {
   wsResumo["!cols"] = [{ wch: 20 }, { wch: 30 }];
   XLSX.utils.book_append_sheet(wb, wsResumo, "Resumo");
 
+  const fornecedor = (med as any).fornecedor_nome || "";
+
   // Itens
   const itensData: any[][] = [
+    [`Fornecedor: ${fornecedor}`],
     ["Item", "Unidade", "Qtd Contratada", "Valor Unitário", "Valor Total"],
     ...(med.itens || []).map((item) => [
       item.descricao,
