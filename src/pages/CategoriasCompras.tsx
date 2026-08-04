@@ -99,6 +99,10 @@ export default function CategoriasCompras() {
   const [classeDialog, setClasseDialog] = useState(false);
   const [editClasseId, setEditClasseId] = useState<string | null>(null);
   const [classeForm, setClasseForm] = useState({ subGrupoId: "", codigo: "", nome: "" });
+  const subGrupoOptions = useMemo<SubGrupoOption[]>(() => subGrupos.map(s => {
+    const g = grupos.find(gr => gr.id === s.grupoId);
+    return { id: s.id, codigo: s.codigo, nome: s.nome, grupoCodigo: g?.codigo ?? "", grupoNome: g?.nome ?? "" };
+  }).sort((a, b) => `${a.grupoCodigo}.${a.codigo}`.localeCompare(`${b.grupoCodigo}.${b.codigo}`)), [subGrupos, grupos]);
 
   // Filter
   const [filterGrupoId, setFilterGrupoId] = useState<string>("all");
