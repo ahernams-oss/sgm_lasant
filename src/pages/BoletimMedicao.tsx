@@ -237,13 +237,13 @@ export default function BoletimMedicaoPage() {
                 value={form.cliente_id || ""}
                 onValueChange={(v) => {
                   const c = apenasClientes.find((x: any) => x.id === v);
-                  setForm((f) => ({ ...f, cliente_id: v, cliente_nome: c?.nome || c?.razaoSocial || "" }));
+                  setForm((f) => ({ ...f, cliente_id: v, cliente_nome: c?.nome || "" }));
                 }}
               >
                 <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
                 <SelectContent>
                   {apenasClientes.map((c: any) => (
-                    <SelectItem key={c.id} value={c.id}>{c.nome || c.razaoSocial}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -432,9 +432,9 @@ export default function BoletimMedicaoPage() {
 
       <DoubleConfirmDelete
         open={!!deleteId}
-        onCancel={cancelDelete}
+        onOpenChange={(v) => { if (!v) cancelDelete(); }}
         onConfirm={async () => { if (deleteId) { await deleteBoletim(deleteId); cancelDelete(); } }}
-        itemName="boletim de medição"
+        title="Excluir Boletim de Medição"
       />
     </div>
   );
