@@ -1470,6 +1470,14 @@ export default function OrdensServicoPage() {
                             <action.icon className="mr-2 h-4 w-4" /> {action.label}
                           </DropdownMenuItem>
                         ))}
+                        {podeWorkflowOS && os.situacao === "Validada" && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => { closeRevertDialog(); setRevertOS(os); }}>
+                              <RotateCcw className="mr-2 h-4 w-4" /> Retornar ao status anterior
+                            </DropdownMenuItem>
+                          </>
+                        )}
                         {podeStCanceladaOS && os.situacao !== "Cancelada" && (
                           <>
                             <DropdownMenuSeparator />
