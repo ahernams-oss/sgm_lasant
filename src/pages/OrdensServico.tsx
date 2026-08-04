@@ -214,6 +214,80 @@ export default function OrdensServicoPage() {
   const [cancelStep, setCancelStep] = useState<1 | 2 | 3>(1);
   const [cancelSenha, setCancelSenha] = useState("");
   const [cancelLoading, setCancelLoading] = useState(false);
+  // ===== Reverter OS Validada para status anterior (dupla senha + justificativa) =====
+  const [revertOS, setRevertOS] = useState<OrdemServico | null>(null);
+  const [revertStep, setRevertStep] = useState<1 | 2>(1);
+  const [revertMotivo, setRevertMotivo] = useState("");
+  const [revertSenha, setRevertSenha] = useState("");
+  const [revertEmail2, setRevertEmail2] = useState("");
+  const [revertSenha2, setRevertSenha2] = useState("");
+  const [revertLoading, setRevertLoading] = useState(false);
+
+  const statusAnteriorDe = (os: OrdemServico): string => {
+    const hist = (os.historico || []) as any[];
+    const idx = [...hist].map(h => h?.situacao).lastIndexOf("Validada");
+    for (let i = (idx > 0 ? idx - 1 : hist.length - 1); i >= 0; i--) {
+      const s = hist[i]?.situacao;
+      if (s && s !== "Validada") return s;
+    }
+    return "Concluída";
+  };
+
+  const closeRevertDialog = () => {
+    setRevertOS(null);
+    setRevertStep(1);
+    setRevertMotivo("");
+    setRevertSenha("");
+    setRevertEmail2("");
+    setRevertSenha2("");
+    setRevertLoading(false);
+  };
+
+  const handleReverterValidada = async () => {
+    if (!revertOS) return;
+    const motivo = revertMotivo.trim();
+    if (motivo.length < 5) {
+      toast.error("Informe uma justificativa com pelo menos 5 caracteres.");
+      return;
+    }
+    if (!revertSenha) {
+      toast.error("Informe sua senha (solicitante).");
+      return;
+    }
+    const email2 = revertEmail2.trim().toLowerCase();
+    if (!email2 || !revertSenha2) {
+      toast.error("Informe e-mail e senha do usuário que dá ciência.");
+      return;
+    }
+    if (email2 === (usuarioLogado?.email || "").toLowerCase()) {
+      toast.error("A ciência deve ser de outro usuário, diferente do solicitante.");
+      return;
+    }
+    setRevertLoading(true);
+    try {
+      const ok1 = await verificarSenhaUsuario(usuarioLogado?.email || "", revertSenha);
+      if (!ok1) {
+        toast.error("Senha do solicitante inválida.");
+        return;
+      }
+      const ok2 = await verificarSenhaUsuario(email2, revertSenha2);
+      if (!ok2) {
+        toast.error("Credenciais do usuário de ciência inválidas.");
+        return;
+      }
+      const destino = statusAnteriorDe(revertOS);
+      const motivoCompleto = `Retorno de "Validada" para "${destino}". Justificativa: ${motivo} | Ciência: ${email2}`;
+      await updateOrdem(revertOS.id, {
+        situacao: destino,
+        historico: buildOSHistorico(destino, revertOS.historico || [], motivoCompleto),
+      });
+      toast.success(`OS retornada para "${destino}".`);
+      closeRevertDialog();
+    } finally {
+      setRevertLoading(false);
+    }
+  };
+
   const { categorias: categoriasServicos } = useCategoriasServicos();
   const { servicos: servicosCadastrados } = useServicos();
   const { scos } = useSco();
