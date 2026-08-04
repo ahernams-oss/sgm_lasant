@@ -503,15 +503,11 @@ export default function CategoriasCompras() {
           <DialogHeader><DialogTitle>{editClasseId ? "Editar" : "Nova"} Classe</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div><Label>SubGrupo *</Label>
-              <Select value={classeForm.subGrupoId} onValueChange={v => setClasseForm(f => ({ ...f, subGrupoId: v }))}>
-                <SelectTrigger><SelectValue placeholder="Selecione o subgrupo" /></SelectTrigger>
-                <SelectContent>
-                  {subGrupos.map(s => {
-                    const g = grupos.find(g => g.id === s.grupoId);
-                    return <SelectItem key={s.id} value={s.id}>{g?.codigo}.{s.codigo} - {s.nome}</SelectItem>;
-                  })}
-                </SelectContent>
-              </Select>
+              <SubGrupoCombobox
+                value={classeForm.subGrupoId}
+                onChange={v => setClasseForm(f => ({ ...f, subGrupoId: v }))}
+                options={subGrupoOptions}
+              />
             </div>
             <div><Label>Código *</Label><Input placeholder="Ex: 002" value={classeForm.codigo} onChange={e => setClasseForm(f => ({ ...f, codigo: e.target.value }))} /></div>
             <div><Label>Nome *</Label><Input placeholder="Ex: Fio Cabinho" value={classeForm.nome} onChange={e => setClasseForm(f => ({ ...f, nome: e.target.value }))} /></div>
