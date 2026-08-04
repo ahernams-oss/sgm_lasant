@@ -374,7 +374,13 @@ export default function BoletimMedicaoPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold flex items-center gap-2"><Layers className="h-4 w-4" />Frentes de Obra e Medições</h3>
-              <Button size="sm" variant="outline" onClick={addFrente}><Plus className="h-4 w-4 mr-1" />Adicionar Frente</Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="secondary" onClick={importarFrentesCronograma} disabled={!atividadesCronograma.length}>
+                  <Layers className="h-4 w-4 mr-1" />Importar do Cronograma
+                </Button>
+                <Button size="sm" variant="outline" onClick={addFrente}><Plus className="h-4 w-4 mr-1" />Adicionar Frente</Button>
+              </div>
+
             </div>
 
             {(form.frentes || []).map((fr, fi) => {
