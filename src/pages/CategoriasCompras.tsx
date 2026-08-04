@@ -142,8 +142,15 @@ export default function CategoriasCompras() {
     return list;
   }, [subGrupos, search, filterGrupoId]);
 
-  const openNewSub = () => { setSubForm({ grupoId: grupos[0]?.id || "", codigo: "", nome: "" }); setEditSubId(null); setSubDialog(true); };
+  const nextSubCodigo = (grupoId: string) => {
+    const max = subGrupos
+      .filter(s => s.grupoId === grupoId)
+      .reduce((acc, s) => Math.max(acc, parseInt(String(s.codigo).replace(/\D/g, ""), 10) || 0), 0);
+    return String(max + 1).padStart(3, "0");
+  };
+  const openNewSub = () => { const gid = grupos[0]?.id || ""; setSubForm({ grupoId: gid, codigo: gid ? nextSubCodigo(gid) : "", nome: "" }); setEditSubId(null); setSubDialog(true); };
   const openEditSub = (s: typeof subGrupos[0]) => { setSubForm({ grupoId: s.grupoId, codigo: s.codigo, nome: s.nome }); setEditSubId(s.id); setSubDialog(true); };
+
   const persistSub = () => {
     if (editSubId) { if (!guard(podeEditar)) return; updateSubGrupo(editSubId, subForm); toast({ title: "SubGrupo atualizado" }); }
     else { if (!guard(podeCriar)) return; addSubGrupo(subForm); toast({ title: "SubGrupo criado" }); }
