@@ -2663,13 +2663,13 @@ export default function OrdensServicoPage() {
 
 
 
-      {/* Dialog: Retornar OS Validada ao status anterior */}
+      {/* Dialog: Solicitar retorno da OS ao status anterior */}
       <Dialog open={!!revertOS} onOpenChange={o => { if (!o) closeRevertDialog(); }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <RotateCcw className="h-5 w-5 text-primary" />
-              Retornar OS ao status anterior {revertStep === 1 ? "(1/2)" : "(2/2)"}
+              Solicitar retorno da OS ao status anterior {revertStep === 1 ? "(1/2)" : "(2/2)"}
             </DialogTitle>
           </DialogHeader>
 
@@ -2677,7 +2677,8 @@ export default function OrdensServicoPage() {
             <div className="space-y-3 py-2">
               <p className="text-sm text-muted-foreground">
                 A OS <b>{formatNumeroAno(revertOS.numero, revertOS.createdAt)}</b> voltará de <b>Validada</b> para{" "}
-                <b>{statusAnteriorDe(revertOS)}</b>. Informe a justificativa — ela ficará registrada no histórico.
+                <b>{statusAnteriorDe(revertOS)}</b> somente após a ciência de outro usuário. Informe a justificativa —
+                ela ficará registrada no histórico.
               </p>
               <div>
                 <Label>Justificativa *</Label>
@@ -2705,25 +2706,12 @@ export default function OrdensServicoPage() {
                   onChange={e => setRevertSenha(e.target.value)}
                   placeholder="Sua senha"
                   autoComplete="current-password"
+                  onKeyDown={e => { if (e.key === "Enter" && !revertLoading) handleSolicitarRetorno(); }}
                 />
               </div>
-              <div className="space-y-2 border-t pt-3">
-                <Label>Ciência de outro usuário *</Label>
-                <Input
-                  type="email"
-                  value={revertEmail2}
-                  onChange={e => setRevertEmail2(e.target.value)}
-                  placeholder="email.do.usuario@empresa.com"
-                />
-                <Input
-                  type="password"
-                  value={revertSenha2}
-                  onChange={e => setRevertSenha2(e.target.value)}
-                  placeholder="Senha do usuário que dá ciência"
-                  onKeyDown={e => { if (e.key === "Enter" && !revertLoading) handleReverterValidada(); }}
-                />
-              </div>
-
+              <p className="text-xs text-muted-foreground">
+                Após confirmar, a OS ficará marcada na grid com um ícone de pendência até que outro usuário registre a ciência.
+              </p>
             </div>
           )}
 
@@ -2742,13 +2730,63 @@ export default function OrdensServicoPage() {
                 Continuar
               </Button>
             ) : (
-              <Button onClick={handleReverterValidada} disabled={revertLoading}>
-                {revertLoading ? "Validando..." : "Confirmar retorno"}
+              <Button onClick={handleSolicitarRetorno} disabled={revertLoading}>
+                {revertLoading ? "Validando..." : "Registrar solicitação"}
               </Button>
             )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog: Ciência de outro usuário para efetivar o retorno */}
+      <Dialog open={!!cienciaOS} onOpenChange={o => { if (!o) closeCienciaDialog(); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5 text-amber-600" />
+              Confirmar retorno de status (ciência)
+            </DialogTitle>
+          </DialogHeader>
+
+          {cienciaOS?.retornoPendente && (
+            <div className="space-y-4 py-2">
+              <div className="border rounded-md p-3 bg-muted/30 text-sm space-y-1">
+                <div>
+                  OS <b>{formatNumeroAno(cienciaOS.numero, cienciaOS.createdAt)}</b> — retorno de{" "}
+                  <b>{cienciaOS.retornoPendente.origem}</b> para <b>{cienciaOS.retornoPendente.destino}</b>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Solicitado por {cienciaOS.retornoPendente.solicitanteNome} em{" "}
+                  {new Date(cienciaOS.retornoPendente.data).toLocaleString("pt-BR")}
+                </div>
+                <div className="pt-1 whitespace-pre-wrap">
+                  <span className="text-xs font-semibold text-muted-foreground block">Justificativa:</span>
+                  {cienciaOS.retornoPendente.motivo}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Sua senha ({usuarioLogado?.email}) *</Label>
+                <Input
+                  type="password"
+                  value={cienciaSenha}
+                  onChange={e => setCienciaSenha(e.target.value)}
+                  placeholder="Senha para dar ciência"
+                  autoComplete="current-password"
+                  onKeyDown={e => { if (e.key === "Enter" && !cienciaLoading) handleConfirmarCiencia(); }}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={closeCienciaDialog}>Cancelar</Button>
+            <Button onClick={handleConfirmarCiencia} disabled={cienciaLoading}>
+              {cienciaLoading ? "Validando..." : "Dar ciência e retornar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Dialog: Justificativa para Não Aprovar */}
       <Dialog open={!!naoAprovarOS} onOpenChange={o => { if (!o) { setNaoAprovarOS(null); setNaoAprovarJustificativa(""); } }}>
