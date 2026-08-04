@@ -255,6 +255,11 @@ export default function RdoPage() {
   };
 
   const obrasDoCliente = useMemo(() => obrasList.filter((o) => o.cliente_id === (form.cliente_id || "")), [obrasList, form.cliente_id]);
+  const obraDoForm = useMemo(
+    () => obrasList.find((o) => o.id === form.obra_id) ||
+      obrasList.find((o) => o.cliente_id === form.cliente_id && (o.nome || "").toLowerCase().trim() === (form.obra || "").toLowerCase().trim()),
+    [obrasList, form.obra_id, form.cliente_id, form.obra],
+  );
 
   // Listas dinâmicas
   const addEfetivo = () => setForm((f) => ({ ...f, efetivo: [...(f.efetivo || []), { funcao: "", quantidade: 0, horas: 0 }] }));
