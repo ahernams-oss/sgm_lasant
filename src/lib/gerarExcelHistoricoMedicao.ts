@@ -47,6 +47,7 @@ export function downloadExcelHistoricoMedicao(med: MedicaoServico) {
 
   // Histórico
   const histData: any[][] = [
+    [`Fornecedor: ${fornecedor}`],
     ["#", "Data", "Tipo", "Valor", "%", "Status", "Observação"],
     ...(med.medicoes || []).map((l) => [
       l.numero,
