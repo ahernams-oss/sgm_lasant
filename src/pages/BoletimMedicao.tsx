@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, FileDown, Pencil, Send, Layers } from "lucide-react";
+import { Plus, Trash2, FileDown, Pencil, Send, Layers, FileSpreadsheet } from "lucide-react";
 import { useBoletinsMedicao, type BoletimMedicao, type BoletimMedicaoFrente } from "@/contexts/BoletinsMedicaoContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
