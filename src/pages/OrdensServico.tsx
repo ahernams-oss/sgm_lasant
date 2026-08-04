@@ -2661,14 +2661,13 @@ export default function OrdensServicoPage() {
                 />
               </div>
               <div className="space-y-2 border-t pt-3">
-                <Label>Ciência de outro usuário — e-mail *</Label>
+                <Label>Ciência de outro usuário *</Label>
                 <Input
                   type="email"
                   value={revertEmail2}
                   onChange={e => setRevertEmail2(e.target.value)}
                   placeholder="email.do.usuario@empresa.com"
                 />
-                <Label>Ciência de outro usuário — senha *</Label>
                 <Input
                   type="password"
                   value={revertSenha2}
@@ -2677,6 +2676,7 @@ export default function OrdensServicoPage() {
                   onKeyDown={e => { if (e.key === "Enter" && !revertLoading) handleReverterValidada(); }}
                 />
               </div>
+
             </div>
           )}
 
