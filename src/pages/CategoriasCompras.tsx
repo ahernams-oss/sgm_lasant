@@ -142,8 +142,15 @@ export default function CategoriasCompras() {
     return list;
   }, [subGrupos, search, filterGrupoId]);
 
-  const openNewSub = () => { setSubForm({ grupoId: grupos[0]?.id || "", codigo: "", nome: "" }); setEditSubId(null); setSubDialog(true); };
+  const nextSubCodigo = (grupoId: string) => {
+    const max = subGrupos
+      .filter(s => s.grupoId === grupoId)
+      .reduce((acc, s) => Math.max(acc, parseInt(String(s.codigo).replace(/\D/g, ""), 10) || 0), 0);
+    return String(max + 1).padStart(3, "0");
+  };
+  const openNewSub = () => { const gid = grupos[0]?.id || ""; setSubForm({ grupoId: gid, codigo: gid ? nextSubCodigo(gid) : "", nome: "" }); setEditSubId(null); setSubDialog(true); };
   const openEditSub = (s: typeof subGrupos[0]) => { setSubForm({ grupoId: s.grupoId, codigo: s.codigo, nome: s.nome }); setEditSubId(s.id); setSubDialog(true); };
+
   const persistSub = () => {
     if (editSubId) { if (!guard(podeEditar)) return; updateSubGrupo(editSubId, subForm); toast({ title: "SubGrupo atualizado" }); }
     else { if (!guard(podeCriar)) return; addSubGrupo(subForm); toast({ title: "SubGrupo criado" }); }
@@ -475,12 +482,12 @@ export default function CategoriasCompras() {
           <DialogHeader><DialogTitle>{editSubId ? "Editar" : "Novo"} SubGrupo</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div><Label>Grupo *</Label>
-              <Select value={subForm.grupoId} onValueChange={v => setSubForm(f => ({ ...f, grupoId: v }))}>
+              <Select value={subForm.grupoId} onValueChange={v => setSubForm(f => ({ ...f, grupoId: v, codigo: editSubId ? f.codigo : nextSubCodigo(v) }))}>
                 <SelectTrigger><SelectValue placeholder="Selecione o grupo" /></SelectTrigger>
                 <SelectContent>{grupos.map(g => <SelectItem key={g.id} value={g.id}>{g.codigo} - {g.nome}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div><Label>Código *</Label><Input placeholder="Ex: 001" value={subForm.codigo} onChange={e => setSubForm(f => ({ ...f, codigo: e.target.value }))} /></div>
+            <div><Label>Código</Label><Input value={subForm.codigo} readOnly disabled className="font-mono" /><p className="text-xs text-muted-foreground mt-1">Gerado automaticamente</p></div>
             <div><Label>Nome *</Label><Input placeholder="Ex: Fios" value={subForm.nome} onChange={e => setSubForm(f => ({ ...f, nome: e.target.value }))} /></div>
           </div>
           <DialogFooter><Button onClick={saveSub}>Salvar</Button></DialogFooter>
