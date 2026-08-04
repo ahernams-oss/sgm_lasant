@@ -104,7 +104,7 @@ export default function BoletimMedicaoPage() {
       const totalCrono =
         Number(crono?.valor_total) ||
         atividades.reduce((s, a) => s + (Number(a.valor_total) || 0), 0);
-      if (totalCrono && !Number(f.valor_total_contrato)) next.valor_total_contrato = totalCrono;
+      if (totalCrono && !Number(next.valor_total_contrato)) next.valor_total_contrato = totalCrono;
       return next;
     });
     if (obra || crono) toast.success("Dados da obra recuperados");
