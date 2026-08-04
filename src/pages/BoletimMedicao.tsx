@@ -13,6 +13,7 @@ import { useBoletinsMedicao, type BoletimMedicao, type BoletimMedicaoFrente } fr
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useObras } from "@/contexts/ObrasContext";
+import { useCronogramas } from "@/contexts/CronogramasContext";
 import { gerarPdfBoletimMedicao } from "@/lib/gerarPdfBoletimMedicao";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
@@ -44,6 +45,7 @@ export default function BoletimMedicaoPage() {
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { obras } = useObras();
+  const { cronogramas } = useCronogramas();
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<BoletimMedicao | null>(null);
@@ -69,6 +71,40 @@ export default function BoletimMedicaoPage() {
 
   const openNew = () => { resetForm(); setOpen(true); };
   const openEdit = (b: BoletimMedicao) => { setForm({ ...b, frentes: b.frentes || [] }); setEditing(b); setOpen(true); };
+
+  // Ao selecionar a obra, recupera os dados já cadastrados (obra + cronograma físico-financeiro)
+  const aplicarObra = (nomeObra: string) => {
+    const obra = obrasDoCliente.find((o) => o.nome === nomeObra);
+    const crono = cronogramas.find(
+      (c) => c.cliente_id === form.cliente_id && (c.obra || "") === nomeObra,
+    );
+    setForm((f) => {
+      const next: Partial<BoletimMedicao> = { ...f, obra: nomeObra };
+      const objeto = obra?.descricao || crono?.descricao || "";
+      if (objeto && !f.objeto) next.objeto = objeto;
+      const resp = obra?.responsavel || crono?.responsavel || "";
+      if (resp && !f.responsavel_tecnico) next.responsavel_tecnico = resp;
+
+      const atividades = crono?.atividades || [];
+      if (atividades.length && !(f.frentes || []).length) {
+        next.frentes = atividades
+          .slice()
+          .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
+          .map((a) => ({
+            id: crypto.randomUUID(),
+            nome: a.descricao,
+            valor_contrato: Number(a.valor_total) || 0,
+            medicoes: [],
+          }));
+      }
+      const totalCrono =
+        Number(crono?.valor_total) ||
+        atividades.reduce((s, a) => s + (Number(a.valor_total) || 0), 0);
+      if (totalCrono && !Number(f.valor_total_contrato)) next.valor_total_contrato = totalCrono;
+      return next;
+    });
+    if (obra || crono) toast.success("Dados da obra recuperados");
+  };
 
   const setFrentes = (fn: (fs: BoletimMedicaoFrente[]) => BoletimMedicaoFrente[]) =>
     setForm((f) => ({ ...f, frentes: fn(f.frentes || []) }));
@@ -250,7 +286,7 @@ export default function BoletimMedicaoPage() {
             </div>
             <div>
               <Label>Obra</Label>
-              <Select value={form.obra || ""} onValueChange={(v) => setForm((f) => ({ ...f, obra: v }))}>
+              <Select value={form.obra || ""} onValueChange={(v) => aplicarObra(v)}>
                 <SelectTrigger><SelectValue placeholder="Selecione a obra" /></SelectTrigger>
                 <SelectContent>
                   {obrasDoCliente.map((o) => (
