@@ -517,11 +517,11 @@ export default function CategoriasCompras() {
             <div><Label>SubGrupo *</Label>
               <SubGrupoCombobox
                 value={classeForm.subGrupoId}
-                onChange={v => setClasseForm(f => ({ ...f, subGrupoId: v }))}
+                onChange={v => setClasseForm(f => ({ ...f, subGrupoId: v, codigo: editClasseId ? f.codigo : nextClasseCodigo(v) }))}
                 options={subGrupoOptions}
               />
             </div>
-            <div><Label>Código *</Label><Input placeholder="Ex: 002" value={classeForm.codigo} onChange={e => setClasseForm(f => ({ ...f, codigo: e.target.value }))} /></div>
+            <div><Label>Código</Label><Input value={classeForm.codigo} readOnly disabled className="font-mono" /><p className="text-xs text-muted-foreground mt-1">Gerado automaticamente</p></div>
             <div><Label>Nome *</Label><Input placeholder="Ex: Fio Cabinho" value={classeForm.nome} onChange={e => setClasseForm(f => ({ ...f, nome: e.target.value }))} /></div>
           </div>
           <DialogFooter><Button onClick={saveClasse}>Salvar</Button></DialogFooter>
