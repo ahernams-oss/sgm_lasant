@@ -15,6 +15,8 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useObras } from "@/contexts/ObrasContext";
 import { useCronogramas } from "@/contexts/CronogramasContext";
 import { gerarPdfBoletimMedicao } from "@/lib/gerarPdfBoletimMedicao";
+import { downloadExcelBoletimMedicao } from "@/lib/gerarExcelBoletimMedicao";
+
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
 
