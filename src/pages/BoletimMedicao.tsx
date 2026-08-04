@@ -360,8 +360,23 @@ export default function BoletimMedicaoPage() {
                     <div className="grid grid-cols-1 md:grid-cols-[1fr_200px_auto] gap-3 items-end">
                       <div>
                         <Label>Frente / Obra</Label>
-                        <Input value={fr.nome} onChange={(e) => updFrente(fi, { nome: e.target.value })} placeholder="Ex.: Impermeabilização Cobertura" />
+                        <Input
+                          list="atividades-cronograma"
+                          value={fr.nome}
+                          onChange={(e) => {
+                            const nome = e.target.value;
+                            const at = atividadesCronograma.find((a) => a.descricao === nome);
+                            updFrente(fi, at && !Number(fr.valor_contrato)
+                              ? { nome, valor_contrato: Number(at.valor_total) || 0 }
+                              : { nome });
+                          }}
+                          placeholder="Ex.: Impermeabilização Cobertura"
+                        />
+                        <datalist id="atividades-cronograma">
+                          {atividadesCronograma.map((a) => <option key={a.id} value={a.descricao} />)}
+                        </datalist>
                       </div>
+
                       <div>
                         <Label>Valor do Contrato (R$)</Label>
                         <Input
