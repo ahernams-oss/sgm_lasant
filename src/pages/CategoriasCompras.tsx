@@ -192,7 +192,13 @@ export default function CategoriasCompras() {
     return list;
   }, [classes, subGrupos, search, filterGrupoId, filterSubGrupoId]);
 
-  const openNewClasse = () => { setClasseForm({ subGrupoId: subGrupos[0]?.id || "", codigo: "", nome: "" }); setEditClasseId(null); setClasseDialog(true); };
+  const nextClasseCodigo = (subGrupoId: string) => {
+    const max = classes
+      .filter(c => c.subGrupoId === subGrupoId)
+      .reduce((acc, c) => Math.max(acc, parseInt(String(c.codigo).replace(/\D/g, ""), 10) || 0), 0);
+    return String(max + 1).padStart(3, "0");
+  };
+  const openNewClasse = () => { const sid = subGrupos[0]?.id || ""; setClasseForm({ subGrupoId: sid, codigo: sid ? nextClasseCodigo(sid) : "", nome: "" }); setEditClasseId(null); setClasseDialog(true); };
   const openEditClasse = (c: typeof classes[0]) => { setClasseForm({ subGrupoId: c.subGrupoId, codigo: c.codigo, nome: c.nome }); setEditClasseId(c.id); setClasseDialog(true); };
   const persistClasse = () => {
     if (editClasseId) { if (!guard(podeEditar)) return; updateClasse(editClasseId, classeForm); toast({ title: "Classe atualizada" }); }
@@ -511,11 +517,11 @@ export default function CategoriasCompras() {
             <div><Label>SubGrupo *</Label>
               <SubGrupoCombobox
                 value={classeForm.subGrupoId}
-                onChange={v => setClasseForm(f => ({ ...f, subGrupoId: v }))}
+                onChange={v => setClasseForm(f => ({ ...f, subGrupoId: v, codigo: editClasseId ? f.codigo : nextClasseCodigo(v) }))}
                 options={subGrupoOptions}
               />
             </div>
-            <div><Label>Código *</Label><Input placeholder="Ex: 002" value={classeForm.codigo} onChange={e => setClasseForm(f => ({ ...f, codigo: e.target.value }))} /></div>
+            <div><Label>Código</Label><Input value={classeForm.codigo} readOnly disabled className="font-mono" /><p className="text-xs text-muted-foreground mt-1">Gerado automaticamente</p></div>
             <div><Label>Nome *</Label><Input placeholder="Ex: Fio Cabinho" value={classeForm.nome} onChange={e => setClasseForm(f => ({ ...f, nome: e.target.value }))} /></div>
           </div>
           <DialogFooter><Button onClick={saveClasse}>Salvar</Button></DialogFooter>
