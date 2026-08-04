@@ -2616,6 +2616,93 @@ export default function OrdensServicoPage() {
 
 
 
+      {/* Dialog: Retornar OS Validada ao status anterior */}
+      <Dialog open={!!revertOS} onOpenChange={o => { if (!o) closeRevertDialog(); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5 text-primary" />
+              Retornar OS ao status anterior {revertStep === 1 ? "(1/2)" : "(2/2)"}
+            </DialogTitle>
+          </DialogHeader>
+
+          {revertOS && revertStep === 1 && (
+            <div className="space-y-3 py-2">
+              <p className="text-sm text-muted-foreground">
+                A OS <b>{formatNumeroAno(revertOS.numero, revertOS.createdAt)}</b> voltará de <b>Validada</b> para{" "}
+                <b>{statusAnteriorDe(revertOS)}</b>. Informe a justificativa — ela ficará registrada no histórico.
+              </p>
+              <div>
+                <Label>Justificativa *</Label>
+                <Textarea
+                  value={revertMotivo}
+                  onChange={e => setRevertMotivo(e.target.value)}
+                  placeholder="Descreva o motivo do retorno de status..."
+                  rows={4}
+                />
+              </div>
+            </div>
+          )}
+
+          {revertOS && revertStep === 2 && (
+            <div className="space-y-4 py-2">
+              <div className="border rounded-md p-3 bg-muted/30 text-sm whitespace-pre-wrap">
+                <span className="text-xs font-semibold text-muted-foreground block mb-1">Justificativa informada:</span>
+                {revertMotivo.trim()}
+              </div>
+              <div className="space-y-2">
+                <Label>Senha do solicitante ({usuarioLogado?.email}) *</Label>
+                <Input
+                  type="password"
+                  value={revertSenha}
+                  onChange={e => setRevertSenha(e.target.value)}
+                  placeholder="Sua senha"
+                  autoComplete="current-password"
+                />
+              </div>
+              <div className="space-y-2 border-t pt-3">
+                <Label>Ciência de outro usuário — e-mail *</Label>
+                <Input
+                  type="email"
+                  value={revertEmail2}
+                  onChange={e => setRevertEmail2(e.target.value)}
+                  placeholder="email.do.usuario@empresa.com"
+                />
+                <Label>Ciência de outro usuário — senha *</Label>
+                <Input
+                  type="password"
+                  value={revertSenha2}
+                  onChange={e => setRevertSenha2(e.target.value)}
+                  placeholder="Senha do usuário que dá ciência"
+                  onKeyDown={e => { if (e.key === "Enter" && !revertLoading) handleReverterValidada(); }}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={closeRevertDialog}>Cancelar</Button>
+            {revertStep === 1 ? (
+              <Button
+                onClick={() => {
+                  if (revertMotivo.trim().length < 5) {
+                    toast.error("Informe uma justificativa com pelo menos 5 caracteres.");
+                    return;
+                  }
+                  setRevertStep(2);
+                }}
+              >
+                Continuar
+              </Button>
+            ) : (
+              <Button onClick={handleReverterValidada} disabled={revertLoading}>
+                {revertLoading ? "Validando..." : "Confirmar retorno"}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Dialog: Justificativa para Não Aprovar */}
       <Dialog open={!!naoAprovarOS} onOpenChange={o => { if (!o) { setNaoAprovarOS(null); setNaoAprovarJustificativa(""); } }}>
         <DialogContent className="max-w-lg">
