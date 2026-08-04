@@ -130,7 +130,7 @@ const menuItems = [
       { title: "Boletim de Medições", url: "/engenharia/boletim-medicao", icon: FileBarChart, perm: "medicoes" },
       { title: "Eventograma", url: "/engenharia/eventograma", icon: GanttChartSquare, perm: "eventograma" },
       { title: "Contratos de Terceiro", url: "/engenharia/contratos-terceiros", icon: FileSignature, perm: "medicoes" },
-      { title: "Medição de Serviços", url: "/engenharia/medicoes", icon: Ruler, perm: "medicoes" },
+      { title: "Medição de Terceiros", url: "/engenharia/medicoes", icon: Ruler, perm: "medicoes" },
       { title: "BIM - Modelagem 3D", url: "/obras/bim", icon: Box, perm: "bim" },
     ],
   },
