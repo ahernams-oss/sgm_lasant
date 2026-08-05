@@ -236,6 +236,12 @@ const ProcessosSeletivos = () => {
           </div>
         </div>
 
+        {/* Indicadores consolidados */}
+        <ProcessoSeletivoKPIs
+          candidatos={filtered.flatMap((p) => p.candidatos)}
+          className="mb-6"
+        />
+
         {/* Filtros */}
         <Card className="mb-6 animate-fade-up">
           <CardContent className="py-4">
