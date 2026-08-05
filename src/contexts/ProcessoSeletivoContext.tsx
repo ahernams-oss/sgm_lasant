@@ -284,12 +284,12 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
 
 const fallbackCtx: ProcessoSeletivoContextType = {
   processos: [],
-  criarProcesso: async () => null as any,
+  criarProcesso: (() => null) as any,
   getProcessoByRequisicao: () => undefined,
-  addCandidato: async () => null as any,
-  updateCandidato: async () => null as any,
-  importarCandidatos: async () => null as any,
-  avancarEtapa: async () => null as any,
+  addCandidato: () => {},
+  updateCandidato: () => {},
+  importarCandidatos: async () => 0,
+  avancarEtapa: () => {},
 };
 
 export function useProcessoSeletivo() {
