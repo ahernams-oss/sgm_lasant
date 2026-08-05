@@ -433,35 +433,7 @@ const ProcessoSeletivoPage = () => {
         </div>
 
         {/* Indicadores resumidos do processo */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6 animate-fade-up">
-          {(() => {
-            const total = processo.candidatos.length;
-            const reprovados = processo.candidatos.filter((c) =>
-              c.statusPsicologico === "reprovado" ||
-              c.statusTecnico === "reprovado" ||
-              c.statusLiberacao === "reprovado"
-            ).length;
-            const liberados = processo.candidatos.filter((c) => c.etapaAtual === "contratacao" || c.contratacaoFinalizada).length;
-            const ativos = total - reprovados - liberados;
-            const cards = [
-              { label: "Total de Candidatos", value: total, icon: Users, color: "text-primary border-primary/30" },
-              { label: "Em Andamento", value: ativos, icon: Clock, color: "text-amber-500 border-amber-500/30" },
-              { label: "Reprovados", value: reprovados, icon: XCircle, color: "text-rose-500 border-rose-500/30" },
-              { label: "Liberados / Contratados", value: liberados, icon: CheckCircle2, color: "text-emerald-500 border-emerald-500/30" },
-            ];
-            return cards.map((card) => (
-              <Card key={card.label} className={`border bg-card ${card.color}`}>
-                <CardContent className="py-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium opacity-80">{card.label}</p>
-                    <p className="text-2xl font-bold">{card.value}</p>
-                  </div>
-                  <card.icon className="h-6 w-6 opacity-60" />
-                </CardContent>
-              </Card>
-            ));
-          })()}
-        </div>
+        <ProcessoSeletivoKPIs candidatos={processo.candidatos} className="mb-6" />
 
         {/* Histórico de Eventos da Requisição */}
         <Card className="mb-6 animate-fade-up">
