@@ -131,9 +131,9 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
   };
 
 
-  // Guarda em memória as requisições já em processo de criação para evitar
-  // que renders concorrentes gerem processos duplicados para a mesma RP.
-  const criandoRef = new Set<string>();
+  // criandoProcessos (módulo) evita que renders concorrentes gerem
+  // processos duplicados para a mesma requisição.
+
 
   const criarProcesso = (requisicaoId: string): ProcessoSeletivo => {
     const existing = processos.find(p => p.requisicaoId === requisicaoId);
