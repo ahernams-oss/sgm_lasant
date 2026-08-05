@@ -444,13 +444,13 @@ const ProcessoSeletivoPage = () => {
             const liberados = processo.candidatos.filter((c) => c.etapaAtual === "contratacao" || c.contratacaoFinalizada).length;
             const ativos = total - reprovados - liberados;
             const cards = [
-              { label: "Total de Candidatos", value: total, icon: Users, className: "bg-primary/5 text-primary border-primary/10" },
-              { label: "Em Andamento", value: ativos, icon: Clock, className: "bg-amber-50 text-amber-700 border-amber-200" },
-              { label: "Reprovados", value: reprovados, icon: XCircle, className: "bg-rose-50 text-rose-700 border-rose-200" },
-              { label: "Liberados / Contratados", value: liberados, icon: CheckCircle2, className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+              { label: "Total de Candidatos", value: total, icon: Users, color: "text-primary border-primary/30" },
+              { label: "Em Andamento", value: ativos, icon: Clock, color: "text-amber-500 border-amber-500/30" },
+              { label: "Reprovados", value: reprovados, icon: XCircle, color: "text-rose-500 border-rose-500/30" },
+              { label: "Liberados / Contratados", value: liberados, icon: CheckCircle2, color: "text-emerald-500 border-emerald-500/30" },
             ];
             return cards.map((card) => (
-              <Card key={card.label} className={`border ${card.className}`}>
+              <Card key={card.label} className={`border bg-card ${card.color}`}>
                 <CardContent className="py-4 flex items-center justify-between">
                   <div>
                     <p className="text-xs font-medium opacity-80">{card.label}</p>
