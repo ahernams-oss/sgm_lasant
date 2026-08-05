@@ -395,8 +395,8 @@ const RequisicaoGrid = () => {
                     node: (() => {
                       const ps = processos.find((p) => p.requisicaoId === req.id);
                       const total = ps?.candidatos.length ?? 0;
-                      const contratados = ps?.candidatos.filter((c) => c.etapaAtual === "contratacao").length ?? 0;
-                      const estado = !ps || total === 0 ? "nao_iniciado" : contratados === total ? "concluido" : "andamento";
+                      const finalizados = ps?.candidatos.filter((c) => c.contratacaoFinalizada).length ?? 0;
+                      const estado = !ps || total === 0 ? "nao_iniciado" : finalizados > 0 ? "concluido" : "andamento";
                       const cor =
                         estado === "concluido" ? "bg-emerald-500" : estado === "andamento" ? "bg-amber-500" : "bg-red-500";
                       const titulo =

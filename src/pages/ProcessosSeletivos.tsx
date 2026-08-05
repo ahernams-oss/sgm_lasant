@@ -130,8 +130,8 @@ const ProcessosSeletivos = () => {
   const getProcessoStatus = (p: typeof processosComReq[0]) => {
     const total = p.candidatos.length;
     if (total === 0) return "em_andamento";
-    const contratados = p.candidatos.filter((c) => c.etapaAtual === "contratacao").length;
-    if (contratados === total) return "concluido";
+    // Só é concluído quando a contratação foi efetivamente finalizada
+    if (p.candidatos.some((c) => c.contratacaoFinalizada)) return "concluido";
     if (p.candidatos.some((c) => c.etapaAtual === "liberacao")) return "liberacao";
     return "em_andamento";
   };
