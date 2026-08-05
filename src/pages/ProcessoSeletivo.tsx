@@ -3,7 +3,7 @@ import { formatNumeroPS } from "./ProcessosSeletivos";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle, Paperclip, FileText, Trash2, Pencil, CalendarDays, FileCheck, Zap, MoreVertical } from "lucide-react";
+import { ArrowLeft, Plus, UserPlus, ClipboardCheck, ShieldCheck, CheckCircle2, XCircle, Clock, MinusCircle, Paperclip, FileText, Trash2, Pencil, CalendarDays, FileCheck, Zap, MoreVertical, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
