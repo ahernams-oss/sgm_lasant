@@ -1,4 +1,5 @@
-import { useState, useMemo, useRef, ReactNode } from "react";
+import { useState, useMemo, useRef, useEffect, ReactNode } from "react";
+import { MUNICIPIOS_RJ, percentualHoraExtra, motivoPercentual } from "@/lib/feriadosRJ";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
@@ -71,6 +72,7 @@ const MapaFuncionarios = () => {
   const [tipoFalta, setTipoFalta] = useState<TipoFalta>("injustificada");
   const [horasExtras, setHorasExtras] = useState("");
   const [percentual, setPercentual] = useState("50");
+  const [municipioHE, setMunicipioHE] = useState("Rio de Janeiro");
   const [observacao, setObservacao] = useState("");
   const [anexos, setAnexos] = useState<AnexoFalta[]>([]);
   const [tipoAdvertencia, setTipoAdvertencia] = useState<TipoAdvertencia>("verbal");
@@ -137,6 +139,13 @@ const MapaFuncionarios = () => {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const useCustomRange = Boolean(dateFrom && dateTo);
+
+  // Percentual automático da hora extra: 50% seg-sáb, 100% domingos e feriados
+  const motivoHE = useMemo(() => motivoPercentual(data, municipioHE), [data, municipioHE]);
+  useEffect(() => {
+    if (activeTab !== "horas_extras" || !data) return;
+    setPercentual(String(percentualHoraExtra(data, municipioHE)));
+  }, [data, municipioHE, activeTab]);
 
   const resetForm = () => {
     setFuncionarioId("");
@@ -561,24 +570,47 @@ const MapaFuncionarios = () => {
                 </TabsContent>
 
                 <TabsContent value="horas_extras" className="mt-0 p-0">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold text-foreground/80">Horas *</Label>
-                      <Input type="number" min="0.5" step="0.5" value={horasExtras} onChange={(e) => setHorasExtras(e.target.value)} placeholder="Ex: 2.5" />
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold text-foreground/80">Horas *</Label>
+                        <Input type="number" min="0.5" step="0.5" value={horasExtras} onChange={(e) => setHorasExtras(e.target.value)} placeholder="Ex: 2.5" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold text-foreground/80">Município (feriados)</Label>
+                        <Select value={municipioHE} onValueChange={setMunicipioHE}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent className="max-h-72">
+                            {MUNICIPIOS_RJ.map((m) => (
+                              <SelectItem key={m} value={m}>{m}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold text-foreground/80">Percentual (%) — automático</Label>
+                        <Select value={percentual} onValueChange={setPercentual}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {PERCENTUAIS_HE.map((p) => (
+                              <SelectItem key={p} value={String(p)}>{p}%</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold text-foreground/80">Percentual (%)</Label>
-                      <Select value={percentual} onValueChange={setPercentual}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {PERCENTUAIS_HE.map((p) => (
-                            <SelectItem key={p} value={String(p)}>{p}%</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    {data && (
+                      <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2">
+                        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">{motivoHE}</span>
+                        <Badge className={cn("ml-auto text-xs", percentual === "100" ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary")}>
+                          {percentual}%
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
+
 
                 <TabsContent value="advertencias" className="mt-0 p-0">
                   <div className="space-y-4">
