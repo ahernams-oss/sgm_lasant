@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { useProcessoSeletivo } from "@/contexts/ProcessoSeletivoContext";
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
+import ProcessoSeletivoKPIs from "@/components/ProcessoSeletivoKPIs";
 
 export function formatNumeroPS(p: { numero?: number; dataCriacao?: string }) {
   const ano = (p.dataCriacao || "").split("/")[2] || String(new Date().getFullYear());
@@ -234,6 +235,12 @@ const ProcessosSeletivos = () => {
             </div>
           </div>
         </div>
+
+        {/* Indicadores consolidados */}
+        <ProcessoSeletivoKPIs
+          candidatos={filtered.flatMap((p) => p.candidatos)}
+          className="mb-6"
+        />
 
         {/* Filtros */}
         <Card className="mb-6 animate-fade-up">
