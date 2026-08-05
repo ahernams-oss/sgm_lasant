@@ -400,15 +400,6 @@ const ProcessosSeletivos = () => {
                   : st === "liberacao"
                   ? "bg-blue-100 text-blue-800 border-blue-200"
                   : "bg-amber-100 text-amber-800 border-amber-200";
-              const etapasWf = [
-                { key: "entrevista_psicologica", label: "Entrev. Psicológica" },
-                { key: "entrevista_tecnica", label: "Entrev. Técnica" },
-                { key: "liberacao", label: "Liberação" },
-                { key: "contratacao", label: "Contratação" },
-              ];
-              const idxAtual = total === 0
-                ? -1
-                : Math.min(...p.candidatos.map((c) => Math.max(0, etapasWf.findIndex((e) => e.key === c.etapaAtual))));
               return (
                 <Card
                   key={p.id}
