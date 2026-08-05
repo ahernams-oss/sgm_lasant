@@ -400,15 +400,6 @@ const ProcessosSeletivos = () => {
                   : st === "liberacao"
                   ? "bg-blue-100 text-blue-800 border-blue-200"
                   : "bg-amber-100 text-amber-800 border-amber-200";
-              const etapasWf = [
-                { key: "entrevista_psicologica", label: "Entrev. Psicológica" },
-                { key: "entrevista_tecnica", label: "Entrev. Técnica" },
-                { key: "liberacao", label: "Liberação" },
-                { key: "contratacao", label: "Contratação" },
-              ];
-              const idxAtual = total === 0
-                ? -1
-                : Math.min(...p.candidatos.map((c) => Math.max(0, etapasWf.findIndex((e) => e.key === c.etapaAtual))));
               return (
                 <Card
                   key={p.id}
@@ -426,32 +417,6 @@ const ProcessosSeletivos = () => {
                       <p className="text-xs text-muted-foreground">
                         Criado em {p.dataCriacao} · {total} candidato{total !== 1 ? "s" : ""}
                       </p>
-                      {/* Workflow do processo */}
-                      <div className="flex items-center gap-1 mt-2 flex-wrap">
-                        {etapasWf.map((e, i) => {
-                          const qtd = p.candidatos.filter((c) => c.etapaAtual === e.key).length;
-                          const past = idxAtual >= 0 && i < idxAtual;
-                          const current = i === idxAtual;
-                          return (
-                            <div key={e.key} className="flex items-center gap-1">
-                              <span
-                                className={`text-[10px] px-2 py-0.5 rounded-full border whitespace-nowrap ${
-                                  current
-                                    ? "bg-primary text-primary-foreground border-primary font-semibold"
-                                    : past
-                                    ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                                    : "bg-muted text-muted-foreground border-transparent"
-                                }`}
-                              >
-                                {e.label}{qtd > 0 ? ` (${qtd})` : ""}
-                              </span>
-                              {i < etapasWf.length - 1 && (
-                                <span className={`h-[2px] w-3 ${past ? "bg-emerald-400" : "bg-muted-foreground/20"}`} />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <Badge variant="outline" className={stClass}>{stLabel}</Badge>
