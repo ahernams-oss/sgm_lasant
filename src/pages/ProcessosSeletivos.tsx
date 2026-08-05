@@ -400,14 +400,23 @@ const ProcessosSeletivos = () => {
                   : st === "liberacao"
                   ? "bg-blue-100 text-blue-800 border-blue-200"
                   : "bg-amber-100 text-amber-800 border-amber-200";
+              const etapasWf = [
+                { key: "entrevista_psicologica", label: "Entrev. Psicológica" },
+                { key: "entrevista_tecnica", label: "Entrev. Técnica" },
+                { key: "liberacao", label: "Liberação" },
+                { key: "contratacao", label: "Contratação" },
+              ];
+              const idxAtual = total === 0
+                ? -1
+                : Math.min(...p.candidatos.map((c) => Math.max(0, etapasWf.findIndex((e) => e.key === c.etapaAtual))));
               return (
                 <Card
                   key={p.id}
                   className={`cursor-pointer hover:shadow-md transition-shadow ${idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60"}`}
                   onClick={() => navigate(`/processo-seletivo/${p.requisicaoId}`)}
                 >
-                  <CardContent className="py-4 flex items-center justify-between">
-                    <div>
+                  <CardContent className="py-4 flex items-center justify-between gap-4">
+                    <div className="min-w-0">
                       <p className="font-medium text-sm flex items-center gap-2">
                         <Badge variant="outline" className="font-mono text-[11px] border-primary/30 text-primary">
                           PS {formatNumeroPS(p)}
@@ -417,8 +426,34 @@ const ProcessosSeletivos = () => {
                       <p className="text-xs text-muted-foreground">
                         Criado em {p.dataCriacao} · {total} candidato{total !== 1 ? "s" : ""}
                       </p>
+                      {/* Workflow do processo */}
+                      <div className="flex items-center gap-1 mt-2 flex-wrap">
+                        {etapasWf.map((e, i) => {
+                          const qtd = p.candidatos.filter((c) => c.etapaAtual === e.key).length;
+                          const past = idxAtual >= 0 && i < idxAtual;
+                          const current = i === idxAtual;
+                          return (
+                            <div key={e.key} className="flex items-center gap-1">
+                              <span
+                                className={`text-[10px] px-2 py-0.5 rounded-full border whitespace-nowrap ${
+                                  current
+                                    ? "bg-primary text-primary-foreground border-primary font-semibold"
+                                    : past
+                                    ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                                    : "bg-muted text-muted-foreground border-transparent"
+                                }`}
+                              >
+                                {e.label}{qtd > 0 ? ` (${qtd})` : ""}
+                              </span>
+                              {i < etapasWf.length - 1 && (
+                                <span className={`h-[2px] w-3 ${past ? "bg-emerald-400" : "bg-muted-foreground/20"}`} />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       <Badge variant="outline" className={stClass}>{stLabel}</Badge>
                       {contratados > 0 && (
                         <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-200">
