@@ -7570,6 +7570,7 @@ export type Database = {
           created_at: string | null
           data_criacao: string | null
           id: string
+          numero: number | null
           requisicao_id: string
         }
         Insert: {
@@ -7577,6 +7578,7 @@ export type Database = {
           created_at?: string | null
           data_criacao?: string | null
           id?: string
+          numero?: number | null
           requisicao_id?: string
         }
         Update: {
@@ -7584,6 +7586,7 @@ export type Database = {
           created_at?: string | null
           data_criacao?: string | null
           id?: string
+          numero?: number | null
           requisicao_id?: string
         }
         Relationships: []
