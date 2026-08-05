@@ -408,9 +408,21 @@ const RequisicaoGrid = () => {
                       return (
                         <span className="flex items-center gap-2">
                           <span className={`inline-block h-2.5 w-2.5 rounded-full ${cor}`} title={titulo} aria-label={titulo} />
-                          {req.numero}
+                          {ps ? (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); navigate(`/processo-seletivo/${req.id}`); }}
+                              className="underline underline-offset-2 text-primary hover:opacity-80"
+                              title="Abrir processo seletivo vinculado"
+                            >
+                              {req.numero}
+                            </button>
+                          ) : (
+                            req.numero
+                          )}
                         </span>
                       );
+
                     })(),
                     className: "pl-5 text-xs font-medium tabular-nums",
                   },
