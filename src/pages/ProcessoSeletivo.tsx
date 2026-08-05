@@ -49,6 +49,7 @@ import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { toast } from "sonner";
 import { isValidCPF } from "@/lib/validators";
+import ProcessoSeletivoKPIs from "@/components/ProcessoSeletivoKPIs";
 
 // Debounced Input to avoid saving on every keystroke
 function DebouncedInput({ value: externalValue, onChange, delay = 800, ...props }: React.ComponentProps<"input"> & { delay?: number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
