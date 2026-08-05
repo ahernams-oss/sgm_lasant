@@ -394,7 +394,10 @@ const ProcessosSeletivos = () => {
                 >
                   <CardContent className="py-4 flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-sm">
+                      <p className="font-medium text-sm flex items-center gap-2">
+                        <Badge variant="outline" className="font-mono text-[11px] border-primary/30 text-primary">
+                          PS {formatNumeroPS(p)}
+                        </Badge>
                         {p.requisicao?.cargoNome || "Cargo"} — {p.requisicao?.unidade || "Unidade"}
                       </p>
                       <p className="text-xs text-muted-foreground">
