@@ -494,7 +494,7 @@ const MapaFuncionarios = () => {
               </TabsList>
 
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+              <div className={cn("grid gap-4 mb-4", activeTab === "horas_extras" ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-5" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3")}>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-foreground/80">Funcionário *</Label>
                   <Select value={funcionarioId} onValueChange={setFuncionarioId}>
@@ -512,12 +512,43 @@ const MapaFuncionarios = () => {
                   <Label className="text-xs font-semibold text-foreground/80">{activeTab === "atestados" ? "Data Início *" : "Data *"}</Label>
                   <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
                 </div>
+                {activeTab === "horas_extras" && (
+                  <>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-foreground/80">Horas *</Label>
+                      <Input type="number" min="0.5" step="0.5" value={horasExtras} onChange={(e) => setHorasExtras(e.target.value)} placeholder="Ex: 2.5" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-foreground/80">Município (feriados)</Label>
+                      <Select value={municipioHE} onValueChange={setMunicipioHE}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent className="max-h-72">
+                          {MUNICIPIOS_RJ.map((m) => (
+                            <SelectItem key={m} value={m}>{m}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-foreground/80">Percentual (%) — automático</Label>
+                      <Select value={percentual} onValueChange={setPercentual}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {PERCENTUAIS_HE.map((p) => (
+                            <SelectItem key={p} value={String(p)}>{p}%</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
                 {activeTab === "atestados" && (
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-foreground/80">Data Término *</Label>
                     <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
                   </div>
                 )}
+              </div>
 
 
                 <TabsContent value="faltas" className="mt-0 p-0">
@@ -571,34 +602,6 @@ const MapaFuncionarios = () => {
 
                 <TabsContent value="horas_extras" className="mt-0 p-0">
                   <div className="space-y-3">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-semibold text-foreground/80">Horas *</Label>
-                        <Input type="number" min="0.5" step="0.5" value={horasExtras} onChange={(e) => setHorasExtras(e.target.value)} placeholder="Ex: 2.5" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-semibold text-foreground/80">Município (feriados)</Label>
-                        <Select value={municipioHE} onValueChange={setMunicipioHE}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent className="max-h-72">
-                            {MUNICIPIOS_RJ.map((m) => (
-                              <SelectItem key={m} value={m}>{m}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-semibold text-foreground/80">Percentual (%) — automático</Label>
-                        <Select value={percentual} onValueChange={setPercentual}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {PERCENTUAIS_HE.map((p) => (
-                              <SelectItem key={p} value={String(p)}>{p}%</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
                     {data && (
                       <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2">
                         <Clock className="h-3.5 w-3.5 text-muted-foreground" />
