@@ -131,6 +131,10 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
   };
 
 
+  // Guarda em memória as requisições já em processo de criação para evitar
+  // que renders concorrentes gerem processos duplicados para a mesma RP.
+  const criandoRef = new Set<string>();
+
   const criarProcesso = (requisicaoId: string): ProcessoSeletivo => {
     const existing = processos.find(p => p.requisicaoId === requisicaoId);
     if (existing) return existing;
@@ -138,9 +142,17 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
       id: crypto.randomUUID(), requisicaoId,
       dataCriacao: new Date().toLocaleDateString("pt-BR"), candidatos: [],
     };
-    insertRow("processos_seletivos", processoToRow(novo)).then(() => invalidate());
+    if (criandoRef.has(requisicaoId)) return novo;
+    criandoRef.add(requisicaoId);
+    // upsert com ignoreDuplicates: se já existir processo para a RP, nada é criado
+    (supabase as any)
+      .from("processos_seletivos")
+      .upsert({ id: novo.id, ...processoToRow(novo) }, { onConflict: "requisicao_id", ignoreDuplicates: true })
+      .then(() => invalidate())
+      .catch(() => invalidate());
     return novo;
   };
+
 
   const getProcessoByRequisicao = (requisicaoId: string) =>
     processos.find(p => p.requisicaoId === requisicaoId);
