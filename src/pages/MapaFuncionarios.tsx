@@ -704,7 +704,6 @@ const MapaFuncionarios = () => {
                     )}
                   </div>
                 </TabsContent>
-              </div>
 
 
               <div className="space-y-1.5 mb-4">
