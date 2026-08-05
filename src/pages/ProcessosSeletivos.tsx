@@ -392,6 +392,12 @@ const ProcessosSeletivos = () => {
             {paginate(filtered, page, pageSize).paginated.map((p, idx) => {
               const total = p.candidatos.length;
               const contratados = p.candidatos.filter((c) => c.etapaAtual === "contratacao").length;
+              const reprovados = p.candidatos.filter(
+                (c) =>
+                  c.statusPsicologico === "reprovado" ||
+                  c.statusTecnico === "reprovado" ||
+                  c.statusLiberacao === "reprovado"
+              ).length;
               const st = getProcessoStatus(p);
               const stLabel = st === "concluido" ? "Concluído" : st === "liberacao" ? "Em liberação" : "Em andamento";
               const stClass =
@@ -420,6 +426,11 @@ const ProcessosSeletivos = () => {
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <Badge variant="outline" className={stClass}>{stLabel}</Badge>
+                      {reprovados > 0 && (
+                        <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-200">
+                          {reprovados} reprovado{reprovados !== 1 ? "s" : ""}
+                        </Badge>
+                      )}
                       {contratados > 0 && (
                         <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-200">
                           {contratados} liberado{contratados !== 1 ? "s" : ""}
