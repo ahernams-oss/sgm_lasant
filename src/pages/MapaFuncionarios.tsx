@@ -140,6 +140,13 @@ const MapaFuncionarios = () => {
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const useCustomRange = Boolean(dateFrom && dateTo);
 
+  // Percentual automático da hora extra: 50% seg-sáb, 100% domingos e feriados
+  const motivoHE = useMemo(() => motivoPercentual(data, municipioHE), [data, municipioHE]);
+  useEffect(() => {
+    if (activeTab !== "horas_extras" || !data) return;
+    setPercentual(String(percentualHoraExtra(data, municipioHE)));
+  }, [data, municipioHE, activeTab]);
+
   const resetForm = () => {
     setFuncionarioId("");
     setData("");
