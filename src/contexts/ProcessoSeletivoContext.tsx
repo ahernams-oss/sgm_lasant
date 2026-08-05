@@ -58,7 +58,7 @@ export interface Candidato {
 }
 
 export interface ProcessoSeletivo {
-  id: string; requisicaoId: string; dataCriacao: string; candidatos: Candidato[];
+  id: string; numero?: number; requisicaoId: string; dataCriacao: string; candidatos: Candidato[];
 }
 
 interface ProcessoSeletivoContextType {
@@ -77,7 +77,7 @@ interface ProcessoSeletivoContextType {
 const ProcessoSeletivoContext = createContext<ProcessoSeletivoContextType | undefined>(undefined);
 
 const rowToProcesso = (r: any): ProcessoSeletivo => ({
-  id: r.id, requisicaoId: r.requisicao_id ?? "", dataCriacao: r.data_criacao ?? "",
+  id: r.id, numero: r.numero ?? undefined, requisicaoId: r.requisicao_id ?? "", dataCriacao: r.data_criacao ?? "",
   candidatos: r.candidatos ?? [],
 });
 
