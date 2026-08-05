@@ -282,8 +282,21 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
   );
 }
 
+const fallbackCtx: ProcessoSeletivoContextType = {
+  processos: [],
+  criarProcesso: async () => null as any,
+  getProcessoByRequisicao: () => undefined,
+  addCandidato: async () => null as any,
+  updateCandidato: async () => null as any,
+  importarCandidatos: async () => null as any,
+  avancarEtapa: async () => null as any,
+};
+
 export function useProcessoSeletivo() {
   const ctx = useContext(ProcessoSeletivoContext);
-  if (!ctx) throw new Error("useProcessoSeletivo must be used within ProcessoSeletivoProvider");
+  if (!ctx) {
+    console.warn("useProcessoSeletivo usado fora do ProcessoSeletivoProvider — usando fallback vazio.");
+    return fallbackCtx;
+  }
   return ctx;
 }
