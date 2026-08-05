@@ -431,12 +431,6 @@ const ProcessosSeletivos = () => {
                 </Card>
               );
             })}
-                      <Button variant="ghost" size="sm">Abrir →</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
           </div>
         )}
         <PaginationControls currentPage={page} totalItems={filtered.length} onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
