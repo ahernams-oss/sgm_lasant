@@ -27,6 +27,11 @@ import {
 import { useProcessoSeletivo } from "@/contexts/ProcessoSeletivoContext";
 import { useRequisicoes } from "@/contexts/RequisicaoContext";
 
+export function formatNumeroPS(p: { numero?: number; dataCriacao?: string }) {
+  const ano = (p.dataCriacao || "").split("/")[2] || String(new Date().getFullYear());
+  return `${String(p.numero ?? 0).padStart(2, "0")}-${ano}`;
+}
+
 function FiltroCombobox({
   value,
   onChange,
@@ -155,6 +160,7 @@ const ProcessosSeletivos = () => {
         (p.requisicao?.cargoNome || "").toLowerCase().includes(term) ||
         (p.requisicao?.unidade || "").toLowerCase().includes(term) ||
         p.dataCriacao.toLowerCase().includes(term) ||
+        formatNumeroPS(p).toLowerCase().includes(term) ||
         p.candidatos.some((c) => c.nome.toLowerCase().includes(term));
       const matchCliente = !cliente || p.requisicao?.unidade === cliente;
       const matchCargo = !cargo || p.requisicao?.cargoNome === cargo;
@@ -255,7 +261,7 @@ const ProcessosSeletivos = () => {
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Candidato, cargo, unidade..."
+                    placeholder="Nº, candidato, cargo, unidade..."
                     value={search}
                     onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                     className="pl-9 pr-8 h-9"
@@ -394,7 +400,10 @@ const ProcessosSeletivos = () => {
                 >
                   <CardContent className="py-4 flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-sm">
+                      <p className="font-medium text-sm flex items-center gap-2">
+                        <Badge variant="outline" className="font-mono text-[11px] border-primary/30 text-primary">
+                          PS {formatNumeroPS(p)}
+                        </Badge>
                         {p.requisicao?.cargoNome || "Cargo"} — {p.requisicao?.unidade || "Unidade"}
                       </p>
                       <p className="text-xs text-muted-foreground">
