@@ -391,7 +391,29 @@ const RequisicaoGrid = () => {
             <TableBody>
               {paginate(filteredRequisicoes, page, pageSize).paginated.map((req, idx) => {
                 const cellMap: Record<string, { node: ReactNode; className?: string }> = {
-                  numero: { node: req.numero, className: "pl-5 text-xs font-medium tabular-nums" },
+                  numero: {
+                    node: (() => {
+                      const ps = processos.find((p) => p.requisicaoId === req.id);
+                      const total = ps?.candidatos.length ?? 0;
+                      const contratados = ps?.candidatos.filter((c) => c.etapaAtual === "contratacao").length ?? 0;
+                      const estado = !ps || total === 0 ? "nao_iniciado" : contratados === total ? "concluido" : "andamento";
+                      const cor =
+                        estado === "concluido" ? "bg-emerald-500" : estado === "andamento" ? "bg-amber-500" : "bg-red-500";
+                      const titulo =
+                        estado === "concluido"
+                          ? "Processo seletivo concluído"
+                          : estado === "andamento"
+                          ? "Processo seletivo em andamento"
+                          : "Processo seletivo não iniciado";
+                      return (
+                        <span className="flex items-center gap-2">
+                          <span className={`inline-block h-2.5 w-2.5 rounded-full ${cor}`} title={titulo} aria-label={titulo} />
+                          {req.numero}
+                        </span>
+                      );
+                    })(),
+                    className: "pl-5 text-xs font-medium tabular-nums",
+                  },
                   data: { node: req.dataCriacao, className: "text-xs tabular-nums whitespace-nowrap" },
                   unidade: { node: req.unidade, className: "text-sm" },
                   cargo: { node: req.cargoNome, className: "text-sm font-medium" },
