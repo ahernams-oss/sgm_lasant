@@ -805,6 +805,18 @@ export default function SolicitacaoServicosPage() {
     });
   };
 
+  const marcarImpressa = async (ids: string[]) => {
+    const pendentes = solicitacoes.filter(s => ids.includes(s.id) && !s.impresso);
+    if (pendentes.length === 0) return;
+    try {
+      await Promise.all(pendentes.map(s => updateSolicitacao(s.id, {
+        impresso: true,
+        impresso_em: new Date().toISOString(),
+        impresso_por: usuarioLogado?.nome || "Sistema",
+      })));
+    } catch { /* ignore */ }
+  };
+
   const handleBatchPrint = async (comImagens: boolean) => {
     if (selectedIds.size === 0) return;
     setBatchPrinting(true);
