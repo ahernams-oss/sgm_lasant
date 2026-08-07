@@ -227,15 +227,43 @@ const ProcessoSeletivoPage = () => {
   const validacaoRef = useRef<Record<string, { ficha: any; docs: any[] }>>({});
 
 
-  if (!requisicao || !processo) {
+  if (!requisicao) {
+    if (buscandoReq || (requisicoes.length === 0 && !requisicaoFallback)) {
+      return (
+        <div className="container max-w-full mx-auto px-4 py-8">
+          <p className="text-muted-foreground">Carregando requisição...</p>
+        </div>
+      );
+    }
     return (
       <div className="container max-w-full mx-auto px-4 py-8">
-        <p className="text-muted-foreground">Requisição não encontrada ou não aprovada.</p>
+        <p className="text-muted-foreground">Requisição não encontrada.</p>
         <Button variant="ghost" className="mt-4" onClick={() => navigate("/")}>
           <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
         </Button>
       </div>
     );
+  }
+
+  if (!processo) {
+    if (requisicao.status !== "Aprovada") {
+      return (
+        <div className="container max-w-full mx-auto px-4 py-8">
+          <p className="text-muted-foreground">
+            A requisição está com status "{requisicao.status}". O processo seletivo só pode ser iniciado após a aprovação.
+          </p>
+          <Button variant="ghost" className="mt-4" onClick={() => navigate("/")}>
+            <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
+          </Button>
+        </div>
+      );
+    }
+    return (
+      <div className="container max-w-full mx-auto px-4 py-8">
+        <p className="text-muted-foreground">Iniciando processo seletivo...</p>
+      </div>
+    );
+
   }
 
   const handleAddCandidato = () => {
