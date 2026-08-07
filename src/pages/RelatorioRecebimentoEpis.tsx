@@ -117,6 +117,9 @@ export default function RelatorioRecebimentoEpis() {
     return !filtro || nome.includes(filtro.toLowerCase()) || r.status.includes(filtro.toLowerCase());
   });
 
+  const { paginated, safePage } = paginate(filtered, page, pageSize);
+
+
   return (
     <div className="space-y-4">
       <Card>
