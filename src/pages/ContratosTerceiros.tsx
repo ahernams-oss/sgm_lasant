@@ -98,8 +98,9 @@ function ContratosInner() {
 
   const onSelectPedido = (pedidoId: string) => {
     setPedidoSelId(pedidoId);
-    const p = pedidos.find((x) => x.id === pedidoId);
+    const p = pedidosServico.find((x) => x.id === pedidoId);
     if (!p) return;
+
     // Fornecedor + CNPJ/CPF + endereço
     const f: any = clientes.find((c: any) => c.id === p.fornecedorId);
     const endParts = f ? [
