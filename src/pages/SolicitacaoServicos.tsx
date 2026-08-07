@@ -751,7 +751,7 @@ export default function SolicitacaoServicosPage() {
     });
 
     return result;
-  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterVisitado, filterOrigem, orcamentos, sortField, sortDir]);
+  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterVisitado, filterOrigem, filterImpresso, orcamentos, sortField, sortDir]);
 
   const clientesUnicos = useMemo(() => {
     const map = new Map<string, string>();
