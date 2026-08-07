@@ -360,6 +360,7 @@ export default function OrdensServicoPage() {
   const [filtroOrigem, setFiltroOrigem] = useState(_osUrlInitial.get("origem") ?? _osSavedFilters?.filtroOrigem ?? "all");
   const [filtroSituacao, setFiltroSituacao] = useState(_osUrlInitial.get("situacao") ?? _osSavedFilters?.filtroSituacao ?? "Todas");
   const [filtroFotos, setFiltroFotos] = useState(_osSavedFilters?.filtroFotos ?? "all");
+  const [filtroImpresso, setFiltroImpresso] = useState(_osSavedFilters?.filtroImpresso ?? "all");
 
   const [filtroCliente, setFiltroCliente] = useState(() => localStorage.getItem("os_filtroCliente") || "Todos");
   const [filtroPrioridade, setFiltroPrioridade] = useState(_osSavedFilters?.filtroPrioridade ?? "Todas");
