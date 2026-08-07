@@ -87,6 +87,8 @@ const processoToRow = (p: ProcessoSeletivo) => ({
 
 const QK = ["processos_seletivos"] as const;
 const criandoProcessos = new Set<string>();
+// mapeia id local recém-gerado -> requisicao_id (para resolver processos ainda não carregados)
+const criandoIds = new Map<string, string>();
 
 export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
@@ -103,26 +105,50 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: QK });
 
+  // Resolve um processo mesmo quando ele ainda não está no cache (recém-criado).
+  const resolveProcesso = async (processoId: string): Promise<ProcessoSeletivo | null> => {
+    const emCache = (queryClient.getQueryData<ProcessoSeletivo[]>(QK) || []).find((p) => p.id === processoId);
+    if (emCache) return emCache;
+    const { data } = await (supabase as any)
+      .from("processos_seletivos")
+      .select("*")
+      .eq("id", processoId)
+      .maybeSingle();
+    if (data) return rowToProcesso(data);
+    // pode ter sido criado com outro id (upsert por requisicao_id)
+    const reqId = criandoIds.get(processoId);
+    if (reqId) {
+      const { data: byReq } = await (supabase as any)
+        .from("processos_seletivos")
+        .select("*")
+        .eq("requisicao_id", reqId)
+        .maybeSingle();
+      if (byReq) return rowToProcesso(byReq);
+    }
+    return null;
+  };
+
   // Aplica um patch otimista no cache do React Query e persiste em background.
   const applyPatch = async (
     id: string,
     patch: (p: ProcessoSeletivo) => ProcessoSeletivo,
   ): Promise<ProcessoSeletivo | null> => {
-    let updated: ProcessoSeletivo | null = null;
+    const base = await resolveProcesso(id);
+    if (!base) return null;
+    const updated = patch(base);
     queryClient.setQueryData<ProcessoSeletivo[]>(QK, (prev = []) =>
-      prev.map((p) => {
-        if (p.id !== id) return p;
-        updated = patch(p);
-        return updated;
-      })
+      prev.some((p) => p.id === updated.id)
+        ? prev.map((p) => (p.id === updated.id ? updated : p))
+        : [...prev, updated]
     );
-    if (updated) {
-      try {
-        await updateRow("processos_seletivos", id, processoToRow(updated));
-      } catch (e) {
-        console.error("Falha ao salvar processo seletivo, recarregando...", e);
-        await invalidate();
-      }
+    try {
+      const { error } = await (supabase as any)
+        .from("processos_seletivos")
+        .upsert({ id: updated.id, ...processoToRow(updated) }, { onConflict: "id" });
+      if (error) throw error;
+    } catch (e) {
+      console.error("Falha ao salvar processo seletivo, recarregando...", e);
+      await invalidate();
     }
     return updated;
   };
@@ -130,6 +156,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
   const saveAndReload = async (id: string, updated: ProcessoSeletivo) => {
     await applyPatch(id, () => updated);
   };
+
 
 
   // criandoProcessos (módulo) evita que renders concorrentes gerem
@@ -143,6 +170,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
       id: crypto.randomUUID(), requisicaoId,
       dataCriacao: new Date().toLocaleDateString("pt-BR"), candidatos: [],
     };
+    criandoIds.set(novo.id, requisicaoId);
     if (criandoProcessos.has(requisicaoId)) return novo;
     criandoProcessos.add(requisicaoId);
     // upsert com ignoreDuplicates: se já existir processo para a RP, nada é criado
@@ -162,7 +190,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
     processoId: string,
     candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores" | "anexos" | "documentos" | "exameAdmissional" | "dadosBancarios"> & { anexos?: AnexoCandidato[] }
   ) => {
-    const p = processos.find(p => p.id === processoId);
+    const p = await resolveProcesso(processoId);
     if (!p || p.candidatos.length >= 5) return;
     const novoCandidato: Candidato = {
       ...candidato, id: crypto.randomUUID(),
@@ -176,7 +204,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
       exameAdmissional: { dataExame: "", resultado: "pendente", observacoes: "" },
       dadosBancarios: { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "", pix: "" },
     };
-    await saveAndReload(processoId, { ...p, candidatos: [...p.candidatos, novoCandidato] });
+    await saveAndReload(p.id, { ...p, candidatos: [...p.candidatos, novoCandidato] });
   };
 
   // Importa vários candidatos de uma só vez (ex.: indicados da requisição)
@@ -184,7 +212,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
     processoId: string,
     lista: { nome: string; telefone?: string; email?: string; cpf?: string; dataNascimento?: string; anexos?: AnexoCandidato[] }[],
   ) => {
-    const p = processos.find(p => p.id === processoId);
+    const p = await resolveProcesso(processoId);
     if (!p) return 0;
     // Chave composta: CPF + nome — evita descartar indicados distintos
     // que tenham sido cadastrados com o mesmo CPF por engano.
@@ -217,7 +245,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
       });
     }
     if (novos.length === 0) return 0;
-    await saveAndReload(processoId, { ...p, candidatos: [...p.candidatos, ...novos] });
+    await saveAndReload(p.id, { ...p, candidatos: [...p.candidatos, ...novos] });
     return novos.length;
   };
 
@@ -257,10 +285,10 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
 
   const avancarEtapa = async (processoId: string, candidatoId: string) => {
     const etapas: EtapaCandidato[] = ["entrevista_psicologica", "entrevista_tecnica", "liberacao", "contratacao"];
-    const p = processos.find(p => p.id === processoId);
+    const p = await resolveProcesso(processoId);
     if (!p) return;
     let candidatoNotif: { nome: string; nextEtapa: EtapaCandidato } | null = null;
-    await saveAndReload(processoId, {
+    await saveAndReload(p.id, {
       ...p, candidatos: p.candidatos.map(c => {
         if (c.id !== candidatoId) return c;
         const idx = etapas.indexOf(c.etapaAtual);
