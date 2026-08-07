@@ -12,6 +12,7 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
 import { Eye, Search, FileDown, Download } from "lucide-react";
 import { gerarPdfEpiFacial } from "@/lib/gerarPdfEpiFacial";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 interface Recebimento {
   id: string; funcionario_id: string; token: string; status: string;
