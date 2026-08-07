@@ -100,7 +100,13 @@ export default function EstoquePage() {
     ["data", "local", "itens", "usuario", "status"]
   );
 
+  // Filtros
+  const [filtroCentroCusto, setFiltroCentroCusto] = useState("todos");
+  const [filtroMaterial, setFiltroMaterial] = useState("todos");
+  const [filtroLocal, setFiltroLocal] = useState("todos");
+
   // Movimentação dialog
+
   const [movDialogOpen, setMovDialogOpen] = useState(false);
   const [movTipo, setMovTipo] = useState<"entrada" | "saida">("entrada");
   const [movMaterialId, setMovMaterialId] = useState("");
@@ -233,14 +239,6 @@ export default function EstoquePage() {
     return Array.from(ccs).sort();
   }, [requisicoes, movimentacoes, centroCustoMap]);
 
-  // === SALDOS ===
-  const saldos = useMemo(() => {
-    const all = getSaldos();
-    if (!search) return all;
-    const s = search.toLowerCase();
-    return all.filter(sl => sl.materialCodigo.toLowerCase().includes(s) || sl.materialDescricao.toLowerCase().includes(s) || sl.local.toLowerCase().includes(s));
-  }, [getSaldos, search]);
-
   // Map saldo (material+local) → centro de custo from most recent movement
   const saldoCentroCusto = useMemo(() => {
     const map = new Map<string, string>();
@@ -253,6 +251,27 @@ export default function EstoquePage() {
     });
     return map;
   }, [movimentacoes, centroCustoMap]);
+
+  // Locais disponíveis
+  const locaisDisponiveis = useMemo(() => {
+    const set = new Set<string>();
+    movimentacoes.forEach(m => { if (m.local) set.add(m.local); });
+    return Array.from(set).sort();
+  }, [movimentacoes]);
+
+  // === SALDOS ===
+  const saldos = useMemo(() => {
+    const all = getSaldos();
+    const s = search.toLowerCase();
+    return all.filter(sl => {
+      if (search && !(sl.materialCodigo.toLowerCase().includes(s) || sl.materialDescricao.toLowerCase().includes(s) || sl.local.toLowerCase().includes(s))) return false;
+      if (filtroMaterial !== "todos" && sl.materialId !== filtroMaterial) return false;
+      if (filtroLocal !== "todos" && sl.local !== filtroLocal) return false;
+      if (filtroCentroCusto !== "todos" && (saldoCentroCusto.get(`${sl.materialId}|${sl.local}`) || "-") !== filtroCentroCusto) return false;
+      return true;
+    });
+  }, [getSaldos, search, filtroMaterial, filtroLocal, filtroCentroCusto, saldoCentroCusto]);
+
 
   // Saldos agrupados por centro de custo + material
   const getSaldosPorCentroCusto = (centroCusto: string) => {
@@ -290,12 +309,16 @@ export default function EstoquePage() {
 
   // === MOVIMENTAÇÕES ===
   const movFiltered = useMemo(() => {
-    if (!search) return [...movimentacoes].reverse();
     const s = search.toLowerCase();
-    return [...movimentacoes].reverse().filter(m =>
-      m.materialCodigo.toLowerCase().includes(s) || m.materialDescricao.toLowerCase().includes(s) || m.local.toLowerCase().includes(s)
-    );
-  }, [movimentacoes, search]);
+    return [...movimentacoes].reverse().filter(m => {
+      if (search && !(m.materialCodigo.toLowerCase().includes(s) || m.materialDescricao.toLowerCase().includes(s) || m.local.toLowerCase().includes(s))) return false;
+      if (filtroMaterial !== "todos" && m.materialId !== filtroMaterial) return false;
+      if (filtroLocal !== "todos" && m.local !== filtroLocal) return false;
+      if (filtroCentroCusto !== "todos" && getCentroCustoFromDocRef(m.documentoRef) !== filtroCentroCusto) return false;
+      return true;
+    });
+  }, [movimentacoes, search, filtroMaterial, filtroLocal, filtroCentroCusto, centroCustoMap]);
+
 
   // KPIs
   const totalItensEstoque = useMemo(() => saldos.reduce((s, i) => s + i.quantidade, 0), [saldos]);
@@ -529,14 +552,47 @@ export default function EstoquePage() {
         </Card>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar material, código ou local..." value={search} onChange={e => { setSearch(e.target.value); setPageSaldos(1); setPageMov(1); setPageAlertas(1); }} className="pl-9" />
+      {/* Search + Filtros */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative w-full max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Buscar material, código ou local..." value={search} onChange={e => { setSearch(e.target.value); setPageSaldos(1); setPageMov(1); setPageAlertas(1); }} className="pl-9" />
+        </div>
+
+        <Select value={filtroCentroCusto} onValueChange={(v) => { setFiltroCentroCusto(v); setPageSaldos(1); setPageMov(1); }}>
+          <SelectTrigger className="w-[220px]"><SelectValue placeholder="Centro de Custo" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os centros de custo</SelectItem>
+            {centrosCustoDisponiveis.map(cc => <SelectItem key={cc} value={cc}>{cc}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        <Select value={filtroMaterial} onValueChange={(v) => { setFiltroMaterial(v); setPageSaldos(1); setPageMov(1); }}>
+          <SelectTrigger className="w-[260px]"><SelectValue placeholder="Material" /></SelectTrigger>
+          <SelectContent className="max-h-72">
+            <SelectItem value="todos">Todos os materiais</SelectItem>
+            {materiais.map(m => <SelectItem key={m.id} value={m.id}>{m.codigo} — {m.descricao}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        <Select value={filtroLocal} onValueChange={(v) => { setFiltroLocal(v); setPageSaldos(1); setPageMov(1); }}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Local" /></SelectTrigger>
+          <SelectContent className="max-h-72">
+            <SelectItem value="todos">Todos os locais</SelectItem>
+            {locaisDisponiveis.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        {(filtroCentroCusto !== "todos" || filtroMaterial !== "todos" || filtroLocal !== "todos") && (
+          <Button variant="ghost" size="sm" onClick={() => { setFiltroCentroCusto("todos"); setFiltroMaterial("todos"); setFiltroLocal("todos"); }}>
+            Limpar filtros
+          </Button>
+        )}
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
+
           <TabsTrigger value="saldos"><Warehouse className="mr-1 h-4 w-4" />Saldos por Local</TabsTrigger>
           <TabsTrigger value="movimentacoes"><Package className="mr-1 h-4 w-4" />Movimentações</TabsTrigger>
           <TabsTrigger value="alertas">
