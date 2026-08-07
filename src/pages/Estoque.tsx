@@ -309,12 +309,16 @@ export default function EstoquePage() {
 
   // === MOVIMENTAÇÕES ===
   const movFiltered = useMemo(() => {
-    if (!search) return [...movimentacoes].reverse();
     const s = search.toLowerCase();
-    return [...movimentacoes].reverse().filter(m =>
-      m.materialCodigo.toLowerCase().includes(s) || m.materialDescricao.toLowerCase().includes(s) || m.local.toLowerCase().includes(s)
-    );
-  }, [movimentacoes, search]);
+    return [...movimentacoes].reverse().filter(m => {
+      if (search && !(m.materialCodigo.toLowerCase().includes(s) || m.materialDescricao.toLowerCase().includes(s) || m.local.toLowerCase().includes(s))) return false;
+      if (filtroMaterial !== "todos" && m.materialId !== filtroMaterial) return false;
+      if (filtroLocal !== "todos" && m.local !== filtroLocal) return false;
+      if (filtroCentroCusto !== "todos" && getCentroCustoFromDocRef(m.documentoRef) !== filtroCentroCusto) return false;
+      return true;
+    });
+  }, [movimentacoes, search, filtroMaterial, filtroLocal, filtroCentroCusto, centroCustoMap]);
+
 
   // KPIs
   const totalItensEstoque = useMemo(() => saldos.reduce((s, i) => s + i.quantidade, 0), [saldos]);
