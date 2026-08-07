@@ -1400,6 +1400,14 @@ export default function OrdensServicoPage() {
                     node: (
                       <div className="flex items-center gap-1 whitespace-nowrap">
                         <span className="font-bold">{formatNumeroAno(os.numero, os.createdAt)}</span>
+                        {os.impresso && (
+                          <span
+                            className="text-blue-600"
+                            title={os.impressoEm ? `Impressa em ${new Date(os.impressoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}${os.impressoPor ? ` por ${os.impressoPor}` : ""}` : "Impressa"}
+                          >
+                            <Printer className="h-3.5 w-3.5" aria-label="Impressa" />
+                          </span>
+                        )}
                         {ass.length > 0 && (
                           <span className="flex items-center gap-0.5 text-primary" title={`Assinada eletronicamente — ${tooltip}`}>
                             {ass.map((a) => (
