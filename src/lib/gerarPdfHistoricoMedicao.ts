@@ -46,15 +46,19 @@ export async function gerarPdfHistoricoMedicao(med: MedicaoServico): Promise<jsP
   y += 10;
 
   // Summary box
+  const saldo = (med.valor_total_contratado || 0) - (med.valor_total_medido || 0);
   doc.setFillColor(240, 243, 248);
-  doc.roundedRect(14, y, pw - 28, 18, 2, 2, "F");
+  doc.roundedRect(14, y, pw - 28, 26, 2, 2, "F");
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 58, 107);
   doc.text(`Valor Contratado: ${fmt(med.valor_total_contratado || 0)}`, 20, y + 8);
   doc.text(`Valor Medido: ${fmt(med.valor_total_medido || 0)}`, 90, y + 8);
   doc.text(`% Executado: ${fmtPerc(med.percentual_medido || 0)}`, 155, y + 8);
-  y += 28;
+  doc.setTextColor(saldo < 0 ? 180 : 20, saldo < 0 ? 30 : 110, saldo < 0 ? 30 : 60);
+  doc.text(`Saldo (Contratado - Medido): ${fmt(saldo)}`, 20, y + 18);
+  doc.setTextColor(30, 58, 107);
+  y += 36;
 
   // Itens do contrato
   doc.setTextColor(30, 58, 107);
