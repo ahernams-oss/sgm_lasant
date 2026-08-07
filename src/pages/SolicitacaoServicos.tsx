@@ -1232,16 +1232,18 @@ export default function SolicitacaoServicosPage() {
                         <Eye className="mr-2 h-4 w-4" />Visualizar
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => {
+                      <DropdownMenuItem onClick={async () => {
                         const eq = equipamentos.find(e => e.id === s.equipamentoId);
-                        gerarPdfSolicitacao(s, false, empresa, eq);
+                        await gerarPdfSolicitacao(s, false, empresa, eq);
+                        await marcarImpressa([s.id]);
                       }}>
                         <Download className="mr-2 h-4 w-4" />Imprimir SS (sem imagem)
                       </DropdownMenuItem>
                       {s.imagens && s.imagens.length > 0 && (
-                        <DropdownMenuItem onClick={() => {
+                        <DropdownMenuItem onClick={async () => {
                           const eq = equipamentos.find(e => e.id === s.equipamentoId);
-                          gerarPdfSolicitacao(s, true, empresa, eq);
+                          await gerarPdfSolicitacao(s, true, empresa, eq);
+                          await marcarImpressa([s.id]);
                         }}>
                           <Download className="mr-2 h-4 w-4" />Imprimir SS (com imagem)
                         </DropdownMenuItem>
