@@ -1362,6 +1362,7 @@ export default function OrdensServicoPage() {
                   }));
                 if (lista.length === 0) return;
                 await gerarPdfOrdemServicoLote(lista);
+                await marcarOsImpressa(lista.map(l => l.os.id));
                 toast.success(`${lista.length} OS(s) impressas`);
               }}>
                 <Printer className="mr-2 h-4 w-4" /> Imprimir em Lote
