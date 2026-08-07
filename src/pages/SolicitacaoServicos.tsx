@@ -133,6 +133,7 @@ export default function SolicitacaoServicosPage() {
       setFilterVisitado("all");
       setFilterOrigem("all");
       setFilterImpresso("all");
+      setFilterPrioridade("all");
       setPage(1);
       const next = new URLSearchParams(searchParams);
       next.delete("numero");
