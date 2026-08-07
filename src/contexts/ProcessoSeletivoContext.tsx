@@ -157,9 +157,11 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
       if (error) throw error;
     } catch (e) {
       console.error("Falha ao salvar processo seletivo, recarregando...", e);
+      toast.error("Não foi possível salvar. Tente novamente.");
       await invalidate();
     }
     return updated;
+
   };
 
   const saveAndReload = async (id: string, updated: ProcessoSeletivo) => {
