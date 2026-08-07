@@ -257,7 +257,7 @@ export default function EventogramaPage() {
             </div>
             <div className="col-span-2">
               <Label>Obra * (do RDO)</Label>
-              <Select value={form.obra || ""} onValueChange={(v) => setForm((f) => ({ ...f, obra: v }))} disabled={!form.cliente_id}>
+              <Select value={form.obra || ""} onValueChange={aplicarObra} disabled={!form.cliente_id}>
                 <SelectTrigger><SelectValue placeholder={form.cliente_id ? (obrasDoCliente.length ? "Selecione a obra" : "Nenhuma obra cadastrada no RDO") : "Selecione o cliente primeiro"} /></SelectTrigger>
                 <SelectContent>
                   {obrasDoCliente.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
