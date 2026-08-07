@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { enviarNotificacaoRP } from "@/lib/notificacaoRP";
+import { toast } from "sonner";
+
 
 async function notificarEtapaCandidato(requisicaoId: string, candidatoNome: string, evento: string, detalhes?: string) {
   try {
