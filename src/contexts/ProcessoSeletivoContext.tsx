@@ -204,7 +204,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
       exameAdmissional: { dataExame: "", resultado: "pendente", observacoes: "" },
       dadosBancarios: { banco: "", agencia: "", conta: "", tipoConta: "", pisPasep: "", pix: "" },
     };
-    await saveAndReload(processoId, { ...p, candidatos: [...p.candidatos, novoCandidato] });
+    await saveAndReload(p.id, { ...p, candidatos: [...p.candidatos, novoCandidato] });
   };
 
   // Importa vários candidatos de uma só vez (ex.: indicados da requisição)
@@ -212,7 +212,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
     processoId: string,
     lista: { nome: string; telefone?: string; email?: string; cpf?: string; dataNascimento?: string; anexos?: AnexoCandidato[] }[],
   ) => {
-    const p = processos.find(p => p.id === processoId);
+    const p = await resolveProcesso(processoId);
     if (!p) return 0;
     // Chave composta: CPF + nome — evita descartar indicados distintos
     // que tenham sido cadastrados com o mesmo CPF por engano.
@@ -245,7 +245,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
       });
     }
     if (novos.length === 0) return 0;
-    await saveAndReload(processoId, { ...p, candidatos: [...p.candidatos, ...novos] });
+    await saveAndReload(p.id, { ...p, candidatos: [...p.candidatos, ...novos] });
     return novos.length;
   };
 
@@ -285,10 +285,10 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
 
   const avancarEtapa = async (processoId: string, candidatoId: string) => {
     const etapas: EtapaCandidato[] = ["entrevista_psicologica", "entrevista_tecnica", "liberacao", "contratacao"];
-    const p = processos.find(p => p.id === processoId);
+    const p = await resolveProcesso(processoId);
     if (!p) return;
     let candidatoNotif: { nome: string; nextEtapa: EtapaCandidato } | null = null;
-    await saveAndReload(processoId, {
+    await saveAndReload(p.id, {
       ...p, candidatos: p.candidatos.map(c => {
         if (c.id !== candidatoId) return c;
         const idx = etapas.indexOf(c.etapaAtual);
