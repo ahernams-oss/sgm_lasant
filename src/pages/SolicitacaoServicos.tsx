@@ -1051,6 +1051,14 @@ export default function SolicitacaoServicosPage() {
             <SelectItem value="direta">Direta</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={filterImpresso} onValueChange={v => { setFilterImpresso(v); setPage(1); }}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Impressão" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Impressas e não impressas</SelectItem>
+            <SelectItem value="sim">Somente impressas</SelectItem>
+            <SelectItem value="nao">Não impressas</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Batch action bar */}
