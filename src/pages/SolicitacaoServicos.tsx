@@ -827,6 +827,7 @@ export default function SolicitacaoServicosPage() {
         equipamento: equipamentos.find(e => e.id === s.equipamentoId),
       }));
       await gerarPdfSolicitacaoLote(lista, comImagens, empresa);
+      await marcarImpressa(selected.map(s => s.id));
       toast({ title: `PDF gerado com ${selected.length} solicitação(ões)` });
     } catch {
       toast({ title: "Erro ao gerar PDF", variant: "destructive" });
