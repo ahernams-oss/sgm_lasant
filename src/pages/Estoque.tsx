@@ -555,11 +555,47 @@ export default function EstoquePage() {
       {/* Search */}
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar material, código ou local..." value={search} onChange={e => { setSearch(e.target.value); setPageSaldos(1); setPageMov(1); setPageAlertas(1); }} className="pl-9" />
+      {/* Search + Filtros */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative w-full max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Buscar material, código ou local..." value={search} onChange={e => { setSearch(e.target.value); setPageSaldos(1); setPageMov(1); setPageAlertas(1); }} className="pl-9" />
+        </div>
+
+        <Select value={filtroCentroCusto} onValueChange={(v) => { setFiltroCentroCusto(v); setPageSaldos(1); setPageMov(1); }}>
+          <SelectTrigger className="w-[220px]"><SelectValue placeholder="Centro de Custo" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os centros de custo</SelectItem>
+            {centrosCustoDisponiveis.map(cc => <SelectItem key={cc} value={cc}>{cc}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        <Select value={filtroMaterial} onValueChange={(v) => { setFiltroMaterial(v); setPageSaldos(1); setPageMov(1); }}>
+          <SelectTrigger className="w-[260px]"><SelectValue placeholder="Material" /></SelectTrigger>
+          <SelectContent className="max-h-72">
+            <SelectItem value="todos">Todos os materiais</SelectItem>
+            {materiais.map(m => <SelectItem key={m.id} value={m.id}>{m.codigo} — {m.descricao}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        <Select value={filtroLocal} onValueChange={(v) => { setFiltroLocal(v); setPageSaldos(1); setPageMov(1); }}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Local" /></SelectTrigger>
+          <SelectContent className="max-h-72">
+            <SelectItem value="todos">Todos os locais</SelectItem>
+            {locaisDisponiveis.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        {(filtroCentroCusto !== "todos" || filtroMaterial !== "todos" || filtroLocal !== "todos") && (
+          <Button variant="ghost" size="sm" onClick={() => { setFiltroCentroCusto("todos"); setFiltroMaterial("todos"); setFiltroLocal("todos"); }}>
+            Limpar filtros
+          </Button>
+        )}
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
+
           <TabsTrigger value="saldos"><Warehouse className="mr-1 h-4 w-4" />Saldos por Local</TabsTrigger>
           <TabsTrigger value="movimentacoes"><Package className="mr-1 h-4 w-4" />Movimentações</TabsTrigger>
           <TabsTrigger value="alertas">
