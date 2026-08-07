@@ -1051,6 +1051,13 @@ export default function SolicitacaoServicosPage() {
             {SITUACOES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Select value={filterPrioridade} onValueChange={v => { setFilterPrioridade(v); setPage(1); }}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Prioridade" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as Prioridades</SelectItem>
+            {PRIORIDADES.map(p => <SelectItem key={p.value} value={p.value}>{p.value}</SelectItem>)}
+          </SelectContent>
+        </Select>
         <Select value={filterVisitado} onValueChange={v => { setFilterVisitado(v); setPage(1); }}>
           <SelectTrigger className="w-[160px]"><SelectValue placeholder="Visitado" /></SelectTrigger>
           <SelectContent>
