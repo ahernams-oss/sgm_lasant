@@ -16,7 +16,7 @@ export function gerarExcelCronograma(cronograma: Cronograma) {
     ["Status", cronograma.status || ""],
     ["Início", cronograma.data_inicio || ""],
     ["Fim", cronograma.data_fim || ""],
-    ["Granularidade", cronograma.granularidade === "mensal" ? "Mensal" : "Semanal"],
+    ["Granularidade", cronograma.granularidade === "mensal" ? "Mensal" : cronograma.granularidade === "quinzenal" ? "Quinzenal" : "Semanal"],
     ["Valor Total", Number(cronograma.valor_total || 0)],
     ["Observações", cronograma.observacoes || ""],
   ];

@@ -23,7 +23,7 @@ export interface Cronograma {
   cliente_id: string; cliente_nome: string;
   obra: string; descricao: string; responsavel: string;
   data_inicio: string; data_fim: string;
-  granularidade: "mensal" | "semanal";
+  granularidade: "mensal" | "quinzenal" | "semanal";
   valor_total: number;
   atividades: CronogramaAtividade[];
   periodos: CronogramaPeriodo[];
@@ -80,7 +80,7 @@ export function CronogramasProvider({ children }: { children: ReactNode }) {
 }
 
 // ===== Helpers =====
-export function gerarPeriodos(inicio: string, fim: string, granularidade: "mensal" | "semanal"): CronogramaPeriodo[] {
+export function gerarPeriodos(inicio: string, fim: string, granularidade: "mensal" | "quinzenal" | "semanal"): CronogramaPeriodo[] {
   if (!inicio || !fim) return [];
   const dIni = new Date(inicio + "T00:00:00");
   const dFim = new Date(fim + "T00:00:00");
@@ -102,18 +102,20 @@ export function gerarPeriodos(inicio: string, fim: string, granularidade: "mensa
       cur.setMonth(cur.getMonth() + 1);
     }
   } else {
+    const passo = granularidade === "quinzenal" ? 15 : 7;
+    const prefixo = granularidade === "quinzenal" ? "Q" : "S";
     const cur = new Date(dIni);
     let n = 1;
     while (cur <= dFim) {
       const ini = new Date(cur);
-      const fimSem = new Date(cur);
-      fimSem.setDate(fimSem.getDate() + 6);
+      const fimPer = new Date(cur);
+      fimPer.setDate(fimPer.getDate() + (passo - 1));
       periodos.push({
-        rotulo: `S${n}`,
+        rotulo: `${prefixo}${n}`,
         inicio: ini.toISOString().slice(0, 10),
-        fim: (fimSem > dFim ? dFim : fimSem).toISOString().slice(0, 10),
+        fim: (fimPer > dFim ? dFim : fimPer).toISOString().slice(0, 10),
       });
-      cur.setDate(cur.getDate() + 7);
+      cur.setDate(cur.getDate() + passo);
       n++;
     }
   }
