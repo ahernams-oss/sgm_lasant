@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { enviarNotificacaoRP } from "@/lib/notificacaoRP";
+import { toast } from "sonner";
+
 
 async function notificarEtapaCandidato(requisicaoId: string, candidatoNome: string, evento: string, detalhes?: string) {
   try {
@@ -124,9 +126,18 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
         .eq("requisicao_id", reqId)
         .maybeSingle();
       if (byReq) return rowToProcesso(byReq);
+      // ainda não existe no banco: cria agora para não perder o candidato
+      const { data: criado, error } = await (supabase as any)
+        .from("processos_seletivos")
+        .insert({ id: processoId, requisicao_id: reqId, data_criacao: new Date().toLocaleDateString("pt-BR"), candidatos: [] })
+        .select()
+        .maybeSingle();
+      if (criado) { invalidate(); return rowToProcesso(criado); }
+      console.error("Falha ao criar processo seletivo:", error);
     }
     return null;
   };
+
 
   // Aplica um patch otimista no cache do React Query e persiste em background.
   const applyPatch = async (
@@ -148,9 +159,11 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
       if (error) throw error;
     } catch (e) {
       console.error("Falha ao salvar processo seletivo, recarregando...", e);
+      toast.error("Não foi possível salvar. Tente novamente.");
       await invalidate();
     }
     return updated;
+
   };
 
   const saveAndReload = async (id: string, updated: ProcessoSeletivo) => {
