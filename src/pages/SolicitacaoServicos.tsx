@@ -683,6 +683,7 @@ export default function SolicitacaoServicosPage() {
     if (filterCliente !== "all") result = result.filter(s => s.clienteId === filterCliente);
     if (filterTipo !== "all") result = result.filter(s => s.tipo === filterTipo);
     if (filterSituacao !== "all") result = result.filter(s => s.situacao === filterSituacao);
+    if (filterPrioridade !== "all") result = result.filter(s => s.prioridade === filterPrioridade);
     if (filterVisitado !== "all") result = result.filter(s => filterVisitado === "sim" ? s.visitado : !s.visitado);
     if (filterOrigem !== "all") {
       const idsComOrcamento = new Set(orcamentos.map(o => o.solicitacaoId));
@@ -753,7 +754,7 @@ export default function SolicitacaoServicosPage() {
     });
 
     return result;
-  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterVisitado, filterOrigem, filterImpresso, orcamentos, sortField, sortDir]);
+  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterPrioridade, filterVisitado, filterOrigem, filterImpresso, orcamentos, sortField, sortDir]);
 
   const clientesUnicos = useMemo(() => {
     const map = new Map<string, string>();
