@@ -100,7 +100,13 @@ export default function EstoquePage() {
     ["data", "local", "itens", "usuario", "status"]
   );
 
+  // Filtros
+  const [filtroCentroCusto, setFiltroCentroCusto] = useState("todos");
+  const [filtroMaterial, setFiltroMaterial] = useState("todos");
+  const [filtroLocal, setFiltroLocal] = useState("todos");
+
   // Movimentação dialog
+
   const [movDialogOpen, setMovDialogOpen] = useState(false);
   const [movTipo, setMovTipo] = useState<"entrada" | "saida">("entrada");
   const [movMaterialId, setMovMaterialId] = useState("");
