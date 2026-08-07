@@ -71,12 +71,22 @@ async function findCandidato(cpf: string, dataNasc?: string | null) {
   return null;
 }
 
+/** Funcionário inativo (demitido/desligado) perde o acesso ao portal. */
+async function funcionarioBloqueado(funcionarioId: string | null | undefined) {
+  if (!funcionarioId) return false;
+  const { data } = await sb.from("funcionarios").select("status").eq("id", funcionarioId).maybeSingle();
+  if (!data) return true;
+  return String(data.status || "").trim().toLowerCase() === "inativo";
+}
+
 async function requireAuth(req: Request) {
   const token = req.headers.get("x-portal-token") || "";
   const payload = await verifyToken(token);
   if (!payload) return null;
   const { data: cred } = await sb.from("portal_credenciais").select("*").eq("id", payload.sub as string).maybeSingle();
-  return cred?.ativo ? cred : null;
+  if (!cred?.ativo) return null;
+  if (cred.tipo_acesso === "funcionario" && (await funcionarioBloqueado(cred.funcionario_id))) return null;
+  return cred;
 }
 
 Deno.serve(async (req) => {
@@ -103,6 +113,8 @@ Deno.serve(async (req) => {
       const func = (funcs ?? []).find((f: any) => normCpf(f.cpf) === cpf);
 
       if (func) {
+        if (String(func.status || "").trim().toLowerCase() === "inativo")
+          return json({ error: "Funcionário inativo. Acesso ao portal bloqueado." }, 403);
         if (func.data_nascimento !== dataNasc)
           return json({ error: "Dados não conferem." }, 401);
         const hash = bcrypt.hashSync(senha, bcrypt.genSaltSync(10));
@@ -161,6 +173,10 @@ Deno.serve(async (req) => {
         await log(cpf, cred.id, "login", false, { motivo: "senha_incorreta", tentativas: tent }, req);
         return loginError();
       }
+      if (cred.tipo_acesso === "funcionario" && (await funcionarioBloqueado(cred.funcionario_id))) {
+        await log(cpf, cred.id, "login", false, { motivo: "funcionario_inativo" }, req);
+        return json({ error: "Funcionário inativo. Acesso ao portal bloqueado." }, 403);
+      }
       await sb.from("portal_credenciais").update({ tentativas_falhas: 0, bloqueado_ate: null, ultimo_login: new Date().toISOString() }).eq("id", cred.id);
       await log(cpf, cred.id, "login", true, null, req);
 
@@ -190,6 +206,8 @@ Deno.serve(async (req) => {
 
       let match = false;
       if (cred.funcionario_id) {
+        if (await funcionarioBloqueado(cred.funcionario_id))
+          return json({ error: "Funcionário inativo. Acesso ao portal bloqueado." }, 403);
         const { data: f } = await sb.from("funcionarios").select("data_nascimento").eq("id", cred.funcionario_id).maybeSingle();
         match = f?.data_nascimento === dataNasc;
       } else {
