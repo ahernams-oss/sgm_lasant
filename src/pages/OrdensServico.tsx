@@ -1526,6 +1526,7 @@ export default function OrdensServicoPage() {
                               cliente: clientes.find(c => c.id === os.clienteId),
                               assinaturas: assinaturasOs.filter(a => a.os_id === os.id),
                             });
+                            await marcarOsImpressa([os.id]);
                           }}>
                             <Printer className="mr-2 h-4 w-4" /> Imprimir OS
                           </DropdownMenuItem>
@@ -1538,6 +1539,7 @@ export default function OrdensServicoPage() {
                               cliente: clientes.find(c => c.id === os.clienteId),
                               assinaturas: assinaturasOs.filter(a => a.os_id === os.id),
                             });
+                            await marcarOsImpressa([os.id]);
                           }}>
                             <Printer className="mr-2 h-4 w-4" /> Imprimir OS com Fotos
                           </DropdownMenuItem>
