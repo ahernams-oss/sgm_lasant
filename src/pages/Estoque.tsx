@@ -233,6 +233,26 @@ export default function EstoquePage() {
     return Array.from(ccs).sort();
   }, [requisicoes, movimentacoes, centroCustoMap]);
 
+  // Map saldo (material+local) → centro de custo from most recent movement
+  const saldoCentroCusto = useMemo(() => {
+    const map = new Map<string, string>();
+    // Process movements in order so latest wins
+    movimentacoes.forEach(m => {
+      const cc = getCentroCustoFromDocRef(m.documentoRef);
+      if (cc !== "-") {
+        map.set(`${m.materialId}|${m.local}`, cc);
+      }
+    });
+    return map;
+  }, [movimentacoes, centroCustoMap]);
+
+  // Locais disponíveis
+  const locaisDisponiveis = useMemo(() => {
+    const set = new Set<string>();
+    movimentacoes.forEach(m => { if (m.local) set.add(m.local); });
+    return Array.from(set).sort();
+  }, [movimentacoes]);
+
   // === SALDOS ===
   const saldos = useMemo(() => {
     const all = getSaldos();
@@ -246,19 +266,6 @@ export default function EstoquePage() {
     });
   }, [getSaldos, search, filtroMaterial, filtroLocal, filtroCentroCusto, saldoCentroCusto]);
 
-
-  // Map saldo (material+local) → centro de custo from most recent movement
-  const saldoCentroCusto = useMemo(() => {
-    const map = new Map<string, string>();
-    // Process movements in order so latest wins
-    movimentacoes.forEach(m => {
-      const cc = getCentroCustoFromDocRef(m.documentoRef);
-      if (cc !== "-") {
-        map.set(`${m.materialId}|${m.local}`, cc);
-      }
-    });
-    return map;
-  }, [movimentacoes, centroCustoMap]);
 
   // Saldos agrupados por centro de custo + material
   const getSaldosPorCentroCusto = (centroCusto: string) => {
