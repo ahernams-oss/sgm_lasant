@@ -19,6 +19,7 @@ export function downloadExcelHistoricoMedicao(med: MedicaoServico) {
     ["Status", med.status],
     ["Valor Contratado", med.valor_total_contratado || 0],
     ["Valor Medido", med.valor_total_medido || 0],
+    ["Saldo (Contratado - Medido)", (med.valor_total_contratado || 0) - (med.valor_total_medido || 0)],
     ["% Executado", (med.percentual_medido || 0) / 100],
     ["Data Pagamento", (med as any).data_pagamento || ""],
     ["Observações", med.observacoes || ""],
