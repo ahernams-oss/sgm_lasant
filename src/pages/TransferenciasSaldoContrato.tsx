@@ -16,6 +16,7 @@ import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { addHeader, addFooter } from "@/lib/gerarRelatorioEstoque";
 
 type TipoSaldo = "maoDeObraMensal" | "maoDeObraAnual" | "maoDeObraContratual" | "valorVariavel";
 
