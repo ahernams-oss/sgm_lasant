@@ -192,6 +192,14 @@ export default function RelatorioRecebimentoEpis() {
               </TableBody>
             </Table>
           </div>
+
+          <PaginationControls
+            currentPage={safePage}
+            totalItems={filtered.length}
+            onPageChange={setPage}
+            pageSize={pageSize}
+            onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+          />
         </CardContent>
       </Card>
 
