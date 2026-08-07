@@ -32,6 +32,8 @@ export default function RelatorioRecebimentoEpis() {
   const [preview, setPreview] = useState<{ urls: string[]; row: Recebimento } | null>(null);
   const [loading, setLoading] = useState(false);
   const [gerandoPdf, setGerandoPdf] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const carregar = async () => {
     setLoading(true);
