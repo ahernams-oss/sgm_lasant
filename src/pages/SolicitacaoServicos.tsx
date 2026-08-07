@@ -684,6 +684,7 @@ export default function SolicitacaoServicosPage() {
       const idsComOrcamento = new Set(orcamentos.map(o => o.solicitacaoId));
       result = result.filter(s => filterOrigem === "orcamento" ? idsComOrcamento.has(s.id) : !idsComOrcamento.has(s.id));
     }
+    if (filterImpresso !== "all") result = result.filter(s => filterImpresso === "sim" ? s.impresso : !s.impresso);
 
     // Ordenação por coluna (padrão: prioridade → número decrescente)
     result = [...result].sort((a, b) => {
