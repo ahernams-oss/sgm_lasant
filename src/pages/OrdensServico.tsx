@@ -450,6 +450,7 @@ export default function OrdensServicoPage() {
   const [scoBusca, setScoBusca] = useState("");
   const [scoQtd, setScoQtd] = useState(1);
   const [scoResultPage, setScoResultPage] = useState(1);
+  const [scoResultPageSize, setScoResultPageSize] = useState(10);
 
   // Estoque search state
   const [estoqueBusca, setEstoqueBusca] = useState("");
