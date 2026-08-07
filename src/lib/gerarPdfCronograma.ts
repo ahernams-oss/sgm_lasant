@@ -67,7 +67,7 @@ export async function gerarPdfCronograma(cronograma: Cronograma, empresa?: Empre
       ],
       [
         { content: "Granularidade:", styles: { fontStyle: "bold" } },
-        cronograma.granularidade === "mensal" ? "Mensal" : "Semanal",
+        cronograma.granularidade === "mensal" ? "Mensal" : cronograma.granularidade === "quinzenal" ? "Quinzenal" : "Semanal",
         { content: "Valor Total:", styles: { fontStyle: "bold" } },
         fmtMoney(cronograma.valor_total || 0),
       ],

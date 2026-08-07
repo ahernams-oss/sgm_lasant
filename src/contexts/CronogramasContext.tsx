@@ -23,7 +23,7 @@ export interface Cronograma {
   cliente_id: string; cliente_nome: string;
   obra: string; descricao: string; responsavel: string;
   data_inicio: string; data_fim: string;
-  granularidade: "mensal" | "semanal";
+  granularidade: "mensal" | "quinzenal" | "semanal";
   valor_total: number;
   atividades: CronogramaAtividade[];
   periodos: CronogramaPeriodo[];

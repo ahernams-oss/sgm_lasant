@@ -438,6 +438,7 @@ function CronogramaInner() {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="mensal">Mensal</SelectItem>
+                      <SelectItem value="quinzenal">Quinzenal</SelectItem>
                       <SelectItem value="semanal">Semanal</SelectItem>
                     </SelectContent>
                   </Select>
