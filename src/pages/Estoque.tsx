@@ -236,10 +236,16 @@ export default function EstoquePage() {
   // === SALDOS ===
   const saldos = useMemo(() => {
     const all = getSaldos();
-    if (!search) return all;
     const s = search.toLowerCase();
-    return all.filter(sl => sl.materialCodigo.toLowerCase().includes(s) || sl.materialDescricao.toLowerCase().includes(s) || sl.local.toLowerCase().includes(s));
-  }, [getSaldos, search]);
+    return all.filter(sl => {
+      if (search && !(sl.materialCodigo.toLowerCase().includes(s) || sl.materialDescricao.toLowerCase().includes(s) || sl.local.toLowerCase().includes(s))) return false;
+      if (filtroMaterial !== "todos" && sl.materialId !== filtroMaterial) return false;
+      if (filtroLocal !== "todos" && sl.local !== filtroLocal) return false;
+      if (filtroCentroCusto !== "todos" && (saldoCentroCusto.get(`${sl.materialId}|${sl.local}`) || "-") !== filtroCentroCusto) return false;
+      return true;
+    });
+  }, [getSaldos, search, filtroMaterial, filtroLocal, filtroCentroCusto, saldoCentroCusto]);
+
 
   // Map saldo (material+local) → centro de custo from most recent movement
   const saldoCentroCusto = useMemo(() => {
