@@ -12,7 +12,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { isValidCPF, maskCPF, onlyDigits } from "@/lib/validators";
-import RadioGroupCustom from "@/components/RadioGroupCustom";
+
 
 interface ProgressGroup { label: string; weight: number; items?: string[]; check?: boolean; }
 
@@ -327,12 +327,16 @@ export default function PortalFicha() {
                   <F l="Data de nascimento" type="date" v={dp.dataNasc} on={(v: string) => setDp({ ...dp, dataNasc: v })} />
                   <div className="flex flex-col gap-1.5">
                     <Label className="text-xs">Sexo</Label>
-                    <RadioGroupCustom
-                      options={["Feminino", "Masculino"]}
-                      selected={dp.sexo || ""}
-                      onChange={(v) => setDp({ ...dp, sexo: v })}
-                      columns={2}
-                    />
+                    <Select value={dp.sexo || ""} onValueChange={(v) => setDp({ ...dp, sexo: v })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["Feminino", "Masculino"].map((op) => (
+                          <SelectItem key={op} value={op}>{op}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <Label className="text-xs">Estado civil</Label>
