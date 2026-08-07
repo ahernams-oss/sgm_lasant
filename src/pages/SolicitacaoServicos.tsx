@@ -1137,11 +1137,9 @@ export default function SolicitacaoServicosPage() {
                         <ReceiptText className="h-4 w-4 text-emerald-600" aria-label="Proveniente de Orçamento" />
                       )}
                       {s.impresso && (
-                        <Printer
-                          className="h-4 w-4 text-blue-600"
-                          aria-label="Impressa"
-                          title={s.impressoEm ? `Impressa em ${new Date(s.impressoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}${s.impressoPor ? ` por ${s.impressoPor}` : ""}` : "Impressa"}
-                        />
+                        <span title={s.impressoEm ? `Impressa em ${new Date(s.impressoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}${s.impressoPor ? ` por ${s.impressoPor}` : ""}` : "Impressa"}>
+                          <Printer className="h-4 w-4 text-blue-600" aria-label="Impressa" />
+                        </span>
                       )}
                     </div>
                   ),
