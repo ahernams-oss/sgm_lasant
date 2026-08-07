@@ -22,6 +22,9 @@ export interface SolicitacaoServico {
   solicitanteId: string; solicitanteNome: string;
   historico: HistoricoEntry[];
   ressalvaAprovacao: string;
+  impresso: boolean;
+  impressoEm: string;
+  impressoPor: string;
 }
 
 interface SolicitacoesServicosContextType {
