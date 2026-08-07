@@ -140,23 +140,12 @@ export async function gerarPdfHistoricoMedicao(med: MedicaoServico): Promise<jsP
   }
 
   // Footer
-  const pages = doc.getNumberOfPages();
-  for (let i = 1; i <= pages; i++) {
-    doc.setPage(i);
-    const h = doc.internal.pageSize.getHeight();
-    doc.setDrawColor(200, 200, 200);
-    doc.line(14, h - 18, pw - 14, h - 18);
-    doc.setFontSize(7);
-    doc.setTextColor(150, 150, 150);
-    doc.setFont("helvetica", "normal");
-    doc.text("Relatório gerado automaticamente — SGM Lasant", 14, h - 12);
-    doc.text(`Página ${i} de ${pages}`, pw / 2, h - 12, { align: "center" });
-  }
+  addFooter(doc);
 
   return doc;
 }
 
-export function downloadPdfHistoricoMedicao(med: MedicaoServico) {
-  const doc = gerarPdfHistoricoMedicao(med);
+export async function downloadPdfHistoricoMedicao(med: MedicaoServico) {
+  const doc = await gerarPdfHistoricoMedicao(med);
   doc.save(`Medicao_${med.numero}_Historico.pdf`);
 }
