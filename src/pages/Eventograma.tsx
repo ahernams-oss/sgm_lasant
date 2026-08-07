@@ -15,6 +15,7 @@ import { useEventogramas, type Eventograma, type EventogramaEvento } from "@/con
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useRdos } from "@/contexts/RdosContext";
+import { useObras } from "@/contexts/ObrasContext";
 import { gerarPdfEventograma } from "@/lib/gerarPdfEventograma";
 import { gerarExcelEventograma } from "@/lib/gerarExcelEventograma";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
@@ -61,6 +62,7 @@ export default function EventogramaPage() {
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { rdos } = useRdos();
+  const { obras = [] } = (useObras() as any) || {};
   const { tem } = usePermissao();
   const podeExcluir = tem("eventograma.excluir");
 
@@ -90,6 +92,32 @@ export default function EventogramaPage() {
       status: "Em elaboração", observacoes: "",
     });
     setEditing(null);
+  };
+
+  // Ao escolher a obra, recupera os dados já cadastrados (RDO + cadastro da obra)
+  const aplicarObra = (nomeObra: string) => {
+    const rdosObra = rdos.filter(
+      (r) => r.cliente_id === form.cliente_id && (r.obra || "").trim() === nomeObra,
+    );
+    const rdo = rdosObra[0];
+    const obra = obras.find(
+      (o: any) =>
+        (rdo?.obra_id && o.id === rdo.obra_id) ||
+        (o.cliente_id === form.cliente_id && (o.nome || "").trim() === nomeObra),
+    ) as any;
+
+    setForm((f) => {
+      const next: Partial<Eventograma> = { ...f, obra: nomeObra };
+      const resp = rdo?.responsavel || obra?.responsavel || "";
+      if (resp && !f.responsavel) next.responsavel = resp;
+      const desc = obra?.descricao || "";
+      if (desc && !f.descricao) next.descricao = desc;
+      if (obra?.contrato_numero && !f.contrato_numero) next.contrato_numero = obra.contrato_numero;
+      if (Number(obra?.valor_total_contrato) && !Number(f.valor_total))
+        next.valor_total = Number(obra.valor_total_contrato);
+      return next;
+    });
+    if (rdo || obra) toast.success("Dados da obra recuperados");
   };
 
   const openNew = () => { resetForm(); setOpen(true); };
@@ -229,7 +257,7 @@ export default function EventogramaPage() {
             </div>
             <div className="col-span-2">
               <Label>Obra * (do RDO)</Label>
-              <Select value={form.obra || ""} onValueChange={(v) => setForm((f) => ({ ...f, obra: v }))} disabled={!form.cliente_id}>
+              <Select value={form.obra || ""} onValueChange={aplicarObra} disabled={!form.cliente_id}>
                 <SelectTrigger><SelectValue placeholder={form.cliente_id ? (obrasDoCliente.length ? "Selecione a obra" : "Nenhuma obra cadastrada no RDO") : "Selecione o cliente primeiro"} /></SelectTrigger>
                 <SelectContent>
                   {obrasDoCliente.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
