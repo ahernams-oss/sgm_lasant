@@ -552,9 +552,6 @@ export default function EstoquePage() {
         </Card>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       {/* Search + Filtros */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-full max-w-sm">
