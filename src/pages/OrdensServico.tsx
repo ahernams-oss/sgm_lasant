@@ -1953,37 +1953,47 @@ export default function OrdensServicoPage() {
                     </div>
                   </div>
                   {scosFiltered.length > 0 && (
-                    <div className="border rounded-md max-h-[250px] overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Código</TableHead>
-                            <TableHead>Descrição</TableHead>
-                            <TableHead>Un.</TableHead>
-                            <TableHead>Tipo</TableHead>
-                            <TableHead className="w-[80px]"></TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {paginate(scosFiltered, scoResultPage, 10).paginated.map(s => (
-                            <TableRow key={s.id}>
-                              <TableCell className="text-xs font-mono">{s.codSco}</TableCell>
-                              <TableCell className="text-xs">{s.descricaoSco}</TableCell>
-                              <TableCell className="text-xs">{s.unidade}</TableCell>
-                              <TableCell className="text-xs">{s.tipo}</TableCell>
-                              <TableCell>
-                                <Button size="sm" onClick={() => handleAddScoMaterial(s)}>Adicionar</Button>
-                              </TableCell>
+                    <div className="border rounded-md">
+                      <div className="max-h-[420px] overflow-y-auto">
+                        <Table>
+                          <TableHeader className="sticky top-0 bg-background z-10">
+                            <TableRow>
+                              <TableHead>Código</TableHead>
+                              <TableHead>Descrição</TableHead>
+                              <TableHead>Un.</TableHead>
+                              <TableHead>Tipo</TableHead>
+                              <TableHead className="w-[80px]"></TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                      {scosFiltered.length > 10 && (
-                        <div className="p-2">
-                          <PaginationControls currentPage={scoResultPage} totalItems={scosFiltered.length} onPageChange={setScoResultPage} pageSize={10} />
-                        </div>
-                      )}
+                          </TableHeader>
+                          <TableBody>
+                            {paginate(scosFiltered, scoResultPage, scoResultPageSize).paginated.map(s => (
+                              <TableRow key={s.id}>
+                                <TableCell className="text-xs font-mono">{s.codSco}</TableCell>
+                                <TableCell className="text-xs">{s.descricaoSco}</TableCell>
+                                <TableCell className="text-xs">{s.unidade}</TableCell>
+                                <TableCell className="text-xs">{s.tipo}</TableCell>
+                                <TableCell>
+                                  <Button size="sm" onClick={() => handleAddScoMaterial(s)}>Adicionar</Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      <div className="px-2 pb-2 border-t">
+                        <PaginationControls
+                          currentPage={paginate(scosFiltered, scoResultPage, scoResultPageSize).safePage}
+                          totalItems={scosFiltered.length}
+                          onPageChange={setScoResultPage}
+                          pageSize={scoResultPageSize}
+                          onPageSizeChange={(s) => { setScoResultPageSize(s); setScoResultPage(1); }}
+                        />
+                        <p className="text-xs text-muted-foreground pb-1">
+                          Página {paginate(scosFiltered, scoResultPage, scoResultPageSize).safePage} de {paginate(scosFiltered, scoResultPage, scoResultPageSize).totalPages} — {scosFiltered.length} item(ns)
+                        </p>
+                      </div>
                     </div>
+
                   )}
                   {materiais.length > 0 && (
                     <>
