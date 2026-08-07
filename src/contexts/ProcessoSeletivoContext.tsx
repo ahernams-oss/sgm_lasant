@@ -124,9 +124,18 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
         .eq("requisicao_id", reqId)
         .maybeSingle();
       if (byReq) return rowToProcesso(byReq);
+      // ainda não existe no banco: cria agora para não perder o candidato
+      const { data: criado, error } = await (supabase as any)
+        .from("processos_seletivos")
+        .insert({ id: processoId, requisicao_id: reqId, data_criacao: new Date().toLocaleDateString("pt-BR"), candidatos: [] })
+        .select()
+        .maybeSingle();
+      if (criado) { invalidate(); return rowToProcesso(criado); }
+      console.error("Falha ao criar processo seletivo:", error);
     }
     return null;
   };
+
 
   // Aplica um patch otimista no cache do React Query e persiste em background.
   const applyPatch = async (
