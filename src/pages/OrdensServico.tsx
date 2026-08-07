@@ -990,6 +990,18 @@ export default function OrdensServicoPage() {
     });
   }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim, filtroOrigem, filtroFotos, filtroImpresso, orcamentosAll]);
 
+  const marcarOsImpressa = async (ids: string[]) => {
+    const pendentes = ordens.filter(o => ids.includes(o.id) && !o.impresso);
+    if (pendentes.length === 0) return;
+    try {
+      await Promise.all(pendentes.map(o => updateOrdem(o.id, {
+        impresso: true,
+        impresso_em: new Date().toISOString(),
+        impresso_por: usuarioLogado?.nome || "Sistema",
+      })));
+    } catch { /* ignore */ }
+  };
+
   // Sorting
   const [sortField, setSortField] = useState<string | null>("numero");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
