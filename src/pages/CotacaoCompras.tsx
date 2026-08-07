@@ -103,15 +103,16 @@ export default function CotacaoComprasPage() {
   const fornecedores = useMemo(() => clientes.filter(c => c.tipo === "Fornecedor"), [clientes]);
   const reqDisponiveisParaCotacao = useMemo(() => requisicoes.filter(r => r.status === "Enviada" || r.status === "Em Cotação"), [requisicoes]);
 
-  const _cotSavedFilters = loadPersistedFilters<{ search: string; filterStatus: string; filterPeriodo: string; filterComprador: string; filterCentroCusto: string; filterDataIni: string; filterDataFim: string; }>("cotacao_compras_filters_v1");
+  const _cotSavedFilters = loadPersistedFilters<{ search: string; filterStatus: string; filterPeriodo: string; filterComprador: string; filterCentroCusto: string; filterUrgencia: string; filterDataIni: string; filterDataFim: string; }>("cotacao_compras_filters_v1");
   const [search, setSearch] = useState(_cotSavedFilters?.search ?? "");
   const [filterStatus, setFilterStatus] = useState(_cotSavedFilters?.filterStatus ?? "Todos");
   const [filterPeriodo, setFilterPeriodo] = useState(_cotSavedFilters?.filterPeriodo ?? "Todos");
   const [filterComprador, setFilterComprador] = useState(_cotSavedFilters?.filterComprador ?? "Todos");
   const [filterCentroCusto, setFilterCentroCusto] = useState(_cotSavedFilters?.filterCentroCusto ?? "Todos");
+  const [filterUrgencia, setFilterUrgencia] = useState(_cotSavedFilters?.filterUrgencia ?? "Todas");
   const [filterDataIni, setFilterDataIni] = useState(_cotSavedFilters?.filterDataIni ?? "");
   const [filterDataFim, setFilterDataFim] = useState(_cotSavedFilters?.filterDataFim ?? "");
-  usePersistFilters("cotacao_compras_filters_v1", { search, filterStatus, filterPeriodo, filterComprador, filterCentroCusto, filterDataIni, filterDataFim });
+  usePersistFilters("cotacao_compras_filters_v1", { search, filterStatus, filterPeriodo, filterComprador, filterCentroCusto, filterUrgencia, filterDataIni, filterDataFim });
   const [pageCot, setPageCot] = useState(1);
   const [pageSizeCot, setPageSizeCot] = useState(7);
 
@@ -279,9 +280,9 @@ export default function CotacaoComprasPage() {
     return Array.from(set).sort();
   }, [cotacoes, requisicoes]);
 
-  const hasActiveFilters = filterStatus !== "Todos" || filterPeriodo !== "Todos" || filterComprador !== "Todos" || filterCentroCusto !== "Todos" || search !== "" || filterDataIni !== "" || filterDataFim !== "";
+  const hasActiveFilters = filterStatus !== "Todos" || filterPeriodo !== "Todos" || filterComprador !== "Todos" || filterCentroCusto !== "Todos" || filterUrgencia !== "Todas" || search !== "" || filterDataIni !== "" || filterDataFim !== "";
 
-  const clearFilters = () => { setSearch(""); setFilterStatus("Todos"); setFilterPeriodo("Todos"); setFilterComprador("Todos"); setFilterCentroCusto("Todos"); setFilterDataIni(""); setFilterDataFim(""); };
+  const clearFilters = () => { setSearch(""); setFilterStatus("Todos"); setFilterPeriodo("Todos"); setFilterComprador("Todos"); setFilterCentroCusto("Todos"); setFilterUrgencia("Todas"); setFilterDataIni(""); setFilterDataFim(""); };
 
   const filtered = useMemo(() => {
     let list = cotacoes;
@@ -291,6 +292,12 @@ export default function CotacaoComprasPage() {
       list = list.filter(c => {
         const req = requisicoes.find(r => r.id === c.requisicaoId);
         return req?.centroCustoNome === filterCentroCusto;
+      });
+    }
+    if (filterUrgencia !== "Todas") {
+      list = list.filter(c => {
+        const req = requisicoes.find(r => r.id === c.requisicaoId);
+        return req?.urgencia === filterUrgencia;
       });
     }
     if (filterPeriodo !== "Todos") {
@@ -306,7 +313,7 @@ export default function CotacaoComprasPage() {
     }
 
     return list.sort((a, b) => b.numero - a.numero);
-  }, [cotacoes, requisicoes, search, filterStatus, filterPeriodo, filterComprador, filterCentroCusto, filterDataIni, filterDataFim]);
+  }, [cotacoes, requisicoes, search, filterStatus, filterPeriodo, filterComprador, filterCentroCusto, filterUrgencia, filterDataIni, filterDataFim]);
 
   const notificarStatusReq = (reqId: string, statusLabel: string, dataExtraLabel?: string) => {
     const r = requisicoes.find(x => x.id === reqId);
@@ -1154,6 +1161,19 @@ export default function CotacaoComprasPage() {
                 <SelectItem value="Aguardando Aprovação">Aguardando Aprovação</SelectItem>
                 <SelectItem value="Finalizada">Finalizada</SelectItem>
                 <SelectItem value="Cancelada">Cancelada</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-44">
+            <Label className="text-xs">Urgência</Label>
+            <Select value={filterUrgencia} onValueChange={v => { setFilterUrgencia(v); setPageCot(1); }}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Todas">Todas as Urgências</SelectItem>
+                <SelectItem value="Baixa">Baixa</SelectItem>
+                <SelectItem value="Normal">Normal</SelectItem>
+                <SelectItem value="Alta">Alta</SelectItem>
+                <SelectItem value="Urgente">Urgente</SelectItem>
               </SelectContent>
             </Select>
           </div>
