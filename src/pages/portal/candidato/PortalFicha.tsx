@@ -12,7 +12,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { isValidCPF, maskCPF, onlyDigits } from "@/lib/validators";
-import RadioGroupCustom from "@/components/RadioGroupCustom";
+
 
 interface ProgressGroup { label: string; weight: number; items?: string[]; check?: boolean; }
 
