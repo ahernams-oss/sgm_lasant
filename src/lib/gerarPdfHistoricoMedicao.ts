@@ -1,30 +1,25 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { MedicaoServico } from "@/contexts/MedicoesContext";
+import { addHeader, addFooter } from "@/lib/gerarRelatorioEstoque";
 
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const fmtPerc = (v: number) => `${v.toFixed(2)}%`;
 
-export function gerarPdfHistoricoMedicao(med: MedicaoServico): jsPDF {
+export async function gerarPdfHistoricoMedicao(med: MedicaoServico): Promise<jsPDF> {
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
 
-  // Header
-  doc.setFillColor(30, 58, 107);
-  doc.rect(0, 0, pw, 34, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  doc.text(`Medição #${med.numero} — ${med.descricao || ""}`, 14, 14);
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, 14, 22);
-  doc.text(`Status: ${med.status}`, 14, 28);
+  await addHeader(doc, {
+    title: `Medição #${med.numero}`,
+    subtitle: med.descricao || undefined,
+    filters: `Status: ${med.status}`,
+  });
 
   doc.setTextColor(30, 30, 30);
-  let y = 44;
+  let y = 50;
 
   // Info
   doc.setFontSize(10);
