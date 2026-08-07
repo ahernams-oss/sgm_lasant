@@ -804,40 +804,30 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     const linhas = osList.map(o => {
       const dAbert = o.createdAt;
       const dExec = findHistDate(o.historico, /execu|andamento/);
-      const dConcl = findHistDate(o.historico, /conclu|final/);
       const dConf = findHistDate(o.historico, /valid|confirm|encerr/);
       const tAE = diffMs(dAbert, dExec);
-      const tEC = diffMs(dExec, dConcl);
-      const tCV = diffMs(dConcl, dConf);
-      const tTot = diffMs(dAbert, dConf || dConcl);
-      return { o, dAbert, dExec, dConcl, dConf, tAE, tEC, tCV, tTot };
+      const tAV = diffMs(dAbert, dConf);
+      return { o, dAbert, dExec, dConf, tAE, tAV };
     });
     const mAE = avg(linhas.map(l => l.tAE));
-    const mEC = avg(linhas.map(l => l.tEC));
-    const mCV = avg(linhas.map(l => l.tCV));
-    const mTot = avg(linhas.map(l => l.tTot));
+    const mAV = avg(linhas.map(l => l.tAV));
 
     if (formato === "excel") {
-      const data = linhas.map(({ o, dAbert, dExec, dConcl, dConf, tAE, tEC, tCV, tTot }) => ({
+      const data = linhas.map(({ o, dAbert, dExec, dConf, tAE, tAV }) => ({
         "Nº OS": formatNumeroAno(o.numero, o.createdAt),
         "Cliente": o.clienteNome || "-",
         "Situação atual": o.situacao || "-",
         "Abertura": fmtDataHora(dAbert),
         "Em Execução": fmtDataHora(dExec),
-        "Concluída": fmtDataHora(dConcl),
         "Confirmada/Validada": fmtDataHora(dConf),
         "Aber → Exec (h:min)": tAE == null ? "" : fmtHoraMin(tAE),
-        "Exec → Concl (h:min)": tEC == null ? "" : fmtHoraMin(tEC),
-        "Concl → Conf (h:min)": tCV == null ? "" : fmtHoraMin(tCV),
-        "Total até Confirmação (h:min)": tTot == null ? "" : fmtHoraMin(tTot),
+        "Aber → Conf (h:min)": tAV == null ? "" : fmtHoraMin(tAV),
       }));
       data.push({
         "Nº OS": "" as any, "Cliente": "" as any, "Situação atual": "MÉDIA" as any,
-        "Abertura": "" as any, "Em Execução": "" as any, "Concluída": "" as any, "Confirmada/Validada": "" as any,
+        "Abertura": "" as any, "Em Execução": "" as any, "Confirmada/Validada": "" as any,
         "Aber → Exec (h:min)": (mAE == null ? "" : fmtHoraMin(mAE)) as any,
-        "Exec → Concl (h:min)": (mEC == null ? "" : fmtHoraMin(mEC)) as any,
-        "Concl → Conf (h:min)": (mCV == null ? "" : fmtHoraMin(mCV)) as any,
-        "Total até Confirmação (h:min)": (mAE == null ? "" : fmtHoraMin(mAE)) as any,
+        "Aber → Conf (h:min)": (mAV == null ? "" : fmtHoraMin(mAV)) as any,
       });
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
@@ -852,20 +842,19 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     addHeader(doc, "Ciclo de Vida — Ordens de Serviço", `${osList.length} OS(s) no período`, `Período: ${dataIni} a ${dataFimStr}`);
     autoTable(doc, {
       startY: 32,
-      head: [["Nº OS", "Cliente", "Situação", "Abertura", "Execução", "Conclusão", "Confirmação", "Ab-Ex (h:min)", "Ex-Co (h:min)", "Co-Cf (h:min)", "Total (h:min)"]],
-      body: linhas.map(({ o, dAbert, dExec, dConcl, dConf, tAE, tEC, tCV, tTot }) => [
+      head: [["Nº OS", "Cliente", "Situação", "Abertura", "Execução", "Confirmação", "Ab-Ex (h:min)", "Ab-Cf (h:min)", "Total (h:min)"]],
+      body: linhas.map(({ o, dAbert, dExec, dConf, tAE, tAV }) => [
         formatNumeroAno(o.numero, o.createdAt),
         o.clienteNome || "-",
         o.situacao || "-",
         fmtDataHora(dAbert),
         fmtDataHora(dExec),
-        fmtDataHora(dConcl),
         fmtDataHora(dConf),
-        fmtHoraMin(tAE), fmtHoraMin(tEC), fmtHoraMin(tCV), fmtHoraMin(tTot),
+        fmtHoraMin(tAE), fmtHoraMin(tAV), fmtHoraMin(tAV),
       ]),
       foot: [[
-        { content: "MÉDIA", colSpan: 7, styles: { halign: "right" as const, fontStyle: "bold" as const } },
-        fmtHoraMin(mAE), fmtHoraMin(mEC), fmtHoraMin(mCV), fmtHoraMin(mAE),
+        { content: "MÉDIA", colSpan: 6, styles: { halign: "right" as const, fontStyle: "bold" as const } },
+        fmtHoraMin(mAE), fmtHoraMin(mAV), fmtHoraMin(mAV),
       ]],
       styles: { fontSize: 7.5, cellPadding: 1.3 },
       headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
