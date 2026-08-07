@@ -50,6 +50,9 @@ export interface OrdemServico {
   avaliacao?: number | null; avaliacaoJustificativa?: string;
   avaliacaoData?: string; avaliacaoUsuario?: string;
   retornoPendente?: RetornoPendenteOS | null;
+  impresso: boolean;
+  impressoEm: string;
+  impressoPor: string;
 }
 
 export interface RetornoPendenteOS {
