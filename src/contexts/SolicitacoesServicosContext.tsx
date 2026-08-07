@@ -55,6 +55,9 @@ const rowToSolicitacao = (r: any): SolicitacaoServico => ({
   solicitanteNome: r.solicitante_nome ?? "",
   historico: Array.isArray(r.historico) ? r.historico : [],
   ressalvaAprovacao: r.ressalva_aprovacao ?? "",
+  impresso: !!r.impresso,
+  impressoEm: r.impresso_em ?? "",
+  impressoPor: r.impresso_por ?? "",
 });
 
 export function SolicitacoesServicosProvider({ children }: { children: ReactNode }) {
