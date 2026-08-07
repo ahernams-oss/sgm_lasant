@@ -170,6 +170,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
       id: crypto.randomUUID(), requisicaoId,
       dataCriacao: new Date().toLocaleDateString("pt-BR"), candidatos: [],
     };
+    criandoIds.set(novo.id, requisicaoId);
     if (criandoProcessos.has(requisicaoId)) return novo;
     criandoProcessos.add(requisicaoId);
     // upsert com ignoreDuplicates: se já existir processo para a RP, nada é criado
@@ -189,7 +190,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
     processoId: string,
     candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores" | "anexos" | "documentos" | "exameAdmissional" | "dadosBancarios"> & { anexos?: AnexoCandidato[] }
   ) => {
-    const p = processos.find(p => p.id === processoId);
+    const p = await resolveProcesso(processoId);
     if (!p || p.candidatos.length >= 5) return;
     const novoCandidato: Candidato = {
       ...candidato, id: crypto.randomUUID(),
