@@ -112,6 +112,9 @@ const rowToOrdem = (r: any): OrdemServico => ({
   avaliacaoData: r.avaliacao_data ?? "",
   avaliacaoUsuario: r.avaliacao_usuario ?? "",
   retornoPendente: r.retorno_pendente && typeof r.retorno_pendente === "object" ? r.retorno_pendente : null,
+  impresso: !!r.impresso,
+  impressoEm: r.impresso_em ?? "",
+  impressoPor: r.impresso_por ?? "",
 });
 
 export function OrdensServicoProvider({ children }: { children: ReactNode }) {
