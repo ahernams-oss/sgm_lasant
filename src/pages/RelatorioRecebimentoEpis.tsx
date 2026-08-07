@@ -12,6 +12,7 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { toast } from "sonner";
 import { Eye, Search, FileDown, Download } from "lucide-react";
 import { gerarPdfEpiFacial } from "@/lib/gerarPdfEpiFacial";
+import PaginationControls, { paginate } from "@/components/PaginationControls";
 
 interface Recebimento {
   id: string; funcionario_id: string; token: string; status: string;
@@ -31,6 +32,8 @@ export default function RelatorioRecebimentoEpis() {
   const [preview, setPreview] = useState<{ urls: string[]; row: Recebimento } | null>(null);
   const [loading, setLoading] = useState(false);
   const [gerandoPdf, setGerandoPdf] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const carregar = async () => {
     setLoading(true);
@@ -116,6 +119,9 @@ export default function RelatorioRecebimentoEpis() {
     return !filtro || nome.includes(filtro.toLowerCase()) || r.status.includes(filtro.toLowerCase());
   });
 
+  const { paginated, safePage } = paginate(filtered, page, pageSize);
+
+
   return (
     <div className="space-y-4">
       <Card>
@@ -126,7 +132,7 @@ export default function RelatorioRecebimentoEpis() {
           <div className="flex items-center gap-2 mb-4">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input className="pl-8" placeholder="Buscar funcionário/status..." value={filtro} onChange={(e) => setFiltro(e.target.value)} />
+              <Input className="pl-8" placeholder="Buscar funcionário/status..." value={filtro} onChange={(e) => { setFiltro(e.target.value); setPage(1); }} />
             </div>
             <Button variant="outline" size="sm" onClick={carregar} disabled={loading}>Atualizar</Button>
           </div>
@@ -147,7 +153,7 @@ export default function RelatorioRecebimentoEpis() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((r) => (
+                {paginated.map((r) => (
                   <TableRow key={r.id}>
                     <TableCell className="font-medium">{nomeFunc(r.funcionario_id)}</TableCell>
                     <TableCell className="text-xs">{new Date(r.created_at).toLocaleString("pt-BR")}</TableCell>
@@ -186,6 +192,14 @@ export default function RelatorioRecebimentoEpis() {
               </TableBody>
             </Table>
           </div>
+
+          <PaginationControls
+            currentPage={safePage}
+            totalItems={filtered.length}
+            onPageChange={setPage}
+            pageSize={pageSize}
+            onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+          />
         </CardContent>
       </Card>
 
