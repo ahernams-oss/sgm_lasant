@@ -7,24 +7,36 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import PaginationControls from "@/components/PaginationControls";
 
 export default function CatalogoSco() {
   const nav = useNavigate();
   const [tab, setTab] = useState("servicos");
   const [q, setQ] = useState("");
   const [rows, setRows] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
   const fmt = (v: number) => (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  useEffect(() => { setPage(1); }, [q, tab]);
 
   useEffect(() => {
     const t = setTimeout(async () => {
       const table = tab === "servicos" ? "sco_servicos" : "sco_elementares";
-      let query = (supabase as any).from(table).select("*").limit(100);
+      let query = (supabase as any)
+        .from(table)
+        .select("*", { count: "exact" })
+        .order("codigo")
+        .range((page - 1) * pageSize, page * pageSize - 1);
       if (q.trim()) query = query.or(`codigo.ilike.%${q}%,descricao.ilike.%${q}%`);
-      const { data } = await query;
+      const { data, count } = await query;
       setRows(data || []);
+      setTotal(count || 0);
     }, 250);
     return () => clearTimeout(t);
-  }, [q, tab]);
+  }, [q, tab, page, pageSize]);
+
 
   return (
     <div className="p-6 space-y-4">
@@ -55,7 +67,15 @@ export default function CatalogoSco() {
                   ))}
                 </TableBody>
               </Table>
-              <p className="text-xs text-muted-foreground mt-2">Mostrando até 100 resultados. Refine a busca para ver mais.</p>
+              <PaginationControls
+                currentPage={page}
+                totalItems={total}
+                onPageChange={setPage}
+                pageSize={pageSize}
+                onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+              />
+              <p className="text-xs text-muted-foreground mt-2">{total} item(ns) encontrados.</p>
+
             </TabsContent>
           </Tabs>
         </CardContent>
