@@ -1164,6 +1164,19 @@ export default function CotacaoComprasPage() {
               </SelectContent>
             </Select>
           </div>
+          <div className="w-44">
+            <Label className="text-xs">Urgência</Label>
+            <Select value={filterUrgencia} onValueChange={v => { setFilterUrgencia(v); setPageCot(1); }}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Todas">Todas as Urgências</SelectItem>
+                <SelectItem value="Baixa">Baixa</SelectItem>
+                <SelectItem value="Normal">Normal</SelectItem>
+                <SelectItem value="Alta">Alta</SelectItem>
+                <SelectItem value="Urgente">Urgente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="w-48">
             <Label className="text-xs">Comprador</Label>
             <Select value={filterComprador} onValueChange={v => { setFilterComprador(v); setPageCot(1); }}>
