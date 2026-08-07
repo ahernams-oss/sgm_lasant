@@ -280,9 +280,9 @@ export default function CotacaoComprasPage() {
     return Array.from(set).sort();
   }, [cotacoes, requisicoes]);
 
-  const hasActiveFilters = filterStatus !== "Todos" || filterPeriodo !== "Todos" || filterComprador !== "Todos" || filterCentroCusto !== "Todos" || search !== "" || filterDataIni !== "" || filterDataFim !== "";
+  const hasActiveFilters = filterStatus !== "Todos" || filterPeriodo !== "Todos" || filterComprador !== "Todos" || filterCentroCusto !== "Todos" || filterUrgencia !== "Todas" || search !== "" || filterDataIni !== "" || filterDataFim !== "";
 
-  const clearFilters = () => { setSearch(""); setFilterStatus("Todos"); setFilterPeriodo("Todos"); setFilterComprador("Todos"); setFilterCentroCusto("Todos"); setFilterDataIni(""); setFilterDataFim(""); };
+  const clearFilters = () => { setSearch(""); setFilterStatus("Todos"); setFilterPeriodo("Todos"); setFilterComprador("Todos"); setFilterCentroCusto("Todos"); setFilterUrgencia("Todas"); setFilterDataIni(""); setFilterDataFim(""); };
 
   const filtered = useMemo(() => {
     let list = cotacoes;
@@ -292,6 +292,12 @@ export default function CotacaoComprasPage() {
       list = list.filter(c => {
         const req = requisicoes.find(r => r.id === c.requisicaoId);
         return req?.centroCustoNome === filterCentroCusto;
+      });
+    }
+    if (filterUrgencia !== "Todas") {
+      list = list.filter(c => {
+        const req = requisicoes.find(r => r.id === c.requisicaoId);
+        return req?.urgencia === filterUrgencia;
       });
     }
     if (filterPeriodo !== "Todos") {
@@ -307,7 +313,7 @@ export default function CotacaoComprasPage() {
     }
 
     return list.sort((a, b) => b.numero - a.numero);
-  }, [cotacoes, requisicoes, search, filterStatus, filterPeriodo, filterComprador, filterCentroCusto, filterDataIni, filterDataFim]);
+  }, [cotacoes, requisicoes, search, filterStatus, filterPeriodo, filterComprador, filterCentroCusto, filterUrgencia, filterDataIni, filterDataFim]);
 
   const notificarStatusReq = (reqId: string, statusLabel: string, dataExtraLabel?: string) => {
     const r = requisicoes.find(x => x.id === reqId);
