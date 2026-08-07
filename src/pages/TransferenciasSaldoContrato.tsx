@@ -16,6 +16,7 @@ import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { addHeader, addFooter } from "@/lib/gerarRelatorioEstoque";
 
 type TipoSaldo = "maoDeObraMensal" | "maoDeObraAnual" | "maoDeObraContratual" | "valorVariavel";
 
@@ -242,45 +243,52 @@ export default function TransferenciasSaldoContrato() {
     toast.success("Excel gerado.");
   };
 
-  const exportarPDF = () => {
+  const exportarPDF = async () => {
     if (historico.length === 0) { toast.error("Nenhum registro para exportar."); return; }
-    const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
-    doc.setFontSize(14);
-    doc.text("Transferências de Saldo entre Contratos", 40, 40);
-    doc.setFontSize(9);
-    doc.setTextColor(120);
-    doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")} — ${historico.length} registro(s)`, 40, 56);
-    doc.setTextColor(0);
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    await addHeader(doc, {
+      title: "Transferências de Saldo entre Contratos",
+      subtitle: `Total: ${historico.length} registro(s)`,
+    });
     const totalValor = historico.reduce((s, h) => s + Number(h.valor || 0), 0);
     autoTable(doc, {
-      startY: 72,
-      head: [["Data", "Tipo", "Origem", "Destino", "Valor", "Saldo Origem (a→d)", "Saldo Destino (a→d)", "Motivo", "Usuário"]],
+      startY: 40,
+      head: [["Data", "Tipo", "Origem", "Destino", "Valor", "Saldo Origem", "Saldo Destino", "Motivo", "Usuário"]],
       body: historico.map(h => [
         new Date(h.data + "T00:00:00").toLocaleDateString("pt-BR"),
         TIPO_LABEL[h.tipo_saldo],
         `${h.cliente_origem_nome ?? ""}\nContrato ${h.contrato_origem_numero ?? "—"}`,
         `${h.cliente_destino_nome ?? ""}\nContrato ${h.contrato_destino_numero ?? "—"}`,
         fmtBRL(Number(h.valor)),
-        `${fmtBRL(Number(h.saldo_origem_antes ?? 0))} →\n${fmtBRL(Number(h.saldo_origem_depois ?? 0))}`,
-        `${fmtBRL(Number(h.saldo_destino_antes ?? 0))} →\n${fmtBRL(Number(h.saldo_destino_depois ?? 0))}`,
+        `${fmtBRL(Number(h.saldo_origem_antes ?? 0))}\n${fmtBRL(Number(h.saldo_origem_depois ?? 0))}`,
+        `${fmtBRL(Number(h.saldo_destino_antes ?? 0))}\n${fmtBRL(Number(h.saldo_destino_depois ?? 0))}`,
         h.motivo ?? "—",
         h.usuario_nome ?? "—",
       ]),
       foot: [[
-        { content: "Total", colSpan: 4, styles: { halign: "right", fontStyle: "bold" } },
-        { content: fmtBRL(totalValor), styles: { fontStyle: "bold" } },
+        { content: "Total transferido", colSpan: 4, styles: { halign: "right", fontStyle: "bold" } },
+        { content: fmtBRL(totalValor), styles: { fontStyle: "bold", halign: "right" } },
         "", "", "", "",
       ]],
-      styles: { fontSize: 8, cellPadding: 4, valign: "middle" },
-      headStyles: { fillColor: [103, 58, 183], textColor: 255 },
-      footStyles: { fillColor: [240, 240, 240], textColor: 0 },
+      theme: "grid",
+      styles: { fontSize: 7, cellPadding: 1.8, valign: "middle", overflow: "linebreak", lineColor: [220, 224, 230], lineWidth: 0.1 },
+      headStyles: { fillColor: [30, 58, 107], textColor: 255, fontSize: 7, halign: "center", valign: "middle" },
+      footStyles: { fillColor: [240, 242, 245], textColor: 0, fontSize: 7 },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
       columnStyles: {
-        4: { halign: "right" },
-        5: { halign: "right" },
-        6: { halign: "right" },
+        0: { cellWidth: 18, halign: "center" },
+        1: { cellWidth: 20, halign: "center" },
+        2: { cellWidth: 45 },
+        3: { cellWidth: 45 },
+        4: { cellWidth: 22, halign: "right" },
+        5: { cellWidth: 28, halign: "right" },
+        6: { cellWidth: 28, halign: "right" },
+        7: { cellWidth: 38 },
+        8: { cellWidth: 25 },
       },
-      margin: { left: 40, right: 40 },
+      margin: { left: 14, right: 14, top: 40 },
     });
+    addFooter(doc);
     doc.save(`transferencias-saldo-${new Date().toISOString().slice(0,10)}.pdf`);
     toast.success("PDF gerado.");
   };
