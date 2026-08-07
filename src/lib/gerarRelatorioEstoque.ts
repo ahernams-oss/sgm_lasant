@@ -4,7 +4,7 @@ import * as XLSX from "xlsx";
 
 const DARK_BLUE: [number, number, number] = [30, 58, 107];
 
-interface ReportHeader {
+export interface ReportHeader {
   title: string;
   subtitle?: string;
   filters?: string;
@@ -41,7 +41,7 @@ async function loadImageAsDataUrl(url: string): Promise<string | null> {
   }
 }
 
-async function addHeader(doc: jsPDF, h: ReportHeader, logoUrl?: string) {
+export async function addHeader(doc: jsPDF, h: ReportHeader, logoUrl?: string) {
   const pw = doc.internal.pageSize.getWidth();
   const ml = 14;
   const mr = 14;
@@ -96,7 +96,7 @@ async function addHeader(doc: jsPDF, h: ReportHeader, logoUrl?: string) {
   doc.setTextColor(30, 30, 30);
 }
 
-function addFooter(doc: jsPDF) {
+export function addFooter(doc: jsPDF) {
   const ph = doc.internal.pageSize.getHeight();
   const pw = doc.internal.pageSize.getWidth();
   const pages = doc.getNumberOfPages();
