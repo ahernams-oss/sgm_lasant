@@ -87,6 +87,8 @@ const processoToRow = (p: ProcessoSeletivo) => ({
 
 const QK = ["processos_seletivos"] as const;
 const criandoProcessos = new Set<string>();
+// mapeia id local recém-gerado -> requisicao_id (para resolver processos ainda não carregados)
+const criandoIds = new Map<string, string>();
 
 export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
