@@ -1,4 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
 import { formatNumeroPS } from "./ProcessosSeletivos";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -145,13 +147,52 @@ const ProcessoSeletivoPage = () => {
   const podeStatusPS = (s: "aprovado" | "neutro" | "reprovado") =>
     tem(`processos_seletivos.status.${s}`);
 
-  const requisicao = requisicoes.find((r) => r.id === requisicaoId);
+  const requisicaoCache = requisicoes.find((r) => r.id === requisicaoId);
+
+  // Fallback: se a lista ainda não carregou (ou está desatualizada), busca a RP direto no banco
+  const [requisicaoFallback, setRequisicaoFallback] = useState<any | null>(null);
+  const [buscandoReq, setBuscandoReq] = useState(false);
+  useEffect(() => {
+    if (requisicaoCache || !requisicaoId) return;
+    let cancel = false;
+    setBuscandoReq(true);
+    (supabase as any)
+      .from("requisicoes")
+      .select("*")
+      .eq("id", requisicaoId)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        if (cancel) return;
+        setRequisicaoFallback(
+          data
+            ? {
+                id: data.id,
+                numero: data.numero ?? 0,
+                dataCriacao: data.data_criacao ?? "",
+                unidade: data.unidade ?? "",
+                cargoNome: data.cargo_nome ?? "",
+                cargoId: data.cargo_id ?? "",
+                jornada: data.jornada ?? "",
+                salarioVaga: data.salario_vaga ?? "",
+                indicados: data.indicados ?? [],
+                status: data.status ?? "Pendente",
+                historicoStatus: data.historico_status ?? [],
+              }
+            : null,
+        );
+        setBuscandoReq(false);
+      });
+    return () => { cancel = true; };
+  }, [requisicaoId, requisicaoCache]);
+
+  const requisicao: any = requisicaoCache || requisicaoFallback;
 
   // Auto-create processo if it doesn't exist
   let processo = getProcessoByRequisicao(requisicaoId || "");
   if (!processo && requisicaoId && requisicao?.status === "Aprovada") {
     processo = criarProcesso(requisicaoId);
   }
+
 
   // Recupera automaticamente os indicados da requisição aprovada como candidatos
   const importIndicadosRef = useRef<string | null>(null);
@@ -186,15 +227,43 @@ const ProcessoSeletivoPage = () => {
   const validacaoRef = useRef<Record<string, { ficha: any; docs: any[] }>>({});
 
 
-  if (!requisicao || !processo) {
+  if (!requisicao) {
+    if (buscandoReq || (requisicoes.length === 0 && !requisicaoFallback)) {
+      return (
+        <div className="container max-w-full mx-auto px-4 py-8">
+          <p className="text-muted-foreground">Carregando requisição...</p>
+        </div>
+      );
+    }
     return (
       <div className="container max-w-full mx-auto px-4 py-8">
-        <p className="text-muted-foreground">Requisição não encontrada ou não aprovada.</p>
+        <p className="text-muted-foreground">Requisição não encontrada.</p>
         <Button variant="ghost" className="mt-4" onClick={() => navigate("/")}>
           <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
         </Button>
       </div>
     );
+  }
+
+  if (!processo) {
+    if (requisicao.status !== "Aprovada") {
+      return (
+        <div className="container max-w-full mx-auto px-4 py-8">
+          <p className="text-muted-foreground">
+            A requisição está com status "{requisicao.status}". O processo seletivo só pode ser iniciado após a aprovação.
+          </p>
+          <Button variant="ghost" className="mt-4" onClick={() => navigate("/")}>
+            <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
+          </Button>
+        </div>
+      );
+    }
+    return (
+      <div className="container max-w-full mx-auto px-4 py-8">
+        <p className="text-muted-foreground">Iniciando processo seletivo...</p>
+      </div>
+    );
+
   }
 
   const handleAddCandidato = () => {
