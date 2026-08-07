@@ -2341,6 +2341,7 @@ export default function OrdensServicoPage() {
                               solicitanteId: r.solicitante_id ?? "", solicitanteNome: r.solicitante_nome ?? "",
                               historico: Array.isArray(r.historico) ? r.historico : [],
                               ressalvaAprovacao: r.ressalva_aprovacao ?? "",
+                              impresso: !!r.impresso, impressoEm: r.impresso_em ?? "", impressoPor: r.impresso_por ?? "",
                             });
                             const found = data.find((r: any) => r.id === viewOS.solicitacaoId);
                             if (found) setViewSSTarget(rowToSS(found));
