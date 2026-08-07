@@ -2,35 +2,25 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { MaterialServico } from "@/contexts/MateriaisServicosContext";
+import { addHeader, addFooter } from "@/lib/gerarRelatorioEstoque";
 
 interface ExportData {
   materiais: MaterialServico[];
   getCatNome: (id: string) => string;
 }
 
-export function gerarPdfMateriaisServicos({ materiais, getCatNome }: ExportData) {
+export async function gerarPdfMateriaisServicos({ materiais, getCatNome }: ExportData) {
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
 
-  // Header
-  doc.setFillColor(30, 58, 107);
-  doc.rect(0, 0, pw, 28, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(16);
-  doc.setFont("helvetica", "bold");
-  doc.text("Relatório de Materiais e Serviços", 14, 14);
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Gerado em: ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR")}`, pw - 14, 14, { align: "right" });
-  doc.text(`Total: ${materiais.length} itens`, pw - 14, 20, { align: "right" });
-
-  doc.setTextColor(30, 30, 30);
-
-  // Summary
   const totalMat = materiais.filter(m => m.tipo === "Material").length;
   const totalServ = materiais.filter(m => m.tipo === "Serviço").length;
-  doc.setFontSize(10);
-  doc.text(`Materiais: ${totalMat}    |    Serviços: ${totalServ}`, 14, 38);
+
+  await addHeader(doc, {
+    title: "Relatório de Materiais e Serviços",
+    subtitle: `Total: ${materiais.length} itens`,
+    filters: `Materiais: ${totalMat} | Serviços: ${totalServ}`,
+  });
 
   // Table
   autoTable(doc, {
@@ -53,14 +43,9 @@ export function gerarPdfMateriaisServicos({ materiais, getCatNome }: ExportData)
       3: { cellWidth: 20 },
       4: { cellWidth: 50 },
     },
-    didDrawPage: (data) => {
-      const pageH = doc.internal.pageSize.getHeight();
-      doc.setFontSize(8);
-      doc.setTextColor(150);
-      doc.text(`Página ${doc.getCurrentPageInfo().pageNumber}`, pw / 2, pageH - 8, { align: "center" });
-    },
   });
 
+  addFooter(doc);
   doc.save("materiais_servicos.pdf");
 }
 
