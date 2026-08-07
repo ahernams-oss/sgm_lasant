@@ -36,7 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList, Download, Eye, History, Clock, ArrowUpDown, ArrowUp, ArrowDown, Camera, ReceiptText } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList, Download, Eye, History, Clock, ArrowUpDown, ArrowUp, ArrowDown, Camera, ReceiptText, Printer } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import WorkflowTimeline from "@/components/WorkflowTimeline";
 import WorkflowHistorico from "@/components/WorkflowHistorico";
@@ -112,14 +112,15 @@ export default function SolicitacaoServicosPage() {
   const [formCollapsed, setFormCollapsed] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(7);
-  const _ssSavedFilters = loadPersistedFilters<{ search: string; filterTipo: string; filterSituacao: string; filterVisitado: string; filterOrigem: string; }>("solicitacao_servicos_filters_v1");
+  const _ssSavedFilters = loadPersistedFilters<{ search: string; filterTipo: string; filterSituacao: string; filterVisitado: string; filterOrigem: string; filterImpresso: string; }>("solicitacao_servicos_filters_v1");
   const [search, setSearch] = useState(_ssSavedFilters?.search ?? "");
   const [filterCliente, setFilterCliente] = useState(() => localStorage.getItem("ss_filtroCliente") || "all");
   const [filterTipo, setFilterTipo] = useState(_ssSavedFilters?.filterTipo ?? "all");
   const [filterSituacao, setFilterSituacao] = useState(_ssSavedFilters?.filterSituacao ?? "all");
   const [filterVisitado, setFilterVisitado] = useState(_ssSavedFilters?.filterVisitado ?? "all");
   const [filterOrigem, setFilterOrigem] = useState(_ssSavedFilters?.filterOrigem ?? "all");
-  usePersistFilters("solicitacao_servicos_filters_v1", { search, filterTipo, filterSituacao, filterVisitado, filterOrigem });
+  const [filterImpresso, setFilterImpresso] = useState(_ssSavedFilters?.filterImpresso ?? "all");
+  usePersistFilters("solicitacao_servicos_filters_v1", { search, filterTipo, filterSituacao, filterVisitado, filterOrigem, filterImpresso });
   const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
     const numero = searchParams.get("numero");
@@ -130,6 +131,7 @@ export default function SolicitacaoServicosPage() {
       setFilterSituacao("all");
       setFilterVisitado("all");
       setFilterOrigem("all");
+      setFilterImpresso("all");
       setPage(1);
       const next = new URLSearchParams(searchParams);
       next.delete("numero");
@@ -684,6 +686,7 @@ export default function SolicitacaoServicosPage() {
       const idsComOrcamento = new Set(orcamentos.map(o => o.solicitacaoId));
       result = result.filter(s => filterOrigem === "orcamento" ? idsComOrcamento.has(s.id) : !idsComOrcamento.has(s.id));
     }
+    if (filterImpresso !== "all") result = result.filter(s => filterImpresso === "sim" ? s.impresso : !s.impresso);
 
     // Ordenação por coluna (padrão: prioridade → número decrescente)
     result = [...result].sort((a, b) => {
@@ -748,7 +751,7 @@ export default function SolicitacaoServicosPage() {
     });
 
     return result;
-  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterVisitado, filterOrigem, orcamentos, sortField, sortDir]);
+  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterVisitado, filterOrigem, filterImpresso, orcamentos, sortField, sortDir]);
 
   const clientesUnicos = useMemo(() => {
     const map = new Map<string, string>();
@@ -802,6 +805,18 @@ export default function SolicitacaoServicosPage() {
     });
   };
 
+  const marcarImpressa = async (ids: string[]) => {
+    const pendentes = solicitacoes.filter(s => ids.includes(s.id) && !s.impresso);
+    if (pendentes.length === 0) return;
+    try {
+      await Promise.all(pendentes.map(s => updateSolicitacao(s.id, {
+        impresso: true,
+        impresso_em: new Date().toISOString(),
+        impresso_por: usuarioLogado?.nome || "Sistema",
+      })));
+    } catch { /* ignore */ }
+  };
+
   const handleBatchPrint = async (comImagens: boolean) => {
     if (selectedIds.size === 0) return;
     setBatchPrinting(true);
@@ -812,6 +827,7 @@ export default function SolicitacaoServicosPage() {
         equipamento: equipamentos.find(e => e.id === s.equipamentoId),
       }));
       await gerarPdfSolicitacaoLote(lista, comImagens, empresa);
+      await marcarImpressa(selected.map(s => s.id));
       toast({ title: `PDF gerado com ${selected.length} solicitação(ões)` });
     } catch {
       toast({ title: "Erro ao gerar PDF", variant: "destructive" });
@@ -1048,6 +1064,14 @@ export default function SolicitacaoServicosPage() {
             <SelectItem value="direta">Direta</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={filterImpresso} onValueChange={v => { setFilterImpresso(v); setPage(1); }}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Impressão" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Impressas e não impressas</SelectItem>
+            <SelectItem value="sim">Somente impressas</SelectItem>
+            <SelectItem value="nao">Não impressas</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Batch action bar */}
@@ -1111,6 +1135,11 @@ export default function SolicitacaoServicosPage() {
                       {formatNumeroAno(s.numero, s.createdAt)}
                       {fromOrcamento && (
                         <ReceiptText className="h-4 w-4 text-emerald-600" aria-label="Proveniente de Orçamento" />
+                      )}
+                      {s.impresso && (
+                        <span title={s.impressoEm ? `Impressa em ${new Date(s.impressoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}${s.impressoPor ? ` por ${s.impressoPor}` : ""}` : "Impressa"}>
+                          <Printer className="h-4 w-4 text-blue-600" aria-label="Impressa" />
+                        </span>
                       )}
                     </div>
                   ),
@@ -1201,16 +1230,18 @@ export default function SolicitacaoServicosPage() {
                         <Eye className="mr-2 h-4 w-4" />Visualizar
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => {
+                      <DropdownMenuItem onClick={async () => {
                         const eq = equipamentos.find(e => e.id === s.equipamentoId);
-                        gerarPdfSolicitacao(s, false, empresa, eq);
+                        await gerarPdfSolicitacao(s, false, empresa, eq);
+                        await marcarImpressa([s.id]);
                       }}>
                         <Download className="mr-2 h-4 w-4" />Imprimir SS (sem imagem)
                       </DropdownMenuItem>
                       {s.imagens && s.imagens.length > 0 && (
-                        <DropdownMenuItem onClick={() => {
+                        <DropdownMenuItem onClick={async () => {
                           const eq = equipamentos.find(e => e.id === s.equipamentoId);
-                          gerarPdfSolicitacao(s, true, empresa, eq);
+                          await gerarPdfSolicitacao(s, true, empresa, eq);
+                          await marcarImpressa([s.id]);
                         }}>
                           <Download className="mr-2 h-4 w-4" />Imprimir SS (com imagem)
                         </DropdownMenuItem>

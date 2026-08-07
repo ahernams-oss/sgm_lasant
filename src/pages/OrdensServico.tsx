@@ -354,12 +354,13 @@ export default function OrdensServicoPage() {
   const [viewOS, setViewOS] = useState<OrdemServico | null>(null);
   const [viewSSTarget, setViewSSTarget] = useState<SolicitacaoServico | null>(null);
   const { orcamentos: orcamentosAll } = useOrcamentos();
-  const _osSavedFilters = loadPersistedFilters<{ busca: string; filtroSituacao: string; filtroPrioridade: string; filtroDataInicio: string; filtroDataFim: string; filtroOrigem: string; filtroFotos: string; }>("ordens_servico_filters_v1");
+  const _osSavedFilters = loadPersistedFilters<{ busca: string; filtroSituacao: string; filtroPrioridade: string; filtroDataInicio: string; filtroDataFim: string; filtroOrigem: string; filtroFotos: string; filtroImpresso: string; }>("ordens_servico_filters_v1");
   const [busca, setBusca] = useState(_osSavedFilters?.busca ?? "");
   const _osUrlInitial = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const [filtroOrigem, setFiltroOrigem] = useState(_osUrlInitial.get("origem") ?? _osSavedFilters?.filtroOrigem ?? "all");
   const [filtroSituacao, setFiltroSituacao] = useState(_osUrlInitial.get("situacao") ?? _osSavedFilters?.filtroSituacao ?? "Todas");
   const [filtroFotos, setFiltroFotos] = useState(_osSavedFilters?.filtroFotos ?? "all");
+  const [filtroImpresso, setFiltroImpresso] = useState(_osSavedFilters?.filtroImpresso ?? "all");
 
   const [filtroCliente, setFiltroCliente] = useState(() => localStorage.getItem("os_filtroCliente") || "Todos");
   const [filtroPrioridade, setFiltroPrioridade] = useState(_osSavedFilters?.filtroPrioridade ?? "Todas");
@@ -370,7 +371,7 @@ export default function OrdensServicoPage() {
   const [filtroConfirmadoFim, setFiltroConfirmadoFim] = useState(_osDatasStatus?.confFim ?? "");
   const [filtroValidadaIni, setFiltroValidadaIni] = useState(_osDatasStatus?.valIni ?? "");
   const [filtroValidadaFim, setFiltroValidadaFim] = useState(_osDatasStatus?.valFim ?? "");
-  usePersistFilters("ordens_servico_filters_v1", { busca, filtroSituacao, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroOrigem, filtroFotos });
+  usePersistFilters("ordens_servico_filters_v1", { busca, filtroSituacao, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroOrigem, filtroFotos, filtroImpresso });
   usePersistFilters("ordens_servico_datas_status_v1", { confIni: filtroConfirmadoIni, confFim: filtroConfirmadoFim, valIni: filtroValidadaIni, valFim: filtroValidadaFim });
   const _osTipoData = loadPersistedFilters<{ tipo: "inicio" | "confirmado" | "validada" }>("ordens_servico_tipo_data_v1");
   const [tipoDataFiltro, setTipoDataFiltro] = useState<"inicio" | "confirmado" | "validada">(_osTipoData?.tipo ?? "inicio");
@@ -968,6 +969,9 @@ export default function OrdensServicoPage() {
       const matchFotos = filtroFotos === "all"
         || (filtroFotos === "com_foto" && qtdFotos > 0)
         || (filtroFotos === "sem_foto" && qtdFotos === 0);
+      const matchImpresso = filtroImpresso === "all"
+        || (filtroImpresso === "sim" && !!o.impresso)
+        || (filtroImpresso === "nao" && !o.impresso);
       const dataStatus = (situacao: string): string | null => {
         const hist = (o.historico || []).filter((h: any) => h?.situacao === situacao);
         if (hist.length === 0) return null;
@@ -982,9 +986,21 @@ export default function OrdensServicoPage() {
       const matchValIni = !filtroValidadaIni || (dtVal && dtVal !== "ok" && dtVal >= filtroValidadaIni);
       const matchValFim = !filtroValidadaFim || (dtVal && dtVal !== "ok" && dtVal <= filtroValidadaFim);
       return matchBusca && matchSituacao && matchCliente && matchPrioridade && matchDataInicio && matchDataFim
-        && matchConfIni && matchConfFim && matchValIni && matchValFim && matchOrigem && matchFotos;
+        && matchConfIni && matchConfFim && matchValIni && matchValFim && matchOrigem && matchFotos && matchImpresso;
     });
-  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim, filtroOrigem, filtroFotos, orcamentosAll]);
+  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim, filtroOrigem, filtroFotos, filtroImpresso, orcamentosAll]);
+
+  const marcarOsImpressa = async (ids: string[]) => {
+    const pendentes = ordens.filter(o => ids.includes(o.id) && !o.impresso);
+    if (pendentes.length === 0) return;
+    try {
+      await Promise.all(pendentes.map(o => updateOrdem(o.id, {
+        impresso: true,
+        impresso_em: new Date().toISOString(),
+        impresso_por: usuarioLogado?.nome || "Sistema",
+      })));
+    } catch { /* ignore */ }
+  };
 
   // Sorting
   const [sortField, setSortField] = useState<string | null>("numero");
@@ -1263,6 +1279,17 @@ export default function OrdensServicoPage() {
               </Select>
             </div>
             <div className="w-[180px]">
+              <Label>Impressão</Label>
+              <Select value={filtroImpresso} onValueChange={v => { setFiltroImpresso(v); setPage(1); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Impressas e não impressas</SelectItem>
+                  <SelectItem value="sim">Somente impressas</SelectItem>
+                  <SelectItem value="nao">Não impressas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-[180px]">
               <Label>Situação</Label>
               <Select value={filtroSituacao} onValueChange={v => { setFiltroSituacao(v); setPage(1); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -1347,6 +1374,7 @@ export default function OrdensServicoPage() {
                   }));
                 if (lista.length === 0) return;
                 await gerarPdfOrdemServicoLote(lista);
+                await marcarOsImpressa(lista.map(l => l.os.id));
                 toast.success(`${lista.length} OS(s) impressas`);
               }}>
                 <Printer className="mr-2 h-4 w-4" /> Imprimir em Lote
@@ -1400,6 +1428,14 @@ export default function OrdensServicoPage() {
                     node: (
                       <div className="flex items-center gap-1 whitespace-nowrap">
                         <span className="font-bold">{formatNumeroAno(os.numero, os.createdAt)}</span>
+                        {os.impresso && (
+                          <span
+                            className="text-blue-600"
+                            title={os.impressoEm ? `Impressa em ${new Date(os.impressoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}${os.impressoPor ? ` por ${os.impressoPor}` : ""}` : "Impressa"}
+                          >
+                            <Printer className="h-3.5 w-3.5" aria-label="Impressa" />
+                          </span>
+                        )}
                         {ass.length > 0 && (
                           <span className="flex items-center gap-0.5 text-primary" title={`Assinada eletronicamente — ${tooltip}`}>
                             {ass.map((a) => (
@@ -1502,6 +1538,7 @@ export default function OrdensServicoPage() {
                               cliente: clientes.find(c => c.id === os.clienteId),
                               assinaturas: assinaturasOs.filter(a => a.os_id === os.id),
                             });
+                            await marcarOsImpressa([os.id]);
                           }}>
                             <Printer className="mr-2 h-4 w-4" /> Imprimir OS
                           </DropdownMenuItem>
@@ -1514,6 +1551,7 @@ export default function OrdensServicoPage() {
                               cliente: clientes.find(c => c.id === os.clienteId),
                               assinaturas: assinaturasOs.filter(a => a.os_id === os.id),
                             });
+                            await marcarOsImpressa([os.id]);
                           }}>
                             <Printer className="mr-2 h-4 w-4" /> Imprimir OS com Fotos
                           </DropdownMenuItem>
@@ -2341,6 +2379,7 @@ export default function OrdensServicoPage() {
                               solicitanteId: r.solicitante_id ?? "", solicitanteNome: r.solicitante_nome ?? "",
                               historico: Array.isArray(r.historico) ? r.historico : [],
                               ressalvaAprovacao: r.ressalva_aprovacao ?? "",
+                              impresso: !!r.impresso, impressoEm: r.impresso_em ?? "", impressoPor: r.impresso_por ?? "",
                             });
                             const found = data.find((r: any) => r.id === viewOS.solicitacaoId);
                             if (found) setViewSSTarget(rowToSS(found));

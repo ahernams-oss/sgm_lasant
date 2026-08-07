@@ -5055,6 +5055,9 @@ export type Database = {
           hora_inicio: string | null
           hora_termino: string | null
           id: string
+          impresso: boolean
+          impresso_em: string | null
+          impresso_por: string | null
           local_descricao: string | null
           local_id: string | null
           materiais: Json | null
@@ -5104,6 +5107,9 @@ export type Database = {
           hora_inicio?: string | null
           hora_termino?: string | null
           id?: string
+          impresso?: boolean
+          impresso_em?: string | null
+          impresso_por?: string | null
           local_descricao?: string | null
           local_id?: string | null
           materiais?: Json | null
@@ -5153,6 +5159,9 @@ export type Database = {
           hora_inicio?: string | null
           hora_termino?: string | null
           id?: string
+          impresso?: boolean
+          impresso_em?: string | null
+          impresso_por?: string | null
           local_descricao?: string | null
           local_id?: string | null
           materiais?: Json | null
@@ -8444,6 +8453,9 @@ export type Database = {
           historico: Json | null
           id: string
           imagens: Json | null
+          impresso: boolean
+          impresso_em: string | null
+          impresso_por: string | null
           local_descricao: string | null
           local_id: string | null
           numero: number
@@ -8471,6 +8483,9 @@ export type Database = {
           historico?: Json | null
           id?: string
           imagens?: Json | null
+          impresso?: boolean
+          impresso_em?: string | null
+          impresso_por?: string | null
           local_descricao?: string | null
           local_id?: string | null
           numero: number
@@ -8498,6 +8513,9 @@ export type Database = {
           historico?: Json | null
           id?: string
           imagens?: Json | null
+          impresso?: boolean
+          impresso_em?: string | null
+          impresso_por?: string | null
           local_descricao?: string | null
           local_id?: string | null
           numero?: number
