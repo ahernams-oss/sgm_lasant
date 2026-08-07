@@ -969,6 +969,9 @@ export default function OrdensServicoPage() {
       const matchFotos = filtroFotos === "all"
         || (filtroFotos === "com_foto" && qtdFotos > 0)
         || (filtroFotos === "sem_foto" && qtdFotos === 0);
+      const matchImpresso = filtroImpresso === "all"
+        || (filtroImpresso === "sim" && !!o.impresso)
+        || (filtroImpresso === "nao" && !o.impresso);
       const dataStatus = (situacao: string): string | null => {
         const hist = (o.historico || []).filter((h: any) => h?.situacao === situacao);
         if (hist.length === 0) return null;
