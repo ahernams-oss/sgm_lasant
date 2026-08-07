@@ -153,7 +153,7 @@ export default function RelatorioRecebimentoEpis() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((r) => (
+                {paginated.map((r) => (
                   <TableRow key={r.id}>
                     <TableCell className="font-medium">{nomeFunc(r.funcionario_id)}</TableCell>
                     <TableCell className="text-xs">{new Date(r.created_at).toLocaleString("pt-BR")}</TableCell>
