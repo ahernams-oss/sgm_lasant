@@ -103,26 +103,50 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: QK });
 
+  // Resolve um processo mesmo quando ele ainda não está no cache (recém-criado).
+  const resolveProcesso = async (processoId: string): Promise<ProcessoSeletivo | null> => {
+    const emCache = (queryClient.getQueryData<ProcessoSeletivo[]>(QK) || []).find((p) => p.id === processoId);
+    if (emCache) return emCache;
+    const { data } = await (supabase as any)
+      .from("processos_seletivos")
+      .select("*")
+      .eq("id", processoId)
+      .maybeSingle();
+    if (data) return rowToProcesso(data);
+    // pode ter sido criado com outro id (upsert por requisicao_id)
+    const reqId = criandoIds.get(processoId);
+    if (reqId) {
+      const { data: byReq } = await (supabase as any)
+        .from("processos_seletivos")
+        .select("*")
+        .eq("requisicao_id", reqId)
+        .maybeSingle();
+      if (byReq) return rowToProcesso(byReq);
+    }
+    return null;
+  };
+
   // Aplica um patch otimista no cache do React Query e persiste em background.
   const applyPatch = async (
     id: string,
     patch: (p: ProcessoSeletivo) => ProcessoSeletivo,
   ): Promise<ProcessoSeletivo | null> => {
-    let updated: ProcessoSeletivo | null = null;
+    const base = await resolveProcesso(id);
+    if (!base) return null;
+    const updated = patch(base);
     queryClient.setQueryData<ProcessoSeletivo[]>(QK, (prev = []) =>
-      prev.map((p) => {
-        if (p.id !== id) return p;
-        updated = patch(p);
-        return updated;
-      })
+      prev.some((p) => p.id === updated.id)
+        ? prev.map((p) => (p.id === updated.id ? updated : p))
+        : [...prev, updated]
     );
-    if (updated) {
-      try {
-        await updateRow("processos_seletivos", id, processoToRow(updated));
-      } catch (e) {
-        console.error("Falha ao salvar processo seletivo, recarregando...", e);
-        await invalidate();
-      }
+    try {
+      const { error } = await (supabase as any)
+        .from("processos_seletivos")
+        .upsert({ id: updated.id, ...processoToRow(updated) }, { onConflict: "id" });
+      if (error) throw error;
+    } catch (e) {
+      console.error("Falha ao salvar processo seletivo, recarregando...", e);
+      await invalidate();
     }
     return updated;
   };
@@ -130,6 +154,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
   const saveAndReload = async (id: string, updated: ProcessoSeletivo) => {
     await applyPatch(id, () => updated);
   };
+
 
 
   // criandoProcessos (módulo) evita que renders concorrentes gerem
