@@ -31,6 +31,11 @@ const EpisPage = () => {
   const { cargos } = useCargos();
   const [search, setSearch] = useState("");
   const [filtroCliente, setFiltroCliente] = useState("todos");
+  const [filtroCargo, setFiltroCargo] = useState("todos");
+  const [entregaDe, setEntregaDe] = useState("");
+  const [entregaAte, setEntregaAte] = useState("");
+  const [vencDe, setVencDe] = useState("");
+  const [vencAte, setVencAte] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
