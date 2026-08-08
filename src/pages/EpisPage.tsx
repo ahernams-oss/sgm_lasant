@@ -168,7 +168,39 @@ const EpisPage = () => {
             ))}
           </SelectContent>
         </Select>
+        <Select value={filtroCargo} onValueChange={(v) => { setFiltroCargo(v); resetPage(); }}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Filtrar cargo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os Cargos</SelectItem>
+            {cargosUnicos.map((c) => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
+
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Entrega de</label>
+          <Input type="date" className="w-[160px]" value={entregaDe} onChange={(e) => { setEntregaDe(e.target.value); resetPage(); }} />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Entrega até</label>
+          <Input type="date" className="w-[160px]" value={entregaAte} onChange={(e) => { setEntregaAte(e.target.value); resetPage(); }} />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Vencimento de</label>
+          <Input type="date" className="w-[160px]" value={vencDe} onChange={(e) => { setVencDe(e.target.value); resetPage(); }} />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Vencimento até</label>
+          <Input type="date" className="w-[160px]" value={vencAte} onChange={(e) => { setVencAte(e.target.value); resetPage(); }} />
+        </div>
+        <Button variant="outline" size="sm" onClick={limparFiltros}>Limpar filtros</Button>
+      </div>
+
 
       {paginated.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
