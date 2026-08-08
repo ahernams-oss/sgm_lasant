@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
-import { Plus, Trash2, X, ChevronDown, ChevronUp, Upload, Pencil, Check, Download, FileSpreadsheet } from "lucide-react";
+import { Plus, Trash2, X, ChevronDown, ChevronUp, Upload, Pencil, Check, FileSpreadsheet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
