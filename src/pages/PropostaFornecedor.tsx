@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getCotacaoTokenClient } from "@/lib/supabaseScoped";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -116,7 +118,8 @@ export default function PropostaFornecedorPage() {
 
     try {
       // Insert proposal
-      const { error: insertErr } = await supabase.from("cotacao_propostas_externas").insert({
+      const db = getCotacaoTokenClient(token!);
+      const { error: insertErr } = await db.from("cotacao_propostas_externas").insert({
         convite_id: convite!.id,
         condicao_pagamento: condicaoPagamento,
         prazo_entrega: prazoEntrega,
@@ -136,7 +139,8 @@ export default function PropostaFornecedorPage() {
       if (insertErr) throw insertErr;
 
       // Update convite status
-      await supabase.from("cotacao_convites").update({ status: "respondido" }).eq("id", convite!.id);
+      await db.from("cotacao_convites").update({ status: "respondido" }).eq("id", convite!.id);
+
 
       setSubmitted(true);
     } catch (e: any) {
