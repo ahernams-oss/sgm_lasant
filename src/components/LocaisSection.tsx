@@ -460,6 +460,14 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                   />
                                   <Button
                                     type="button" variant="outline" size="sm"
+                                    onClick={downloadTemplate}
+                                    className="gap-1 shrink-0 h-8 text-xs"
+                                    title="Baixar modelo de importação"
+                                  >
+                                    <FileSpreadsheet className="h-3 w-3" /> Modelo
+                                  </Button>
+                                  <Button
+                                    type="button" variant="outline" size="sm"
                                     onClick={() => fileInputRefs.current[pav.id]?.click()}
                                     className="gap-1 shrink-0 h-8 text-xs"
                                     title="Importar setores de arquivo TXT ou Excel"
