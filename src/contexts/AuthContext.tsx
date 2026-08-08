@@ -113,6 +113,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         limiteAprovacaoOS: Number(r.limite_aprovacao_os ?? 0),
       };
 
+      // Estabelece a sessão autenticada no backend (necessária para as regras de acesso)
+      if (data?.tokenHash && data?.email) {
+        const { error: sessErr } = await supabase.auth.verifyOtp({
+          type: "email",
+          token_hash: data.tokenHash as string,
+        });
+        if (sessErr) console.warn("[Login] Sessão não estabelecida:", sessErr.message);
+      }
+
       setLembrar(lembrarMe);
       setUsuarioLogado(usuario);
       return true;
@@ -122,7 +131,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => setUsuarioLogado(null);
+  const logout = () => {
+    supabase.auth.signOut().catch(() => undefined);
+    setUsuarioLogado(null);
+  };
+
 
   const resetSenha = async (email: string): Promise<{ ok: boolean; message: string }> => {
     const emailNormalizado = email.trim().toLowerCase();
