@@ -174,8 +174,28 @@ const ProcessosSeletivos = () => {
       return matchSearch && matchCliente && matchCargo && matchStatus && matchPeriodo;
     });
 
-    return [...base].sort((a, b) => parseData(b.dataCriacao) - parseData(a.dataCriacao));
-  }, [processosComReq, search, cliente, cargo, status, dataInicio, dataFim]);
+    return [...base].sort((a, b) => {
+      const dir = sortDir === "asc" ? 1 : -1;
+      switch (sortField) {
+        case "numero": {
+          const na = a.numero ?? 0;
+          const nb = b.numero ?? 0;
+          return (na - nb) * dir;
+        }
+        case "cargo":
+          return ((a.requisicao?.cargoNome || "").localeCompare(b.requisicao?.cargoNome || "")) * dir;
+        case "unidade":
+          return ((a.requisicao?.unidade || "").localeCompare(b.requisicao?.unidade || "")) * dir;
+        case "status":
+          return (getProcessoStatus(a).localeCompare(getProcessoStatus(b))) * dir;
+        case "candidatos":
+          return (a.candidatos.length - b.candidatos.length) * dir;
+        case "dataCriacao":
+        default:
+          return (parseData(a.dataCriacao) - parseData(b.dataCriacao)) * dir;
+      }
+    });
+  }, [processosComReq, search, cliente, cargo, status, dataInicio, dataFim, sortField, sortDir]);
 
 
   const limparFiltros = () => {
