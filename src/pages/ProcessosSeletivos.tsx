@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useNavigate } from "react-router-dom";
-import { ClipboardCheck, Search, X, SlidersHorizontal, Check, ChevronsUpDown } from "lucide-react";
+import { ClipboardCheck, Search, X, SlidersHorizontal, Check, ChevronsUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
