@@ -102,6 +102,8 @@ const ProcessosSeletivos = () => {
   const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [sortField, setSortField] = useState<"numero" | "dataCriacao" | "cargo" | "unidade" | "status" | "candidatos">("dataCriacao");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
 
   const processosComReq = useMemo(() =>
