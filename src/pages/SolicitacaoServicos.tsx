@@ -182,9 +182,13 @@ export default function SolicitacaoServicosPage() {
   const setores = useMemo(() => (selectedPavimento as any)?.setores || [], [selectedPavimento]);
 
   const equipamentosFiltrados = useMemo(() => {
-    if (!form.cliente_id) return [];
-    return equipamentos.filter((e: any) => e.clienteId === form.cliente_id || e.cliente_id === form.cliente_id);
-  }, [equipamentos, form.cliente_id]);
+    if (!form.cliente_id || !form.setor_id) return [];
+    return equipamentos.filter((e: any) =>
+      (e.clienteId === form.cliente_id || e.cliente_id === form.cliente_id) &&
+      (e.setorId === form.setor_id || e.setor_id === form.setor_id)
+    );
+  }, [equipamentos, form.cliente_id, form.setor_id]);
+
 
   const handleSelectTipo = (tipo: "Predial" | "Equipamentos") => {
     setForm({ ...emptyForm, tipo });
