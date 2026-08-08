@@ -61,6 +61,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     writeStored(usuarioLogado, lembrar);
   }, [usuarioLogado, lembrar]);
 
+  // Sessões antigas (sem autenticação no backend) precisam refazer o login
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!cancelled && !data.session && readStored()) {
+        setUsuarioLogado(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+
   // Keep logged user in sync with usuarios list
   useEffect(() => {
     if (usuarioLogado) {
