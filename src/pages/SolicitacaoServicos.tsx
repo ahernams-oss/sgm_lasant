@@ -182,9 +182,13 @@ export default function SolicitacaoServicosPage() {
   const setores = useMemo(() => (selectedPavimento as any)?.setores || [], [selectedPavimento]);
 
   const equipamentosFiltrados = useMemo(() => {
-    if (!form.cliente_id) return [];
-    return equipamentos.filter((e: any) => e.clienteId === form.cliente_id || e.cliente_id === form.cliente_id);
-  }, [equipamentos, form.cliente_id]);
+    if (!form.cliente_id || !form.setor_id) return [];
+    return equipamentos.filter((e: any) =>
+      (e.clienteId === form.cliente_id || e.cliente_id === form.cliente_id) &&
+      (e.setorId === form.setor_id || e.setor_id === form.setor_id)
+    );
+  }, [equipamentos, form.cliente_id, form.setor_id]);
+
 
   const handleSelectTipo = (tipo: "Predial" | "Equipamentos") => {
     setForm({ ...emptyForm, tipo });
@@ -914,7 +918,7 @@ export default function SolicitacaoServicosPage() {
                   </div>
                   <div>
                     <Label className="font-bold">Setor</Label>
-                    <Select value={form.setor_id} onValueChange={v => setForm(f => ({ ...f, setor_id: v }))} disabled={!form.pavimento_id}>
+                    <Select value={form.setor_id} onValueChange={v => setForm(f => ({ ...f, setor_id: v, equipamento_id: "" }))} disabled={!form.pavimento_id}>
                       <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                       <SelectContent>{setores.map((s: any) => <SelectItem key={s.id} value={s.id}>{s.descricao}</SelectItem>)}</SelectContent>
                     </Select>
@@ -925,11 +929,12 @@ export default function SolicitacaoServicosPage() {
                 {form.tipo === "Equipamentos" && (
                   <div className="md:w-1/2">
                     <Label className="font-bold">Equipamento</Label>
-                    <Select value={form.equipamento_id} onValueChange={v => setForm(f => ({ ...f, equipamento_id: v }))} disabled={!form.cliente_id}>
-                      <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <Select value={form.equipamento_id} onValueChange={v => setForm(f => ({ ...f, equipamento_id: v }))} disabled={!form.setor_id || equipamentosFiltrados.length === 0}>
+                      <SelectTrigger><SelectValue placeholder={!form.setor_id ? "Selecione o setor..." : equipamentosFiltrados.length === 0 ? "Nenhum equipamento no setor" : "Selecione..."} /></SelectTrigger>
                       <SelectContent>{equipamentosFiltrados.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.tag ? `${e.tag} - ${e.equipamento}` : e.equipamento}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
+
                 )}
 
                 <div>
