@@ -8816,6 +8816,7 @@ export type Database = {
         Args: { _usuario_id: string }
         Returns: undefined
       }
+      req_header: { Args: { _name: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
