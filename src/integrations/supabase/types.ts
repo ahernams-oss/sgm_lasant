@@ -1451,6 +1451,7 @@ export type Database = {
           whatsapp_engenharia: string | null
           whatsapp_faturamento: string | null
           whatsapp_rh: string | null
+          whatsapp_segtrab: string | null
         }
         Insert: {
           bairro?: string | null
@@ -1493,6 +1494,7 @@ export type Database = {
           whatsapp_engenharia?: string | null
           whatsapp_faturamento?: string | null
           whatsapp_rh?: string | null
+          whatsapp_segtrab?: string | null
         }
         Update: {
           bairro?: string | null
@@ -1535,6 +1537,7 @@ export type Database = {
           whatsapp_engenharia?: string | null
           whatsapp_faturamento?: string | null
           whatsapp_rh?: string | null
+          whatsapp_segtrab?: string | null
         }
         Relationships: []
       }
