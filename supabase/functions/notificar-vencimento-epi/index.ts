@@ -6,10 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Today (BRT) as YYYY-MM-DD
+// Hoje no fuso de Brasília (UTC-3)
 function brtToday(): { dateStr: string; hour: number; minute: number } {
   const now = new Date();
-  // BRT = UTC-3 (sem DST atualmente)
   const brt = new Date(now.getTime() - 3 * 60 * 60 * 1000);
   const y = brt.getUTCFullYear();
   const m = String(brt.getUTCMonth() + 1).padStart(2, "0");
@@ -19,9 +18,12 @@ function brtToday(): { dateStr: string; hour: number; minute: number } {
 
 function daysBetween(fromStr: string, toStr: string): number {
   const a = new Date(fromStr + "T00:00:00Z").getTime();
-  const b = new Date(toStr + "T00:00:00Z").getTime();
+  const b = new Date(toStr.slice(0, 10) + "T00:00:00Z").getTime();
   return Math.round((b - a) / 86400000);
 }
+
+// Antecedências exigidas: 30, 20 e 10 dias
+const ANTECEDENCIAS = [30, 20, 10];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -29,99 +31,94 @@ serve(async (req) => {
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
     const { dateStr: today, hour, minute } = brtToday();
 
-    // Slot atual (com tolerância de 15min)
-    const slot = (() => {
-      const hm = hour * 60 + minute;
-      const slots = [
-        { name: "09:00", min: 9 * 60 },
-        { name: "11:30", min: 11 * 60 + 30 },
-        { name: "13:30", min: 13 * 60 + 30 },
-        { name: "15:00", min: 15 * 60 },
-        { name: "17:00", min: 17 * 60 },
-      ];
-      return slots.find((s) => Math.abs(hm - s.min) <= 15)?.name || null;
-    })();
+    // Permite execução manual (?force=1) para testes
+    const url = new URL(req.url);
+    const force = url.searchParams.get("force") === "1";
 
-    if (!slot) {
-      return new Response(JSON.stringify({ skipped: true, reason: "fora dos slots", hour, minute }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Disparo diário às 09:00 (tolerância de 15 min)
+    const hm = hour * 60 + minute;
+    if (!force && Math.abs(hm - 9 * 60) > 15) {
+      return new Response(
+        JSON.stringify({ skipped: true, reason: "fora do horário de disparo (09:00 BRT)", hour, minute }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
-    // RH WhatsApp
+    // Destino: WhatsApp SEGTRAB (dados da empresa)
     const { data: empresa } = await supabase
       .from("empresa")
-      .select("whatsapp_rh")
+      .select("whatsapp_segtrab")
       .limit(1)
       .maybeSingle();
-    const rh = (empresa?.whatsapp_rh || "").trim();
-    if (!rh) {
-      return new Response(JSON.stringify({ skipped: true, reason: "sem whatsapp RH" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+
+    const segtrab = String((empresa as { whatsapp_segtrab?: string | null } | null)?.whatsapp_segtrab || "").trim();
+    if (!segtrab) {
+      return new Response(
+        JSON.stringify({ skipped: true, reason: "WhatsApp SEGTRAB não configurado nos dados da empresa" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     const { data: funcionarios } = await supabase
       .from("funcionarios")
-      .select("nome, epis");
+      .select("nome, cargo, epis");
 
-    const avisos: { funcionario: string; epi: string; dias: number; vencimento: string }[] = [];
-    for (const f of (funcionarios || []) as any[]) {
-      const epis = (f.epis as any[]) || [];
+    type Aviso = { funcionario: string; epi: string; ca?: string; dias: number; vencimento: string };
+    const avisos: Aviso[] = [];
+
+    for (const f of (funcionarios || []) as Array<{ nome: string; cargo?: string; epis?: unknown }>) {
+      const epis = (f.epis as Array<Record<string, string>>) || [];
       for (const epi of epis) {
         if (!epi?.dataVencimento) continue;
         const dias = daysBetween(today, epi.dataVencimento);
-        // 45, 30, 20: apenas no slot 09:00
-        const isMarco = (dias === 45 || dias === 30 || dias === 20) && slot === "09:00";
-        // 1..10 dias: todos os 5 slots
-        const isReta = dias >= 1 && dias <= 10;
-        // No dia do vencimento (0): aviso 09:00
-        const isHoje = dias === 0 && slot === "09:00";
-        if (isMarco || isReta || isHoje) {
-          avisos.push({
-            funcionario: f.nome,
-            epi: epi.descricao,
-            dias,
-            vencimento: epi.dataVencimento.split("-").reverse().join("/"),
-          });
-        }
+        if (!ANTECEDENCIAS.includes(dias)) continue;
+        avisos.push({
+          funcionario: f.nome,
+          epi: epi.descricao || "EPI",
+          ca: epi.ca,
+          dias,
+          vencimento: String(epi.dataVencimento).slice(0, 10).split("-").reverse().join("/"),
+        });
       }
     }
 
     if (avisos.length === 0) {
-      return new Response(JSON.stringify({ sent: 0, slot }), {
+      return new Response(JSON.stringify({ sent: 0, data: today }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Monta mensagem agregada
-    const linhas = avisos.map(
-      (a) =>
-        `• *${a.funcionario}* — ${a.epi} — vence em *${a.dias}* dia(s) (${a.vencimento})`
-    );
-    const mensagem =
-      `⚠️ *Vencimento de EPIs*\n` +
-      `_Aviso automático (${slot})_\n\n` +
-      linhas.join("\n") +
-      `\n\nProvidencie a renovação/substituição.`;
-
-    // Envia via send-whatsapp
-    await supabase.functions.invoke("send-whatsapp", {
-      body: { telefone: rh, mensagem },
+    // Agrupa por antecedência (30 → 20 → 10)
+    const blocos = ANTECEDENCIAS.filter((d) => avisos.some((a) => a.dias === d)).map((d) => {
+      const linhas = avisos
+        .filter((a) => a.dias === d)
+        .map((a) => `• *${a.funcionario}* — ${a.epi}${a.ca ? ` (CA ${a.ca})` : ""} — vence em ${a.vencimento}`);
+      return `*${d} dias para o vencimento*\n${linhas.join("\n")}`;
     });
 
-    return new Response(JSON.stringify({ sent: avisos.length, slot, avisos }), {
+    const mensagem =
+      `⚠️ *Vencimento de EPIs — Segurança do Trabalho*\n` +
+      `_Aviso automático de ${today.split("-").reverse().join("/")}_\n\n` +
+      blocos.join("\n\n") +
+      `\n\nProvidencie a renovação/substituição dos EPIs.`;
+
+    const { error: sendErr } = await supabase.functions.invoke("send-whatsapp", {
+      body: { telefone: segtrab, mensagem },
+    });
+    if (sendErr) throw sendErr;
+
+    return new Response(JSON.stringify({ sent: avisos.length, data: today, avisos }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e: any) {
+  } catch (e) {
     console.error("notificar-vencimento-epi", e);
-    return new Response(JSON.stringify({ error: e?.message || String(e) }), {
-      status: 200,
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }), {
+      status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
