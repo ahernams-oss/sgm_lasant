@@ -68,6 +68,8 @@ function PlanosTab() {
 
   // Gestão de atividades/equipamentos dentro do plano
   const [managePlano, setManagePlano] = useState<any | null>(null);
+  const [equipSel, setEquipSel] = useState<Set<string>>(new Set());
+  const [equipLote, setEquipLote] = useState(false);
   const [manageTab, setManageTab] = useState<"atividades" | "equipamentos">("atividades");
   const [ativEditing, setAtivEditing] = useState<string | null>(null);
   const [ativForm, setAtivForm] = useState({
