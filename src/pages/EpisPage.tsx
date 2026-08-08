@@ -1,7 +1,7 @@
 import React, { useState, useMemo, ReactNode } from "react";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
-import { HardHat, Search, Trash2, FileDown } from "lucide-react";
+import { HardHat, Search, Trash2, FileDown, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -112,6 +112,14 @@ const EpisPage = () => {
           {filtered.length} registro(s)
         </Badge>
       </div>
+
+      <div className="bg-muted/50 rounded-lg p-4 text-xs text-muted-foreground space-y-1">
+        <p className="font-semibold flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> Avisos automáticos</p>
+        <p>O sistema enviará avisos por WhatsApp 30, 20 e 10 dias antes do vencimento de cada EPI.</p>
+        <p>Os avisos são verificados automaticamente todos os dias e enviados ao WhatsApp SEGTRAB.</p>
+      </div>
+
+
 
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[220px]">
