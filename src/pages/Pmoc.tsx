@@ -205,6 +205,29 @@ function PlanosTab() {
     await updateEquipamento(equipId, { planoManutencao: vincular ? managePlano.id : "" } as any);
   };
 
+  const toggleEquipSel = (equipId: string) =>
+    setEquipSel(prev => {
+      const next = new Set(prev);
+      next.has(equipId) ? next.delete(equipId) : next.add(equipId);
+      return next;
+    });
+
+  const toggleEquipSelAll = () =>
+    setEquipSel(prev =>
+      prev.size === equipsDoCliente.length ? new Set<string>() : new Set(equipsDoCliente.map(e => e.id))
+    );
+
+  const aplicarVinculoLote = async (vincular: boolean) => {
+    if (!managePlano || equipSel.size === 0) return;
+    setEquipLote(true);
+    for (const id of equipSel) {
+      await toggleEquipNoPlano(id, vincular);
+    }
+    setEquipLote(false);
+    setEquipSel(new Set());
+    toast({ title: vincular ? "Equipamentos vinculados" : "Equipamentos desvinculados" });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
