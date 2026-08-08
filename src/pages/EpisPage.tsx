@@ -31,6 +31,11 @@ const EpisPage = () => {
   const { cargos } = useCargos();
   const [search, setSearch] = useState("");
   const [filtroCliente, setFiltroCliente] = useState("todos");
+  const [filtroCargo, setFiltroCargo] = useState("todos");
+  const [entregaDe, setEntregaDe] = useState("");
+  const [entregaAte, setEntregaAte] = useState("");
+  const [vencDe, setVencDe] = useState("");
+  const [vencAte, setVencAte] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -73,6 +78,13 @@ const EpisPage = () => {
     if (filtroCliente !== "todos") {
       result = result.filter((e) => e.clienteNome === filtroCliente);
     }
+    if (filtroCargo !== "todos") {
+      result = result.filter((e) => e.cargoNome === filtroCargo);
+    }
+    if (entregaDe) result = result.filter((e) => e.dataEntrega && e.dataEntrega >= entregaDe);
+    if (entregaAte) result = result.filter((e) => e.dataEntrega && e.dataEntrega <= entregaAte);
+    if (vencDe) result = result.filter((e) => e.dataVencimento && e.dataVencimento >= vencDe);
+    if (vencAte) result = result.filter((e) => e.dataVencimento && e.dataVencimento <= vencAte);
     if (search.trim()) {
       const s = search.toLowerCase();
       result = result.filter(
@@ -83,7 +95,7 @@ const EpisPage = () => {
       );
     }
     return result;
-  }, [todosEpis, search, filtroCliente]);
+  }, [todosEpis, search, filtroCliente, filtroCargo, entregaDe, entregaAte, vencDe, vencAte]);
 
   const { paginated, totalPages, safePage } = paginate(filtered, page, pageSize);
 
@@ -93,6 +105,20 @@ const EpisPage = () => {
     const set = new Set(todosEpis.map((e) => e.clienteNome).filter((n) => n !== "—"));
     return Array.from(set).sort();
   }, [todosEpis]);
+
+  const cargosUnicos = useMemo(() => {
+    const set = new Set(todosEpis.map((e) => e.cargoNome).filter((n) => n !== "—"));
+    return Array.from(set).sort();
+  }, [todosEpis]);
+
+  const limparFiltros = () => {
+    setFiltroCliente("todos");
+    setFiltroCargo("todos");
+    setEntregaDe(""); setEntregaAte(""); setVencDe(""); setVencAte("");
+    setSearch("");
+    resetPage();
+  };
+
 
   return (
     <div className="space-y-6">
@@ -142,7 +168,39 @@ const EpisPage = () => {
             ))}
           </SelectContent>
         </Select>
+        <Select value={filtroCargo} onValueChange={(v) => { setFiltroCargo(v); resetPage(); }}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Filtrar cargo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os Cargos</SelectItem>
+            {cargosUnicos.map((c) => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
+
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Entrega de</label>
+          <Input type="date" className="w-[160px]" value={entregaDe} onChange={(e) => { setEntregaDe(e.target.value); resetPage(); }} />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Entrega até</label>
+          <Input type="date" className="w-[160px]" value={entregaAte} onChange={(e) => { setEntregaAte(e.target.value); resetPage(); }} />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Vencimento de</label>
+          <Input type="date" className="w-[160px]" value={vencDe} onChange={(e) => { setVencDe(e.target.value); resetPage(); }} />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Vencimento até</label>
+          <Input type="date" className="w-[160px]" value={vencAte} onChange={(e) => { setVencAte(e.target.value); resetPage(); }} />
+        </div>
+        <Button variant="outline" size="sm" onClick={limparFiltros}>Limpar filtros</Button>
+      </div>
+
 
       {paginated.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
