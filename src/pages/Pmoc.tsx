@@ -515,9 +515,6 @@ function PlanosTab() {
                 </div>
                 </>
               )}
-                  </Table>
-                </div>
-              )}
             </TabsContent>
           </Tabs>
 
