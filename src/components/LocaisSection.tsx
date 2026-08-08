@@ -149,13 +149,26 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
     const reader = new FileReader();
     const isExcel = /\.(xlsx?|xls)$/i.test(file.name);
 
+    const parseNames = (values: string[]) => {
+      const names = values
+        .map((v) => String(v || "").trim())
+        .filter((v, i) => {
+          if (!v) return false;
+          // Pula linha de cabeçalho comuns
+          const lower = v.toLowerCase();
+          if (i === 0 && ["setor", "nome", "nome_do_setor", "descrição", "descricao"].includes(lower)) return false;
+          return true;
+        });
+      return names;
+    };
+
     if (isExcel) {
       reader.onload = (e) => {
         try {
           const wb = XLSX.read(e.target?.result, { type: "array" });
           const ws = wb.Sheets[wb.SheetNames[0]];
           const rows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
-          const names = rows.flat().map((v) => String(v || "").trim()).filter(Boolean);
+          const names = parseNames(rows.flat());
           if (names.length === 0) { toast.error("Nenhum setor encontrado no arquivo."); return; }
           const newSetores: Setor[] = names.map((n) => ({ id: crypto.randomUUID(), descricao: n, ativo: true }));
           updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: [...(p.setores || []), ...newSetores] } : p));
@@ -166,7 +179,8 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
     } else {
       reader.onload = (e) => {
         const text = e.target?.result as string;
-        const names = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        const lines = text.split(/\r?\n/);
+        const names = parseNames(lines);
         if (names.length === 0) { toast.error("Nenhum setor encontrado no arquivo."); return; }
         const newSetores: Setor[] = names.map((n) => ({ id: crypto.randomUUID(), descricao: n, ativo: true }));
         updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: [...(p.setores || []), ...newSetores] } : p));
@@ -174,6 +188,22 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
       };
       reader.readAsText(file);
     }
+  };
+
+  const downloadTemplate = () => {
+    const ws = XLSX.utils.aoa_to_sheet([
+      ["Setor"],
+      ["Recepção"],
+      ["Sala 101"],
+      ["Sala 102"],
+      ["Copa"],
+      ["Banheiro"],
+    ]);
+    ws["!cols"] = [{ wch: 30 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Modelo Setores");
+    XLSX.writeFile(wb, "modelo_setores.xlsx");
+    toast.success("Modelo de importação baixado!");
   };
 
   const renderFields = (
