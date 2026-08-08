@@ -117,8 +117,8 @@ function FotosUploader({ disabled, onUploaded, currentCount }: { disabled: boole
       e.target.value = "";
       return;
     }
-    if (currentCount >= 5) {
-      toast.error("Máximo de 5 fotos permitidas.");
+    if (currentCount >= 6) {
+      toast.error("Máximo de 6 fotos permitidas.");
       e.target.value = "";
       return;
     }
@@ -143,7 +143,7 @@ function FotosUploader({ disabled, onUploaded, currentCount }: { disabled: boole
 
   return (
     <div className="space-y-2">
-      <Label>Imagem (JPG, PNG, WEBP - máx. 5)</Label>
+      <Label>Imagem (JPG, PNG, WEBP - máx. 6)</Label>
       <div className="flex flex-wrap gap-2">
         {isMobile && (
           <Button type="button" variant="outline" disabled={disabled || busy} onClick={() => cameraRef.current?.click()}>
@@ -1924,7 +1924,7 @@ export default function OrdensServicoPage() {
                   <TabsTrigger value="estoque" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> Estoque</TabsTrigger>
                   <TabsTrigger value="profissionais" className="flex items-center gap-1.5 text-xs"><Wrench className="h-3.5 w-3.5" /> Profissionais</TabsTrigger>
                   <TabsTrigger value="anexos" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> Anexos ({anexos.length}/5)</TabsTrigger>
-                  <TabsTrigger value="fotos" className="flex items-center gap-1.5 text-xs"><Eye className="h-3.5 w-3.5" /> Fotos ({fotos.length}/5)</TabsTrigger>
+                  <TabsTrigger value="fotos" className="flex items-center gap-1.5 text-xs"><Eye className="h-3.5 w-3.5" /> Fotos ({fotos.length}/6)</TabsTrigger>
                   <TabsTrigger value="observacoes" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> Observações</TabsTrigger>
                   <TabsTrigger value="fiscalizacao" className="flex items-center gap-1.5 text-xs"><AlertTriangle className="h-3.5 w-3.5" /> Fiscalização</TabsTrigger>
                 </TabsList>
@@ -2253,9 +2253,9 @@ export default function OrdensServicoPage() {
 
                 {/* 5. Fotos */}
                 <TabsContent value="fotos" className="space-y-3 p-3">
-                  {fotos.length < 5 && (
+                  {fotos.length < 6 && (
                     <FotosUploader
-                      disabled={fotos.length >= 5}
+                      disabled={fotos.length >= 6}
                       onUploaded={(url) => setFotos(prev => [...prev, { id: crypto.randomUUID(), url }])}
                       currentCount={fotos.length}
                     />
