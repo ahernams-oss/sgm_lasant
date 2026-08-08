@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getFornecedorClient } from "@/lib/supabaseScoped";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -492,11 +494,12 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   const handleRecusarConfirm = async () => {
     if (!recusarConvite) return;
     setRecusando(true);
-    const { error } = await supabase
+    const { error } = await getFornecedorClient(session.id)
       .from("cotacao_convites")
       .update({ status: "recusado" })
       .eq("id", recusarConvite.id);
     setRecusando(false);
+
     if (error) {
       toast.error("Erro ao recusar cotação.");
       return;
@@ -511,11 +514,12 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     (async () => {
       setLoading(true);
       const [{ data: c }, { data: p }, { data: pr }, { data: part }] = await Promise.all([
-        supabase
+        getFornecedorClient(session.id)
           .from("cotacao_convites")
           .select("id,token,cotacao_numero,comprador,status,expires_at,created_at,itens")
           .eq("fornecedor_id", session.id)
           .order("created_at", { ascending: false }),
+
         supabase
           .from("pedidos_compra")
           .select("id,numero,data_criacao,comprador,status,valor_total,itens,condicao_pagamento,prazo_entrega,local_entrega,observacoes")
