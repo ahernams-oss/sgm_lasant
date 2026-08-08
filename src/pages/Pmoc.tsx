@@ -457,11 +457,32 @@ function PlanosTab() {
               ) : equipsDoCliente.length === 0 ? (
                 <p className="text-sm text-muted-foreground p-4 text-center">Nenhum equipamento cadastrado para este cliente.</p>
               ) : (
+                <>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-muted-foreground">{equipSel.size} selecionado(s)</span>
+                    <Button size="sm" disabled={equipLote || equipSel.size === 0} onClick={() => aplicarVinculoLote(true)}>
+                      Vincular selecionados
+                    </Button>
+                    <Button size="sm" variant="outline" disabled={equipLote || equipSel.size === 0} onClick={() => aplicarVinculoLote(false)}>
+                      Desvincular selecionados
+                    </Button>
+                    {equipSel.size > 0 && (
+                      <Button size="sm" variant="ghost" onClick={() => setEquipSel(new Set())}>Limpar seleção</Button>
+                    )}
+                  </div>
                 <div className="border rounded-lg max-h-96 overflow-y-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-12"></TableHead>
+                        <TableHead className="w-10">
+                          <input
+                            type="checkbox"
+                            checked={equipSel.size > 0 && equipSel.size === equipsDoCliente.length}
+                            onChange={toggleEquipSelAll}
+                            aria-label="Selecionar todos"
+                          />
+                        </TableHead>
+                        <TableHead className="w-12">Vinc.</TableHead>
                         <TableHead>TAG</TableHead>
                         <TableHead>Equipamento</TableHead>
                         <TableHead>Setor</TableHead>
@@ -474,7 +495,10 @@ function PlanosTab() {
                         const outroPlanoId = e.planoManutencao && !vinculadoAqui ? e.planoManutencao : "";
                         const outroPlano = outroPlanoId ? planos.find(pp => pp.id === outroPlanoId)?.titulo : "";
                         return (
-                          <TableRow key={e.id}>
+                          <TableRow key={e.id} className={equipSel.has(e.id) ? "bg-accent/50" : undefined}>
+                            <TableCell>
+                              <input type="checkbox" checked={equipSel.has(e.id)} onChange={() => toggleEquipSel(e.id)} />
+                            </TableCell>
                             <TableCell>
                               <input type="checkbox" checked={vinculadoAqui}
                                 onChange={ev => toggleEquipNoPlano(e.id, ev.target.checked)} />
@@ -487,6 +511,10 @@ function PlanosTab() {
                         );
                       })}
                     </TableBody>
+                  </Table>
+                </div>
+                </>
+              )}
                   </Table>
                 </div>
               )}
