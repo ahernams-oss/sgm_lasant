@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useNavigate } from "react-router-dom";
-import { ClipboardCheck, Search, X, SlidersHorizontal, Check, ChevronsUpDown } from "lucide-react";
+import { ClipboardCheck, Search, X, SlidersHorizontal, Check, ChevronsUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -102,6 +102,8 @@ const ProcessosSeletivos = () => {
   const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [sortField, setSortField] = useState<"numero" | "dataCriacao" | "cargo" | "unidade" | "status" | "candidatos">("dataCriacao");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
 
   const processosComReq = useMemo(() =>
@@ -172,8 +174,28 @@ const ProcessosSeletivos = () => {
       return matchSearch && matchCliente && matchCargo && matchStatus && matchPeriodo;
     });
 
-    return [...base].sort((a, b) => parseData(b.dataCriacao) - parseData(a.dataCriacao));
-  }, [processosComReq, search, cliente, cargo, status, dataInicio, dataFim]);
+    return [...base].sort((a, b) => {
+      const dir = sortDir === "asc" ? 1 : -1;
+      switch (sortField) {
+        case "numero": {
+          const na = a.numero ?? 0;
+          const nb = b.numero ?? 0;
+          return (na - nb) * dir;
+        }
+        case "cargo":
+          return ((a.requisicao?.cargoNome || "").localeCompare(b.requisicao?.cargoNome || "")) * dir;
+        case "unidade":
+          return ((a.requisicao?.unidade || "").localeCompare(b.requisicao?.unidade || "")) * dir;
+        case "status":
+          return (getProcessoStatus(a).localeCompare(getProcessoStatus(b))) * dir;
+        case "candidatos":
+          return (a.candidatos.length - b.candidatos.length) * dir;
+        case "dataCriacao":
+        default:
+          return (parseData(a.dataCriacao) - parseData(b.dataCriacao)) * dir;
+      }
+    });
+  }, [processosComReq, search, cliente, cargo, status, dataInicio, dataFim, sortField, sortDir]);
 
 
   const limparFiltros = () => {
@@ -368,6 +390,38 @@ const ProcessosSeletivos = () => {
                       <X className="h-3.5 w-3.5 mr-1" /> Período
                     </Button>
                   )}
+                </div>
+              </div>
+
+              <div className="space-y-1.5 sm:col-span-2 lg:col-span-4">
+                <Label className="text-xs text-muted-foreground">Ordenação</Label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select
+                    value={sortField}
+                    onValueChange={(v) => { setSortField(v as typeof sortField); setPage(1); }}
+                  >
+                    <SelectTrigger className="h-9 w-[220px]">
+                      <SelectValue placeholder="Ordenar por" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="numero">Número PS</SelectItem>
+                      <SelectItem value="dataCriacao">Data de criação</SelectItem>
+                      <SelectItem value="cargo">Cargo</SelectItem>
+                      <SelectItem value="unidade">Unidade</SelectItem>
+                      <SelectItem value="status">Status</SelectItem>
+                      <SelectItem value="candidatos">Quantidade de candidatos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 gap-1.5"
+                    onClick={() => { setSortDir((d) => (d === "asc" ? "desc" : "asc")); setPage(1); }}
+                  >
+                    {sortDir === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+                    {sortDir === "asc" ? "Crescente" : "Decrescente"}
+                  </Button>
                 </div>
               </div>
             </div>
