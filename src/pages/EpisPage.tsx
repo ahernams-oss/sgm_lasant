@@ -73,6 +73,13 @@ const EpisPage = () => {
     if (filtroCliente !== "todos") {
       result = result.filter((e) => e.clienteNome === filtroCliente);
     }
+    if (filtroCargo !== "todos") {
+      result = result.filter((e) => e.cargoNome === filtroCargo);
+    }
+    if (entregaDe) result = result.filter((e) => e.dataEntrega && e.dataEntrega >= entregaDe);
+    if (entregaAte) result = result.filter((e) => e.dataEntrega && e.dataEntrega <= entregaAte);
+    if (vencDe) result = result.filter((e) => e.dataVencimento && e.dataVencimento >= vencDe);
+    if (vencAte) result = result.filter((e) => e.dataVencimento && e.dataVencimento <= vencAte);
     if (search.trim()) {
       const s = search.toLowerCase();
       result = result.filter(
@@ -83,7 +90,7 @@ const EpisPage = () => {
       );
     }
     return result;
-  }, [todosEpis, search, filtroCliente]);
+  }, [todosEpis, search, filtroCliente, filtroCargo, entregaDe, entregaAte, vencDe, vencAte]);
 
   const { paginated, totalPages, safePage } = paginate(filtered, page, pageSize);
 
@@ -93,6 +100,20 @@ const EpisPage = () => {
     const set = new Set(todosEpis.map((e) => e.clienteNome).filter((n) => n !== "—"));
     return Array.from(set).sort();
   }, [todosEpis]);
+
+  const cargosUnicos = useMemo(() => {
+    const set = new Set(todosEpis.map((e) => e.cargoNome).filter((n) => n !== "—"));
+    return Array.from(set).sort();
+  }, [todosEpis]);
+
+  const limparFiltros = () => {
+    setFiltroCliente("todos");
+    setFiltroCargo("todos");
+    setEntregaDe(""); setEntregaAte(""); setVencDe(""); setVencAte("");
+    setSearch("");
+    resetPage();
+  };
+
 
   return (
     <div className="space-y-6">
