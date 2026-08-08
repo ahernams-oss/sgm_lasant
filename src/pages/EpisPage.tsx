@@ -113,6 +113,14 @@ const EpisPage = () => {
         </Badge>
       </div>
 
+      <div className="bg-muted/50 rounded-lg p-4 text-xs text-muted-foreground space-y-1">
+        <p className="font-semibold flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> Avisos automáticos</p>
+        <p>O sistema enviará avisos por WhatsApp 30, 20 e 10 dias antes do vencimento de cada EPI.</p>
+        <p>Os avisos são verificados automaticamente todos os dias e enviados ao WhatsApp SEGTRAB.</p>
+      </div>
+
+
+
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[220px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
