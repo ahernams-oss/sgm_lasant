@@ -58,11 +58,13 @@ export default function PropostaFornecedorPage() {
 
   const loadConvite = async () => {
     setLoading(true);
-    const { data, error: err } = await supabase
+    const db = getCotacaoTokenClient(token!);
+    const { data, error: err } = await db
       .from("cotacao_convites")
       .select("*")
       .eq("token", token)
       .maybeSingle();
+
 
     if (err || !data) {
       setError("Convite não encontrado ou inválido.");
