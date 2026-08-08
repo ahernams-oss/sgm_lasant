@@ -392,6 +392,38 @@ const ProcessosSeletivos = () => {
                   )}
                 </div>
               </div>
+
+              <div className="space-y-1.5 sm:col-span-2 lg:col-span-4">
+                <Label className="text-xs text-muted-foreground">Ordenação</Label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select
+                    value={sortField}
+                    onValueChange={(v) => { setSortField(v as typeof sortField); setPage(1); }}
+                  >
+                    <SelectTrigger className="h-9 w-[220px]">
+                      <SelectValue placeholder="Ordenar por" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="numero">Número PS</SelectItem>
+                      <SelectItem value="dataCriacao">Data de criação</SelectItem>
+                      <SelectItem value="cargo">Cargo</SelectItem>
+                      <SelectItem value="unidade">Unidade</SelectItem>
+                      <SelectItem value="status">Status</SelectItem>
+                      <SelectItem value="candidatos">Quantidade de candidatos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 gap-1.5"
+                    onClick={() => { setSortDir((d) => (d === "asc" ? "desc" : "asc")); setPage(1); }}
+                  >
+                    {sortDir === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+                    {sortDir === "asc" ? "Crescente" : "Decrescente"}
+                  </Button>
+                </div>
+              </div>
             </div>
 
             {filtrosAtivos && (
