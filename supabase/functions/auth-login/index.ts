@@ -129,10 +129,61 @@ Deno.serve(async (req) => {
 
     await logAudit({ usuario_id: user.id, email, nome: user.nome, sucesso: true, motivo: migrated ? "Login OK (senha migrada para hash)" : "Login OK" });
 
-    return new Response(JSON.stringify({ usuario: user, migrated }), {
+    // Emite uma sessão real do backend para que as políticas de acesso (RLS)
+    // possam exigir usuário autenticado em vez de acesso anônimo.
+    let tokenHash: string | null = null;
+    try {
+      const emailAuth = String(user.email ?? email).trim().toLowerCase();
+
+      const ensureUser = async () => {
+        const { data: link, error: linkErr } = await supabase.auth.admin.generateLink({
+          type: "magiclink",
+          email: emailAuth,
+        });
+        if (!linkErr && link?.properties?.hashed_token) {
+          return link.properties.hashed_token as string;
+        }
+        return null;
+      };
+
+      tokenHash = await ensureUser();
+
+      if (!tokenHash) {
+        // Usuário ainda não existe no provedor de autenticação: cria e tenta de novo.
+        await supabase.auth.admin.createUser({
+          email: emailAuth,
+          email_confirm: true,
+          password: crypto.randomUUID() + "Aa1!",
+          user_metadata: { usuario_id: user.id, nome: user.nome },
+        });
+        tokenHash = await ensureUser();
+      }
+
+      if (tokenHash && !user.auth_user_id) {
+        const { data: authUser } = await supabase
+          .from("usuarios")
+          .select("auth_user_id")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (!authUser?.auth_user_id) {
+          const { data: list } = await supabase.auth.admin.listUsers();
+          const found = list?.users?.find(
+            (u) => (u.email ?? "").toLowerCase() === emailAuth,
+          );
+          if (found) {
+            await supabase.from("usuarios").update({ auth_user_id: found.id }).eq("id", user.id);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("[auth-login] Falha ao emitir sessão:", e);
+    }
+
+    return new Response(JSON.stringify({ usuario: user, migrated, tokenHash, email: String(user.email ?? email).trim().toLowerCase() }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+
   } catch (e) {
     console.error("[auth-login] Unexpected:", e);
     await logAudit({ usuario_id: null, email: "(erro)", nome: null, sucesso: false, motivo: "Erro inesperado no servidor" });
