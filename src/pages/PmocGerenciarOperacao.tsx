@@ -92,6 +92,7 @@ interface Execucao {
   plano_id: string | null;
   equipamento_id: string | null;
   equipamento_nome: string | null;
+  cliente_nome: string | null;
   atividade_descricao: string | null;
   periodicidade: string | null;
   data_execucao: string;
