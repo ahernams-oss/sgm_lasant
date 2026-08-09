@@ -190,7 +190,7 @@ export default function PmocGerenciarOperacao() {
     });
     setExecucoes(rows);
   };
-  useEffect(() => { carregarExecucoes(); }, []);
+  useEffect(() => { carregarExecucoes(); }, [equipamentos]);
 
   const pendentes = useMemo(() => execucoes.filter((e) => e.status === "Pendente"), [execucoes]);
   const pendentesPorAtividade = useMemo(() => {
