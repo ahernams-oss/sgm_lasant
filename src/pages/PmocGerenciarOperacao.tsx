@@ -840,12 +840,19 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
   const [search, setSearch] = useState("");
   const [statusFiltro, setStatusFiltro] = useState<string>(ALL);
   const [equipFiltro, setEquipFiltro] = useState<string>(ALL);
+  const [clienteFiltro, setClienteFiltro] = useState<string>(ALL);
   const [dataIni, setDataIni] = useState<string>("");
   const [dataFim, setDataFim] = useState<string>("");
 
   const equipamentosUnicos = useMemo(() => {
     const set = new Set<string>();
     execucoes.forEach((e) => { if (e.equipamento_nome) set.add(e.equipamento_nome); });
+    return Array.from(set).sort();
+  }, [execucoes]);
+
+  const clientesUnicos = useMemo(() => {
+    const set = new Set<string>();
+    execucoes.forEach((e) => { if (e.cliente_nome) set.add(e.cliente_nome); });
     return Array.from(set).sort();
   }, [execucoes]);
 
@@ -856,23 +863,25 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
     return execucoes.filter((e) => {
       if (statusFiltro !== ALL && e.status !== statusFiltro) return false;
       if (equipFiltro !== ALL && e.equipamento_nome !== equipFiltro) return false;
+      if (clienteFiltro !== ALL && e.cliente_nome !== clienteFiltro) return false;
       const t = new Date(e.data_execucao).getTime();
       if (ini !== null && t < ini) return false;
       if (fim !== null && t > fim) return false;
       if (term) {
-        const blob = `${e.equipamento_nome || ""} ${e.atividade_descricao || ""} ${e.registrado_por || ""} ${e.confirmado_por || ""}`.toLowerCase();
+        const blob = `${e.equipamento_nome || ""} ${e.atividade_descricao || ""} ${e.registrado_por || ""} ${e.confirmado_por || ""} ${e.cliente_nome || ""}`.toLowerCase();
         if (!blob.includes(term)) return false;
       }
       return true;
     });
-  }, [execucoes, statusFiltro, equipFiltro, dataIni, dataFim, search]);
+  }, [execucoes, statusFiltro, equipFiltro, clienteFiltro, dataIni, dataFim, search]);
 
   const limpar = () => {
-    setSearch(""); setStatusFiltro(ALL); setEquipFiltro(ALL); setDataIni(""); setDataFim("");
+    setSearch(""); setStatusFiltro(ALL); setEquipFiltro(ALL); setClienteFiltro(ALL); setDataIni(""); setDataFim("");
   };
 
-  const columns = ["Equipamento", "Atividade", "Executada em", "Status", "Registrado por", "Confirmado por"];
+  const columns = ["Cliente", "Equipamento", "Atividade", "Executada em", "Status", "Registrado por", "Confirmado por"];
   const buildRows = () => filtradas.map((p) => [
+    p.cliente_nome || "-",
     p.equipamento_nome || "-",
     p.atividade_descricao || "-",
     fmtDateTime(p.data_execucao),
@@ -884,6 +893,7 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
   const filtrosLabel = [
     statusFiltro !== ALL ? `Status: ${statusFiltro}` : null,
     equipFiltro !== ALL ? `Equip.: ${equipFiltro}` : null,
+    clienteFiltro !== ALL ? `Cliente: ${clienteFiltro}` : null,
     dataIni ? `De: ${dataIni}` : null,
     dataFim ? `Até: ${dataFim}` : null,
     search ? `Busca: ${search}` : null,
