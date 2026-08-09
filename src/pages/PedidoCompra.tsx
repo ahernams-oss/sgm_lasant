@@ -45,6 +45,16 @@ const statusColors: Record<StatusPedido, string> = {
 
 const statusFlow: StatusPedido[] = ["Emitido", "Comprado", "Em Entrega", "Entregue Parcial", "Entregue"];
 
+/** Horas em que a OC está com status "Em Entrega" (null se não estiver). */
+function horasEmEntrega(p: PedidoCompra): number | null {
+  if (p.status !== "Em Entrega") return null;
+  const entradas = (p.historicoStatus || []).filter(h => h.status === "Em Entrega" && h.dataHora);
+  const base = entradas.length ? entradas[entradas.length - 1].dataHora : p.dataCriacao;
+  const t = new Date(base).getTime();
+  if (!Number.isFinite(t)) return null;
+  return (Date.now() - t) / 36e5;
+}
+
 function getNextStatuses(current: StatusPedido): StatusPedido[] {
   if (current === "Cancelado" || current === "Entregue") return [];
   const idx = statusFlow.indexOf(current);
