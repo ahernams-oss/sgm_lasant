@@ -92,6 +92,7 @@ interface Execucao {
   plano_id: string | null;
   equipamento_id: string | null;
   equipamento_nome: string | null;
+  cliente_nome: string | null;
   atividade_descricao: string | null;
   periodicidade: string | null;
   data_execucao: string;
@@ -183,9 +184,13 @@ export default function PmocGerenciarOperacao() {
       toast({ title: "Erro ao carregar execuções", description: error.message, variant: "destructive" });
       return;
     }
-    setExecucoes((data || []) as Execucao[]);
+    const rows = (data || []).map((e: any) => {
+      const equip = equipamentos.find((eq) => eq.id === e.equipamento_id);
+      return { ...e, cliente_nome: equip?.clienteNome || null } as Execucao;
+    });
+    setExecucoes(rows);
   };
-  useEffect(() => { carregarExecucoes(); }, []);
+  useEffect(() => { carregarExecucoes(); }, [equipamentos]);
 
   const pendentes = useMemo(() => execucoes.filter((e) => e.status === "Pendente"), [execucoes]);
   const pendentesPorAtividade = useMemo(() => {
@@ -835,12 +840,19 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
   const [search, setSearch] = useState("");
   const [statusFiltro, setStatusFiltro] = useState<string>(ALL);
   const [equipFiltro, setEquipFiltro] = useState<string>(ALL);
+  const [clienteFiltro, setClienteFiltro] = useState<string>(ALL);
   const [dataIni, setDataIni] = useState<string>("");
   const [dataFim, setDataFim] = useState<string>("");
 
   const equipamentosUnicos = useMemo(() => {
     const set = new Set<string>();
     execucoes.forEach((e) => { if (e.equipamento_nome) set.add(e.equipamento_nome); });
+    return Array.from(set).sort();
+  }, [execucoes]);
+
+  const clientesUnicos = useMemo(() => {
+    const set = new Set<string>();
+    execucoes.forEach((e) => { if (e.cliente_nome) set.add(e.cliente_nome); });
     return Array.from(set).sort();
   }, [execucoes]);
 
@@ -851,23 +863,25 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
     return execucoes.filter((e) => {
       if (statusFiltro !== ALL && e.status !== statusFiltro) return false;
       if (equipFiltro !== ALL && e.equipamento_nome !== equipFiltro) return false;
+      if (clienteFiltro !== ALL && e.cliente_nome !== clienteFiltro) return false;
       const t = new Date(e.data_execucao).getTime();
       if (ini !== null && t < ini) return false;
       if (fim !== null && t > fim) return false;
       if (term) {
-        const blob = `${e.equipamento_nome || ""} ${e.atividade_descricao || ""} ${e.registrado_por || ""} ${e.confirmado_por || ""}`.toLowerCase();
+        const blob = `${e.equipamento_nome || ""} ${e.atividade_descricao || ""} ${e.registrado_por || ""} ${e.confirmado_por || ""} ${e.cliente_nome || ""}`.toLowerCase();
         if (!blob.includes(term)) return false;
       }
       return true;
     });
-  }, [execucoes, statusFiltro, equipFiltro, dataIni, dataFim, search]);
+  }, [execucoes, statusFiltro, equipFiltro, clienteFiltro, dataIni, dataFim, search]);
 
   const limpar = () => {
-    setSearch(""); setStatusFiltro(ALL); setEquipFiltro(ALL); setDataIni(""); setDataFim("");
+    setSearch(""); setStatusFiltro(ALL); setEquipFiltro(ALL); setClienteFiltro(ALL); setDataIni(""); setDataFim("");
   };
 
-  const columns = ["Equipamento", "Atividade", "Executada em", "Status", "Registrado por", "Confirmado por"];
+  const columns = ["Cliente", "Equipamento", "Atividade", "Executada em", "Status", "Registrado por", "Confirmado por"];
   const buildRows = () => filtradas.map((p) => [
+    p.cliente_nome || "-",
     p.equipamento_nome || "-",
     p.atividade_descricao || "-",
     fmtDateTime(p.data_execucao),
@@ -879,6 +893,7 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
   const filtrosLabel = [
     statusFiltro !== ALL ? `Status: ${statusFiltro}` : null,
     equipFiltro !== ALL ? `Equip.: ${equipFiltro}` : null,
+    clienteFiltro !== ALL ? `Cliente: ${clienteFiltro}` : null,
     dataIni ? `De: ${dataIni}` : null,
     dataFim ? `Até: ${dataFim}` : null,
     search ? `Busca: ${search}` : null,
@@ -941,6 +956,13 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Buscar..." className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
+          <Select value={clienteFiltro} onValueChange={setClienteFiltro}>
+            <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Todos clientes</SelectItem>
+              {clientesUnicos.map((n) => (<SelectItem key={n} value={n}>{n}</SelectItem>))}
+            </SelectContent>
+          </Select>
           <Select value={statusFiltro} onValueChange={setStatusFiltro}>
             <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
@@ -960,7 +982,7 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
           <Input type="date" value={dataIni} onChange={(e) => setDataIni(e.target.value)} title="Data inicial" />
           <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} title="Data final" />
         </div>
-        {(search || statusFiltro !== ALL || equipFiltro !== ALL || dataIni || dataFim) && (
+        {(search || statusFiltro !== ALL || equipFiltro !== ALL || clienteFiltro !== ALL || dataIni || dataFim) && (
           <Button variant="ghost" size="sm" onClick={limpar}>
             <X className="h-4 w-4 mr-1" />Limpar filtros
           </Button>
@@ -968,6 +990,7 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Cliente</TableHead>
               <TableHead>Equipamento</TableHead>
               <TableHead>Atividade</TableHead>
               <TableHead>Executada em</TableHead>
@@ -979,6 +1002,7 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
           <TableBody>
             {filtradas.map((p) => (
               <TableRow key={p.id}>
+                <TableCell>{p.cliente_nome || "—"}</TableCell>
                 <TableCell>{p.equipamento_nome || "—"}</TableCell>
                 <TableCell>{p.atividade_descricao || "—"}</TableCell>
                 <TableCell>{fmtDateTime(p.data_execucao)}</TableCell>
@@ -994,7 +1018,7 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
             ))}
             {filtradas.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
                   Nenhum registro.
                 </TableCell>
               </TableRow>
