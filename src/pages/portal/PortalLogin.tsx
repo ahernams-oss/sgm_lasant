@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { User, Lock, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { User, Lock, Eye, EyeOff, ShieldCheck, ArrowLeft } from "lucide-react";
 import bgImage from "@/assets/Tela_Inicial_SGM-2.png.asset.json";
 
 
@@ -132,6 +132,13 @@ export default function PortalLogin() {
                 className="text-white/60 hover:text-white/90 text-sm transition-colors"
               >
                 Esqueci minha senha
+              </Link>
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1.5 text-white/60 hover:text-white/90 text-sm transition-colors mt-1"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Voltar ao portal principal
               </Link>
             </div>
           </form>
