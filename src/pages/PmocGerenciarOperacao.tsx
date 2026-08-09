@@ -990,6 +990,7 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Cliente</TableHead>
               <TableHead>Equipamento</TableHead>
               <TableHead>Atividade</TableHead>
               <TableHead>Executada em</TableHead>
@@ -1001,6 +1002,7 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
           <TableBody>
             {filtradas.map((p) => (
               <TableRow key={p.id}>
+                <TableCell>{p.cliente_nome || "—"}</TableCell>
                 <TableCell>{p.equipamento_nome || "—"}</TableCell>
                 <TableCell>{p.atividade_descricao || "—"}</TableCell>
                 <TableCell>{fmtDateTime(p.data_execucao)}</TableCell>
@@ -1016,7 +1018,7 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
             ))}
             {filtradas.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
                   Nenhum registro.
                 </TableCell>
               </TableRow>
