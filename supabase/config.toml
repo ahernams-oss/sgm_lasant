@@ -28,3 +28,6 @@ verify_jwt = false
 
 [functions.epi-recebimento-publico]
 verify_jwt = false
+
+[functions.check-oc-entrega-atrasada]
+verify_jwt = false

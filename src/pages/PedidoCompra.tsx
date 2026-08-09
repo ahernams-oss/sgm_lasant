@@ -20,7 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send, FilterX, Wallet } from "lucide-react";
+import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send, FilterX, Wallet, AlertTriangle } from "lucide-react";
 import { gerarContasPagarDePC } from "@/lib/financeiroFromPC";
 import { matchNumero } from "@/lib/matchNumero";
 import { format } from "date-fns";
@@ -44,6 +44,16 @@ const statusColors: Record<StatusPedido, string> = {
 };
 
 const statusFlow: StatusPedido[] = ["Emitido", "Comprado", "Em Entrega", "Entregue Parcial", "Entregue"];
+
+/** Horas em que a OC está com status "Em Entrega" (null se não estiver). */
+function horasEmEntrega(p: PedidoCompra): number | null {
+  if (p.status !== "Em Entrega") return null;
+  const entradas = (p.historicoStatus || []).filter(h => h.status === "Em Entrega" && h.dataHora);
+  const base = entradas.length ? entradas[entradas.length - 1].dataHora : p.dataCriacao;
+  const t = new Date(base).getTime();
+  if (!Number.isFinite(t)) return null;
+  return (Date.now() - t) / 36e5;
+}
 
 function getNextStatuses(current: StatusPedido): StatusPedido[] {
   if (current === "Cancelado" || current === "Entregue") return [];
@@ -572,15 +582,25 @@ export default function PedidoCompraPage() {
             ) : paginate(filtered, pagePed, pageSize).paginated.map((p, idx) => {
               const rcVinculada = requisicoes.find(r => r.id === p.requisicaoId);
               const canUpdate = getNextStatuses(p.status).length > 0;
+              const hEntrega = horasEmEntrega(p);
+              const atrasoEntrega = hEntrega !== null && hEntrega >= 48;
+              const atrasoTitle = atrasoEntrega
+                ? `Em Entrega há ${Math.floor(hEntrega!)}h sem baixa para Entregue`
+                : undefined;
               const cellMap: Record<string, ReactNode> = {
-                numero: <a href={`/compras/pedidos?numero=${p.numero}`} className="font-mono font-bold text-primary hover:underline">OC-{String(p.numero).padStart(4, "0")}</a>,
+                numero: (
+                  <span className="flex items-center gap-1">
+                    {atrasoEntrega && <AlertTriangle className="h-4 w-4 text-red-600 animate-blink-urgent" aria-label="entrega atrasada" />}
+                    <a href={`/compras/pedidos?numero=${p.numero}`} title={atrasoTitle} className="font-mono font-bold text-primary hover:underline">OC-{String(p.numero).padStart(4, "0")}</a>
+                  </span>
+                ),
                 centroCusto: <span className="text-sm">{rcVinculada?.centroCustoNome || "-"}</span>,
                 rc: <a href={`/compras/requisicoes?numero=${p.requisicaoNumero}`} className="font-mono text-primary hover:underline">RCS-{String(p.requisicaoNumero).padStart(4, "0")}</a>,
                 data: format(new Date(p.dataCriacao), "dd/MM/yyyy"),
                 fornecedor: p.fornecedorNome,
                 valorTotal: <span className="font-medium">{formatCurrency(p.valorTotal)}</span>,
                 prazo: p.prazoEntrega || "-",
-                status: <Badge className={statusColors[p.status]}>{p.status}</Badge>,
+                status: <Badge title={atrasoTitle} className={`${statusColors[p.status]} ${atrasoEntrega ? "animate-blink-urgent" : ""}`}>{p.status}</Badge>,
               };
               return (
                 <TableRow key={p.id} className={selectedIds.includes(p.id) ? "bg-primary/5" : (idx % 2 === 1 ? "bg-gray-200/60 hover:bg-gray-200/80" : "bg-white hover:bg-gray-100/60")}>

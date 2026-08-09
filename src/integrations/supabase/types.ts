@@ -5346,6 +5346,7 @@ export type Database = {
           id: string
           itens: Json | null
           local_entrega: string | null
+          notificado_atraso_entrega: string | null
           numero: number
           observacoes: string | null
           prazo_entrega: string | null
@@ -5366,6 +5367,7 @@ export type Database = {
           id?: string
           itens?: Json | null
           local_entrega?: string | null
+          notificado_atraso_entrega?: string | null
           numero?: number
           observacoes?: string | null
           prazo_entrega?: string | null
@@ -5386,6 +5388,7 @@ export type Database = {
           id?: string
           itens?: Json | null
           local_entrega?: string | null
+          notificado_atraso_entrega?: string | null
           numero?: number
           observacoes?: string | null
           prazo_entrega?: string | null
