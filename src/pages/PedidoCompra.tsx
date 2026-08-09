@@ -20,7 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send, FilterX, Wallet } from "lucide-react";
+import { Search, Eye, Clock, ArrowRight, CheckSquare, FileDown, Mail, MessageCircle, Send, FilterX, Wallet, AlertTriangle } from "lucide-react";
 import { gerarContasPagarDePC } from "@/lib/financeiroFromPC";
 import { matchNumero } from "@/lib/matchNumero";
 import { format } from "date-fns";
