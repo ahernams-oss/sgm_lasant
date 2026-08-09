@@ -956,6 +956,13 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Buscar..." className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
+          <Select value={clienteFiltro} onValueChange={setClienteFiltro}>
+            <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Todos clientes</SelectItem>
+              {clientesUnicos.map((n) => (<SelectItem key={n} value={n}>{n}</SelectItem>))}
+            </SelectContent>
+          </Select>
           <Select value={statusFiltro} onValueChange={setStatusFiltro}>
             <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
@@ -975,7 +982,7 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
           <Input type="date" value={dataIni} onChange={(e) => setDataIni(e.target.value)} title="Data inicial" />
           <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} title="Data final" />
         </div>
-        {(search || statusFiltro !== ALL || equipFiltro !== ALL || dataIni || dataFim) && (
+        {(search || statusFiltro !== ALL || equipFiltro !== ALL || clienteFiltro !== ALL || dataIni || dataFim) && (
           <Button variant="ghost" size="sm" onClick={limpar}>
             <X className="h-4 w-4 mr-1" />Limpar filtros
           </Button>
