@@ -38,6 +38,7 @@ export interface Empresa {
   whatsappComercial: string;
   whatsappFaturamento: string;
   whatsappSegtrab: string;
+  whatsappSelecao: string;
 
   certificadoA1Url: string;
   certificadoA1Nome: string;
@@ -60,7 +61,7 @@ const EMPTY: Empresa = {
   emailEstoque: "", emailRelatorios: "", banco: "", agencia: "", conta: "",
   tipoConta: "", chavePix: "",
   whatsappCompras: "", whatsappRh: "", whatsappEngenharia: "",
-  whatsappComercial: "", whatsappFaturamento: "", whatsappSegtrab: "",
+  whatsappComercial: "", whatsappFaturamento: "", whatsappSegtrab: "", whatsappSelecao: "",
   certificadoA1Url: "", certificadoA1Nome: "", certificadoA1Validade: "",
   certificadoA1Senha: "", nfeAmbiente: "homologacao", nfeUfAutor: "",
   certificadoA1Cnpj: "", certificadoA1Titular: "", certificadoA1Emissor: "",
@@ -115,6 +116,7 @@ const rowToEmpresa = (r: any): Empresa => ({
   whatsappComercial: r.whatsapp_comercial ?? "",
   whatsappFaturamento: r.whatsapp_faturamento ?? "",
   whatsappSegtrab: (r as { whatsapp_segtrab?: string | null }).whatsapp_segtrab ?? "",
+  whatsappSelecao: (r as { whatsapp_selecao?: string | null }).whatsapp_selecao ?? "",
   certificadoA1Url: r.certificado_a1_url ?? "",
   certificadoA1Nome: r.certificado_a1_nome ?? "",
   certificadoA1Validade: r.certificado_a1_validade ?? "",
@@ -160,6 +162,7 @@ const empresaToRow = (e: Empresa) => ({
   whatsapp_comercial: e.whatsappComercial,
   whatsapp_faturamento: e.whatsappFaturamento,
   whatsapp_segtrab: e.whatsappSegtrab,
+  whatsapp_selecao: e.whatsappSelecao,
   certificado_a1_url: e.certificadoA1Url,
   certificado_a1_nome: e.certificadoA1Nome,
   certificado_a1_validade: e.certificadoA1Validade || null,
