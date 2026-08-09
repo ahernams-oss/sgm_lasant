@@ -133,6 +133,13 @@ export default function PortalLogin() {
               >
                 Esqueci minha senha
               </Link>
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1.5 text-white/60 hover:text-white/90 text-sm transition-colors mt-1"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Voltar ao portal principal
+              </Link>
             </div>
           </form>
 
