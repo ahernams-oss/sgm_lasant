@@ -184,7 +184,11 @@ export default function PmocGerenciarOperacao() {
       toast({ title: "Erro ao carregar execuções", description: error.message, variant: "destructive" });
       return;
     }
-    setExecucoes((data || []) as Execucao[]);
+    const rows = (data || []).map((e: any) => {
+      const equip = equipamentos.find((eq) => eq.id === e.equipamento_id);
+      return { ...e, cliente_nome: equip?.clienteNome || null } as Execucao;
+    });
+    setExecucoes(rows);
   };
   useEffect(() => { carregarExecucoes(); }, []);
 
