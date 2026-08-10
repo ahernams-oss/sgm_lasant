@@ -116,7 +116,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
     grupos.forEach(g => g.linhas.forEach(l => {
       const cod = (l.codigo || "").trim();
       if (!cod) return;
-      mapa.set(cod, (mapa.get(cod) || 0) + calcLinha(g.tipo, l));
+      mapa.set(cod, (mapa.get(cod) || 0) + calcLinha(tipoLinha(g, l), l));
     }));
     onAplicarSubtotais?.(Array.from(mapa, ([codigo, total]) => ({ codigo, total })));
   };
