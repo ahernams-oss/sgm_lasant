@@ -73,11 +73,15 @@ export const calcEntrada = (tipo: TipoMemoria, e: EntradaSetor): number => {
   return e.quantidade || 0;
 };
 
+/** Tipo de medição efetivo de um sub-item (linha) */
+export const tipoLinha = (g: { tipo: TipoMemoria }, l: LinhaMemoria): TipoMemoria =>
+  (l.tipo || g.tipo || "unidade") as TipoMemoria;
+
 export const calcLinha = (tipo: TipoMemoria, l: LinhaMemoria): number =>
   getEntradas(l).reduce((s, e) => s + calcEntrada(tipo, e), 0);
 
 export const calcGrupo = (g: GrupoMemoria): number =>
-  g.linhas.reduce((s, l) => s + calcLinha(g.tipo, l), 0);
+  g.linhas.reduce((s, l) => s + calcLinha(tipoLinha(g, l), l), 0);
 
 const UNIDADE_LABEL: Record<TipoMemoria, string> = {
   area: "ÁREA (m²)",
