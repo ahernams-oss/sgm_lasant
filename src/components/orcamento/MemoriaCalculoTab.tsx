@@ -312,21 +312,27 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
       </p>
 
       {!readOnly && (
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => onChange(sincronizar(grupos))} className="flex-1"
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => onChange(sincronizar(grupos))} className="flex-1 min-w-[200px]"
             disabled={itensOrigem.length === 0}>
             <RefreshCw className="mr-2 h-4 w-4" /> Sincronizar itens (SCO / Materiais)
           </Button>
-          <Button variant="outline" onClick={addGrupo} className="flex-1">
+          <Button variant="outline" onClick={addGrupo} className="flex-1 min-w-[160px]">
             <Plus className="mr-2 h-4 w-4" /> Adicionar grupo
           </Button>
+          {onEnviarItensParaSco && (
+            <Button variant="secondary" onClick={enviarItensParaSco} className="flex-1 min-w-[200px]" disabled={grupos.length === 0}>
+              <Send className="mr-2 h-4 w-4" /> Enviar itens para Itens SCO
+            </Button>
+          )}
           {onAplicarSubtotais && (
-            <Button variant="default" onClick={aplicarSubtotais} className="flex-1" disabled={grupos.length === 0}>
+            <Button variant="default" onClick={aplicarSubtotais} className="flex-1 min-w-[200px]" disabled={grupos.length === 0}>
               <Send className="mr-2 h-4 w-4" /> Enviar subtotais para Itens SCO
             </Button>
           )}
         </div>
       )}
+
 
       {grupos.length === 0 && (
         <p className="text-sm text-muted-foreground">Nenhum grupo cadastrado na memória de cálculo.</p>
