@@ -278,37 +278,41 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
             )}
           </div>
 
+          {(() => {
+            const { hasArea, hasMo, hasQtd, uniforme, m } = colunasGrupo(g);
+            return (
           <div className="border rounded-md overflow-x-auto">
-            <Table className="min-w-[1150px]">
+            <Table className="min-w-[1250px]">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-20">ITEM</TableHead>
                   <TableHead className="w-40">CÓDIGO</TableHead>
                   <TableHead className="min-w-[140px]">DESCRIÇÃO</TableHead>
+                  <TableHead className="w-44">TIPO DE MEDIÇÃO</TableHead>
                   <TableHead className="w-56">SETOR</TableHead>
-                  {g.tipo === "mao_de_obra" ? (
+                  {hasMo && (
                     <>
                       <TableHead className="w-44">FUNCIONÁRIO</TableHead>
                       <TableHead className="w-24">HR/DIA</TableHead>
                       <TableHead className="w-24">DIAS</TableHead>
                     </>
-                  ) : g.tipo === "area" ? (
+                  )}
+                  {hasQtd && <TableHead className="w-24">QUANT.</TableHead>}
+                  {hasArea && (
                     <>
-                      <TableHead className="w-24">QUANT.</TableHead>
                       <TableHead className="w-28">COMPRIMENTO</TableHead>
                       <TableHead className="w-28">LARG.</TableHead>
                       <TableHead className="w-28">ALT.</TableHead>
                     </>
-                  ) : (
-                    <TableHead className="w-28">QUANT.</TableHead>
                   )}
-                  <TableHead className="w-28">{UNIDADE_LABEL[g.tipo]}</TableHead>
+                  <TableHead className="w-28">{uniforme ? UNIDADE_LABEL[uniforme] : "TOTAL"}</TableHead>
                   {!readOnly && <TableHead className="w-10" />}
                   {!readOnly && <TableHead className="w-20" />}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {g.linhas.map(l => {
+                  const tl = tipoLinha(g, l);
                   const entradas = getEntradas(l);
                   const linhasEntradas = entradas.map((e, ei) => (
                     <TableRow key={e.id} className={ei > 0 ? "border-t-0" : ""}>
@@ -332,6 +336,17 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                               onChange={ev => updLinha(g.id, l.id, { descricao: ev.target.value })}
                             />
                           </TableCell>
+                          <TableCell rowSpan={entradas.length} className="align-top">
+                            <Select value={tl} disabled={readOnly}
+                              onValueChange={(v: TipoMemoria) => updLinha(g.id, l.id, { tipo: v })}>
+                              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="area">Área (qtd × comp. × larg.)</SelectItem>
+                                <SelectItem value="mao_de_obra">Mão de obra (hr/dia × dias)</SelectItem>
+                                <SelectItem value="unidade">Unidade (quantidade)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
                         </>
                       )}
                       <TableCell>
@@ -343,48 +358,46 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                             onChange={ev => updEntrada(g.id, l, e.id, { setor: ev.target.value })} />
                         )}
                       </TableCell>
-                      {g.tipo === "mao_de_obra" ? (
+                      {hasMo && (
                         <>
                           <TableCell>
-                            <Input className="h-8" value={e.funcionario || ""} disabled={readOnly}
+                            <Input className="h-8" value={e.funcionario || ""} disabled={readOnly || tl !== "mao_de_obra"}
                               onChange={ev => updEntrada(g.id, l, e.id, { funcionario: ev.target.value })} />
                           </TableCell>
                           <TableCell>
-                            <Input type="number" min={0} step="0.01" className="h-8" value={e.hrDia ?? ""} disabled={readOnly}
+                            <Input type="number" min={0} step="0.01" className="h-8" value={e.hrDia ?? ""} disabled={readOnly || tl !== "mao_de_obra"}
                               onChange={ev => updEntrada(g.id, l, e.id, { hrDia: Number(ev.target.value) })} />
                           </TableCell>
                           <TableCell>
-                            <Input type="number" min={0} step="0.01" className="h-8" value={e.dias ?? ""} disabled={readOnly}
+                            <Input type="number" min={0} step="0.01" className="h-8" value={e.dias ?? ""} disabled={readOnly || tl !== "mao_de_obra"}
                               onChange={ev => updEntrada(g.id, l, e.id, { dias: Number(ev.target.value) })} />
                           </TableCell>
                         </>
-                      ) : g.tipo === "area" ? (
-                        <>
-                          <TableCell>
-                            <Input type="number" min={0} step="0.01" className="h-8" value={e.quantidade ?? ""} disabled={readOnly}
-                              onChange={ev => updEntrada(g.id, l, e.id, { quantidade: Number(ev.target.value) })} />
-                          </TableCell>
-                          <TableCell>
-                            <Input type="number" min={0} step="0.0001" className="h-8" value={e.comprimento ?? ""} disabled={readOnly}
-                              onChange={ev => updEntrada(g.id, l, e.id, { comprimento: Number(ev.target.value) })} />
-                          </TableCell>
-                          <TableCell>
-                            <Input type="number" min={0} step="0.0001" className="h-8" value={e.largura ?? ""} disabled={readOnly}
-                              onChange={ev => updEntrada(g.id, l, e.id, { largura: Number(ev.target.value) })} />
-                          </TableCell>
-                          <TableCell>
-                            <Input type="number" min={0} step="0.0001" className="h-8" value={e.altura ?? ""} disabled={readOnly}
-                              onChange={ev => updEntrada(g.id, l, e.id, { altura: Number(ev.target.value) })} />
-                          </TableCell>
-                        </>
-                      ) : (
+                      )}
+                      {hasQtd && (
                         <TableCell>
-                          <Input type="number" min={0} step="0.01" className="h-8" value={e.quantidade ?? ""} disabled={readOnly}
+                          <Input type="number" min={0} step="0.01" className="h-8" value={e.quantidade ?? ""} disabled={readOnly || tl === "mao_de_obra"}
                             onChange={ev => updEntrada(g.id, l, e.id, { quantidade: Number(ev.target.value) })} />
                         </TableCell>
                       )}
+                      {hasArea && (
+                        <>
+                          <TableCell>
+                            <Input type="number" min={0} step="0.0001" className="h-8" value={e.comprimento ?? ""} disabled={readOnly || tl !== "area"}
+                              onChange={ev => updEntrada(g.id, l, e.id, { comprimento: Number(ev.target.value) })} />
+                          </TableCell>
+                          <TableCell>
+                            <Input type="number" min={0} step="0.0001" className="h-8" value={e.largura ?? ""} disabled={readOnly || tl !== "area"}
+                              onChange={ev => updEntrada(g.id, l, e.id, { largura: Number(ev.target.value) })} />
+                          </TableCell>
+                          <TableCell>
+                            <Input type="number" min={0} step="0.0001" className="h-8" value={e.altura ?? ""} disabled={readOnly || tl !== "area"}
+                              onChange={ev => updEntrada(g.id, l, e.id, { altura: Number(ev.target.value) })} />
+                          </TableCell>
+                        </>
+                      )}
                       <TableCell className="font-medium">
-                        {nf(calcEntrada(g.tipo, e))}
+                        {nf(calcEntrada(tl, e))}
                       </TableCell>
 
                       {!readOnly && (
@@ -415,10 +428,10 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                     <Fragment key={l.id}>
                       {linhasEntradas}
                       <TableRow key={`${l.id}-sub`} className="bg-muted/30">
-                        <TableCell colSpan={4 + colsMedidas(g.tipo)} className="text-right text-xs font-semibold">
+                        <TableCell colSpan={5 + m} className="text-right text-xs font-semibold">
                           SUBTOTAL{l.item ? ` ITEM ${l.item}` : " DO ITEM"}
                         </TableCell>
-                        <TableCell className="font-bold">{nf(calcLinha(g.tipo, l))}</TableCell>
+                        <TableCell className="font-bold">{nf(calcLinha(tl, l))}</TableCell>
                         {!readOnly && <TableCell colSpan={2} />}
                       </TableRow>
                     </Fragment>
@@ -426,13 +439,15 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                 })}
                 <TableRow className="bg-muted/50">
                   <TableCell className="font-bold">TOTAL</TableCell>
-                  <TableCell colSpan={3 + colsMedidas(g.tipo)} />
+                  <TableCell colSpan={4 + m} />
                   <TableCell className="font-bold">{nf(calcGrupo(g))}</TableCell>
                   {!readOnly && <TableCell colSpan={2} />}
                 </TableRow>
               </TableBody>
             </Table>
           </div>
+            );
+          })()}
 
           {!readOnly && (
             <Button size="sm" variant="outline" onClick={() => addLinha(g.id)}>
