@@ -16,6 +16,7 @@ export interface EntradaSetor {
   quantidade?: number;
   comprimento?: number;
   largura?: number;
+  altura?: number;
   hrDia?: number;
   dias?: number;
 }
@@ -31,6 +32,7 @@ export interface LinhaMemoria {
   quantidade?: number;
   comprimento?: number;
   largura?: number;
+  altura?: number;
   hrDia?: number;
   dias?: number;
   entradas?: EntradaSetor[];
