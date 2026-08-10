@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Upload, X, FileText, Check, RotateCcw, ChevronsUpDown, Download, FileSpreadsheet } from "lucide-react";
 import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
+import { gerarPdfMemoriaCalculo } from "@/lib/gerarPdfMemoriaCalculo";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
 import MemoriaCalculoTab, { GrupoMemoria } from "@/components/orcamento/MemoriaCalculoTab";
@@ -666,6 +667,9 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
               </Button>
               <Button variant="outline" onClick={() => gerarExcelOrcamento(existingOrcamento, empresa)}>
                 <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
+              </Button>
+              <Button variant="outline" onClick={() => gerarPdfMemoriaCalculo(existingOrcamento, empresa)}>
+                <Download className="mr-2 h-4 w-4" /> Memória de Cálculo
               </Button>
             </>
           )}
