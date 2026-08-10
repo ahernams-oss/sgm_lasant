@@ -2176,6 +2176,16 @@ export default function OrdensServicoPage() {
                   )}
                 </TabsContent>
 
+                {/* Memória de Cálculo (somente leitura, vinda do orçamento aprovado) */}
+                <TabsContent value="memoria" className="space-y-3 p-3">
+                  <p className="text-xs text-muted-foreground">
+                    Dados recebidos do orçamento aprovado da solicitação vinculada. Somente leitura.
+                  </p>
+                  <MemoriaCalculoView grupos={memoriaCalculoOS} />
+                </TabsContent>
+
+
+
                 {/* 3. Profissionais */}
                 <TabsContent value="profissionais" className="space-y-3 p-3">
                   <div className="flex gap-2 items-end">
