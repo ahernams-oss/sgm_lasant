@@ -459,22 +459,29 @@ export default function OrdensServicoPage() {
   const [estoqueQtd, setEstoqueQtd] = useState(1);
   const [estoquePopoverOpen, setEstoquePopoverOpen] = useState(false);
 
-  // Memória de cálculo (somente leitura) do orçamento aprovado vinculado à SS da OS
+  // Memória de cálculo (somente leitura) do orçamento vinculado à SS da OS.
+  // Prioriza o orçamento aprovado mais recente; se não houver, usa o mais recente com memória.
   const getMemoriaCalculoDaOS = (os: any): any[] => {
     if (!os?.solicitacaoId) return [];
-    const orcs = orcamentosAll.filter((o: any) => o.solicitacaoId === os.solicitacaoId);
-    const aprovado = orcs.find((o: any) => (o.status || "").toLowerCase().includes("aprovad"));
-    return Array.isArray(aprovado?.memoriaCalculo) ? aprovado!.memoriaCalculo : [];
+    const ts = (o: any) => new Date(o.dataAprovacao || o.createdAt || o.dataCriacao || 0).getTime() || 0;
+    const orcs = orcamentosAll
+      .filter((o: any) => o.solicitacaoId === os.solicitacaoId)
+      .sort((a: any, b: any) => ts(b) - ts(a));
+    const aprovados = orcs.filter((o: any) => (o.status || "").toLowerCase().includes("aprovad"));
+    const escolhido =
+      aprovados.find((o: any) => Array.isArray(o.memoriaCalculo) && o.memoriaCalculo.length) ||
+      aprovados[0] ||
+      orcs.find((o: any) => Array.isArray(o.memoriaCalculo) && o.memoriaCalculo.length);
+    return Array.isArray(escolhido?.memoriaCalculo) ? escolhido!.memoriaCalculo : [];
   };
 
   const memoriaCalculoOS = useMemo(() => {
     if (!editingId) return [] as any[];
     const os = ordens.find(o => o.id === editingId);
-    if (!os?.solicitacaoId) return [] as any[];
-    const orcs = orcamentosAll.filter((o: any) => o.solicitacaoId === os.solicitacaoId);
-    const aprovado = orcs.find((o: any) => (o.status || "").toLowerCase().includes("aprovad"));
-    return Array.isArray(aprovado?.memoriaCalculo) ? aprovado!.memoriaCalculo : [];
+    return getMemoriaCalculoDaOS(os);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingId, ordens, orcamentosAll]);
+
 
 
 
