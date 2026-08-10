@@ -16,6 +16,12 @@ const UNIDADE_LABEL: Record<Tipo, string> = {
   unidade: "UNIDADE",
 };
 
+const TIPO_LABEL: Record<Tipo, string> = {
+  area: "Área",
+  mao_de_obra: "Mão de obra",
+  unidade: "Unidade",
+};
+
 const getEntradas = (l: any): any[] => {
   if (Array.isArray(l?.entradas) && l.entradas.length) return l.entradas;
   return [{
