@@ -339,6 +339,10 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                             <Input type="number" min={0} step="0.0001" className="h-8" value={e.largura ?? ""} disabled={readOnly}
                               onChange={ev => updEntrada(g.id, l, e.id, { largura: Number(ev.target.value) })} />
                           </TableCell>
+                          <TableCell>
+                            <Input type="number" min={0} step="0.0001" className="h-8" value={e.altura ?? ""} disabled={readOnly}
+                              onChange={ev => updEntrada(g.id, l, e.id, { altura: Number(ev.target.value) })} />
+                          </TableCell>
                         </>
                       ) : (
                         <TableCell>
