@@ -219,6 +219,11 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
           <Button variant="outline" onClick={addGrupo} className="flex-1">
             <Plus className="mr-2 h-4 w-4" /> Adicionar grupo
           </Button>
+          {onAplicarSubtotais && (
+            <Button variant="default" onClick={aplicarSubtotais} className="flex-1" disabled={grupos.length === 0}>
+              <Send className="mr-2 h-4 w-4" /> Enviar subtotais para Itens SCO
+            </Button>
+          )}
         </div>
       )}
 
