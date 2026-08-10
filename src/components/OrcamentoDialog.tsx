@@ -269,6 +269,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       anexos: anexosUrls,
       valor_total: valorTotal,
       observacoes,
+      memoria_calculo: memoriaCalculo,
       status: "Enviado",
     };
 
