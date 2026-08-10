@@ -249,17 +249,30 @@ function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
     const totalLabel = tipo === "area" ? "ÁREA (m²)" : tipo === "mao_de_obra" ? "TOTAL (h)" : "QTD (un)";
     const extra = tipo === "area" ? ["QTD", "COMP.", "LARG."] : tipo === "mao_de_obra" ? ["HR/DIA", "DIAS"] : [];
     const head = [["ITEM", "CÓDIGO", "DESCRIÇÃO", "SETOR", ...extra, totalLabel]];
-    const body = linhas.map((l: any) => {
-      const cols = tipo === "area"
-        ? [nf2(l.quantidade), nf2(l.comprimento), nf2(l.largura)]
-        : tipo === "mao_de_obra"
-          ? [nf2(l.hrDia), nf2(l.dias)]
-          : [];
-      return [l.item || "", l.codigo || "", l.descricao || "", l.setor || "", ...cols, nf2(calcLinhaMem(tipo, l))];
+    const body: any[] = [];
+    linhas.forEach((l: any) => {
+      const entradas = getEntradasMem(l);
+      entradas.forEach((e: any, ei: number) => {
+        const cols = tipo === "area"
+          ? [nf2(e.quantidade), nf2(e.comprimento), nf2(e.largura)]
+          : tipo === "mao_de_obra"
+            ? [nf2(e.hrDia), nf2(e.dias)]
+            : [];
+        const base = ei === 0
+          ? [
+              { content: l.item || "", rowSpan: entradas.length },
+              { content: l.codigo || "", rowSpan: entradas.length },
+              { content: l.descricao || "", rowSpan: entradas.length },
+              e.setor || "",
+            ]
+          : [e.setor || ""];
+        body.push([...base, ...cols, nf2(calcEntradaMem(tipo, e))]);
+      });
     });
     const total = linhas.reduce((s, l) => s + calcLinhaMem(tipo, l), 0);
     const nCols = 4 + extra.length + 1;
     body.push([{ content: "TOTAL", colSpan: nCols - 1, styles: { halign: "right", fontStyle: "bold" } } as any, nf2(total)]);
+
 
     autoTable(doc, {
       startY: y,
