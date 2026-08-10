@@ -4921,6 +4921,7 @@ export type Database = {
           id: string
           itens_materiais: Json
           itens_sco: Json
+          memoria_calculo: Json
           numero: number
           observacoes: string | null
           revisao_motivo: string | null
@@ -4943,6 +4944,7 @@ export type Database = {
           id?: string
           itens_materiais?: Json
           itens_sco?: Json
+          memoria_calculo?: Json
           numero?: number
           observacoes?: string | null
           revisao_motivo?: string | null
@@ -4965,6 +4967,7 @@ export type Database = {
           id?: string
           itens_materiais?: Json
           itens_sco?: Json
+          memoria_calculo?: Json
           numero?: number
           observacoes?: string | null
           revisao_motivo?: string | null
