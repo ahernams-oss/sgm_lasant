@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Trash2, RefreshCw, MapPin } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import SetorCombobox from "./SetorCombobox";
 
 export type TipoMemoria = "area" | "mao_de_obra" | "unidade";
@@ -270,7 +270,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
               <TableBody>
                 {g.linhas.map(l => {
                   const entradas = getEntradas(l);
-                  return entradas.map((e, ei) => (
+                  const linhasEntradas = entradas.map((e, ei) => (
                     <TableRow key={e.id} className={ei > 0 ? "border-t-0" : ""}>
                       {ei === 0 && (
                         <>
@@ -335,12 +335,8 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                       )}
                       <TableCell className="font-medium">
                         {nf(calcEntrada(g.tipo, e))}
-                        {ei === 0 && entradas.length > 1 && (
-                          <span className="block text-[10px] text-muted-foreground">
-                            item: {nf(calcLinha(g.tipo, l))}
-                          </span>
-                        )}
                       </TableCell>
+
                       {!readOnly && (
                         <TableCell>
                           <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground"
@@ -365,6 +361,18 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                       )}
                     </TableRow>
                   ));
+                  return (
+                    <Fragment key={l.id}>
+                      {linhasEntradas}
+                      <TableRow key={`${l.id}-sub`} className="bg-muted/30">
+                        <TableCell colSpan={4 + colsMedidas(g.tipo)} className="text-right text-xs font-semibold">
+                          SUBTOTAL{l.item ? ` ITEM ${l.item}` : " DO ITEM"}
+                        </TableCell>
+                        <TableCell className="font-bold">{nf(calcLinha(g.tipo, l))}</TableCell>
+                        {!readOnly && <TableCell colSpan={2} />}
+                      </TableRow>
+                    </Fragment>
+                  );
                 })}
                 <TableRow className="bg-muted/50">
                   <TableCell className="font-bold">TOTAL</TableCell>

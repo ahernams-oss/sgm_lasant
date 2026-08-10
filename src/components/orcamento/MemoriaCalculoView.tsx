@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type Tipo = "area" | "mao_de_obra" | "unidade";
@@ -79,7 +80,7 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
               <TableBody>
                 {linhas.map((l: any, li: number) => {
                   const entradas = getEntradas(l);
-                  return entradas.map((e: any, ei: number) => (
+                  const rows = entradas.map((e: any, ei: number) => (
                     <TableRow key={`${li}-${ei}`}>
                       {ei === 0 && (
                         <>
@@ -105,6 +106,17 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                       <TableCell className="text-xs text-right font-medium">{nf(calcEntrada(tipo, e))}</TableCell>
                     </TableRow>
                   ));
+                  return (
+                    <Fragment key={li}>
+                      {rows}
+                      <TableRow className="bg-muted/30">
+                        <TableCell colSpan={tipo === "area" ? 6 : tipo === "mao_de_obra" ? 5 : 3} className="text-xs text-right font-semibold">
+                          SUBTOTAL{l.item ? ` ITEM ${l.item}` : " DO ITEM"}
+                        </TableCell>
+                        <TableCell className="text-xs text-right font-bold">{nf(calcLinha(tipo, l))}</TableCell>
+                      </TableRow>
+                    </Fragment>
+                  );
                 })}
                 <TableRow>
                   <TableCell colSpan={tipo === "area" ? 7 : tipo === "mao_de_obra" ? 6 : 4} className="text-xs text-right font-semibold">
