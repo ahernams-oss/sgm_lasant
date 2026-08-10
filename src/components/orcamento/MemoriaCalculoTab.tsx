@@ -98,6 +98,8 @@ interface Props {
   readOnly?: boolean;
   itensOrigem?: ItemOrigem[];
   setores?: string[];
+  /** Envia os subtotais calculados (por código de item) para as abas Itens SCO / Materiais */
+  onAplicarSubtotais?: (subtotais: { codigo: string; total: number }[]) => void;
 }
 
 const SEM_FAMILIA = "SEM FAMÍLIA";
