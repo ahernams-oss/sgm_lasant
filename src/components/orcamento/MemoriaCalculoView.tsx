@@ -9,6 +9,12 @@ const UNIDADE_LABEL: Record<Tipo, string> = {
   unidade: "QTD (un)",
 };
 
+const TIPO_LABEL: Record<Tipo, string> = {
+  area: "Área",
+  mao_de_obra: "Mão de obra",
+  unidade: "Unidade",
+};
+
 /** Entradas (setores) de uma linha, com compatibilidade com o formato antigo. */
 function getEntradas(l: any): any[] {
   if (Array.isArray(l?.entradas) && l.entradas.length) return l.entradas;
