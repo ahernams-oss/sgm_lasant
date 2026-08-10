@@ -1,0 +1,1 @@
+ALTER TABLE public.orcamentos ADD COLUMN IF NOT EXISTS memoria_calculo jsonb NOT NULL DEFAULT '[]'::jsonb;

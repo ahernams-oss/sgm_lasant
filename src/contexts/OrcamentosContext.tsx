@@ -22,6 +22,7 @@ export interface Orcamento {
   categoria: string;
   itensSco: ItemScoOrcamento[]; itensMateriais: ItemMaterialOrcamento[];
   anexos: string[]; valorTotal: number; status: string; observacoes: string;
+  memoriaCalculo: any[];
   revisaoMotivo: string; revisoes: RevisaoEntry[];
   aprovadoPor: string; dataAprovacao: string;
   criadoPor: string; dataCriacao: string; createdAt: string;
@@ -48,6 +49,7 @@ const rowToOrcamento = (r: any): Orcamento => ({
   anexos: Array.isArray(r.anexos) ? r.anexos : [],
   valorTotal: Number(r.valor_total) || 0,
   status: r.status ?? "Pendente", observacoes: r.observacoes ?? "",
+  memoriaCalculo: Array.isArray(r.memoria_calculo) ? r.memoria_calculo : [],
   revisaoMotivo: r.revisao_motivo ?? "",
   revisoes: Array.isArray(r.revisoes) ? r.revisoes : [],
   aprovadoPor: r.aprovado_por ?? "", dataAprovacao: r.data_aprovacao ?? "",

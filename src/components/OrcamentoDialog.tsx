@@ -22,6 +22,7 @@ import { Plus, Trash2, Upload, X, FileText, Check, RotateCcw, ChevronsUpDown, Do
 import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
+import MemoriaCalculoTab, { GrupoMemoria } from "@/components/orcamento/MemoriaCalculoTab";
 
 interface OrcamentoDialogProps {
   open: boolean;
@@ -62,6 +63,9 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     (existingOrcamento?.anexos || []).map((url: string) => ({ url, nome: url.split("/").pop() || "arquivo" }))
   );
   const [observacoes, setObservacoes] = useState(existingOrcamento?.observacoes || "");
+  const [memoriaCalculo, setMemoriaCalculo] = useState<GrupoMemoria[]>(
+    Array.isArray((existingOrcamento as any)?.memoriaCalculo) ? (existingOrcamento as any).memoriaCalculo : []
+  );
   const [categoria, setCategoria] = useState(existingOrcamento?.categoria || "");
   const [revisaoMotivo, setRevisaoMotivo] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -226,6 +230,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       anexos: anexosUrls,
       valor_total: valorTotal,
       observacoes,
+      memoria_calculo: memoriaCalculo,
       status: existingOrcamento?.status === "Pendente" ? "Pendente" : "Pendente",
     };
 
@@ -264,6 +269,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       anexos: anexosUrls,
       valor_total: valorTotal,
       observacoes,
+      memoria_calculo: memoriaCalculo,
       status: "Enviado",
     };
 
@@ -368,12 +374,13 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
         )}
 
         <Tabs defaultValue="categoria" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="categoria">
               Categoria {categoria ? "✓" : <span className="text-destructive ml-1">*</span>}
             </TabsTrigger>
             <TabsTrigger value="sco">Itens SCO ({itensSco.length})</TabsTrigger>
             <TabsTrigger value="materiais">Materiais ({itensMateriais.length})</TabsTrigger>
+            <TabsTrigger value="memoria">Memória de Cálculo ({memoriaCalculo.length})</TabsTrigger>
             <TabsTrigger value="anexos">Anexos ({anexos.length}/3)</TabsTrigger>
           </TabsList>
 
@@ -567,6 +574,11 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                 </Table>
               </div>
             )}
+          </TabsContent>
+
+          {/* Memória de Cálculo Tab */}
+          <TabsContent value="memoria" className="space-y-3">
+            <MemoriaCalculoTab grupos={memoriaCalculo} onChange={setMemoriaCalculo} readOnly={isReadOnly} />
           </TabsContent>
 
           {/* Anexos Tab */}
