@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Trash2, RefreshCw, MapPin } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import SetorCombobox from "./SetorCombobox";
 
 export type TipoMemoria = "area" | "mao_de_obra" | "unidade";
@@ -362,7 +362,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                     </TableRow>
                   ));
                   return (
-                    <>
+                    <Fragment key={l.id}>
                       {linhasEntradas}
                       <TableRow key={`${l.id}-sub`} className="bg-muted/30">
                         <TableCell colSpan={4 + colsMedidas(g.tipo)} className="text-right text-xs font-semibold">
@@ -371,7 +371,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                         <TableCell className="font-bold">{nf(calcLinha(g.tipo, l))}</TableCell>
                         {!readOnly && <TableCell colSpan={2} />}
                       </TableRow>
-                    </>
+                    </Fragment>
                   );
                 })}
                 <TableRow className="bg-muted/50">
