@@ -56,13 +56,17 @@ export const getEntradas = (l: LinhaMemoria): EntradaSetor[] => {
     quantidade: l.quantidade,
     comprimento: l.comprimento,
     largura: l.largura,
+    altura: l.altura,
     hrDia: l.hrDia,
     dias: l.dias,
   }];
 };
 
 export const calcEntrada = (tipo: TipoMemoria, e: EntradaSetor): number => {
-  if (tipo === "area") return (e.quantidade || 0) * (e.comprimento || 0) * (e.largura || 0);
+  if (tipo === "area") {
+    const alt = Number(e.altura) || 0;
+    return (e.quantidade || 0) * (e.comprimento || 0) * (e.largura || 0) * (alt > 0 ? alt : 1);
+  }
   if (tipo === "mao_de_obra") return (e.hrDia || 0) * (e.dias || 0);
   return e.quantidade || 0;
 };
