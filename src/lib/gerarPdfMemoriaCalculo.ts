@@ -160,6 +160,14 @@ export async function gerarPdfMemoriaCalculo(orc: Orcamento, empresa?: Empresa) 
           body.push([...base, nf(calcEntrada(tipo, e))]);
         }
       });
+      body.push([
+        {
+          content: `SUBTOTAL${l.item ? ` ITEM ${l.item}` : " DO ITEM"}`,
+          colSpan: head[0].length - 1,
+          styles: { halign: "right", fontStyle: "bold", fillColor: [248, 248, 248] },
+        },
+        { content: nf(calcLinha(tipo, l)), styles: { fontStyle: "bold", fillColor: [248, 248, 248] } },
+      ]);
     }
 
 
