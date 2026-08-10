@@ -18,13 +18,17 @@ function getEntradas(l: any): any[] {
     quantidade: l?.quantidade,
     comprimento: l?.comprimento,
     largura: l?.largura,
+    altura: l?.altura,
     hrDia: l?.hrDia,
     dias: l?.dias,
   }];
 }
 
 function calcEntrada(tipo: Tipo, e: any): number {
-  if (tipo === "area") return (Number(e.quantidade) || 0) * (Number(e.comprimento) || 0) * (Number(e.largura) || 0);
+  if (tipo === "area") {
+    const alt = Number(e.altura) || 0;
+    return (Number(e.quantidade) || 0) * (Number(e.comprimento) || 0) * (Number(e.largura) || 0) * (alt > 0 ? alt : 1);
+  }
   if (tipo === "mao_de_obra") return (Number(e.hrDia) || 0) * (Number(e.dias) || 0);
   return Number(e.quantidade) || 0;
 }
@@ -66,6 +70,7 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                       <TableHead className="text-xs text-right">QTD</TableHead>
                       <TableHead className="text-xs text-right">COMP.</TableHead>
                       <TableHead className="text-xs text-right">LARG.</TableHead>
+                      <TableHead className="text-xs text-right">ALT.</TableHead>
                     </>
                   )}
                   {tipo === "mao_de_obra" && (
@@ -95,6 +100,7 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                           <TableCell className="text-xs text-right">{nf(Number(e.quantidade) || 0)}</TableCell>
                           <TableCell className="text-xs text-right">{nf(Number(e.comprimento) || 0)}</TableCell>
                           <TableCell className="text-xs text-right">{nf(Number(e.largura) || 0)}</TableCell>
+                          <TableCell className="text-xs text-right">{nf(Number(e.altura) || 0)}</TableCell>
                         </>
                       )}
                       {tipo === "mao_de_obra" && (
@@ -110,7 +116,7 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                     <Fragment key={li}>
                       {rows}
                       <TableRow className="bg-muted/30">
-                        <TableCell colSpan={tipo === "area" ? 6 : tipo === "mao_de_obra" ? 5 : 3} className="text-xs text-right font-semibold">
+                        <TableCell colSpan={tipo === "area" ? 7 : tipo === "mao_de_obra" ? 5 : 3} className="text-xs text-right font-semibold">
                           SUBTOTAL{l.item ? ` ITEM ${l.item}` : " DO ITEM"}
                         </TableCell>
                         <TableCell className="text-xs text-right font-bold">{nf(calcLinha(tipo, l))}</TableCell>
@@ -119,7 +125,7 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                   );
                 })}
                 <TableRow>
-                  <TableCell colSpan={tipo === "area" ? 7 : tipo === "mao_de_obra" ? 6 : 4} className="text-xs text-right font-semibold">
+                  <TableCell colSpan={tipo === "area" ? 8 : tipo === "mao_de_obra" ? 6 : 4} className="text-xs text-right font-semibold">
                     TOTAL
                   </TableCell>
                   <TableCell className="text-xs text-right font-bold">{nf(total)}</TableCell>

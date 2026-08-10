@@ -205,12 +205,15 @@ function getEntradasMem(l: any): any[] {
   if (Array.isArray(l?.entradas) && l.entradas.length) return l.entradas;
   return [{
     setor: l?.setor || "", funcionario: l?.funcionario, quantidade: l?.quantidade,
-    comprimento: l?.comprimento, largura: l?.largura, hrDia: l?.hrDia, dias: l?.dias,
+    comprimento: l?.comprimento, largura: l?.largura, altura: l?.altura, hrDia: l?.hrDia, dias: l?.dias,
   }];
 }
 
 function calcEntradaMem(tipo: string, e: any): number {
-  if (tipo === "area") return (Number(e.quantidade) || 0) * (Number(e.comprimento) || 0) * (Number(e.largura) || 0);
+  if (tipo === "area") {
+    const alt = Number(e.altura) || 0;
+    return (Number(e.quantidade) || 0) * (Number(e.comprimento) || 0) * (Number(e.largura) || 0) * (alt > 0 ? alt : 1);
+  }
   if (tipo === "mao_de_obra") return (Number(e.hrDia) || 0) * (Number(e.dias) || 0);
   return Number(e.quantidade) || 0;
 }
@@ -247,14 +250,14 @@ function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
     const tipo = (g.tipo || "unidade") as string;
     const linhas: any[] = Array.isArray(g.linhas) ? g.linhas : [];
     const totalLabel = tipo === "area" ? "ÁREA (m²)" : tipo === "mao_de_obra" ? "TOTAL (h)" : "QTD (un)";
-    const extra = tipo === "area" ? ["QTD", "COMP.", "LARG."] : tipo === "mao_de_obra" ? ["HR/DIA", "DIAS"] : [];
+    const extra = tipo === "area" ? ["QTD", "COMP.", "LARG.", "ALT."] : tipo === "mao_de_obra" ? ["HR/DIA", "DIAS"] : [];
     const head = [["ITEM", "CÓDIGO", "DESCRIÇÃO", "SETOR", ...extra, totalLabel]];
     const body: any[] = [];
     linhas.forEach((l: any) => {
       const entradas = getEntradasMem(l);
       entradas.forEach((e: any, ei: number) => {
         const cols = tipo === "area"
-          ? [nf2(e.quantidade), nf2(e.comprimento), nf2(e.largura)]
+          ? [nf2(e.quantidade), nf2(e.comprimento), nf2(e.largura), nf2(e.altura)]
           : tipo === "mao_de_obra"
             ? [nf2(e.hrDia), nf2(e.dias)]
             : [];

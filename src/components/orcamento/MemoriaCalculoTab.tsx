@@ -16,6 +16,7 @@ export interface EntradaSetor {
   quantidade?: number;
   comprimento?: number;
   largura?: number;
+  altura?: number;
   hrDia?: number;
   dias?: number;
 }
@@ -31,6 +32,7 @@ export interface LinhaMemoria {
   quantidade?: number;
   comprimento?: number;
   largura?: number;
+  altura?: number;
   hrDia?: number;
   dias?: number;
   entradas?: EntradaSetor[];
@@ -54,13 +56,17 @@ export const getEntradas = (l: LinhaMemoria): EntradaSetor[] => {
     quantidade: l.quantidade,
     comprimento: l.comprimento,
     largura: l.largura,
+    altura: l.altura,
     hrDia: l.hrDia,
     dias: l.dias,
   }];
 };
 
 export const calcEntrada = (tipo: TipoMemoria, e: EntradaSetor): number => {
-  if (tipo === "area") return (e.quantidade || 0) * (e.comprimento || 0) * (e.largura || 0);
+  if (tipo === "area") {
+    const alt = Number(e.altura) || 0;
+    return (e.quantidade || 0) * (e.comprimento || 0) * (e.largura || 0) * (alt > 0 ? alt : 1);
+  }
   if (tipo === "mao_de_obra") return (e.hrDia || 0) * (e.dias || 0);
   return e.quantidade || 0;
 };
@@ -182,7 +188,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
     setEntradas(gid, l, rest.length ? rest : [{ id: crypto.randomUUID(), setor: "", quantidade: 0 }]);
   };
 
-  const colsMedidas = (tipo: TipoMemoria) => (tipo === "unidade" ? 1 : 3);
+  const colsMedidas = (tipo: TipoMemoria) => (tipo === "unidade" ? 1 : tipo === "area" ? 4 : 3);
 
   return (
     <div className="space-y-4">
@@ -245,7 +251,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                 <TableRow>
                   <TableHead className="w-20">ITEM</TableHead>
                   <TableHead className="w-40">CÓDIGO</TableHead>
-                  <TableHead className="min-w-[200px]">DESCRIÇÃO</TableHead>
+                  <TableHead className="min-w-[140px]">DESCRIÇÃO</TableHead>
                   <TableHead className="w-56">SETOR</TableHead>
                   {g.tipo === "mao_de_obra" ? (
                     <>
@@ -258,6 +264,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                       <TableHead className="w-24">QUANT.</TableHead>
                       <TableHead className="w-28">COMPRIMENTO</TableHead>
                       <TableHead className="w-28">LARG.</TableHead>
+                      <TableHead className="w-28">ALT.</TableHead>
                     </>
                   ) : (
                     <TableHead className="w-28">QUANT.</TableHead>
@@ -283,8 +290,14 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                               onChange={ev => updLinha(g.id, l.id, { codigo: ev.target.value })} />
                           </TableCell>
                           <TableCell rowSpan={entradas.length} className="align-top">
-                            <Input className="h-8" value={l.descricao} disabled={readOnly}
-                              onChange={ev => updLinha(g.id, l.id, { descricao: ev.target.value })} />
+                            <textarea
+                              rows={1}
+                              title={l.descricao}
+                              className="w-full min-w-[140px] min-h-8 resize rounded-md border border-input bg-background px-3 py-1.5 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                              value={l.descricao}
+                              disabled={readOnly}
+                              onChange={ev => updLinha(g.id, l.id, { descricao: ev.target.value })}
+                            />
                           </TableCell>
                         </>
                       )}
@@ -325,6 +338,10 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                           <TableCell>
                             <Input type="number" min={0} step="0.0001" className="h-8" value={e.largura ?? ""} disabled={readOnly}
                               onChange={ev => updEntrada(g.id, l, e.id, { largura: Number(ev.target.value) })} />
+                          </TableCell>
+                          <TableCell>
+                            <Input type="number" min={0} step="0.0001" className="h-8" value={e.altura ?? ""} disabled={readOnly}
+                              onChange={ev => updEntrada(g.id, l, e.id, { altura: Number(ev.target.value) })} />
                           </TableCell>
                         </>
                       ) : (

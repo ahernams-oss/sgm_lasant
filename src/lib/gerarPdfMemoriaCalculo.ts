@@ -24,13 +24,17 @@ const getEntradas = (l: any): any[] => {
     quantidade: l?.quantidade,
     comprimento: l?.comprimento,
     largura: l?.largura,
+    altura: l?.altura,
     hrDia: l?.hrDia,
     dias: l?.dias,
   }];
 };
 
 const calcEntrada = (tipo: Tipo, e: any): number => {
-  if (tipo === "area") return (e.quantidade || 0) * (e.comprimento || 0) * (e.largura || 0);
+  if (tipo === "area") {
+    const alt = Number(e.altura) || 0;
+    return (e.quantidade || 0) * (e.comprimento || 0) * (e.largura || 0) * (alt > 0 ? alt : 1);
+  }
   if (tipo === "mao_de_obra") return (e.hrDia || 0) * (e.dias || 0);
   return e.quantidade || 0;
 };
@@ -126,7 +130,7 @@ export async function gerarPdfMemoriaCalculo(orc: Orcamento, empresa?: Empresa) 
 
     const head =
       tipo === "area"
-        ? [["ITEM", "CÓDIGO", "DESCRIÇÃO", "SETOR", "QTD", "COMP.", "LARG.", UNIDADE_LABEL[tipo]]]
+        ? [["ITEM", "CÓDIGO", "DESCRIÇÃO", "SETOR", "QTD", "COMP.", "LARG.", "ALT.", UNIDADE_LABEL[tipo]]]
         : tipo === "mao_de_obra"
         ? [["ITEM", "CÓDIGO", "DESCRIÇÃO", "SETOR", "HR/DIA", "DIAS", UNIDADE_LABEL[tipo]]]
         : [["ITEM", "CÓDIGO", "DESCRIÇÃO", "SETOR", UNIDADE_LABEL[tipo]]];
@@ -153,7 +157,7 @@ export async function gerarPdfMemoriaCalculo(orc: Orcamento, empresa?: Empresa) 
               ]
             : [e.setor || ""];
         if (tipo === "area") {
-          body.push([...base, nf(e.quantidade || 0), nf(e.comprimento || 0), nf(e.largura || 0), nf(calcEntrada(tipo, e))]);
+          body.push([...base, nf(e.quantidade || 0), nf(e.comprimento || 0), nf(e.largura || 0), nf(e.altura || 0), nf(calcEntrada(tipo, e))]);
         } else if (tipo === "mao_de_obra") {
           body.push([...base, nf(e.hrDia || 0), nf(e.dias || 0), nf(calcEntrada(tipo, e))]);
         } else {
