@@ -201,11 +201,24 @@ async function renderFotos(doc: jsPDF, opts: RenderOSOptions, startY: number) {
 
 const nf2 = (v: number) => (Number(v) || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-function calcLinhaMem(tipo: string, l: any): number {
-  if (tipo === "area") return (Number(l.quantidade) || 0) * (Number(l.comprimento) || 0) * (Number(l.largura) || 0);
-  if (tipo === "mao_de_obra") return (Number(l.hrDia) || 0) * (Number(l.dias) || 0);
-  return Number(l.quantidade) || 0;
+function getEntradasMem(l: any): any[] {
+  if (Array.isArray(l?.entradas) && l.entradas.length) return l.entradas;
+  return [{
+    setor: l?.setor || "", funcionario: l?.funcionario, quantidade: l?.quantidade,
+    comprimento: l?.comprimento, largura: l?.largura, hrDia: l?.hrDia, dias: l?.dias,
+  }];
 }
+
+function calcEntradaMem(tipo: string, e: any): number {
+  if (tipo === "area") return (Number(e.quantidade) || 0) * (Number(e.comprimento) || 0) * (Number(e.largura) || 0);
+  if (tipo === "mao_de_obra") return (Number(e.hrDia) || 0) * (Number(e.dias) || 0);
+  return Number(e.quantidade) || 0;
+}
+
+function calcLinhaMem(tipo: string, l: any): number {
+  return getEntradasMem(l).reduce((s: number, e: any) => s + calcEntradaMem(tipo, e), 0);
+}
+
 
 /** Renderiza a memória de cálculo (grupos) em tabelas. */
 function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
