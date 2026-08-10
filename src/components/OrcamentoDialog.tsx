@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSco } from "@/contexts/ScoContext";
+import { useClientes } from "@/contexts/ClientesContext";
 import { useI0 } from "@/contexts/I0Context";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useOrcamentos, Orcamento } from "@/contexts/OrcamentosContext";
@@ -49,6 +50,7 @@ interface ItemMaterial {
 
 export default function OrcamentoDialog({ open, onOpenChange, solicitacao, existingOrcamento, onApproved, onSent, onRevisaoSolicitada }: OrcamentoDialogProps) {
   const { scos } = useSco();
+  const { clientes } = useClientes();
   const { items: i0Items } = useI0();
   const { materiais } = useMateriaisServicos();
   const { addOrcamento, updateOrcamento } = useOrcamentos();
