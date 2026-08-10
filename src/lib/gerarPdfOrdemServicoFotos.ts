@@ -247,25 +247,44 @@ function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
   }
 
   grupos.forEach((g: any) => {
-    const tipo = (g.tipo || "unidade") as string;
+    const tipoGrupo = (g.tipo || "unidade") as string;
     const linhas: any[] = Array.isArray(g.linhas) ? g.linhas : [];
-    const totalLabel = tipo === "area" ? "ÁREA (m²)" : tipo === "mao_de_obra" ? "TOTAL (h)" : "QTD (un)";
-    const extra = tipo === "area" ? ["QTD", "COMP.", "LARG.", "ALT."] : tipo === "mao_de_obra" ? ["HR/DIA", "DIAS"] : [];
-    const head = [["ITEM", "CÓDIGO", "DESCRIÇÃO", "SETOR", ...extra, totalLabel]];
+    const tipoDe = (l: any): string => (l?.tipo || tipoGrupo) as string;
+    const tipos = linhas.length ? linhas.map(tipoDe) : [tipoGrupo];
+    const hasArea = tipos.includes("area");
+    const hasMo = tipos.includes("mao_de_obra");
+    const hasQtd = hasArea || tipos.includes("unidade");
+    const uniforme = tipos.every(t => t === tipos[0]) ? tipos[0] : null;
+    const totalLabel = uniforme === "area" ? "ÁREA (m²)" : uniforme === "mao_de_obra" ? "TOTAL (h)" : uniforme === "unidade" ? "QTD (un)" : "TOTAL";
+    const extra = [
+      ...(hasQtd ? ["QTD"] : []),
+      ...(hasArea ? ["COMP.", "LARG.", "ALT."] : []),
+      ...(hasMo ? ["HR/DIA", "DIAS"] : []),
+    ];
+    const tipoLabel = (t: string) => (t === "area" ? "Área" : t === "mao_de_obra" ? "Mão de obra" : "Unidade");
+    const head = [["ITEM", "CÓDIGO", "DESCRIÇÃO", "TIPO", "SETOR", ...extra, totalLabel]];
     const body: any[] = [];
     linhas.forEach((l: any) => {
+      const tipo = tipoDe(l);
       const entradas = getEntradasMem(l);
       entradas.forEach((e: any, ei: number) => {
-        const cols = tipo === "area"
-          ? [nf2(e.quantidade), nf2(e.comprimento), nf2(e.largura), nf2(e.altura)]
-          : tipo === "mao_de_obra"
-            ? [nf2(e.hrDia), nf2(e.dias)]
-            : [];
+        const cols: string[] = [];
+        if (hasQtd) cols.push(tipo === "mao_de_obra" ? "" : nf2(e.quantidade));
+        if (hasArea) cols.push(
+          tipo === "area" ? nf2(e.comprimento) : "",
+          tipo === "area" ? nf2(e.largura) : "",
+          tipo === "area" ? nf2(e.altura) : "",
+        );
+        if (hasMo) cols.push(
+          tipo === "mao_de_obra" ? nf2(e.hrDia) : "",
+          tipo === "mao_de_obra" ? nf2(e.dias) : "",
+        );
         const base = ei === 0
           ? [
               { content: l.item || "", rowSpan: entradas.length },
               { content: l.codigo || "", rowSpan: entradas.length },
               { content: l.descricao || "", rowSpan: entradas.length },
+              { content: tipoLabel(tipo), rowSpan: entradas.length },
               e.setor || "",
             ]
           : [e.setor || ""];
@@ -274,14 +293,14 @@ function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
       body.push([
         {
           content: `SUBTOTAL${l.item ? ` ITEM ${l.item}` : " DO ITEM"}`,
-          colSpan: 4 + extra.length,
+          colSpan: 5 + extra.length,
           styles: { halign: "right", fontStyle: "bold", fillColor: [248, 248, 248] },
         } as any,
-        { content: nf2(calcLinhaMem(tipo, l)), styles: { fontStyle: "bold", fillColor: [248, 248, 248] } } as any,
+        { content: nf2(calcLinhaMem(tipoDe(l), l)), styles: { fontStyle: "bold", fillColor: [248, 248, 248] } } as any,
       ]);
     });
-    const total = linhas.reduce((s, l) => s + calcLinhaMem(tipo, l), 0);
-    const nCols = 4 + extra.length + 1;
+    const total = linhas.reduce((s, l) => s + calcLinhaMem(tipoDe(l), l), 0);
+    const nCols = 5 + extra.length + 1;
     body.push([{ content: "TOTAL", colSpan: nCols - 1, styles: { halign: "right", fontStyle: "bold" } } as any, nf2(total)]);
 
 
@@ -293,7 +312,7 @@ function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
       styles: { fontSize: 7, cellPadding: 1.5, lineColor: BORDER, lineWidth: 0.2, textColor: [30, 30, 30] },
       headStyles: { fillColor: [245, 245, 245], textColor: [30, 30, 30], fontStyle: "bold", fontSize: 7 },
       columnStyles: Object.fromEntries(
-        Array.from({ length: nCols }).map((_, i) => [i, i >= 4 ? { halign: "right" as const } : {}])
+        Array.from({ length: nCols }).map((_, i) => [i, i >= 5 ? { halign: "right" as const } : {}])
       ) as any,
       margin: { left: ml, right: mr },
     });
