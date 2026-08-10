@@ -205,12 +205,15 @@ function getEntradasMem(l: any): any[] {
   if (Array.isArray(l?.entradas) && l.entradas.length) return l.entradas;
   return [{
     setor: l?.setor || "", funcionario: l?.funcionario, quantidade: l?.quantidade,
-    comprimento: l?.comprimento, largura: l?.largura, hrDia: l?.hrDia, dias: l?.dias,
+    comprimento: l?.comprimento, largura: l?.largura, altura: l?.altura, hrDia: l?.hrDia, dias: l?.dias,
   }];
 }
 
 function calcEntradaMem(tipo: string, e: any): number {
-  if (tipo === "area") return (Number(e.quantidade) || 0) * (Number(e.comprimento) || 0) * (Number(e.largura) || 0);
+  if (tipo === "area") {
+    const alt = Number(e.altura) || 0;
+    return (Number(e.quantidade) || 0) * (Number(e.comprimento) || 0) * (Number(e.largura) || 0) * (alt > 0 ? alt : 1);
+  }
   if (tipo === "mao_de_obra") return (Number(e.hrDia) || 0) * (Number(e.dias) || 0);
   return Number(e.quantidade) || 0;
 }

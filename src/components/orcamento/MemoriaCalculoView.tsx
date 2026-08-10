@@ -18,6 +18,7 @@ function getEntradas(l: any): any[] {
     quantidade: l?.quantidade,
     comprimento: l?.comprimento,
     largura: l?.largura,
+    altura: l?.altura,
     hrDia: l?.hrDia,
     dias: l?.dias,
   }];
