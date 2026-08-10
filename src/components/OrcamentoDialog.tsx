@@ -66,6 +66,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     (existingOrcamento?.anexos || []).map((url: string) => ({ url, nome: url.split("/").pop() || "arquivo" }))
   );
   const [observacoes, setObservacoes] = useState(existingOrcamento?.observacoes || "");
+  const [expandido, setExpandido] = useState(false);
   const [memoriaCalculo, setMemoriaCalculo] = useState<GrupoMemoria[]>(
     Array.isArray((existingOrcamento as any)?.memoriaCalculo) ? (existingOrcamento as any).memoriaCalculo : []
   );
