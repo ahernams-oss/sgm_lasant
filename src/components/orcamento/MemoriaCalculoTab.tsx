@@ -192,13 +192,13 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
           </div>
 
           <div className="border rounded-md overflow-x-auto">
-            <Table>
+            <Table className="min-w-[1100px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-24">ITEM</TableHead>
-                  <TableHead className="w-36">CÓDIGO</TableHead>
-                  <TableHead>DESCRIÇÃO</TableHead>
-                  <TableHead className="w-40">SETOR</TableHead>
+                  <TableHead className="w-20">ITEM</TableHead>
+                  <TableHead className="w-40">CÓDIGO</TableHead>
+                  <TableHead className="min-w-[280px]">DESCRIÇÃO</TableHead>
+                  <TableHead className="w-56">SETOR</TableHead>
                   {g.tipo === "mao_de_obra" ? (
                     <>
                       <TableHead className="w-44">FUNCIONÁRIO</TableHead>
