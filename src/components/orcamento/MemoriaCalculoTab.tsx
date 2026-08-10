@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, RefreshCw, MapPin } from "lucide-react";
+import { Plus, Trash2, RefreshCw, MapPin, Send } from "lucide-react";
 import { Fragment, useEffect, useRef } from "react";
 import SetorCombobox from "./SetorCombobox";
 
@@ -98,11 +98,23 @@ interface Props {
   readOnly?: boolean;
   itensOrigem?: ItemOrigem[];
   setores?: string[];
+  /** Envia os subtotais calculados (por código de item) para as abas Itens SCO / Materiais */
+  onAplicarSubtotais?: (subtotais: { codigo: string; total: number }[]) => void;
 }
 
 const SEM_FAMILIA = "SEM FAMÍLIA";
 
-export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOrigem = [], setores = [] }: Props) {
+export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOrigem = [], setores = [], onAplicarSubtotais }: Props) {
+  const aplicarSubtotais = () => {
+    const mapa = new Map<string, number>();
+    grupos.forEach(g => g.linhas.forEach(l => {
+      const cod = (l.codigo || "").trim();
+      if (!cod) return;
+      mapa.set(cod, (mapa.get(cod) || 0) + calcLinha(g.tipo, l));
+    }));
+    onAplicarSubtotais?.(Array.from(mapa, ([codigo, total]) => ({ codigo, total })));
+  };
+
   const sincronizar = (atuais: GrupoMemoria[]): GrupoMemoria[] => {
     const familias: string[] = [];
     const porFamilia = new Map<string, ItemOrigem[]>();
@@ -207,6 +219,11 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
           <Button variant="outline" onClick={addGrupo} className="flex-1">
             <Plus className="mr-2 h-4 w-4" /> Adicionar grupo
           </Button>
+          {onAplicarSubtotais && (
+            <Button variant="default" onClick={aplicarSubtotais} className="flex-1" disabled={grupos.length === 0}>
+              <Send className="mr-2 h-4 w-4" /> Enviar subtotais para Itens SCO
+            </Button>
+          )}
         </div>
       )}
 
