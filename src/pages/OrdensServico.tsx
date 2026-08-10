@@ -457,6 +457,18 @@ export default function OrdensServicoPage() {
   const [estoqueQtd, setEstoqueQtd] = useState(1);
   const [estoquePopoverOpen, setEstoquePopoverOpen] = useState(false);
 
+  // Memória de cálculo (somente leitura) do orçamento aprovado vinculado à SS da OS
+  const memoriaCalculoOS = useMemo(() => {
+    if (!editingId) return [] as any[];
+    const os = ordens.find(o => o.id === editingId);
+    if (!os?.solicitacaoId) return [] as any[];
+    const orcs = orcamentosAll.filter((o: any) => o.solicitacaoId === os.solicitacaoId);
+    const aprovado = orcs.find((o: any) => (o.status || "").toLowerCase().includes("aprovad"));
+    return Array.isArray(aprovado?.memoriaCalculo) ? aprovado!.memoriaCalculo : [];
+  }, [editingId, ordens, orcamentosAll]);
+
+
+
   // Map pedido número → centro de custo nome (same logic as Estoque page)
   const centroCustoMap = useMemo(() => {
     const map = new Map<number, string>();
