@@ -26,6 +26,8 @@ export interface LinhaMemoria {
   item: string;
   codigo: string;
   descricao: string;
+  /** Unidade cadastrada no item de origem (SCO/Material) */
+  unidade?: string;
   /** Tipo de medição do sub-item (sobrepõe o tipo do grupo) */
   tipo?: TipoMemoria;
   /** @deprecated usar entradas */
@@ -95,6 +97,8 @@ const UNIDADE_LABEL: Record<TipoMemoria, string> = {
   unidade: "UNIDADE",
 };
 
+const unidadeLinha = (l: LinhaMemoria, t: TipoMemoria) => (l.unidade || "").trim() || UNIDADE_CURTA[t];
+
 const nf = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export interface ItemOrigem {
@@ -102,6 +106,7 @@ export interface ItemOrigem {
   descricao: string;
   quantidade: number;
   familia?: string;
+  unidade?: string;
 }
 
 interface Props {
@@ -149,6 +154,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
           item: antiga?.item || `${idx + 1}.${li + 1}`,
           codigo: i.codigo,
           descricao: i.descricao,
+          unidade: i.unidade || antiga?.unidade,
           tipo: antiga?.tipo,
           entradas,
         };
@@ -406,7 +412,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                       <TableCell className="font-medium">
                         {nf(calcEntrada(tl, e))}
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{UNIDADE_CURTA[tl]}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{unidadeLinha(l, tl)}</TableCell>
 
                       {!readOnly && (
                         <TableCell>
@@ -440,7 +446,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                           SUBTOTAL{l.item ? ` ITEM ${l.item}` : " DO ITEM"}
                         </TableCell>
                         <TableCell className="font-bold">{nf(calcLinha(tl, l))}</TableCell>
-                        <TableCell className="text-xs font-semibold">{UNIDADE_CURTA[tl]}</TableCell>
+                        <TableCell className="text-xs font-semibold">{unidadeLinha(l, tl)}</TableCell>
                         {!readOnly && <TableCell colSpan={2} />}
                       </TableRow>
                     </Fragment>
