@@ -188,7 +188,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
     setEntradas(gid, l, rest.length ? rest : [{ id: crypto.randomUUID(), setor: "", quantidade: 0 }]);
   };
 
-  const colsMedidas = (tipo: TipoMemoria) => (tipo === "unidade" ? 1 : 3);
+  const colsMedidas = (tipo: TipoMemoria) => (tipo === "unidade" ? 1 : tipo === "area" ? 4 : 3);
 
   return (
     <div className="space-y-4">
