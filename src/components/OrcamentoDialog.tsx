@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSco } from "@/contexts/ScoContext";
+import { useClientes } from "@/contexts/ClientesContext";
 import { useI0 } from "@/contexts/I0Context";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useOrcamentos, Orcamento } from "@/contexts/OrcamentosContext";
@@ -49,6 +50,7 @@ interface ItemMaterial {
 
 export default function OrcamentoDialog({ open, onOpenChange, solicitacao, existingOrcamento, onApproved, onSent, onRevisaoSolicitada }: OrcamentoDialogProps) {
   const { scos } = useSco();
+  const { clientes } = useClientes();
   const { items: i0Items } = useI0();
   const { materiais } = useMateriaisServicos();
   const { addOrcamento, updateOrcamento } = useOrcamentos();
@@ -172,6 +174,23 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     itensMateriais.forEach(i => { if (i.familia?.trim()) set.add(i.familia.trim()); });
     return Array.from(set).sort();
   }, [itensSco, itensMateriais]);
+
+  // Itens (SCO + Materiais) que alimentam a memória de cálculo
+  const itensOrigemMemoria = useMemo(() => [
+    ...itensSco.map(i => ({ codigo: i.codSco, descricao: i.descricao, quantidade: i.quantidade, familia: i.familia })),
+    ...itensMateriais.map(i => ({ codigo: i.codigo, descricao: i.descricao, quantidade: i.quantidade, familia: i.familia })),
+  ], [itensSco, itensMateriais]);
+
+  // Setores vinculados ao cliente do orçamento
+  const setoresCliente = useMemo(() => {
+    const cli = clientes.find(c => c.id === solicitacao?.clienteId);
+    const set = new Set<string>();
+    (cli?.locais || []).forEach(loc =>
+      (loc.pavimentos || []).forEach(pav =>
+        (pav.setores || []).forEach(s => { if (s.descricao?.trim()) set.add(s.descricao.trim()); })));
+    return Array.from(set).sort();
+  }, [clientes, solicitacao?.clienteId]);
+
 
   const totalSco = useMemo(() => itensSco.reduce((s, i) => s + i.valorTotal, 0), [itensSco]);
   const totalMat = useMemo(() => itensMateriais.reduce((s, i) => s + i.valorTotal, 0), [itensMateriais]);
@@ -578,7 +597,9 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
 
           {/* Memória de Cálculo Tab */}
           <TabsContent value="memoria" className="space-y-3">
-            <MemoriaCalculoTab grupos={memoriaCalculo} onChange={setMemoriaCalculo} readOnly={isReadOnly} />
+            <MemoriaCalculoTab grupos={memoriaCalculo} onChange={setMemoriaCalculo} readOnly={isReadOnly}
+              itensOrigem={itensOrigemMemoria} setores={setoresCliente} />
+
           </TabsContent>
 
           {/* Anexos Tab */}

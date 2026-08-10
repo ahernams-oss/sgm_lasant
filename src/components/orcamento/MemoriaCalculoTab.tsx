@@ -3,7 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, RefreshCw } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 export type TipoMemoria = "area" | "mao_de_obra" | "unidade";
 
@@ -46,13 +47,73 @@ const UNIDADE_LABEL: Record<TipoMemoria, string> = {
 
 const nf = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+export interface ItemOrigem {
+  codigo: string;
+  descricao: string;
+  quantidade: number;
+  familia?: string;
+}
+
 interface Props {
   grupos: GrupoMemoria[];
   onChange: (g: GrupoMemoria[]) => void;
   readOnly?: boolean;
+  itensOrigem?: ItemOrigem[];
+  setores?: string[];
 }
 
-export default function MemoriaCalculoTab({ grupos, onChange, readOnly }: Props) {
+const SEM_FAMILIA = "SEM FAMÍLIA";
+
+export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOrigem = [], setores = [] }: Props) {
+  const sincronizar = (atuais: GrupoMemoria[]): GrupoMemoria[] => {
+    const familias: string[] = [];
+    const porFamilia = new Map<string, ItemOrigem[]>();
+    itensOrigem.forEach(i => {
+      const f = (i.familia || "").trim() || SEM_FAMILIA;
+      if (!porFamilia.has(f)) { porFamilia.set(f, []); familias.push(f); }
+      porFamilia.get(f)!.push(i);
+    });
+
+    return familias.map((f, idx) => {
+      const existente = atuais.find(g => g.titulo.trim().toUpperCase() === f.toUpperCase());
+      const tipo: TipoMemoria = existente?.tipo || "unidade";
+      const linhas: LinhaMemoria[] = porFamilia.get(f)!.map((i, li) => {
+        const antiga = existente?.linhas.find(l => l.codigo === i.codigo);
+        return {
+          id: antiga?.id || crypto.randomUUID(),
+          item: antiga?.item || `${idx + 1}.${li + 1}`,
+          codigo: i.codigo,
+          descricao: i.descricao,
+          setor: antiga?.setor || "",
+          funcionario: antiga?.funcionario,
+          quantidade: i.quantidade,
+          comprimento: antiga?.comprimento,
+          largura: antiga?.largura,
+          hrDia: antiga?.hrDia,
+          dias: antiga?.dias,
+        };
+      });
+      return {
+        id: existente?.id || crypto.randomUUID(),
+        item: existente?.item || String(idx + 1),
+        titulo: f,
+        tipo,
+        linhas,
+      };
+    });
+  };
+
+  const assinatura = itensOrigem.map(i => `${i.familia || ""}|${i.codigo}|${i.quantidade}`).join(";");
+  const lastSig = useRef<string | null>(null);
+  useEffect(() => {
+    if (readOnly) return;
+    if (lastSig.current === assinatura) return;
+    lastSig.current = assinatura;
+    if (!itensOrigem.length) return;
+    onChange(sincronizar(grupos));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assinatura, readOnly]);
+
   const addGrupo = () =>
     onChange([...grupos, { id: crypto.randomUUID(), item: "", titulo: "", tipo: "area", linhas: [] }]);
 
@@ -78,14 +139,20 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly }: Props)
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground">
-        Estruture a memória de cálculo por grupos de serviço (ex.: 1.2 — MÃO DE OBRA DA ADMINISTRAÇÃO LOCAL),
-        informando item, código, descrição, setor e as medidas. O total de cada grupo é calculado automaticamente.
+        Os grupos são gerados a partir das abas Itens SCO e Materiais: o título vem do campo Família e as quantidades
+        dos itens. Informe o setor (lista de setores do cliente) e as medidas — o total de cada grupo é automático.
       </p>
 
       {!readOnly && (
-        <Button variant="outline" onClick={addGrupo} className="w-full">
-          <Plus className="mr-2 h-4 w-4" /> Adicionar grupo
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => onChange(sincronizar(grupos))} className="flex-1"
+            disabled={itensOrigem.length === 0}>
+            <RefreshCw className="mr-2 h-4 w-4" /> Sincronizar itens (SCO / Materiais)
+          </Button>
+          <Button variant="outline" onClick={addGrupo} className="flex-1">
+            <Plus className="mr-2 h-4 w-4" /> Adicionar grupo
+          </Button>
+        </div>
       )}
 
       {grupos.length === 0 && (
@@ -166,8 +233,18 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly }: Props)
                         onChange={e => updLinha(g.id, l.id, { descricao: e.target.value })} />
                     </TableCell>
                     <TableCell>
-                      <Input className="h-8" value={l.setor} disabled={readOnly}
-                        onChange={e => updLinha(g.id, l.id, { setor: e.target.value })} />
+                      {setores.length > 0 ? (
+                        <Select value={l.setor || ""} disabled={readOnly}
+                          onValueChange={v => updLinha(g.id, l.id, { setor: v })}>
+                          <SelectTrigger className="h-8"><SelectValue placeholder="Setor" /></SelectTrigger>
+                          <SelectContent>
+                            {setores.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input className="h-8" value={l.setor} disabled={readOnly}
+                          onChange={e => updLinha(g.id, l.id, { setor: e.target.value })} />
+                      )}
                     </TableCell>
                     {g.tipo === "mao_de_obra" ? (
                       <>
