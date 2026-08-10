@@ -1936,6 +1936,8 @@ export default function OrdensServicoPage() {
                 <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/40 p-1">
                   <TabsTrigger value="sco" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> SCO</TabsTrigger>
                   <TabsTrigger value="estoque" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> Estoque</TabsTrigger>
+                  <TabsTrigger value="memoria" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> Memória de Cálculo</TabsTrigger>
+
                   <TabsTrigger value="profissionais" className="flex items-center gap-1.5 text-xs"><Wrench className="h-3.5 w-3.5" /> Profissionais</TabsTrigger>
                   <TabsTrigger value="anexos" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> Anexos ({anexos.length}/5)</TabsTrigger>
                   <TabsTrigger value="fotos" className="flex items-center gap-1.5 text-xs"><Eye className="h-3.5 w-3.5" /> Fotos ({fotos.length}/6)</TabsTrigger>
