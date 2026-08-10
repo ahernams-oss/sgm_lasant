@@ -143,6 +143,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
           item: antiga?.item || `${idx + 1}.${li + 1}`,
           codigo: i.codigo,
           descricao: i.descricao,
+          tipo: antiga?.tipo,
           entradas,
         };
       });
