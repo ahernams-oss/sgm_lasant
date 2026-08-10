@@ -255,7 +255,7 @@ function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
     const hasMo = tipos.includes("mao_de_obra");
     const hasQtd = hasArea || tipos.includes("unidade");
     const uniforme = tipos.every(t => t === tipos[0]) ? tipos[0] : null;
-    const totalLabel = uniforme === "area" ? "ÁREA (m²)" : uniforme === "mao_de_obra" ? "TOTAL (h)" : uniforme === "unidade" ? "QTD (un)" : "TOTAL";
+    const totalLabel = uniforme === "area" ? "ÁREA" : uniforme === "mao_de_obra" ? "TOTAL (h)" : uniforme === "unidade" ? "QTD (un)" : "TOTAL";
     const extra = [
       ...(hasQtd ? ["QTD"] : []),
       ...(hasArea ? ["COMP.", "LARG.", "ALT."] : []),

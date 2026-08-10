@@ -92,7 +92,7 @@ const UNIDADE_CURTA: Record<TipoMemoria, string> = {
 };
 
 const UNIDADE_LABEL: Record<TipoMemoria, string> = {
-  area: "ÁREA (m²)",
+  area: "ÁREA",
   mao_de_obra: "HORA TOTAL",
   unidade: "UNIDADE",
 };

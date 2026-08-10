@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 type Tipo = "area" | "mao_de_obra" | "unidade";
 
 const UNIDADE_LABEL: Record<Tipo, string> = {
-  area: "ÁREA (m²)",
+  area: "ÁREA",
   mao_de_obra: "TOTAL (h)",
   unidade: "QTD (un)",
 };
