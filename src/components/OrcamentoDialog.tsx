@@ -19,7 +19,7 @@ import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Upload, X, FileText, Check, RotateCcw, ChevronsUpDown, Download, FileSpreadsheet } from "lucide-react";
+import { Plus, Trash2, Upload, X, FileText, Check, RotateCcw, ChevronsUpDown, Download, FileSpreadsheet, Maximize2, Minimize2 } from "lucide-react";
 import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
 import { gerarPdfMemoriaCalculo } from "@/lib/gerarPdfMemoriaCalculo";
 import { useEmpresa } from "@/contexts/EmpresaContext";
