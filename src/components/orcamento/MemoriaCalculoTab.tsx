@@ -299,11 +299,11 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                       {ei === 0 && (
                         <>
                           <TableCell rowSpan={entradas.length} className="align-top">
-                            <Input className="h-8" value={l.item} disabled={readOnly}
+                            <Input className="h-8" value={l.item} disabled
                               onChange={ev => updLinha(g.id, l.id, { item: ev.target.value })} />
                           </TableCell>
                           <TableCell rowSpan={entradas.length} className="align-top">
-                            <Input className="h-8 font-mono text-xs" value={l.codigo} disabled={readOnly}
+                            <Input className="h-8 font-mono text-xs" value={l.codigo} disabled
                               onChange={ev => updLinha(g.id, l.id, { codigo: ev.target.value })} />
                           </TableCell>
                           <TableCell rowSpan={entradas.length} className="align-top">
@@ -312,7 +312,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                               title={l.descricao}
                               className="w-full min-w-[140px] min-h-8 resize rounded-md border border-input bg-background px-3 py-1.5 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                               value={l.descricao}
-                              disabled={readOnly}
+                              disabled
                               onChange={ev => updLinha(g.id, l.id, { descricao: ev.target.value })}
                             />
                           </TableCell>
