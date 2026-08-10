@@ -270,7 +270,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
             <div>
               <Label className="text-xs">Título do grupo</Label>
               <Input className="h-8 uppercase" placeholder="MÃO DE OBRA DA ADMINISTRAÇÃO LOCAL" value={g.titulo}
-                disabled={readOnly} onChange={e => updGrupo(g.id, { titulo: e.target.value })} />
+                disabled onChange={e => updGrupo(g.id, { titulo: e.target.value })} />
             </div>
             <div>
               <Label className="text-xs">Tipo de medição (padrão)</Label>
