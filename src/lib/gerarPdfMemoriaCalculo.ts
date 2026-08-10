@@ -124,16 +124,23 @@ export async function gerarPdfMemoriaCalculo(orc: Orcamento, empresa?: Empresa) 
   }
 
   for (const g of grupos) {
-    const tipo: Tipo = (g.tipo || "unidade") as Tipo;
+    const tipoGrupo: Tipo = (g.tipo || "unidade") as Tipo;
     const linhas: any[] = Array.isArray(g.linhas) ? g.linhas : [];
-    const total = linhas.reduce((s, l) => s + calcLinha(tipo, l), 0);
+    const tipoDe = (l: any): Tipo => ((l?.tipo || tipoGrupo) as Tipo);
+    const tipos = linhas.length ? linhas.map(tipoDe) : [tipoGrupo];
+    const hasArea = tipos.includes("area");
+    const hasMo = tipos.includes("mao_de_obra");
+    const hasQtd = hasArea || tipos.includes("unidade");
+    const uniforme = tipos.every(t => t === tipos[0]) ? tipos[0] : null;
+    const total = linhas.reduce((s, l) => s + calcLinha(tipoDe(l), l), 0);
 
-    const head =
-      tipo === "area"
-        ? [["ITEM", "CÓDIGO", "DESCRIÇÃO", "SETOR", "QTD", "COMP.", "LARG.", "ALT.", UNIDADE_LABEL[tipo]]]
-        : tipo === "mao_de_obra"
-        ? [["ITEM", "CÓDIGO", "DESCRIÇÃO", "SETOR", "HR/DIA", "DIAS", UNIDADE_LABEL[tipo]]]
-        : [["ITEM", "CÓDIGO", "DESCRIÇÃO", "SETOR", UNIDADE_LABEL[tipo]]];
+    const head = [[
+      "ITEM", "CÓDIGO", "DESCRIÇÃO", "TIPO", "SETOR",
+      ...(hasQtd ? ["QTD"] : []),
+      ...(hasArea ? ["COMP.", "LARG.", "ALT."] : []),
+      ...(hasMo ? ["HR/DIA", "DIAS"] : []),
+      uniforme ? UNIDADE_LABEL[uniforme] : "TOTAL",
+    ]];
 
     const body: any[] = [
       [{
@@ -144,6 +151,7 @@ export async function gerarPdfMemoriaCalculo(orc: Orcamento, empresa?: Empresa) 
     ];
 
     for (const l of linhas) {
+      const tipo = tipoDe(l);
       const entradas = getEntradas(l);
       entradas.forEach((e: any, ei: number) => {
         const rowSpan = entradas.length;
@@ -153,16 +161,22 @@ export async function gerarPdfMemoriaCalculo(orc: Orcamento, empresa?: Empresa) 
                 { content: l.item || "", rowSpan },
                 { content: l.codigo || "", rowSpan },
                 { content: l.descricao || "", rowSpan },
+                { content: TIPO_LABEL[tipo], rowSpan },
                 e.setor || "",
               ]
             : [e.setor || ""];
-        if (tipo === "area") {
-          body.push([...base, nf(e.quantidade || 0), nf(e.comprimento || 0), nf(e.largura || 0), nf(e.altura || 0), nf(calcEntrada(tipo, e))]);
-        } else if (tipo === "mao_de_obra") {
-          body.push([...base, nf(e.hrDia || 0), nf(e.dias || 0), nf(calcEntrada(tipo, e))]);
-        } else {
-          body.push([...base, nf(calcEntrada(tipo, e))]);
-        }
+        const medidas: string[] = [];
+        if (hasQtd) medidas.push(tipo === "mao_de_obra" ? "" : nf(e.quantidade || 0));
+        if (hasArea) medidas.push(
+          tipo === "area" ? nf(e.comprimento || 0) : "",
+          tipo === "area" ? nf(e.largura || 0) : "",
+          tipo === "area" ? nf(e.altura || 0) : "",
+        );
+        if (hasMo) medidas.push(
+          tipo === "mao_de_obra" ? nf(e.hrDia || 0) : "",
+          tipo === "mao_de_obra" ? nf(e.dias || 0) : "",
+        );
+        body.push([...base, ...medidas, nf(calcEntrada(tipo, e))]);
       });
       body.push([
         {
