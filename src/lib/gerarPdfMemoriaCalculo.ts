@@ -11,7 +11,7 @@ const nf = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, 
 type Tipo = "area" | "mao_de_obra" | "unidade";
 
 const UNIDADE_LABEL: Record<Tipo, string> = {
-  area: "ÁREA (m²)",
+  area: "ÁREA",
   mao_de_obra: "HORA TOTAL",
   unidade: "UNIDADE",
 };
