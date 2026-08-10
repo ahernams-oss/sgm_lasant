@@ -197,7 +197,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                 <TableRow>
                   <TableHead className="w-20">ITEM</TableHead>
                   <TableHead className="w-40">CÓDIGO</TableHead>
-                  <TableHead className="min-w-[280px]">DESCRIÇÃO</TableHead>
+                  <TableHead className="min-w-[200px]">DESCRIÇÃO</TableHead>
                   <TableHead className="w-56">SETOR</TableHead>
                   {g.tipo === "mao_de_obra" ? (
                     <>
@@ -209,7 +209,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                     <>
                       <TableHead className="w-24">QUANT.</TableHead>
                       <TableHead className="w-28">COMPRIMENTO</TableHead>
-                      <TableHead className="w-24">LARG.</TableHead>
+                      <TableHead className="w-28">LARG.</TableHead>
                     </>
                   ) : (
                     <TableHead className="w-28">QUANT.</TableHead>
