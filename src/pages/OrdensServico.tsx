@@ -883,6 +883,8 @@ export default function OrdensServicoPage() {
       return;
     }
     setEditingId(os.id);
+    void reloadOrcamentos();
+
     setClienteId(os.clienteId); setNCliente(os.nCliente); setSituacao(os.situacao); setTipoOs(os.tipoOs);
     setDataInicio(os.dataInicio); setHoraInicio(os.horaInicio);
     setDataTermino(os.dataTermino); setHoraTermino(os.horaTermino);
