@@ -355,7 +355,7 @@ export default function OrdensServicoPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [viewOS, setViewOS] = useState<OrdemServico | null>(null);
   const [viewSSTarget, setViewSSTarget] = useState<SolicitacaoServico | null>(null);
-  const { orcamentos: orcamentosAll } = useOrcamentos();
+  const { orcamentos: orcamentosAll, reload: reloadOrcamentos } = useOrcamentos();
   const _osSavedFilters = loadPersistedFilters<{ busca: string; filtroSituacao: string; filtroPrioridade: string; filtroDataInicio: string; filtroDataFim: string; filtroOrigem: string; filtroFotos: string; filtroImpresso: string; }>("ordens_servico_filters_v1");
   const [busca, setBusca] = useState(_osSavedFilters?.busca ?? "");
   const _osUrlInitial = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
