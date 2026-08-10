@@ -173,6 +173,23 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     return Array.from(set).sort();
   }, [itensSco, itensMateriais]);
 
+  // Itens (SCO + Materiais) que alimentam a memória de cálculo
+  const itensOrigemMemoria = useMemo(() => [
+    ...itensSco.map(i => ({ codigo: i.codSco, descricao: i.descricao, quantidade: i.quantidade, familia: i.familia })),
+    ...itensMateriais.map(i => ({ codigo: i.codigo, descricao: i.descricao, quantidade: i.quantidade, familia: i.familia })),
+  ], [itensSco, itensMateriais]);
+
+  // Setores vinculados ao cliente do orçamento
+  const setoresCliente = useMemo(() => {
+    const cli = clientes.find(c => c.id === solicitacao?.clienteId);
+    const set = new Set<string>();
+    (cli?.locais || []).forEach(loc =>
+      (loc.pavimentos || []).forEach(pav =>
+        (pav.setores || []).forEach(s => { if (s.descricao?.trim()) set.add(s.descricao.trim()); })));
+    return Array.from(set).sort();
+  }, [clientes, solicitacao?.clienteId]);
+
+
   const totalSco = useMemo(() => itensSco.reduce((s, i) => s + i.valorTotal, 0), [itensSco]);
   const totalMat = useMemo(() => itensMateriais.reduce((s, i) => s + i.valorTotal, 0), [itensMateriais]);
   const valorTotal = totalSco + totalMat;
