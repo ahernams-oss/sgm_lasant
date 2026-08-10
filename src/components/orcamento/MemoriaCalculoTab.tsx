@@ -361,6 +361,18 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                       )}
                     </TableRow>
                   ));
+                  return (
+                    <>
+                      {linhasEntradas}
+                      <TableRow key={`${l.id}-sub`} className="bg-muted/30">
+                        <TableCell colSpan={4 + colsMedidas(g.tipo)} className="text-right text-xs font-semibold">
+                          SUBTOTAL{l.item ? ` ITEM ${l.item}` : " DO ITEM"}
+                        </TableCell>
+                        <TableCell className="font-bold">{nf(calcLinha(g.tipo, l))}</TableCell>
+                        {!readOnly && <TableCell colSpan={2} />}
+                      </TableRow>
+                    </>
+                  );
                 })}
                 <TableRow className="bg-muted/50">
                   <TableCell className="font-bold">TOTAL</TableCell>
