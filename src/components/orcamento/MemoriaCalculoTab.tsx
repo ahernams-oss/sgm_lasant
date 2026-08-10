@@ -250,6 +250,26 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
       }],
     } : g));
 
+  const addLinhaSco = (gid: string, sco: CatalogoScoItem) =>
+    onChange(grupos.map(g => {
+      if (g.id !== gid) return g;
+      if (g.linhas.some(l => (l.codigo || "").trim() === sco.codigo.trim())) return g;
+      const idxGrupo = grupos.findIndex(x => x.id === gid);
+      return {
+        ...g,
+        linhas: [...g.linhas, {
+          id: crypto.randomUUID(),
+          item: `${g.item || idxGrupo + 1}.${g.linhas.length + 1}`,
+          codigo: sco.codigo,
+          descricao: sco.descricao,
+          unidade: sco.unidade,
+          entradas: [{ id: crypto.randomUUID(), setor: "", quantidade: 1 }],
+        }],
+      };
+    }));
+
+
+
   const updLinha = (gid: string, lid: string, patch: Partial<LinhaMemoria>) =>
     onChange(grupos.map(g => g.id === gid ? {
       ...g, linhas: g.linhas.map(l => (l.id === lid ? { ...l, ...patch } : l)),
