@@ -3,9 +3,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, RefreshCw, MapPin, Send } from "lucide-react";
-import { Fragment, useEffect, useRef } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Plus, Trash2, RefreshCw, MapPin, Send, Search } from "lucide-react";
+import { Fragment, useEffect, useRef, useState, useMemo } from "react";
 import SetorCombobox from "./SetorCombobox";
+
 
 export type TipoMemoria = "area" | "mao_de_obra" | "unidade";
 
@@ -109,19 +112,49 @@ export interface ItemOrigem {
   unidade?: string;
 }
 
+export interface CatalogoScoItem {
+  codigo: string;
+  descricao: string;
+  unidade?: string;
+  familia?: string;
+}
+
+export interface ItemParaSco {
+  codigo: string;
+  descricao: string;
+  unidade?: string;
+  familia?: string;
+  quantidade: number;
+}
+
 interface Props {
   grupos: GrupoMemoria[];
   onChange: (g: GrupoMemoria[]) => void;
   readOnly?: boolean;
   itensOrigem?: ItemOrigem[];
   setores?: string[];
+  /** Catálogo de itens SCO disponíveis para inserção direta na memória de cálculo */
+  catalogoSco?: CatalogoScoItem[];
   /** Envia os subtotais calculados (por código de item) para as abas Itens SCO / Materiais */
   onAplicarSubtotais?: (subtotais: { codigo: string; total: number }[]) => void;
+  /** Envia os itens da memória (novos e existentes) para a aba Itens SCO */
+  onEnviarItensParaSco?: (itens: ItemParaSco[]) => void;
 }
 
 const SEM_FAMILIA = "SEM FAMÍLIA";
 
-export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOrigem = [], setores = [], onAplicarSubtotais }: Props) {
+export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOrigem = [], setores = [], catalogoSco = [], onAplicarSubtotais, onEnviarItensParaSco }: Props) {
+  const [scoPopoverGrupo, setScoPopoverGrupo] = useState<string | null>(null);
+  const [scoSearch, setScoSearch] = useState("");
+
+  const catalogoFiltrado = useMemo(() => {
+    const q = scoSearch.trim().toLowerCase();
+    if (!q) return catalogoSco.slice(0, 50);
+    return catalogoSco
+      .filter(s => s.codigo.toLowerCase().includes(q) || (s.descricao || "").toLowerCase().includes(q))
+      .slice(0, 50);
+  }, [catalogoSco, scoSearch]);
+
   const aplicarSubtotais = () => {
     const mapa = new Map<string, number>();
     grupos.forEach(g => g.linhas.forEach(l => {
@@ -131,6 +164,26 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
     }));
     onAplicarSubtotais?.(Array.from(mapa, ([codigo, total]) => ({ codigo, total })));
   };
+
+  const enviarItensParaSco = () => {
+    const mapa = new Map<string, ItemParaSco>();
+    grupos.forEach(g => g.linhas.forEach(l => {
+      const cod = (l.codigo || "").trim();
+      if (!cod) return;
+      const total = calcLinha(tipoLinha(g, l), l);
+      const atual = mapa.get(cod);
+      if (atual) atual.quantidade += total;
+      else mapa.set(cod, {
+        codigo: cod,
+        descricao: l.descricao || "",
+        unidade: l.unidade,
+        familia: (g.titulo || "").trim(),
+        quantidade: total,
+      });
+    }));
+    onEnviarItensParaSco?.(Array.from(mapa.values()));
+  };
+
 
   const sincronizar = (atuais: GrupoMemoria[]): GrupoMemoria[] => {
     const familias: string[] = [];
@@ -197,6 +250,26 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
       }],
     } : g));
 
+  const addLinhaSco = (gid: string, sco: CatalogoScoItem) =>
+    onChange(grupos.map(g => {
+      if (g.id !== gid) return g;
+      if (g.linhas.some(l => (l.codigo || "").trim() === sco.codigo.trim())) return g;
+      const idxGrupo = grupos.findIndex(x => x.id === gid);
+      return {
+        ...g,
+        linhas: [...g.linhas, {
+          id: crypto.randomUUID(),
+          item: `${g.item || idxGrupo + 1}.${g.linhas.length + 1}`,
+          codigo: sco.codigo,
+          descricao: sco.descricao,
+          unidade: sco.unidade,
+          entradas: [{ id: crypto.randomUUID(), setor: "", quantidade: 1 }],
+        }],
+      };
+    }));
+
+
+
   const updLinha = (gid: string, lid: string, patch: Partial<LinhaMemoria>) =>
     onChange(grupos.map(g => g.id === gid ? {
       ...g, linhas: g.linhas.map(l => (l.id === lid ? { ...l, ...patch } : l)),
@@ -239,21 +312,27 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
       </p>
 
       {!readOnly && (
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => onChange(sincronizar(grupos))} className="flex-1"
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => onChange(sincronizar(grupos))} className="flex-1 min-w-[200px]"
             disabled={itensOrigem.length === 0}>
             <RefreshCw className="mr-2 h-4 w-4" /> Sincronizar itens (SCO / Materiais)
           </Button>
-          <Button variant="outline" onClick={addGrupo} className="flex-1">
+          <Button variant="outline" onClick={addGrupo} className="flex-1 min-w-[160px]">
             <Plus className="mr-2 h-4 w-4" /> Adicionar grupo
           </Button>
+          {onEnviarItensParaSco && (
+            <Button variant="secondary" onClick={enviarItensParaSco} className="flex-1 min-w-[200px]" disabled={grupos.length === 0}>
+              <Send className="mr-2 h-4 w-4" /> Enviar itens para Itens SCO
+            </Button>
+          )}
           {onAplicarSubtotais && (
-            <Button variant="default" onClick={aplicarSubtotais} className="flex-1" disabled={grupos.length === 0}>
+            <Button variant="default" onClick={aplicarSubtotais} className="flex-1 min-w-[200px]" disabled={grupos.length === 0}>
               <Send className="mr-2 h-4 w-4" /> Enviar subtotais para Itens SCO
             </Button>
           )}
         </div>
       )}
+
 
       {grupos.length === 0 && (
         <p className="text-sm text-muted-foreground">Nenhum grupo cadastrado na memória de cálculo.</p>
@@ -478,10 +557,44 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
           })()}
 
           {!readOnly && (
-            <Button size="sm" variant="outline" onClick={() => addLinha(g.id)}>
-              <Plus className="mr-2 h-3.5 w-3.5" /> Adicionar linha
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={() => addLinha(g.id)}>
+                <Plus className="mr-2 h-3.5 w-3.5" /> Adicionar linha
+              </Button>
+              {catalogoSco.length > 0 && (
+                <Popover
+                  open={scoPopoverGrupo === g.id}
+                  onOpenChange={o => { setScoPopoverGrupo(o ? g.id : null); setScoSearch(""); }}
+                >
+                  <PopoverTrigger asChild>
+                    <Button size="sm" variant="outline">
+                      <Search className="mr-2 h-3.5 w-3.5" /> Adicionar item SCO
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[560px] p-0" align="start">
+                    <Command shouldFilter={false}>
+                      <CommandInput placeholder="Buscar por código ou descrição..." value={scoSearch} onValueChange={setScoSearch} />
+                      <CommandList>
+                        <CommandEmpty>Nenhum item encontrado.</CommandEmpty>
+                        <CommandGroup>
+                          {catalogoFiltrado.map(s => (
+                            <CommandItem key={s.codigo} value={s.codigo}
+                              onSelect={() => { addLinhaSco(g.id, s); setScoPopoverGrupo(null); setScoSearch(""); }}>
+                              <div className="flex flex-col">
+                                <span className="font-mono text-xs">{s.codigo} {s.unidade ? `(${s.unidade})` : ""}</span>
+                                <span className="text-xs text-muted-foreground line-clamp-2">{s.descricao}</span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
+            </div>
           )}
+
         </div>
       ))}
     </div>
