@@ -2570,12 +2570,8 @@ export default function OrdensServicoPage() {
 
               {/* Materiais + Memória de Cálculo */}
               {(() => {
-                const memoriaView = (() => {
-                  if (!viewOS.solicitacaoId) return [] as any[];
-                  const orcs = orcamentosAll.filter((o: any) => o.solicitacaoId === viewOS.solicitacaoId);
-                  const aprovado = orcs.find((o: any) => (o.status || "").toLowerCase().includes("aprovad"));
-                  return Array.isArray(aprovado?.memoriaCalculo) ? aprovado!.memoriaCalculo : [];
-                })();
+                const memoriaView = getMemoriaCalculoDaOS(viewOS);
+
                 const anexosView = viewOS.anexos || [];
                 const fotosView = viewOS.fotos || [];
                 const fiscView = viewOS.observacoesFiscalizacao || [];
