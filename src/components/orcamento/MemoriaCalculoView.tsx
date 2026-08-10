@@ -9,6 +9,12 @@ const UNIDADE_LABEL: Record<Tipo, string> = {
   unidade: "QTD (un)",
 };
 
+const TIPO_LABEL: Record<Tipo, string> = {
+  area: "Área",
+  mao_de_obra: "Mão de obra",
+  unidade: "Unidade",
+};
+
 /** Entradas (setores) de uma linha, com compatibilidade com o formato antigo. */
 function getEntradas(l: any): any[] {
   if (Array.isArray(l?.entradas) && l.entradas.length) return l.entradas;
@@ -49,9 +55,16 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
   return (
     <div className="space-y-4">
       {lista.map((g: any, gi: number) => {
-        const tipo: Tipo = (g.tipo || "unidade") as Tipo;
+        const tipoGrupo: Tipo = (g.tipo || "unidade") as Tipo;
         const linhas: any[] = Array.isArray(g.linhas) ? g.linhas : [];
-        const total = linhas.reduce((s, l) => s + calcLinha(tipo, l), 0);
+        const tipoDe = (l: any): Tipo => ((l?.tipo || tipoGrupo) as Tipo);
+        const tipos = linhas.length ? linhas.map(tipoDe) : [tipoGrupo];
+        const hasArea = tipos.includes("area");
+        const hasMo = tipos.includes("mao_de_obra");
+        const hasQtd = hasArea || tipos.includes("unidade");
+        const uniforme = tipos.every(t => t === tipos[0]) ? tipos[0] : null;
+        const m = (hasQtd ? 1 : 0) + (hasArea ? 3 : 0) + (hasMo ? 2 : 0);
+        const total = linhas.reduce((s, l) => s + calcLinha(tipoDe(l), l), 0);
 
         return (
           <div key={gi} className="border rounded-md overflow-x-auto">
@@ -64,26 +77,28 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                   <TableHead className="text-xs">ITEM</TableHead>
                   <TableHead className="text-xs">CÓDIGO</TableHead>
                   <TableHead className="text-xs">DESCRIÇÃO</TableHead>
+                  <TableHead className="text-xs">TIPO</TableHead>
                   <TableHead className="text-xs">SETOR</TableHead>
-                  {tipo === "area" && (
+                  {hasQtd && <TableHead className="text-xs text-right">QTD</TableHead>}
+                  {hasArea && (
                     <>
-                      <TableHead className="text-xs text-right">QTD</TableHead>
                       <TableHead className="text-xs text-right">COMP.</TableHead>
                       <TableHead className="text-xs text-right">LARG.</TableHead>
                       <TableHead className="text-xs text-right">ALT.</TableHead>
                     </>
                   )}
-                  {tipo === "mao_de_obra" && (
+                  {hasMo && (
                     <>
                       <TableHead className="text-xs text-right">HR/DIA</TableHead>
                       <TableHead className="text-xs text-right">DIAS</TableHead>
                     </>
                   )}
-                  <TableHead className="text-xs text-right">{UNIDADE_LABEL[tipo]}</TableHead>
+                  <TableHead className="text-xs text-right">{uniforme ? UNIDADE_LABEL[uniforme] : "TOTAL"}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {linhas.map((l: any, li: number) => {
+                  const tipo = tipoDe(l);
                   const entradas = getEntradas(l);
                   const rows = entradas.map((e: any, ei: number) => (
                     <TableRow key={`${li}-${ei}`}>
@@ -92,21 +107,26 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                           <TableCell rowSpan={entradas.length} className="text-xs align-top">{l.item || ""}</TableCell>
                           <TableCell rowSpan={entradas.length} className="text-xs font-mono align-top">{l.codigo || ""}</TableCell>
                           <TableCell rowSpan={entradas.length} className="text-xs align-top">{l.descricao || ""}</TableCell>
+                          <TableCell rowSpan={entradas.length} className="text-xs align-top">{TIPO_LABEL[tipo]}</TableCell>
                         </>
                       )}
                       <TableCell className="text-xs">{e.setor || ""}</TableCell>
-                      {tipo === "area" && (
+                      {hasQtd && (
+                        <TableCell className="text-xs text-right">
+                          {tipo === "mao_de_obra" ? "" : nf(Number(e.quantidade) || 0)}
+                        </TableCell>
+                      )}
+                      {hasArea && (
                         <>
-                          <TableCell className="text-xs text-right">{nf(Number(e.quantidade) || 0)}</TableCell>
-                          <TableCell className="text-xs text-right">{nf(Number(e.comprimento) || 0)}</TableCell>
-                          <TableCell className="text-xs text-right">{nf(Number(e.largura) || 0)}</TableCell>
-                          <TableCell className="text-xs text-right">{nf(Number(e.altura) || 0)}</TableCell>
+                          <TableCell className="text-xs text-right">{tipo === "area" ? nf(Number(e.comprimento) || 0) : ""}</TableCell>
+                          <TableCell className="text-xs text-right">{tipo === "area" ? nf(Number(e.largura) || 0) : ""}</TableCell>
+                          <TableCell className="text-xs text-right">{tipo === "area" ? nf(Number(e.altura) || 0) : ""}</TableCell>
                         </>
                       )}
-                      {tipo === "mao_de_obra" && (
+                      {hasMo && (
                         <>
-                          <TableCell className="text-xs text-right">{nf(Number(e.hrDia) || 0)}</TableCell>
-                          <TableCell className="text-xs text-right">{nf(Number(e.dias) || 0)}</TableCell>
+                          <TableCell className="text-xs text-right">{tipo === "mao_de_obra" ? nf(Number(e.hrDia) || 0) : ""}</TableCell>
+                          <TableCell className="text-xs text-right">{tipo === "mao_de_obra" ? nf(Number(e.dias) || 0) : ""}</TableCell>
                         </>
                       )}
                       <TableCell className="text-xs text-right font-medium">{nf(calcEntrada(tipo, e))}</TableCell>
@@ -116,7 +136,7 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                     <Fragment key={li}>
                       {rows}
                       <TableRow className="bg-muted/30">
-                        <TableCell colSpan={tipo === "area" ? 7 : tipo === "mao_de_obra" ? 5 : 3} className="text-xs text-right font-semibold">
+                        <TableCell colSpan={5 + m} className="text-xs text-right font-semibold">
                           SUBTOTAL{l.item ? ` ITEM ${l.item}` : " DO ITEM"}
                         </TableCell>
                         <TableCell className="text-xs text-right font-bold">{nf(calcLinha(tipo, l))}</TableCell>
@@ -125,7 +145,7 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                   );
                 })}
                 <TableRow>
-                  <TableCell colSpan={tipo === "area" ? 8 : tipo === "mao_de_obra" ? 6 : 4} className="text-xs text-right font-semibold">
+                  <TableCell colSpan={5 + m} className="text-xs text-right font-semibold">
                     TOTAL
                   </TableCell>
                   <TableCell className="text-xs text-right font-bold">{nf(total)}</TableCell>
