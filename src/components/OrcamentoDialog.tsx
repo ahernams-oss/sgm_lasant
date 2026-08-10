@@ -358,7 +358,13 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className={
+          expandido
+            ? "max-w-none w-[98vw] h-[96vh] max-h-[96vh] overflow-y-auto"
+            : "max-w-5xl max-h-[90vh] overflow-y-auto"
+        }
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <FileText className="h-5 w-5" />
@@ -369,8 +375,19 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                 {existingOrcamento.status}
               </Badge>
             )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="ml-auto mr-8 gap-2"
+              onClick={() => setExpandido(v => !v)}
+            >
+              {expandido ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+              {expandido ? "Reduzir tela" : "Expandir tela"}
+            </Button>
           </DialogTitle>
         </DialogHeader>
+
 
         <datalist id="familias-orcamento">
           {familiasUsadas.map(f => <option key={f} value={f} />)}
