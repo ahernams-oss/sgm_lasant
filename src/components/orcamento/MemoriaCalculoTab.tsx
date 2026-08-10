@@ -26,6 +26,8 @@ export interface LinhaMemoria {
   item: string;
   codigo: string;
   descricao: string;
+  /** Tipo de medição do sub-item (sobrepõe o tipo do grupo) */
+  tipo?: TipoMemoria;
   /** @deprecated usar entradas */
   setor?: string;
   funcionario?: string;
