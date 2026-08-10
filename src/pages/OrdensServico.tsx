@@ -2538,36 +2538,54 @@ export default function OrdensServicoPage() {
                 </div>
               )}
 
-              {/* Materiais */}
-              {viewOS.materiais.length > 0 && (
-                <div>
-                  <p className="text-xs text-muted-foreground mb-2 font-semibold">Materiais e Serviços</p>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Cód.</TableHead>
-                        <TableHead>Descrição</TableHead>
-                        <TableHead>Un.</TableHead>
-                        <TableHead>Vl. Unit.</TableHead>
-                        <TableHead>Qtd.</TableHead>
-                        <TableHead>Vl. Total</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {viewOS.materiais.map((m: any, i: number) => (
-                        <TableRow key={i}>
-                          <TableCell>{m.codigo}</TableCell>
-                          <TableCell>{m.descricao}</TableCell>
-                          <TableCell>{m.unidade}</TableCell>
-                          <TableCell>R$ {Number(m.valorUnitario).toFixed(2)}</TableCell>
-                          <TableCell>{m.quantidade}</TableCell>
-                          <TableCell>R$ {Number(m.valorTotal).toFixed(2)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+              {/* Materiais + Memória de Cálculo */}
+              {(() => {
+                const memoriaView = (() => {
+                  if (!viewOS.solicitacaoId) return [] as any[];
+                  const orcs = orcamentosAll.filter((o: any) => o.solicitacaoId === viewOS.solicitacaoId);
+                  const aprovado = orcs.find((o: any) => (o.status || "").toLowerCase().includes("aprovad"));
+                  return Array.isArray(aprovado?.memoriaCalculo) ? aprovado!.memoriaCalculo : [];
+                })();
+                if (!viewOS.materiais.length && !memoriaView.length) return null;
+                return (
+                  <Tabs defaultValue="itens">
+                    <TabsList>
+                      <TabsTrigger value="itens" className="text-xs">Materiais e Serviços</TabsTrigger>
+                      <TabsTrigger value="memoria" className="text-xs">Memória de Cálculo</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="itens" className="pt-3">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Cód.</TableHead>
+                            <TableHead>Descrição</TableHead>
+                            <TableHead>Un.</TableHead>
+                            <TableHead>Vl. Unit.</TableHead>
+                            <TableHead>Qtd.</TableHead>
+                            <TableHead>Vl. Total</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {viewOS.materiais.map((m: any, i: number) => (
+                            <TableRow key={i}>
+                              <TableCell>{m.codigo}</TableCell>
+                              <TableCell>{m.descricao}</TableCell>
+                              <TableCell>{m.unidade}</TableCell>
+                              <TableCell>R$ {Number(m.valorUnitario).toFixed(2)}</TableCell>
+                              <TableCell>{m.quantidade}</TableCell>
+                              <TableCell>R$ {Number(m.valorTotal).toFixed(2)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TabsContent>
+                    <TabsContent value="memoria" className="pt-3">
+                      <MemoriaCalculoView grupos={memoriaView} />
+                    </TabsContent>
+                  </Tabs>
+                );
+              })()}
+
 
               {/* Resumo de Valores */}
               {(() => {
