@@ -2546,12 +2546,17 @@ export default function OrdensServicoPage() {
                   const aprovado = orcs.find((o: any) => (o.status || "").toLowerCase().includes("aprovad"));
                   return Array.isArray(aprovado?.memoriaCalculo) ? aprovado!.memoriaCalculo : [];
                 })();
-                if (!viewOS.materiais.length && !memoriaView.length) return null;
+                const anexosView = viewOS.anexos || [];
+                const fotosView = viewOS.fotos || [];
+                const fiscView = viewOS.observacoesFiscalizacao || [];
                 return (
                   <Tabs defaultValue="itens">
                     <TabsList>
                       <TabsTrigger value="itens" className="text-xs">Materiais e Serviços</TabsTrigger>
                       <TabsTrigger value="memoria" className="text-xs">Memória de Cálculo</TabsTrigger>
+                      <TabsTrigger value="anexos" className="text-xs">Anexos ({anexosView.length})</TabsTrigger>
+                      <TabsTrigger value="fotos" className="text-xs">Fotos ({fotosView.length})</TabsTrigger>
+                      <TabsTrigger value="fiscalizacao" className="text-xs">Fiscalização ({fiscView.length})</TabsTrigger>
                     </TabsList>
                     <TabsContent value="itens" className="pt-3">
                       <Table>
@@ -2582,8 +2587,55 @@ export default function OrdensServicoPage() {
                     <TabsContent value="memoria" className="pt-3">
                       <MemoriaCalculoView grupos={memoriaView} />
                     </TabsContent>
+                    <TabsContent value="anexos" className="pt-3">
+                      {anexosView.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Nenhum anexo.</p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {anexosView.map((a: any) => (
+                            <li key={a.id} className="flex items-center justify-between border rounded p-2 text-sm">
+                              <span>{a.titulo || "Anexo"}</span>
+                              <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">
+                                Abrir
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </TabsContent>
+                    <TabsContent value="fotos" className="pt-3">
+                      {fotosView.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Nenhuma foto.</p>
+                      ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {fotosView.map((f: any) => (
+                            <a key={f.id} href={f.url} target="_blank" rel="noopener noreferrer" className="block border rounded overflow-hidden">
+                              <img src={f.url} alt="Foto da ordem de serviço" loading="lazy" className="w-full h-40 object-cover" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </TabsContent>
+                    <TabsContent value="fiscalizacao" className="pt-3">
+                      {fiscView.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Nenhuma observação da fiscalização.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {fiscView.map((o: any) => (
+                            <div key={o.id} className="border rounded p-3">
+                              <p className="text-sm font-semibold">{o.titulo || "Observação"}</p>
+                              <p className="text-sm whitespace-pre-wrap">{o.descricao}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {o.usuario || "-"}{o.data ? ` — ${new Date(o.data).toLocaleString("pt-BR")}` : ""}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </TabsContent>
                   </Tabs>
                 );
+
               })()}
 
 
