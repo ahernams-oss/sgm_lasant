@@ -268,6 +268,14 @@ function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
           : [e.setor || ""];
         body.push([...base, ...cols, nf2(calcEntradaMem(tipo, e))]);
       });
+      body.push([
+        {
+          content: `SUBTOTAL${l.item ? ` ITEM ${l.item}` : " DO ITEM"}`,
+          colSpan: 4 + extra.length - 1 + 1 - 1 + 1 - 1,
+          styles: { halign: "right", fontStyle: "bold", fillColor: [248, 248, 248] },
+        } as any,
+        { content: nf2(calcLinhaMem(tipo, l)), styles: { fontStyle: "bold", fillColor: [248, 248, 248] } } as any,
+      ]);
     });
     const total = linhas.reduce((s, l) => s + calcLinhaMem(tipo, l), 0);
     const nCols = 4 + extra.length + 1;
