@@ -271,7 +271,7 @@ function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
       body.push([
         {
           content: `SUBTOTAL${l.item ? ` ITEM ${l.item}` : " DO ITEM"}`,
-          colSpan: 4 + extra.length - 1 + 1 - 1 + 1 - 1,
+          colSpan: 4 + extra.length,
           styles: { halign: "right", fontStyle: "bold", fillColor: [248, 248, 248] },
         } as any,
         { content: nf2(calcLinhaMem(tipo, l)), styles: { fontStyle: "bold", fillColor: [248, 248, 248] } } as any,
