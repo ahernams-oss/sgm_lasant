@@ -230,6 +230,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       anexos: anexosUrls,
       valor_total: valorTotal,
       observacoes,
+      memoria_calculo: memoriaCalculo,
       status: existingOrcamento?.status === "Pendente" ? "Pendente" : "Pendente",
     };
 
@@ -572,6 +573,11 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                 </Table>
               </div>
             )}
+          </TabsContent>
+
+          {/* Memória de Cálculo Tab */}
+          <TabsContent value="memoria" className="space-y-3">
+            <MemoriaCalculoTab grupos={memoriaCalculo} onChange={setMemoriaCalculo} readOnly={isReadOnly} />
           </TabsContent>
 
           {/* Anexos Tab */}
