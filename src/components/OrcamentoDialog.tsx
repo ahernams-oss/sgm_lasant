@@ -578,7 +578,9 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
 
           {/* Memória de Cálculo Tab */}
           <TabsContent value="memoria" className="space-y-3">
-            <MemoriaCalculoTab grupos={memoriaCalculo} onChange={setMemoriaCalculo} readOnly={isReadOnly} />
+            <MemoriaCalculoTab grupos={memoriaCalculo} onChange={setMemoriaCalculo} readOnly={isReadOnly}
+              itensOrigem={itensOrigemMemoria} setores={setoresCliente} />
+
           </TabsContent>
 
           {/* Anexos Tab */}
