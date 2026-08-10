@@ -625,7 +625,7 @@ export default function SolicitacaoServicosPage() {
     toast({ title: "Orçamento aprovado e Ordem de Serviço criada!" });
   };
 
-  const handleDownloadOrcamento = (s: any, tipo: "pdf" | "excel") => {
+  const handleDownloadOrcamento = (s: any, tipo: "pdf" | "excel" | "memoria") => {
     const orc = orcamentos.find(o => o.solicitacaoId === s.id);
     if (!orc) {
       toast({ title: "Orçamento não encontrado", variant: "destructive" });
@@ -633,6 +633,8 @@ export default function SolicitacaoServicosPage() {
     }
     if (tipo === "pdf") {
       gerarPdfOrcamento(orc, empresa);
+    } else if (tipo === "memoria") {
+      gerarPdfMemoriaCalculo(orc, empresa);
     } else {
       gerarExcelOrcamento(orc, empresa);
     }
