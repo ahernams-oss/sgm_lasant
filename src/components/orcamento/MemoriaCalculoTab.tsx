@@ -261,7 +261,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                 disabled={readOnly} onChange={e => updGrupo(g.id, { titulo: e.target.value })} />
             </div>
             <div>
-              <Label className="text-xs">Tipo de medição</Label>
+              <Label className="text-xs">Tipo de medição (padrão)</Label>
               <Select value={g.tipo} disabled={readOnly} onValueChange={(v: TipoMemoria) => updGrupo(g.id, { tipo: v })}>
                 <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
                 <SelectContent>
