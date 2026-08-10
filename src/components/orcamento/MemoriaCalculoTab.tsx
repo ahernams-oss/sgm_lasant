@@ -112,19 +112,49 @@ export interface ItemOrigem {
   unidade?: string;
 }
 
+export interface CatalogoScoItem {
+  codigo: string;
+  descricao: string;
+  unidade?: string;
+  familia?: string;
+}
+
+export interface ItemParaSco {
+  codigo: string;
+  descricao: string;
+  unidade?: string;
+  familia?: string;
+  quantidade: number;
+}
+
 interface Props {
   grupos: GrupoMemoria[];
   onChange: (g: GrupoMemoria[]) => void;
   readOnly?: boolean;
   itensOrigem?: ItemOrigem[];
   setores?: string[];
+  /** Catálogo de itens SCO disponíveis para inserção direta na memória de cálculo */
+  catalogoSco?: CatalogoScoItem[];
   /** Envia os subtotais calculados (por código de item) para as abas Itens SCO / Materiais */
   onAplicarSubtotais?: (subtotais: { codigo: string; total: number }[]) => void;
+  /** Envia os itens da memória (novos e existentes) para a aba Itens SCO */
+  onEnviarItensParaSco?: (itens: ItemParaSco[]) => void;
 }
 
 const SEM_FAMILIA = "SEM FAMÍLIA";
 
-export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOrigem = [], setores = [], onAplicarSubtotais }: Props) {
+export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOrigem = [], setores = [], catalogoSco = [], onAplicarSubtotais, onEnviarItensParaSco }: Props) {
+  const [scoPopoverGrupo, setScoPopoverGrupo] = useState<string | null>(null);
+  const [scoSearch, setScoSearch] = useState("");
+
+  const catalogoFiltrado = useMemo(() => {
+    const q = scoSearch.trim().toLowerCase();
+    if (!q) return catalogoSco.slice(0, 50);
+    return catalogoSco
+      .filter(s => s.codigo.toLowerCase().includes(q) || (s.descricao || "").toLowerCase().includes(q))
+      .slice(0, 50);
+  }, [catalogoSco, scoSearch]);
+
   const aplicarSubtotais = () => {
     const mapa = new Map<string, number>();
     grupos.forEach(g => g.linhas.forEach(l => {
@@ -134,6 +164,26 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
     }));
     onAplicarSubtotais?.(Array.from(mapa, ([codigo, total]) => ({ codigo, total })));
   };
+
+  const enviarItensParaSco = () => {
+    const mapa = new Map<string, ItemParaSco>();
+    grupos.forEach(g => g.linhas.forEach(l => {
+      const cod = (l.codigo || "").trim();
+      if (!cod) return;
+      const total = calcLinha(tipoLinha(g, l), l);
+      const atual = mapa.get(cod);
+      if (atual) atual.quantidade += total;
+      else mapa.set(cod, {
+        codigo: cod,
+        descricao: l.descricao || "",
+        unidade: l.unidade,
+        familia: (g.titulo || "").trim(),
+        quantidade: total,
+      });
+    }));
+    onEnviarItensParaSco?.(Array.from(mapa.values()));
+  };
+
 
   const sincronizar = (atuais: GrupoMemoria[]): GrupoMemoria[] => {
     const familias: string[] = [];
