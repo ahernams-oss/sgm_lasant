@@ -1580,6 +1580,15 @@ export default function SolicitacaoServicosPage() {
                         <p className="text-sm font-bold">{orc.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
                       </div>
                     </div>
+                    <Tabs defaultValue="itens" className="w-full">
+                      <TabsList>
+                        <TabsTrigger value="itens">Itens</TabsTrigger>
+                        <TabsTrigger value="memoria">Memória de Cálculo</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="memoria" className="mt-3">
+                        <MemoriaCalculoView grupos={(orc as any).memoriaCalculo} />
+                      </TabsContent>
+                      <TabsContent value="itens" className="mt-3">
                     {orc.itensSco.length > 0 && (
                       <div className="mb-3">
                         <Label className="text-xs text-muted-foreground mb-1 block">Itens SCO/SINAPI/EMOP</Label>
