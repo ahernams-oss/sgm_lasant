@@ -3,17 +3,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, RefreshCw } from "lucide-react";
+import { Plus, Trash2, RefreshCw, MapPin } from "lucide-react";
 import { useEffect, useRef } from "react";
 import SetorCombobox from "./SetorCombobox";
 
 export type TipoMemoria = "area" | "mao_de_obra" | "unidade";
 
-export interface LinhaMemoria {
+export interface EntradaSetor {
   id: string;
-  item: string;
-  codigo: string;
-  descricao: string;
   setor: string;
   funcionario?: string;
   quantidade?: number;
@@ -21,6 +18,22 @@ export interface LinhaMemoria {
   largura?: number;
   hrDia?: number;
   dias?: number;
+}
+
+export interface LinhaMemoria {
+  id: string;
+  item: string;
+  codigo: string;
+  descricao: string;
+  /** @deprecated usar entradas */
+  setor?: string;
+  funcionario?: string;
+  quantidade?: number;
+  comprimento?: number;
+  largura?: number;
+  hrDia?: number;
+  dias?: number;
+  entradas?: EntradaSetor[];
 }
 
 export interface GrupoMemoria {
@@ -31,11 +44,29 @@ export interface GrupoMemoria {
   linhas: LinhaMemoria[];
 }
 
-export const calcLinha = (tipo: TipoMemoria, l: LinhaMemoria): number => {
-  if (tipo === "area") return (l.quantidade || 0) * (l.comprimento || 0) * (l.largura || 0);
-  if (tipo === "mao_de_obra") return (l.hrDia || 0) * (l.dias || 0);
-  return l.quantidade || 0;
+/** Retorna as entradas (setores) de uma linha, convertendo o formato antigo. */
+export const getEntradas = (l: LinhaMemoria): EntradaSetor[] => {
+  if (Array.isArray(l.entradas) && l.entradas.length) return l.entradas;
+  return [{
+    id: `${l.id}-0`,
+    setor: l.setor || "",
+    funcionario: l.funcionario,
+    quantidade: l.quantidade,
+    comprimento: l.comprimento,
+    largura: l.largura,
+    hrDia: l.hrDia,
+    dias: l.dias,
+  }];
 };
+
+export const calcEntrada = (tipo: TipoMemoria, e: EntradaSetor): number => {
+  if (tipo === "area") return (e.quantidade || 0) * (e.comprimento || 0) * (e.largura || 0);
+  if (tipo === "mao_de_obra") return (e.hrDia || 0) * (e.dias || 0);
+  return e.quantidade || 0;
+};
+
+export const calcLinha = (tipo: TipoMemoria, l: LinhaMemoria): number =>
+  getEntradas(l).reduce((s, e) => s + calcEntrada(tipo, e), 0);
 
 export const calcGrupo = (g: GrupoMemoria): number =>
   g.linhas.reduce((s, l) => s + calcLinha(g.tipo, l), 0);
@@ -80,18 +111,15 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
       const tipo: TipoMemoria = existente?.tipo || "unidade";
       const linhas: LinhaMemoria[] = porFamilia.get(f)!.map((i, li) => {
         const antiga = existente?.linhas.find(l => l.codigo === i.codigo);
+        const entradas: EntradaSetor[] = antiga
+          ? getEntradas(antiga)
+          : [{ id: crypto.randomUUID(), setor: "", quantidade: i.quantidade }];
         return {
           id: antiga?.id || crypto.randomUUID(),
           item: antiga?.item || `${idx + 1}.${li + 1}`,
           codigo: i.codigo,
           descricao: i.descricao,
-          setor: antiga?.setor || "",
-          funcionario: antiga?.funcionario,
-          quantidade: i.quantidade,
-          comprimento: antiga?.comprimento,
-          largura: antiga?.largura,
-          hrDia: antiga?.hrDia,
-          dias: antiga?.dias,
+          entradas,
         };
       });
       return {
@@ -126,7 +154,10 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
   const addLinha = (gid: string) =>
     onChange(grupos.map(g => g.id === gid ? {
       ...g,
-      linhas: [...g.linhas, { id: crypto.randomUUID(), item: "", codigo: "", descricao: "", setor: "", quantidade: 1 }],
+      linhas: [...g.linhas, {
+        id: crypto.randomUUID(), item: "", codigo: "", descricao: "",
+        entradas: [{ id: crypto.randomUUID(), setor: "", quantidade: 1 }],
+      }],
     } : g));
 
   const updLinha = (gid: string, lid: string, patch: Partial<LinhaMemoria>) =>
@@ -137,11 +168,28 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
   const delLinha = (gid: string, lid: string) =>
     onChange(grupos.map(g => g.id === gid ? { ...g, linhas: g.linhas.filter(l => l.id !== lid) } : g));
 
+  const setEntradas = (gid: string, l: LinhaMemoria, entradas: EntradaSetor[]) =>
+    updLinha(gid, l.id, { entradas });
+
+  const addEntrada = (gid: string, l: LinhaMemoria) =>
+    setEntradas(gid, l, [...getEntradas(l), { id: crypto.randomUUID(), setor: "", quantidade: 1 }]);
+
+  const updEntrada = (gid: string, l: LinhaMemoria, eid: string, patch: Partial<EntradaSetor>) =>
+    setEntradas(gid, l, getEntradas(l).map(e => (e.id === eid ? { ...e, ...patch } : e)));
+
+  const delEntrada = (gid: string, l: LinhaMemoria, eid: string) => {
+    const rest = getEntradas(l).filter(e => e.id !== eid);
+    setEntradas(gid, l, rest.length ? rest : [{ id: crypto.randomUUID(), setor: "", quantidade: 0 }]);
+  };
+
+  const colsMedidas = (tipo: TipoMemoria) => (tipo === "unidade" ? 1 : 3);
+
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground">
         Os grupos são gerados a partir das abas Itens SCO e Materiais: o título vem do campo Família e as quantidades
-        dos itens. Informe o setor (lista de setores do cliente) e as medidas — o total de cada grupo é automático.
+        dos itens. Cada item pode ter vários setores (1 - N) — use "Adicionar setor" para desdobrar o item; o total do
+        item é a soma dos setores.
       </p>
 
       {!readOnly && (
@@ -192,7 +240,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
           </div>
 
           <div className="border rounded-md overflow-x-auto">
-            <Table className="min-w-[1100px]">
+            <Table className="min-w-[1150px]">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-20">ITEM</TableHead>
@@ -215,84 +263,114 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                     <TableHead className="w-28">QUANT.</TableHead>
                   )}
                   <TableHead className="w-28">{UNIDADE_LABEL[g.tipo]}</TableHead>
-                  {!readOnly && <TableHead className="w-12" />}
+                  {!readOnly && <TableHead className="w-10" />}
+                  {!readOnly && <TableHead className="w-20" />}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {g.linhas.map(l => (
-                  <TableRow key={l.id}>
-                    <TableCell>
-                      <Input className="h-8" value={l.item} disabled={readOnly}
-                        onChange={e => updLinha(g.id, l.id, { item: e.target.value })} />
-                    </TableCell>
-                    <TableCell>
-                      <Input className="h-8 font-mono text-xs" value={l.codigo} disabled={readOnly}
-                        onChange={e => updLinha(g.id, l.id, { codigo: e.target.value })} />
-                    </TableCell>
-                    <TableCell>
-                      <Input className="h-8" value={l.descricao} disabled={readOnly}
-                        onChange={e => updLinha(g.id, l.id, { descricao: e.target.value })} />
-                    </TableCell>
-                    <TableCell>
-                      {setores.length > 0 ? (
-                        <SetorCombobox value={l.setor || ""} options={setores} disabled={readOnly}
-                          onChange={v => updLinha(g.id, l.id, { setor: v })} />
-                      ) : (
-                        <Input className="h-8" value={l.setor} disabled={readOnly}
-                          onChange={e => updLinha(g.id, l.id, { setor: e.target.value })} />
+                {g.linhas.map(l => {
+                  const entradas = getEntradas(l);
+                  return entradas.map((e, ei) => (
+                    <TableRow key={e.id} className={ei > 0 ? "border-t-0" : ""}>
+                      {ei === 0 && (
+                        <>
+                          <TableCell rowSpan={entradas.length} className="align-top">
+                            <Input className="h-8" value={l.item} disabled={readOnly}
+                              onChange={ev => updLinha(g.id, l.id, { item: ev.target.value })} />
+                          </TableCell>
+                          <TableCell rowSpan={entradas.length} className="align-top">
+                            <Input className="h-8 font-mono text-xs" value={l.codigo} disabled={readOnly}
+                              onChange={ev => updLinha(g.id, l.id, { codigo: ev.target.value })} />
+                          </TableCell>
+                          <TableCell rowSpan={entradas.length} className="align-top">
+                            <Input className="h-8" value={l.descricao} disabled={readOnly}
+                              onChange={ev => updLinha(g.id, l.id, { descricao: ev.target.value })} />
+                          </TableCell>
+                        </>
                       )}
-                    </TableCell>
-                    {g.tipo === "mao_de_obra" ? (
-                      <>
-                        <TableCell>
-                          <Input className="h-8" value={l.funcionario || ""} disabled={readOnly}
-                            onChange={e => updLinha(g.id, l.id, { funcionario: e.target.value })} />
-                        </TableCell>
-                        <TableCell>
-                          <Input type="number" min={0} step="0.01" className="h-8" value={l.hrDia ?? ""} disabled={readOnly}
-                            onChange={e => updLinha(g.id, l.id, { hrDia: Number(e.target.value) })} />
-                        </TableCell>
-                        <TableCell>
-                          <Input type="number" min={0} step="0.01" className="h-8" value={l.dias ?? ""} disabled={readOnly}
-                            onChange={e => updLinha(g.id, l.id, { dias: Number(e.target.value) })} />
-                        </TableCell>
-                      </>
-                    ) : g.tipo === "area" ? (
-                      <>
-                        <TableCell>
-                          <Input type="number" min={0} step="0.01" className="h-8" value={l.quantidade ?? ""} disabled={readOnly}
-                            onChange={e => updLinha(g.id, l.id, { quantidade: Number(e.target.value) })} />
-                        </TableCell>
-                        <TableCell>
-                          <Input type="number" min={0} step="0.0001" className="h-8" value={l.comprimento ?? ""} disabled={readOnly}
-                            onChange={e => updLinha(g.id, l.id, { comprimento: Number(e.target.value) })} />
-                        </TableCell>
-                        <TableCell>
-                          <Input type="number" min={0} step="0.0001" className="h-8" value={l.largura ?? ""} disabled={readOnly}
-                            onChange={e => updLinha(g.id, l.id, { largura: Number(e.target.value) })} />
-                        </TableCell>
-                      </>
-                    ) : (
                       <TableCell>
-                        <Input type="number" min={0} step="0.01" className="h-8" value={l.quantidade ?? ""} disabled={readOnly}
-                          onChange={e => updLinha(g.id, l.id, { quantidade: Number(e.target.value) })} />
+                        {setores.length > 0 ? (
+                          <SetorCombobox value={e.setor || ""} options={setores} disabled={readOnly}
+                            onChange={v => updEntrada(g.id, l, e.id, { setor: v })} />
+                        ) : (
+                          <Input className="h-8" value={e.setor || ""} disabled={readOnly}
+                            onChange={ev => updEntrada(g.id, l, e.id, { setor: ev.target.value })} />
+                        )}
                       </TableCell>
-                    )}
-                    <TableCell className="font-medium">{nf(calcLinha(g.tipo, l))}</TableCell>
-                    {!readOnly && (
-                      <TableCell>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => delLinha(g.id, l.id)}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                      {g.tipo === "mao_de_obra" ? (
+                        <>
+                          <TableCell>
+                            <Input className="h-8" value={e.funcionario || ""} disabled={readOnly}
+                              onChange={ev => updEntrada(g.id, l, e.id, { funcionario: ev.target.value })} />
+                          </TableCell>
+                          <TableCell>
+                            <Input type="number" min={0} step="0.01" className="h-8" value={e.hrDia ?? ""} disabled={readOnly}
+                              onChange={ev => updEntrada(g.id, l, e.id, { hrDia: Number(ev.target.value) })} />
+                          </TableCell>
+                          <TableCell>
+                            <Input type="number" min={0} step="0.01" className="h-8" value={e.dias ?? ""} disabled={readOnly}
+                              onChange={ev => updEntrada(g.id, l, e.id, { dias: Number(ev.target.value) })} />
+                          </TableCell>
+                        </>
+                      ) : g.tipo === "area" ? (
+                        <>
+                          <TableCell>
+                            <Input type="number" min={0} step="0.01" className="h-8" value={e.quantidade ?? ""} disabled={readOnly}
+                              onChange={ev => updEntrada(g.id, l, e.id, { quantidade: Number(ev.target.value) })} />
+                          </TableCell>
+                          <TableCell>
+                            <Input type="number" min={0} step="0.0001" className="h-8" value={e.comprimento ?? ""} disabled={readOnly}
+                              onChange={ev => updEntrada(g.id, l, e.id, { comprimento: Number(ev.target.value) })} />
+                          </TableCell>
+                          <TableCell>
+                            <Input type="number" min={0} step="0.0001" className="h-8" value={e.largura ?? ""} disabled={readOnly}
+                              onChange={ev => updEntrada(g.id, l, e.id, { largura: Number(ev.target.value) })} />
+                          </TableCell>
+                        </>
+                      ) : (
+                        <TableCell>
+                          <Input type="number" min={0} step="0.01" className="h-8" value={e.quantidade ?? ""} disabled={readOnly}
+                            onChange={ev => updEntrada(g.id, l, e.id, { quantidade: Number(ev.target.value) })} />
+                        </TableCell>
+                      )}
+                      <TableCell className="font-medium">
+                        {nf(calcEntrada(g.tipo, e))}
+                        {ei === 0 && entradas.length > 1 && (
+                          <span className="block text-[10px] text-muted-foreground">
+                            item: {nf(calcLinha(g.tipo, l))}
+                          </span>
+                        )}
                       </TableCell>
-                    )}
-                  </TableRow>
-                ))}
+                      {!readOnly && (
+                        <TableCell>
+                          <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground"
+                            title="Remover setor" onClick={() => delEntrada(g.id, l, e.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </TableCell>
+                      )}
+                      {!readOnly && ei === 0 && (
+                        <TableCell rowSpan={entradas.length} className="align-top">
+                          <div className="flex flex-col gap-1">
+                            <Button size="icon" variant="ghost" className="h-7 w-7" title="Adicionar setor"
+                              onClick={() => addEntrada(g.id, l)}>
+                              <MapPin className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" title="Excluir item"
+                              onClick={() => delLinha(g.id, l.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ));
+                })}
                 <TableRow className="bg-muted/50">
                   <TableCell className="font-bold">TOTAL</TableCell>
-                  <TableCell colSpan={g.tipo === "unidade" ? 4 : 6} />
+                  <TableCell colSpan={3 + colsMedidas(g.tipo)} />
                   <TableCell className="font-bold">{nf(calcGrupo(g))}</TableCell>
-                  {!readOnly && <TableCell />}
+                  {!readOnly && <TableCell colSpan={2} />}
                 </TableRow>
               </TableBody>
             </Table>
