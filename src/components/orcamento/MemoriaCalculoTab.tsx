@@ -557,10 +557,44 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
           })()}
 
           {!readOnly && (
-            <Button size="sm" variant="outline" onClick={() => addLinha(g.id)}>
-              <Plus className="mr-2 h-3.5 w-3.5" /> Adicionar linha
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={() => addLinha(g.id)}>
+                <Plus className="mr-2 h-3.5 w-3.5" /> Adicionar linha
+              </Button>
+              {catalogoSco.length > 0 && (
+                <Popover
+                  open={scoPopoverGrupo === g.id}
+                  onOpenChange={o => { setScoPopoverGrupo(o ? g.id : null); setScoSearch(""); }}
+                >
+                  <PopoverTrigger asChild>
+                    <Button size="sm" variant="outline">
+                      <Search className="mr-2 h-3.5 w-3.5" /> Adicionar item SCO
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[560px] p-0" align="start">
+                    <Command shouldFilter={false}>
+                      <CommandInput placeholder="Buscar por código ou descrição..." value={scoSearch} onValueChange={setScoSearch} />
+                      <CommandList>
+                        <CommandEmpty>Nenhum item encontrado.</CommandEmpty>
+                        <CommandGroup>
+                          {catalogoFiltrado.map(s => (
+                            <CommandItem key={s.codigo} value={s.codigo}
+                              onSelect={() => { addLinhaSco(g.id, s); setScoPopoverGrupo(null); setScoSearch(""); }}>
+                              <div className="flex flex-col">
+                                <span className="font-mono text-xs">{s.codigo} {s.unidade ? `(${s.unidade})` : ""}</span>
+                                <span className="text-xs text-muted-foreground line-clamp-2">{s.descricao}</span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
+            </div>
           )}
+
         </div>
       ))}
     </div>
