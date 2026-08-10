@@ -52,6 +52,8 @@ import WorkflowHistorico from "@/components/WorkflowHistorico";
 import RelatorioFechamentoOSDialog from "@/components/RelatorioFechamentoOSDialog";
 import { AssinaturaEletronicaOs } from "@/components/AssinaturaEletronicaOs";
 import { AvaliacaoOs } from "@/components/AvaliacaoOs";
+import MemoriaCalculoView from "@/components/orcamento/MemoriaCalculoView";
+
 import { useOsAssinaturas } from "@/contexts/OsAssinaturasContext";
 import { BarChart3, Camera, ImagePlus } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
