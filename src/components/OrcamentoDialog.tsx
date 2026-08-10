@@ -667,6 +667,9 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
               <Button variant="outline" onClick={() => gerarExcelOrcamento(existingOrcamento, empresa)}>
                 <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
               </Button>
+              <Button variant="outline" onClick={() => gerarPdfMemoriaCalculo(existingOrcamento, empresa)}>
+                <Download className="mr-2 h-4 w-4" /> Memória de Cálculo
+              </Button>
             </>
           )}
 
