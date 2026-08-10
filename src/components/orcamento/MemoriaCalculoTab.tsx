@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, RefreshCw, MapPin } from "lucide-react";
+import { Plus, Trash2, RefreshCw, MapPin, Send } from "lucide-react";
 import { Fragment, useEffect, useRef } from "react";
 import SetorCombobox from "./SetorCombobox";
 
