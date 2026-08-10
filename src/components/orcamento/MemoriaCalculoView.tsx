@@ -8,10 +8,28 @@ const UNIDADE_LABEL: Record<Tipo, string> = {
   unidade: "QTD (un)",
 };
 
+/** Entradas (setores) de uma linha, com compatibilidade com o formato antigo. */
+function getEntradas(l: any): any[] {
+  if (Array.isArray(l?.entradas) && l.entradas.length) return l.entradas;
+  return [{
+    setor: l?.setor || "",
+    funcionario: l?.funcionario,
+    quantidade: l?.quantidade,
+    comprimento: l?.comprimento,
+    largura: l?.largura,
+    hrDia: l?.hrDia,
+    dias: l?.dias,
+  }];
+}
+
+function calcEntrada(tipo: Tipo, e: any): number {
+  if (tipo === "area") return (Number(e.quantidade) || 0) * (Number(e.comprimento) || 0) * (Number(e.largura) || 0);
+  if (tipo === "mao_de_obra") return (Number(e.hrDia) || 0) * (Number(e.dias) || 0);
+  return Number(e.quantidade) || 0;
+}
+
 function calcLinha(tipo: Tipo, l: any): number {
-  if (tipo === "area") return (Number(l.quantidade) || 0) * (Number(l.comprimento) || 0) * (Number(l.largura) || 0);
-  if (tipo === "mao_de_obra") return (Number(l.hrDia) || 0) * (Number(l.dias) || 0);
-  return Number(l.quantidade) || 0;
+  return getEntradas(l).reduce((s, e) => s + calcEntrada(tipo, e), 0);
 }
 
 const nf = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -31,7 +49,7 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
         const total = linhas.reduce((s, l) => s + calcLinha(tipo, l), 0);
 
         return (
-          <div key={gi} className="border rounded-md overflow-hidden">
+          <div key={gi} className="border rounded-md overflow-x-auto">
             <div className="bg-muted px-3 py-2 text-xs font-semibold">
               {g.item ? `${g.item} - ` : ""}{g.titulo || "SEM TÍTULO"}
             </div>
@@ -59,28 +77,35 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {linhas.map((l: any, li: number) => (
-                  <TableRow key={li}>
-                    <TableCell className="text-xs">{l.item || ""}</TableCell>
-                    <TableCell className="text-xs font-mono">{l.codigo || ""}</TableCell>
-                    <TableCell className="text-xs">{l.descricao || ""}</TableCell>
-                    <TableCell className="text-xs">{l.setor || ""}</TableCell>
-                    {tipo === "area" && (
-                      <>
-                        <TableCell className="text-xs text-right">{nf(Number(l.quantidade) || 0)}</TableCell>
-                        <TableCell className="text-xs text-right">{nf(Number(l.comprimento) || 0)}</TableCell>
-                        <TableCell className="text-xs text-right">{nf(Number(l.largura) || 0)}</TableCell>
-                      </>
-                    )}
-                    {tipo === "mao_de_obra" && (
-                      <>
-                        <TableCell className="text-xs text-right">{nf(Number(l.hrDia) || 0)}</TableCell>
-                        <TableCell className="text-xs text-right">{nf(Number(l.dias) || 0)}</TableCell>
-                      </>
-                    )}
-                    <TableCell className="text-xs text-right font-medium">{nf(calcLinha(tipo, l))}</TableCell>
-                  </TableRow>
-                ))}
+                {linhas.map((l: any, li: number) => {
+                  const entradas = getEntradas(l);
+                  return entradas.map((e: any, ei: number) => (
+                    <TableRow key={`${li}-${ei}`}>
+                      {ei === 0 && (
+                        <>
+                          <TableCell rowSpan={entradas.length} className="text-xs align-top">{l.item || ""}</TableCell>
+                          <TableCell rowSpan={entradas.length} className="text-xs font-mono align-top">{l.codigo || ""}</TableCell>
+                          <TableCell rowSpan={entradas.length} className="text-xs align-top">{l.descricao || ""}</TableCell>
+                        </>
+                      )}
+                      <TableCell className="text-xs">{e.setor || ""}</TableCell>
+                      {tipo === "area" && (
+                        <>
+                          <TableCell className="text-xs text-right">{nf(Number(e.quantidade) || 0)}</TableCell>
+                          <TableCell className="text-xs text-right">{nf(Number(e.comprimento) || 0)}</TableCell>
+                          <TableCell className="text-xs text-right">{nf(Number(e.largura) || 0)}</TableCell>
+                        </>
+                      )}
+                      {tipo === "mao_de_obra" && (
+                        <>
+                          <TableCell className="text-xs text-right">{nf(Number(e.hrDia) || 0)}</TableCell>
+                          <TableCell className="text-xs text-right">{nf(Number(e.dias) || 0)}</TableCell>
+                        </>
+                      )}
+                      <TableCell className="text-xs text-right font-medium">{nf(calcEntrada(tipo, e))}</TableCell>
+                    </TableRow>
+                  ));
+                })}
                 <TableRow>
                   <TableCell colSpan={tipo === "area" ? 7 : tipo === "mao_de_obra" ? 6 : 4} className="text-xs text-right font-semibold">
                     TOTAL

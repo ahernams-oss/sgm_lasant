@@ -16,11 +16,28 @@ const UNIDADE_LABEL: Record<Tipo, string> = {
   unidade: "UNIDADE",
 };
 
-const calcLinha = (tipo: Tipo, l: any): number => {
-  if (tipo === "area") return (l.quantidade || 0) * (l.comprimento || 0) * (l.largura || 0);
-  if (tipo === "mao_de_obra") return (l.hrDia || 0) * (l.dias || 0);
-  return l.quantidade || 0;
+const getEntradas = (l: any): any[] => {
+  if (Array.isArray(l?.entradas) && l.entradas.length) return l.entradas;
+  return [{
+    setor: l?.setor || "",
+    funcionario: l?.funcionario,
+    quantidade: l?.quantidade,
+    comprimento: l?.comprimento,
+    largura: l?.largura,
+    hrDia: l?.hrDia,
+    dias: l?.dias,
+  }];
 };
+
+const calcEntrada = (tipo: Tipo, e: any): number => {
+  if (tipo === "area") return (e.quantidade || 0) * (e.comprimento || 0) * (e.largura || 0);
+  if (tipo === "mao_de_obra") return (e.hrDia || 0) * (e.dias || 0);
+  return e.quantidade || 0;
+};
+
+const calcLinha = (tipo: Tipo, l: any): number =>
+  getEntradas(l).reduce((s: number, e: any) => s + calcEntrada(tipo, e), 0);
+
 
 async function loadImageAsDataUrl(url: string): Promise<string | null> {
   try {
@@ -123,15 +140,28 @@ export async function gerarPdfMemoriaCalculo(orc: Orcamento, empresa?: Empresa) 
     ];
 
     for (const l of linhas) {
-      const base = [l.item || "", l.codigo || "", l.descricao || "", l.setor || ""];
-      if (tipo === "area") {
-        body.push([...base, nf(l.quantidade || 0), nf(l.comprimento || 0), nf(l.largura || 0), nf(calcLinha(tipo, l))]);
-      } else if (tipo === "mao_de_obra") {
-        body.push([...base, nf(l.hrDia || 0), nf(l.dias || 0), nf(calcLinha(tipo, l))]);
-      } else {
-        body.push([...base, nf(calcLinha(tipo, l))]);
-      }
+      const entradas = getEntradas(l);
+      entradas.forEach((e: any, ei: number) => {
+        const rowSpan = entradas.length;
+        const base =
+          ei === 0
+            ? [
+                { content: l.item || "", rowSpan },
+                { content: l.codigo || "", rowSpan },
+                { content: l.descricao || "", rowSpan },
+                e.setor || "",
+              ]
+            : [e.setor || ""];
+        if (tipo === "area") {
+          body.push([...base, nf(e.quantidade || 0), nf(e.comprimento || 0), nf(e.largura || 0), nf(calcEntrada(tipo, e))]);
+        } else if (tipo === "mao_de_obra") {
+          body.push([...base, nf(e.hrDia || 0), nf(e.dias || 0), nf(calcEntrada(tipo, e))]);
+        } else {
+          body.push([...base, nf(calcEntrada(tipo, e))]);
+        }
+      });
     }
+
 
     body.push([
       { content: "TOTAL:", colSpan: head[0].length - 1, styles: { halign: "right", fontStyle: "bold", fillColor: [245, 247, 252] } },
