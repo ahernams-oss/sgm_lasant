@@ -52,6 +52,8 @@ import WorkflowHistorico from "@/components/WorkflowHistorico";
 import RelatorioFechamentoOSDialog from "@/components/RelatorioFechamentoOSDialog";
 import { AssinaturaEletronicaOs } from "@/components/AssinaturaEletronicaOs";
 import { AvaliacaoOs } from "@/components/AvaliacaoOs";
+import MemoriaCalculoView from "@/components/orcamento/MemoriaCalculoView";
+
 import { useOsAssinaturas } from "@/contexts/OsAssinaturasContext";
 import { BarChart3, Camera, ImagePlus } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -456,6 +458,18 @@ export default function OrdensServicoPage() {
   const [estoqueBusca, setEstoqueBusca] = useState("");
   const [estoqueQtd, setEstoqueQtd] = useState(1);
   const [estoquePopoverOpen, setEstoquePopoverOpen] = useState(false);
+
+  // Memória de cálculo (somente leitura) do orçamento aprovado vinculado à SS da OS
+  const memoriaCalculoOS = useMemo(() => {
+    if (!editingId) return [] as any[];
+    const os = ordens.find(o => o.id === editingId);
+    if (!os?.solicitacaoId) return [] as any[];
+    const orcs = orcamentosAll.filter((o: any) => o.solicitacaoId === os.solicitacaoId);
+    const aprovado = orcs.find((o: any) => (o.status || "").toLowerCase().includes("aprovad"));
+    return Array.isArray(aprovado?.memoriaCalculo) ? aprovado!.memoriaCalculo : [];
+  }, [editingId, ordens, orcamentosAll]);
+
+
 
   // Map pedido número → centro de custo nome (same logic as Estoque page)
   const centroCustoMap = useMemo(() => {
@@ -1922,6 +1936,8 @@ export default function OrdensServicoPage() {
                 <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/40 p-1">
                   <TabsTrigger value="sco" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> SCO</TabsTrigger>
                   <TabsTrigger value="estoque" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> Estoque</TabsTrigger>
+                  <TabsTrigger value="memoria" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> Memória de Cálculo</TabsTrigger>
+
                   <TabsTrigger value="profissionais" className="flex items-center gap-1.5 text-xs"><Wrench className="h-3.5 w-3.5" /> Profissionais</TabsTrigger>
                   <TabsTrigger value="anexos" className="flex items-center gap-1.5 text-xs"><ClipboardList className="h-3.5 w-3.5" /> Anexos ({anexos.length}/5)</TabsTrigger>
                   <TabsTrigger value="fotos" className="flex items-center gap-1.5 text-xs"><Eye className="h-3.5 w-3.5" /> Fotos ({fotos.length}/6)</TabsTrigger>
@@ -2159,6 +2175,16 @@ export default function OrdensServicoPage() {
                     </Table>
                   )}
                 </TabsContent>
+
+                {/* Memória de Cálculo (somente leitura, vinda do orçamento aprovado) */}
+                <TabsContent value="memoria" className="space-y-3 p-3">
+                  <p className="text-xs text-muted-foreground">
+                    Dados recebidos do orçamento aprovado da solicitação vinculada. Somente leitura.
+                  </p>
+                  <MemoriaCalculoView grupos={memoriaCalculoOS} />
+                </TabsContent>
+
+
 
                 {/* 3. Profissionais */}
                 <TabsContent value="profissionais" className="space-y-3 p-3">
