@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Trash2, RefreshCw } from "lucide-react";
 import { useEffect, useRef } from "react";
+import SetorCombobox from "./SetorCombobox";
 
 export type TipoMemoria = "area" | "mao_de_obra" | "unidade";
 
@@ -234,13 +235,8 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                     </TableCell>
                     <TableCell>
                       {setores.length > 0 ? (
-                        <Select value={l.setor || ""} disabled={readOnly}
-                          onValueChange={v => updLinha(g.id, l.id, { setor: v })}>
-                          <SelectTrigger className="h-8"><SelectValue placeholder="Setor" /></SelectTrigger>
-                          <SelectContent>
-                            {setores.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
+                        <SetorCombobox value={l.setor || ""} options={setores} disabled={readOnly}
+                          onChange={v => updLinha(g.id, l.id, { setor: v })} />
                       ) : (
                         <Input className="h-8" value={l.setor} disabled={readOnly}
                           onChange={e => updLinha(g.id, l.id, { setor: e.target.value })} />
