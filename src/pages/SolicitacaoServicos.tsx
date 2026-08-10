@@ -39,6 +39,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList, Download, Eye, History, Clock, ArrowUpDown, ArrowUp, ArrowDown, Camera, ReceiptText, Printer } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MemoriaCalculoView from "@/components/orcamento/MemoriaCalculoView";
 import WorkflowTimeline from "@/components/WorkflowTimeline";
 import WorkflowHistorico from "@/components/WorkflowHistorico";
 
@@ -1580,6 +1582,15 @@ export default function SolicitacaoServicosPage() {
                         <p className="text-sm font-bold">{orc.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
                       </div>
                     </div>
+                    <Tabs defaultValue="itens" className="w-full">
+                      <TabsList>
+                        <TabsTrigger value="itens">Itens</TabsTrigger>
+                        <TabsTrigger value="memoria">Memória de Cálculo</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="memoria" className="mt-3">
+                        <MemoriaCalculoView grupos={(orc as any).memoriaCalculo} />
+                      </TabsContent>
+                      <TabsContent value="itens" className="mt-3">
                     {orc.itensSco.length > 0 && (
                       <div className="mb-3">
                         <Label className="text-xs text-muted-foreground mb-1 block">Itens SCO/SINAPI/EMOP</Label>
@@ -1670,6 +1681,8 @@ export default function SolicitacaoServicosPage() {
                         </div>
                       </div>
                     )}
+                      </TabsContent>
+                    </Tabs>
                   </div>
                 )}
                 {/* Workflow Timeline */}
