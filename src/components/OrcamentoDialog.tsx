@@ -155,6 +155,52 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     });
   };
 
+  // Catálogo SCO disponível para inserção direta na Memória de Cálculo
+  const catalogoSco = useMemo(() => scos.map(s => ({
+    codigo: s.codSco, descricao: s.descricaoSco, unidade: s.unidade, familia: s.familia,
+  })), [scos]);
+
+  const handleEnviarItensParaSco = (itens: { codigo: string; descricao: string; unidade?: string; familia?: string; quantidade: number }[]) => {
+    let novos = 0, atualizados = 0;
+    setItensSco(prev => {
+      const lista = [...prev];
+      itens.forEach(it => {
+        const cod = it.codigo.trim();
+        if (!cod) return;
+        const idx = lista.findIndex(i => (i.codSco || "").trim() === cod);
+        if (idx >= 0) {
+          const q = it.quantidade || lista[idx].quantidade;
+          lista[idx] = { ...lista[idx], quantidade: q, valorTotal: q * lista[idx].valorUnitario, familia: lista[idx].familia || it.familia || "" };
+          atualizados++;
+        } else {
+          if (itensMateriais.some(m => (m.codigo || "").trim() === cod)) return;
+          const price = getScoPrice(cod);
+          const q = it.quantidade || 1;
+          lista.push({
+            id: crypto.randomUUID(),
+            codSco: cod,
+            descricao: it.descricao,
+            unidade: it.unidade || "",
+            quantidade: q,
+            valorUnitario: price,
+            valorTotal: q * price,
+            familia: it.familia || "",
+          });
+          novos++;
+        }
+      });
+      return lista;
+    });
+    toast({
+      title: novos || atualizados ? "Itens enviados para Itens SCO" : "Nenhum item enviado",
+      description: novos || atualizados
+        ? `${novos} novo(s) e ${atualizados} atualizado(s).`
+        : "Adicione itens com código na memória de cálculo.",
+      variant: novos || atualizados ? undefined : "destructive",
+    });
+  };
+
+
   const handleAddMaterial = (mat: typeof materiais[0]) => {
     if (itensMateriais.find(i => i.materialId === mat.id)) {
       toast({ title: "Material já adicionado", variant: "destructive" });
