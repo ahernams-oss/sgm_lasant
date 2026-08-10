@@ -199,26 +199,113 @@ async function renderFotos(doc: jsPDF, opts: RenderOSOptions, startY: number) {
   }
 }
 
-export async function gerarPdfOrdemServicoComFotos(opts: RenderOSOptions) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+const nf2 = (v: number) => (Number(v) || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const modelo = await resolverModeloNome(opts.cliente);
-  if (modelo === "Modelo_Educação") {
-    await renderOrdemServicoEducacao(doc, opts);
-  } else {
-    await renderOS(doc, opts);
+function calcLinhaMem(tipo: string, l: any): number {
+  if (tipo === "area") return (Number(l.quantidade) || 0) * (Number(l.comprimento) || 0) * (Number(l.largura) || 0);
+  if (tipo === "mao_de_obra") return (Number(l.hrDia) || 0) * (Number(l.dias) || 0);
+  return Number(l.quantidade) || 0;
+}
+
+/** Renderiza a memória de cálculo (grupos) em tabelas. */
+function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
+  const pw = doc.internal.pageSize.getWidth();
+  const ml = 12, mr = 12;
+  let y = startY;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...(DARK as unknown as [number, number, number]));
+  doc.text("MEMÓRIA DE CÁLCULO", pw / 2, y, { align: "center" });
+  y += 5;
+
+  if (!grupos.length) {
+    autoTable(doc, {
+      startY: y,
+      theme: "grid",
+      styles: { fontSize: 8, cellPadding: 3, lineColor: BORDER, lineWidth: 0.3, textColor: [120, 120, 120], halign: "center" },
+      body: [[{ content: "Nenhuma memória de cálculo vinculada a esta Ordem de Serviço." }]],
+      margin: { left: ml, right: mr },
+    });
+    return;
   }
 
-  doc.addPage();
-  const y = await renderCabecalhoFotos(doc, opts);
-  await renderFotos(doc, opts, y);
+  grupos.forEach((g: any) => {
+    const tipo = (g.tipo || "unidade") as string;
+    const linhas: any[] = Array.isArray(g.linhas) ? g.linhas : [];
+    const totalLabel = tipo === "area" ? "ÁREA (m²)" : tipo === "mao_de_obra" ? "TOTAL (h)" : "QTD (un)";
+    const extra = tipo === "area" ? ["QTD", "COMP.", "LARG."] : tipo === "mao_de_obra" ? ["HR/DIA", "DIAS"] : [];
+    const head = [["ITEM", "CÓDIGO", "DESCRIÇÃO", "SETOR", ...extra, totalLabel]];
+    const body = linhas.map((l: any) => {
+      const cols = tipo === "area"
+        ? [nf2(l.quantidade), nf2(l.comprimento), nf2(l.largura)]
+        : tipo === "mao_de_obra"
+          ? [nf2(l.hrDia), nf2(l.dias)]
+          : [];
+      return [l.item || "", l.codigo || "", l.descricao || "", l.setor || "", ...cols, nf2(calcLinhaMem(tipo, l))];
+    });
+    const total = linhas.reduce((s, l) => s + calcLinhaMem(tipo, l), 0);
+    const nCols = 4 + extra.length + 1;
+    body.push([{ content: "TOTAL", colSpan: nCols - 1, styles: { halign: "right", fontStyle: "bold" } } as any, nf2(total)]);
 
+    autoTable(doc, {
+      startY: y,
+      theme: "grid",
+      head: [[{ content: `${g.item ? `${g.item} - ` : ""}${g.titulo || "SEM TÍTULO"}`, colSpan: nCols, styles: { halign: "left", fillColor: [235, 235, 235], textColor: [30, 30, 30] } } as any], ...head],
+      body,
+      styles: { fontSize: 7, cellPadding: 1.5, lineColor: BORDER, lineWidth: 0.2, textColor: [30, 30, 30] },
+      headStyles: { fillColor: [245, 245, 245], textColor: [30, 30, 30], fontStyle: "bold", fontSize: 7 },
+      columnStyles: Object.fromEntries(
+        Array.from({ length: nCols }).map((_, i) => [i, i >= 4 ? { halign: "right" as const } : {}])
+      ) as any,
+      margin: { left: ml, right: mr },
+    });
+    y = (doc as any).lastAutoTable.finalY + 5;
+  });
+}
+
+async function finalizar(doc: jsPDF, opts: RenderOSOptions, sufixo: string) {
   const c: any = opts.cliente || {};
   const ident = [c.relLinha1, c.relLinha2, c.relLinha3, c.relLinha4]
     .map((s: any) => (s || "").toString().trim())
     .filter(Boolean)
     .join(" — ") || (opts.os.clienteNome || "");
   addContinuationHeaders(doc, formatNumeroAno(opts.os.numero, opts.os.createdAt), ident);
-
-  doc.save(`OS_${formatNumeroAno(opts.os.numero, opts.os.createdAt)}_Fotos_${(opts.os.clienteNome || "").replace(/\s+/g, "_")}.pdf`);
+  doc.save(`OS_${formatNumeroAno(opts.os.numero, opts.os.createdAt)}_${sufixo}_${(opts.os.clienteNome || "").replace(/\s+/g, "_")}.pdf`);
 }
+
+async function renderBase(doc: jsPDF, opts: RenderOSOptions) {
+  const modelo = await resolverModeloNome(opts.cliente);
+  if (modelo === "Modelo_Educação") {
+    await renderOrdemServicoEducacao(doc, opts);
+  } else {
+    await renderOS(doc, opts);
+  }
+}
+
+export async function gerarPdfOrdemServicoComFotos(opts: RenderOSOptions) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  await renderBase(doc, opts);
+  doc.addPage();
+  const y = await renderCabecalhoFotos(doc, opts);
+  await renderFotos(doc, opts, y);
+  await finalizar(doc, opts, "Fotos");
+}
+
+export async function gerarPdfOrdemServicoFotosMemoria(
+  opts: RenderOSOptions & { memoriaCalculo?: any[] }
+) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  await renderBase(doc, opts);
+
+  doc.addPage();
+  const y = await renderCabecalhoFotos(doc, opts);
+  await renderFotos(doc, opts, y);
+
+  doc.addPage();
+  const y2 = await renderCabecalhoFotos(doc, opts);
+  renderMemoriaCalculo(doc, Array.isArray(opts.memoriaCalculo) ? opts.memoriaCalculo : [], y2);
+
+  await finalizar(doc, opts, "Fotos_Memoria");
+}
+

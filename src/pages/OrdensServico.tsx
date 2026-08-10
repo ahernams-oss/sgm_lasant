@@ -46,7 +46,7 @@ import {
 } from "lucide-react";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfOrdemServico, gerarPdfOrdemServicoLote } from "@/lib/gerarPdfOrdemServico";
-import { gerarPdfOrdemServicoComFotos } from "@/lib/gerarPdfOrdemServicoFotos";
+import { gerarPdfOrdemServicoComFotos, gerarPdfOrdemServicoFotosMemoria } from "@/lib/gerarPdfOrdemServicoFotos";
 import WorkflowTimeline from "@/components/WorkflowTimeline";
 import WorkflowHistorico from "@/components/WorkflowHistorico";
 import RelatorioFechamentoOSDialog from "@/components/RelatorioFechamentoOSDialog";
@@ -460,6 +460,13 @@ export default function OrdensServicoPage() {
   const [estoquePopoverOpen, setEstoquePopoverOpen] = useState(false);
 
   // Memória de cálculo (somente leitura) do orçamento aprovado vinculado à SS da OS
+  const getMemoriaCalculoDaOS = (os: any): any[] => {
+    if (!os?.solicitacaoId) return [];
+    const orcs = orcamentosAll.filter((o: any) => o.solicitacaoId === os.solicitacaoId);
+    const aprovado = orcs.find((o: any) => (o.status || "").toLowerCase().includes("aprovad"));
+    return Array.isArray(aprovado?.memoriaCalculo) ? aprovado!.memoriaCalculo : [];
+  };
+
   const memoriaCalculoOS = useMemo(() => {
     if (!editingId) return [] as any[];
     const os = ordens.find(o => o.id === editingId);
@@ -1571,6 +1578,22 @@ export default function OrdensServicoPage() {
                             <Printer className="mr-2 h-4 w-4" /> Imprimir OS com Fotos
                           </DropdownMenuItem>
                         )}
+                        {podeImprimirOS && (
+                          <DropdownMenuItem onClick={async () => {
+                            await gerarPdfOrdemServicoFotosMemoria({
+                              os,
+                              empresa,
+                              cliente: clientes.find(c => c.id === os.clienteId),
+                              assinaturas: assinaturasOs.filter(a => a.os_id === os.id),
+                              memoriaCalculo: getMemoriaCalculoDaOS(os),
+                            });
+                            await marcarOsImpressa([os.id]);
+                          }}>
+                            <Printer className="mr-2 h-4 w-4" /> Imprimir OS com Fotos e Memória de Cálculo
+                          </DropdownMenuItem>
+                        )}
+
+
 
                         {podeEditarOS && !["Validada", "Cancelada"].includes(os.situacao) && (
                           <DropdownMenuItem onClick={() => handleEdit(os)}>
