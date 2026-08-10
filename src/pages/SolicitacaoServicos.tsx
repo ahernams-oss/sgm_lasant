@@ -1679,6 +1679,8 @@ export default function SolicitacaoServicosPage() {
                         </div>
                       </div>
                     )}
+                      </TabsContent>
+                    </Tabs>
                   </div>
                 )}
                 {/* Workflow Timeline */}
