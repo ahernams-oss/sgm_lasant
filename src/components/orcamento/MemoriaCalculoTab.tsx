@@ -83,6 +83,12 @@ export const calcLinha = (tipo: TipoMemoria, l: LinhaMemoria): number =>
 export const calcGrupo = (g: GrupoMemoria): number =>
   g.linhas.reduce((s, l) => s + calcLinha(tipoLinha(g, l), l), 0);
 
+const UNIDADE_CURTA: Record<TipoMemoria, string> = {
+  area: "m²",
+  mao_de_obra: "h",
+  unidade: "un",
+};
+
 const UNIDADE_LABEL: Record<TipoMemoria, string> = {
   area: "ÁREA (m²)",
   mao_de_obra: "HORA TOTAL",
@@ -306,6 +312,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                     </>
                   )}
                   <TableHead className="w-28">{uniforme ? UNIDADE_LABEL[uniforme] : "TOTAL"}</TableHead>
+                  <TableHead className="w-16">UN.</TableHead>
                   {!readOnly && <TableHead className="w-10" />}
                   {!readOnly && <TableHead className="w-20" />}
                 </TableRow>
@@ -399,6 +406,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                       <TableCell className="font-medium">
                         {nf(calcEntrada(tl, e))}
                       </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{UNIDADE_CURTA[tl]}</TableCell>
 
                       {!readOnly && (
                         <TableCell>
@@ -432,17 +440,31 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                           SUBTOTAL{l.item ? ` ITEM ${l.item}` : " DO ITEM"}
                         </TableCell>
                         <TableCell className="font-bold">{nf(calcLinha(tl, l))}</TableCell>
+                        <TableCell className="text-xs font-semibold">{UNIDADE_CURTA[tl]}</TableCell>
                         {!readOnly && <TableCell colSpan={2} />}
                       </TableRow>
                     </Fragment>
                   );
                 })}
-                <TableRow className="bg-muted/50">
-                  <TableCell className="font-bold">TOTAL</TableCell>
-                  <TableCell colSpan={4 + m} />
-                  <TableCell className="font-bold">{nf(calcGrupo(g))}</TableCell>
-                  {!readOnly && <TableCell colSpan={2} />}
-                </TableRow>
+                {(() => {
+                  const porTipo = new Map<TipoMemoria, number>();
+                  g.linhas.forEach(l => {
+                    const t = tipoLinha(g, l);
+                    porTipo.set(t, (porTipo.get(t) || 0) + calcLinha(t, l));
+                  });
+                  const linhasTotal = porTipo.size ? Array.from(porTipo) : ([[g.tipo, 0]] as [TipoMemoria, number][]);
+                  return linhasTotal.map(([t, v], i) => (
+                    <TableRow key={`total-${t}`} className="bg-muted/50">
+                      <TableCell className="font-bold">{i === 0 ? "TOTAL" : ""}</TableCell>
+                      <TableCell colSpan={4 + m} className="text-right text-xs font-semibold">
+                        {linhasTotal.length > 1 ? UNIDADE_LABEL[t] : ""}
+                      </TableCell>
+                      <TableCell className="font-bold">{nf(v)}</TableCell>
+                      <TableCell className="text-xs font-semibold">{UNIDADE_CURTA[t]}</TableCell>
+                      {!readOnly && <TableCell colSpan={2} />}
+                    </TableRow>
+                  ));
+                })()}
               </TableBody>
             </Table>
           </div>
