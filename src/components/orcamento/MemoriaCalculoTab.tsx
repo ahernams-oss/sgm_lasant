@@ -3,9 +3,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, RefreshCw, MapPin, Send } from "lucide-react";
-import { Fragment, useEffect, useRef } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Plus, Trash2, RefreshCw, MapPin, Send, Search } from "lucide-react";
+import { Fragment, useEffect, useRef, useState, useMemo } from "react";
 import SetorCombobox from "./SetorCombobox";
+
 
 export type TipoMemoria = "area" | "mao_de_obra" | "unidade";
 
