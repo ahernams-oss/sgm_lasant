@@ -131,6 +131,30 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
 
   const handleRemoveSco = (id: string) => setItensSco(prev => prev.filter(i => i.id !== id));
 
+  const handleAplicarSubtotais = (subtotais: { codigo: string; total: number }[]) => {
+    const mapa = new Map(subtotais.map(s => [s.codigo.trim(), s.total]));
+    let atualizados = 0;
+    setItensSco(prev => prev.map(i => {
+      const q = mapa.get((i.codSco || "").trim());
+      if (q === undefined) return i;
+      atualizados++;
+      return { ...i, quantidade: q, valorTotal: q * i.valorUnitario };
+    }));
+    setItensMateriais(prev => prev.map(i => {
+      const q = mapa.get((i.codigo || "").trim());
+      if (q === undefined) return i;
+      atualizados++;
+      return { ...i, quantidade: q, valorTotal: q * i.valorUnitario };
+    }));
+    toast({
+      title: atualizados > 0 ? "Subtotais aplicados" : "Nenhum item correspondente",
+      description: atualizados > 0
+        ? `${atualizados} item(ns) tiveram a quantidade atualizada pela memória de cálculo.`
+        : "Verifique se os códigos da memória de cálculo correspondem aos itens.",
+      variant: atualizados > 0 ? undefined : "destructive",
+    });
+  };
+
   const handleAddMaterial = (mat: typeof materiais[0]) => {
     if (itensMateriais.find(i => i.materialId === mat.id)) {
       toast({ title: "Material já adicionado", variant: "destructive" });
