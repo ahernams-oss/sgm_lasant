@@ -355,7 +355,7 @@ export default function OrdensServicoPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [viewOS, setViewOS] = useState<OrdemServico | null>(null);
   const [viewSSTarget, setViewSSTarget] = useState<SolicitacaoServico | null>(null);
-  const { orcamentos: orcamentosAll } = useOrcamentos();
+  const { orcamentos: orcamentosAll, reload: reloadOrcamentos } = useOrcamentos();
   const _osSavedFilters = loadPersistedFilters<{ busca: string; filtroSituacao: string; filtroPrioridade: string; filtroDataInicio: string; filtroDataFim: string; filtroOrigem: string; filtroFotos: string; filtroImpresso: string; }>("ordens_servico_filters_v1");
   const [busca, setBusca] = useState(_osSavedFilters?.busca ?? "");
   const _osUrlInitial = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
@@ -459,22 +459,29 @@ export default function OrdensServicoPage() {
   const [estoqueQtd, setEstoqueQtd] = useState(1);
   const [estoquePopoverOpen, setEstoquePopoverOpen] = useState(false);
 
-  // Memória de cálculo (somente leitura) do orçamento aprovado vinculado à SS da OS
+  // Memória de cálculo (somente leitura) do orçamento vinculado à SS da OS.
+  // Prioriza o orçamento aprovado mais recente; se não houver, usa o mais recente com memória.
   const getMemoriaCalculoDaOS = (os: any): any[] => {
     if (!os?.solicitacaoId) return [];
-    const orcs = orcamentosAll.filter((o: any) => o.solicitacaoId === os.solicitacaoId);
-    const aprovado = orcs.find((o: any) => (o.status || "").toLowerCase().includes("aprovad"));
-    return Array.isArray(aprovado?.memoriaCalculo) ? aprovado!.memoriaCalculo : [];
+    const ts = (o: any) => new Date(o.dataAprovacao || o.createdAt || o.dataCriacao || 0).getTime() || 0;
+    const orcs = orcamentosAll
+      .filter((o: any) => o.solicitacaoId === os.solicitacaoId)
+      .sort((a: any, b: any) => ts(b) - ts(a));
+    const aprovados = orcs.filter((o: any) => (o.status || "").toLowerCase().includes("aprovad"));
+    const escolhido =
+      aprovados.find((o: any) => Array.isArray(o.memoriaCalculo) && o.memoriaCalculo.length) ||
+      aprovados[0] ||
+      orcs.find((o: any) => Array.isArray(o.memoriaCalculo) && o.memoriaCalculo.length);
+    return Array.isArray(escolhido?.memoriaCalculo) ? escolhido!.memoriaCalculo : [];
   };
 
   const memoriaCalculoOS = useMemo(() => {
     if (!editingId) return [] as any[];
     const os = ordens.find(o => o.id === editingId);
-    if (!os?.solicitacaoId) return [] as any[];
-    const orcs = orcamentosAll.filter((o: any) => o.solicitacaoId === os.solicitacaoId);
-    const aprovado = orcs.find((o: any) => (o.status || "").toLowerCase().includes("aprovad"));
-    return Array.isArray(aprovado?.memoriaCalculo) ? aprovado!.memoriaCalculo : [];
+    return getMemoriaCalculoDaOS(os);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingId, ordens, orcamentosAll]);
+
 
 
 
@@ -876,6 +883,8 @@ export default function OrdensServicoPage() {
       return;
     }
     setEditingId(os.id);
+    void reloadOrcamentos();
+
     setClienteId(os.clienteId); setNCliente(os.nCliente); setSituacao(os.situacao); setTipoOs(os.tipoOs);
     setDataInicio(os.dataInicio); setHoraInicio(os.horaInicio);
     setDataTermino(os.dataTermino); setHoraTermino(os.horaTermino);
@@ -1549,7 +1558,7 @@ export default function OrdensServicoPage() {
                         <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setViewOS(os)}>
+                        <DropdownMenuItem onClick={() => { void reloadOrcamentos(); setViewOS(os); }}>
                           <Eye className="mr-2 h-4 w-4" /> Visualizar
                         </DropdownMenuItem>
                         {podeImprimirOS && (
@@ -2563,12 +2572,8 @@ export default function OrdensServicoPage() {
 
               {/* Materiais + Memória de Cálculo */}
               {(() => {
-                const memoriaView = (() => {
-                  if (!viewOS.solicitacaoId) return [] as any[];
-                  const orcs = orcamentosAll.filter((o: any) => o.solicitacaoId === viewOS.solicitacaoId);
-                  const aprovado = orcs.find((o: any) => (o.status || "").toLowerCase().includes("aprovad"));
-                  return Array.isArray(aprovado?.memoriaCalculo) ? aprovado!.memoriaCalculo : [];
-                })();
+                const memoriaView = getMemoriaCalculoDaOS(viewOS);
+
                 const anexosView = viewOS.anexos || [];
                 const fotosView = viewOS.fotos || [];
                 const fiscView = viewOS.observacoesFiscalizacao || [];
