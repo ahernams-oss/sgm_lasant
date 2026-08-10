@@ -335,12 +335,8 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                       )}
                       <TableCell className="font-medium">
                         {nf(calcEntrada(g.tipo, e))}
-                        {ei === 0 && entradas.length > 1 && (
-                          <span className="block text-[10px] text-muted-foreground">
-                            item: {nf(calcLinha(g.tipo, l))}
-                          </span>
-                        )}
                       </TableCell>
+
                       {!readOnly && (
                         <TableCell>
                           <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground"
