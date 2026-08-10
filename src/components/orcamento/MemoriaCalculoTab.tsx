@@ -104,7 +104,17 @@ interface Props {
 
 const SEM_FAMILIA = "SEM FAMÍLIA";
 
-export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOrigem = [], setores = [] }: Props) {
+export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOrigem = [], setores = [], onAplicarSubtotais }: Props) {
+  const aplicarSubtotais = () => {
+    const mapa = new Map<string, number>();
+    grupos.forEach(g => g.linhas.forEach(l => {
+      const cod = (l.codigo || "").trim();
+      if (!cod) return;
+      mapa.set(cod, (mapa.get(cod) || 0) + calcLinha(g.tipo, l));
+    }));
+    onAplicarSubtotais?.(Array.from(mapa, ([codigo, total]) => ({ codigo, total })));
+  };
+
   const sincronizar = (atuais: GrupoMemoria[]): GrupoMemoria[] => {
     const familias: string[] = [];
     const porFamilia = new Map<string, ItemOrigem[]>();
