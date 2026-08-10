@@ -1558,7 +1558,7 @@ export default function OrdensServicoPage() {
                         <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setViewOS(os)}>
+                        <DropdownMenuItem onClick={() => { void reloadOrcamentos(); setViewOS(os); }}>
                           <Eye className="mr-2 h-4 w-4" /> Visualizar
                         </DropdownMenuItem>
                         {podeImprimirOS && (
