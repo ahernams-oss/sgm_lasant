@@ -270,7 +270,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
               <TableBody>
                 {g.linhas.map(l => {
                   const entradas = getEntradas(l);
-                  return entradas.map((e, ei) => (
+                  const linhasEntradas = entradas.map((e, ei) => (
                     <TableRow key={e.id} className={ei > 0 ? "border-t-0" : ""}>
                       {ei === 0 && (
                         <>
