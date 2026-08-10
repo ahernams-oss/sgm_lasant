@@ -1299,6 +1299,9 @@ export default function SolicitacaoServicosPage() {
                           <DropdownMenuItem onClick={() => handleDownloadOrcamento(s, "excel")}>
                             <Download className="mr-2 h-4 w-4" />Orçamento Excel
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadOrcamento(s, "memoria")}>
+                            <Download className="mr-2 h-4 w-4" />Memória de Cálculo PDF
+                          </DropdownMenuItem>
                         </>
                       )}
                       {podeEditar && !["Aprovada", "Em execução", "Concluída", "Orçamento Solicitado", "Orçamento Disponível"].includes(s.situacao) && (
