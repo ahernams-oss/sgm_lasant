@@ -16,6 +16,7 @@ import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/Double
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import OrcamentoDialog from "@/components/OrcamentoDialog";
 import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
+import { gerarPdfMemoriaCalculo } from "@/lib/gerarPdfMemoriaCalculo";
 import { gerarPdfSolicitacao, gerarPdfSolicitacaoLote } from "@/lib/gerarPdfSolicitacao";
 import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
 import { supabase } from "@/integrations/supabase/client";
