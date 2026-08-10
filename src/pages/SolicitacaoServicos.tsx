@@ -39,6 +39,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, ChevronDown, ChevronUp, AlertTriangle, Pencil, Trash2, MoreHorizontal, ImagePlus, X, Building2, Wrench, CheckCircle2, XCircle, FileText, ClipboardList, Download, Eye, History, Clock, ArrowUpDown, ArrowUp, ArrowDown, Camera, ReceiptText, Printer } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MemoriaCalculoView from "@/components/orcamento/MemoriaCalculoView";
 import WorkflowTimeline from "@/components/WorkflowTimeline";
 import WorkflowHistorico from "@/components/WorkflowHistorico";
 
