@@ -16,11 +16,28 @@ const UNIDADE_LABEL: Record<Tipo, string> = {
   unidade: "UNIDADE",
 };
 
-const calcLinha = (tipo: Tipo, l: any): number => {
-  if (tipo === "area") return (l.quantidade || 0) * (l.comprimento || 0) * (l.largura || 0);
-  if (tipo === "mao_de_obra") return (l.hrDia || 0) * (l.dias || 0);
-  return l.quantidade || 0;
+const getEntradas = (l: any): any[] => {
+  if (Array.isArray(l?.entradas) && l.entradas.length) return l.entradas;
+  return [{
+    setor: l?.setor || "",
+    funcionario: l?.funcionario,
+    quantidade: l?.quantidade,
+    comprimento: l?.comprimento,
+    largura: l?.largura,
+    hrDia: l?.hrDia,
+    dias: l?.dias,
+  }];
 };
+
+const calcEntrada = (tipo: Tipo, e: any): number => {
+  if (tipo === "area") return (e.quantidade || 0) * (e.comprimento || 0) * (e.largura || 0);
+  if (tipo === "mao_de_obra") return (e.hrDia || 0) * (e.dias || 0);
+  return e.quantidade || 0;
+};
+
+const calcLinha = (tipo: Tipo, l: any): number =>
+  getEntradas(l).reduce((s: number, e: any) => s + calcEntrada(tipo, e), 0);
+
 
 async function loadImageAsDataUrl(url: string): Promise<string | null> {
   try {
