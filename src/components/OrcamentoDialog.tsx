@@ -19,7 +19,7 @@ import { useCategoriasServicos } from "@/contexts/CategoriasServicosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Upload, X, FileText, Check, RotateCcw, ChevronsUpDown, Download, FileSpreadsheet } from "lucide-react";
+import { Plus, Trash2, Upload, X, FileText, Check, RotateCcw, ChevronsUpDown, Download, FileSpreadsheet, Maximize2, Minimize2 } from "lucide-react";
 import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
 import { gerarPdfMemoriaCalculo } from "@/lib/gerarPdfMemoriaCalculo";
 import { useEmpresa } from "@/contexts/EmpresaContext";
@@ -66,6 +66,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     (existingOrcamento?.anexos || []).map((url: string) => ({ url, nome: url.split("/").pop() || "arquivo" }))
   );
   const [observacoes, setObservacoes] = useState(existingOrcamento?.observacoes || "");
+  const [expandido, setExpandido] = useState(false);
   const [memoriaCalculo, setMemoriaCalculo] = useState<GrupoMemoria[]>(
     Array.isArray((existingOrcamento as any)?.memoriaCalculo) ? (existingOrcamento as any).memoriaCalculo : []
   );
@@ -358,7 +359,13 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className={
+          expandido
+            ? "max-w-none w-[98vw] h-[96vh] max-h-[96vh] overflow-y-auto"
+            : "max-w-5xl max-h-[90vh] overflow-y-auto"
+        }
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <FileText className="h-5 w-5" />
@@ -369,8 +376,19 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
                 {existingOrcamento.status}
               </Badge>
             )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="ml-auto mr-8 gap-2"
+              onClick={() => setExpandido(v => !v)}
+            >
+              {expandido ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+              {expandido ? "Reduzir tela" : "Expandir tela"}
+            </Button>
           </DialogTitle>
         </DialogHeader>
+
 
         <datalist id="familias-orcamento">
           {familiasUsadas.map(f => <option key={f} value={f} />)}
