@@ -320,11 +320,6 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
           <Button variant="outline" onClick={addGrupo} className="flex-1 min-w-[160px]">
             <Plus className="mr-2 h-4 w-4" /> Adicionar grupo
           </Button>
-          {onEnviarItensParaSco && (
-            <Button variant="secondary" onClick={enviarItensParaSco} className="flex-1 min-w-[200px]" disabled={grupos.length === 0}>
-              <Send className="mr-2 h-4 w-4" /> Enviar itens para Itens SCO
-            </Button>
-          )}
           {onAplicarSubtotais && (
             <Button variant="default" onClick={aplicarSubtotais} className="flex-1 min-w-[200px]" disabled={grupos.length === 0}>
               <Send className="mr-2 h-4 w-4" /> Enviar subtotais para Itens SCO
@@ -561,37 +556,6 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
               <Button size="sm" variant="outline" onClick={() => addLinha(g.id)}>
                 <Plus className="mr-2 h-3.5 w-3.5" /> Adicionar linha
               </Button>
-              {catalogoSco.length > 0 && (
-                <Popover
-                  open={scoPopoverGrupo === g.id}
-                  onOpenChange={o => { setScoPopoverGrupo(o ? g.id : null); setScoSearch(""); }}
-                >
-                  <PopoverTrigger asChild>
-                    <Button size="sm" variant="outline">
-                      <Search className="mr-2 h-3.5 w-3.5" /> Adicionar item SCO
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[560px] p-0" align="start">
-                    <Command shouldFilter={false}>
-                      <CommandInput placeholder="Buscar por código ou descrição..." value={scoSearch} onValueChange={setScoSearch} />
-                      <CommandList>
-                        <CommandEmpty>Nenhum item encontrado.</CommandEmpty>
-                        <CommandGroup>
-                          {catalogoFiltrado.map(s => (
-                            <CommandItem key={s.codigo} value={s.codigo}
-                              onSelect={() => { addLinhaSco(g.id, s); setScoPopoverGrupo(null); setScoSearch(""); }}>
-                              <div className="flex flex-col">
-                                <span className="font-mono text-xs">{s.codigo} {s.unidade ? `(${s.unidade})` : ""}</span>
-                                <span className="text-xs text-muted-foreground line-clamp-2">{s.descricao}</span>
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              )}
             </div>
           )}
 
