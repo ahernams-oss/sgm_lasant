@@ -247,14 +247,14 @@ function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
     const tipo = (g.tipo || "unidade") as string;
     const linhas: any[] = Array.isArray(g.linhas) ? g.linhas : [];
     const totalLabel = tipo === "area" ? "ÁREA (m²)" : tipo === "mao_de_obra" ? "TOTAL (h)" : "QTD (un)";
-    const extra = tipo === "area" ? ["QTD", "COMP.", "LARG."] : tipo === "mao_de_obra" ? ["HR/DIA", "DIAS"] : [];
+    const extra = tipo === "area" ? ["QTD", "COMP.", "LARG.", "ALT."] : tipo === "mao_de_obra" ? ["HR/DIA", "DIAS"] : [];
     const head = [["ITEM", "CÓDIGO", "DESCRIÇÃO", "SETOR", ...extra, totalLabel]];
     const body: any[] = [];
     linhas.forEach((l: any) => {
       const entradas = getEntradasMem(l);
       entradas.forEach((e: any, ei: number) => {
         const cols = tipo === "area"
-          ? [nf2(e.quantidade), nf2(e.comprimento), nf2(e.largura)]
+          ? [nf2(e.quantidade), nf2(e.comprimento), nf2(e.largura), nf2(e.altura)]
           : tipo === "mao_de_obra"
             ? [nf2(e.hrDia), nf2(e.dias)]
             : [];
