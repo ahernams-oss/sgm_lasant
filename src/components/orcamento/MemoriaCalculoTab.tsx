@@ -233,8 +233,18 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                         onChange={e => updLinha(g.id, l.id, { descricao: e.target.value })} />
                     </TableCell>
                     <TableCell>
-                      <Input className="h-8" value={l.setor} disabled={readOnly}
-                        onChange={e => updLinha(g.id, l.id, { setor: e.target.value })} />
+                      {setores.length > 0 ? (
+                        <Select value={l.setor || ""} disabled={readOnly}
+                          onValueChange={v => updLinha(g.id, l.id, { setor: v })}>
+                          <SelectTrigger className="h-8"><SelectValue placeholder="Setor" /></SelectTrigger>
+                          <SelectContent>
+                            {setores.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input className="h-8" value={l.setor} disabled={readOnly}
+                          onChange={e => updLinha(g.id, l.id, { setor: e.target.value })} />
+                      )}
                     </TableCell>
                     {g.tipo === "mao_de_obra" ? (
                       <>
