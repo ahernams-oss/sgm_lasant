@@ -207,7 +207,16 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
     setEntradas(gid, l, rest.length ? rest : [{ id: crypto.randomUUID(), setor: "", quantidade: 0 }]);
   };
 
-  const colsMedidas = (tipo: TipoMemoria) => (tipo === "unidade" ? 1 : tipo === "area" ? 4 : 3);
+  /** Colunas de medida exibidas no grupo (união dos tipos usados pelos sub-itens) */
+  const colunasGrupo = (g: GrupoMemoria) => {
+    const tipos = g.linhas.length ? g.linhas.map(l => tipoLinha(g, l)) : [g.tipo];
+    const hasArea = tipos.includes("area");
+    const hasMo = tipos.includes("mao_de_obra");
+    const hasQtd = hasArea || tipos.includes("unidade");
+    const uniforme = tipos.every(t => t === tipos[0]) ? tipos[0] : null;
+    const m = (hasQtd ? 1 : 0) + (hasArea ? 3 : 0) + (hasMo ? 3 : 0);
+    return { hasArea, hasMo, hasQtd, uniforme, m };
+  };
 
   return (
     <div className="space-y-4">
