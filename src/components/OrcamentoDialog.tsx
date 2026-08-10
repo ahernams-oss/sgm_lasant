@@ -335,7 +335,9 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
       toast({ title: "Orçamento criado com sucesso" });
     }
     setUploading(false);
-    onOpenChange(false);
+    if (!existingOrcamento) {
+      onOpenChange(false);
+    }
   };
 
   const handleEnviar = async () => {
