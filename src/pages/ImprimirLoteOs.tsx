@@ -278,10 +278,10 @@ export default function ImprimirLoteOs() {
           </TableHeader>
           <TableBody>
             {paginated.length === 0 ? (
-              <TableRow>
+            <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
                   <Printer className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                  Nenhuma OS validada encontrada
+                  Nenhuma OS encontrada
                 </TableCell>
               </TableRow>
             ) : (
