@@ -29,7 +29,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Printer, Search } from "lucide-react";
 
-const STATUS_PERMITIDOS = ["Validada"];
+
 
 export default function ImprimirLoteOs() {
   const { ordens } = useOrdensServico();
@@ -54,13 +54,18 @@ export default function ImprimirLoteOs() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [printing, setPrinting] = useState(false);
 
-  const disponiveis = useMemo(
-    () => ordens.filter((os) => STATUS_PERMITIDOS.includes(os.situacao)),
+  const [filterSituacao, setFilterSituacao] = useState("all");
+
+  const disponiveis = ordens;
+
+  const situacoesUnicas = useMemo(
+    () => Array.from(new Set(ordens.map((o) => o.situacao).filter(Boolean))).sort(),
     [ordens]
   );
 
   const filtered = useMemo(() => {
     let result = disponiveis;
+    if (filterSituacao !== "all") result = result.filter((s) => s.situacao === filterSituacao);
     if (filterCliente !== "all") result = result.filter((s) => s.clienteId === filterCliente);
     if (filtroDataIni) result = result.filter((s) => (s.createdAt || "") >= filtroDataIni);
     if (filtroDataFim) result = result.filter((s) => (s.createdAt || "").slice(0, 10) <= filtroDataFim);
@@ -76,7 +81,7 @@ export default function ImprimirLoteOs() {
       );
     }
     return result;
-  }, [disponiveis, search, filterCliente, filtroDataIni, filtroDataFim]);
+  }, [disponiveis, search, filterCliente, filterSituacao, filtroDataIni, filtroDataFim]);
 
   const { paginated } = paginate(filtered, page, pageSize);
   const allPageIds = paginated.map((s) => s.id);
@@ -195,6 +200,18 @@ export default function ImprimirLoteOs() {
               <SelectItem value="all">Todos os Clientes</SelectItem>
               {clientesUnicos.map(([id, nome]) => (
                 <SelectItem key={id} value={id}>{nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-[200px]">
+          <Label className="text-xs">Situação</Label>
+          <Select value={filterSituacao} onValueChange={(v) => { setFilterSituacao(v); setPage(1); }}>
+            <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Situações</SelectItem>
+              {situacoesUnicas.map((st) => (
+                <SelectItem key={st} value={st}>{st}</SelectItem>
               ))}
             </SelectContent>
           </Select>
