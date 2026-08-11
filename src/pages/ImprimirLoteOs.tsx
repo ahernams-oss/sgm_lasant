@@ -170,9 +170,9 @@ export default function ImprimirLoteOs() {
             <Printer className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Imprimir OS Validadas em Lote</h1>
+            <h1 className="text-2xl font-bold text-foreground">Imprimir OS em Lote</h1>
             <p className="text-sm text-muted-foreground">
-              Selecione as Ordens de Serviço validadas para gerar um único PDF
+              Selecione as Ordens de Serviço e escolha o tipo de impressão em um único PDF
             </p>
           </div>
         </div>
@@ -278,10 +278,10 @@ export default function ImprimirLoteOs() {
           </TableHeader>
           <TableBody>
             {paginated.length === 0 ? (
-              <TableRow>
+            <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
                   <Printer className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                  Nenhuma OS validada encontrada
+                  Nenhuma OS encontrada
                 </TableCell>
               </TableRow>
             ) : (
