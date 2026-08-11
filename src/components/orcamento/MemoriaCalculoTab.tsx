@@ -397,6 +397,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                   )}
                   <TableHead className="w-28">{uniforme ? UNIDADE_LABEL[uniforme] : "TOTAL"}</TableHead>
                   <TableHead className="w-16">UN.</TableHead>
+                  <TableHead className="w-24">IMAGENS</TableHead>
                   {!readOnly && <TableHead className="w-10" />}
                   {!readOnly && <TableHead className="w-20" />}
                 </TableRow>
