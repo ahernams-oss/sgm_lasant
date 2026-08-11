@@ -77,9 +77,8 @@ async function carregarImagensLinha(l: any): Promise<{ nome: string; data: strin
   return out;
 }
 
-export async function gerarPdfMemoriaCalculoFotos(orc: Orcamento, empresa?: Empresa) {
+async function renderMemoriaFotos(doc: jsPDF, orc: Orcamento, empresa?: Empresa) {
   const grupos: any[] = Array.isArray(orc.memoriaCalculo) ? orc.memoriaCalculo : [];
-  const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 14;
