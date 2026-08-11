@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import ImagensSubItem from "./ImagensSubItem";
 
 type Tipo = "area" | "mao_de_obra" | "unidade";
 
@@ -94,6 +95,7 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                     </>
                   )}
                   <TableHead className="text-xs text-right">{uniforme ? UNIDADE_LABEL[uniforme] : "TOTAL"}</TableHead>
+                  <TableHead className="text-xs">IMAGENS</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -130,6 +132,12 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                         </>
                       )}
                       <TableCell className="text-xs text-right font-medium">{nf(calcEntrada(tipo, e))}</TableCell>
+                      {ei === 0 && (
+                        <TableCell rowSpan={entradas.length} className="align-top">
+                          <ImagensSubItem imagens={Array.isArray(l.imagens) ? l.imagens : []} readOnly onChange={() => {}}
+                            titulo={`${l.item || ""} ${l.descricao || ""}`.trim()} />
+                        </TableCell>
+                      )}
                     </TableRow>
                   ));
                   return (
@@ -140,6 +148,7 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                           SUBTOTAL{l.item ? ` ITEM ${l.item}` : " DO ITEM"}
                         </TableCell>
                         <TableCell className="text-xs text-right font-bold">{nf(calcLinha(tipo, l))}</TableCell>
+                        <TableCell />
                       </TableRow>
                     </Fragment>
                   );
@@ -149,6 +158,7 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                     TOTAL
                   </TableCell>
                   <TableCell className="text-xs text-right font-bold">{nf(total)}</TableCell>
+                  <TableCell />
                 </TableRow>
               </TableBody>
             </Table>

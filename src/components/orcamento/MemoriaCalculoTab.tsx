@@ -8,6 +8,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Plus, Trash2, RefreshCw, MapPin, Send, Search } from "lucide-react";
 import { Fragment, useEffect, useRef, useState, useMemo } from "react";
 import SetorCombobox from "./SetorCombobox";
+import ImagensSubItem, { type ImagemSubItem } from "./ImagensSubItem";
 
 
 export type TipoMemoria = "area" | "mao_de_obra" | "unidade";
@@ -43,6 +44,8 @@ export interface LinhaMemoria {
   hrDia?: number;
   dias?: number;
   entradas?: EntradaSetor[];
+  /** Até 3 imagens anexadas ao sub-item */
+  imagens?: ImagemSubItem[];
 }
 
 export interface GrupoMemoria {
@@ -209,6 +212,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
           descricao: i.descricao,
           unidade: i.unidade || antiga?.unidade,
           tipo: antiga?.tipo,
+          imagens: antiga?.imagens || [],
           entradas,
         };
       });
@@ -393,6 +397,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                   )}
                   <TableHead className="w-28">{uniforme ? UNIDADE_LABEL[uniforme] : "TOTAL"}</TableHead>
                   <TableHead className="w-16">UN.</TableHead>
+                  <TableHead className="w-24">IMAGENS</TableHead>
                   {!readOnly && <TableHead className="w-10" />}
                   {!readOnly && <TableHead className="w-20" />}
                 </TableRow>
@@ -487,6 +492,17 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                         {nf(calcEntrada(tl, e))}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">{unidadeLinha(l, tl)}</TableCell>
+                      {ei === 0 && (
+                        <TableCell rowSpan={entradas.length} className="align-top">
+                          <ImagensSubItem
+                            imagens={l.imagens || []}
+                            readOnly={readOnly}
+                            titulo={`${l.item || ""} ${l.descricao || ""}`.trim()}
+                            onChange={imgs => updLinha(g.id, l.id, { imagens: imgs })}
+                          />
+                        </TableCell>
+                      )}
+
 
                       {!readOnly && (
                         <TableCell>
@@ -521,6 +537,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                         </TableCell>
                         <TableCell className="font-bold">{nf(calcLinha(tl, l))}</TableCell>
                         <TableCell className="text-xs font-semibold">{unidadeLinha(l, tl)}</TableCell>
+                        <TableCell />
                         {!readOnly && <TableCell colSpan={2} />}
                       </TableRow>
                     </Fragment>
@@ -541,6 +558,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                       </TableCell>
                       <TableCell className="font-bold">{nf(v)}</TableCell>
                       <TableCell className="text-xs font-semibold">{UNIDADE_CURTA[t]}</TableCell>
+                      <TableCell />
                       {!readOnly && <TableCell colSpan={2} />}
                     </TableRow>
                   ));
