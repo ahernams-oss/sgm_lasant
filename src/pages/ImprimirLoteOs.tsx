@@ -5,6 +5,12 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useOsAssinaturas } from "@/contexts/OsAssinaturasContext";
 import { gerarPdfOrdemServicoLote } from "@/lib/gerarPdfOrdemServico";
+import {
+  gerarPdfOrdemServicoComFotosLote,
+  gerarPdfOrdemServicoFotosMemoriaLote,
+  gerarPdfOrdemServicoFotosMemoriaFotosLote,
+} from "@/lib/gerarPdfOrdemServicoFotos";
+import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { formatNumeroAno } from "@/lib/formatNumero";
 import { usePermissao } from "@/hooks/usePermissao";
