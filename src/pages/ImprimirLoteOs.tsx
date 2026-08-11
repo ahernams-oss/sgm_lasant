@@ -170,9 +170,9 @@ export default function ImprimirLoteOs() {
             <Printer className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Imprimir OS Validadas em Lote</h1>
+            <h1 className="text-2xl font-bold text-foreground">Imprimir OS em Lote</h1>
             <p className="text-sm text-muted-foreground">
-              Selecione as Ordens de Serviço validadas para gerar um único PDF
+              Selecione as Ordens de Serviço e escolha o tipo de impressão em um único PDF
             </p>
           </div>
         </div>
