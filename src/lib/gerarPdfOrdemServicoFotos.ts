@@ -365,3 +365,194 @@ export async function gerarPdfOrdemServicoFotosMemoria(
   await finalizar(doc, opts, "Fotos_Memoria");
 }
 
+const BUCKET_MEM = "memoria-calculo-imagens";
+
+async function carregarFotosLinha(l: any) {
+  const imgs: any[] = Array.isArray(l?.imagens) ? l.imagens : [];
+  const out: { dataUrl: string }[] = [];
+  for (const img of imgs.slice(0, 3)) {
+    try {
+      const { data } = await supabase.storage.from(BUCKET_MEM).createSignedUrl(img.path, 3600);
+      if (!data?.signedUrl) continue;
+      const loaded = await loadImage(data.signedUrl);
+      if (loaded) out.push({ dataUrl: loaded.dataUrl });
+    } catch { /* ignore */ }
+  }
+  return out;
+}
+
+/** Memória de cálculo item a item, com as fotos de cada sub-item logo abaixo. */
+async function renderMemoriaCalculoComFotos(doc: jsPDF, grupos: any[], startY: number) {
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+  const ml = 12, mr = 12;
+  let y = startY;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...(DARK as unknown as [number, number, number]));
+  doc.text("MEMÓRIA DE CÁLCULO COM FOTOS", pw / 2, y, { align: "center" });
+  y += 5;
+
+  if (!grupos.length) {
+    autoTable(doc, {
+      startY: y,
+      theme: "grid",
+      styles: { fontSize: 8, cellPadding: 3, lineColor: BORDER, lineWidth: 0.3, textColor: [120, 120, 120], halign: "center" },
+      body: [[{ content: "Nenhuma memória de cálculo vinculada a esta Ordem de Serviço." }]],
+      margin: { left: ml, right: mr },
+    });
+    return;
+  }
+
+  const tipoLabel = (t: string) => (t === "area" ? "Área" : t === "mao_de_obra" ? "Mão de obra" : "Unidade");
+
+  for (const g of grupos) {
+    const tipoGrupo = (g.tipo || "unidade") as string;
+    const linhas: any[] = Array.isArray(g.linhas) ? g.linhas : [];
+    const tipoDe = (l: any): string => (l?.tipo || tipoGrupo) as string;
+    const tipos = linhas.length ? linhas.map(tipoDe) : [tipoGrupo];
+    const hasArea = tipos.includes("area");
+    const hasMo = tipos.includes("mao_de_obra");
+    const hasQtd = hasArea || tipos.includes("unidade");
+    const uniforme = tipos.every(t => t === tipos[0]) ? tipos[0] : null;
+    const totalLabel = uniforme === "area" ? "ÁREA" : uniforme === "mao_de_obra" ? "TOTAL (h)" : uniforme === "unidade" ? "QTD (un)" : "TOTAL";
+    const extra = [
+      ...(hasQtd ? ["QTD"] : []),
+      ...(hasArea ? ["COMP.", "LARG.", "ALT."] : []),
+      ...(hasMo ? ["HR/DIA", "DIAS"] : []),
+    ];
+    const head = [["ITEM", "CÓDIGO", "DESCRIÇÃO", "TIPO", "SETOR", ...extra, totalLabel]];
+    const nCols = 5 + extra.length + 1;
+
+    if (y > ph - 50) { doc.addPage(); y = 20; }
+
+    autoTable(doc, {
+      startY: y,
+      theme: "grid",
+      body: [[{
+        content: `${g.item ? `${g.item} - ` : ""}${g.titulo || "SEM TÍTULO"}`,
+        styles: { fillColor: [235, 235, 235], textColor: [30, 30, 30], fontStyle: "bold", halign: "left" },
+      } as any]],
+      styles: { fontSize: 8, cellPadding: 2, lineColor: BORDER, lineWidth: 0.2 },
+      margin: { left: ml, right: mr },
+    });
+    y = (doc as any).lastAutoTable.finalY;
+
+    for (const l of linhas) {
+      const tipo = tipoDe(l);
+      const entradas = getEntradasMem(l);
+      const body: any[] = [];
+
+      entradas.forEach((e: any, ei: number) => {
+        const cols: string[] = [];
+        if (hasQtd) cols.push(tipo === "mao_de_obra" ? "" : nf2(e.quantidade));
+        if (hasArea) cols.push(
+          tipo === "area" ? nf2(e.comprimento) : "",
+          tipo === "area" ? nf2(e.largura) : "",
+          tipo === "area" ? nf2(e.altura) : "",
+        );
+        if (hasMo) cols.push(
+          tipo === "mao_de_obra" ? nf2(e.hrDia) : "",
+          tipo === "mao_de_obra" ? nf2(e.dias) : "",
+        );
+        const base = ei === 0
+          ? [
+              { content: l.item || "", rowSpan: entradas.length },
+              { content: l.codigo || "", rowSpan: entradas.length },
+              { content: l.descricao || "", rowSpan: entradas.length },
+              { content: tipoLabel(tipo), rowSpan: entradas.length },
+              e.setor || "",
+            ]
+          : [e.setor || ""];
+        body.push([...base, ...cols, nf2(calcEntradaMem(tipo, e))]);
+      });
+
+      body.push([
+        {
+          content: `SUBTOTAL${l.item ? ` ITEM ${l.item}` : " DO ITEM"}`,
+          colSpan: nCols - 1,
+          styles: { halign: "right", fontStyle: "bold", fillColor: [248, 248, 248] },
+        } as any,
+        { content: nf2(calcLinhaMem(tipo, l)), styles: { fontStyle: "bold", fillColor: [248, 248, 248] } } as any,
+      ]);
+
+      autoTable(doc, {
+        startY: y,
+        theme: "grid",
+        head,
+        body,
+        styles: { fontSize: 7, cellPadding: 1.5, lineColor: BORDER, lineWidth: 0.2, textColor: [30, 30, 30] },
+        headStyles: { fillColor: [245, 245, 245], textColor: [30, 30, 30], fontStyle: "bold", fontSize: 7 },
+        columnStyles: Object.fromEntries(
+          Array.from({ length: nCols }).map((_, i) => [i, i >= 5 ? { halign: "right" as const } : {}])
+        ) as any,
+        margin: { left: ml, right: mr },
+      });
+      y = (doc as any).lastAutoTable.finalY + 3;
+
+      const fotos = await carregarFotosLinha(l);
+      if (fotos.length) {
+        const gap = 4;
+        const imgW = (pw - ml - mr - gap * 2) / 3;
+        const imgH = imgW * 0.72;
+        if (y + imgH + 12 > ph - 16) { doc.addPage(); y = 20; }
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(...(DARK as unknown as [number, number, number]));
+        doc.text(`FOTOS — ITEM ${l.item || ""}`.trim(), ml, y + 3);
+        y += 6;
+
+        fotos.forEach((f, i) => {
+          const x = ml + i * (imgW + gap);
+          try {
+            const fmt = f.dataUrl.includes("image/png") ? "PNG" : "JPEG";
+            doc.addImage(f.dataUrl, fmt, x, y, imgW, imgH);
+          } catch { /* ignore */ }
+          doc.setDrawColor(...BORDER);
+          doc.setLineWidth(0.2);
+          doc.rect(x, y, imgW, imgH);
+        });
+        y += imgH + 6;
+        doc.setTextColor(30, 30, 30);
+      }
+
+      if (y > ph - 40) { doc.addPage(); y = 20; }
+    }
+
+    const total = linhas.reduce((s, l) => s + calcLinhaMem(tipoDe(l), l), 0);
+    autoTable(doc, {
+      startY: y,
+      theme: "grid",
+      body: [[
+        { content: "TOTAL:", styles: { halign: "right", fontStyle: "bold", fillColor: [245, 245, 245] } } as any,
+        { content: nf2(total), styles: { fontStyle: "bold", fillColor: [245, 245, 245], cellWidth: 30, halign: "right" } } as any,
+      ]],
+      styles: { fontSize: 8, cellPadding: 2, lineColor: BORDER, lineWidth: 0.2 },
+      margin: { left: ml, right: mr },
+    });
+    y = (doc as any).lastAutoTable.finalY + 6;
+    if (y > ph - 40) { doc.addPage(); y = 20; }
+  }
+}
+
+/** OS + relatório fotográfico + memória de cálculo com as fotos de cada sub-item. */
+export async function gerarPdfOrdemServicoFotosMemoriaFotos(
+  opts: RenderOSOptions & { memoriaCalculo?: any[] }
+) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  await renderBase(doc, opts);
+
+  doc.addPage();
+  const y = await renderCabecalhoFotos(doc, opts);
+  await renderFotos(doc, opts, y);
+
+  doc.addPage();
+  const y2 = await renderCabecalhoFotos(doc, opts);
+  await renderMemoriaCalculoComFotos(doc, Array.isArray(opts.memoriaCalculo) ? opts.memoriaCalculo : [], y2);
+
+  await finalizar(doc, opts, "Fotos_Memoria_Fotos");
+}
+
+
