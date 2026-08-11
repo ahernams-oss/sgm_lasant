@@ -37,7 +37,10 @@ export default function ImprimirLoteOs() {
   const { empresa } = useEmpresa();
   const { assinaturas: assinaturasOs } = useOsAssinaturas();
   const { orcamentos: orcamentosAll } = useOrcamentos();
+  const { tem } = usePermissao();
+  const podeImprimirLote = tem("os.imprimir_lote");
   const [tipoImpressao, setTipoImpressao] = useState<"os" | "fotos" | "fotos_memoria" | "fotos_memoria_fotos">("os");
+
 
 
   const _saved = loadPersistedFilters<{ search: string; filterCliente: string; filtroDataIni: string; filtroDataFim: string; }>("imprimir_lote_os_filters_v1");
