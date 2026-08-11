@@ -8,6 +8,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Plus, Trash2, RefreshCw, MapPin, Send, Search } from "lucide-react";
 import { Fragment, useEffect, useRef, useState, useMemo } from "react";
 import SetorCombobox from "./SetorCombobox";
+import ImagensSubItem, { type ImagemSubItem } from "./ImagensSubItem";
 
 
 export type TipoMemoria = "area" | "mao_de_obra" | "unidade";
