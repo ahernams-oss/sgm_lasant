@@ -1244,6 +1244,9 @@ export default function OrdensServicoPage() {
           <Wrench className="h-6 w-6" /> Ordem de Serviço
         </h1>
         <div className="flex items-center gap-2 mx-[24px] my-[2px]">
+          <Button variant="outline" onClick={() => navigate('/engenharia/imprimir-lote-os')}>
+            <Printer className="mr-2 h-4 w-4" /> Imprimir em Lote
+          </Button>
           <Button variant="outline" onClick={() => setRelatorioOpen(true)}>
             <BarChart3 className="mr-2 h-4 w-4" /> Relatórios
           </Button>
