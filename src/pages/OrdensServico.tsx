@@ -190,6 +190,7 @@ export default function OrdensServicoPage() {
   const podeEditarOS = tem("ordem_servico.editar");
   const podeWorkflowOS = tem("ordem_servico.gerenciar_historico");
   const podeImprimirOS = tem("ordem_servico.exportar_pdf");
+  const podeImprimirLote = tem("os.imprimir_lote");
   const podeExecutarLote = tem("ordem_servico.gerenciar_historico");
   const podeStAbertaOS = tem("ordem_servico.status.aberta");
   const podeStEmExecOS = tem("ordem_servico.status.em_execucao");
