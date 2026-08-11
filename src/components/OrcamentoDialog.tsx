@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Upload, X, FileText, Check, RotateCcw, ChevronsUpDown, Download, FileSpreadsheet, Maximize2, Minimize2 } from "lucide-react";
 import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
 import { gerarPdfMemoriaCalculo } from "@/lib/gerarPdfMemoriaCalculo";
+import { gerarPdfMemoriaCalculoFotos } from "@/lib/gerarPdfMemoriaCalculoFotos";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
 import MemoriaCalculoTab, { GrupoMemoria } from "@/components/orcamento/MemoriaCalculoTab";
@@ -764,6 +765,9 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
               </Button>
               <Button variant="outline" onClick={() => gerarPdfMemoriaCalculo(existingOrcamento, empresa)}>
                 <Download className="mr-2 h-4 w-4" /> Memória de Cálculo
+              </Button>
+              <Button variant="outline" onClick={() => gerarPdfMemoriaCalculoFotos(existingOrcamento, empresa)}>
+                <Download className="mr-2 h-4 w-4" /> Memória de Cálculo c/ Fotos
               </Button>
             </>
           )}

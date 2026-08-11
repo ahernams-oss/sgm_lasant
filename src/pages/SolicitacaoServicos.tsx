@@ -17,6 +17,7 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import OrcamentoDialog from "@/components/OrcamentoDialog";
 import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
 import { gerarPdfMemoriaCalculo } from "@/lib/gerarPdfMemoriaCalculo";
+import { gerarPdfMemoriaCalculoFotos } from "@/lib/gerarPdfMemoriaCalculoFotos";
 import { gerarPdfSolicitacao, gerarPdfSolicitacaoLote } from "@/lib/gerarPdfSolicitacao";
 import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
 import { supabase } from "@/integrations/supabase/client";
@@ -628,7 +629,7 @@ export default function SolicitacaoServicosPage() {
     toast({ title: "Orçamento aprovado e Ordem de Serviço criada!" });
   };
 
-  const handleDownloadOrcamento = (s: any, tipo: "pdf" | "excel" | "memoria") => {
+  const handleDownloadOrcamento = (s: any, tipo: "pdf" | "excel" | "memoria" | "memoria-fotos") => {
     const orc = orcamentos.find(o => o.solicitacaoId === s.id);
     if (!orc) {
       toast({ title: "Orçamento não encontrado", variant: "destructive" });
@@ -638,6 +639,8 @@ export default function SolicitacaoServicosPage() {
       gerarPdfOrcamento(orc, empresa);
     } else if (tipo === "memoria") {
       gerarPdfMemoriaCalculo(orc, empresa);
+    } else if (tipo === "memoria-fotos") {
+      gerarPdfMemoriaCalculoFotos(orc, empresa);
     } else {
       gerarExcelOrcamento(orc, empresa);
     }
@@ -1303,6 +1306,9 @@ export default function SolicitacaoServicosPage() {
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDownloadOrcamento(s, "memoria")}>
                             <Download className="mr-2 h-4 w-4" />Memória de Cálculo PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadOrcamento(s, "memoria-fotos")}>
+                            <Download className="mr-2 h-4 w-4" />Memória de Cálculo com Fotos PDF
                           </DropdownMenuItem>
                         </>
                       )}
