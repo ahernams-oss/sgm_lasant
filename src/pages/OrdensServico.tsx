@@ -46,7 +46,7 @@ import {
 } from "lucide-react";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfOrdemServico, gerarPdfOrdemServicoLote } from "@/lib/gerarPdfOrdemServico";
-import { gerarPdfOrdemServicoComFotos, gerarPdfOrdemServicoFotosMemoria } from "@/lib/gerarPdfOrdemServicoFotos";
+import { gerarPdfOrdemServicoComFotos, gerarPdfOrdemServicoFotosMemoria, gerarPdfOrdemServicoFotosMemoriaFotos } from "@/lib/gerarPdfOrdemServicoFotos";
 import WorkflowTimeline from "@/components/WorkflowTimeline";
 import WorkflowHistorico from "@/components/WorkflowHistorico";
 import RelatorioFechamentoOSDialog from "@/components/RelatorioFechamentoOSDialog";
@@ -1601,6 +1601,22 @@ export default function OrdensServicoPage() {
                             <Printer className="mr-2 h-4 w-4" /> Imprimir OS com Fotos e Memória de Cálculo
                           </DropdownMenuItem>
                         )}
+
+                        {podeImprimirOS && (
+                          <DropdownMenuItem onClick={async () => {
+                            await gerarPdfOrdemServicoFotosMemoriaFotos({
+                              os,
+                              empresa,
+                              cliente: clientes.find(c => c.id === os.clienteId),
+                              assinaturas: assinaturasOs.filter(a => a.os_id === os.id),
+                              memoriaCalculo: getMemoriaCalculoDaOS(os),
+                            });
+                            await marcarOsImpressa([os.id]);
+                          }}>
+                            <Printer className="mr-2 h-4 w-4" /> Imprimir OS com Fotos e Memória de Cálculo com Fotos
+                          </DropdownMenuItem>
+                        )}
+
 
 
 
