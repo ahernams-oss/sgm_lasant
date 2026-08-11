@@ -212,6 +212,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
           descricao: i.descricao,
           unidade: i.unidade || antiga?.unidade,
           tipo: antiga?.tipo,
+          imagens: antiga?.imagens || [],
           entradas,
         };
       });
