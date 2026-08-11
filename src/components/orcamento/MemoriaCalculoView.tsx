@@ -10,6 +10,12 @@ const UNIDADE_LABEL: Record<Tipo, string> = {
   unidade: "QTD (un)",
 };
 
+const UNIDADE_CURTA: Record<Tipo, string> = {
+  area: "m²",
+  mao_de_obra: "h",
+  unidade: "un",
+};
+
 const TIPO_LABEL: Record<Tipo, string> = {
   area: "Área",
   mao_de_obra: "Mão de obra",
@@ -44,6 +50,8 @@ function calcLinha(tipo: Tipo, l: any): number {
   return getEntradas(l).reduce((s, e) => s + calcEntrada(tipo, e), 0);
 }
 
+const unidadeLinha = (l: any, t: Tipo) => (l?.unidade || "").trim() || UNIDADE_CURTA[t];
+
 const nf = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
@@ -64,8 +72,14 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
         const hasMo = tipos.includes("mao_de_obra");
         const hasQtd = hasArea || tipos.includes("unidade");
         const uniforme = tipos.every(t => t === tipos[0]) ? tipos[0] : null;
-        const m = (hasQtd ? 1 : 0) + (hasArea ? 3 : 0) + (hasMo ? 2 : 0);
-        const total = linhas.reduce((s, l) => s + calcLinha(tipoDe(l), l), 0);
+        const m = (hasQtd ? 1 : 0) + (hasArea ? 3 : 0) + (hasMo ? 3 : 0);
+
+        const porTipo = new Map<Tipo, number>();
+        linhas.forEach(l => {
+          const t = tipoDe(l);
+          porTipo.set(t, (porTipo.get(t) || 0) + calcLinha(t, l));
+        });
+        const linhasTotal: [Tipo, number][] = porTipo.size ? Array.from(porTipo) : [[tipoGrupo, 0]];
 
         return (
           <div key={gi} className="border rounded-md overflow-x-auto">
@@ -80,7 +94,14 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                   <TableHead className="text-xs">DESCRIÇÃO</TableHead>
                   <TableHead className="text-xs">TIPO</TableHead>
                   <TableHead className="text-xs">SETOR</TableHead>
-                  {hasQtd && <TableHead className="text-xs text-right">QTD</TableHead>}
+                  {hasMo && (
+                    <>
+                      <TableHead className="text-xs">FUNCIONÁRIO</TableHead>
+                      <TableHead className="text-xs text-right">HR/DIA</TableHead>
+                      <TableHead className="text-xs text-right">DIAS</TableHead>
+                    </>
+                  )}
+                  {hasQtd && <TableHead className="text-xs text-right">QUANT.</TableHead>}
                   {hasArea && (
                     <>
                       <TableHead className="text-xs text-right">COMP.</TableHead>
@@ -88,13 +109,8 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                       <TableHead className="text-xs text-right">ALT.</TableHead>
                     </>
                   )}
-                  {hasMo && (
-                    <>
-                      <TableHead className="text-xs text-right">HR/DIA</TableHead>
-                      <TableHead className="text-xs text-right">DIAS</TableHead>
-                    </>
-                  )}
                   <TableHead className="text-xs text-right">{uniforme ? UNIDADE_LABEL[uniforme] : "TOTAL"}</TableHead>
+                  <TableHead className="text-xs">UN.</TableHead>
                   <TableHead className="text-xs">IMAGENS</TableHead>
                 </TableRow>
               </TableHeader>
@@ -113,6 +129,13 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                         </>
                       )}
                       <TableCell className="text-xs">{e.setor || ""}</TableCell>
+                      {hasMo && (
+                        <>
+                          <TableCell className="text-xs">{tipo === "mao_de_obra" ? (e.funcionario || "") : ""}</TableCell>
+                          <TableCell className="text-xs text-right">{tipo === "mao_de_obra" ? nf(Number(e.hrDia) || 0) : ""}</TableCell>
+                          <TableCell className="text-xs text-right">{tipo === "mao_de_obra" ? nf(Number(e.dias) || 0) : ""}</TableCell>
+                        </>
+                      )}
                       {hasQtd && (
                         <TableCell className="text-xs text-right">
                           {tipo === "mao_de_obra" ? "" : nf(Number(e.quantidade) || 0)}
@@ -125,13 +148,8 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                           <TableCell className="text-xs text-right">{tipo === "area" ? nf(Number(e.altura) || 0) : ""}</TableCell>
                         </>
                       )}
-                      {hasMo && (
-                        <>
-                          <TableCell className="text-xs text-right">{tipo === "mao_de_obra" ? nf(Number(e.hrDia) || 0) : ""}</TableCell>
-                          <TableCell className="text-xs text-right">{tipo === "mao_de_obra" ? nf(Number(e.dias) || 0) : ""}</TableCell>
-                        </>
-                      )}
                       <TableCell className="text-xs text-right font-medium">{nf(calcEntrada(tipo, e))}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{unidadeLinha(l, tipo)}</TableCell>
                       {ei === 0 && (
                         <TableCell rowSpan={entradas.length} className="align-top">
                           <ImagensSubItem imagens={Array.isArray(l.imagens) ? l.imagens : []} readOnly onChange={() => {}}
@@ -148,18 +166,23 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                           SUBTOTAL{l.item ? ` ITEM ${l.item}` : " DO ITEM"}
                         </TableCell>
                         <TableCell className="text-xs text-right font-bold">{nf(calcLinha(tipo, l))}</TableCell>
+                        <TableCell className="text-xs font-semibold">{unidadeLinha(l, tipo)}</TableCell>
                         <TableCell />
                       </TableRow>
                     </Fragment>
                   );
                 })}
-                <TableRow>
-                  <TableCell colSpan={5 + m} className="text-xs text-right font-semibold">
-                    TOTAL
-                  </TableCell>
-                  <TableCell className="text-xs text-right font-bold">{nf(total)}</TableCell>
-                  <TableCell />
-                </TableRow>
+                {linhasTotal.map(([t, v], i) => (
+                  <TableRow key={`total-${t}`} className="bg-muted/50">
+                    <TableCell className="text-xs font-bold">{i === 0 ? "TOTAL" : ""}</TableCell>
+                    <TableCell colSpan={4 + m} className="text-xs text-right font-semibold">
+                      {linhasTotal.length > 1 ? UNIDADE_LABEL[t] : ""}
+                    </TableCell>
+                    <TableCell className="text-xs text-right font-bold">{nf(v)}</TableCell>
+                    <TableCell className="text-xs font-semibold">{UNIDADE_CURTA[t]}</TableCell>
+                    <TableCell />
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
