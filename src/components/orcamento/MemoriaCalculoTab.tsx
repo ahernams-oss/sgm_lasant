@@ -492,6 +492,17 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                         {nf(calcEntrada(tl, e))}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">{unidadeLinha(l, tl)}</TableCell>
+                      {ei === 0 && (
+                        <TableCell rowSpan={entradas.length} className="align-top">
+                          <ImagensSubItem
+                            imagens={l.imagens || []}
+                            readOnly={readOnly}
+                            titulo={`${l.item || ""} ${l.descricao || ""}`.trim()}
+                            onChange={imgs => updLinha(g.id, l.id, { imagens: imgs })}
+                          />
+                        </TableCell>
+                      )}
+
 
                       {!readOnly && (
                         <TableCell>
