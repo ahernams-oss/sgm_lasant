@@ -1599,8 +1599,22 @@ export default function OrdensServicoPage() {
                             await marcarOsImpressa([os.id]);
                           }}>
                             <Printer className="mr-2 h-4 w-4" /> Imprimir OS com Fotos e Memória de Cálculo
+                        )}
+                        {podeImprimirOS && (
+                          <DropdownMenuItem onClick={async () => {
+                            await gerarPdfOrdemServicoFotosMemoriaFotos({
+                              os,
+                              empresa,
+                              cliente: clientes.find(c => c.id === os.clienteId),
+                              assinaturas: assinaturasOs.filter(a => a.os_id === os.id),
+                              memoriaCalculo: getMemoriaCalculoDaOS(os),
+                            });
+                            await marcarOsImpressa([os.id]);
+                          }}>
+                            <Printer className="mr-2 h-4 w-4" /> Imprimir OS com Fotos e Memória de Cálculo com Fotos
                           </DropdownMenuItem>
                         )}
+
 
 
 
