@@ -1690,7 +1690,9 @@ export default function OrdensServicoPage() {
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
+                    </div>
                   </TableCell>
+
                 </TableRow>
                 );
               })}
