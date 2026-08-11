@@ -132,6 +132,12 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                         </>
                       )}
                       <TableCell className="text-xs text-right font-medium">{nf(calcEntrada(tipo, e))}</TableCell>
+                      {ei === 0 && (
+                        <TableCell rowSpan={entradas.length} className="align-top">
+                          <ImagensSubItem imagens={Array.isArray(l.imagens) ? l.imagens : []} readOnly onChange={() => {}}
+                            titulo={`${l.item || ""} ${l.descricao || ""}`.trim()} />
+                        </TableCell>
+                      )}
                     </TableRow>
                   ));
                   return (
@@ -142,6 +148,7 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                           SUBTOTAL{l.item ? ` ITEM ${l.item}` : " DO ITEM"}
                         </TableCell>
                         <TableCell className="text-xs text-right font-bold">{nf(calcLinha(tipo, l))}</TableCell>
+                        <TableCell />
                       </TableRow>
                     </Fragment>
                   );
@@ -151,6 +158,7 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                     TOTAL
                   </TableCell>
                   <TableCell className="text-xs text-right font-bold">{nf(total)}</TableCell>
+                  <TableCell />
                 </TableRow>
               </TableBody>
             </Table>
