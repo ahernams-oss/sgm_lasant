@@ -377,7 +377,9 @@ function ProtectedAppRoutes() {
           element={
             <RotaProtegida perm="ordem_servico">
               <OrdensServicoProvider>
-                <ImprimirLoteOsPage />
+                <OrcamentosProvider>
+                  <ImprimirLoteOsPage />
+                </OrcamentosProvider>
               </OrdensServicoProvider>
             </RotaProtegida>
           }
