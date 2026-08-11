@@ -207,7 +207,20 @@ export default function ImprimirLoteOs() {
           <Label className="text-xs">Data Fim</Label>
           <Input type="date" value={filtroDataFim} onChange={(e) => { setFiltroDataFim(e.target.value); setPage(1); }} />
         </div>
+        <div className="w-[320px]">
+          <Label className="text-xs">Tipo de impressão</Label>
+          <Select value={tipoImpressao} onValueChange={(v) => setTipoImpressao(v as any)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="os">Imprimir OS</SelectItem>
+              <SelectItem value="fotos">Imprimir OS com Fotos</SelectItem>
+              <SelectItem value="fotos_memoria">Imprimir OS com Fotos e Memória de Cálculo</SelectItem>
+              <SelectItem value="fotos_memoria_fotos">Imprimir OS com Fotos e Memória de Cálculo com Fotos</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
 
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-accent rounded-lg border border-border">
