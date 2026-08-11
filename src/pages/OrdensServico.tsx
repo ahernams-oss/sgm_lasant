@@ -46,7 +46,7 @@ import {
 } from "lucide-react";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfOrdemServico, gerarPdfOrdemServicoLote } from "@/lib/gerarPdfOrdemServico";
-import { gerarPdfOrdemServicoComFotos, gerarPdfOrdemServicoFotosMemoria } from "@/lib/gerarPdfOrdemServicoFotos";
+import { gerarPdfOrdemServicoComFotos, gerarPdfOrdemServicoFotosMemoria, gerarPdfOrdemServicoFotosMemoriaFotos } from "@/lib/gerarPdfOrdemServicoFotos";
 import WorkflowTimeline from "@/components/WorkflowTimeline";
 import WorkflowHistorico from "@/components/WorkflowHistorico";
 import RelatorioFechamentoOSDialog from "@/components/RelatorioFechamentoOSDialog";
