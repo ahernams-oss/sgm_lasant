@@ -556,3 +556,61 @@ export async function gerarPdfOrdemServicoFotosMemoriaFotos(
 }
 
 
+
+/* ============ Impressão em lote ============ */
+
+type LoteOpts = RenderOSOptions & { memoriaCalculo?: any[] };
+
+async function finalizarLote(doc: jsPDF, lista: LoteOpts[], sufixo: string) {
+  addContinuationHeaders(doc);
+  const nums = lista.map((l) => formatNumeroAno(l.os.numero, l.os.createdAt)).join("_");
+  doc.save(`OS_Lote_${sufixo}_${nums}.pdf`);
+}
+
+/** Lote: OS + relatório fotográfico. */
+export async function gerarPdfOrdemServicoComFotosLote(lista: LoteOpts[]) {
+  if (!lista.length) return;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  for (let i = 0; i < lista.length; i++) {
+    if (i > 0) doc.addPage();
+    await renderBase(doc, lista[i]);
+    doc.addPage();
+    const y = await renderCabecalhoFotos(doc, lista[i]);
+    await renderFotos(doc, lista[i], y);
+  }
+  await finalizarLote(doc, lista, "Fotos");
+}
+
+/** Lote: OS + fotos + memória de cálculo. */
+export async function gerarPdfOrdemServicoFotosMemoriaLote(lista: LoteOpts[]) {
+  if (!lista.length) return;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  for (let i = 0; i < lista.length; i++) {
+    if (i > 0) doc.addPage();
+    await renderBase(doc, lista[i]);
+    doc.addPage();
+    const y = await renderCabecalhoFotos(doc, lista[i]);
+    await renderFotos(doc, lista[i], y);
+    doc.addPage();
+    const y2 = await renderCabecalhoFotos(doc, lista[i]);
+    renderMemoriaCalculo(doc, Array.isArray(lista[i].memoriaCalculo) ? lista[i].memoriaCalculo! : [], y2);
+  }
+  await finalizarLote(doc, lista, "Fotos_Memoria");
+}
+
+/** Lote: OS + fotos + memória de cálculo com fotos por sub-item. */
+export async function gerarPdfOrdemServicoFotosMemoriaFotosLote(lista: LoteOpts[]) {
+  if (!lista.length) return;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  for (let i = 0; i < lista.length; i++) {
+    if (i > 0) doc.addPage();
+    await renderBase(doc, lista[i]);
+    doc.addPage();
+    const y = await renderCabecalhoFotos(doc, lista[i]);
+    await renderFotos(doc, lista[i], y);
+    doc.addPage();
+    const y2 = await renderCabecalhoFotos(doc, lista[i]);
+    await renderMemoriaCalculoComFotos(doc, Array.isArray(lista[i].memoriaCalculo) ? lista[i].memoriaCalculo! : [], y2);
+  }
+  await finalizarLote(doc, lista, "Fotos_Memoria_Fotos");
+}
