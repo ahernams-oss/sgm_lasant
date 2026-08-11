@@ -77,9 +77,8 @@ async function carregarImagensLinha(l: any): Promise<{ nome: string; data: strin
   return out;
 }
 
-export async function gerarPdfMemoriaCalculoFotos(orc: Orcamento, empresa?: Empresa) {
+async function renderMemoriaFotos(doc: jsPDF, orc: Orcamento, empresa?: Empresa) {
   const grupos: any[] = Array.isArray(orc.memoriaCalculo) ? orc.memoriaCalculo : [];
-  const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 14;
@@ -275,8 +274,13 @@ export async function gerarPdfMemoriaCalculoFotos(orc: Orcamento, empresa?: Empr
     y = (doc as any).lastAutoTable.finalY + 8;
     if (y > ph - 40) { doc.addPage(); y = 20; }
   }
+}
 
-  // Rodapé padrão
+function aplicarRodapeFotos(doc: jsPDF, empresa?: Empresa) {
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+  const ml = 14;
+  const mr = 14;
   const pages = (doc as any).internal.getNumberOfPages();
   for (let p = 1; p <= pages; p++) {
     doc.setPage(p);
@@ -290,6 +294,21 @@ export async function gerarPdfMemoriaCalculoFotos(orc: Orcamento, empresa?: Empr
     );
     doc.text(`Página ${p} de ${pages}`, pw - mr, ph - 8, { align: "right" });
   }
+}
 
+export async function gerarPdfMemoriaCalculoFotos(orc: Orcamento, empresa?: Empresa) {
+  const doc = new jsPDF();
+  await renderMemoriaFotos(doc, orc, empresa);
+  aplicarRodapeFotos(doc, empresa);
   doc.save(`Memoria_Calculo_Fotos_Orcamento_${orc.numero}.pdf`);
+}
+
+export async function gerarPdfMemoriaCalculoFotosLote(orcs: Orcamento[], empresa?: Empresa) {
+  const doc = new jsPDF();
+  for (let i = 0; i < orcs.length; i++) {
+    if (i > 0) doc.addPage();
+    await renderMemoriaFotos(doc, orcs[i], empresa);
+  }
+  aplicarRodapeFotos(doc, empresa);
+  doc.save(`Memorias_Calculo_Fotos_Lote_${orcs.length}.pdf`);
 }

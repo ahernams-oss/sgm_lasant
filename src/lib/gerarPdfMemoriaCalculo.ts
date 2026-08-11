@@ -63,9 +63,8 @@ async function loadImageAsDataUrl(url: string): Promise<string | null> {
   }
 }
 
-export async function gerarPdfMemoriaCalculo(orc: Orcamento, empresa?: Empresa) {
+async function renderMemoria(doc: jsPDF, orc: Orcamento, empresa?: Empresa) {
   const grupos: any[] = Array.isArray(orc.memoriaCalculo) ? orc.memoriaCalculo : [];
-  const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ml = 14;
   const mr = 14;
@@ -214,7 +213,12 @@ export async function gerarPdfMemoriaCalculo(orc: Orcamento, empresa?: Empresa) 
     if (y > 260) { doc.addPage(); y = 20; }
   }
 
-  // Rodapé padrão
+}
+
+function aplicarRodape(doc: jsPDF, empresa?: Empresa) {
+  const pw = doc.internal.pageSize.getWidth();
+  const ml = 14;
+  const mr = 14;
   const pages = (doc as any).internal.getNumberOfPages();
   for (let p = 1; p <= pages; p++) {
     doc.setPage(p);
@@ -228,6 +232,21 @@ export async function gerarPdfMemoriaCalculo(orc: Orcamento, empresa?: Empresa) 
     );
     doc.text(`Página ${p} de ${pages}`, pw - mr, doc.internal.pageSize.getHeight() - 8, { align: "right" });
   }
+}
 
+export async function gerarPdfMemoriaCalculo(orc: Orcamento, empresa?: Empresa) {
+  const doc = new jsPDF();
+  await renderMemoria(doc, orc, empresa);
+  aplicarRodape(doc, empresa);
   doc.save(`Memoria_Calculo_Orcamento_${orc.numero}.pdf`);
+}
+
+export async function gerarPdfMemoriaCalculoLote(orcs: Orcamento[], empresa?: Empresa) {
+  const doc = new jsPDF();
+  for (let i = 0; i < orcs.length; i++) {
+    if (i > 0) doc.addPage();
+    await renderMemoria(doc, orcs[i], empresa);
+  }
+  aplicarRodape(doc, empresa);
+  doc.save(`Memorias_Calculo_Lote_${orcs.length}.pdf`);
 }
