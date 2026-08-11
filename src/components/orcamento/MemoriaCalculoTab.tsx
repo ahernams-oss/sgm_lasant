@@ -558,6 +558,7 @@ export default function MemoriaCalculoTab({ grupos, onChange, readOnly, itensOri
                       </TableCell>
                       <TableCell className="font-bold">{nf(v)}</TableCell>
                       <TableCell className="text-xs font-semibold">{UNIDADE_CURTA[t]}</TableCell>
+                      <TableCell />
                       {!readOnly && <TableCell colSpan={2} />}
                     </TableRow>
                   ));
