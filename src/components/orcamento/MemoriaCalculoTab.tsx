@@ -44,6 +44,8 @@ export interface LinhaMemoria {
   hrDia?: number;
   dias?: number;
   entradas?: EntradaSetor[];
+  /** Até 3 imagens anexadas ao sub-item */
+  imagens?: ImagemSubItem[];
 }
 
 export interface GrupoMemoria {
