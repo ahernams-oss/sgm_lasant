@@ -94,6 +94,7 @@ export default function MemoriaCalculoView({ grupos }: { grupos: any[] }) {
                     </>
                   )}
                   <TableHead className="text-xs text-right">{uniforme ? UNIDADE_LABEL[uniforme] : "TOTAL"}</TableHead>
+                  <TableHead className="text-xs">IMAGENS</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
