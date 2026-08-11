@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import ImagensSubItem from "./ImagensSubItem";
 
 type Tipo = "area" | "mao_de_obra" | "unidade";
 
