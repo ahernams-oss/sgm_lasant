@@ -16,8 +16,8 @@ import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/Double
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import OrcamentoDialog from "@/components/OrcamentoDialog";
 import { gerarPdfOrcamento } from "@/lib/gerarPdfOrcamento";
-import { gerarPdfMemoriaCalculo } from "@/lib/gerarPdfMemoriaCalculo";
-import { gerarPdfMemoriaCalculoFotos } from "@/lib/gerarPdfMemoriaCalculoFotos";
+import { gerarPdfMemoriaCalculo, gerarPdfMemoriaCalculoLote } from "@/lib/gerarPdfMemoriaCalculo";
+import { gerarPdfMemoriaCalculoFotos, gerarPdfMemoriaCalculoFotosLote } from "@/lib/gerarPdfMemoriaCalculoFotos";
 import { gerarPdfSolicitacao, gerarPdfSolicitacaoLote } from "@/lib/gerarPdfSolicitacao";
 import { gerarExcelOrcamento } from "@/lib/gerarExcelOrcamento";
 import { supabase } from "@/integrations/supabase/client";
@@ -851,6 +851,31 @@ export default function SolicitacaoServicosPage() {
     }
   };
 
+  const handleBatchPrintMemoria = async (comFotos: boolean) => {
+    if (selectedIds.size === 0) return;
+    setBatchPrinting(true);
+    try {
+      const selected = solicitacoes.filter(s => selectedIds.has(s.id));
+      const orcs = selected
+        .map(s => orcamentos.find(o => o.solicitacaoId === s.id))
+        .filter(Boolean) as any[];
+      if (orcs.length === 0) {
+        toast({ title: "Nenhum orçamento encontrado nas SS selecionadas", variant: "destructive" });
+        return;
+      }
+      if (comFotos) {
+        await gerarPdfMemoriaCalculoFotosLote(orcs, empresa);
+      } else {
+        await gerarPdfMemoriaCalculoLote(orcs, empresa);
+      }
+      toast({ title: `PDF gerado com ${orcs.length} memória(s) de cálculo` });
+    } catch {
+      toast({ title: "Erro ao gerar PDF", variant: "destructive" });
+    } finally {
+      setBatchPrinting(false);
+    }
+  };
+
   const showForm = formOpen && form.tipo !== "";
 
   return (
@@ -1106,6 +1131,12 @@ export default function SolicitacaoServicosPage() {
           </Button>
           <Button size="sm" variant="outline" onClick={() => handleBatchPrint(true)} disabled={batchPrinting}>
             <Download className="mr-2 h-4 w-4" />Imprimir com imagem
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => handleBatchPrintMemoria(false)} disabled={batchPrinting}>
+            <Download className="mr-2 h-4 w-4" />Memória de Cálculo PDF
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => handleBatchPrintMemoria(true)} disabled={batchPrinting}>
+            <Download className="mr-2 h-4 w-4" />Memória de Cálculo com Fotos PDF
           </Button>
           <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>Limpar seleção</Button>
         </div>
