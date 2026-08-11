@@ -1553,10 +1553,23 @@ export default function OrdensServicoPage() {
                       );
                     })}
                     <TableCell>
+                    <div className="flex items-center justify-end gap-1">
+                    {podeEditarOS && !["Validada", "Cancelada"].includes(os.situacao) && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Preencher OS"
+                        aria-label="Preencher OS"
+                        onClick={() => handleEdit(os)}
+                      >
+                        <Pencil className="h-4 w-4 text-primary" />
+                      </Button>
+                    )}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                       </DropdownMenuTrigger>
+
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => { void reloadOrcamentos(); setViewOS(os); }}>
                           <Eye className="mr-2 h-4 w-4" /> Visualizar
@@ -1677,7 +1690,9 @@ export default function OrdensServicoPage() {
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
+                    </div>
                   </TableCell>
+
                 </TableRow>
                 );
               })}
