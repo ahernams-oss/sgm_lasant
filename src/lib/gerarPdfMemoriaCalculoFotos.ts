@@ -242,7 +242,7 @@ export async function gerarPdfMemoriaCalculoFotos(orc: Orcamento, empresa?: Empr
         doc.setFontSize(8);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(...DARK_BLUE);
-        doc.text(`FOTOS — ITEM ${l.item || ""} ${l.descricao || ""}`.trim(), ml, y + 3);
+        doc.text(`FOTOS — ITEM ${l.item || ""}`.trim(), ml, y + 3);
         y += 6;
 
         fotos.forEach((f, i) => {
