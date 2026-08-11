@@ -63,9 +63,8 @@ async function loadImageAsDataUrl(url: string): Promise<string | null> {
   }
 }
 
-export async function gerarPdfMemoriaCalculo(orc: Orcamento, empresa?: Empresa) {
+async function renderMemoria(doc: jsPDF, orc: Orcamento, empresa?: Empresa) {
   const grupos: any[] = Array.isArray(orc.memoriaCalculo) ? orc.memoriaCalculo : [];
-  const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ml = 14;
   const mr = 14;
