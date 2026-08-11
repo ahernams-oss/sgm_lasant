@@ -5,6 +5,12 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useOsAssinaturas } from "@/contexts/OsAssinaturasContext";
 import { gerarPdfOrdemServicoLote } from "@/lib/gerarPdfOrdemServico";
+import {
+  gerarPdfOrdemServicoComFotosLote,
+  gerarPdfOrdemServicoFotosMemoriaLote,
+  gerarPdfOrdemServicoFotosMemoriaFotosLote,
+} from "@/lib/gerarPdfOrdemServicoFotos";
+import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { formatNumeroAno } from "@/lib/formatNumero";
 import { usePermissao } from "@/hooks/usePermissao";
@@ -30,8 +36,12 @@ export default function ImprimirLoteOs() {
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { assinaturas: assinaturasOs } = useOsAssinaturas();
+  const { orcamentos: orcamentosAll } = useOrcamentos();
   const { tem } = usePermissao();
   const podeImprimirLote = tem("os.imprimir_lote");
+  const [tipoImpressao, setTipoImpressao] = useState<"os" | "fotos" | "fotos_memoria" | "fotos_memoria_fotos">("os");
+
+
 
   const _saved = loadPersistedFilters<{ search: string; filterCliente: string; filtroDataIni: string; filtroDataFim: string; }>("imprimir_lote_os_filters_v1");
   const [search, setSearch] = useState(_saved?.search ?? "");
@@ -103,6 +113,20 @@ export default function ImprimirLoteOs() {
     [clientes]
   );
 
+  const getMemoriaCalculoDaOS = (os: any): any[] => {
+    if (!os?.solicitacaoId) return [];
+    const ts = (o: any) => new Date(o.dataAprovacao || o.createdAt || o.dataCriacao || 0).getTime() || 0;
+    const orcs = (orcamentosAll || [])
+      .filter((o: any) => o.solicitacaoId === os.solicitacaoId)
+      .sort((a: any, b: any) => ts(b) - ts(a));
+    const aprovados = orcs.filter((o: any) => (o.status || "").toLowerCase().includes("aprovad"));
+    const escolhido =
+      aprovados.find((o: any) => Array.isArray(o.memoriaCalculo) && o.memoriaCalculo.length) ||
+      aprovados[0] ||
+      orcs.find((o: any) => Array.isArray(o.memoriaCalculo) && o.memoriaCalculo.length);
+    return Array.isArray((escolhido as any)?.memoriaCalculo) ? (escolhido as any).memoriaCalculo : [];
+  };
+
   const handleImprimirLote = async () => {
     if (!podeImprimirLote) {
       toast.error("Você não possui permissão para esta ação.");
@@ -115,11 +139,15 @@ export default function ImprimirLoteOs() {
         empresa,
         cliente: clientes.find((c) => c.id === o.clienteId),
         assinaturas: assinaturasOs.filter((a) => a.os_id === o.id),
+        memoriaCalculo: getMemoriaCalculoDaOS(o),
       }));
     if (lista.length === 0) return;
     setPrinting(true);
     try {
-      await gerarPdfOrdemServicoLote(lista);
+      if (tipoImpressao === "fotos") await gerarPdfOrdemServicoComFotosLote(lista);
+      else if (tipoImpressao === "fotos_memoria") await gerarPdfOrdemServicoFotosMemoriaLote(lista);
+      else if (tipoImpressao === "fotos_memoria_fotos") await gerarPdfOrdemServicoFotosMemoriaFotosLote(lista);
+      else await gerarPdfOrdemServicoLote(lista);
       toast.success(`${lista.length} OS impressa(s) em lote.`);
     } catch (e: any) {
       toast.error("Falha ao gerar PDF: " + (e?.message || ""));
@@ -127,6 +155,7 @@ export default function ImprimirLoteOs() {
       setPrinting(false);
     }
   };
+
 
   return (
     <div className="space-y-4">
@@ -178,7 +207,20 @@ export default function ImprimirLoteOs() {
           <Label className="text-xs">Data Fim</Label>
           <Input type="date" value={filtroDataFim} onChange={(e) => { setFiltroDataFim(e.target.value); setPage(1); }} />
         </div>
+        <div className="w-[320px]">
+          <Label className="text-xs">Tipo de impressão</Label>
+          <Select value={tipoImpressao} onValueChange={(v) => setTipoImpressao(v as any)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="os">Imprimir OS</SelectItem>
+              <SelectItem value="fotos">Imprimir OS com Fotos</SelectItem>
+              <SelectItem value="fotos_memoria">Imprimir OS com Fotos e Memória de Cálculo</SelectItem>
+              <SelectItem value="fotos_memoria_fotos">Imprimir OS com Fotos e Memória de Cálculo com Fotos</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
 
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-accent rounded-lg border border-border">
