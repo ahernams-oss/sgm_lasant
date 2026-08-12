@@ -516,10 +516,23 @@ export default function NfesRecebidas() {
                       <TableCell>{formatCnpj(n.prestador_cnpj)}</TableCell>
                       <TableCell className="max-w-xs truncate" title={n.discriminacao || ""}>{n.discriminacao || "—"}</TableCell>
                       <TableCell className="text-right">{formatBRL(n.valor_total)}</TableCell>
-                      <TableCell><Badge variant="outline">{n.origem || "—"}</Badge></TableCell>
-                      <TableCell className="text-right">
+                      <TableCell>
+                        <Badge variant="outline">{n.origem || "—"}</Badge>
+                        {n.status === "rejeitada" && <Badge variant="destructive" className="ml-1" title={n.motivo_rejeicao || ""}>rejeitada</Badge>}
+                        {n.conta_pagar_id && <Badge variant="outline" className="ml-1">vinculada</Badge>}
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
+                        <Button size="sm" variant="ghost" onClick={() => abrirVisualizacao(n, "nfse")} title="Visualizar nota">
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button size="sm" variant="ghost" disabled={!n.xml_url} onClick={() => baixarXml(n)} title="Baixar XML">
                           <Download className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => n.conta_pagar_id ? desvincular(n, "nfse") : abrirVinculo(n, "nfse")} title={n.conta_pagar_id ? "Desvincular do contas a pagar" : "Vincular a contas a pagar"}>
+                          <Link2 className={`h-4 w-4 ${n.conta_pagar_id ? "text-primary" : ""}`} />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => n.status === "rejeitada" ? reverterRejeicao(n, "nfse") : abrirRejeicao(n, "nfse")} title={n.status === "rejeitada" ? "Reverter rejeição" : "Rejeitar nota"}>
+                          <Ban className={`h-4 w-4 ${n.status === "rejeitada" ? "text-destructive" : ""}`} />
                         </Button>
                       </TableCell>
                     </TableRow>
