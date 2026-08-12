@@ -634,7 +634,7 @@ export default function NfesRecebidas() {
                 <SelectContent>
                   {contasPagar.filter(c => c.status === "aberta" || c.status === "parcial").map(c => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.descricao} — {fmtBRL(Number(c.valor_total))} — venc. {formatDate2(c.data_vencimento)}
+                      {c.descricao} — {fmtBRL(Number(c.valor_total))} — venc. {new Date(c.data_vencimento + "T00:00:00").toLocaleDateString("pt-BR")}
                     </SelectItem>
                   ))}
                 </SelectContent>
