@@ -167,6 +167,7 @@ export default function NfesRecebidas() {
   const [motivo, setMotivo] = useState("");
   const [vincularOpen, setVincularOpen] = useState(false);
   const [contaSel, setContaSel] = useState("");
+  const [contaPickerOpen, setContaPickerOpen] = useState(false);
   const [vencimento, setVencimento] = useState("");
   const [salvando, setSalvando] = useState(false);
 
