@@ -110,20 +110,6 @@ export default function NfesRecebidas() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  const diagnosticar = async () => {
-    if (!empresa.id) return toast.error("Empresa não cadastrada");
-    setDiagOpen(true); setDiagLoading(true); setDiagData(null);
-    try {
-      const { data, error } = await supabase.functions.invoke("buscar-nfes-focus", { body: { empresaId: empresa.id } });
-      if (error) throw error;
-      setDiagData(data);
-    } catch (e: any) {
-      setDiagData({ ok: false, error: e.message });
-    } finally {
-      setDiagLoading(false);
-    }
-  };
-
   const diagnosticarBrasilNfe = async () => {
     setDiagBnOpen(true); setDiagBnLoading(true); setDiagBnData(null);
     try {
