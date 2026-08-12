@@ -567,6 +567,96 @@ export default function NfesRecebidas() {
         </DialogContent>
       </Dialog>
 
+      {/* Visualizar nota */}
+      <Dialog open={verOpen} onOpenChange={setVerOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader><DialogTitle>{docTipo === "nfe" ? "NFe" : "NFS-e"} nº {docSel?.numero || "—"}</DialogTitle></DialogHeader>
+          {docSel && (
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <div><b>{docTipo === "nfe" ? "Emitente" : "Prestador"}:</b> {(docTipo === "nfe" ? docSel.emitente_nome : docSel.prestador_nome) || "—"}</div>
+                <div><b>CNPJ:</b> {formatCnpj(docTipo === "nfe" ? docSel.emitente_cnpj : docSel.prestador_cnpj)}</div>
+                <div><b>Emissão:</b> {formatDateTime(docSel.data_emissao)}</div>
+                <div><b>Valor:</b> {formatBRL(docSel.valor_total)}</div>
+                <div className="col-span-2 break-all"><b>Chave:</b> <code className="text-xs">{docSel.chave}</code></div>
+                {docSel.discriminacao && <div className="col-span-2"><b>Discriminação:</b> {docSel.discriminacao}</div>}
+                <div><b>Status:</b> {docSel.status || "—"}</div>
+                <div><b>Contas a pagar:</b> {docSel.conta_pagar_id ? (contasPagar.find(c => c.id === docSel.conta_pagar_id)?.descricao || "Vinculada") : "Não vinculada"}</div>
+                {docSel.motivo_rejeicao && <div className="col-span-2 text-destructive"><b>Motivo da rejeição:</b> {docSel.motivo_rejeicao}</div>}
+              </div>
+              <div>
+                <b>XML:</b>
+                {xmlLoading ? (
+                  <div className="py-6 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin inline mr-2" /> Carregando XML…</div>
+                ) : xmlTexto ? (
+                  <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-80 whitespace-pre-wrap break-all">{xmlTexto}</pre>
+                ) : (
+                  <div className="text-muted-foreground py-2">XML não disponível para esta nota.</div>
+                )}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" disabled={!docSel?.xml_url} onClick={() => baixarXml(docSel)}>
+              <Download className="h-4 w-4 mr-2" /> Baixar XML
+            </Button>
+            <Button onClick={() => setVerOpen(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rejeitar nota */}
+      <Dialog open={rejeitarOpen} onOpenChange={setRejeitarOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Rejeitar nota fiscal</DialogTitle></DialogHeader>
+          <div className="space-y-2">
+            <Label>Motivo da rejeição *</Label>
+            <Textarea rows={4} value={motivo} onChange={e => setMotivo(e.target.value)} placeholder="Descreva o motivo da rejeição" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejeitarOpen(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={confirmarRejeicao} disabled={salvando}>
+              {salvando && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Rejeitar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Vincular a contas a pagar */}
+      <Dialog open={vincularOpen} onOpenChange={setVincularOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Vincular a Contas a Pagar</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Título existente</Label>
+              <Select value={contaSel} onValueChange={setContaSel}>
+                <SelectTrigger><SelectValue placeholder="Selecione um título em aberto" /></SelectTrigger>
+                <SelectContent>
+                  {contasPagar.filter(c => c.status === "aberta" || c.status === "parcial").map(c => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.descricao} — {fmtBRL(Number(c.valor_total))} — venc. {formatDate2(c.data_vencimento)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button className="w-full" onClick={salvarVinculo} disabled={salvando || !contaSel}>
+                {salvando && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Vincular ao título selecionado
+              </Button>
+            </div>
+            <div className="border-t pt-4 space-y-2">
+              <Label>Ou criar novo título a partir da nota</Label>
+              <div className="text-sm text-muted-foreground">
+                {(docTipo === "nfe" ? docSel?.emitente_nome : docSel?.prestador_nome) || "—"} — {formatBRL(docSel?.valor_total)}
+              </div>
+              <Input type="date" value={vencimento} onChange={e => setVencimento(e.target.value)} />
+              <Button variant="outline" className="w-full" onClick={criarEVincular} disabled={salvando}>
+                {salvando && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Criar título e vincular
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
