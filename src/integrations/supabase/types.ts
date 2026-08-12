@@ -4542,6 +4542,7 @@ export type Database = {
         Row: {
           ambiente: string | null
           chave: string
+          conta_pagar_id: string | null
           created_at: string
           danfe_url: string | null
           data_emissao: string | null
@@ -4552,9 +4553,11 @@ export type Database = {
           empresa_id: string | null
           id: string
           manifestacao: string | null
+          motivo_rejeicao: string | null
           numero: string | null
           payload: Json | null
           pedido_compra_id: string | null
+          rejeitada_em: string | null
           serie: string | null
           status: string | null
           updated_at: string
@@ -4565,6 +4568,7 @@ export type Database = {
         Insert: {
           ambiente?: string | null
           chave: string
+          conta_pagar_id?: string | null
           created_at?: string
           danfe_url?: string | null
           data_emissao?: string | null
@@ -4575,9 +4579,11 @@ export type Database = {
           empresa_id?: string | null
           id?: string
           manifestacao?: string | null
+          motivo_rejeicao?: string | null
           numero?: string | null
           payload?: Json | null
           pedido_compra_id?: string | null
+          rejeitada_em?: string | null
           serie?: string | null
           status?: string | null
           updated_at?: string
@@ -4588,6 +4594,7 @@ export type Database = {
         Update: {
           ambiente?: string | null
           chave?: string
+          conta_pagar_id?: string | null
           created_at?: string
           danfe_url?: string | null
           data_emissao?: string | null
@@ -4598,9 +4605,11 @@ export type Database = {
           empresa_id?: string | null
           id?: string
           manifestacao?: string | null
+          motivo_rejeicao?: string | null
           numero?: string | null
           payload?: Json | null
           pedido_compra_id?: string | null
+          rejeitada_em?: string | null
           serie?: string | null
           status?: string | null
           updated_at?: string
@@ -4608,7 +4617,15 @@ export type Database = {
           vinculado_em?: string | null
           xml_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nfes_recebidas_conta_pagar_id_fkey"
+            columns: ["conta_pagar_id"]
+            isOneToOne: false
+            referencedRelation: "fin_contas_pagar"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nfse_config: {
         Row: {
@@ -4772,18 +4789,21 @@ export type Database = {
           base_calculo: number | null
           chave: string
           codigo_verificacao: string | null
+          conta_pagar_id: string | null
           created_at: string
           data_emissao: string | null
           data_recebimento: string | null
           discriminacao: string | null
           empresa_id: string | null
           id: string
+          motivo_rejeicao: string | null
           municipio_prestacao: string | null
           numero: string | null
           origem: string | null
           payload: Json | null
           prestador_cnpj: string | null
           prestador_nome: string | null
+          rejeitada_em: string | null
           serie: string | null
           status: string | null
           tomador_cnpj: string | null
@@ -4798,18 +4818,21 @@ export type Database = {
           base_calculo?: number | null
           chave: string
           codigo_verificacao?: string | null
+          conta_pagar_id?: string | null
           created_at?: string
           data_emissao?: string | null
           data_recebimento?: string | null
           discriminacao?: string | null
           empresa_id?: string | null
           id?: string
+          motivo_rejeicao?: string | null
           municipio_prestacao?: string | null
           numero?: string | null
           origem?: string | null
           payload?: Json | null
           prestador_cnpj?: string | null
           prestador_nome?: string | null
+          rejeitada_em?: string | null
           serie?: string | null
           status?: string | null
           tomador_cnpj?: string | null
@@ -4824,18 +4847,21 @@ export type Database = {
           base_calculo?: number | null
           chave?: string
           codigo_verificacao?: string | null
+          conta_pagar_id?: string | null
           created_at?: string
           data_emissao?: string | null
           data_recebimento?: string | null
           discriminacao?: string | null
           empresa_id?: string | null
           id?: string
+          motivo_rejeicao?: string | null
           municipio_prestacao?: string | null
           numero?: string | null
           origem?: string | null
           payload?: Json | null
           prestador_cnpj?: string | null
           prestador_nome?: string | null
+          rejeitada_em?: string | null
           serie?: string | null
           status?: string | null
           tomador_cnpj?: string | null
@@ -4845,7 +4871,15 @@ export type Database = {
           valor_total?: number | null
           xml_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nfses_tomadas_conta_pagar_id_fkey"
+            columns: ["conta_pagar_id"]
+            isOneToOne: false
+            referencedRelation: "fin_contas_pagar"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       obras: {
         Row: {

@@ -5,10 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, RefreshCw, FileText, Loader2, Stethoscope, Upload } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Download, RefreshCw, Loader2, Stethoscope, Upload, Eye, Ban, Link2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/contexts/EmpresaContext";
+import { useFinanceiro, formatBRL as fmtBRL } from "@/contexts/FinanceiroContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 
@@ -25,6 +29,9 @@ interface Nfe {
   ambiente: string | null;
   status: string | null;
   xml_url: string | null;
+  conta_pagar_id?: string | null;
+  motivo_rejeicao?: string | null;
+  rejeitada_em?: string | null;
 }
 
 interface Nfse {
@@ -42,6 +49,9 @@ interface Nfse {
   origem: string | null;
   xml_url: string | null;
   discriminacao: string | null;
+  conta_pagar_id?: string | null;
+  motivo_rejeicao?: string | null;
+  rejeitada_em?: string | null;
 }
 
 const formatDateTime = (s: string | null) => {
@@ -73,6 +83,7 @@ const numeroSerie = (n: { numero: string | null; serie: string | null; chave?: s
 
 export default function NfesRecebidas() {
   const { empresa } = useEmpresa();
+  const { contasPagar, addContaPagar } = useFinanceiro();
   const [tab, setTab] = useState<"nfe" | "nfse">("nfe");
 
   // NFe
@@ -84,6 +95,20 @@ export default function NfesRecebidas() {
   const [nfses, setNfses] = useState<Nfse[]>([]);
   const [loadingNfse, setLoadingNfse] = useState(false);
   const [importandoNfse, setImportandoNfse] = useState(false);
+
+  // Visualizar / Rejeitar / Vincular
+  const [docSel, setDocSel] = useState<any>(null);
+  const [docTipo, setDocTipo] = useState<"nfe" | "nfse">("nfe");
+  const [verOpen, setVerOpen] = useState(false);
+  const [xmlTexto, setXmlTexto] = useState("");
+  const [xmlLoading, setXmlLoading] = useState(false);
+  const [rejeitarOpen, setRejeitarOpen] = useState(false);
+  const [motivo, setMotivo] = useState("");
+  const [vincularOpen, setVincularOpen] = useState(false);
+  const [contaSel, setContaSel] = useState("");
+  const [vencimento, setVencimento] = useState("");
+  const [salvando, setSalvando] = useState(false);
+
 
   // Filtros compartilhados
   const [busca, setBusca] = useState("");
@@ -208,6 +233,109 @@ export default function NfesRecebidas() {
     }
   };
 
+  const tabela = (t: "nfe" | "nfse") => (t === "nfe" ? "nfes_recebidas" : "nfses_tomadas");
+  const recarregar = async () => { await load(); await loadNfse(); };
+
+  const abrirVisualizacao = async (n: any, t: "nfe" | "nfse") => {
+    setDocSel(n); setDocTipo(t); setVerOpen(true); setXmlTexto("");
+    if (!n.xml_url) return;
+    setXmlLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("nfe-xml-url", { body: { path: n.xml_url } });
+      if (error) throw error;
+      const r: any = data;
+      if (!r?.ok) throw new Error(r?.error || "Falha ao obter XML");
+      const resp = await fetch(r.url);
+      setXmlTexto(await resp.text());
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao carregar XML");
+    } finally {
+      setXmlLoading(false);
+    }
+  };
+
+  const abrirRejeicao = (n: any, t: "nfe" | "nfse") => {
+    setDocSel(n); setDocTipo(t); setMotivo(n.motivo_rejeicao || ""); setRejeitarOpen(true);
+  };
+
+  const confirmarRejeicao = async () => {
+    if (!motivo.trim()) return toast.error("Informe o motivo da rejeição");
+    setSalvando(true);
+    const { error } = await (supabase as any).from(tabela(docTipo)).update({
+      status: "rejeitada", motivo_rejeicao: motivo.trim(), rejeitada_em: new Date().toISOString(),
+    }).eq("id", docSel.id);
+    setSalvando(false);
+    if (error) return toast.error("Erro ao rejeitar nota fiscal");
+    toast.success("Nota fiscal rejeitada");
+    setRejeitarOpen(false); setMotivo(""); await recarregar();
+  };
+
+  const reverterRejeicao = async (n: any, t: "nfe" | "nfse") => {
+    const { error } = await (supabase as any).from(tabela(t)).update({
+      status: "importada", motivo_rejeicao: null, rejeitada_em: null,
+    }).eq("id", n.id);
+    if (error) return toast.error("Erro ao reverter rejeição");
+    toast.success("Rejeição revertida");
+    await recarregar();
+  };
+
+  const abrirVinculo = (n: any, t: "nfe" | "nfse") => {
+    setDocSel(n); setDocTipo(t); setContaSel(n.conta_pagar_id || "");
+    setVencimento(new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10));
+    setVincularOpen(true);
+  };
+
+  const salvarVinculo = async () => {
+    if (!contaSel) return toast.error("Selecione um título ou crie um novo");
+    setSalvando(true);
+    try {
+      const { error } = await (supabase as any).from(tabela(docTipo))
+        .update({ conta_pagar_id: contaSel }).eq("id", docSel.id);
+      if (error) throw error;
+      toast.success("Nota fiscal vinculada ao contas a pagar");
+      setVincularOpen(false); await recarregar();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao vincular");
+    } finally { setSalvando(false); }
+  };
+
+  const criarEVincular = async () => {
+    if (!vencimento) return toast.error("Informe o vencimento");
+    setSalvando(true);
+    try {
+      const fornecedor = docTipo === "nfe" ? docSel.emitente_nome : docSel.prestador_nome;
+      const criada = await addContaPagar({
+        descricao: `NF ${docSel.numero || docSel.chave} — ${fornecedor || "Fornecedor"}`,
+        fornecedor_nome: fornecedor || "",
+        valor_total: Number(docSel.valor_total) || 0,
+        valor_pago: 0,
+        data_emissao: docSel.data_emissao ? String(docSel.data_emissao).slice(0, 10) : null,
+        data_vencimento: vencimento,
+        status: "aberta",
+        parcela_num: 1,
+        parcela_total: 1,
+        origem: docTipo === "nfe" ? "nfe" : "nfse",
+      } as any);
+      if (!criada?.id) throw new Error("Falha ao criar título");
+      const { error } = await (supabase as any).from(tabela(docTipo))
+        .update({ conta_pagar_id: criada.id }).eq("id", docSel.id);
+      if (error) throw error;
+      toast.success("Título criado e vinculado");
+      setVincularOpen(false); await recarregar();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao criar título");
+    } finally { setSalvando(false); }
+  };
+
+  const desvincular = async (n: any, t: "nfe" | "nfse") => {
+    const { error } = await (supabase as any).from(tabela(t)).update({ conta_pagar_id: null }).eq("id", n.id);
+    if (error) return toast.error("Erro ao desvincular");
+    toast.success("Vínculo removido");
+    await recarregar();
+  };
+
+
+
   const filtrados = useMemo(() => rows.filter(r => {
     if (busca) {
       const q = busca.toLowerCase();
@@ -318,13 +446,24 @@ export default function NfesRecebidas() {
                       <TableCell>{formatCnpj(n.emitente_cnpj)}</TableCell>
 
                       <TableCell className="text-right">{formatBRL(n.valor_total)}</TableCell>
-                      <TableCell>{n.status ? <Badge variant="secondary">{n.status}</Badge> : "—"}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell>
+                        {n.status === "rejeitada"
+                          ? <Badge variant="destructive" title={n.motivo_rejeicao || ""}>rejeitada</Badge>
+                          : n.status ? <Badge variant="secondary">{n.status}</Badge> : "—"}
+                        {n.conta_pagar_id && <Badge variant="outline" className="ml-1">vinculada</Badge>}
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
+                        <Button size="sm" variant="ghost" onClick={() => abrirVisualizacao(n, "nfe")} title="Visualizar nota">
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button size="sm" variant="ghost" disabled={!n.xml_url} onClick={() => baixarXml(n)} title="Baixar XML">
                           <Download className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" disabled title="Vincular ao Ordem de Compra (em breve)">
-                          <FileText className="h-4 w-4" />
+                        <Button size="sm" variant="ghost" onClick={() => n.conta_pagar_id ? desvincular(n, "nfe") : abrirVinculo(n, "nfe")} title={n.conta_pagar_id ? "Desvincular do contas a pagar" : "Vincular a contas a pagar"}>
+                          <Link2 className={`h-4 w-4 ${n.conta_pagar_id ? "text-primary" : ""}`} />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => n.status === "rejeitada" ? reverterRejeicao(n, "nfe") : abrirRejeicao(n, "nfe")} title={n.status === "rejeitada" ? "Reverter rejeição" : "Rejeitar nota"}>
+                          <Ban className={`h-4 w-4 ${n.status === "rejeitada" ? "text-destructive" : ""}`} />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -377,10 +516,23 @@ export default function NfesRecebidas() {
                       <TableCell>{formatCnpj(n.prestador_cnpj)}</TableCell>
                       <TableCell className="max-w-xs truncate" title={n.discriminacao || ""}>{n.discriminacao || "—"}</TableCell>
                       <TableCell className="text-right">{formatBRL(n.valor_total)}</TableCell>
-                      <TableCell><Badge variant="outline">{n.origem || "—"}</Badge></TableCell>
-                      <TableCell className="text-right">
+                      <TableCell>
+                        <Badge variant="outline">{n.origem || "—"}</Badge>
+                        {n.status === "rejeitada" && <Badge variant="destructive" className="ml-1" title={n.motivo_rejeicao || ""}>rejeitada</Badge>}
+                        {n.conta_pagar_id && <Badge variant="outline" className="ml-1">vinculada</Badge>}
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
+                        <Button size="sm" variant="ghost" onClick={() => abrirVisualizacao(n, "nfse")} title="Visualizar nota">
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button size="sm" variant="ghost" disabled={!n.xml_url} onClick={() => baixarXml(n)} title="Baixar XML">
                           <Download className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => n.conta_pagar_id ? desvincular(n, "nfse") : abrirVinculo(n, "nfse")} title={n.conta_pagar_id ? "Desvincular do contas a pagar" : "Vincular a contas a pagar"}>
+                          <Link2 className={`h-4 w-4 ${n.conta_pagar_id ? "text-primary" : ""}`} />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => n.status === "rejeitada" ? reverterRejeicao(n, "nfse") : abrirRejeicao(n, "nfse")} title={n.status === "rejeitada" ? "Reverter rejeição" : "Rejeitar nota"}>
+                          <Ban className={`h-4 w-4 ${n.status === "rejeitada" ? "text-destructive" : ""}`} />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -412,6 +564,96 @@ export default function NfesRecebidas() {
               <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-80">{JSON.stringify(diagBnData.preview?.length ? diagBnData.preview : (diagBnData.raw ?? diagBnData), null, 2)}</pre>
             </div>
           ) : null}
+        </DialogContent>
+      </Dialog>
+
+      {/* Visualizar nota */}
+      <Dialog open={verOpen} onOpenChange={setVerOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader><DialogTitle>{docTipo === "nfe" ? "NFe" : "NFS-e"} nº {docSel?.numero || "—"}</DialogTitle></DialogHeader>
+          {docSel && (
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <div><b>{docTipo === "nfe" ? "Emitente" : "Prestador"}:</b> {(docTipo === "nfe" ? docSel.emitente_nome : docSel.prestador_nome) || "—"}</div>
+                <div><b>CNPJ:</b> {formatCnpj(docTipo === "nfe" ? docSel.emitente_cnpj : docSel.prestador_cnpj)}</div>
+                <div><b>Emissão:</b> {formatDateTime(docSel.data_emissao)}</div>
+                <div><b>Valor:</b> {formatBRL(docSel.valor_total)}</div>
+                <div className="col-span-2 break-all"><b>Chave:</b> <code className="text-xs">{docSel.chave}</code></div>
+                {docSel.discriminacao && <div className="col-span-2"><b>Discriminação:</b> {docSel.discriminacao}</div>}
+                <div><b>Status:</b> {docSel.status || "—"}</div>
+                <div><b>Contas a pagar:</b> {docSel.conta_pagar_id ? (contasPagar.find(c => c.id === docSel.conta_pagar_id)?.descricao || "Vinculada") : "Não vinculada"}</div>
+                {docSel.motivo_rejeicao && <div className="col-span-2 text-destructive"><b>Motivo da rejeição:</b> {docSel.motivo_rejeicao}</div>}
+              </div>
+              <div>
+                <b>XML:</b>
+                {xmlLoading ? (
+                  <div className="py-6 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin inline mr-2" /> Carregando XML…</div>
+                ) : xmlTexto ? (
+                  <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-80 whitespace-pre-wrap break-all">{xmlTexto}</pre>
+                ) : (
+                  <div className="text-muted-foreground py-2">XML não disponível para esta nota.</div>
+                )}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" disabled={!docSel?.xml_url} onClick={() => baixarXml(docSel)}>
+              <Download className="h-4 w-4 mr-2" /> Baixar XML
+            </Button>
+            <Button onClick={() => setVerOpen(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rejeitar nota */}
+      <Dialog open={rejeitarOpen} onOpenChange={setRejeitarOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Rejeitar nota fiscal</DialogTitle></DialogHeader>
+          <div className="space-y-2">
+            <Label>Motivo da rejeição *</Label>
+            <Textarea rows={4} value={motivo} onChange={e => setMotivo(e.target.value)} placeholder="Descreva o motivo da rejeição" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejeitarOpen(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={confirmarRejeicao} disabled={salvando}>
+              {salvando && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Rejeitar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Vincular a contas a pagar */}
+      <Dialog open={vincularOpen} onOpenChange={setVincularOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Vincular a Contas a Pagar</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Título existente</Label>
+              <Select value={contaSel} onValueChange={setContaSel}>
+                <SelectTrigger><SelectValue placeholder="Selecione um título em aberto" /></SelectTrigger>
+                <SelectContent>
+                  {contasPagar.filter(c => c.status === "aberta" || c.status === "parcial").map(c => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.descricao} — {fmtBRL(Number(c.valor_total))} — venc. {new Date(c.data_vencimento + "T00:00:00").toLocaleDateString("pt-BR")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button className="w-full" onClick={salvarVinculo} disabled={salvando || !contaSel}>
+                {salvando && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Vincular ao título selecionado
+              </Button>
+            </div>
+            <div className="border-t pt-4 space-y-2">
+              <Label>Ou criar novo título a partir da nota</Label>
+              <div className="text-sm text-muted-foreground">
+                {(docTipo === "nfe" ? docSel?.emitente_nome : docSel?.prestador_nome) || "—"} — {formatBRL(docSel?.valor_total)}
+              </div>
+              <Input type="date" value={vencimento} onChange={e => setVencimento(e.target.value)} />
+              <Button variant="outline" className="w-full" onClick={criarEVincular} disabled={salvando}>
+                {salvando && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Criar título e vincular
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
