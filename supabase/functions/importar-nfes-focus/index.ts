@@ -38,7 +38,15 @@ Deno.serve(async (req) => {
     const lstText = await lst.text();
     let arr: any[] = [];
     try { const j = JSON.parse(lstText); arr = Array.isArray(j) ? j : []; } catch {}
-    if (!lst.ok) return json({ ok: false, httpStatus: lst.status, error: lstText.slice(0, 500) }, 502);
+    if (!lst.ok) {
+      let msg = lstText.slice(0, 500);
+      try { const j = JSON.parse(lstText); msg = j?.mensagem || j?.erro || msg; } catch { /* raw */ }
+      if (lst.status === 401 || lst.status === 403) {
+        msg = `Token da Focus NFe inválido para o ambiente "${ambiente}". Verifique/atualize o segredo ${tokenName} (o token precisa ser o do ambiente de ${ambiente}).`;
+      }
+      // 200 para a UI exibir a mensagem em vez de quebrar com erro 502
+      return json({ ok: false, httpStatus: lst.status, ambiente, tokenName, error: msg });
+    }
 
     let inseridas = 0, atualizadas = 0, comXml = 0, erros = 0;
 
