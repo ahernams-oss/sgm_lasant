@@ -5,13 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, RefreshCw, FileText, Loader2, FileDown, Stethoscope, Eye, Upload } from "lucide-react";
+import { Download, RefreshCw, FileText, Loader2, Stethoscope, Upload } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
-import PdfPreview from "@/components/PdfPreview";
 
 interface Nfe {
   id: string;
@@ -93,36 +92,14 @@ export default function NfesRecebidas() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
-  const [diagOpen, setDiagOpen] = useState(false);
-  const [diagLoading, setDiagLoading] = useState(false);
-  const [diagData, setDiagData] = useState<any>(null);
   const [diagBnOpen, setDiagBnOpen] = useState(false);
   const [diagBnLoading, setDiagBnLoading] = useState(false);
   const [diagBnData, setDiagBnData] = useState<any>(null);
 
 
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewChave, setPreviewChave] = useState<string>("");
-  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-
-  const diagnosticar = async () => {
-    if (!empresa.id) return toast.error("Empresa não cadastrada");
-    setDiagOpen(true); setDiagLoading(true); setDiagData(null);
-    try {
-      const { data, error } = await supabase.functions.invoke("buscar-nfes-focus", { body: { empresaId: empresa.id } });
-      if (error) throw error;
-      setDiagData(data);
-    } catch (e: any) {
-      setDiagData({ ok: false, error: e.message });
-    } finally {
-      setDiagLoading(false);
-    }
-  };
 
   const diagnosticarBrasilNfe = async () => {
     setDiagBnOpen(true); setDiagBnLoading(true); setDiagBnData(null);
@@ -160,43 +137,28 @@ export default function NfesRecebidas() {
 
   useEffect(() => { load(); loadNfse(); }, []);
 
-  const importar = async () => {
+  // Importação única via Brasil NFe (NFe e NFS-e vêm na mesma consulta)
+  const importarBrasilNfe = async (setBusy: (b: boolean) => void) => {
     if (!empresa.id) return toast.error("Empresa não cadastrada");
-    setImportando(true);
+    setBusy(true);
     try {
-      const { data, error } = await supabase.functions.invoke("importar-nfes-focus", {
-        body: { empresaId: empresa.id, baixarXml: true, dataInicial: dataIni || undefined, dataFinal: dataFim || undefined },
+      const { data, error } = await supabase.functions.invoke("importar-nfes-brasilnfe", {
+        body: { empresaId: empresa.id, dataInicial: dataIni || undefined, dataFinal: dataFim || undefined },
       });
       if (error) throw error;
       const r: any = data;
       if (!r?.ok) throw new Error(r?.error || "Falha na importação");
-      toast.success(`Importação concluída: ${r.total} NFe(s) — ${r.inseridas} novas, ${r.atualizadas} atualizadas, ${r.comXml} com XML`);
-      await load();
+      toast.success(`Importação concluída: ${r.total} documento(s) — ${r.inseridas} novos, ${r.atualizadas} atualizados`);
+      await load(); await loadNfse();
     } catch (e: any) {
-      toast.error(e.message || "Erro ao importar NFes");
+      toast.error(e.message || "Erro ao importar notas fiscais");
     } finally {
-      setImportando(false);
+      setBusy(false);
     }
   };
 
-  const importarNfse = async () => {
-    if (!empresa.id) return toast.error("Empresa não cadastrada");
-    setImportandoNfse(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("importar-nfses-focus", {
-        body: { empresaId: empresa.id, baixarXml: true, dataInicial: dataIni || undefined, dataFinal: dataFim || undefined },
-      });
-      if (error) throw error;
-      const r: any = data;
-      if (!r?.ok) throw new Error(r?.error || "Falha na importação de NFS-e");
-      toast.success(`Importação concluída: ${r.total} NFS-e — ${r.inseridas} novas, ${r.atualizadas} atualizadas`);
-      await loadNfse();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao importar NFS-e");
-    } finally {
-      setImportandoNfse(false);
-    }
-  };
+  const importar = () => importarBrasilNfe(setImportando);
+  const importarNfse = () => importarBrasilNfe(setImportandoNfse);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!empresa.id) return toast.error("Empresa não cadastrada");
@@ -246,67 +208,6 @@ export default function NfesRecebidas() {
     }
   };
 
-  const gerarDanfeBlob = async (n: Nfe): Promise<Blob | null> => {
-    if (!empresa.id) { toast.error("Empresa não cadastrada"); return null; }
-    const { data, error } = await supabase.functions.invoke("nfe-danfe-focus", {
-      body: { empresaId: empresa.id, chave: n.chave },
-    });
-    if (error) throw error;
-    const r: any = data;
-    if (!r?.ok) throw new Error(r?.error || "Falha");
-    const bin = atob(r.pdfBase64);
-    const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    return new Blob([bytes], { type: "application/pdf" });
-  };
-
-  const visualizarDanfe = async (n: Nfe) => {
-    setPreviewOpen(true); setPreviewLoading(true);
-    setPreviewUrl(null); setPreviewBlob(null); setPreviewChave(n.chave);
-    try {
-      const blob = await gerarDanfeBlob(n);
-      if (!blob) return;
-      setPreviewBlob(blob);
-      setPreviewUrl(URL.createObjectURL(blob));
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao gerar DANFE");
-      setPreviewOpen(false);
-    } finally {
-      setPreviewLoading(false);
-    }
-  };
-
-  const baixarDanfe = async (n: Nfe) => {
-    try {
-      const blob = await gerarDanfeBlob(n);
-      if (!blob) return;
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `DANFE-${n.chave}.pdf`;
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(a.href);
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao baixar DANFE");
-    }
-  };
-
-  const baixarDoPreview = () => {
-    if (!previewBlob) return;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(previewBlob);
-    a.download = `DANFE-${previewChave}.pdf`;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(a.href);
-  };
-
-  const fecharPreview = (open: boolean) => {
-    if (!open) {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null); setPreviewBlob(null);
-    }
-    setPreviewOpen(open);
-  };
-
   const filtrados = useMemo(() => rows.filter(r => {
     if (busca) {
       const q = busca.toLowerCase();
@@ -353,24 +254,18 @@ export default function NfesRecebidas() {
             {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
             Importar XML manual
           </Button>
+          <Button variant="outline" onClick={diagnosticarBrasilNfe}>
+            <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Brasil NFe
+          </Button>
           {tab === "nfe" ? (
-            <>
-              <Button variant="outline" onClick={diagnosticar} disabled={!empresa.id}>
-                <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Focus
-              </Button>
-              <Button variant="outline" onClick={diagnosticarBrasilNfe}>
-                <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Brasil NFe
-              </Button>
-
-              <Button onClick={importar} disabled={importando || !empresa.id}>
-                {importando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                Importar NFes (SEFAZ)
-              </Button>
-            </>
+            <Button onClick={importar} disabled={importando || !empresa.id}>
+              {importando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+              Importar NFes (Brasil NFe)
+            </Button>
           ) : (
             <Button onClick={importarNfse} disabled={importandoNfse || !empresa.id}>
               {importandoNfse ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-              Importar NFS-e (Padrão Nacional)
+              Importar NFS-e (Brasil NFe)
             </Button>
           )}
         </div>
@@ -427,12 +322,6 @@ export default function NfesRecebidas() {
                       <TableCell className="text-right">
                         <Button size="sm" variant="ghost" disabled={!n.xml_url} onClick={() => baixarXml(n)} title="Baixar XML">
                           <Download className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => visualizarDanfe(n)} title="Visualizar DANFE (PDF)">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => baixarDanfe(n)} title="Baixar DANFE (PDF)">
-                          <FileDown className="h-4 w-4" />
                         </Button>
                         <Button size="sm" variant="ghost" disabled title="Vincular ao Ordem de Compra (em breve)">
                           <FileText className="h-4 w-4" />
@@ -526,46 +415,6 @@ export default function NfesRecebidas() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={diagOpen} onOpenChange={setDiagOpen}>
-
-        <DialogContent className="max-w-3xl">
-          <DialogHeader><DialogTitle>Diagnóstico Focus NFe</DialogTitle></DialogHeader>
-          {diagLoading ? (
-            <div className="py-8 text-center text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin inline mr-2" /> Consultando Focus…</div>
-          ) : diagData ? (
-            <div className="space-y-2 text-sm">
-              <div><b>Ambiente:</b> {diagData.ambiente || "—"}</div>
-              <div><b>HTTP Status:</b> {diagData.httpStatus ?? "—"} {diagData.ok ? "✅" : "❌"}</div>
-              <div className="break-all"><b>URL:</b> <code className="text-xs">{diagData.url}</code></div>
-              <div><b>CNPJ consultado:</b> {diagData.cnpj}</div>
-              <div><b>Total de documentos:</b> {diagData.totalDocumentos ?? 0}</div>
-              {diagData.error && <div className="text-destructive"><b>Erro:</b> {String(diagData.error)}</div>}
-              <div><b>Resposta da Focus (preview):</b></div>
-              <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-80">{JSON.stringify(diagData.preview ?? diagData, null, 2)}</pre>
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={previewOpen} onOpenChange={fecharPreview}>
-        <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
-          <DialogHeader className="flex-row items-center justify-between space-y-0">
-            <DialogTitle>Pré-visualização DANFE</DialogTitle>
-            <Button size="sm" onClick={baixarDoPreview} disabled={!previewBlob} className="mr-6">
-              <FileDown className="h-4 w-4 mr-2" /> Baixar PDF
-            </Button>
-          </DialogHeader>
-          <div className="flex-1 min-h-0 bg-muted rounded overflow-hidden">
-            {previewLoading ? (
-              <div className="h-full flex items-center justify-center text-muted-foreground">
-                <Loader2 className="h-5 w-5 animate-spin mr-2" /> Gerando DANFE…
-              </div>
-            ) : previewBlob ? (
-              <PdfPreview file={previewBlob} />
-            ) : null}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
