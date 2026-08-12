@@ -232,6 +232,109 @@ export default function NfesRecebidas() {
     }
   };
 
+  const tabela = (t: "nfe" | "nfse") => (t === "nfe" ? "nfes_recebidas" : "nfses_tomadas");
+  const recarregar = async () => { await load(); await loadNfse(); };
+
+  const abrirVisualizacao = async (n: any, t: "nfe" | "nfse") => {
+    setDocSel(n); setDocTipo(t); setVerOpen(true); setXmlTexto("");
+    if (!n.xml_url) return;
+    setXmlLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("nfe-xml-url", { body: { path: n.xml_url } });
+      if (error) throw error;
+      const r: any = data;
+      if (!r?.ok) throw new Error(r?.error || "Falha ao obter XML");
+      const resp = await fetch(r.url);
+      setXmlTexto(await resp.text());
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao carregar XML");
+    } finally {
+      setXmlLoading(false);
+    }
+  };
+
+  const abrirRejeicao = (n: any, t: "nfe" | "nfse") => {
+    setDocSel(n); setDocTipo(t); setMotivo(n.motivo_rejeicao || ""); setRejeitarOpen(true);
+  };
+
+  const confirmarRejeicao = async () => {
+    if (!motivo.trim()) return toast.error("Informe o motivo da rejeição");
+    setSalvando(true);
+    const { error } = await (supabase as any).from(tabela(docTipo)).update({
+      status: "rejeitada", motivo_rejeicao: motivo.trim(), rejeitada_em: new Date().toISOString(),
+    }).eq("id", docSel.id);
+    setSalvando(false);
+    if (error) return toast.error("Erro ao rejeitar nota fiscal");
+    toast.success("Nota fiscal rejeitada");
+    setRejeitarOpen(false); setMotivo(""); await recarregar();
+  };
+
+  const reverterRejeicao = async (n: any, t: "nfe" | "nfse") => {
+    const { error } = await (supabase as any).from(tabela(t)).update({
+      status: "importada", motivo_rejeicao: null, rejeitada_em: null,
+    }).eq("id", n.id);
+    if (error) return toast.error("Erro ao reverter rejeição");
+    toast.success("Rejeição revertida");
+    await recarregar();
+  };
+
+  const abrirVinculo = (n: any, t: "nfe" | "nfse") => {
+    setDocSel(n); setDocTipo(t); setContaSel(n.conta_pagar_id || "");
+    setVencimento(new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10));
+    setVincularOpen(true);
+  };
+
+  const salvarVinculo = async () => {
+    if (!contaSel) return toast.error("Selecione um título ou crie um novo");
+    setSalvando(true);
+    try {
+      const { error } = await (supabase as any).from(tabela(docTipo))
+        .update({ conta_pagar_id: contaSel }).eq("id", docSel.id);
+      if (error) throw error;
+      toast.success("Nota fiscal vinculada ao contas a pagar");
+      setVincularOpen(false); await recarregar();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao vincular");
+    } finally { setSalvando(false); }
+  };
+
+  const criarEVincular = async () => {
+    if (!vencimento) return toast.error("Informe o vencimento");
+    setSalvando(true);
+    try {
+      const fornecedor = docTipo === "nfe" ? docSel.emitente_nome : docSel.prestador_nome;
+      const criada = await addContaPagar({
+        descricao: `NF ${docSel.numero || docSel.chave} — ${fornecedor || "Fornecedor"}`,
+        fornecedor_nome: fornecedor || "",
+        valor_total: Number(docSel.valor_total) || 0,
+        valor_pago: 0,
+        data_emissao: docSel.data_emissao ? String(docSel.data_emissao).slice(0, 10) : null,
+        data_vencimento: vencimento,
+        status: "aberta",
+        parcela_num: 1,
+        parcela_total: 1,
+        origem: docTipo === "nfe" ? "nfe" : "nfse",
+      } as any);
+      if (!criada?.id) throw new Error("Falha ao criar título");
+      const { error } = await (supabase as any).from(tabela(docTipo))
+        .update({ conta_pagar_id: criada.id }).eq("id", docSel.id);
+      if (error) throw error;
+      toast.success("Título criado e vinculado");
+      setVincularOpen(false); await recarregar();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao criar título");
+    } finally { setSalvando(false); }
+  };
+
+  const desvincular = async (n: any, t: "nfe" | "nfse") => {
+    const { error } = await (supabase as any).from(tabela(t)).update({ conta_pagar_id: null }).eq("id", n.id);
+    if (error) return toast.error("Erro ao desvincular");
+    toast.success("Vínculo removido");
+    await recarregar();
+  };
+
+
+
   const filtrados = useMemo(() => rows.filter(r => {
     if (busca) {
       const q = busca.toLowerCase();
