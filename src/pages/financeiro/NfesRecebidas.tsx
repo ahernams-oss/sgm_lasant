@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, RefreshCw, Loader2, Stethoscope, Upload, Eye, Ban, Link2 } from "lucide-react";
+import { Download, RefreshCw, Loader2, Stethoscope, Upload, Eye, Ban, Link2, FileSpreadsheet } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useFinanceiro, formatBRL as fmtBRL } from "@/contexts/FinanceiroContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 interface Nfe {
   id: string;
@@ -79,6 +80,62 @@ const numeroSerie = (n: { numero: string | null; serie: string | null; chave?: s
   if (!serie && ch.length === 44) serie = "0";
   if (!numero && !serie) return "—";
   return `${numero || "—"}${serie ? ` / ${serie}` : ""}`;
+};
+
+const exportarExcel = (tipo: "nfe" | "nfse", rows: Nfe[] | Nfse[]) => {
+  const wb = XLSX.utils.book_new();
+  const fmtDate = (s: string | null) => {
+    if (!s) return "";
+    const d = new Date(s);
+    if (isNaN(d.getTime())) return s;
+    return d.toLocaleDateString("pt-BR");
+  };
+  if (tipo === "nfe") {
+    const dados = (rows as Nfe[]).map(n => ({
+      Emissão: fmtDate(n.data_emissao),
+      "Nº/Série": numeroSerie(n),
+      Emitente: n.emitente_nome || "—",
+      CNPJ: formatCnpj(n.emitente_cnpj),
+      "Valor Total": Number(n.valor_total) || 0,
+      Status: n.status || "—",
+      Vinculada: n.conta_pagar_id ? "Sim" : "Não",
+      Rejeitada: n.status === "rejeitada" ? "Sim" : "Não",
+      "Motivo Rejeição": n.motivo_rejeicao || "",
+      Chave: n.chave,
+    }));
+    const ws = XLSX.utils.json_to_sheet(dados);
+    ws["!cols"] = [
+      { wch: 14 }, { wch: 16 }, { wch: 35 }, { wch: 20 }, { wch: 16 },
+      { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 35 }, { wch: 50 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, "NFe");
+  } else {
+    const dados = (rows as Nfse[]).map(n => ({
+      Emissão: fmtDate(n.data_emissao),
+      Nº: n.numero || "—",
+      "Código Verificação": n.codigo_verificacao || "—",
+      Prestador: n.prestador_nome || "—",
+      CNPJ: formatCnpj(n.prestador_cnpj),
+      Discriminação: n.discriminacao || "—",
+      "Valor Serviços": Number(n.valor_servicos) || 0,
+      "Valor Total": Number(n.valor_total) || 0,
+      Origem: n.origem || "—",
+      Status: n.status || "—",
+      Vinculada: n.conta_pagar_id ? "Sim" : "Não",
+      Rejeitada: n.status === "rejeitada" ? "Sim" : "Não",
+      "Motivo Rejeição": n.motivo_rejeicao || "",
+      Chave: n.chave,
+    }));
+    const ws = XLSX.utils.json_to_sheet(dados);
+    ws["!cols"] = [
+      { wch: 14 }, { wch: 14 }, { wch: 22 }, { wch: 35 }, { wch: 20 },
+      { wch: 40 }, { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 14 },
+      { wch: 12 }, { wch: 12 }, { wch: 35 }, { wch: 50 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, "NFSe");
+  }
+  XLSX.writeFile(wb, `${tipo === "nfe" ? "nfes-recebidas" : "nfses-tomadas"}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast.success("Excel gerado com sucesso.");
 };
 
 export default function NfesRecebidas() {
@@ -416,6 +473,9 @@ export default function NfesRecebidas() {
                 <Input placeholder="Buscar (chave, nº, emitente)" value={busca} onChange={e => setBusca(e.target.value)} className="w-72" />
                 <Input type="date" value={dataIni} onChange={e => setDataIni(e.target.value)} className="w-40" />
                 <Input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} className="w-40" />
+                <Button variant="outline" size="sm" onClick={() => exportarExcel("nfe", filtrados)}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -485,6 +545,9 @@ export default function NfesRecebidas() {
                 <Input placeholder="Buscar (nº, prestador, serviço)" value={busca} onChange={e => setBusca(e.target.value)} className="w-72" />
                 <Input type="date" value={dataIni} onChange={e => setDataIni(e.target.value)} className="w-40" />
                 <Input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} className="w-40" />
+                <Button variant="outline" size="sm" onClick={() => exportarExcel("nfse", filtradosNfse)}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
