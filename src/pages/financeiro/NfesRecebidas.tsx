@@ -82,6 +82,62 @@ const numeroSerie = (n: { numero: string | null; serie: string | null; chave?: s
   return `${numero || "—"}${serie ? ` / ${serie}` : ""}`;
 };
 
+const exportarExcel = (tipo: "nfe" | "nfse", rows: Nfe[] | Nfse[]) => {
+  const wb = XLSX.utils.book_new();
+  const fmtDate = (s: string | null) => {
+    if (!s) return "";
+    const d = new Date(s);
+    if (isNaN(d.getTime())) return s;
+    return d.toLocaleDateString("pt-BR");
+  };
+  if (tipo === "nfe") {
+    const dados = (rows as Nfe[]).map(n => ({
+      Emissão: fmtDate(n.data_emissao),
+      "Nº/Série": numeroSerie(n),
+      Emitente: n.emitente_nome || "—",
+      CNPJ: formatCnpj(n.emitente_cnpj),
+      "Valor Total": Number(n.valor_total) || 0,
+      Status: n.status || "—",
+      Vinculada: n.conta_pagar_id ? "Sim" : "Não",
+      Rejeitada: n.status === "rejeitada" ? "Sim" : "Não",
+      "Motivo Rejeição": n.motivo_rejeicao || "",
+      Chave: n.chave,
+    }));
+    const ws = XLSX.utils.json_to_sheet(dados);
+    ws["!cols"] = [
+      { wch: 14 }, { wch: 16 }, { wch: 35 }, { wch: 20 }, { wch: 16 },
+      { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 35 }, { wch: 50 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, "NFe");
+  } else {
+    const dados = (rows as Nfse[]).map(n => ({
+      Emissão: fmtDate(n.data_emissao),
+      Nº: n.numero || "—",
+      "Código Verificação": n.codigo_verificacao || "—",
+      Prestador: n.prestador_nome || "—",
+      CNPJ: formatCnpj(n.prestador_cnpj),
+      Discriminação: n.discriminacao || "—",
+      "Valor Serviços": Number(n.valor_servicos) || 0,
+      "Valor Total": Number(n.valor_total) || 0,
+      Origem: n.origem || "—",
+      Status: n.status || "—",
+      Vinculada: n.conta_pagar_id ? "Sim" : "Não",
+      Rejeitada: n.status === "rejeitada" ? "Sim" : "Não",
+      "Motivo Rejeição": n.motivo_rejeicao || "",
+      Chave: n.chave,
+    }));
+    const ws = XLSX.utils.json_to_sheet(dados);
+    ws["!cols"] = [
+      { wch: 14 }, { wch: 14 }, { wch: 22 }, { wch: 35 }, { wch: 20 },
+      { wch: 40 }, { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 14 },
+      { wch: 12 }, { wch: 12 }, { wch: 35 }, { wch: 50 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, "NFSe");
+  }
+  XLSX.writeFile(wb, `${tipo === "nfe" ? "nfes-recebidas" : "nfses-tomadas"}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast.success("Excel gerado com sucesso.");
+};
+
 export default function NfesRecebidas() {
   const { empresa } = useEmpresa();
   const { contasPagar, addContaPagar } = useFinanceiro();
