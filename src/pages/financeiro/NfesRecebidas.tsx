@@ -95,6 +95,20 @@ export default function NfesRecebidas() {
   const [loadingNfse, setLoadingNfse] = useState(false);
   const [importandoNfse, setImportandoNfse] = useState(false);
 
+  // Visualizar / Rejeitar / Vincular
+  const [docSel, setDocSel] = useState<any>(null);
+  const [docTipo, setDocTipo] = useState<"nfe" | "nfse">("nfe");
+  const [verOpen, setVerOpen] = useState(false);
+  const [xmlTexto, setXmlTexto] = useState("");
+  const [xmlLoading, setXmlLoading] = useState(false);
+  const [rejeitarOpen, setRejeitarOpen] = useState(false);
+  const [motivo, setMotivo] = useState("");
+  const [vincularOpen, setVincularOpen] = useState(false);
+  const [contaSel, setContaSel] = useState("");
+  const [vencimento, setVencimento] = useState("");
+  const [salvando, setSalvando] = useState(false);
+
+
   // Filtros compartilhados
   const [busca, setBusca] = useState("");
   const [dataIni, setDataIni] = useState("");
