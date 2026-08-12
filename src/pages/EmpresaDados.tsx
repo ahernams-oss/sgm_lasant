@@ -182,18 +182,18 @@ export default function EmpresaDados() {
     setResultadoSefaz(null);
     try {
       if (dirtyRef.current) { await saveEmpresa(form); dirtyRef.current = false; }
-      const { data, error } = await supabase.functions.invoke("buscar-nfes-focus", {
-        body: { empresaId: form.id || empresa.id },
+      const { data, error } = await supabase.functions.invoke("brasilnfe-diagnostico", {
+        body: { tipoDocumentoFiscal: 0 },
       });
       if (error) throw error;
       setResultadoSefaz(data);
       if (data?.ok) {
-        toast({ title: "Focus NFe respondeu", description: `${data.totalDocumentos} NFe(s) recebida(s)` });
+        toast({ title: "Brasil NFe respondeu", description: `${data.totalDocumentos} NFe(s) recebida(s)` });
       } else {
         toast({ title: "Falha na consulta", description: data?.error || "Erro desconhecido", variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "Erro ao consultar Focus NFe", description: String((err as Error).message), variant: "destructive" });
+      toast({ title: "Erro ao consultar Brasil NFe", description: String((err as Error).message), variant: "destructive" });
     } finally {
       setBuscandoSefaz(false);
     }
@@ -690,7 +690,7 @@ export default function EmpresaDados() {
                 className="gap-2"
               >
                 {buscandoSefaz ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                {buscandoSefaz ? "Consultando..." : "Testar busca NFe (Focus)"}
+                {buscandoSefaz ? "Consultando..." : "Testar busca NFe (Brasil NFe)"}
               </Button>
             </div>
 
@@ -700,7 +700,7 @@ export default function EmpresaDados() {
               }`}>
                 <div className="flex items-center gap-2 font-medium">
                   {resultadoSefaz.ok
-                    ? <><CheckCircle2 className="h-4 w-4 text-green-600" /> Focus NFe respondeu (HTTP {resultadoSefaz.httpStatus})</>
+                    ? <><CheckCircle2 className="h-4 w-4 text-green-600" /> Brasil NFe respondeu (HTTP {resultadoSefaz.httpStatus})</>
                     : <><XCircle className="h-4 w-4 text-destructive" /> Falha na consulta (HTTP {resultadoSefaz.httpStatus})</>}
                 </div>
                 <div className="text-xs grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
