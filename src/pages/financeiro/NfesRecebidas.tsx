@@ -5,13 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, RefreshCw, FileText, Loader2, FileDown, Stethoscope, Eye, Upload } from "lucide-react";
+import { Download, RefreshCw, FileText, Loader2, Stethoscope, Upload } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
-import PdfPreview from "@/components/PdfPreview";
 
 interface Nfe {
   id: string;
@@ -98,11 +97,6 @@ export default function NfesRecebidas() {
   const [diagBnData, setDiagBnData] = useState<any>(null);
 
 
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewChave, setPreviewChave] = useState<string>("");
-  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -212,14 +206,6 @@ export default function NfesRecebidas() {
     } catch (e: any) {
       toast.error(e.message || "Erro ao baixar XML");
     }
-  };
-
-  const fecharPreview = (open: boolean) => {
-    if (!open) {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null); setPreviewBlob(null);
-    }
-    setPreviewOpen(open);
   };
 
   const filtrados = useMemo(() => rows.filter(r => {
@@ -429,25 +415,6 @@ export default function NfesRecebidas() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={previewOpen} onOpenChange={fecharPreview}>
-        <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
-          <DialogHeader className="flex-row items-center justify-between space-y-0">
-            <DialogTitle>Pré-visualização DANFE</DialogTitle>
-            <Button size="sm" onClick={baixarDoPreview} disabled={!previewBlob} className="mr-6">
-              <FileDown className="h-4 w-4 mr-2" /> Baixar PDF
-            </Button>
-          </DialogHeader>
-          <div className="flex-1 min-h-0 bg-muted rounded overflow-hidden">
-            {previewLoading ? (
-              <div className="h-full flex items-center justify-center text-muted-foreground">
-                <Loader2 className="h-5 w-5 animate-spin mr-2" /> Gerando DANFE…
-              </div>
-            ) : previewBlob ? (
-              <PdfPreview file={previewBlob} />
-            ) : null}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
