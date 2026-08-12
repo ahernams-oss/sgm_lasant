@@ -146,43 +146,28 @@ export default function NfesRecebidas() {
 
   useEffect(() => { load(); loadNfse(); }, []);
 
-  const importar = async () => {
+  // Importação única via Brasil NFe (NFe e NFS-e vêm na mesma consulta)
+  const importarBrasilNfe = async (setBusy: (b: boolean) => void) => {
     if (!empresa.id) return toast.error("Empresa não cadastrada");
-    setImportando(true);
+    setBusy(true);
     try {
-      const { data, error } = await supabase.functions.invoke("importar-nfes-focus", {
-        body: { empresaId: empresa.id, baixarXml: true, dataInicial: dataIni || undefined, dataFinal: dataFim || undefined },
+      const { data, error } = await supabase.functions.invoke("importar-nfes-brasilnfe", {
+        body: { empresaId: empresa.id, dataInicial: dataIni || undefined, dataFinal: dataFim || undefined },
       });
       if (error) throw error;
       const r: any = data;
       if (!r?.ok) throw new Error(r?.error || "Falha na importação");
-      toast.success(`Importação concluída: ${r.total} NFe(s) — ${r.inseridas} novas, ${r.atualizadas} atualizadas, ${r.comXml} com XML`);
-      await load();
+      toast.success(`Importação concluída: ${r.total} documento(s) — ${r.inseridas} novos, ${r.atualizadas} atualizados`);
+      await load(); await loadNfse();
     } catch (e: any) {
-      toast.error(e.message || "Erro ao importar NFes");
+      toast.error(e.message || "Erro ao importar notas fiscais");
     } finally {
-      setImportando(false);
+      setBusy(false);
     }
   };
 
-  const importarNfse = async () => {
-    if (!empresa.id) return toast.error("Empresa não cadastrada");
-    setImportandoNfse(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("importar-nfses-focus", {
-        body: { empresaId: empresa.id, baixarXml: true, dataInicial: dataIni || undefined, dataFinal: dataFim || undefined },
-      });
-      if (error) throw error;
-      const r: any = data;
-      if (!r?.ok) throw new Error(r?.error || "Falha na importação de NFS-e");
-      toast.success(`Importação concluída: ${r.total} NFS-e — ${r.inseridas} novas, ${r.atualizadas} atualizadas`);
-      await loadNfse();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao importar NFS-e");
-    } finally {
-      setImportandoNfse(false);
-    }
-  };
+  const importar = () => importarBrasilNfe(setImportando);
+  const importarNfse = () => importarBrasilNfe(setImportandoNfse);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!empresa.id) return toast.error("Empresa não cadastrada");
