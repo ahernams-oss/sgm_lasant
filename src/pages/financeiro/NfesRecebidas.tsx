@@ -324,24 +324,18 @@ export default function NfesRecebidas() {
             {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
             Importar XML manual
           </Button>
+          <Button variant="outline" onClick={diagnosticarBrasilNfe}>
+            <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Brasil NFe
+          </Button>
           {tab === "nfe" ? (
-            <>
-              <Button variant="outline" onClick={diagnosticar} disabled={!empresa.id}>
-                <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Focus
-              </Button>
-              <Button variant="outline" onClick={diagnosticarBrasilNfe}>
-                <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Brasil NFe
-              </Button>
-
-              <Button onClick={importar} disabled={importando || !empresa.id}>
-                {importando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                Importar NFes (SEFAZ)
-              </Button>
-            </>
+            <Button onClick={importar} disabled={importando || !empresa.id}>
+              {importando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+              Importar NFes (Brasil NFe)
+            </Button>
           ) : (
             <Button onClick={importarNfse} disabled={importandoNfse || !empresa.id}>
               {importandoNfse ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-              Importar NFS-e (Padrão Nacional)
+              Importar NFS-e (Brasil NFe)
             </Button>
           )}
         </div>
