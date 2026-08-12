@@ -473,6 +473,9 @@ export default function NfesRecebidas() {
                 <Input placeholder="Buscar (chave, nº, emitente)" value={busca} onChange={e => setBusca(e.target.value)} className="w-72" />
                 <Input type="date" value={dataIni} onChange={e => setDataIni(e.target.value)} className="w-40" />
                 <Input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} className="w-40" />
+                <Button variant="outline" size="sm" onClick={() => exportarExcel("nfe", filtrados)}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
