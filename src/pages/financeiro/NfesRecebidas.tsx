@@ -29,6 +29,9 @@ interface Nfe {
   ambiente: string | null;
   status: string | null;
   xml_url: string | null;
+  conta_pagar_id?: string | null;
+  motivo_rejeicao?: string | null;
+  rejeitada_em?: string | null;
 }
 
 interface Nfse {
