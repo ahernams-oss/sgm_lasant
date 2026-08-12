@@ -83,6 +83,7 @@ const numeroSerie = (n: { numero: string | null; serie: string | null; chave?: s
 
 export default function NfesRecebidas() {
   const { empresa } = useEmpresa();
+  const { contasPagar, addContaPagar } = useFinanceiro();
   const [tab, setTab] = useState<"nfe" | "nfse">("nfe");
 
   // NFe
