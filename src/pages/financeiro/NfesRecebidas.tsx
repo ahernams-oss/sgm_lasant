@@ -697,16 +697,58 @@ export default function NfesRecebidas() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Título existente</Label>
-              <Select value={contaSel} onValueChange={setContaSel}>
-                <SelectTrigger><SelectValue placeholder="Selecione um título em aberto" /></SelectTrigger>
-                <SelectContent>
-                  {contasPagar.filter(c => c.status === "aberta" || c.status === "parcial").map(c => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.descricao} — {fmtBRL(Number(c.valor_total))} — venc. {new Date(c.data_vencimento + "T00:00:00").toLocaleDateString("pt-BR")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {(() => {
+                const abertos = contasPagar.filter(c => c.status === "aberta" || c.status === "parcial");
+                const sel = abertos.find(c => c.id === contaSel);
+                const venc = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("pt-BR");
+                const norm = (s: string) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                return (
+                  <Popover open={contaPickerOpen} onOpenChange={setContaPickerOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                        <span className={cn("truncate", !sel && "text-muted-foreground")}>
+                          {sel
+                            ? `${sel.descricao} — ${fmtBRL(Number(sel.valor_total))} — venc. ${venc(sel.data_vencimento)}`
+                            : "Selecione um título em aberto"}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                      <Command
+                        filter={(value, search) => (norm(value).includes(norm(search)) ? 1 : 0)}
+                      >
+                        <CommandInput placeholder="Buscar por descrição, fornecedor, valor ou vencimento..." />
+                        <CommandList className="max-h-72">
+                          <CommandEmpty>Nenhum título encontrado.</CommandEmpty>
+                          <CommandGroup>
+                            {abertos.map(c => {
+                              const texto = `${c.descricao} ${c.fornecedor_nome || ""} ${fmtBRL(Number(c.valor_total))} ${venc(c.data_vencimento)}`;
+                              return (
+                                <CommandItem
+                                  key={c.id}
+                                  value={`${texto} ${c.id}`}
+                                  onSelect={() => { setContaSel(c.id); setContaPickerOpen(false); }}
+                                  className="items-start gap-2"
+                                >
+                                  <Check className={cn("mt-0.5 h-4 w-4 shrink-0", contaSel === c.id ? "opacity-100" : "opacity-0")} />
+                                  <div className="min-w-0">
+                                    <div className="truncate text-sm">{c.descricao}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {c.fornecedor_nome ? `${c.fornecedor_nome} · ` : ""}{fmtBRL(Number(c.valor_total))} · venc. {venc(c.data_vencimento)}
+                                      {c.status === "parcial" ? " · parcial" : ""}
+                                    </div>
+                                  </div>
+                                </CommandItem>
+                              );
+                            })}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                );
+              })()}
               <Button className="w-full" onClick={salvarVinculo} disabled={salvando || !contaSel}>
                 {salvando && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Vincular ao título selecionado
               </Button>
