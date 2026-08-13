@@ -323,6 +323,7 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
                   <TableHead>Novo Cargo</TableHead>
                   <TableHead>Sal. Anterior</TableHead>
                   <TableHead>Novo Salário</TableHead>
+                  <TableHead>Justificativa</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Aprovador</TableHead>
                   <TableHead className="w-32 text-right">Ações</TableHead>
