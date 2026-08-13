@@ -1551,6 +1551,9 @@ const Funcionarios = () => {
                             <DropdownMenuItem onClick={() => setTransferir({ id: f.id, nome: f.nome, clienteId: f.clienteId })}>
                               <ArrowRightLeft className="h-4 w-4 mr-2" /> {podeTransferirCliente ? "Transferir Cliente/Unidade" : "Solicitar Transferência de Cliente/Unidade"}
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setPromocaoAlvo({ id: f.id, nome: f.nome, cargoId: f.cargoId, salario: f.salario, clienteId: f.clienteId })}>
+                              <TrendingUp className="h-4 w-4 mr-2" /> Solicitar Promoção
+                            </DropdownMenuItem>
                             {podeExcluir && <DropdownMenuSeparator />}
                             {podeExcluir && <DropdownMenuItem onClick={() => requestDelete(f.id)} className="text-destructive focus:text-destructive">
                               <Trash2 className="h-4 w-4 mr-2" /> Excluir
