@@ -8,6 +8,7 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown, HardHat, Stethoscope, TrendingUp, Clock, MoreHorizontal, ArrowRightLeft, FileClock } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import TransferirClienteDialog from "@/components/TransferirClienteDialog";
+import SolicitarPromocaoDialog from "@/components/SolicitarPromocaoDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -651,6 +652,7 @@ const Funcionarios = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [transferir, setTransferir] = useState<{ id: string; nome: string; clienteId: string } | null>(null);
+  const [promocaoAlvo, setPromocaoAlvo] = useState<{ id: string; nome: string; cargoId: string; salario: string; clienteId: string } | null>(null);
 
   const colDefs: Record<string, { label: string; className?: string }> = {
     nome: { label: "Nome" },
@@ -1551,6 +1553,9 @@ const Funcionarios = () => {
                             <DropdownMenuItem onClick={() => setTransferir({ id: f.id, nome: f.nome, clienteId: f.clienteId })}>
                               <ArrowRightLeft className="h-4 w-4 mr-2" /> {podeTransferirCliente ? "Transferir Cliente/Unidade" : "Solicitar Transferência de Cliente/Unidade"}
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setPromocaoAlvo({ id: f.id, nome: f.nome, cargoId: f.cargoId, salario: f.salario, clienteId: f.clienteId })}>
+                              <TrendingUp className="h-4 w-4 mr-2" /> Solicitar Promoção
+                            </DropdownMenuItem>
                             {podeExcluir && <DropdownMenuSeparator />}
                             {podeExcluir && <DropdownMenuItem onClick={() => requestDelete(f.id)} className="text-destructive focus:text-destructive">
                               <Trash2 className="h-4 w-4 mr-2" /> Excluir
@@ -1578,6 +1583,17 @@ const Funcionarios = () => {
           funcionarioNome={transferir.nome}
           clienteAtualId={transferir.clienteId}
           podeAutorizar={podeTransferirCliente}
+        />
+      )}
+      {promocaoAlvo && (
+        <SolicitarPromocaoDialog
+          open={!!promocaoAlvo}
+          onOpenChange={(v) => !v && setPromocaoAlvo(null)}
+          funcionarioId={promocaoAlvo.id}
+          funcionarioNome={promocaoAlvo.nome}
+          cargoAtualId={promocaoAlvo.cargoId}
+          salarioAtual={promocaoAlvo.salario}
+          clienteAtualId={promocaoAlvo.clienteId}
         />
       )}
     </div>
