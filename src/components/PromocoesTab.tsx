@@ -337,6 +337,15 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
                     <TableCell className="font-medium">{p.cargo_novo_nome}</TableCell>
                     <TableCell>{p.salario_anterior ? `R$ ${p.salario_anterior}` : "—"}</TableCell>
                     <TableCell className="font-medium">{p.salario_novo ? `R$ ${p.salario_novo}` : "—"}</TableCell>
+                    <TableCell>
+                      {p.motivo ? (
+                        <span className="block max-w-[220px] truncate" title={p.motivo}>
+                          {p.motivo}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground italic">—</span>
+                      )}
+                    </TableCell>
                     <TableCell>{statusBadge(p.status)}</TableCell>
                     <TableCell className="text-xs">
                       {p.aprovador_nome ? (
