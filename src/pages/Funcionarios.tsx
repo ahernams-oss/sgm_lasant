@@ -651,6 +651,7 @@ const Funcionarios = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [transferir, setTransferir] = useState<{ id: string; nome: string; clienteId: string } | null>(null);
+  const [promocaoAlvo, setPromocaoAlvo] = useState<{ id: string; nome: string; cargoId: string; salario: string; clienteId: string } | null>(null);
 
   const colDefs: Record<string, { label: string; className?: string }> = {
     nome: { label: "Nome" },
