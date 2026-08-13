@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const tipo = body?.tipoDocumentoFiscal === 1 ? 1 : 0; // 0 = entradas, 1 = saidas
+    const tipo = Number.isFinite(Number(body?.tipoDocumentoFiscal)) ? Number(body.tipoDocumentoFiscal) : 0;
 
     const token = Deno.env.get("BRASILNFE_TOKEN");
     if (!token) return json({ ok: false, error: "BRASILNFE_TOKEN não configurado" }, 400);

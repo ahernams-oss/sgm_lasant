@@ -276,14 +276,20 @@ export default function NfesRecebidas() {
     await load(); await loadNfse();
   };
 
-  const baixarXml = async (n: Nfe | Nfse) => {
-    if (!n.xml_url) return toast.error("XML não disponível");
+  const obterUrlXml = async (n: any, t: "nfe" | "nfse") => {
+    const { data, error } = await supabase.functions.invoke("nfe-xml-url", {
+      body: { path: n.xml_url || undefined, chave: n.chave, tabela: t },
+    });
+    if (error) throw error;
+    const r: any = data;
+    if (!r?.ok) throw new Error(r?.error || "Falha ao obter XML");
+    return r.url as string;
+  };
+
+  const baixarXml = async (n: Nfe | Nfse, t: "nfe" | "nfse" = "nfe") => {
     try {
-      const { data, error } = await supabase.functions.invoke("nfe-xml-url", { body: { path: n.xml_url } });
-      if (error) throw error;
-      const r: any = data;
-      if (!r?.ok) throw new Error(r?.error || "Falha");
-      const resp = await fetch(r.url);
+      const url = await obterUrlXml(n, t);
+      const resp = await fetch(url);
       const blob = await resp.blob();
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
@@ -300,14 +306,10 @@ export default function NfesRecebidas() {
 
   const abrirVisualizacao = async (n: any, t: "nfe" | "nfse") => {
     setDocSel(n); setDocTipo(t); setVerOpen(true); setXmlTexto("");
-    if (!n.xml_url) return;
     setXmlLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("nfe-xml-url", { body: { path: n.xml_url } });
-      if (error) throw error;
-      const r: any = data;
-      if (!r?.ok) throw new Error(r?.error || "Falha ao obter XML");
-      const resp = await fetch(r.url);
+      const url = await obterUrlXml(n, t);
+      const resp = await fetch(url);
       setXmlTexto(await resp.text());
     } catch (e: any) {
       toast.error(e.message || "Erro ao carregar XML");
@@ -315,6 +317,7 @@ export default function NfesRecebidas() {
       setXmlLoading(false);
     }
   };
+
 
   const abrirRejeicao = (n: any, t: "nfe" | "nfse") => {
     setDocSel(n); setDocTipo(t); setMotivo(n.motivo_rejeicao || ""); setRejeitarOpen(true);
@@ -521,7 +524,8 @@ export default function NfesRecebidas() {
                         <Button size="sm" variant="ghost" onClick={() => abrirVisualizacao(n, "nfe")} title="Visualizar nota">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" disabled={!n.xml_url} onClick={() => baixarXml(n)} title="Baixar XML">
+                        <Button size="sm" variant="ghost" onClick={() => baixarXml(n, "nfe")} title="Baixar XML">
+
                           <Download className="h-4 w-4" />
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => n.conta_pagar_id ? desvincular(n, "nfe") : abrirVinculo(n, "nfe")} title={n.conta_pagar_id ? "Desvincular do contas a pagar" : "Vincular a contas a pagar"}>
@@ -593,7 +597,7 @@ export default function NfesRecebidas() {
                         <Button size="sm" variant="ghost" onClick={() => abrirVisualizacao(n, "nfse")} title="Visualizar nota">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" disabled={!n.xml_url} onClick={() => baixarXml(n)} title="Baixar XML">
+                        <Button size="sm" variant="ghost" onClick={() => baixarXml(n, "nfse")} title="Baixar XML">
                           <Download className="h-4 w-4" />
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => n.conta_pagar_id ? desvincular(n, "nfse") : abrirVinculo(n, "nfse")} title={n.conta_pagar_id ? "Desvincular do contas a pagar" : "Vincular a contas a pagar"}>
@@ -665,7 +669,7 @@ export default function NfesRecebidas() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" disabled={!docSel?.xml_url} onClick={() => baixarXml(docSel)}>
+            <Button variant="outline" onClick={() => baixarXml(docSel, docTipo)}>
               <Download className="h-4 w-4 mr-2" /> Baixar XML
             </Button>
             <Button onClick={() => setVerOpen(false)}>Fechar</Button>
