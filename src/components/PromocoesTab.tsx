@@ -323,6 +323,7 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
                   <TableHead>Novo Cargo</TableHead>
                   <TableHead>Sal. Anterior</TableHead>
                   <TableHead>Novo Salário</TableHead>
+                  <TableHead>Justificativa</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Aprovador</TableHead>
                   <TableHead className="w-32 text-right">Ações</TableHead>
@@ -336,6 +337,15 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
                     <TableCell className="font-medium">{p.cargo_novo_nome}</TableCell>
                     <TableCell>{p.salario_anterior ? `R$ ${p.salario_anterior}` : "—"}</TableCell>
                     <TableCell className="font-medium">{p.salario_novo ? `R$ ${p.salario_novo}` : "—"}</TableCell>
+                    <TableCell>
+                      {p.motivo ? (
+                        <span className="block max-w-[220px] truncate" title={p.motivo}>
+                          {p.motivo}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground italic">—</span>
+                      )}
+                    </TableCell>
                     <TableCell>{statusBadge(p.status)}</TableCell>
                     <TableCell className="text-xs">
                       {p.aprovador_nome ? (
@@ -391,10 +401,18 @@ export function PromocoesTab({ funcionarioId, cargoAtualId, salarioAtual, client
             </DialogDescription>
           </DialogHeader>
           {aprovacao.promocao && (
-            <div className="rounded-md border border-border bg-muted/30 p-3 text-sm space-y-1">
+            <div className="rounded-md border border-border bg-muted/30 p-3 text-sm space-y-2">
               <div><strong>Novo cargo:</strong> {aprovacao.promocao.cargo_novo_nome}</div>
               <div><strong>Novo salário:</strong> {aprovacao.promocao.salario_novo ? `R$ ${aprovacao.promocao.salario_novo}` : "—"}</div>
               <div><strong>Data:</strong> {aprovacao.promocao.data_promocao.split("-").reverse().join("/")}</div>
+              <div className="pt-2 border-t border-border">
+                <p className="text-xs font-semibold text-foreground/80 mb-1">Justificativa do solicitante</p>
+                {aprovacao.promocao.motivo ? (
+                  <p className="text-sm whitespace-pre-wrap">{aprovacao.promocao.motivo}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">Nenhuma justificativa informada.</p>
+                )}
+              </div>
             </div>
           )}
           <div className="space-y-1.5">
