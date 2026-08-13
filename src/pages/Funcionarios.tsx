@@ -8,6 +8,7 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { UserCheck, Trash2, Pencil, Search, Plus, ChevronDown, ChevronUp, Bus, Paperclip, Users, FileDown, HardHat, Stethoscope, TrendingUp, Clock, MoreHorizontal, ArrowRightLeft, FileClock } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import TransferirClienteDialog from "@/components/TransferirClienteDialog";
+import SolicitarPromocaoDialog from "@/components/SolicitarPromocaoDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -1582,6 +1583,17 @@ const Funcionarios = () => {
           funcionarioNome={transferir.nome}
           clienteAtualId={transferir.clienteId}
           podeAutorizar={podeTransferirCliente}
+        />
+      )}
+      {promocaoAlvo && (
+        <SolicitarPromocaoDialog
+          open={!!promocaoAlvo}
+          onOpenChange={(v) => !v && setPromocaoAlvo(null)}
+          funcionarioId={promocaoAlvo.id}
+          funcionarioNome={promocaoAlvo.nome}
+          cargoAtualId={promocaoAlvo.cargoId}
+          salarioAtual={promocaoAlvo.salario}
+          clienteAtualId={promocaoAlvo.clienteId}
         />
       )}
     </div>
