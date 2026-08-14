@@ -304,39 +304,75 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
           <div className="rounded-lg border bg-muted/30 p-3 text-sm">
             <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Colaborador a ser remanejado</div>
             <div className="font-medium">
-              {funcionarioNome}{cargoNome ? ` — ${cargoNome}` : ""}{turnoOrigem ? ` — ${turnoOrigem}` : ""}
+              {funcionarioNome}{cargoNome ? ` — ${cargoNome}` : ""}{modalidadeOrigem ? ` — ${modalidadeOrigem}` : ""}
             </div>
           </div>
 
           <div>
             <Label className="text-xs font-semibold">Colaborador cobertura</Label>
-            <Input value={cobertura} onChange={(e) => setCobertura(e.target.value)} placeholder="Nome do colaborador que fará a cobertura" className="mt-1.5" />
+            <Popover open={coberturaOpen} onOpenChange={setCoberturaOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" className="w-full justify-between font-normal mt-1.5">
+                  <span className={cn("truncate", !coberturaId && "text-muted-foreground")}>
+                    {coberturaId ? `${coberturaNome}${coberturaCargo ? " — " + coberturaCargo : ""}` : "Selecione o colaborador que fará a cobertura"}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command
+                  filter={(v, search) => {
+                    const terms = norm(search).split(/\s+/).filter(Boolean);
+                    const target = norm(v);
+                    return terms.every((t) => target.includes(t)) ? 1 : 0;
+                  }}
+                >
+                  <CommandInput placeholder="Buscar funcionário..." />
+                  <CommandList className="max-h-64">
+                    <CommandEmpty>Nenhum funcionário encontrado.</CommandEmpty>
+                    {coberturaId && (
+                      <CommandGroup>
+                        <CommandItem value="__limpar__" onSelect={() => { setCoberturaId(""); setCoberturaOpen(false); }}>
+                          Limpar seleção
+                        </CommandItem>
+                      </CommandGroup>
+                    )}
+                    <CommandGroup>
+                      {funcionarios
+                        .filter((f) => f.id !== funcionarioId && f.status === "Ativo")
+                        .map((f) => {
+                          const cg = cargos.find((c) => c.id === f.cargoId)?.nome ?? "";
+                          const cl = clientes.find((c) => c.id === f.clienteId)?.nome ?? "";
+                          return (
+                            <CommandItem
+                              key={f.id}
+                              value={`${f.nome} ${cg} ${cl} ${f.jornadaTrabalho ?? ""}`}
+                              onSelect={() => { setCoberturaId(f.id); setCoberturaOpen(false); }}
+                            >
+                              <Check className={cn("mr-2 h-4 w-4 shrink-0", coberturaId === f.id ? "opacity-100" : "opacity-0")} />
+                              <div className="min-w-0">
+                                <div className="truncate text-sm">{f.nome}</div>
+                                <div className="truncate text-[11px] text-muted-foreground">
+                                  {[cg, cl, f.jornadaTrabalho].filter(Boolean).join(" • ")}
+                                </div>
+                              </div>
+                            </CommandItem>
+                          );
+                        })}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {coberturaId && (
+              <div className="mt-2 rounded-md border bg-muted/30 p-2 text-xs space-y-0.5">
+                <div><strong>Função:</strong> {coberturaCargo || "—"}</div>
+                <div><strong>Contrato atual:</strong> {coberturaCliente || "—"}</div>
+                <div><strong>Modalidade:</strong> {coberturaJornada || "—"}</div>
+              </div>
+            )}
           </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* ORIGEM */}
-            <div className="rounded-lg border p-3 space-y-3">
-              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Contrato de origem</div>
-              <div className="text-sm font-medium">{clienteAtualNome}</div>
-              <div>
-                <Label className="text-xs">Função</Label>
-                <Input value={funcaoOrigem} onChange={(e) => setFuncaoOrigem(e.target.value)} className="mt-1" />
-              </div>
-              <div>
-                <Label className="text-xs">Modalidade</Label>
-                <Select value={modalidadeOrigem} onValueChange={setModalidadeOrigem}>
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>{MODALIDADES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Turno</Label>
-                <Input value={turnoOrigem} onChange={(e) => setTurnoOrigem(e.target.value)} placeholder="Ex.: Noturno Ímpar (julho)" className="mt-1" />
-              </div>
-              <div>
-                <Label className="text-xs">Jornada</Label>
-                <Input value={jornadaOrigem} onChange={(e) => setJornadaOrigem(e.target.value)} placeholder="Ex.: 19h00 às 07h00" className="mt-1" />
-              </div>
+...
             </div>
 
             {/* DESTINO */}
