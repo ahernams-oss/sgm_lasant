@@ -68,7 +68,10 @@ async function getWhatsappRH(): Promise<string> {
   return (data?.whatsapp_rh || "").trim();
 }
 
-const MODALIDADES = ["Plantão 12x36", "Plantão 24x72", "Escala 5x2", "Escala 6x1", "Administrativo", "Sobreaviso"];
+/** Modalidades = jornadas de trabalho cadastradas no funcionário */
+const MODALIDADES = ["Diarista", "Plantão Diurno - PAR", "Plantão Diurno - ÍMPAR", "Plantão Noturno - PAR", "Plantão Noturno - ÍMPAR"];
+
+const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 const fmtDataExtenso = (iso: string) => {
   if (!iso) return "—";
