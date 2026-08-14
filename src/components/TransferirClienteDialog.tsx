@@ -238,7 +238,7 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
       if (!ok) { toast.error("Credenciais de supervisor inválidas."); return; }
       await executarTransferencia({
         novoId: novoClienteId, novoNome: novoClienteNome, just: justificativa.trim(),
-        autorizadoPorEmail: email.trim().toLowerCase(),
+        autorizadoPorEmail: email.trim().toLowerCase(), detalhes,
       });
       toast.success("Cliente/Unidade transferido com sucesso.");
       onOpenChange(false);
