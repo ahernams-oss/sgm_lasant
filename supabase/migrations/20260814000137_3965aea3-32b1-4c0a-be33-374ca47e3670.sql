@@ -1,0 +1,2 @@
+ALTER TABLE public.funcionario_transferencia_solicitacoes ADD COLUMN IF NOT EXISTS detalhes jsonb NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE public.funcionario_cliente_historico ADD COLUMN IF NOT EXISTS detalhes jsonb NOT NULL DEFAULT '{}'::jsonb;
