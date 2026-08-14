@@ -3213,6 +3213,7 @@ export type Database = {
           created_at: string
           data_fim: string | null
           data_inicio: string
+          detalhes: Json
           funcionario_id: string
           id: string
           justificativa: string | null
@@ -3225,6 +3226,7 @@ export type Database = {
           created_at?: string
           data_fim?: string | null
           data_inicio?: string
+          detalhes?: Json
           funcionario_id: string
           id?: string
           justificativa?: string | null
@@ -3237,6 +3239,7 @@ export type Database = {
           created_at?: string
           data_fim?: string | null
           data_inicio?: string
+          detalhes?: Json
           funcionario_id?: string
           id?: string
           justificativa?: string | null
@@ -3266,6 +3269,7 @@ export type Database = {
           decidido_em: string | null
           decidido_por: string | null
           decisao_observacao: string | null
+          detalhes: Json
           funcionario_id: string
           funcionario_nome: string | null
           id: string
@@ -3284,6 +3288,7 @@ export type Database = {
           decidido_em?: string | null
           decidido_por?: string | null
           decisao_observacao?: string | null
+          detalhes?: Json
           funcionario_id: string
           funcionario_nome?: string | null
           id?: string
@@ -3302,6 +3307,7 @@ export type Database = {
           decidido_em?: string | null
           decidido_por?: string | null
           decisao_observacao?: string | null
+          detalhes?: Json
           funcionario_id?: string
           funcionario_nome?: string | null
           id?: string
