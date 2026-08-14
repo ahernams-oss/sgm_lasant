@@ -211,7 +211,7 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
         if (rh) {
           const msg = `🔄 *Solicitação de Remanejamento*\n\n` +
             `*Colaborador a ser remanejado:* ${funcionarioNome}${cargoNome ? " - " + cargoNome : ""}${modalidadeOrigem ? " - " + modalidadeOrigem : ""}\n` +
-            (coberturaNome ? `*Colaborador cobertura:* ${coberturaNome}${coberturaCargo ? " - " + coberturaCargo : ""}${coberturaModalidadeTxt}\n` : "") +
+            (coberturaNome ? `*Colaborador cobertura:* ${coberturaNome}${coberturaCargo ? " - " + coberturaCargo : ""}${coberturaJornada ? " (" + coberturaJornada + ")" : ""}\n` : "") +
             `\n*Contrato de Origem:* ${clienteAtualNome}\n` +
             `*Função:* ${funcaoOrigem || "—"}\n*Modalidade:* ${modalidadeOrigem || "—"}\n` +
             `\n*Contrato de Destino:* ${novoClienteNome}\n` +
