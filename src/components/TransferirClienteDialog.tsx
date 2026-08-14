@@ -256,6 +256,7 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
       await executarTransferencia({
         novoId: p.novo_cliente_id, novoNome: p.novo_cliente_nome || "",
         just: p.justificativa || "", autorizadoPorEmail: email.trim().toLowerCase(),
+        detalhes: (p as any).detalhes ?? {},
       });
       await (supabase as any).from("funcionario_transferencia_solicitacoes").update({
         status: "aprovada", decidido_por: quemSou, decidido_em: new Date().toISOString(),
