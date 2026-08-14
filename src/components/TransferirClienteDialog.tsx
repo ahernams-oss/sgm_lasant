@@ -372,7 +372,22 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
               </div>
             )}
           </div>
-...
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* ORIGEM */}
+            <div className="rounded-lg border p-3 space-y-3">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Contrato de origem</div>
+              <div className="text-sm font-medium">{clienteAtualNome}</div>
+              <div>
+                <Label className="text-xs">Função</Label>
+                <Input value={funcaoOrigem} onChange={(e) => setFuncaoOrigem(e.target.value)} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs">Modalidade</Label>
+                <Select value={modalidadeOrigem} onValueChange={setModalidadeOrigem}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>{MODALIDADES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* DESTINO */}
@@ -412,14 +427,6 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
                   <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>{MODALIDADES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Turno</Label>
-                <Input value={turnoDestino} onChange={(e) => setTurnoDestino(e.target.value)} placeholder="Ex.: Noturno Ímpar (julho)" className="mt-1" />
-              </div>
-              <div>
-                <Label className="text-xs">Jornada</Label>
-                <Input value={jornadaDestino} onChange={(e) => setJornadaDestino(e.target.value)} placeholder="Ex.: 19h00 às 07h00" className="mt-1" />
               </div>
             </div>
           </div>
