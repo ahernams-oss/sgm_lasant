@@ -155,11 +155,13 @@ export default function RequisicaoComprasPage() {
     urgencia: { label: "Urgência", className: "text-center" },
     itens: { label: "Itens", className: "text-center" },
     status: { label: "Status", className: "text-center" },
+    ordemCompra: { label: "Ordem de Compra", className: "text-center" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "compras.requisicoes",
-    ["numero", "data", "solicitante", "centroCusto", "urgencia", "itens", "status"]
+    ["numero", "data", "solicitante", "centroCusto", "urgencia", "itens", "status", "ordemCompra"]
   );
+
 
   // Form state
   const [centroCusto, setCentroCusto] = useState("");
