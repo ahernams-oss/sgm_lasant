@@ -57,6 +57,8 @@ const URGENCIAS: GrauUrgencia[] = ["Baixa", "Normal", "Alta", "Urgente"];
 export default function RequisicaoComprasPage() {
   const { requisicoes, addRequisicao, cancelarRequisicao, updateStatus, updateRequisicao } = useRequisicaoCompras();
   const { addCotacao, cotacoes } = useCotacaoCompras();
+  const { pedidos } = usePedidoCompra();
+
   const { materiais } = useMateriaisServicos();
   const { getCodigoCompleto } = useCategoriasCompras();
   const codigoComposto = (m: any) => {
