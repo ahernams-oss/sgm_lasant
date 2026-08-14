@@ -603,7 +603,23 @@ export default function RequisicaoComprasPage() {
                 ),
                 itens: r.itens.length,
                 status: <Badge className={statusColors[r.status]}>{r.status}</Badge>,
+                ordemCompra: pedidosDaReq.length > 0 ? (
+                  <div className="flex flex-col items-center gap-0.5">
+                    {pedidosDaReq.map(p => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => navigate(`/compras/pedidos?numero=${String(p.numero).padStart(4, "0")}`)}
+                        className="font-mono text-xs text-primary underline underline-offset-2 hover:opacity-80"
+                        title={`Abrir ordem de compra do fornecedor ${p.fornecedorNome}`}
+                      >
+                        PC-{String(p.numero).padStart(4, "0")}
+                      </button>
+                    ))}
+                  </div>
+                ) : <span className="text-muted-foreground text-xs">-</span>,
               };
+
               const podeIniciarCotacao = ["Enviada", "Aguardando Aprovação"].includes(r.status);
               const podeRecusarReq = podeRecusar && ["Enviada", "Em Cotação", "Aguardando Aprovação"].includes(r.status);
               const podeEditarReq = r.status === "Recusada" && r.solicitante === (usuarioLogado?.nome || "");
