@@ -181,6 +181,7 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
   const validarBase = () => {
     if (!novoClienteId) { toast.error("Selecione o novo Cliente/Unidade."); return false; }
     if (novoClienteId === clienteAtualId) { toast.error("Selecione um Cliente/Unidade diferente do atual."); return false; }
+    if (!dataVigencia) { toast.error("Informe a data de início da vigência do remanejamento."); return false; }
     if (justificativa.trim().length < 5) { toast.error("Informe a justificativa (mín. 5 caracteres)."); return false; }
     return true;
   };
@@ -194,7 +195,7 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
         cliente_atual_id: clienteAtualId || null, cliente_atual_nome: clienteAtualNome,
         novo_cliente_id: novoClienteId, novo_cliente_nome: novoClienteNome,
         justificativa: justificativa.trim(), status: "pendente",
-        solicitado_por: quemSou,
+        solicitado_por: quemSou, detalhes,
       });
       if (error) {
         console.error("Erro insert solicitação:", error);
@@ -204,16 +205,21 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
       try {
         const rh = await getWhatsappRH();
         if (rh) {
-          const msg = `🔄 *Solicitação de Transferência de Cliente/Unidade*\n\n` +
-            `*Funcionário:* ${funcionarioNome}\n` +
-            `*De:* ${clienteAtualNome}\n` +
-            `*Para:* ${novoClienteNome}\n` +
+          const msg = `🔄 *Solicitação de Remanejamento*\n\n` +
+            `*Colaborador a ser remanejado:* ${funcionarioNome}${cargoNome ? " - " + cargoNome : ""}${turnoOrigem ? " - " + turnoOrigem : ""}\n` +
+            (cobertura ? `*Colaborador cobertura:* ${cobertura}\n` : "") +
+            `\n*Contrato de Origem:* ${clienteAtualNome}\n` +
+            `*Função:* ${funcaoOrigem || "—"}\n*Modalidade:* ${modalidadeOrigem || "—"}\n*Turno:* ${turnoOrigem || "—"}\n*Jornada:* ${jornadaOrigem || "—"}\n` +
+            `\n*Contrato de Destino:* ${novoClienteNome}\n` +
+            `*Função:* ${funcaoDestino || "—"}\n*Modalidade:* ${modalidadeDestino || "—"}\n*Turno:* ${turnoDestino || "—"}\n*Jornada:* ${jornadaDestino || "—"}\n` +
+            `\n*Início da vigência:* ${fmtDataExtenso(dataVigencia)}\n` +
             `*Solicitante:* ${quemSou}\n` +
             `*Justificativa:* ${justificativa.trim()}\n\n` +
             `Aguardando autorização do RH no sistema.`;
           await enviarWhatsApp(rh, msg);
         }
       } catch (e) { console.error("WA RH falhou", e); }
+
       toast.success("Solicitação enviada ao RH para autorização.");
       onOpenChange(false);
     } finally {
