@@ -567,6 +567,8 @@ export default function RequisicaoComprasPage() {
               <TableRow><TableCell colSpan={colOrder.length + 1} className="text-center text-muted-foreground py-8">Nenhuma requisição encontrada</TableCell></TableRow>
             ) : paginate(filtered, pageReq, 7).paginated.map((r, idx) => {
               const cotacaoExist = cotacoes.find(c => c.requisicaoId === r.id);
+              const pedidosDaReq = pedidos.filter(p => p.requisicaoId === r.id || (cotacaoExist && p.cotacaoId === cotacaoExist.id));
+
               const horasDesdeCriacao = (Date.now() - new Date(r.dataCriacao).getTime()) / 3600000;
               const diasDesdeCriacao = horasDesdeCriacao / 24;
               const cotacaoPendente = cotacaoExist && !["Finalizada", "Cancelada"].includes(cotacaoExist.status);
