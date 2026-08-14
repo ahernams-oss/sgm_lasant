@@ -68,7 +68,10 @@ async function getWhatsappRH(): Promise<string> {
   return (data?.whatsapp_rh || "").trim();
 }
 
-const MODALIDADES = ["Plantão 12x36", "Plantão 24x72", "Escala 5x2", "Escala 6x1", "Administrativo", "Sobreaviso"];
+/** Modalidades = jornadas de trabalho cadastradas no funcionário */
+const MODALIDADES = ["Diarista", "Plantão Diurno - PAR", "Plantão Diurno - ÍMPAR", "Plantão Noturno - PAR", "Plantão Noturno - ÍMPAR"];
+
+const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 const fmtDataExtenso = (iso: string) => {
   if (!iso) return "—";
@@ -93,15 +96,12 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
   const [pendentes, setPendentes] = useState<PendenteRow[]>([]);
 
   // Dados do remanejamento
-  const [cobertura, setCobertura] = useState("");
+  const [coberturaId, setCoberturaId] = useState("");
+  const [coberturaOpen, setCoberturaOpen] = useState(false);
   const [funcaoOrigem, setFuncaoOrigem] = useState("");
   const [modalidadeOrigem, setModalidadeOrigem] = useState("");
-  const [turnoOrigem, setTurnoOrigem] = useState("");
-  const [jornadaOrigem, setJornadaOrigem] = useState("");
   const [funcaoDestino, setFuncaoDestino] = useState("");
   const [modalidadeDestino, setModalidadeDestino] = useState("");
-  const [turnoDestino, setTurnoDestino] = useState("");
-  const [jornadaDestino, setJornadaDestino] = useState("");
   const [dataVigencia, setDataVigencia] = useState("");
 
   const clientesAtivos = clientes.filter((c) => c.tipo === "Cliente");
@@ -113,18 +113,24 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
   const cargoNome = cargos.find((c) => c.id === funcionario?.cargoId)?.nome ?? "";
   const jornadaFuncionario = funcionario?.jornadaTrabalho ?? "";
 
+  const coberturaFunc = funcionarios.find((f) => f.id === coberturaId);
+  const coberturaNome = coberturaFunc?.nome ?? "";
+  const coberturaCargo = cargos.find((c) => c.id === coberturaFunc?.cargoId)?.nome ?? "";
+  const coberturaCliente = clientes.find((c) => c.id === coberturaFunc?.clienteId)?.nome ?? "";
+  const coberturaJornada = coberturaFunc?.jornadaTrabalho ?? "";
+
   const detalhes = {
-    colaborador_cobertura: cobertura.trim(),
+    colaborador_cobertura: coberturaNome,
+    cobertura_id: coberturaId || null,
+    cobertura_funcao: coberturaCargo,
+    cobertura_contrato: coberturaCliente,
+    cobertura_modalidade: coberturaJornada,
     contrato_origem: clienteAtualNome,
     funcao_origem: funcaoOrigem.trim(),
     modalidade_origem: modalidadeOrigem,
-    turno_origem: turnoOrigem.trim(),
-    jornada_origem: jornadaOrigem.trim(),
     contrato_destino: novoClienteNome,
     funcao_destino: funcaoDestino.trim(),
     modalidade_destino: modalidadeDestino,
-    turno_destino: turnoDestino.trim(),
-    jornada_destino: jornadaDestino.trim(),
     data_vigencia: dataVigencia || null,
   };
 
@@ -140,11 +146,9 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
   useEffect(() => {
     if (open) {
       setNovoClienteId(""); setJustificativa(""); setEmail(""); setSenha("");
-      setCobertura(""); setDataVigencia("");
+      setCoberturaId(""); setDataVigencia("");
       setFuncaoOrigem(cargoNome); setFuncaoDestino(cargoNome);
-      setModalidadeOrigem(""); setModalidadeDestino("");
-      setTurnoOrigem(""); setTurnoDestino("");
-      setJornadaOrigem(jornadaFuncionario); setJornadaDestino(jornadaFuncionario);
+      setModalidadeOrigem(jornadaFuncionario); setModalidadeDestino(jornadaFuncionario);
       loadHistorico();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -206,12 +210,12 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
         const rh = await getWhatsappRH();
         if (rh) {
           const msg = `🔄 *Solicitação de Remanejamento*\n\n` +
-            `*Colaborador a ser remanejado:* ${funcionarioNome}${cargoNome ? " - " + cargoNome : ""}${turnoOrigem ? " - " + turnoOrigem : ""}\n` +
-            (cobertura ? `*Colaborador cobertura:* ${cobertura}\n` : "") +
+            `*Colaborador a ser remanejado:* ${funcionarioNome}${cargoNome ? " - " + cargoNome : ""}${modalidadeOrigem ? " - " + modalidadeOrigem : ""}\n` +
+            (coberturaNome ? `*Colaborador cobertura:* ${coberturaNome}${coberturaCargo ? " - " + coberturaCargo : ""}${coberturaJornada ? " (" + coberturaJornada + ")" : ""}\n` : "") +
             `\n*Contrato de Origem:* ${clienteAtualNome}\n` +
-            `*Função:* ${funcaoOrigem || "—"}\n*Modalidade:* ${modalidadeOrigem || "—"}\n*Turno:* ${turnoOrigem || "—"}\n*Jornada:* ${jornadaOrigem || "—"}\n` +
+            `*Função:* ${funcaoOrigem || "—"}\n*Modalidade:* ${modalidadeOrigem || "—"}\n` +
             `\n*Contrato de Destino:* ${novoClienteNome}\n` +
-            `*Função:* ${funcaoDestino || "—"}\n*Modalidade:* ${modalidadeDestino || "—"}\n*Turno:* ${turnoDestino || "—"}\n*Jornada:* ${jornadaDestino || "—"}\n` +
+            `*Função:* ${funcaoDestino || "—"}\n*Modalidade:* ${modalidadeDestino || "—"}\n` +
             `\n*Início da vigência:* ${fmtDataExtenso(dataVigencia)}\n` +
             `*Solicitante:* ${quemSou}\n` +
             `*Justificativa:* ${justificativa.trim()}\n\n` +
@@ -300,15 +304,74 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
           <div className="rounded-lg border bg-muted/30 p-3 text-sm">
             <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Colaborador a ser remanejado</div>
             <div className="font-medium">
-              {funcionarioNome}{cargoNome ? ` — ${cargoNome}` : ""}{turnoOrigem ? ` — ${turnoOrigem}` : ""}
+              {funcionarioNome}{cargoNome ? ` — ${cargoNome}` : ""}{modalidadeOrigem ? ` — ${modalidadeOrigem}` : ""}
             </div>
           </div>
 
           <div>
             <Label className="text-xs font-semibold">Colaborador cobertura</Label>
-            <Input value={cobertura} onChange={(e) => setCobertura(e.target.value)} placeholder="Nome do colaborador que fará a cobertura" className="mt-1.5" />
+            <Popover open={coberturaOpen} onOpenChange={setCoberturaOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" className="w-full justify-between font-normal mt-1.5">
+                  <span className={cn("truncate", !coberturaId && "text-muted-foreground")}>
+                    {coberturaId ? `${coberturaNome}${coberturaCargo ? " — " + coberturaCargo : ""}` : "Selecione o colaborador que fará a cobertura"}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command
+                  filter={(v, search) => {
+                    const terms = norm(search).split(/\s+/).filter(Boolean);
+                    const target = norm(v);
+                    return terms.every((t) => target.includes(t)) ? 1 : 0;
+                  }}
+                >
+                  <CommandInput placeholder="Buscar funcionário..." />
+                  <CommandList className="max-h-64">
+                    <CommandEmpty>Nenhum funcionário encontrado.</CommandEmpty>
+                    {coberturaId && (
+                      <CommandGroup>
+                        <CommandItem value="__limpar__" onSelect={() => { setCoberturaId(""); setCoberturaOpen(false); }}>
+                          Limpar seleção
+                        </CommandItem>
+                      </CommandGroup>
+                    )}
+                    <CommandGroup>
+                      {funcionarios
+                        .filter((f) => f.id !== funcionarioId && f.status === "Ativo")
+                        .map((f) => {
+                          const cg = cargos.find((c) => c.id === f.cargoId)?.nome ?? "";
+                          const cl = clientes.find((c) => c.id === f.clienteId)?.nome ?? "";
+                          return (
+                            <CommandItem
+                              key={f.id}
+                              value={`${f.nome} ${cg} ${cl} ${f.jornadaTrabalho ?? ""}`}
+                              onSelect={() => { setCoberturaId(f.id); setCoberturaOpen(false); }}
+                            >
+                              <Check className={cn("mr-2 h-4 w-4 shrink-0", coberturaId === f.id ? "opacity-100" : "opacity-0")} />
+                              <div className="min-w-0">
+                                <div className="truncate text-sm">{f.nome}</div>
+                                <div className="truncate text-[11px] text-muted-foreground">
+                                  {[cg, cl, f.jornadaTrabalho].filter(Boolean).join(" • ")}
+                                </div>
+                              </div>
+                            </CommandItem>
+                          );
+                        })}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {coberturaId && (
+              <div className="mt-2 rounded-md border bg-muted/30 p-2 text-xs space-y-0.5">
+                <div><strong>Função:</strong> {coberturaCargo || "—"}</div>
+                <div><strong>Contrato atual:</strong> {coberturaCliente || "—"}</div>
+                <div><strong>Modalidade:</strong> {coberturaJornada || "—"}</div>
+              </div>
+            )}
           </div>
-
           <div className="grid gap-4 md:grid-cols-2">
             {/* ORIGEM */}
             <div className="rounded-lg border p-3 space-y-3">
@@ -324,14 +387,6 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
                   <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>{MODALIDADES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Turno</Label>
-                <Input value={turnoOrigem} onChange={(e) => setTurnoOrigem(e.target.value)} placeholder="Ex.: Noturno Ímpar (julho)" className="mt-1" />
-              </div>
-              <div>
-                <Label className="text-xs">Jornada</Label>
-                <Input value={jornadaOrigem} onChange={(e) => setJornadaOrigem(e.target.value)} placeholder="Ex.: 19h00 às 07h00" className="mt-1" />
               </div>
             </div>
 
@@ -372,14 +427,6 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
                   <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>{MODALIDADES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Turno</Label>
-                <Input value={turnoDestino} onChange={(e) => setTurnoDestino(e.target.value)} placeholder="Ex.: Noturno Ímpar (julho)" className="mt-1" />
-              </div>
-              <div>
-                <Label className="text-xs">Jornada</Label>
-                <Input value={jornadaDestino} onChange={(e) => setJornadaDestino(e.target.value)} placeholder="Ex.: 19h00 às 07h00" className="mt-1" />
               </div>
             </div>
           </div>
@@ -435,6 +482,24 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
                         <div><strong>Para:</strong> {p.novo_cliente_nome}</div>
                         <div><strong>Solicitante:</strong> {p.solicitado_por} • {fmt(p.solicitado_em)}</div>
                         {p.justificativa && <div className="text-muted-foreground">"{p.justificativa}"</div>}
+                        {(() => {
+                          const d = ((p as any).detalhes ?? {}) as any;
+                          if (!d || Object.keys(d).length === 0) return null;
+                          return (
+                            <div className="mt-1 rounded-md border bg-muted/30 p-2 space-y-0.5">
+                              {d.colaborador_cobertura && (
+                                <div><strong>Cobertura:</strong> {d.colaborador_cobertura}
+                                  {d.cobertura_funcao ? ` — ${d.cobertura_funcao}` : ""}
+                                  {d.cobertura_contrato ? ` — ${d.cobertura_contrato}` : ""}
+                                  {d.cobertura_modalidade ? ` — ${d.cobertura_modalidade}` : ""}
+                                </div>
+                              )}
+                              <div><strong>Origem:</strong> {d.contrato_origem || "—"}{d.funcao_origem ? ` — ${d.funcao_origem}` : ""}{d.modalidade_origem ? ` — ${d.modalidade_origem}` : ""}</div>
+                              <div><strong>Destino:</strong> {d.contrato_destino || "—"}{d.funcao_destino ? ` — ${d.funcao_destino}` : ""}{d.modalidade_destino ? ` — ${d.modalidade_destino}` : ""}</div>
+                              {d.data_vigencia && <div className="capitalize"><strong>Vigência:</strong> {fmtDataExtenso(d.data_vigencia)}</div>}
+                            </div>
+                          );
+                        })()}
                       </div>
                       <Badge variant="outline" className={cn("border-amber-400 text-amber-700 flex items-center gap-1", atrasada && "animate-pulse border-red-500 text-red-700 bg-red-50")}>
                         {atrasada && <FileClock className="h-3 w-3" />}
