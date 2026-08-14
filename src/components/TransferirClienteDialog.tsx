@@ -146,11 +146,9 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
   useEffect(() => {
     if (open) {
       setNovoClienteId(""); setJustificativa(""); setEmail(""); setSenha("");
-      setCobertura(""); setDataVigencia("");
+      setCoberturaId(""); setDataVigencia("");
       setFuncaoOrigem(cargoNome); setFuncaoDestino(cargoNome);
-      setModalidadeOrigem(""); setModalidadeDestino("");
-      setTurnoOrigem(""); setTurnoDestino("");
-      setJornadaOrigem(jornadaFuncionario); setJornadaDestino(jornadaFuncionario);
+      setModalidadeOrigem(jornadaFuncionario); setModalidadeDestino(jornadaFuncionario);
       loadHistorico();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
