@@ -96,15 +96,12 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
   const [pendentes, setPendentes] = useState<PendenteRow[]>([]);
 
   // Dados do remanejamento
-  const [cobertura, setCobertura] = useState("");
+  const [coberturaId, setCoberturaId] = useState("");
+  const [coberturaOpen, setCoberturaOpen] = useState(false);
   const [funcaoOrigem, setFuncaoOrigem] = useState("");
   const [modalidadeOrigem, setModalidadeOrigem] = useState("");
-  const [turnoOrigem, setTurnoOrigem] = useState("");
-  const [jornadaOrigem, setJornadaOrigem] = useState("");
   const [funcaoDestino, setFuncaoDestino] = useState("");
   const [modalidadeDestino, setModalidadeDestino] = useState("");
-  const [turnoDestino, setTurnoDestino] = useState("");
-  const [jornadaDestino, setJornadaDestino] = useState("");
   const [dataVigencia, setDataVigencia] = useState("");
 
   const clientesAtivos = clientes.filter((c) => c.tipo === "Cliente");
@@ -116,18 +113,24 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
   const cargoNome = cargos.find((c) => c.id === funcionario?.cargoId)?.nome ?? "";
   const jornadaFuncionario = funcionario?.jornadaTrabalho ?? "";
 
+  const coberturaFunc = funcionarios.find((f) => f.id === coberturaId);
+  const coberturaNome = coberturaFunc?.nome ?? "";
+  const coberturaCargo = cargos.find((c) => c.id === coberturaFunc?.cargoId)?.nome ?? "";
+  const coberturaCliente = clientes.find((c) => c.id === coberturaFunc?.clienteId)?.nome ?? "";
+  const coberturaJornada = coberturaFunc?.jornadaTrabalho ?? "";
+
   const detalhes = {
-    colaborador_cobertura: cobertura.trim(),
+    colaborador_cobertura: coberturaNome,
+    cobertura_id: coberturaId || null,
+    cobertura_funcao: coberturaCargo,
+    cobertura_contrato: coberturaCliente,
+    cobertura_modalidade: coberturaJornada,
     contrato_origem: clienteAtualNome,
     funcao_origem: funcaoOrigem.trim(),
     modalidade_origem: modalidadeOrigem,
-    turno_origem: turnoOrigem.trim(),
-    jornada_origem: jornadaOrigem.trim(),
     contrato_destino: novoClienteNome,
     funcao_destino: funcaoDestino.trim(),
     modalidade_destino: modalidadeDestino,
-    turno_destino: turnoDestino.trim(),
-    jornada_destino: jornadaDestino.trim(),
     data_vigencia: dataVigencia || null,
   };
 
