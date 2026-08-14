@@ -4,6 +4,8 @@ import { FileSpreadsheet } from "lucide-react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras, GrauUrgencia, ItemRequisicaoCompras, AnexoRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useCotacaoCompras } from "@/contexts/CotacaoComprasContext";
+import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
+
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
 import { useFabricantes } from "@/contexts/FabricantesContext";
@@ -57,6 +59,8 @@ const URGENCIAS: GrauUrgencia[] = ["Baixa", "Normal", "Alta", "Urgente"];
 export default function RequisicaoComprasPage() {
   const { requisicoes, addRequisicao, cancelarRequisicao, updateStatus, updateRequisicao } = useRequisicaoCompras();
   const { addCotacao, cotacoes } = useCotacaoCompras();
+  const { pedidos } = usePedidoCompra();
+
   const { materiais } = useMateriaisServicos();
   const { getCodigoCompleto } = useCategoriasCompras();
   const codigoComposto = (m: any) => {
@@ -155,11 +159,13 @@ export default function RequisicaoComprasPage() {
     urgencia: { label: "Urgência", className: "text-center" },
     itens: { label: "Itens", className: "text-center" },
     status: { label: "Status", className: "text-center" },
+    ordemCompra: { label: "Ordem de Compra", className: "text-center" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "compras.requisicoes",
-    ["numero", "data", "solicitante", "centroCusto", "urgencia", "itens", "status"]
+    ["numero", "data", "solicitante", "centroCusto", "urgencia", "itens", "status", "ordemCompra"]
   );
+
 
   // Form state
   const [centroCusto, setCentroCusto] = useState("");
@@ -565,6 +571,8 @@ export default function RequisicaoComprasPage() {
               <TableRow><TableCell colSpan={colOrder.length + 1} className="text-center text-muted-foreground py-8">Nenhuma requisição encontrada</TableCell></TableRow>
             ) : paginate(filtered, pageReq, 7).paginated.map((r, idx) => {
               const cotacaoExist = cotacoes.find(c => c.requisicaoId === r.id);
+              const pedidosDaReq = pedidos.filter(p => p.requisicaoId === r.id || (cotacaoExist && p.cotacaoId === cotacaoExist.id));
+
               const horasDesdeCriacao = (Date.now() - new Date(r.dataCriacao).getTime()) / 3600000;
               const diasDesdeCriacao = horasDesdeCriacao / 24;
               const cotacaoPendente = cotacaoExist && !["Finalizada", "Cancelada"].includes(cotacaoExist.status);
@@ -601,7 +609,23 @@ export default function RequisicaoComprasPage() {
                 ),
                 itens: r.itens.length,
                 status: <Badge className={statusColors[r.status]}>{r.status}</Badge>,
+                ordemCompra: pedidosDaReq.length > 0 ? (
+                  <div className="flex flex-col items-center gap-0.5">
+                    {pedidosDaReq.map(p => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => navigate(`/compras/pedidos?numero=${String(p.numero).padStart(4, "0")}`)}
+                        className="font-mono text-xs text-primary underline underline-offset-2 hover:opacity-80"
+                        title={`Abrir ordem de compra do fornecedor ${p.fornecedorNome}`}
+                      >
+                        PC-{String(p.numero).padStart(4, "0")}
+                      </button>
+                    ))}
+                  </div>
+                ) : <span className="text-muted-foreground text-xs">-</span>,
               };
+
               const podeIniciarCotacao = ["Enviada", "Aguardando Aprovação"].includes(r.status);
               const podeRecusarReq = podeRecusar && ["Enviada", "Em Cotação", "Aguardando Aprovação"].includes(r.status);
               const podeEditarReq = r.status === "Recusada" && r.solicitante === (usuarioLogado?.nome || "");
