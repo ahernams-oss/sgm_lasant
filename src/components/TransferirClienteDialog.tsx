@@ -210,12 +210,12 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
         const rh = await getWhatsappRH();
         if (rh) {
           const msg = `🔄 *Solicitação de Remanejamento*\n\n` +
-            `*Colaborador a ser remanejado:* ${funcionarioNome}${cargoNome ? " - " + cargoNome : ""}${turnoOrigem ? " - " + turnoOrigem : ""}\n` +
-            (cobertura ? `*Colaborador cobertura:* ${cobertura}\n` : "") +
+            `*Colaborador a ser remanejado:* ${funcionarioNome}${cargoNome ? " - " + cargoNome : ""}${modalidadeOrigem ? " - " + modalidadeOrigem : ""}\n` +
+            (coberturaNome ? `*Colaborador cobertura:* ${coberturaNome}${coberturaCargo ? " - " + coberturaCargo : ""}${coberturaModalidadeTxt}\n` : "") +
             `\n*Contrato de Origem:* ${clienteAtualNome}\n` +
-            `*Função:* ${funcaoOrigem || "—"}\n*Modalidade:* ${modalidadeOrigem || "—"}\n*Turno:* ${turnoOrigem || "—"}\n*Jornada:* ${jornadaOrigem || "—"}\n` +
+            `*Função:* ${funcaoOrigem || "—"}\n*Modalidade:* ${modalidadeOrigem || "—"}\n` +
             `\n*Contrato de Destino:* ${novoClienteNome}\n` +
-            `*Função:* ${funcaoDestino || "—"}\n*Modalidade:* ${modalidadeDestino || "—"}\n*Turno:* ${turnoDestino || "—"}\n*Jornada:* ${jornadaDestino || "—"}\n` +
+            `*Função:* ${funcaoDestino || "—"}\n*Modalidade:* ${modalidadeDestino || "—"}\n` +
             `\n*Início da vigência:* ${fmtDataExtenso(dataVigencia)}\n` +
             `*Solicitante:* ${quemSou}\n` +
             `*Justificativa:* ${justificativa.trim()}\n\n` +
