@@ -66,9 +66,19 @@ async function getWhatsappRH(): Promise<string> {
   return (data?.whatsapp_rh || "").trim();
 }
 
+const MODALIDADES = ["Plantão 12x36", "Plantão 24x72", "Escala 5x2", "Escala 6x1", "Administrativo", "Sobreaviso"];
+
+const fmtDataExtenso = (iso: string) => {
+  if (!iso) return "—";
+  const d = new Date(iso + "T12:00:00");
+  if (isNaN(d.getTime())) return "—";
+  return `${d.toLocaleDateString("pt-BR")} (${d.toLocaleDateString("pt-BR", { weekday: "long" })})`;
+};
+
 export default function TransferirClienteDialog({ open, onOpenChange, funcionarioId, funcionarioNome, clienteAtualId, podeAutorizar }: Props) {
   const { clientes } = useClientes();
-  const { updateFuncionario } = useFuncionarios();
+  const { updateFuncionario, funcionarios } = useFuncionarios();
+  const { cargos } = useCargos();
   const { usuarioLogado } = useAuth();
 
   const [novoClienteId, setNovoClienteId] = useState("");
@@ -80,10 +90,41 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
   const [historico, setHistorico] = useState<HistoricoRow[]>([]);
   const [pendentes, setPendentes] = useState<PendenteRow[]>([]);
 
+  // Dados do remanejamento
+  const [cobertura, setCobertura] = useState("");
+  const [funcaoOrigem, setFuncaoOrigem] = useState("");
+  const [modalidadeOrigem, setModalidadeOrigem] = useState("");
+  const [turnoOrigem, setTurnoOrigem] = useState("");
+  const [jornadaOrigem, setJornadaOrigem] = useState("");
+  const [funcaoDestino, setFuncaoDestino] = useState("");
+  const [modalidadeDestino, setModalidadeDestino] = useState("");
+  const [turnoDestino, setTurnoDestino] = useState("");
+  const [jornadaDestino, setJornadaDestino] = useState("");
+  const [dataVigencia, setDataVigencia] = useState("");
+
   const clientesAtivos = clientes.filter((c) => c.tipo === "Cliente");
   const clienteAtualNome = clientes.find((c) => c.id === clienteAtualId)?.nome ?? "—";
   const novoClienteNome = clientes.find((c) => c.id === novoClienteId)?.nome ?? "";
   const quemSou = usuarioLogado?.nome || usuarioLogado?.email || "Usuário";
+
+  const funcionario = funcionarios.find((f) => f.id === funcionarioId);
+  const cargoNome = cargos.find((c) => c.id === funcionario?.cargoId)?.nome ?? "";
+  const jornadaFuncionario = funcionario?.jornadaTrabalho ?? "";
+
+  const detalhes = {
+    colaborador_cobertura: cobertura.trim(),
+    contrato_origem: clienteAtualNome,
+    funcao_origem: funcaoOrigem.trim(),
+    modalidade_origem: modalidadeOrigem,
+    turno_origem: turnoOrigem.trim(),
+    jornada_origem: jornadaOrigem.trim(),
+    contrato_destino: novoClienteNome,
+    funcao_destino: funcaoDestino.trim(),
+    modalidade_destino: modalidadeDestino,
+    turno_destino: turnoDestino.trim(),
+    jornada_destino: jornadaDestino.trim(),
+    data_vigencia: dataVigencia || null,
+  };
 
   const loadHistorico = async () => {
     const [{ data: hist }, { data: pend }] = await Promise.all([
@@ -97,13 +138,16 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
   useEffect(() => {
     if (open) {
       setNovoClienteId(""); setJustificativa(""); setEmail(""); setSenha("");
-      loadHistorque();
+      setCobertura(""); setDataVigencia("");
+      setFuncaoOrigem(cargoNome); setFuncaoDestino(cargoNome);
+      setModalidadeOrigem(""); setModalidadeDestino("");
+      setTurnoOrigem(""); setTurnoDestino("");
+      setJornadaOrigem(jornadaFuncionario); setJornadaDestino(jornadaFuncionario);
+      loadHistorico();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, funcionarioId]);
+  }, [open, funcionarioId, cargoNome, jornadaFuncionario]);
 
-  // typo guard
-  const loadHistorque = loadHistorico;
 
   const executarTransferencia = async (opts: {
     novoId: string; novoNome: string; just: string; autorizadoPorEmail: string;
