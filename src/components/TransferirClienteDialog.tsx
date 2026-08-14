@@ -297,38 +297,106 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
         </DialogHeader>
 
         <div className="space-y-4">
+          <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Colaborador a ser remanejado</div>
+            <div className="font-medium">
+              {funcionarioNome}{cargoNome ? ` — ${cargoNome}` : ""}{turnoOrigem ? ` — ${turnoOrigem}` : ""}
+            </div>
+          </div>
+
           <div>
-            <Label className="text-xs font-semibold">Novo Cliente/Unidade *</Label>
-            <Popover open={comboOpen} onOpenChange={setComboOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" className="w-full justify-between mt-1.5 font-normal">
-                  {novoClienteId ? novoClienteNome : "Selecione..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                <Command>
-                  <CommandInput placeholder="Pesquisar cliente..." />
-                  <CommandList>
-                    <CommandEmpty>Nenhum encontrado.</CommandEmpty>
-                    <CommandGroup>
-                      {clientesAtivos.map((c) => (
-                        <CommandItem key={c.id} value={c.nome} onSelect={() => { setNovoClienteId(c.id); setComboOpen(false); }}>
-                          <Check className={cn("mr-2 h-4 w-4", novoClienteId === c.id ? "opacity-100" : "opacity-0")} />
-                          {c.nome}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <Label className="text-xs font-semibold">Colaborador cobertura</Label>
+            <Input value={cobertura} onChange={(e) => setCobertura(e.target.value)} placeholder="Nome do colaborador que fará a cobertura" className="mt-1.5" />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* ORIGEM */}
+            <div className="rounded-lg border p-3 space-y-3">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Contrato de origem</div>
+              <div className="text-sm font-medium">{clienteAtualNome}</div>
+              <div>
+                <Label className="text-xs">Função</Label>
+                <Input value={funcaoOrigem} onChange={(e) => setFuncaoOrigem(e.target.value)} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs">Modalidade</Label>
+                <Select value={modalidadeOrigem} onValueChange={setModalidadeOrigem}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>{MODALIDADES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Turno</Label>
+                <Input value={turnoOrigem} onChange={(e) => setTurnoOrigem(e.target.value)} placeholder="Ex.: Noturno Ímpar (julho)" className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs">Jornada</Label>
+                <Input value={jornadaOrigem} onChange={(e) => setJornadaOrigem(e.target.value)} placeholder="Ex.: 19h00 às 07h00" className="mt-1" />
+              </div>
+            </div>
+
+            {/* DESTINO */}
+            <div className="rounded-lg border p-3 space-y-3">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Contrato de destino *</div>
+              <Popover open={comboOpen} onOpenChange={setComboOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                    <span className="truncate">{novoClienteId ? novoClienteNome : "Selecione..."}</span>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Pesquisar cliente..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {clientesAtivos.map((c) => (
+                          <CommandItem key={c.id} value={c.nome} onSelect={() => { setNovoClienteId(c.id); setComboOpen(false); }}>
+                            <Check className={cn("mr-2 h-4 w-4", novoClienteId === c.id ? "opacity-100" : "opacity-0")} />
+                            {c.nome}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <div>
+                <Label className="text-xs">Função</Label>
+                <Input value={funcaoDestino} onChange={(e) => setFuncaoDestino(e.target.value)} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs">Modalidade</Label>
+                <Select value={modalidadeDestino} onValueChange={setModalidadeDestino}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>{MODALIDADES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Turno</Label>
+                <Input value={turnoDestino} onChange={(e) => setTurnoDestino(e.target.value)} placeholder="Ex.: Noturno Ímpar (julho)" className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs">Jornada</Label>
+                <Input value={jornadaDestino} onChange={(e) => setJornadaDestino(e.target.value)} placeholder="Ex.: 19h00 às 07h00" className="mt-1" />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2 items-end">
+            <div>
+              <Label className="text-xs font-semibold">Início da vigência do remanejamento definitivo *</Label>
+              <Input type="date" value={dataVigencia} onChange={(e) => setDataVigencia(e.target.value)} className="mt-1.5" />
+            </div>
+            <div className="text-sm text-muted-foreground pb-2 capitalize">{dataVigencia ? fmtDataExtenso(dataVigencia) : ""}</div>
           </div>
 
           <div>
             <Label className="text-xs font-semibold">Justificativa *</Label>
             <Textarea rows={3} value={justificativa} onChange={(e) => setJustificativa(e.target.value)} placeholder="Motivo da transferência..." className="mt-1.5" />
           </div>
+
 
           {podeAutorizar && (
             <div className="grid grid-cols-2 gap-3 p-3 border rounded-lg bg-amber-50 dark:bg-amber-900/10">
