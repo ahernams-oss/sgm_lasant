@@ -152,7 +152,7 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
 
 
   const executarTransferencia = async (opts: {
-    novoId: string; novoNome: string; just: string; autorizadoPorEmail: string;
+    novoId: string; novoNome: string; just: string; autorizadoPorEmail: string; detalhes?: any;
   }) => {
     const agora = new Date().toISOString();
     await (supabase as any).from("funcionario_cliente_historico").update({ data_fim: agora })
@@ -170,10 +170,11 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
     }
     const { error: insErr } = await (supabase as any).from("funcionario_cliente_historico").insert({
       funcionario_id: funcionarioId, cliente_id: opts.novoId, cliente_nome: opts.novoNome,
-      data_inicio: agora, data_fim: null,
+      data_inicio: agora, data_fim: null, detalhes: opts.detalhes ?? {},
       justificativa: opts.just, autorizado_por_email: opts.autorizadoPorEmail, alterado_por: quemSou,
     });
     if (insErr) throw insErr;
+
     await updateFuncionario(funcionarioId, { clienteId: opts.novoId });
   };
 
