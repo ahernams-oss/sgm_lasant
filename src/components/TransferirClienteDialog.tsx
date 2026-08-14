@@ -482,6 +482,24 @@ export default function TransferirClienteDialog({ open, onOpenChange, funcionari
                         <div><strong>Para:</strong> {p.novo_cliente_nome}</div>
                         <div><strong>Solicitante:</strong> {p.solicitado_por} • {fmt(p.solicitado_em)}</div>
                         {p.justificativa && <div className="text-muted-foreground">"{p.justificativa}"</div>}
+                        {(() => {
+                          const d = ((p as any).detalhes ?? {}) as any;
+                          if (!d || Object.keys(d).length === 0) return null;
+                          return (
+                            <div className="mt-1 rounded-md border bg-muted/30 p-2 space-y-0.5">
+                              {d.colaborador_cobertura && (
+                                <div><strong>Cobertura:</strong> {d.colaborador_cobertura}
+                                  {d.cobertura_funcao ? ` — ${d.cobertura_funcao}` : ""}
+                                  {d.cobertura_contrato ? ` — ${d.cobertura_contrato}` : ""}
+                                  {d.cobertura_modalidade ? ` — ${d.cobertura_modalidade}` : ""}
+                                </div>
+                              )}
+                              <div><strong>Origem:</strong> {d.contrato_origem || "—"}{d.funcao_origem ? ` — ${d.funcao_origem}` : ""}{d.modalidade_origem ? ` — ${d.modalidade_origem}` : ""}</div>
+                              <div><strong>Destino:</strong> {d.contrato_destino || "—"}{d.funcao_destino ? ` — ${d.funcao_destino}` : ""}{d.modalidade_destino ? ` — ${d.modalidade_destino}` : ""}</div>
+                              {d.data_vigencia && <div className="capitalize"><strong>Vigência:</strong> {fmtDataExtenso(d.data_vigencia)}</div>}
+                            </div>
+                          );
+                        })()}
                       </div>
                       <Badge variant="outline" className={cn("border-amber-400 text-amber-700 flex items-center gap-1", atrasada && "animate-pulse border-red-500 text-red-700 bg-red-50")}>
                         {atrasada && <FileClock className="h-3 w-3" />}
