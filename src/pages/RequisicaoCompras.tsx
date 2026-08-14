@@ -4,6 +4,8 @@ import { FileSpreadsheet } from "lucide-react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useRequisicaoCompras, RequisicaoCompras, StatusRequisicaoCompras, GrauUrgencia, ItemRequisicaoCompras, AnexoRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useCotacaoCompras } from "@/contexts/CotacaoComprasContext";
+import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
+
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
 import { useFabricantes } from "@/contexts/FabricantesContext";
