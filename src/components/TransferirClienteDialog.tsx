@@ -16,6 +16,8 @@ import { enviarWhatsApp } from "@/lib/whatsapp";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
+import { useCargos } from "@/contexts/CargosContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface HistoricoRow {
   id: string;
