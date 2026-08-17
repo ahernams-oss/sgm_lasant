@@ -34,6 +34,7 @@ export default function AprovarLoteSS() {
   const { solicitacoes, updateSolicitacao } = useSolicitacoesServicos();
   const { clientes } = useClientes();
   const { addOrdem } = useOrdensServico();
+  const { orcamentos: orcamentosAll } = useOrcamentos();
   const { usuarioLogado } = useAuth();
   const { podeAprovar } = useLimiteAprovacao();
   const { tem } = usePermissao();
