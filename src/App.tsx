@@ -106,6 +106,9 @@ import PortalTermos from "./pages/portal/candidato/PortalTermos";
 import PortalAdmissional from "./pages/portal/candidato/PortalAdmissional";
 import EquipamentoPublico from "./pages/EquipamentoPublico.tsx";
 import Instalar from "./pages/Instalar.tsx";
+import OrcamentosMobile from "./pages/mobile/OrcamentosMobile.tsx";
+import InstalarOrcamentos from "./pages/mobile/InstalarOrcamentos.tsx";
+
 import LicitacoesPage from "./pages/Licitacoes.tsx";
 import MedicoesServicosPage from "./pages/MedicoesServicos.tsx";
 import DashboardMedicoesPage from "./pages/DashboardMedicoes.tsx";
