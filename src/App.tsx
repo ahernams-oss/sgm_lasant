@@ -573,6 +573,22 @@ const App = () => (
           <Route path="/equipamento/:id" element={<EquipamentoPublico />} />
           <Route path="/receber-epis/:token" element={<ReceberEpis />} />
           <Route path="/instalar" element={<Instalar />} />
+          <Route path="/app/orcamentos/instalar" element={<InstalarOrcamentos />} />
+          <Route
+            path="/app/orcamentos"
+            element={
+              <RequireAuth>
+                <SolicitacoesServicosProvider>
+                  <OrdensServicoProvider>
+                    <OrcamentosProvider>
+                      <OrcamentosMobile />
+                    </OrcamentosProvider>
+                  </OrdensServicoProvider>
+                </SolicitacoesServicosProvider>
+              </RequireAuth>
+            }
+          />
+
           <Route path="/verificar-assinatura" element={<VerificarAssinaturaPage />} />
           <Route path="/verificar-assinatura/:codigo" element={<VerificarAssinaturaPage />} />
 
