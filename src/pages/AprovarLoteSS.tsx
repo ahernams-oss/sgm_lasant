@@ -275,7 +275,16 @@ export default function AprovarLoteSS() {
                     aria-label={`Selecionar SS ${s.numero}`}
                   />
                 </TableCell>
-                <TableCell className="font-mono font-bold">{formatNumeroAno(s.numero, s.createdAt)}</TableCell>
+                <TableCell>
+                  <button
+                    type="button"
+                    onClick={() => setViewSSTarget(s)}
+                    className="font-mono font-bold text-primary hover:underline focus:outline-none focus:underline"
+                    title="Visualizar Solicitação de Serviço"
+                  >
+                    {formatNumeroAno(s.numero, s.createdAt)}
+                  </button>
+                </TableCell>
                 <TableCell>{s.clienteNome || "—"}</TableCell>
                 <TableCell className="text-sm">
                   {[s.localDescricao, s.pavimentoDescricao, s.setorDescricao].filter(Boolean).join(" › ") || "—"}
