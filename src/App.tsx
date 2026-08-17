@@ -333,9 +333,11 @@ function ProtectedAppRoutes() {
           element={
             <RotaProtegida perm="solicitacao_servicos">
               <SolicitacoesServicosProvider>
-                <OrdensServicoProvider>
-                  <AprovarLoteSS />
-                </OrdensServicoProvider>
+                <OrcamentosProvider>
+                  <OrdensServicoProvider>
+                    <AprovarLoteSS />
+                  </OrdensServicoProvider>
+                </OrcamentosProvider>
               </SolicitacoesServicosProvider>
             </RotaProtegida>
           }
