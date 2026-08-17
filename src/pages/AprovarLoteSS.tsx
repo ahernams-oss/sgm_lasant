@@ -51,6 +51,7 @@ export default function AprovarLoteSS() {
   const [selectedPrioridade, setSelectedPrioridade] = useState("");
   const [approvalRessalva, setApprovalRessalva] = useState("");
   const [approving, setApproving] = useState(false);
+  const [viewSSTarget, setViewSSTarget] = useState<SolicitacaoServico | null>(null);
 
   const buildHistoricoEntry = (situacao: string, existingHistorico: HistoricoEntry[] = []): HistoricoEntry[] => [
     ...existingHistorico,
