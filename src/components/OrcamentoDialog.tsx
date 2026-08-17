@@ -434,13 +434,15 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={
-          expandido
-            ? "max-w-none w-[98vw] h-[96vh] max-h-[96vh] overflow-y-auto"
-            : "max-w-5xl max-h-[90vh] overflow-y-auto"
+          "w-screen max-w-[100vw] h-[100dvh] max-h-[100dvh] rounded-none overflow-y-auto p-4 " +
+          "sm:rounded-lg sm:h-auto sm:max-h-[90vh] sm:w-auto sm:p-6 " +
+          (expandido
+            ? "sm:max-w-none sm:w-[98vw] sm:h-[96vh] sm:max-h-[96vh]"
+            : "sm:max-w-5xl")
         }
       >
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
+          <DialogTitle className="flex flex-wrap items-center gap-2 sm:gap-3 pr-8 text-base sm:text-lg">
             <FileText className="h-5 w-5" />
             Orçamento — SS nº {solicitacao?.numero || existingOrcamento?.solicitacaoNumero}
             {existingOrcamento && (
@@ -453,7 +455,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
               type="button"
               variant="outline"
               size="sm"
-              className="ml-auto mr-8 gap-2"
+              className="hidden sm:inline-flex ml-auto mr-8 gap-2"
               onClick={() => setExpandido(v => !v)}
             >
               {expandido ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -485,15 +487,16 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
         )}
 
         <Tabs defaultValue="categoria" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="categoria">
+          <TabsList className="flex w-full overflow-x-auto justify-start gap-1 sm:grid sm:grid-cols-5">
+            <TabsTrigger value="categoria" className="whitespace-nowrap text-xs sm:text-sm">
               Categoria {categoria ? "✓" : <span className="text-destructive ml-1">*</span>}
             </TabsTrigger>
-            <TabsTrigger value="sco">Itens SCO ({itensSco.length})</TabsTrigger>
-            <TabsTrigger value="materiais">Materiais ({itensMateriais.length})</TabsTrigger>
-            <TabsTrigger value="memoria">Memória de Cálculo ({memoriaCalculo.length})</TabsTrigger>
-            <TabsTrigger value="anexos">Anexos ({anexos.length}/3)</TabsTrigger>
+            <TabsTrigger value="sco" className="whitespace-nowrap text-xs sm:text-sm">Itens SCO ({itensSco.length})</TabsTrigger>
+            <TabsTrigger value="materiais" className="whitespace-nowrap text-xs sm:text-sm">Materiais ({itensMateriais.length})</TabsTrigger>
+            <TabsTrigger value="memoria" className="whitespace-nowrap text-xs sm:text-sm">Memória de Cálculo ({memoriaCalculo.length})</TabsTrigger>
+            <TabsTrigger value="anexos" className="whitespace-nowrap text-xs sm:text-sm">Anexos ({anexos.length}/3)</TabsTrigger>
           </TabsList>
+
 
           {/* Categoria Tab */}
           <TabsContent value="categoria" className="space-y-3">
