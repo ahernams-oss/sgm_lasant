@@ -3,11 +3,14 @@ import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters"
 import { useSolicitacoesServicos, SolicitacaoServico, HistoricoEntry } from "@/contexts/SolicitacoesServicosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
+import { useOrcamentos } from "@/contexts/OrcamentosContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import { usePermissao } from "@/hooks/usePermissao";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { formatNumeroAno } from "@/lib/formatNumero";
+import WorkflowTimeline from "@/components/WorkflowTimeline";
+import WorkflowHistorico from "@/components/WorkflowHistorico";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { CheckCircle2, Search, ClipboardCheck } from "lucide-react";
+import { CheckCircle2, Search, ClipboardCheck, Eye, History, Clock } from "lucide-react";
 
 const PRIORIDADES = [
   { value: "Normal", color: "bg-green-500" },
