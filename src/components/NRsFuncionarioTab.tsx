@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
-import { Plus, Trash2, FileDown, Upload, FileText } from "lucide-react";
+import { Plus, AlertTriangle, Trash2, FileDown, Upload, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
