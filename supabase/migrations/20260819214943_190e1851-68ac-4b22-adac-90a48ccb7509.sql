@@ -1,0 +1,1 @@
+ALTER TABLE public.empresa ADD COLUMN IF NOT EXISTS whatsapp_diretoria text;
