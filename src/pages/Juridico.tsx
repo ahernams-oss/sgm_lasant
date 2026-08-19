@@ -218,7 +218,10 @@ export default function JuridicoPage() {
   const [decisaoDeleteId, setDecisaoDeleteId] = useState<string | null>(null);
   const [viewDecisao, setViewDecisao] = useState<Decisao | null>(null);
   const [parcelaPagar, setParcelaPagar] = useState<Parcela | null>(null);
+  const [parcelaEditar, setParcelaEditar] = useState<Parcela | null>(null);
+  const [parcelaEditForm, setParcelaEditForm] = useState({ valor: 0, data_vencimento: "", redistribuir: true });
   const [pagamentoForm, setPagamentoForm] = useState({ data_pagamento: "", valor_pago: 0, forma_pagamento: "PIX", comprovante_url: "", observacoes: "" });
+
   const [filterDecisaoStatus, setFilterDecisaoStatus] = useState("Todos");
   const [filterDecisaoTipo, setFilterDecisaoTipo] = useState("Todos");
   const [filterDecisaoBusca, setFilterDecisaoBusca] = useState("");
@@ -446,6 +449,70 @@ export default function JuridicoPage() {
     toast.success("Parcela cancelada");
     await loadParcelas();
   };
+
+  const openEditarParcela = (p: Parcela) => {
+    setParcelaEditar(p);
+    setParcelaEditForm({ valor: p.valor, data_vencimento: p.data_vencimento || "", redistribuir: true });
+  };
+
+  // Parcelas em aberto posteriores à parcela editada (base do recálculo)
+  const parcelasPosteriores = useMemo(() => {
+    if (!parcelaEditar) return [] as Parcela[];
+    return parcelas
+      .filter(x => x.decisao_id === parcelaEditar.decisao_id && x.id !== parcelaEditar.id
+        && x.status !== "Pago" && x.status !== "Cancelado" && x.numero > parcelaEditar.numero)
+      .sort((a, b) => a.numero - b.numero);
+  }, [parcelas, parcelaEditar]);
+
+  const previewRecalculo = useMemo(() => {
+    if (!parcelaEditar || !parcelaEditForm.redistribuir || parcelasPosteriores.length === 0) return null;
+    const totalAberto = parcelaEditar.valor + parcelasPosteriores.reduce((s, x) => s + x.valor, 0);
+    const restante = +(totalAberto - (Number(parcelaEditForm.valor) || 0)).toFixed(2);
+    if (restante < 0) return null;
+    const base = +(restante / parcelasPosteriores.length).toFixed(2);
+    return parcelasPosteriores.map((x, i) => ({
+      parcela: x,
+      novoValor: i === parcelasPosteriores.length - 1
+        ? +(restante - base * (parcelasPosteriores.length - 1)).toFixed(2)
+        : base,
+    }));
+  }, [parcelaEditar, parcelaEditForm, parcelasPosteriores]);
+
+  const handleSalvarParcela = async () => {
+    if (!parcelaEditar) return;
+    const novoValor = Number(parcelaEditForm.valor) || 0;
+    if (novoValor <= 0) { toast.error("Informe um valor válido"); return; }
+    if (!parcelaEditForm.data_vencimento) { toast.error("Informe o vencimento"); return; }
+    if (parcelaEditForm.redistribuir && parcelasPosteriores.length > 0 && !previewRecalculo) {
+      toast.error("Valor maior que o saldo em aberto das parcelas seguintes");
+      return;
+    }
+
+    const atualizar = async (id: string, valor: number, venc?: string) => {
+      const payload: any = { valor };
+      if (venc) payload.data_vencimento = venc;
+      const { error } = await (supabase as any).from("juridico_parcelas").update(payload).eq("id", id);
+      if (error) throw error;
+      const cpPayload: any = { valor };
+      if (venc) cpPayload.data_vencimento = venc;
+      await (supabase as any).from("fin_contas_pagar").update(cpPayload).eq("juridico_parcela_id", id);
+    };
+
+    try {
+      await atualizar(parcelaEditar.id, novoValor, parcelaEditForm.data_vencimento);
+      if (previewRecalculo) {
+        for (const r of previewRecalculo) await atualizar(r.parcela.id, r.novoValor);
+      }
+      toast.success(previewRecalculo ? "Parcela alterada e demais recalculadas" : "Parcela alterada");
+      setParcelaEditar(null);
+      await loadParcelas();
+    } catch (e) {
+      console.error(e);
+      toast.error("Erro ao alterar parcela");
+    }
+  };
+
+
 
   // Atualiza status visual de parcelas atrasadas (em memória)
   const parcelasComStatus = useMemo(() => {
@@ -1305,6 +1372,12 @@ export default function JuridicoPage() {
                                   <CreditCard className="h-4 w-4 text-green-600" />
                                 </Button>
                               )}
+                              {p.status !== "Pago" && p.status !== "Cancelado" && podeEditar && (
+                                <Button variant="ghost" size="icon" title="Alterar parcela" onClick={() => openEditarParcela(p)}>
+                                  <Edit className="h-4 w-4 text-primary" />
+                                </Button>
+                              )}
+
                               {p.status !== "Cancelado" && podeEditar && (
                                 <Button variant="ghost" size="icon" title="Cancelar parcela" onClick={() => handleCancelarParcela(p)}>
                                   <X className="h-4 w-4 text-destructive" />
@@ -1599,6 +1672,57 @@ export default function JuridicoPage() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* ============ ALTERAR PARCELA ============ */}
+        <Dialog open={!!parcelaEditar} onOpenChange={v => { if (!v) setParcelaEditar(null); }}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader><DialogTitle>Alterar Parcela {parcelaEditar?.numero}</DialogTitle></DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <Label>Valor *</Label>
+                <Input type="number" step="0.01" value={parcelaEditForm.valor}
+                  onChange={e => setParcelaEditForm({ ...parcelaEditForm, valor: Number(e.target.value) })} />
+              </div>
+              <div>
+                <Label>Vencimento *</Label>
+                <Input type="date" value={parcelaEditForm.data_vencimento}
+                  onChange={e => setParcelaEditForm({ ...parcelaEditForm, data_vencimento: e.target.value })} />
+              </div>
+              <div className="md:col-span-2 flex items-center justify-between rounded-md border p-3">
+                <div>
+                  <Label className="text-sm">Recalcular parcelas seguintes</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Mantém o total em aberto do processo, redistribuindo a diferença entre as {parcelasPosteriores.length} parcela(s) seguintes.
+                  </p>
+                </div>
+                <Switch checked={parcelaEditForm.redistribuir}
+                  onCheckedChange={v => setParcelaEditForm({ ...parcelaEditForm, redistribuir: v })} />
+              </div>
+              {parcelaEditForm.redistribuir && parcelasPosteriores.length === 0 && (
+                <p className="md:col-span-2 text-xs text-muted-foreground">Não há parcelas em aberto posteriores para recalcular.</p>
+              )}
+              {previewRecalculo && (
+                <div className="md:col-span-2 rounded-md border p-3 text-xs space-y-1 max-h-48 overflow-auto">
+                  <p className="font-semibold">Prévia do recálculo</p>
+                  {previewRecalculo.map(r => (
+                    <div key={r.parcela.id} className="flex justify-between">
+                      <span>Parcela {r.parcela.numero} — {r.parcela.data_vencimento ? new Date(r.parcela.data_vencimento + "T12:00:00").toLocaleDateString("pt-BR") : "-"}</span>
+                      <span className="text-muted-foreground">{fmt(r.parcela.valor)} → <span className="font-medium text-foreground">{fmt(r.novoValor)}</span></span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {parcelaEditForm.redistribuir && parcelasPosteriores.length > 0 && !previewRecalculo && (
+                <p className="md:col-span-2 text-xs text-destructive">Valor informado excede o saldo em aberto das parcelas seguintes.</p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setParcelaEditar(null)}>Cancelar</Button>
+              <Button onClick={handleSalvarParcela}>Salvar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
 
         {/* ============ REGISTRAR PAGAMENTO ============ */}
         <Dialog open={!!parcelaPagar} onOpenChange={() => setParcelaPagar(null)}>
