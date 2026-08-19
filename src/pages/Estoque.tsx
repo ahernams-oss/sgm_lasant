@@ -69,13 +69,15 @@ export default function EstoquePage() {
     centroCusto: { label: "Centro de Custo" },
     local: { label: "Local" },
     qtd: { label: "Qtd", className: "text-center" },
+    codSco: { label: "Cód. SCO", className: "text-center" },
+    qtdSco: { label: "Qtd SCO", className: "text-center" },
     vlrUnit: { label: "Vlr Unit.", className: "text-center" },
     documento: { label: "Documento", className: "text-center" },
     usuario: { label: "Usuário", className: "text-center" },
   };
   const { order: colOrderMov, setOrder: setColOrderMov } = useColumnOrder(
     "compras.estoque.movimentacoes",
-    ["data", "tipo", "codigo", "material", "centroCusto", "local", "qtd", "vlrUnit", "documento", "usuario"]
+    ["data", "tipo", "codigo", "material", "centroCusto", "local", "qtd", "codSco", "qtdSco", "vlrUnit", "documento", "usuario"]
   );
 
   const colDefsAlertas: Record<string, { label: string; className?: string }> = {
@@ -684,6 +686,8 @@ export default function EstoquePage() {
                     centroCusto: getCentroCustoFromDocRef(m.documentoRef),
                     local: m.local,
                     qtd: <span className="font-semibold">{m.quantidade.toLocaleString("pt-BR")}</span>,
+                    codSco: m.codSco ? <span className="font-mono text-xs" title={m.descricaoSco}>{m.codSco}</span> : "-",
+                    qtdSco: m.quantidadeSco ? m.quantidadeSco.toLocaleString("pt-BR") : "-",
                     vlrUnit: m.valorUnitario > 0 ? m.valorUnitario.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-",
                     documento: <span className="text-xs">{m.documentoRef || "-"}</span>,
                     usuario: <span className="text-xs">{m.usuario}</span>,
