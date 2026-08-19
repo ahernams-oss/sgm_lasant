@@ -161,6 +161,25 @@ export function ExamesPeriodicosTab({ funcionarioId, funcionarioNome, funcionari
     fetchExames();
   };
 
+  const handleDownloadASO = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Erro ao baixar arquivo");
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = url.split("/").pop() || "aso.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Download error:", err);
+      toast.error("Erro ao baixar o ASO.");
+    }
+  };
+
   const getStatusVencimento = (dataVencimento: string) => {
     const hoje = new Date();
     const venc = new Date(dataVencimento + 'T00:00:00');
