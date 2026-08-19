@@ -600,8 +600,15 @@ export default function OrdensServicoPage() {
   };
 
   const scosFiltered = useMemo(() => {
-    if (!scoBusca.trim()) return [];
-    const q = scoBusca.toLowerCase();
+    const raw = scoBusca.trim();
+    if (!raw) return [];
+    // "*" abre a listagem completa (igual ao mecanismo da aba de Estoque)
+    if (raw.startsWith("*")) {
+      const q = raw.slice(1).trim().toLowerCase();
+      if (!q) return scos;
+      return scos.filter(s => s.codSco.toLowerCase().includes(q) || s.descricaoSco.toLowerCase().includes(q));
+    }
+    const q = raw.toLowerCase();
     return scos.filter(s => s.codSco.toLowerCase().includes(q) || s.descricaoSco.toLowerCase().includes(q));
   }, [scos, scoBusca]);
 
