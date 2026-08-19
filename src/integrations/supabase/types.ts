@@ -4891,26 +4891,26 @@ export type Database = {
         Row: {
           codigo: string
           created_at: string
-          data_validade: string | null
           descricao: string
           id: string
           updated_at: string
+          validade_dias: number | null
         }
         Insert: {
           codigo: string
           created_at?: string
-          data_validade?: string | null
           descricao: string
           id?: string
           updated_at?: string
+          validade_dias?: number | null
         }
         Update: {
           codigo?: string
           created_at?: string
-          data_validade?: string | null
           descricao?: string
           id?: string
           updated_at?: string
+          validade_dias?: number | null
         }
         Relationships: []
       }

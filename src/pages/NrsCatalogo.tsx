@@ -10,9 +10,9 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useNrsCatalogo, NrCatalogo } from "@/contexts/NrsCatalogoContext";
 import { usePermissao } from "@/hooks/usePermissao";
 
-const emptyForm = { codigo: "", descricao: "", dataValidade: "" };
+const emptyForm = { codigo: "", descricao: "", validadeDias: "" };
 
-const formatData = (d: string) => (d ? d.split("-").reverse().join("/") : "—");
+
 
 export default function NrsCatalogoPage() {
   const { nrs, addNr, updateNr, deleteNr } = useNrsCatalogo();
@@ -38,7 +38,7 @@ export default function NrsCatalogoPage() {
     const payload = {
       codigo: form.codigo.trim(),
       descricao: form.descricao.trim(),
-      dataValidade: form.dataValidade,
+      validadeDias: form.validadeDias ? Number(form.validadeDias) : null,
     };
     if (editingId) {
       await updateNr(editingId, payload);
@@ -52,7 +52,7 @@ export default function NrsCatalogoPage() {
 
   const startEdit = (nr: NrCatalogo) => {
     setEditingId(nr.id);
-    setForm({ codigo: nr.codigo, descricao: nr.descricao, dataValidade: nr.dataValidade });
+    setForm({ codigo: nr.codigo, descricao: nr.descricao, validadeDias: nr.validadeDias != null ? String(nr.validadeDias) : "" });
   };
 
   const filtered = useMemo(() => {
@@ -75,7 +75,7 @@ export default function NrsCatalogoPage() {
           </div>
           <h1 className="text-xl font-bold text-foreground mb-1">Cadastro de NRs</h1>
           <p className="text-sm text-muted-foreground max-w-lg">
-            Cadastre as Normas Regulamentadoras com código/nome, descrição e data de validade.
+            Cadastre as Normas Regulamentadoras com código/nome, descrição e validade em dias.
           </p>
         </div>
 
@@ -87,8 +87,8 @@ export default function NrsCatalogoPage() {
               <Input value={form.codigo} onChange={(e) => update("codigo", e.target.value)} placeholder="Ex: NR-06" />
             </div>
             <div className="md:col-span-2">
-              <label className="field-label">Data de Validade</label>
-              <Input type="date" value={form.dataValidade} onChange={(e) => update("dataValidade", e.target.value)} />
+              <label className="field-label">Validade (dias)</label>
+              <Input type="number" min={0} value={form.validadeDias} onChange={(e) => update("validadeDias", e.target.value)} placeholder="Ex: 365" />
             </div>
             <div className="md:col-span-6">
               <label className="field-label">Descrição da NR *</label>
@@ -122,7 +122,7 @@ export default function NrsCatalogoPage() {
                   <TableRow>
                     <TableHead className="w-32">Cod/Nome</TableHead>
                     <TableHead>Descrição</TableHead>
-                    <TableHead className="w-36 text-center">Validade</TableHead>
+                    <TableHead className="w-36 text-center">Validade (dias)</TableHead>
                     <TableHead className="w-24 text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -131,7 +131,7 @@ export default function NrsCatalogoPage() {
                     <TableRow key={nr.id} className={idx % 2 === 1 ? "bg-gray-200/60" : "bg-white"}>
                       <TableCell className="font-medium">{nr.codigo}</TableCell>
                       <TableCell>{nr.descricao}</TableCell>
-                      <TableCell className="text-center text-sm">{formatData(nr.dataValidade)}</TableCell>
+                      <TableCell className="text-center text-sm">{nr.validadeDias != null ? `${nr.validadeDias} dias` : "—"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button size="icon" variant="ghost" onClick={() => startEdit(nr)} title="Editar">
