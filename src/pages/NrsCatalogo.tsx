@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { ShieldCheck, Plus, Search, Trash2, Pencil } from "lucide-react";
+import { ShieldCheck, Plus, Search, Trash2, Pencil, Paperclip, X, FileText } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,7 +11,7 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useNrsCatalogo, NrCatalogo } from "@/contexts/NrsCatalogoContext";
 import { usePermissao } from "@/hooks/usePermissao";
 
-const emptyForm = { codigo: "", descricao: "", validadeDias: "" };
+const emptyForm = { codigo: "", descricao: "", validadeDias: "", anexoUrl: "", anexoNome: "" };
 
 
 
@@ -26,6 +27,25 @@ export default function NrsCatalogoPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (file: File | undefined) => {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { toast.error("Arquivo maior que 10MB."); return; }
+    setUploading(true);
+    try {
+      const path = `nrs/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const { error } = await supabase.storage.from("documentos").upload(path, file);
+      if (error) throw error;
+      const { data } = supabase.storage.from("documentos").getPublicUrl(path);
+      setForm((p) => ({ ...p, anexoUrl: data.publicUrl, anexoNome: file.name }));
+      toast.success("Anexo enviado!");
+    } catch (e: any) {
+      toast.error("Erro ao enviar anexo: " + (e?.message ?? ""));
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const update = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
   const reset = () => { setForm(emptyForm); setEditingId(null); };
@@ -39,6 +59,8 @@ export default function NrsCatalogoPage() {
       codigo: form.codigo.trim(),
       descricao: form.descricao.trim(),
       validadeDias: form.validadeDias ? Number(form.validadeDias) : null,
+      anexoUrl: form.anexoUrl || null,
+      anexoNome: form.anexoNome || null,
     };
     if (editingId) {
       await updateNr(editingId, payload);
@@ -52,7 +74,7 @@ export default function NrsCatalogoPage() {
 
   const startEdit = (nr: NrCatalogo) => {
     setEditingId(nr.id);
-    setForm({ codigo: nr.codigo, descricao: nr.descricao, validadeDias: nr.validadeDias != null ? String(nr.validadeDias) : "" });
+    setForm({ codigo: nr.codigo, descricao: nr.descricao, validadeDias: nr.validadeDias != null ? String(nr.validadeDias) : "", anexoUrl: nr.anexoUrl ?? "", anexoNome: nr.anexoNome ?? "" });
   };
 
   const filtered = useMemo(() => {
@@ -90,6 +112,22 @@ export default function NrsCatalogoPage() {
               <label className="field-label">Validade (dias)</label>
               <Input type="number" min={0} value={form.validadeDias} onChange={(e) => update("validadeDias", e.target.value)} placeholder="Ex: 365" />
             </div>
+            <div className="md:col-span-2">
+              <label className="field-label">Anexo (documento ou imagem)</label>
+              {form.anexoUrl ? (
+                <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-border bg-muted/40">
+                  <FileText className="h-4 w-4 text-primary shrink-0" />
+                  <a href={form.anexoUrl} target="_blank" rel="noreferrer" className="text-sm truncate text-primary hover:underline flex-1">
+                    {form.anexoNome || "Ver anexo"}
+                  </a>
+                  <Button type="button" size="icon" variant="ghost" className="h-6 w-6" onClick={() => setForm((p) => ({ ...p, anexoUrl: "", anexoNome: "" }))}>
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <Input type="file" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx" disabled={uploading} onChange={(e) => handleUpload(e.target.files?.[0])} />
+              )}
+            </div>
             <div className="md:col-span-6">
               <label className="field-label">Descrição da NR *</label>
               <Textarea rows={2} value={form.descricao} onChange={(e) => update("descricao", e.target.value)} placeholder="Ex: Equipamentos de Proteção Individual" />
@@ -123,6 +161,7 @@ export default function NrsCatalogoPage() {
                     <TableHead className="w-32">Cod/Nome</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead className="w-36 text-center">Validade (dias)</TableHead>
+                    <TableHead className="w-24 text-center">Anexo</TableHead>
                     <TableHead className="w-24 text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -132,6 +171,15 @@ export default function NrsCatalogoPage() {
                       <TableCell className="font-medium">{nr.codigo}</TableCell>
                       <TableCell>{nr.descricao}</TableCell>
                       <TableCell className="text-center text-sm">{nr.validadeDias != null ? `${nr.validadeDias} dias` : "—"}</TableCell>
+                      <TableCell className="text-center">
+                        {nr.anexoUrl ? (
+                          <a href={nr.anexoUrl} target="_blank" rel="noreferrer" title={nr.anexoNome ?? "Anexo"} className="inline-flex text-primary hover:underline">
+                            <Paperclip className="h-4 w-4" />
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button size="icon" variant="ghost" onClick={() => startEdit(nr)} title="Editar">
