@@ -4893,8 +4893,12 @@ export type Database = {
           anexo_url: string | null
           codigo: string
           created_at: string
+          data_publicacao: string | null
+          data_vigencia: string | null
           descricao: string
           id: string
+          observacao: string | null
+          revisoes: Json
           updated_at: string
           validade_dias: number | null
         }
@@ -4903,8 +4907,12 @@ export type Database = {
           anexo_url?: string | null
           codigo: string
           created_at?: string
+          data_publicacao?: string | null
+          data_vigencia?: string | null
           descricao: string
           id?: string
+          observacao?: string | null
+          revisoes?: Json
           updated_at?: string
           validade_dias?: number | null
         }
@@ -4913,8 +4921,12 @@ export type Database = {
           anexo_url?: string | null
           codigo?: string
           created_at?: string
+          data_publicacao?: string | null
+          data_vigencia?: string | null
           descricao?: string
           id?: string
+          observacao?: string | null
+          revisoes?: Json
           updated_at?: string
           validade_dias?: number | null
         }
