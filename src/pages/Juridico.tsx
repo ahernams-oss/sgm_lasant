@@ -646,7 +646,7 @@ export default function JuridicoPage() {
               <Scale className="h-4 w-4" />
               <span className="text-xs font-medium uppercase tracking-wider">Jurídico</span>
             </div>
-            <h1 className="text-xl font-bold text-foreground mb-1">Contencioso Trabalhista</h1>
+            <h1 className="text-xl font-bold text-foreground mb-1">Contencioso Jurídico</h1>
             <p className="text-sm text-muted-foreground">Acompanhamento de processos trabalhistas da empresa</p>
           </div>
           <DropdownMenu>

@@ -165,7 +165,7 @@ const menuItems = [
   },
   {
     group: "Jurídico",
-    items: [{ title: "Contencioso Trabalhista", url: "/juridico", icon: Scale, perm: "juridico" }],
+    items: [{ title: "Contencioso Jurídico", url: "/juridico", icon: Scale, perm: "juridico" }],
   },
   {
     group: "Comunicação",
