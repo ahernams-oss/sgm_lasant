@@ -22,12 +22,17 @@ import { usePermissao } from "@/hooks/usePermissao";
 import { guardDuplicates, scanDuplicatesGrouped, type DuplicateMatch, type GroupedDuplicatePair } from "@/lib/duplicateDetection";
 import { DuplicateWarningDialog, DuplicateAnalysisDialog } from "@/components/DuplicateDialogs";
 import { Badge } from "@/components/ui/badge";
+import VinculosScoDialog from "@/components/VinculosScoDialog";
+import { useMaterialScoVinculos } from "@/contexts/MaterialScoVinculosContext";
+import { Link2 } from "lucide-react";
 
 const UNIDADES = ["UN", "M", "M²", "M³", "KG", "L", "CX", "PCT", "SC", "GL", "HR", "VB", "JG", "PR", "RL", "TB", "FD", "BD", "CJ", "DZ"];
 
 export default function MateriaisServicosPage() {
   const { materiais, addMaterial, updateMaterial, deleteMaterial } = useMateriaisServicos();
   const { classes, getDescricaoCompleta } = useCategoriasCompras();
+  const { getVinculos } = useMaterialScoVinculos();
+  const [vinculosMaterial, setVinculosMaterial] = useState<MaterialServico | null>(null);
   const { tem } = usePermissao();
   const podeCriar = tem("materiais_servicos.criar");
   const podeEditar = tem("materiais_servicos.editar");
@@ -229,6 +234,9 @@ export default function MateriaisServicosPage() {
                 {colOrder.map(key => <TableCell key={key} className={colDefs[key]?.className}>{cellMap[key]}</TableCell>)}
                 <TableCell>
                   <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" title="Vínculos SCO" onClick={() => setVinculosMaterial(m)}>
+                      <Link2 className={cn2(getVinculos(m.id).length > 0 ? "text-primary" : "text-muted-foreground", "h-4 w-4")} />
+                    </Button>
                     {podeEditar && <Button variant="ghost" size="icon" onClick={() => openEdit(m)}><Pencil className="h-4 w-4" /></Button>}
                     {podeExcluir && <Button variant="ghost" size="icon" onClick={() => requestDelete(m.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </div>
