@@ -12,7 +12,7 @@ import { useNrsCatalogo, NrCatalogo, NrRevisao } from "@/contexts/NrsCatalogoCon
 import { usePermissao } from "@/hooks/usePermissao";
 
 const emptyForm = { codigo: "", descricao: "", validadeDias: "", anexoUrl: "", anexoNome: "", observacao: "", dataPublicacao: "", dataVigencia: "" };
-const emptyRev = { revisao: "", dataPublicacao: "", dataVigencia: "", observacao: "" };
+const emptyRev: NrRevisao = { revisao: "", dataPublicacao: "", dataVigencia: "", observacao: "", anexos: [] };
 const fmtData = (d?: string | null) => (d ? new Date(d + "T00:00:00").toLocaleDateString("pt-BR") : "—");
 
 
