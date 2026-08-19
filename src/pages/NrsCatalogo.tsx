@@ -196,6 +196,7 @@ export default function NrsCatalogoPage() {
                         <TableHead className="w-36">Publicação</TableHead>
                         <TableHead className="w-36">Vigência</TableHead>
                         <TableHead>Observação</TableHead>
+                        <TableHead className="w-40">Anexos</TableHead>
                         <TableHead className="w-16 text-right">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -206,6 +207,20 @@ export default function NrsCatalogoPage() {
                           <TableCell>{fmtData(r.dataPublicacao)}</TableCell>
                           <TableCell>{fmtData(r.dataVigencia)}</TableCell>
                           <TableCell className="text-sm">{r.observacao || "—"}</TableCell>
+                          <TableCell>
+                            {r.anexos && r.anexos.length > 0 ? (
+                              <div className="flex flex-col gap-1">
+                                {r.anexos.map((a, ai) => (
+                                  <a key={ai} href={a.url} target="_blank" rel="noreferrer" title={a.nome} className="inline-flex items-center gap-1 text-xs text-primary hover:underline max-w-[150px]">
+                                    <Paperclip className="h-3 w-3 shrink-0" />
+                                    <span className="truncate">{a.nome}</span>
+                                  </a>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-right">
                             <Button type="button" size="icon" variant="ghost" className="text-destructive h-7 w-7" onClick={() => setRevisoes((p) => p.filter((_, idx) => idx !== i))}>
                               <Trash2 className="h-3.5 w-3.5" />
@@ -239,7 +254,27 @@ export default function NrsCatalogoPage() {
                     <Plus className="h-4 w-4" /> Revisão
                   </Button>
                 </div>
+                <div className="md:col-span-12">
+                  <label className="field-label">Anexos da revisão (até 3 arquivos)</label>
+                  {(novaRev.anexos?.length ?? 0) > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {novaRev.anexos!.map((a, ai) => (
+                        <div key={ai} className="flex items-center gap-2 px-2 py-1 rounded-md border border-border bg-muted/40">
+                          <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
+                          <a href={a.url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline max-w-[180px] truncate">{a.nome}</a>
+                          <Button type="button" size="icon" variant="ghost" className="h-5 w-5" onClick={() => setNovaRev((p) => ({ ...p, anexos: (p.anexos ?? []).filter((_, idx) => idx !== ai) }))}>
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {(novaRev.anexos?.length ?? 0) < 3 && (
+                    <Input type="file" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx" disabled={uploadingRev} onChange={(e) => { handleUploadRevisao(e.target.files); e.target.value = ""; }} />
+                  )}
+                </div>
               </div>
+
             </div>
             <div className="md:col-span-6">
               <label className="field-label">Descrição da NR *</label>
