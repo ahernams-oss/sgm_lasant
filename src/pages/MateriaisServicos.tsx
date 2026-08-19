@@ -22,6 +22,7 @@ import { usePermissao } from "@/hooks/usePermissao";
 import { guardDuplicates, scanDuplicatesGrouped, type DuplicateMatch, type GroupedDuplicatePair } from "@/lib/duplicateDetection";
 import { DuplicateWarningDialog, DuplicateAnalysisDialog } from "@/components/DuplicateDialogs";
 import { Badge } from "@/components/ui/badge";
+import { cn as cn2 } from "@/lib/utils";
 import VinculosScoDialog from "@/components/VinculosScoDialog";
 import { useMaterialScoVinculos } from "@/contexts/MaterialScoVinculosContext";
 import { Link2 } from "lucide-react";
@@ -324,5 +325,6 @@ export default function MateriaisServicosPage() {
       />
 
     </div>
+      <VinculosScoDialog material={vinculosMaterial} open={!!vinculosMaterial} onOpenChange={(v) => { if (!v) setVinculosMaterial(null); }} readOnly={!podeEditar} />
   );
 }
