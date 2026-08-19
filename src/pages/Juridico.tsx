@@ -218,7 +218,10 @@ export default function JuridicoPage() {
   const [decisaoDeleteId, setDecisaoDeleteId] = useState<string | null>(null);
   const [viewDecisao, setViewDecisao] = useState<Decisao | null>(null);
   const [parcelaPagar, setParcelaPagar] = useState<Parcela | null>(null);
+  const [parcelaEditar, setParcelaEditar] = useState<Parcela | null>(null);
+  const [parcelaEditForm, setParcelaEditForm] = useState({ valor: 0, data_vencimento: "", redistribuir: true });
   const [pagamentoForm, setPagamentoForm] = useState({ data_pagamento: "", valor_pago: 0, forma_pagamento: "PIX", comprovante_url: "", observacoes: "" });
+
   const [filterDecisaoStatus, setFilterDecisaoStatus] = useState("Todos");
   const [filterDecisaoTipo, setFilterDecisaoTipo] = useState("Todos");
   const [filterDecisaoBusca, setFilterDecisaoBusca] = useState("");
