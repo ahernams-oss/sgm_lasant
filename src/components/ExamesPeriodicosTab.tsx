@@ -12,7 +12,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, Upload, FileText, AlertTriangle, Bell } from "lucide-react";
+import { Plus, Trash2, Upload, FileText, AlertTriangle, Bell, Download } from "lucide-react";
 import { toast } from "sonner";
 
 const TIPOS_EXAME = [
@@ -161,6 +161,25 @@ export function ExamesPeriodicosTab({ funcionarioId, funcionarioNome, funcionari
     fetchExames();
   };
 
+  const handleDownloadASO = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Erro ao baixar arquivo");
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = url.split("/").pop() || "aso.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Download error:", err);
+      toast.error("Erro ao baixar o ASO.");
+    }
+  };
+
   const getStatusVencimento = (dataVencimento: string) => {
     const hoje = new Date();
     const venc = new Date(dataVencimento + 'T00:00:00');
@@ -272,9 +291,16 @@ export function ExamesPeriodicosTab({ funcionarioId, funcionarioNome, funcionari
                     </TableCell>
                     <TableCell>
                       {exame.anexo_aso_url ? (
-                        <a href={exame.anexo_aso_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                          <FileText className="h-4 w-4" />
-                        </a>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          type="button"
+                          onClick={() => handleDownloadASO(exame.anexo_aso_url)}
+                          className="h-7 w-7 text-primary hover:text-primary"
+                          title="Baixar ASO"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
                       ) : (
                         <label className="cursor-pointer text-muted-foreground hover:text-primary transition-colors">
                           <Upload className="h-4 w-4" />
