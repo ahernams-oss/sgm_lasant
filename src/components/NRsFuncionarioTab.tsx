@@ -179,7 +179,7 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
           />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs font-semibold text-foreground/80">Data de Entrega</Label>
+          <Label className="text-xs font-semibold text-foreground/80">Data de Conclusão</Label>
           <Input
             type="date"
             value={novaNr.dataEntrega}
@@ -212,7 +212,7 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
               <TableRow>
                 <TableHead>Número</TableHead>
                 <TableHead>Descrição</TableHead>
-                <TableHead>Data Entrega</TableHead>
+                <TableHead>Data Conclusão</TableHead>
                 <TableHead>Validade</TableHead>
                 <TableHead>Anexo</TableHead>
                 <TableHead className="w-20 text-right">Ações</TableHead>
