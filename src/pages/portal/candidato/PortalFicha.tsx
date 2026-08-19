@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import PortalLayout from "@/components/portal/PortalLayout";
+import { CONSELHOS_CLASSE } from "@/components/ConselhoClasseSection";
 import { portalCall } from "@/lib/portalClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,7 +71,7 @@ function calcProgresso(dp: any, docs: any, end: any, bc: any, deps: Dep[], ces: 
     {
       label: "Documentos",
       weight: 20,
-      items: [docs.cpf, docs.rgNumero, docs.rgOrgao, docs.rgUf, docs.rgEmissao, docs.ctpsNumero, docs.ctpsSerie, docs.ctpsUf, docs.ctpsEmissao, docs.pisPasep, docs.tituloEleitor, docs.tituloZona, docs.tituloSecao, docs.cnhNumero, docs.cnhCategoria, docs.cnhValidade, docs.cnhPrimeira, docs.certidaoTipo, docs.certidaoNumero, docs.certidaoEmissao],
+      items: [docs.cpf, docs.rgNumero, docs.rgOrgao, docs.rgUf, docs.rgEmissao, docs.ctpsNumero, docs.ctpsSerie, docs.ctpsUf, docs.ctpsEmissao, docs.pisPasep, docs.tituloEleitor, docs.tituloZona, docs.tituloSecao, docs.cnhNumero, docs.cnhCategoria, docs.cnhValidade, docs.cnhPrimeira, docs.certidaoTipo, docs.certidaoNumero, docs.certidaoEmissao, docs.conselhoClasse, docs.conselhoNumero, docs.conselhoDataExpedicao, docs.conselhoUf],
     },
     {
       label: "Endereço",
@@ -120,6 +121,7 @@ export default function PortalFicha() {
     reservistaNumero: "", reservistaCategoria: "",
     passaporteNumero: "", passaporteValidade: "",
     certidaoNumero: "", certidaoTipo: "", certidaoEmissao: "",
+    conselhoClasse: "", conselhoNumero: "", conselhoDataExpedicao: "", conselhoUf: "",
   });
   const [end, setEnd] = useState<any>({ cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "" });
   const [bc, setBc] = useState<any>({ banco: "", agencia: "", conta: "", tipoConta: "", chavePix: "" });
@@ -453,6 +455,32 @@ export default function PortalFicha() {
                   <F l="Passaporte - Número" v={docs.passaporteNumero} on={(v: string) => setDocs({ ...docs, passaporteNumero: v })} />
                   <F l="Passaporte - Validade" type="date" v={docs.passaporteValidade} on={(v: string) => setDocs({ ...docs, passaporteValidade: v })} />
                 </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Conselho de Classe</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div>
+                    <Label className="text-xs">Conselho</Label>
+                    <Select value={docs.conselhoClasse || ""} onValueChange={(v) => setDocs({ ...docs, conselhoClasse: v })}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {CONSELHOS_CLASSE.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <F l="Nº de Registro" v={docs.conselhoNumero} on={(v: string) => setDocs({ ...docs, conselhoNumero: v })} />
+                  <F l="Data de Expedição" type="date" v={docs.conselhoDataExpedicao} on={(v: string) => setDocs({ ...docs, conselhoDataExpedicao: v })} />
+                  <div>
+                    <Label className="text-xs">UF de Expedição</Label>
+                    <Select value={docs.conselhoUf || ""} onValueChange={(v) => setDocs({ ...docs, conselhoUf: v })}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {UF_OPTIONS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">Anexe a carteira do conselho na aba Documentos (tipo "Carteira do Conselho de Classe").</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Certidão</h4>
