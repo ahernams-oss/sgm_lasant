@@ -523,6 +523,7 @@ const App = () => (
     <I0Provider>
     <CategoriasComprasProvider>
     <MateriaisServicosProvider>
+    <MaterialScoVinculosProvider>
     <RequisicaoComprasProvider>
     <CotacaoComprasProvider>
     <PedidoCompraProvider>
