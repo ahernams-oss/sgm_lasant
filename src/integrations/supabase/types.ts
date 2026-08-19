@@ -3337,6 +3337,11 @@ export type Database = {
           cliente_id: string | null
           cnh: string | null
           complemento: string | null
+          conselho_anexos: Json
+          conselho_classe: string | null
+          conselho_data_expedicao: string | null
+          conselho_numero: string | null
+          conselho_uf: string | null
           conta: string | null
           contatos_emergencia: Json
           cpf: string
@@ -3410,6 +3415,11 @@ export type Database = {
           cliente_id?: string | null
           cnh?: string | null
           complemento?: string | null
+          conselho_anexos?: Json
+          conselho_classe?: string | null
+          conselho_data_expedicao?: string | null
+          conselho_numero?: string | null
+          conselho_uf?: string | null
           conta?: string | null
           contatos_emergencia?: Json
           cpf: string
@@ -3483,6 +3493,11 @@ export type Database = {
           cliente_id?: string | null
           cnh?: string | null
           complemento?: string | null
+          conselho_anexos?: Json
+          conselho_classe?: string | null
+          conselho_data_expedicao?: string | null
+          conselho_numero?: string | null
+          conselho_uf?: string | null
           conta?: string | null
           contatos_emergencia?: Json
           cpf?: string

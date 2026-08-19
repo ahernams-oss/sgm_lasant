@@ -39,6 +39,8 @@ export interface Funcionario {
   foto: string;
   escolaridade: string; cursoFormacao: string;
   contatosEmergencia: ContatoEmergencia[]; pensaoAlimenticia: any;
+  conselhoClasse: string; conselhoNumero: string; conselhoDataExpedicao: string;
+  conselhoUf: string; conselhoAnexos: AnexoDocumento[];
 }
 
 
@@ -61,6 +63,8 @@ export const emptyFuncionarioForm: Omit<Funcionario, "id"> = {
   foto: "",
   escolaridade: "", cursoFormacao: "",
   contatosEmergencia: [], pensaoAlimenticia: {},
+  conselhoClasse: "", conselhoNumero: "", conselhoDataExpedicao: "",
+  conselhoUf: "", conselhoAnexos: [],
 };
 
 
@@ -102,6 +106,9 @@ function rowToFuncionario(row: any): Funcionario {
     escolaridade: row.escolaridade ?? "", cursoFormacao: row.curso_formacao ?? "",
     contatosEmergencia: row.contatos_emergencia ?? [],
     pensaoAlimenticia: row.pensao_alimenticia ?? {},
+    conselhoClasse: row.conselho_classe ?? "", conselhoNumero: row.conselho_numero ?? "",
+    conselhoDataExpedicao: row.conselho_data_expedicao ?? "", conselhoUf: row.conselho_uf ?? "",
+    conselhoAnexos: row.conselho_anexos ?? [],
   };
 }
 
@@ -138,6 +145,11 @@ function funcionarioToRow(f: Omit<Funcionario, "id">) {
     escolaridade: f.escolaridade || null, curso_formacao: f.cursoFormacao || null,
     contatos_emergencia: (f.contatosEmergencia ?? []) as any,
     pensao_alimenticia: (f.pensaoAlimenticia ?? {}) as any,
+    conselho_classe: f.conselhoClasse || null,
+    conselho_numero: f.conselhoNumero || null,
+    conselho_data_expedicao: f.conselhoDataExpedicao || null,
+    conselho_uf: f.conselhoUf || null,
+    conselho_anexos: (f.conselhoAnexos ?? []) as any,
   };
 }
 
