@@ -54,9 +54,39 @@ export default function NrsCatalogoPage() {
   const update = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
   const reset = () => { setForm(emptyForm); setEditingId(null); setRevisoes([]); setNovaRev(emptyRev); };
 
+  const [uploadingRev, setUploadingRev] = useState(false);
+
+  const handleUploadRevisao = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const atuais = novaRev.anexos ?? [];
+    const restante = 3 - atuais.length;
+    if (restante <= 0) { toast.error("Máximo de 3 arquivos por revisão."); return; }
+    const lista = Array.from(files).slice(0, restante);
+    setUploadingRev(true);
+    try {
+      const novos: { url: string; nome: string }[] = [];
+      for (const file of lista) {
+        if (file.size > 10 * 1024 * 1024) { toast.error(`${file.name}: maior que 10MB.`); continue; }
+        const path = `nrs/revisoes/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+        const { error } = await supabase.storage.from("documentos").upload(path, file);
+        if (error) throw error;
+        const { data } = supabase.storage.from("documentos").getPublicUrl(path);
+        novos.push({ url: data.publicUrl, nome: file.name });
+      }
+      if (novos.length) {
+        setNovaRev((p) => ({ ...p, anexos: [...(p.anexos ?? []), ...novos] }));
+        toast.success("Anexo(s) enviado(s)!");
+      }
+    } catch (e: any) {
+      toast.error("Erro ao enviar anexo: " + (e?.message ?? ""));
+    } finally {
+      setUploadingRev(false);
+    }
+  };
+
   const addRevisao = () => {
     if (!novaRev.revisao.trim()) { toast.error("Informe a revisão."); return; }
-    setRevisoes((p) => [...p, { ...novaRev, revisao: novaRev.revisao.trim() }]);
+    setRevisoes((p) => [...p, { ...novaRev, revisao: novaRev.revisao.trim(), anexos: novaRev.anexos ?? [] }]);
     setNovaRev(emptyRev);
   };
 
