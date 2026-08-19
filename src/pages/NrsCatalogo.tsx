@@ -147,6 +147,14 @@ export default function NrsCatalogoPage() {
           </p>
         </div>
 
+        <div className="bg-muted/50 rounded-lg p-4 text-xs text-muted-foreground space-y-1 mb-6">
+          <p className="font-semibold flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> Avisos automáticos</p>
+          <p>O sistema enviará avisos por WhatsApp 30, 20 e 10 dias antes do vencimento de cada NR.</p>
+          <p>Os avisos são verificados automaticamente todos os dias e enviados ao WhatsApp RH, SEGTRAB e Compras.</p>
+        </div>
+
+
+
         <div className="section-card mb-6">
           <h2 className="section-title">{editingId ? "Editar NR" : "Nova NR"}</h2>
           <form onSubmit={submit} className="mt-4 grid grid-cols-1 md:grid-cols-6 gap-4">
