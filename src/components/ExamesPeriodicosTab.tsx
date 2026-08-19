@@ -12,7 +12,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, Upload, FileText, AlertTriangle, Bell } from "lucide-react";
+import { Plus, Trash2, Upload, FileText, AlertTriangle, Bell, Download } from "lucide-react";
 import { toast } from "sonner";
 
 const TIPOS_EXAME = [

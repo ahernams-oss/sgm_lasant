@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
-import { Stethoscope, Search, Trash2, Upload, FileText, Bell, AlertTriangle, Plus, FileDown, FileSpreadsheet } from "lucide-react";
+import { Stethoscope, Search, Trash2, Upload, FileText, Bell, AlertTriangle, Plus, FileDown, FileSpreadsheet, Download } from "lucide-react";
 import { gerarPdfExames } from "@/lib/gerarPdfExames";
 import { gerarExcelExames } from "@/lib/gerarExcelExames";
 import { Input } from "@/components/ui/input";
