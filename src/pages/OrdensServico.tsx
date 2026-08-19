@@ -345,6 +345,7 @@ export default function OrdensServicoPage() {
   const { items: i0Items } = useI0();
   const { funcionarios } = useFuncionarios();
   const { movimentacoes, registrarMovimentacao } = useEstoque();
+  const { getPadrao: getVinculoScoPadrao } = useMaterialScoVinculos();
   const { pedidos } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
   const { cargos } = useCargos();
