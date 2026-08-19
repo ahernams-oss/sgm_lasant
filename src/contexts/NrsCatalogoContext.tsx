@@ -15,11 +15,17 @@ export interface NrCatalogo {
   revisoes?: NrRevisao[];
 }
 
+export interface NrRevisaoAnexo {
+  url: string;
+  nome: string;
+}
+
 export interface NrRevisao {
   revisao: string;
   dataPublicacao?: string | null;
   dataVigencia?: string | null;
   observacao?: string | null;
+  anexos?: NrRevisaoAnexo[];
 }
 
 interface Ctx {
