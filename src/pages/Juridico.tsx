@@ -1372,6 +1372,12 @@ export default function JuridicoPage() {
                                   <CreditCard className="h-4 w-4 text-green-600" />
                                 </Button>
                               )}
+                              {p.status !== "Pago" && p.status !== "Cancelado" && podeEditar && (
+                                <Button variant="ghost" size="icon" title="Alterar parcela" onClick={() => openEditarParcela(p)}>
+                                  <Edit className="h-4 w-4 text-primary" />
+                                </Button>
+                              )}
+
                               {p.status !== "Cancelado" && podeEditar && (
                                 <Button variant="ghost" size="icon" title="Cancelar parcela" onClick={() => handleCancelarParcela(p)}>
                                   <X className="h-4 w-4 text-destructive" />
